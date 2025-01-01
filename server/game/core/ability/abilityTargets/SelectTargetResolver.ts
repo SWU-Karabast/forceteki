@@ -1,8 +1,8 @@
-import { ISelectTargetResolver, IChoicesInterface } from '../../../TargetInterfaces';
-import PlayerOrCardAbility from '../PlayerOrCardAbility';
-import { AbilityContext } from '../AbilityContext';
+import type { ISelectTargetResolver, IChoicesInterface } from '../../../TargetInterfaces';
+import type PlayerOrCardAbility from '../PlayerOrCardAbility';
+import type { AbilityContext } from '../AbilityContext';
 import { TargetResolver } from './TargetResolver';
-import { GameSystem } from '../../gameSystem/GameSystem';
+import type { GameSystem } from '../../gameSystem/GameSystem';
 import { SelectChoice } from './SelectChoice';
 import { Stage } from '../../Constants';
 import type Player from '../../Player';

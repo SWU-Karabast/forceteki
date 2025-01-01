@@ -13,7 +13,10 @@ describe('Overwhelming Barrage', function() {
                         groundArena: ['atst'],
                         spaceArena: ['tieln-fighter'],
                         leader: { card: 'han-solo#audacious-smuggler', deployed: true }
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -104,7 +107,10 @@ describe('Overwhelming Barrage', function() {
                     },
                     player2: {
                         groundArena: ['consular-security-force']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -113,6 +119,7 @@ describe('Overwhelming Barrage', function() {
 
                 context.player1.clickCard(context.overwhelmingBarrage);
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
+                context.player1.clickPrompt('Choose no targets');
             });
         });
     });

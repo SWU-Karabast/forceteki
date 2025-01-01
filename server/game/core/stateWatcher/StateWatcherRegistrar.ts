@@ -1,6 +1,5 @@
-import { IStateListenerProperties } from '../../Interfaces';
-import Game from '../Game';
-import Player from '../Player';
+import type { IStateListenerProperties } from '../../Interfaces';
+import type Game from '../Game';
 import * as Contract from '../utils/Contract';
 
 /**

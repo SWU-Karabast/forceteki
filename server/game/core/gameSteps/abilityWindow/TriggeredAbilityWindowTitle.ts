@@ -1,4 +1,3 @@
-import { AbilityType } from '../../Constants';
 
 // TODO: update these
 const EventToTitleFunc = {

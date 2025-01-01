@@ -1,12 +1,12 @@
-import { IOngoingEffectProps, WhenType } from '../../Interfaces';
-import { AbilityContext } from '../ability/AbilityContext';
-import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
-import { Card } from '../card/Card';
-import { Duration, ZoneFilter, RelativePlayer, WildcardZoneName } from '../Constants';
-import Game from '../Game';
-import { GameObject } from '../GameObject';
-import Player from '../Player';
-import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
+import type { IOngoingEffectProps, WhenType } from '../../Interfaces';
+import type { AbilityContext } from '../ability/AbilityContext';
+import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import type { Card } from '../card/Card';
+import type { ZoneFilter } from '../Constants';
+import { Duration, WildcardZoneName, EffectName } from '../Constants';
+import type Game from '../Game';
+import type Player from '../Player';
+import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 
 /**
  * Represents a card based effect applied to one or more targets.
@@ -112,12 +112,12 @@ export abstract class OngoingEffect {
     }
 
     public isEffectActive() {
-        if (this.duration !== Duration.Persistent) {
+        if (this.duration !== Duration.Persistent || this.impl.type === EffectName.DelayedEffect) {
             return true;
         }
 
         // disable ongoing effects if the card is queued up to be defeated (e.g. due to combat or unique rule)
-        if ((this.source.isUnit() || this.source.isUpgrade()) && this.source.isInPlay() && this.source.pendingDefeat) {
+        if ((this.source.isUnit() || this.source.isUpgrade()) && this.source.isInPlay() && this.source.disableOngoingEffectsForDefeat) {
             return false;
         }
 
@@ -134,7 +134,7 @@ export abstract class OngoingEffect {
             this.cancel();
             return stateChanged;
         } else if (typeof this.matchTarget === 'function') {
-            // HACK: type narrowing is not retained in filter call, so we cache it here as a work around.
+            // HACK: type narrowing is not retained in filter call, so we cache it here as a workaround.
             const matchTarget = this.matchTarget;
             // Get any targets which are no longer valid
             const invalidTargets = this.targets.filter((target) => !matchTarget(target, this.context) || !this.isValidTarget(target));
@@ -163,7 +163,7 @@ export abstract class OngoingEffect {
 
     public getDebugInfo() {
         return {
-            source: this.source.name,
+            source: this.source.title,
             targets: this.targets.map((target) => target.name).join(','),
             active: this.isEffectActive(),
             condition: this.condition(this.context),

@@ -1,14 +1,17 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
-import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
-import Player from '../core/Player';
-import { TokenOrPlayableCard } from '../core/card/CardTypes';
-import Game from '../core/Game';
-import { Card } from '../core/card/Card';
+import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
+import type Player from '../core/Player';
+import type { TokenOrPlayableCard } from '../core/card/CardTypes';
+import type { Card } from '../core/card/Card';
+import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 
 export interface PlayedCardEntry {
     card: TokenOrPlayableCard;
+    inPlayId?: number;
     playedBy: Player;
+    parentCard?: InPlayCard;
+    parentCardInPlayId?: number;
 }
 
 export type ICardsPlayedThisPhase = PlayedCardEntry[];
@@ -36,6 +39,11 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
             .map((entry) => entry.card);
     }
 
+    /** Check the list of played cards in the state if we found cards that match filters */
+    public someCardPlayed(filter: (entry: PlayedCardEntry) => boolean): boolean {
+        return this.getCardsPlayed(filter).length > 0;
+    }
+
     protected override setupWatcher() {
         // on card played, add the card to the player's list of cards played this phase
         this.addUpdater({
@@ -43,7 +51,13 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
                 onCardPlayed: () => true,
             },
             update: (currentState: ICardsPlayedThisPhase, event: any) =>
-                currentState.concat({ card: event.card, playedBy: event.card.controller })
+                currentState.concat({
+                    card: event.card,
+                    parentCard: event.card.parentCard ?? null,
+                    parentCardInPlayId: event.card.parentCard?.canBeInPlay() ? event.card.parentCard.inPlayId : null,
+                    inPlayId: event.card.canBeInPlay() ? event.card.inPlayId : null,
+                    playedBy: event.card.controller
+                })
         });
     }
 

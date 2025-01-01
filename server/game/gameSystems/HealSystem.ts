@@ -1,11 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { AbilityRestriction, CardType, EventName, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
-import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import * as Contract from '../core/utils/Contract';
-import * as CardHelpers from '../core/card/CardHelpers';
-import { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import type { UnitCard } from '../core/card/CardTypes';
 
 export interface IHealProperties extends ICardTargetSystemProperties {
     amount: number | ((card: UnitCard) => number);
@@ -26,7 +24,7 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
         return ['heal {1} damage from {0}', [amount, target]];
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
         if (!card.canBeDamaged()) {
             return false;
@@ -37,7 +35,7 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
         if (properties.isCost && (properties.amount === 0 || card.damage === 0)) {
             return false;
         }
-        if (card.hasRestriction(AbilityRestriction.BeHealed, context)) {
+        if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.BeHealed, context)) {
             return false;
         }
         return super.canAffect(card, context);

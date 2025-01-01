@@ -1,8 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Aspect, CardType, WildcardCardType } from '../../../core/Constants';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
 export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -23,14 +23,22 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
             title: 'Deal 1 damage to a unit and 1 damage to a base',
             cost: [AbilityHelper.costs.abilityResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolvers: {
-                unit: { cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.conditional({ condition: (context) => this.villainyCardPlayedThisPhase(context),
+                unit: {
+                    cardTypeFilter: WildcardCardType.Unit,
+                    immediateEffect: AbilityHelper.immediateEffects.conditional({
+                        condition: (context) => this.villainyCardPlayedThisPhase(context),
                         onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                        onFalse: AbilityHelper.immediateEffects.noAction() }) },
-                base: { cardTypeFilter: CardType.Base,
-                    immediateEffect: AbilityHelper.immediateEffects.conditional({ condition: (context) => this.villainyCardPlayedThisPhase(context),
+                        onFalse: AbilityHelper.immediateEffects.noAction()
+                    })
+                },
+                base: {
+                    cardTypeFilter: CardType.Base,
+                    immediateEffect: AbilityHelper.immediateEffects.conditional({
+                        condition: (context) => this.villainyCardPlayedThisPhase(context),
                         onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                        onFalse: AbilityHelper.immediateEffects.noAction() }) }
+                        onFalse: AbilityHelper.immediateEffects.noAction()
+                    })
+                }
             }
         });
     }
@@ -47,8 +55,10 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
     }
 
     private villainyCardPlayedThisPhase(context): boolean {
-        const cardsPlayedThisPhase = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) => playedCardEntry.playedBy === context.source.controller);
-        return cardsPlayedThisPhase.some((card) => card.aspects.includes(Aspect.Villainy));
+        return this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
+            playedCardEntry.playedBy === context.source.controller &&
+            playedCardEntry.card.hasSomeAspect(Aspect.Villainy)
+        );
     }
 }
 

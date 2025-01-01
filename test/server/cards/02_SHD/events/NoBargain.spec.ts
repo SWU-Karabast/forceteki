@@ -9,7 +9,8 @@ describe('No Bargain', function() {
                     },
                     player2: {
                         hand: ['pillage', 'crafty-smuggler'],
-                    }
+                    },
+                    autoSingleTarget: true
                 });
             });
 
@@ -41,7 +42,8 @@ describe('No Bargain', function() {
                     },
                     player2: {
                         hand: [],
-                    }
+                    },
+                    autoSingleTarget: true
                 });
             });
 

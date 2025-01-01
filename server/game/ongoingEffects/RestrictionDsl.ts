@@ -1,6 +1,3 @@
-import { MoveCardSystem } from '../gameSystems/MoveCardSystem';
-import { OngoingEffectValueWrapper } from '../core/ongoingEffect/effectImpl/OngoingEffectValueWrapper';
-import { ZoneName } from '../core/Constants';
 
 const getApplyingPlayer = (effect) => {
     return effect.applyingPlayer || effect.context.player;
@@ -33,7 +30,7 @@ export const restrictionDsl = {
     // attackingCharacters: (context) =>
     //     context.game.currentConflict && context.source.type === CardTypes.Character && context.source.isAttacking(),
     // cardEffects: (context) =>
-    //     (context.ability.isCardAbility() || !context.ability.isCardPlayed()) &&
+    //     (context.ability.isCardAbility() || !context.ability.isPlayCardAbility()) &&
     //     context.stage !== Stages.Cost &&
     //     [
     //         CardTypes.Event,
@@ -64,7 +61,7 @@ export const restrictionDsl = {
     //     context.source.type === CardTypes.Attachment,
     // opponentsCardEffects: (context, effect) =>
     //     context.player === getApplyingPlayer(effect).opponent &&
-    //     (context.ability.isCardAbility() || !context.ability.isCardPlayed()) &&
+    //     (context.ability.isCardAbility() || !context.ability.isPlayCardAbility()) &&
     //     [
     //         CardTypes.Event,
     //         CardTypes.Character,
@@ -76,7 +73,7 @@ export const restrictionDsl = {
     //     ].includes(context.source.type),
     // opponentsProvinceEffects: (context, effect) =>
     //     context.player === getApplyingPlayer(effect).opponent &&
-    //     (context.ability.isCardAbility() || !context.ability.isCardPlayed()) &&
+    //     (context.ability.isCardAbility() || !context.ability.isPlayCardAbility()) &&
     //     [CardTypes.Province].includes(context.source.type),
     // opponentsEvents: (context, effect) =>
     //     context.player &&

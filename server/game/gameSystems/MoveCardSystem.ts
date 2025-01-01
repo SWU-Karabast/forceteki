@@ -1,11 +1,11 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import type { MoveZoneDestination } from '../core/Constants';
 import {
     CardType,
     DeckZoneDestination,
     EventName,
     GameStateChangeRequired,
-    MoveZoneDestination,
     WildcardCardType,
     ZoneName
 } from '../core/Constants';
@@ -105,11 +105,15 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
 
-        // Ensure that we have a valid destination and that the card can be moved there
-        Contract.assertTrue(
-            destination && context.player.isLegalZoneForCardType(card.type, destination),
-            `${destination} is not a valid zone for ${card.type}`
-        );
+        if (card.isToken()) {
+            Contract.assertTrue(destination !== ZoneName.Base, `${destination} is not a valid zone for a token card`);
+        } else {
+            // Ensure that we have a valid destination and that the card can be moved there
+            Contract.assertTrue(
+                destination && context.player.isLegalZoneForCardType(card.type, destination),
+                `${destination} is not a valid zone for ${card.type}`
+            );
+        }
 
         // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
         if (destination === ZoneName.Hand) {

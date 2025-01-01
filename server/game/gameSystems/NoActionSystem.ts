@@ -1,8 +1,8 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameSystem, type IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { Card } from '../core/card/Card';
-import { GameEvent } from '../core/event/GameEvent';
+import type { Card } from '../core/card/Card';
 import { MetaEventName } from '../core/Constants';
+import type { GameObject } from '../core/GameObject';
 
 export interface INoActionSystemProperties extends IGameSystemProperties {
     hasLegalTarget?: boolean;
@@ -31,7 +31,7 @@ export class NoActionSystem<TContext extends AbilityContext = AbilityContext> ex
         return allowTargetSelection;
     }
 
-    protected override isTargetTypeValid(target: any): boolean {
+    protected override isTargetTypeValid(target: GameObject): boolean {
         return true;
     }
 }

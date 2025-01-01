@@ -15,6 +15,9 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                         groundArena: ['wampa'],
                         spaceArena: ['tieln-fighter'],
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
                 const { context } = contextRef;
 
@@ -83,6 +86,9 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                         groundArena: ['wampa'],
                         spaceArena: ['tieln-fighter'],
                     },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

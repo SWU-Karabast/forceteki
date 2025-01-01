@@ -1,86 +1,108 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { ZoneName, DeckZoneDestination, PlayType } from '../core/Constants';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer } from '../core/Constants';
+import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 
-// import { AddTokenAction, AddTokenProperties } from './AddTokenAction';
-import { AttachUpgradeSystem, IAttachUpgradeProperties } from './AttachUpgradeSystem';
-import { CaptureSystem, ICaptureProperties } from './CaptureSystem';
-import { CardLastingEffectSystem, ICardLastingEffectProperties } from './CardLastingEffectSystem';
-import { CardPhaseLastingEffectSystem, ICardPhaseLastingEffectProperties } from './CardPhaseLastingEffectSystem';
-import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import { ConditionalSystem, IConditionalSystemProperties } from './ConditionalSystem';
-import { DamageSystem, IDamageProperties } from './DamageSystem';
-import { DeployLeaderSystem, IDeployLeaderProperties } from './DeployLeaderSystem';
-import { DefeatCardSystem, IDefeatCardProperties } from './DefeatCardSystem';
-import { DistributeDamageSystem, IDistributeDamageSystemProperties } from './DistributeDamageSystem';
-import { DistributeHealingSystem, IDistributeHealingSystemProperties } from './DistributeHealingSystem';
-// import { CardMenuAction, CardMenuProperties } from './CardMenuAction';
-// import { ChooseActionProperties, ChooseGameAction } from './ChooseGameAction';
-// import { ChosenDiscardAction, ChosenDiscardProperties } from './ChosenDiscardAction';
-// import { ChosenReturnToDeckAction, ChosenReturnToDeckProperties } from './ChosenReturnToDeckAction';
-// import { CreateTokenAction, CreateTokenProperties } from './CreateTokenAction';
-// import { DetachAction, DetachActionProperties } from './DetachAction';
-// import { DiscardCardAction, DiscardCardProperties } from './DiscardSpecificCardAction';
-// import { DiscardFromPlayAction, DiscardFromPlayProperties } from './DiscardFromPlayAction';
-// import { DiscardStatusAction, DiscardStatusProperties } from './DiscardStatusAction';
-import { DiscardSpecificCardSystem, IDiscardSpecificCardProperties } from './DiscardSpecificCardSystem';
-import { DrawSystem, IDrawProperties } from './DrawSystem';
-import { DrawSpecificCardSystem, IDrawSpecificCardProperties } from './DrawSpecificCardSystem';
-import { ExhaustSystem, IExhaustSystemProperties } from './ExhaustSystem';
-// import { GainStatusTokenAction, GainStatusTokenProperties } from './GainStatusTokenAction';
-import { ExecuteHandlerSystem, IExecuteHandlerSystemProperties } from './ExecuteHandlerSystem';
-// import { IfAbleAction, IfAbleActionProperties } from './IfAbleAction';
-import { GiveExperienceSystem, IGiveExperienceProperties } from './GiveExperienceSystem';
-import { GiveShieldSystem, IGiveShieldProperties } from './GiveShieldSystem';
-import { HealSystem, IHealProperties } from './HealSystem';
-import { InitiateAttackSystem, IInitiateAttackProperties } from './InitiateAttackSystem';
-// import { JointGameAction } from './JointGameAction';
-// import { LastingEffectAction, LastingEffectProperties } from './LastingEffectAction';
-// import { LastingEffectRingAction, LastingEffectRingProperties } from './LastingEffectRingAction';
-import { LookAtSystem, ILookAtProperties } from './LookAtSystem';
-// import { MatchingDiscardAction, MatchingDiscardProperties } from './MatchingDiscardAction';
-// import { MenuPromptAction, MenuPromptProperties } from './MenuPromptAction';
-import { MoveCardSystem, IMoveCardProperties } from './MoveCardSystem';
-// import { MoveTokenAction, MoveTokenProperties } from './MoveTokenAction';
-// import { MultipleContextActionProperties, MultipleContextGameAction } from './MultipleContextGameAction';
-// import { MultipleGameAction } from './MultipleGameAction';
-import { NoActionSystem, INoActionSystemProperties } from './NoActionSystem';
-// import { OpponentPutIntoPlayAction, OpponentPutIntoPlayProperties } from './OpponentPutIntoPlayAction';
-// import { PlaceCardUnderneathAction, PlaceCardUnderneathProperties } from './PlaceCardUnderneathAction';
-import { PlayCardSystem, IPlayCardProperties } from '../gameSystems/PlayCardSystem';
-import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import { PutIntoPlaySystem, IPutIntoPlayProperties } from './PutIntoPlaySystem';
-import { ReadySystem, IReadySystemProperties } from './ReadySystem';
-import { ReadyResourcesSystem, IReadyResourcesSystemProperties } from './ReadyResourcesSystem';
-// import { RemoveFromGameAction, RemoveFromGameProperties } from './RemoveFromGameAction';
-import { ReplacementEffectSystem, IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
-import { ResourceCardSystem, IResourceCardProperties } from './ResourceCardSystem';
-// import { ResolveAbilityAction, ResolveAbilityProperties } from './ResolveAbilityAction';
-// import { ReturnToDeckSystem, IReturnToDeckProperties } from './ReturnToDeckSystem';
-import { RevealSystem, IRevealProperties } from './RevealSystem';
-import { ExhaustResourcesSystem, IExhaustResourcesProperties } from './ExhaustResourcesSystem';
-import { SearchDeckSystem, ISearchDeckProperties } from './SearchDeckSystem';
-import { SelectCardSystem, ISelectCardProperties } from './SelectCardSystem';
-// import { SelectTokenAction, SelectTokenProperties } from './SelectTokenAction';
-// import { SequentialContextAction, SequentialContextProperties } from './SequentialContextAction';
+import type { AggregateSystem, ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
+import type { IAttachUpgradeProperties } from './AttachUpgradeSystem';
+import { AttachUpgradeSystem } from './AttachUpgradeSystem';
+import type { ICaptureProperties } from './CaptureSystem';
+import { CaptureSystem } from './CaptureSystem';
+import type { ICardAttackLastingEffectProperties } from './CardAttackLastingEffectSystem';
+import { CardAttackLastingEffectSystem } from './CardAttackLastingEffectSystem';
+import type { ICardLastingEffectProperties } from './CardLastingEffectSystem';
+import { CardLastingEffectSystem } from './CardLastingEffectSystem';
+import type { ICardPhaseLastingEffectProperties } from './CardPhaseLastingEffectSystem';
+import { CardPhaseLastingEffectSystem } from './CardPhaseLastingEffectSystem';
+import type { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import type { IPlayModalCardProperties } from './ChooseModalEffectsSystem';
+import { ChooseModalEffectsSystem } from './ChooseModalEffectsSystem';
+import type { IConditionalSystemProperties } from './ConditionalSystem';
+import { ConditionalSystem } from './ConditionalSystem';
+import type { ICreateBattleDroidProperties } from './CreateBattleDroidSystem';
+import { CreateBattleDroidSystem } from './CreateBattleDroidSystem';
+import type { ICreateCloneTrooperProperties } from './CreateCloneTrooperSystem';
+import { CreateCloneTrooperSystem } from './CreateCloneTrooperSystem';
+import type { IDamageProperties } from './DamageSystem';
+import { DamageSystem } from './DamageSystem';
+import type { IDefeatCardProperties } from './DefeatCardSystem';
+import { DefeatCardSystem } from './DefeatCardSystem';
+import type { IDelayedEffectSystemProperties } from './DelayedEffectSystem';
+import { DelayedEffectSystem, DelayedEffectType } from './DelayedEffectSystem';
+import type { IDeployLeaderProperties } from './DeployLeaderSystem';
+import { DeployLeaderSystem } from './DeployLeaderSystem';
+import type { IDiscardCardsFromHandProperties } from './DiscardCardsFromHandSystem';
+import { DiscardCardsFromHandSystem } from './DiscardCardsFromHandSystem';
+import type { IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
+import { DiscardEntireHandSystem } from './DiscardEntireHandSystem';
+import type { IDiscardFromDeckProperties } from './DiscardFromDeckSystem';
+import { DiscardFromDeckSystem } from './DiscardFromDeckSystem';
+import type { IDiscardSpecificCardProperties } from './DiscardSpecificCardSystem';
+import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
+import type { IDistributeDamageSystemProperties } from './DistributeDamageSystem';
+import { DistributeDamageSystem } from './DistributeDamageSystem';
+import type { IDistributeExperienceSystemProperties } from './DistributeExperienceSystem';
+import { DistributeExperienceSystem } from './DistributeExperienceSystem';
+import type { IDistributeHealingSystemProperties } from './DistributeHealingSystem';
+import { DistributeHealingSystem } from './DistributeHealingSystem';
+import type { IDrawSpecificCardProperties } from './DrawSpecificCardSystem';
+import { DrawSpecificCardSystem } from './DrawSpecificCardSystem';
+import type { IDrawProperties } from './DrawSystem';
+import { DrawSystem } from './DrawSystem';
+import type { IExecuteHandlerSystemProperties } from './ExecuteHandlerSystem';
+import { ExecuteHandlerSystem } from './ExecuteHandlerSystem';
+import type { IExhaustResourcesProperties } from './ExhaustResourcesSystem';
+import { ExhaustResourcesSystem } from './ExhaustResourcesSystem';
+import type { IExhaustSystemProperties } from './ExhaustSystem';
+import { ExhaustSystem } from './ExhaustSystem';
+import type { IGiveExperienceProperties } from './GiveExperienceSystem';
+import { GiveExperienceSystem } from './GiveExperienceSystem';
+import type { IGiveShieldProperties } from './GiveShieldSystem';
+import { GiveShieldSystem } from './GiveShieldSystem';
+import type { IHealProperties } from './HealSystem';
+import { HealSystem } from './HealSystem';
+import type { IInitiateAttackProperties } from './InitiateAttackSystem';
+import { InitiateAttackSystem } from './InitiateAttackSystem';
+import type { ILookAtProperties } from './LookAtSystem';
+import { LookAtSystem } from './LookAtSystem';
+import type { ILookMoveDeckCardsTopOrBottomProperties } from './LookMoveDeckCardsTopOrBottomSystem';
+import { LookMoveDeckCardsTopOrBottomSystem } from './LookMoveDeckCardsTopOrBottomSystem';
+import type { IMoveCardProperties } from './MoveCardSystem';
+import { MoveCardSystem } from './MoveCardSystem';
+import type { INoActionSystemProperties } from './NoActionSystem';
+import { NoActionSystem } from './NoActionSystem';
+import type { IPlayCardProperties } from '../gameSystems/PlayCardSystem';
+import { PlayCardSystem } from '../gameSystems/PlayCardSystem';
+import type { IPlayerLastingEffectProperties } from './PlayerLastingEffectSystem';
+import { PlayerLastingEffectSystem } from './PlayerLastingEffectSystem';
+import type { IPlayerPhaseLastingEffectProperties } from './PlayerPhaseLastingEffectSystem';
+import { PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
+import type { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import type { IPutIntoPlayProperties } from './PutIntoPlaySystem';
+import { PutIntoPlaySystem } from './PutIntoPlaySystem';
+import type { IReadyResourcesSystemProperties } from './ReadyResourcesSystem';
+import { ReadyResourcesSystem } from './ReadyResourcesSystem';
+import type { IReadySystemProperties } from './ReadySystem';
+import { ReadySystem } from './ReadySystem';
+import type { IReplacementEffectSystemProperties } from './ReplacementEffectSystem';
+import { ReplacementEffectSystem } from './ReplacementEffectSystem';
+import type { IRescueProperties } from './RescueSystem';
+import { RescueSystem } from './RescueSystem';
+import type { IResourceCardProperties } from './ResourceCardSystem';
+import { ResourceCardSystem } from './ResourceCardSystem';
+import type { IRevealProperties } from './RevealSystem';
+import { RevealSystem } from './RevealSystem';
+import type { ISearchDeckProperties } from './SearchDeckSystem';
+import { SearchDeckSystem } from './SearchDeckSystem';
+import type { ISelectCardProperties } from './SelectCardSystem';
+import { SelectCardSystem } from './SelectCardSystem';
 import { SequentialSystem } from './SequentialSystem';
-import { ShuffleDeckSystem, IShuffleDeckProperties } from './ShuffleDeckSystem';
+import type { IShuffleDeckProperties } from './ShuffleDeckSystem';
+import { ShuffleDeckSystem } from './ShuffleDeckSystem';
 import { SimultaneousGameSystem } from './SimultaneousSystem';
-import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-import { IPlayerLastingEffectProperties, PlayerLastingEffectSystem } from './PlayerLastingEffectSystem';
-import { IPlayerPhaseLastingEffectProperties, PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
-import { ILookMoveDeckCardsTopOrBottomProperties, LookMoveDeckCardsTopOrBottomSystem } from './LookMoveDeckCardsTopOrBottomSystem';
-import { DiscardFromDeckSystem, IDiscardFromDeckProperties } from './DiscardFromDeckSystem';
-import { DiscardCardsFromHand, IDiscardCardsFromHandProperties } from './DiscardCardsFromHand';
-import { DiscardEntireHandSystem, IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
-import { AggregateSystem, ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
-import { CardAttackLastingEffectSystem, ICardAttackLastingEffectProperties } from './CardAttackLastingEffectSystem';
-import { IRescueProperties, RescueSystem } from './RescueSystem';
-import { ITakeControlProperties, TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
-import { ChooseModalEffectsSystem, IPlayModalCardProperties } from './ChooseModalEffectsSystem';
-// import { TakeControlAction, TakeControlProperties } from './TakeControlAction';
-// import { TriggerAbilityAction, TriggerAbilityProperties } from './TriggerAbilityAction';
-// import { TurnCardFacedownAction, TurnCardFacedownProperties } from './TurnCardFacedownAction';
+import type { ITakeControlProperties } from './TakeControlOfUnitSystem';
+import { TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
+
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -99,15 +121,18 @@ export function attachUpgrade<TContext extends AbilityContext = AbilityContext>(
 export function attack<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IInitiateAttackProperties, TContext> = {}): CardTargetSystem<TContext> {
     return new InitiateAttackSystem<TContext>(propertyFactory);
 }
-export function capture<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICaptureProperties, TContext> = {}): GameSystem<TContext> {
+export function capture<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICaptureProperties, TContext> = {}) {
     return new CaptureSystem<TContext>(propertyFactory);
 }
 export function cardLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardLastingEffectProperties, TContext>): GameSystem<TContext> {
     return new CardLastingEffectSystem<TContext>(propertyFactory);
 }
-// export function createToken(propertyFactory: PropsFactory<CreateTokenProperties> = {}): GameSystem {
-//     return new CreateTokenAction(propertyFactory);
-// }
+export function createBattleDroid<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateBattleDroidProperties, TContext> = {}) {
+    return new CreateBattleDroidSystem<TContext>(propertyFactory);
+}
+export function createCloneTrooper<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateCloneTrooperProperties, TContext> = {}) {
+    return new CreateCloneTrooperSystem<TContext>(propertyFactory);
+}
 export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDamageProperties, TContext>) {
     return new DamageSystem<TContext, IDamageProperties>(propertyFactory);
 }
@@ -116,6 +141,9 @@ export function distributeDamageAmong<TContext extends AbilityContext = AbilityC
 }
 export function distributeHealingAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeHealingSystemProperties, TContext>) {
     return new DistributeHealingSystem<TContext>(propertyFactory);
+}
+export function distributeExperienceAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeExperienceSystemProperties, TContext>) {
+    return new DistributeExperienceSystem<TContext>(propertyFactory);
 }
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}): GameSystem {
 //     return new DetachAction(propertyFactory);
@@ -309,9 +337,28 @@ export function takeControlOfUnit<TContext extends AbilityContext = AbilityConte
 // //////////////
 // // PLAYER
 // //////////////
-export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext>): DiscardCardsFromHand<TContext> {
-    // TODO: Once we support discarding from opponents hand, add logic only allow the target to discard from their own hand here
-    return new DiscardCardsFromHand<TContext>(propertyFactory);
+export function discardCardsFromOwnHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDiscardCardsFromHandProperties, 'choosingPlayer'>, TContext>): DiscardCardsFromHandSystem<TContext> {
+    const wrappedPropertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext> = (context: TContext) => {
+        const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
+        return {
+            ...properties,
+            choosingPlayer: RelativePlayer.Self
+        };
+    };
+
+    return new DiscardCardsFromHandSystem<TContext>(wrappedPropertyFactory);
+}
+
+export function discardCardsFromOpponentsHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDiscardCardsFromHandProperties, 'choosingPlayer'>, TContext>): DiscardCardsFromHandSystem<TContext> {
+    const wrappedPropertyFactory: PropsFactory<IDiscardCardsFromHandProperties, TContext> = (context: TContext) => {
+        const properties = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
+        return {
+            ...properties,
+            choosingPlayer: RelativePlayer.Opponent,
+        };
+    };
+
+    return new DiscardCardsFromHandSystem<TContext>(wrappedPropertyFactory);
 }
 
 /**
@@ -373,8 +420,22 @@ export function forThisPhasePlayerEffect<TContext extends AbilityContext = Abili
 export function readyResources<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IReadyResourcesSystemProperties, TContext>): GameSystem<TContext> {
     return new ReadyResourcesSystem<TContext>(propertyFactory);
 }
-export function playerLastingEffect(propertyFactory: PropsFactory<IPlayerLastingEffectProperties>): GameSystem {
-    return new PlayerLastingEffectSystem(propertyFactory);
+export function playerLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayerLastingEffectProperties>): GameSystem<TContext> {
+    return new PlayerLastingEffectSystem<TContext>(propertyFactory);
+}
+export function delayedCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectSystemProperties, 'effectType'>>) {
+    return new DelayedEffectSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectSystemProperties, 'effectType'>(
+            propertyFactory,
+            { effectType: DelayedEffectType.Card }
+        ));
+}
+export function delayedPlayerEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectSystemProperties, 'effectType'>>) {
+    return new DelayedEffectSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectSystemProperties, 'effectType'>(
+            propertyFactory,
+            { effectType: DelayedEffectType.Player }
+        ));
 }
 
 // //////////////

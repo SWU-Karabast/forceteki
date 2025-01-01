@@ -1,11 +1,10 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../core/Constants';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import { ready } from './GameSystemLibrary';
 import * as Contract from '../core/utils/Contract';
-import { GameEvent } from '../core/event/GameEvent';
+import type { GameEvent } from '../core/event/GameEvent';
+import { ReadySystem } from './ReadySystem';
 
 export interface IResourceCardProperties extends ICardTargetSystemProperties {
     // TODO: remove completely if faceup logic is not needed
@@ -56,7 +55,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
         if (properties.readyResource) {
             event.setContingentEventsGenerator((event) => {
-                return [ready({ target: card }).generateEvent(context)];
+                return [new ReadySystem({ target: card }).generateEvent(context)];
             });
         }
         super.updateEvent(event, target, context, additionalProperties);

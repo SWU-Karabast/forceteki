@@ -1,13 +1,3 @@
-interface Player {
-    user: {
-        username: string;
-        emailHash: string;
-        settings: {
-            disableGravatar: boolean;
-        };
-    };
-}
-
 type MsgArg = string | { name: string } | { getShortSummary: () => string };
 
 type MessageText = string | (string | number)[];
@@ -18,11 +8,10 @@ export class GameChat {
         message: MessageText | { alert: { type: string; message: string | string[] } };
     }[] = [];
 
-    public addChatMessage(player: Player, message: any): void {
+    public addChatMessage(player: any, message: any): void {
         const playerArg = {
-            name: player.user.username,
-            emailHash: player.user.emailHash,
-            noAvatar: player.user.settings.disableGravatar
+            name: player.username,
+            email: player.email,
         };
 
         this.addMessage('{0} {1}', playerArg, message);

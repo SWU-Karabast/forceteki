@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 
-const ChatCommands = require('./chat/ChatCommands.js');
+// const ChatCommands = require('./chat/ChatCommands.js');
 const { GameChat } = require('./chat/GameChat.js');
 const { OngoingEffectEngine } = require('./ongoingEffect/OngoingEffectEngine.js');
 const Player = require('./Player.js');
@@ -17,9 +17,7 @@ const SelectCardPrompt = require('./gameSteps/prompts/SelectCardPrompt.js');
 const GameOverPrompt = require('./gameSteps/prompts/GameOverPrompt.js');
 const GameSystems = require('../gameSystems/GameSystemLibrary.js');
 const { GameEvent } = require('./event/GameEvent.js');
-const InitiateCardAbilityEvent = require('./event/InitiateCardAbilityEvent.js');
 const { EventWindow, TriggerHandlingMode } = require('./event/EventWindow');
-const InitiateAbilityEventWindow = require('./gameSteps/abilityWindow/InitiateAbilityEventWindow.js');
 const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
@@ -28,9 +26,7 @@ const { cards } = require('../cards/Index.js');
 // const ConflictFlow = require('./gamesteps/conflict/conflictflow');
 // const MenuCommands = require('./MenuCommands');
 
-const { EventName, ZoneName, TokenName, Trait, WildcardZoneName } = require('./Constants.js');
-const { BaseStepWithPipeline } = require('./gameSteps/BaseStepWithPipeline.js');
-const { default: Shield } = require('../cards/01_SOR/tokens/Shield.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -49,7 +45,7 @@ class Game extends EventEmitter {
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.playersAndSpectators = {};
         this.gameChat = new GameChat();
-        this.chatCommands = new ChatCommands(this);
+        // this.chatCommands = new ChatCommands(this);
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.name = details.name;
@@ -69,6 +65,7 @@ class Game extends EventEmitter {
         this.gameMode = details.gameMode;
         this.currentPhase = null;
         this.password = details.password;
+        this.playableCardTitles = details.playableCardTitles;
         this.roundNumber = 0;
         this.initialFirstPlayer = null;
         this.initiativePlayer = null;
@@ -86,17 +83,17 @@ class Game extends EventEmitter {
         Contract.assertArraySize(details.players, 2, 'Game must have exactly 2 players');
 
         details.players.forEach((player) => {
-            this.playersAndSpectators[player.user.username] = new Player(
-                player.id,
+            this.playersAndSpectators[player.user.id] = new Player(
+                player.user.id,
                 player.user,
-                this.owner === player.user.username,
+                this.owner === player.user.id,
                 this,
                 details.clocks
             );
         });
 
         details.spectators?.forEach((spectator) => {
-            this.playersAndSpectators[spectator.user.username] = new Spectator(spectator.id, spectator.user);
+            this.playersAndSpectators[spectator.user.id] = new Spectator(spectator.id, spectator.user);
         });
 
         const [player1, player2] = this.getPlayers();
@@ -177,10 +174,19 @@ class Game extends EventEmitter {
      * @returns {Player}
      */
     getPlayerByName(playerName) {
-        Contract.assertHasProperty(this.playersAndSpectators, playerName);
+        const player = this.getPlayers().find((player) => player.name === playerName);
+        if (player) {
+            return player;
+        }
 
-        let player = this.playersAndSpectators[playerName];
-        Contract.assertFalse(this.isSpectator(player), `Player ${playerName} is a spectator`);
+        throw new Error(`Player with name ${playerName} not found`);
+    }
+
+    getPlayerById(playerId) {
+        Contract.assertHasProperty(this.playersAndSpectators, playerId);
+
+        let player = this.playersAndSpectators[playerId];
+        Contract.assertFalse(this.isSpectator(player), `Player ${player.name} is a spectator`);
 
         return player;
     }
@@ -580,8 +586,8 @@ class Game extends EventEmitter {
         }
     }
 
-    selectDeck(playerName, deck) {
-        let player = this.getPlayerByName(playerName);
+    selectDeck(playerId, deck) {
+        let player = this.getPlayerById(playerId);
         if (player) {
             player.selectDeck(deck);
         }
@@ -888,13 +894,6 @@ class Game extends EventEmitter {
         return resolver;
     }
 
-    openSimultaneousEffectWindow(choices) {
-        throw new Error('Simultaneous effects not implemented yet');
-        // let window = new SimultaneousEffectWindow(this);
-        // choices.forEach((choice) => window.addToWindow(choice));
-        // this.queueStep(window);
-    }
-
     /**
      * Creates a game GameEvent, and opens a window for it.
      * @param {String} eventName
@@ -1186,11 +1185,8 @@ class Game extends EventEmitter {
      * @param {*} tokenCardsData object in the form `{ tokenName: tokenCardData }`
      */
     initialiseTokens(tokenCardsData) {
-        for (const tokenName of Object.values(TokenName)) {
-            if (!(tokenName in tokenCardsData)) {
-                throw new Error(`Token type '${tokenName}' was not included in token data for game initialization`);
-            }
-        }
+        this.checkTokenDataProvided(TokenUpgradeName, tokenCardsData);
+        this.checkTokenDataProvided(TokenUnitName, tokenCardsData);
 
         this.tokenFactories = {};
 
@@ -1201,12 +1197,20 @@ class Game extends EventEmitter {
         }
     }
 
+    checkTokenDataProvided(tokenTypeNames, tokenCardsData) {
+        for (const tokenName of Object.values(tokenTypeNames)) {
+            if (!(tokenName in tokenCardsData)) {
+                throw new Error(`Token type '${tokenName}' was not included in token data for game initialization`);
+            }
+        }
+    }
+
     /**
-     * Creates a new shield token in an out of play zone owned by the player and
+     * Creates a new token in an out of play zone owned by the player and
      * adds it to all relevant card lists
      * @param {Player} player
-     * @param {TokenName} tokenName
-     * @returns {Shield}
+     * @param {import('./Constants.js').TokenName} tokenName
+     * @returns {Card}
      */
     generateToken(player, tokenName) {
         const token = this.tokenFactories[tokenName](player);
@@ -1325,13 +1329,13 @@ class Game extends EventEmitter {
     // /*
     //  * This information is sent to the client
     //  */
-    getState(notInactivePlayerName) {
-        let activePlayer = this.playersAndSpectators[notInactivePlayerName] || new AnonymousSpectator();
+    getState(notInactivePlayerId) {
+        let activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
         let playerState = {};
         let { blocklist, email, emailHash, promptedActionWindows, settings, ...simplifiedOwner } = this.owner;
         if (this.started) {
             for (const player of this.getPlayers()) {
-                playerState[player.name] = player.getState(activePlayer);
+                playerState[player.id] = player.getState(activePlayer);
             }
 
             return {

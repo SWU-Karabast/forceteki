@@ -1,18 +1,19 @@
-import Player from '../Player';
+import type Player from '../Player';
 import { WithPrintedHp } from './propertyMixins/PrintedHp';
 import { WithCost } from './propertyMixins/Cost';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
-import { AbilityType, CardType, KeywordName, ZoneName, MoveZoneDestination, PlayType, WildcardRelativePlayer } from '../Constants';
-import { TokenOrPlayableCard, UnitCard } from './CardTypes';
+import type { MoveZoneDestination } from '../Constants';
+import { AbilityType, CardType, ZoneName, WildcardRelativePlayer } from '../Constants';
+import type { TokenOrPlayableCard, UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
-import { Card } from './Card';
-import AbilityHelper from '../../AbilityHelper';
+import type { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import type { Card } from './Card';
+import OngoingEffectLibrary from '../../ongoingEffects/OngoingEffectLibrary';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import { AbilityContext } from '../ability/AbilityContext';
-import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import type { AbilityContext } from '../ability/AbilityContext';
+import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 
 interface IGainCondition<TSource extends UpgradeCard> {
     gainCondition?: (context: AbilityContext<TSource>) => boolean;
@@ -36,21 +37,21 @@ export class UpgradeCard extends UpgradeCardParent {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertTrue([CardType.BasicUpgrade, CardType.TokenUpgrade].includes(this.printedType));
-
-        this.defaultActions.push(new PlayUpgradeAction({ card: this }));
     }
 
     public override isUpgrade(): this is UpgradeCard {
         return true;
     }
 
-    public override getActions(): PlayerOrCardAbility[] {
-        const actions = super.getActions();
+    public override buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>) {
+        return new PlayUpgradeAction({ card: this, ...properties });
+    }
 
-        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            actions.push(new PlayUpgradeAction({ card: this, playType: PlayType.Smuggle }));
-        }
-        return actions;
+    public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
+        return {
+            ...super.getSummary(activePlayer, hideWhenFaceup),
+            parentCardId: this._parentCard ? this._parentCard.uuid : null
+        };
     }
 
     /** The card that this card is underneath */
@@ -85,6 +86,10 @@ export class UpgradeCard extends UpgradeCardParent {
         this.moveTo(newParentCard.zoneName);
         newParentCard.attachUpgrade(this);
         this._parentCard = newParentCard;
+    }
+
+    public isAttached(): boolean {
+        return !!this._parentCard;
     }
 
     public unattach() {
@@ -130,7 +135,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties })
+            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties })
         });
     }
 
@@ -144,11 +149,10 @@ export class UpgradeCard extends UpgradeCardParent {
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Action, ...gainedAbilityProperties })
+            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Action, ...gainedAbilityProperties })
         });
     }
 
-    // TODO: add "gainWhenDefeated" helper
     /**
      * Adds an "attached card gains [X]" ability, where X is an "on attack" triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
@@ -160,7 +164,22 @@ export class UpgradeCard extends UpgradeCardParent {
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
+            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
+        });
+    }
+
+    /**
+     * Adds an "attached card gains [X]" ability, where X is an "when defeated" triggered ability. You can provide a match function
+     * to narrow down whether the effect is applied (for cases where the effect has conditions).
+     */
+    protected addGainWhenDefeatedAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<this, UnitCard>) {
+        const { gainCondition, ...gainedAbilityProperties } = properties;
+        const propsWithWhen = Object.assign(gainedAbilityProperties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
+
+        this.addConstantAbilityTargetingAttached({
+            title: 'Give ability to the attached card',
+            condition: this.addZoneCheckToGainCondition(gainCondition),
+            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...propsWithWhen })
         });
     }
 
@@ -174,7 +193,7 @@ export class UpgradeCard extends UpgradeCardParent {
         this.addConstantAbilityTargetingAttached({
             title: 'Give keyword to the attached card',
             condition: this.addZoneCheckToGainCondition(gainCondition),
-            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(keywordProperties)
+            ongoingEffect: OngoingEffectLibrary.gainKeyword(keywordProperties)
         });
     }
 

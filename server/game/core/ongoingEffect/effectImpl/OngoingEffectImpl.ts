@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
-import { Duration, EffectName } from '../../Constants';
+import type { Duration, EffectName } from '../../Constants';
 
 export abstract class OngoingEffectImpl<TValue> {
     public duration?: Duration = null;

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
-import Player from '../../../core/Player';
+import type Player from '../../../core/Player';
 
 export default class Shield extends TokenUpgradeCard {
     protected override getImplementationId() {
@@ -17,12 +17,7 @@ export default class Shield extends TokenUpgradeCard {
         /** Indicates that the shield be prioritized for removal if multiple shields are present (currently only for Jetpack) */
         public readonly highPriorityRemoval: boolean = false
     ) {
-        // even though shield is printed as 0/0 its cardData has nulls for stats
-        const cardDataWithStats = { ...cardData };
-        cardDataWithStats.power = 0;
-        cardDataWithStats.hp = 0;
-
-        super(owner, cardDataWithStats);
+        super(owner, cardData);
     }
 
     public override isShield(): this is Shield {

@@ -1,16 +1,15 @@
-import Player from '../../Player';
-import { GameEvent } from '../../event/GameEvent';
-import { EventWindow } from '../../event/EventWindow';
-import { AbilityType, WildcardZoneName } from '../../Constants';
+import type Player from '../../Player';
+import type { GameEvent } from '../../event/GameEvent';
+import type { EventWindow } from '../../event/EventWindow';
+import { AbilityType } from '../../Constants';
 import * as Contract from '../../utils/Contract';
-import { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
-import TriggeredAbility from '../../ability/TriggeredAbility';
-import { Card } from '../../card/Card';
+import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
+import type TriggeredAbility from '../../ability/TriggeredAbility';
+import type { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
-import { AbilityContext } from '../../ability/AbilityContext';
-import Game from '../../Game';
-import Shield from '../../../cards/01_SOR/tokens/Shield';
+import type Game from '../../Game';
+import type Shield from '../../../cards/01_SOR/tokens/Shield';
 
 export class TriggeredAbilityWindow extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
@@ -37,13 +36,15 @@ export class TriggeredAbilityWindow extends BaseStep {
 
     public constructor(
         game: Game,
-        private readonly eventWindow: EventWindow,
-        private readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect,
+        private readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect,
+        private readonly eventWindow?: EventWindow,
         private readonly eventsToExclude = []
     ) {
         super(game);
 
-        this.triggeringEvents = [...this.eventWindow.events];
+        if (eventWindow) {
+            this.triggeringEvents = [...this.eventWindow.events];
+        }
     }
 
     public addTriggeringEvents(newEvents: GameEvent[] = []) {
@@ -274,8 +275,9 @@ export class TriggeredAbilityWindow extends BaseStep {
             return;
         }
 
-        const anyWithLegalTargets = [...this.unresolved].map(([player, triggeredAbilityList]) => triggeredAbilityList).flat()
-            .some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext));
+        const anyWithLegalTargets = this.canAnyAbilitiesResolve(
+            [...this.unresolved].map(([player, triggeredAbilityList]) => triggeredAbilityList).flat()
+        );
 
         if (!anyWithLegalTargets) {
             this.unresolved = new Map();
@@ -289,7 +291,7 @@ export class TriggeredAbilityWindow extends BaseStep {
     }
 
     private canAnyAbilitiesResolve(triggeredAbilities: TriggeredAbilityContext[]) {
-        return triggeredAbilities.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext));
+        return triggeredAbilities.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext, true));
     }
 
     // TODO: separate class and correct logic for replacement effect windows

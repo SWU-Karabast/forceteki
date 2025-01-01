@@ -1,13 +1,12 @@
 import type { Card } from '../core/card/Card';
 import AbilityResolver from '../core/gameSteps/AbilityResolver';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import { UnitCard } from '../core/card/CardTypes';
+import type { UnitCard } from '../core/card/CardTypes';
 import { InitiateAttackAction } from '../actions/InitiateAttackAction';
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
-import { IAttackProperties } from './AttackStepsSystem';
-import * as GameSystemLibrary from './GameSystemLibrary';
-import { EventName, MetaEventName } from '../core/Constants';
+import type { IAttackProperties } from './AttackStepsSystem';
+import { MetaEventName } from '../core/Constants';
 
 export interface IInitiateAttackProperties<TContext extends AbilityContext = AbilityContext> extends IAttackProperties {
     ignoredRequirements?: string[];

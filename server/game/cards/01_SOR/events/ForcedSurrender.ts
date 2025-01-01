@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { DamageDealtThisPhaseWatcher } from '../../../stateWatchers/DamageDealtThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 
 export default class ForcedSurrender extends EventCard {
     private damageDealtThisPhaseWatcher: DamageDealtThisPhaseWatcher;

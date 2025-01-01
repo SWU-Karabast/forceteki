@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 
 export default class VanguardAce extends NonLeaderUnitCard {
     private cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
@@ -22,7 +22,9 @@ export default class VanguardAce extends NonLeaderUnitCard {
             title: 'Give one experience for each other card you played this turn',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => {
                 const otherFriendlyCardsPlayedThisPhase = this.cardsPlayedThisWatcher.getCardsPlayed(
-                    (cardPlay) => cardPlay.playedBy === context.source.controller && cardPlay.card !== context.source
+                    (cardPlay) =>
+                        cardPlay.playedBy === context.source.controller &&
+                        (cardPlay.card !== context.source || cardPlay.inPlayId !== context.source.inPlayId)
                 );
 
                 return { amount: otherFriendlyCardsPlayedThisPhase.length };

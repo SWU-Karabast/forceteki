@@ -22,6 +22,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 context.player2.clickCard(context.wampa);
 
                 expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.p1Base]);
+                context.player2.clickCard(context.p1Base);
             });
 
             it('should be targetable when less than 3 friendly aspects are in play', function () {
@@ -32,6 +33,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 context.player2.clickCard(context.wampa);
 
                 expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.p1Base, context.sabineWren]);
+                context.player2.clickCard(context.p1Base);
             });
 
             it('should be targetable if she has sentinel, even with 3 friendly aspects in play', function () {

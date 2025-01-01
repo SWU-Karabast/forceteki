@@ -2,12 +2,13 @@
 /* eslint @stylistic/lines-around-comment: off */
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
-import { Card } from '../core/card/Card.js';
-import { EventName, ZoneName, DeckZoneDestination, TargetMode } from '../core/Constants.js';
-import { GameEvent } from '../core/event/GameEvent.js';
-import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem.js';
-import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
-import Player from '../core/Player.js';
+import type { Card } from '../core/card/Card.js';
+import { EventName, DeckZoneDestination, TargetMode } from '../core/Constants.js';
+import type { GameEvent } from '../core/event/GameEvent.js';
+import type { GameSystem } from '../core/gameSystem/GameSystem.js';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
+import type Player from '../core/Player.js';
 import { shuffleArray } from '../core/utils/Helpers.js';
 import * as Contract from '../core/utils/Contract.js';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';

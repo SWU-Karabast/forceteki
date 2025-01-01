@@ -11,6 +11,7 @@ const defaultGameSettings = {
         {
             user: {
                 username: 'Order66',
+                id: 'exe66',
                 settings: {
                     optionSettings: {
                         markCardsUnselectable: true,
@@ -23,7 +24,6 @@ const defaultGameSettings = {
                     }
                 }
             },
-            id: '66',
             deck: {
                 leader: [
                     {
@@ -45,7 +45,11 @@ const defaultGameSettings = {
                             arena: 'ground',
                             keywords: [],
                             types: ['leader'],
-                            internalName: 'darth-vader#dark-lord-of-the-sith'
+                            internalName: 'darth-vader#dark-lord-of-the-sith',
+                            setId: {
+                                set: 'SOR',
+                                number: 10
+                            },
                         }
                     }
                 ],
@@ -963,6 +967,7 @@ const defaultGameSettings = {
         {
             user: {
                 username: 'ThisIsTheWay',
+                id: 'th3w4y',
                 settings: {
                     optionSettings: {
                         markCardsUnselectable: true,
@@ -975,7 +980,6 @@ const defaultGameSettings = {
                     }
                 }
             },
-            id: 'th3w4y',
             deck: {
                 leader: [
                     {
@@ -997,7 +1001,11 @@ const defaultGameSettings = {
                             arena: 'ground',
                             keywords: [],
                             types: ['leader'],
-                            internalName: 'luke-skywalker#faithful-friend'
+                            internalName: 'luke-skywalker#faithful-friend',
+                            setId: {
+                                set: 'SOR',
+                                number: 5
+                            },
                         }
                     }
                 ],
@@ -1020,7 +1028,11 @@ const defaultGameSettings = {
                             traits: [],
                             keywords: [],
                             types: ['base'],
-                            internalName: 'administrators-tower'
+                            internalName: 'administrators-tower',
+                            setId: {
+                                set: 'SOR',
+                                number: 29
+                            },
                         }
                     }
                 ],

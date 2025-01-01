@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { Attack } from '../../../core/attack/Attack';
-import { Card } from '../../../core/card/Card';
+import type { Attack } from '../../../core/attack/Attack';
+import type { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait } from '../../../core/Constants';
 

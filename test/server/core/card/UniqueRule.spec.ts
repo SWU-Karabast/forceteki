@@ -10,7 +10,10 @@ describe('Uniqueness rule', function() {
                     },
                     player2: {
                         groundArena: ['chopper#metal-menace']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -69,7 +72,10 @@ describe('Uniqueness rule', function() {
                     },
                     player2: {
                         groundArena: [{ card: 'wild-rancor', upgrades: ['lukes-lightsaber'] }]
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -108,8 +114,9 @@ describe('Uniqueness rule', function() {
                         hand: ['luke-skywalker#jedi-knight'],
                         leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 
@@ -133,8 +140,9 @@ describe('Uniqueness rule', function() {
                         groundArena: ['colonel-yularen#isb-director'],
                         base: { card: 'nevarro-city', damage: 3 }
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -176,8 +184,9 @@ describe('Uniqueness rule', function() {
                         hand: ['agent-kallus#seeking-the-rebels'],
                         groundArena: ['agent-kallus#seeking-the-rebels'],
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -250,8 +259,9 @@ describe('Uniqueness rule', function() {
                         groundArena: [{ card: 'admiral-motti#brazen-and-scornful', exhausted: true }],
                         base: { card: 'nevarro-city', damage: 3 }
                     },
-                    player2: {
-                    }
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
@@ -319,7 +329,10 @@ describe('Uniqueness rule', function() {
                     },
                     player2: {
                         groundArena: ['cell-block-guard']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;

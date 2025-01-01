@@ -6,6 +6,7 @@ const UnlimitedCardSelector = require('./UnlimitedCardSelector');
 const UpToXCardSelector = require('./UpToXCardSelector');
 const UpToVariableXCardSelector = require('./UpToVariableXCardSelector');
 const { TargetMode, CardType, WildcardCardType } = require('../Constants');
+const BetweenVariableXYCardSelector = require('./BetweenVariableXYCardSelector');
 
 const defaultProperties = {
     numCards: 1,
@@ -13,11 +14,11 @@ const defaultProperties = {
     numCardsFunc: () => 1,
     cardTypeFilter: [WildcardCardType.Any],
     multiSelect: false,
-    sameDiscardPile: false
 };
 
 const ModeToSelector = {
     autoSingle: (p) => new SingleCardSelector(p),
+    betweenVariable: (p) => new BetweenVariableXYCardSelector(p.minNumCardsFunc, p.maxNumCardsFunc, p),
     exactly: (p) => new ExactlyXCardSelector(p.numCards, p),
     exactlyVariable: (p) => new ExactlyVariableXCardSelector(p.numCardsFunc, p),
     maxStat: (p) => new MaxStatCardSelector(p),

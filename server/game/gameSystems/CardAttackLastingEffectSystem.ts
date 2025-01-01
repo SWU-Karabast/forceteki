@@ -1,8 +1,9 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Duration, EventName } from '../core/Constants';
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import { CardLastingEffectSystem, ICardLastingEffectProperties } from './CardLastingEffectSystem';
-import { Card } from '../core/card/Card';
+import type { ICardLastingEffectProperties } from './CardLastingEffectSystem';
+import { CardLastingEffectSystem } from './CardLastingEffectSystem';
+import type { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract';
 
 export type ICardAttackLastingEffectProperties = Omit<ICardLastingEffectProperties, 'duration'>;

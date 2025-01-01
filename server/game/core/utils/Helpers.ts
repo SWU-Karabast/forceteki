@@ -1,5 +1,6 @@
-import { Card } from '../card/Card';
-import { Aspect, CardType, CardTypeFilter, ZoneName } from '../Constants';
+import type { Card } from '../card/Card';
+import type { Aspect, CardTypeFilter } from '../Constants';
+import { CardType, ZoneName } from '../Constants';
 import * as Contract from './Contract';
 import * as EnumHelpers from './EnumHelpers';
 
@@ -93,4 +94,28 @@ export function asArray<T>(val: T | T[]): T[] {
     }
 
     return Array.isArray(val) ? val : [val];
+}
+
+export function getRandomArrayElements(array: any[], nValues: number) {
+    Contract.assertTrue(nValues <= array.length, `Attempting to retrieve ${nValues} random elements from an array of length ${array.length}`);
+
+    const chosenItems = [];
+    for (let i = 0; i < nValues; i++) {
+        const index = Math.floor(Math.random() * array.length);
+        const choice = array.splice(index, 1)[0];
+
+        chosenItems.push(choice);
+    }
+
+    return chosenItems;
+}
+
+export class IntersectingSet<T> extends Set<T> {
+    public intersect(inputSet: Set<T>): void {
+        for (const item of this) {
+            if (!inputSet.has(item)) {
+                this.delete(item);
+            }
+        }
+    }
 }

@@ -1,20 +1,15 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { Card } from '../card/Card';
-import {
-    CardTypeFilter,
-    EffectName,
-    EventName,
-    GameStateChangeRequired,
-    WildcardCardType,
-    ZoneName
-} from '../Constants';
-import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
+import type { Card } from '../card/Card';
+import type { CardTypeFilter } from '../Constants';
+import { EffectName, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../Constants';
+import type { IGameSystemProperties as IGameSystemProperties } from './GameSystem';
+import { GameSystem as GameSystem } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { UpgradeCard } from '../card/UpgradeCard';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
-import { UnitCard } from '../card/CardTypes';
+import type { UnitCard } from '../card/CardTypes';
+import type { GameObject } from '../GameObject';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
@@ -28,12 +23,14 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     /** The set of card types that can be legally targeted by the system. Defaults to {@link WildcardCardType.Any} unless overriden. */
     protected readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Any];
 
-    protected override isTargetTypeValid(target: any): boolean {
-        if (!(target instanceof Card)) {
-            return false;
+    protected override isTargetTypeValid(target: GameObject | GameObject[]): boolean {
+        for (const targetItem of Helpers.asArray(target)) {
+            if (!targetItem.isCard() || !EnumHelpers.cardTypeMatches(targetItem.type, this.targetTypeFilter)) {
+                return false;
+            }
         }
 
-        return EnumHelpers.cardTypeMatches(target.type, this.targetTypeFilter);
+        return Helpers.asArray(target).length > 0;
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
@@ -174,7 +171,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     protected addLeavesPlayPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
-        Contract.assertTrue(card.canBeInPlay() && card.isInPlay(), `Attempting to add leaves play contingent events to card ${card} but is in zone ${card.zone}`);
+        Contract.assertTrue(card.canBeInPlay() && card.isInPlay(), `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`);
 
         event.setContingentEventsGenerator((event) => {
             const onCardLeavesPlayEvent = new GameEvent(EventName.OnCardLeavesPlay, context, {
@@ -188,6 +185,19 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
                 // be added as "contingent events" in the event window, so they'll resolve in the same window but after the primary event
                 contingentEvents = contingentEvents.concat(this.generateUpgradeDefeatEvents(card, context, event));
                 contingentEvents = contingentEvents.concat(this.generateRescueEvents(card, context, event));
+            }
+
+            if (card.isUpgrade()) {
+                contingentEvents.push(
+                    new GameEvent(
+                        EventName.OnUpgradeUnattached,
+                        context,
+                        {
+                            upgradeCard: card,
+                            parentCard: card.parentCard,
+                        }
+                    )
+                );
             }
 
             return contingentEvents;
@@ -251,13 +261,18 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
      * @param defaultMoveAction A handler that will move the card to its destination if none of the special cases apply
      */
     protected leavesPlayEventHandler(card: UnitCard, destination: ZoneName, context: TContext, defaultMoveAction: () => void): void {
-        // tokens and leaders are defeated if they move out of an arena zone
-        if (
-            (card.isToken() || card.isLeader()) &&
-            !EnumHelpers.isArena(destination)
-        ) {
-            // TODO TOKEN UNITS: the timing for this is wrong, and it needs to not emit a second 'onLeavesPlay' event
-            context.game.actions.defeat({ target: card }).resolve(null, context);
+        // Attached upgrades should be unattached before move
+        if (card.isUpgrade()) {
+            Contract.assertTrue(card.isAttached(), `Attempting to unattach upgrade card ${card} due to leaving play but it is already unattached.`);
+            card.unattach();
+        }
+
+        if (card.isLeader() && !EnumHelpers.isArena(destination)) {
+            // TODO: punting on this since no card could do it currently and it requires some work
+            throw new Error('Leaders leaving the arena due to a non-defeat effect is not yet implemented');
+        } else if (card.isToken() && !EnumHelpers.isArena(destination)) {
+            // tokens are removed from the game when they leave the arena
+            card.moveTo(ZoneName.OutsideTheGame);
         } else {
             defaultMoveAction();
         }

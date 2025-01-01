@@ -12,7 +12,10 @@ describe('Krayt Dragon', function () {
                         hand: ['superlaser-blast', 'privateer-crew', 'green-squadron-awing'],
                         groundArena: ['wampa'],
                         resources: ['hotshot-dl44-blaster', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

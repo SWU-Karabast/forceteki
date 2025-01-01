@@ -1,9 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
-import { UnitCard } from '../../../core/card/CardTypes';
 
 export default class SparkOfHope extends EventCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
@@ -26,11 +25,8 @@ export default class SparkOfHope extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,
-                // TODO CHECK UNIQUE ID WHEN IT'S DONE
                 cardCondition: (card) =>
-                    this.unitsDefeatedThisPhaseWatcher.getCurrentValue()
-                        .map((e) => e.unit)
-                        .includes(card as UnitCard),
+                    card.isUnit() && this.unitsDefeatedThisPhaseWatcher.wasDefeatedThisPhase(card),
                 immediateEffect: AbilityHelper.immediateEffects.resourceCard()
             }
         });

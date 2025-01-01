@@ -52,7 +52,6 @@ class Player extends GameObject {
         this.socket = null;
         this.disconnected = false;
         this.left = false;
-        this.lobbyId = null;
 
         this.handZone = new HandZone(this);
         this.resourceZone = new ResourceZone(this);
@@ -88,6 +87,14 @@ class Player extends GameObject {
         this.autoSingleTarget = true;
 
         this.promptState = new PlayerPromptState(this);
+    }
+
+    /**
+     * @override
+     * @returns {this is Player}
+     */
+    isPlayer() {
+        return true;
     }
 
     startClock() {
@@ -675,28 +682,14 @@ class Player extends GameObject {
     }
 
     /**
-     * Checks to see what the minimum possible resource cost for an action is, accounting for aspects and available cost adjusters
-     * @param {PlayType} playingType
-     * @param {AbilityContext} context
-     * @param target
-     * @param {CostAdjuster} additionalCostAdjuster Used by abilities to add their own specific cost adjuster if necessary
-     */
-    getMinimumPossibleCost(playingType, context, target, additionalCostAdjuster = null) {
-        const card = context.source;
-        const adjustedCost = this.getAdjustedCost(playingType, card, target, additionalCostAdjuster);
-
-        return Math.max(adjustedCost, 0);
-    }
-
-    /**
      * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
      * Accounts for aspect penalties and any modifiers to those specifically
      * @param {PlayType} playingType
      * @param card
      * @param target
-     * @param {CostAdjuster} additionalCostAdjuster Used by abilities to add their own specific cost adjuster if necessary
+     * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
      */
-    getAdjustedCost(playingType, card, target, additionalCostAdjuster = null) {
+    getAdjustedCost(playingType, card, target, additionalCostAdjusters = null) {
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
         let aspects;
@@ -719,11 +712,11 @@ class Player extends GameObject {
 
         let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
-            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(playingType, 2, card, target, aspect, additionalCostAdjuster);
+            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(playingType, 2, card, target, aspect, additionalCostAdjusters);
         }
 
         let penalizedCost = cost + aspectPenaltiesTotal;
-        return this.runAdjustersForCostType(playingType, penalizedCost, card, target, additionalCostAdjuster);
+        return this.runAdjustersForCostType(playingType, penalizedCost, card, target, additionalCostAdjusters);
     }
 
     /**
@@ -732,10 +725,10 @@ class Player extends GameObject {
      * @param {number} baseCost
      * @param card
      * @param target
-     * @param {CostAdjuster} additionalCostAdjuster Used by abilities to add their own specific cost adjuster if necessary
+     * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
      */
-    runAdjustersForCostType(playingType, baseCost, card, target, additionalCostAdjuster = null) {
-        var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjuster).filter((adjuster) =>
+    runAdjustersForCostType(playingType, baseCost, card, target, additionalCostAdjusters = null) {
+        var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjusters).filter((adjuster) =>
             adjuster?.canAdjust(playingType, card, target, null)
         );
         var costIncreases = matchingAdjusters
@@ -763,10 +756,10 @@ class Player extends GameObject {
      * @param card
      * @param target
      * @param penaltyAspect Aspect that is not present on the current base or leader
-     * @param {CostAdjuster} additionalCostAdjuster Used by abilities to add their own specific cost adjuster if necessary
+     * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
      */
-    runAdjustersForAspectPenalties(playingType, baseCost, card, target, penaltyAspect, additionalCostAdjuster = null) {
-        var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjuster).filter((adjuster) =>
+    runAdjustersForAspectPenalties(playingType, baseCost, card, target, penaltyAspect, additionalCostAdjusters = null) {
+        var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjusters).filter((adjuster) =>
             adjuster?.canAdjust(playingType, card, target, penaltyAspect)
         );
 
@@ -1127,7 +1120,8 @@ class Player extends GameObject {
             promptedActionWindows: this.promptedActionWindows,
             // stats: this.getStats(),
             // timerSettings: this.timerSettings,
-            user: safeUser
+            user: safeUser,
+            promptState: promptState,
         };
 
         // if (this.showDeck) {
@@ -1143,7 +1137,7 @@ class Player extends GameObject {
             state.clock = this.clock.getState();
         }
 
-        return { ...state, ...promptState };
+        return state;
     }
 }
 

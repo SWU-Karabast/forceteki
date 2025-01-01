@@ -1,13 +1,13 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { AbilityRestriction, CardType, DamageType, EventName, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, CardType, DamageType, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
-import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import { Attack } from '../core/attack/Attack';
-import { DamageSourceType, IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack, IDamageSource } from '../IDamageOrDefeatSource';
-import { UnitCard } from '../core/card/CardTypes';
-import CardAbilityStep from '../core/ability/CardAbilityStep';
+import type { Attack } from '../core/attack/Attack';
+import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
+import { DamageSourceType } from '../IDamageOrDefeatSource';
+import type { UnitCard } from '../core/card/CardTypes';
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
     type?: DamageType;
@@ -101,7 +101,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         return event.sourceEventForExcessDamage.availableExcessDamage;
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
         // short-circuits to pass targeting if damage amount is set at 0 either directly or via a resolved source event
@@ -121,7 +121,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         if (!EnumHelpers.isAttackableZone(card.zoneName)) {
             return false;
         }
-        if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {
+        if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {
             return false;
         }
         return super.canAffect(card, context);

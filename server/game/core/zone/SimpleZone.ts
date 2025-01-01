@@ -1,8 +1,9 @@
-import { Card } from '../card/Card';
-import { ZoneName } from '../Constants';
-import Player from '../Player';
+import type { Card } from '../card/Card';
+import type { ZoneName } from '../Constants';
+import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { IAddRemoveZone, IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
+import type { IAddRemoveZone, IZoneCardFilterProperties } from './ZoneAbstract';
+import { ZoneAbstract } from './ZoneAbstract';
 
 /**
  * Base class for zones that are basically just a list of cards with no special behavior

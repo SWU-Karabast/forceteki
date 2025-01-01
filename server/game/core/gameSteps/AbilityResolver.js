@@ -1,10 +1,9 @@
 const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
 const { SimpleStep } = require('./SimpleStep.js');
-const InitiateCardAbilityEvent = require('../event/InitiateCardAbilityEvent.js');
-const InitiateAbilityEventWindow = require('./abilityWindow/InitiateAbilityEventWindow.js');
 const { ZoneName, Stage, CardType, EventName, AbilityType } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
+const { EventWindow } = require('../event/EventWindow.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
     constructor(game, context, optional = false) {
@@ -12,7 +11,6 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         this.context = context;
         this.canCancel = true;
-        this.initiateAbility = false;
         this.events = [];
         this.targetResults = {};
         this.costResults = this.getCostResults();
@@ -39,8 +37,6 @@ class AbilityResolver extends BaseStepWithPipeline {
                 this.resolutionComplete = true;
             }
         } : null;
-
-        // UP NEXT: handle then effects here (add them here and execute them even if the ability is cancelled)
     }
 
     initialise() {
@@ -62,6 +58,7 @@ class AbilityResolver extends BaseStepWithPipeline {
 
     openInitiateAbilityEventWindow() {
         if (this.cancelled) {
+            this.checkResolveIfYouDoNot();
             return;
         }
         let eventName = EventName.OnAbilityResolverInitiated;
@@ -72,7 +69,7 @@ class AbilityResolver extends BaseStepWithPipeline {
                 card: this.context.source,
                 ability: this.context.ability
             };
-            if (this.context.ability.isCardPlayed()) {
+            if (this.context.ability.isPlayCardAbility()) {
                 this.events.push(new GameEvent(EventName.OnCardPlayed, this.context, {
                     player: this.context.player,
                     card: this.context.source,
@@ -92,7 +89,21 @@ class AbilityResolver extends BaseStepWithPipeline {
             }
         }
         this.events.push(new GameEvent(eventName, this.context, eventProps, () => this.queueInitiateAbilitySteps()));
-        this.game.queueStep(new InitiateAbilityEventWindow(this.game, this.events, this.context.ability.triggerHandlingMode));
+        this.game.openEventWindow(this.events, this.context.ability.triggerHandlingMode);
+    }
+
+    // if there is an "if you do not" part of this ability, we need to resolve it if the main ability doesn't resolve
+    checkResolveIfYouDoNot() {
+        if (!this.cancelled || !this.resolutionComplete) {
+            return;
+        }
+
+        if (this.context.ability.properties?.ifYouDoNot) {
+            const ifYouDoNotAbilityContext = this.context.ability.getSubAbilityStepContext(this.context);
+            if (ifYouDoNotAbilityContext) {
+                this.game.resolveAbility(ifYouDoNotAbilityContext);
+            }
+        }
     }
 
     queueInitiateAbilitySteps() {
@@ -101,7 +112,6 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.game.queueSimpleStep(() => this.checkCostsWerePaid(), 'checkCostsWerePaid');
         this.game.queueSimpleStep(() => this.resolveTargets(), 'resolveTargets');
         this.game.queueSimpleStep(() => this.checkForCancel(), 'checkForCancel');
-        this.game.queueSimpleStep(() => this.initiateAbilityEffects(), 'initiateAbilityEffects');
         this.game.queueSimpleStep(() => this.executeHandler(), 'executeHandler');
     }
 
@@ -112,7 +122,7 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         this.context.stage = Stage.PreTarget;
 
-        if (this.context.ability.meetsRequirements(this.context) !== '') {
+        if (this.context.ability.meetsRequirements(this.context, [], true) !== '') {
             this.cancelled = true;
             this.resolutionComplete = true;
         }
@@ -248,8 +258,9 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
-    initiateAbilityEffects() {
+    executeHandler() {
         if (this.cancelled) {
+            this.checkResolveIfYouDoNot();
             for (const event of this.events) {
                 event.cancel();
             }
@@ -261,20 +272,10 @@ class AbilityResolver extends BaseStepWithPipeline {
           (!this.context.cardStateWhenInitiated || this.context.cardStateWhenInitiated.zoneName === this.context.source.zoneName)) {
             this.context.ability.limit.increment(this.context.player);
         }
+
         this.context.ability.displayMessage(this.context);
-
-        if (this.context.ability.isActivatedAbility()) {
-            this.game.openEventWindow(new InitiateCardAbilityEvent(this.context, { card: this.context.source }, () => this.initiateAbility = true));
-        } else {
-            this.initiateAbility = true;
-        }
-    }
-
-    executeHandler() {
-        if (this.cancelled || !this.initiateAbility) {
-            return;
-        }
         this.context.stage = Stage.Effect;
+
         this.context.ability.executeHandler(this.context);
     }
 

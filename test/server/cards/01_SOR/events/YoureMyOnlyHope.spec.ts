@@ -13,7 +13,10 @@ describe('You\'re My Only Hope', function() {
                     },
                     player2: {
                         spaceArena: ['black-one#scourge-of-starkiller-base']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
             });
 

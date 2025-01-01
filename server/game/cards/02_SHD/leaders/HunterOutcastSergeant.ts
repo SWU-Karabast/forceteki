@@ -1,8 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, WildcardZoneName, ZoneName } from '../../../core/Constants';
-import { ICardTargetResolver } from '../../../TargetInterfaces';
-import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import type { ICardTargetResolver } from '../../../TargetInterfaces';
+import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 
 export default class HunterOutcastSergeant extends LeaderUnitCard {
     protected override getImplementationId() {

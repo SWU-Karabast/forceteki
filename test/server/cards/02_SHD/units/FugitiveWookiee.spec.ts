@@ -35,7 +35,10 @@ describe('Fugitive Wookiee', function() {
                         groundArena: ['wampa'],
                         spaceArena: ['cartel-spacer'],
                         hand: ['take-captive']
-                    }
+                    },
+
+                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
+                    autoSingleTarget: true
                 });
 
                 const { context } = contextRef;
