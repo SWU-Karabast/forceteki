@@ -310,6 +310,12 @@ interface ISentinelKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Sentinel;
 }
 
+interface ISmuggleKeywordProperties<TSource extends UnitCard = UnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
+    keyword: KeywordName.Smuggle;
+    cost: number;
+    aspects: Aspect[];
+}
+
 interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Shielded;
 }
