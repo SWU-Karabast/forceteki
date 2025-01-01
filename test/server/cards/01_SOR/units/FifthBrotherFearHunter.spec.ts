@@ -7,10 +7,11 @@ describe('Fifth Brother, Fear Hunter', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['fifth-brother#fear-hunter'],
+                        groundArena: ['fifth-brother#fear-hunter', 'wampa'],
                     },
                     player2: {
-                        groundArena: ['wampa'],
+                        groundArena: ['rebel-pathfinder'],
+                        spaceArena: ['cartel-spacer']
                     }
                 });
             });
@@ -18,67 +19,8 @@ describe('Fifth Brother, Fear Hunter', function() {
             it('should deal 1 damage to this unit and 1 damage to another ground unit', function () {
                 const { context } = contextRef;
 
+                // CASE 1: no damage on Fifth Brother, no raid
                 context.player1.clickCard(context.fifthBrother);
-
-                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa]);
-
-                context.player1.clickCard(context.p2Base);
-
-                expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
-                context.player1.clickCard(context.wampa);
-
-                expect(context.fifthBrother.damage).toBe(1);
-                expect(context.wampa.damage).toBe(1);
-
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            it('should not complete attack if defeated by on attack ability', function() {
-                const { context } = contextRef;
-
-                context.setDamage(context.fifthBrother, 3);
-
-                context.player1.clickCard(context.fifthBrother);
-
-                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa]);
-
-                context.player1.clickCard(context.p2Base);
-
-                expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
-                context.player1.clickCard(context.wampa);
-
-                expect(context.fifthBrother).toBeInZone('discard');
-                expect(context.wampa.damage).toBe(1);
-                expect(context.p2Base.damage).toBe(0);
-
-                expect(context.player2).toBeActivePlayer();
-            });
-        });
-
-        describe('Fifth Brother\'s ability', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        groundArena: ['fifth-brother#fear-hunter'],
-                    },
-                    player2: {
-                        groundArena: ['wampa'],
-                    }
-                });
-            });
-
-            it('should not deal extra damage if he is not damaged', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.fifthBrother);
-
-                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa]);
-
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
@@ -86,51 +28,48 @@ describe('Fifth Brother, Fear Hunter', function() {
 
                 expect(context.fifthBrother.damage).toBe(0);
                 expect(context.wampa.damage).toBe(0);
-
                 expect(context.p2Base.damage).toBe(2);
-
                 expect(context.player2).toBeActivePlayer();
-            });
 
-            it('should have raid equal to current damage', function () {
-                const { context } = contextRef;
+                context.player2.passAction();
+                context.setDamage(context.p2Base, 0);
+                context.fifthBrother.exhausted = false;
 
-                context.setDamage(context.fifthBrother, 2);
-
+                // CASE 2: Fifth Brother damages himself and another target, gets Raid 1
                 context.player1.clickCard(context.fifthBrother);
-
-                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa]);
-
-                context.player1.clickCard(context.p2Base);
-
-                expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt('Pass');
-
-                expect(context.wampa.damage).toBe(0);
-                expect(context.p2Base.damage).toBe(4);
-
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            it('should increase raid amount if on-attack ability is activated', function () {
-                const { context } = contextRef;
-
-                context.setDamage(context.fifthBrother, 2);
-
-                context.player1.clickCard(context.fifthBrother);
-
-                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa]);
-
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
                 context.player1.clickPrompt(prompt);
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.rebelPathfinder]);
                 context.player1.clickCard(context.wampa);
 
+                expect(context.fifthBrother.damage).toBe(1);
                 expect(context.wampa.damage).toBe(1);
-                expect(context.p2Base.damage).toBe(5);
+                expect(context.p2Base.damage).toBe(3);
+                expect(context.player2).toBeActivePlayer();
 
+                // CASE 3: Raid damage is not active when Fifth Brother is defending
+                context.player2.clickCard(context.rebelPathfinder);
+                context.player2.clickCard(context.fifthBrother);
+                expect(context.rebelPathfinder.damage).toBe(2);
+
+                context.setDamage(context.p2Base, 0);
+                context.fifthBrother.exhausted = false;
+
+                // CASE 4: Fifth Brother does no combat damage if he dies to his ability at the attack step
+                context.player1.clickCard(context.fifthBrother);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                context.player1.clickPrompt(prompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.rebelPathfinder]);
+                context.player1.clickCard(context.wampa);
+
+                // fifth brother is defeated by its ability, attack damage doesn't resolve
+                expect(context.fifthBrother).toBeInZone('discard');
+                expect(context.wampa.damage).toBe(2);
+                expect(context.p2Base.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
             });
         });

@@ -5,7 +5,7 @@ describe('97th Legion Keeping the Peace on Sullust', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['97th-legion#keeping-the-peace-on-sullust'],
+                        groundArena: ['97th-legion#keeping-the-peace-on-sullust', 'wampa'],
                         resources: 7,
                         hand: ['resupply'],
                     },
@@ -17,6 +17,10 @@ describe('97th Legion Keeping the Peace on Sullust', function() {
 
                 expect(context._97thLegion.getPower()).toBe(7);
                 expect(context._97thLegion.getHp()).toBe(7);
+
+                // check that friendly unit doesn't get the buff
+                expect(context.wampa.getPower()).toBe(4);
+                expect(context.wampa.getHp()).toBe(5);
 
                 context.player1.clickCard('resupply');
 
