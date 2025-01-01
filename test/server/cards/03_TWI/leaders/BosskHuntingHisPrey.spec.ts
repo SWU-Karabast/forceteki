@@ -121,6 +121,106 @@ describe('Bossk, Hunting his Prey', function () {
 
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should be able to collect Jabba\'s play discount Bounty a second time', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'bossk#hunting-his-prey', deployed: true },
+                        hand: ['super-battle-droid']
+                    },
+                    player2: {
+                        leader: 'jabba-the-hutt#his-high-exaltedness',
+                        groundArena: ['clone-trooper'],
+                        hasInitiative: true,
+                        resources: 6
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // apply Jabba bounty to player2's own unit (Clone Trooper)
+                context.player2.clickCard(context.jabbaTheHutt);
+                context.player2.clickCard(context.cloneTrooper);
+
+                // trigger bounty with Bossk attack
+                context.player1.clickCard(context.bossk);
+                context.player1.clickCard(context.cloneTrooper);
+
+                // trigger the bounty twice
+                expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: The next unit you play this phase costs 1 resource less');
+                context.player1.clickPrompt('Collect Bounty: The next unit you play this phase costs 1 resource less');
+                expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Collect the Bounty again');
+
+                // play a 3-cost unit with a 2-cost discount
+                context.player2.passAction();
+                context.player1.clickCard(context.superBattleDroid);
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+        });
+
+        describe('Bossk\'s leader deployed ability', function () {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'bossk#hunting-his-prey', deployed: true },
+                        deck: ['atst', 'waylay'],
+                        resources: 4
+                    },
+                    player2: {
+                        groundArena: [
+                            { card: 'clone-trooper', upgrades: ['price-on-your-head'] },
+                            { card: 'battle-droid', upgrades: ['guild-target'] },
+                        ]
+                    },
+                });
+            });
+
+            it('should be able to collect a "resource the top card of your deck" ability a second time', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bossk);
+                context.player1.clickCard(context.cloneTrooper);
+
+                expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Put the top card of your deck into play as a resource');
+                context.player1.clickPrompt('Collect Bounty: Put the top card of your deck into play as a resource');
+                expect(context.player1.resources.length).toBe(5);
+                expect(context.atst).toBeInZone('resource');
+
+                expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Collect the Bounty again');
+                expect(context.player1.resources.length).toBe(6);
+                expect(context.waylay).toBeInZone('resource');
+            });
+
+            it('should be able to collect a "resource the top card of your deck" ability a second time even if the deck is empty', function() {
+                const { context } = contextRef;
+
+                context.player1.setDeck([]);
+
+                context.player1.clickCard(context.bossk);
+                context.player1.clickCard(context.cloneTrooper);
+
+                expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Put the top card of your deck into play as a resource');
+                context.player1.clickPrompt('Collect Bounty: Put the top card of your deck into play as a resource');
+                expect(context.player1.resources.length).toBe(4);
+
+                // Bossk ability triggers since we chose to resolve the Bounty (even though the resolution didn't change game state)
+                expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Collect the Bounty again');
+                expect(context.player1.resources.length).toBe(4);
+
+                // trigger a second Bounty to confirm that Bossk's ability limit did trigger and is used up for the phase
+                context.player2.clickCard(context.battleDroid);
+                context.player2.clickCard(context.bossk);
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
+
+                expect(context.player1).toBeActivePlayer();
+            });
         });
 
         describe('Bossk\'s leader deployed ability', function () {
@@ -178,7 +278,6 @@ describe('Bossk, Hunting his Prey', function () {
                 expect(context.player1.handSize).toBe(1);
             });
 
-            // TODO: waiting on the judge chat for this one
             // it('should be able to collect a "search for a card" Bounty a second time', function() {
             //     const { context } = contextRef;
             //     const prompt = 'Collect Bounty: Search the top 5 cards of your deck, or 10 cards instead if this unit is unique, for a unit that costs 3 or less and play it for free.';
@@ -215,8 +314,6 @@ describe('Bossk, Hunting his Prey', function () {
             // });
         });
 
-        // TODO: test Jabba bounty
-        // TODO: test "resource top card of deck" bounty
-        // TODO: test can still activate ability if bounty was "collected" but had no effect
+        // TODO: uncomment the second search test with as much as we can confirm while waiting on the judge answer
     });
 });
