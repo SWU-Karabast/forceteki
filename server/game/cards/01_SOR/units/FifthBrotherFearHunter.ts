@@ -14,26 +14,25 @@ export default class FifthBrotherFearHunter extends NonLeaderUnitCard {
 
     protected override setupCardAbilities() {
         this.addOnAttackAbility({
-            title: 'You may deal 1 damage to this unit and 1 damage to another ground unit.',
+            title: 'Deal 1 damage to this unit and 1 damage to another ground unit',
             optional: true,
-            targetResolvers: {
-                myGroundUnit: {
-                    cardCondition: (card, context) => card === context.source,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                },
-                theirGroundUnit: {
+            immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                AbilityHelper.immediateEffects.damage((context) => ({
+                    target: context.source,
+                    amount: 1
+                })),
+                AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
                     zoneFilter: ZoneName.GroundArena,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                }
-            },
+                    cardCondition: (card, context) => card !== context.source,
+                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                })
+            ])
         });
 
         this.addConstantAbility({
-            title: 'This unit gains RAID 1 for each damage on him.',
-            matchTarget: (card, context) => card === context.source,
-            condition: (context) => context.source.damage > 0,
+            title: 'This unit gains Raid 1 for each damage on him',
             ongoingEffect: OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target) => KeywordHelpers.keywordFromProperties({ keyword: KeywordName.Raid, amount: target.damage })),
         });
     }
