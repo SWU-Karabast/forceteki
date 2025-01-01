@@ -98,7 +98,9 @@ export default tseslint.config(
             "no-useless-concat": ["warn"],
             "no-useless-constructor": ["warn"],
             "array-bracket-spacing": ["error", "never"],
-            "import-x/no-cycle": ["error"],
+
+            // uncomment for checking import cycles (too slow to leave on all the time)
+            // "import-x/no-cycle": ["error"],
 
             "no-unused-vars": "off", // or "@typescript-eslint/no-unused-vars": "off",
             "unused-imports/no-unused-imports": "error",
@@ -120,13 +122,14 @@ export default tseslint.config(
             ...tseslint.configs.strict,
             ...tseslint.configs.stylistic,
         ],
-        languageOptions: {
-            parser: tsParser,
-            parserOptions: {
-              projectService: true
-            },
-            sourceType: 'module'
-        },
+        // uncomment for checking import cycles (too slow to leave on all the time)
+        // languageOptions: {
+        //     parser: tsParser,
+        //     sourceType: 'module',
+        //     parserOptions: {
+        //       projectService: true
+        //     }
+        // },
         rules: {
             "@typescript-eslint/no-unused-vars": ["error", {
                 "vars": "local",
@@ -146,8 +149,10 @@ export default tseslint.config(
             "@typescript-eslint/no-namespace": "off",
             "@stylistic/type-annotation-spacing": ["error"],
             "@typescript-eslint/consistent-type-imports": "error",
-            "@typescript-eslint/consistent-type-exports": "error",
-            "import-x/no-cycle": ["error"],
+
+            // uncomment for checking import cycles (too slow to leave on all the time)
+            // "import-x/no-cycle": ["error"],
+            // "@typescript-eslint/consistent-type-exports": "error",
         }
     },
     {
