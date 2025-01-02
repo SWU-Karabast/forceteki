@@ -8,7 +8,14 @@ describe('Tech, Source of Insight', function () {
                         leader: 'hera-syndulla#spectre-two',
                         base: 'tarkintown',
                         groundArena: ['tech#source-of-insight'],
-                        resources: ['wampa', 'moment-of-peace', 'battlefield-marine', 'collections-starhopper', 'atst', 'atst']
+                        resources: [
+                            'wampa',
+                            'moment-of-peace',
+                            'battlefield-marine',
+                            'collections-starhopper',
+                            'resilient',
+                            'mercenary-company'
+                        ]
                     },
                     player2: {
                         resources: ['isb-agent', 'atst', 'atst', 'atst', 'atst', 'atst'],
@@ -24,6 +31,7 @@ describe('Tech, Source of Insight', function () {
                     context.player2.passAction();
                 };
 
+                // test smuggle with unit
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(6);
@@ -34,6 +42,10 @@ describe('Tech, Source of Insight', function () {
 
                 reset();
 
+                // test that card can't be smuggled if the gained smuggle cost is too expensive
+                expect(context.mercenaryCompany).not.toHaveAvailableActionWhenClickedBy(context.player1);
+
+                // test smuggle with off-aspect event (printed cost is 1)
                 context.player1.clickCard(context.momentOfPeace);
                 context.player1.clickCard(context.tech);
                 expect(context.tech).toHaveExactUpgradeNames(['shield']);
@@ -41,10 +53,18 @@ describe('Tech, Source of Insight', function () {
 
                 reset();
 
-                // check that the lowest-cost smuggle is automatically selected
+                // check that the printed smuggle is used since it's lower cost
                 context.player1.clickCard(context.collectionsStarhopper);
                 expect(context.collectionsStarhopper).toBeInZone('spaceArena');
                 expect(context.player1.exhaustedResourceCount).toBe(3);
+
+                reset();
+
+                // test smuggle with upgrade
+                context.player1.clickCard(context.resilient);
+                expect(context.player1).toBeAbleToSelectExactly([context.tech, context.wampa, context.collectionsStarhopper]);
+                context.player1.clickCard(context.collectionsStarhopper);
+                expect(context.collectionsStarhopper).toHaveExactUpgradeNames(['resilient']);
             });
         });
 
@@ -70,14 +90,14 @@ describe('Tech, Source of Insight', function () {
                     context.player2.passAction();
                 };
 
-                // check that the lowest-cost smuggle is automatically selected
+                // check that the gained smuggle is used since it's the lower cost
                 context.player1.clickCard(context.tobiasBeckett);
                 expect(context.tobiasBeckett).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(6);
 
                 reset();
 
-                // check smuggle + exploit
+                // test smuggle + exploit
                 context.player1.clickCard(context.infiltratingDemolisher);
                 expect(context.player1).toHaveExactPromptButtons([
                     'Play Infiltrating Demolisher with Smuggle',
@@ -97,8 +117,6 @@ describe('Tech, Source of Insight', function () {
         });
     });
 
-    // TODO: Smuggle + Exploit
     // TODO: Smuggle + Bamboozle
-    // TODO: Smuggle an upgrade
     // TODO: Lando leader
 });
