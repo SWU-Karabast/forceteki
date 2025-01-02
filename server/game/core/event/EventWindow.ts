@@ -1,5 +1,4 @@
-import { AbilityContext } from '../ability/AbilityContext';
-import CardAbilityStep from '../ability/CardAbilityStep';
+import type { AbilityContext } from '../ability/AbilityContext';
 import { AbilityType } from '../Constants';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
@@ -190,11 +189,11 @@ export class EventWindow extends BaseStepWithPipeline {
         }
 
         for (const event of eventsToResolve) {
-            // need to checkCondition here to ensure the event won't fizzle due to another event's resolution (e.g. double honoring an ordinary character with YR etc.)
+            // need to checkCondition here to ensure the event won't fizzle due to another event's resolution
             event.checkCondition();
             if (event.canResolve) {
-                this.game.emit(event.name, event);
                 event.executeHandler();
+                this.game.emit(event.name, event);
 
                 this.resolvedEvents.push(event);
             }

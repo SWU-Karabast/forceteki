@@ -1,4 +1,4 @@
-import { Card } from '../card/Card';
+import type { Card } from '../card/Card';
 
 export enum StatefulPromptType {
     DistributeDamage = 'distributeDamage',

@@ -1,13 +1,13 @@
-import AbilityHelper from '../../AbilityHelper';
-import Shield from '../../cards/01_SOR/tokens/Shield';
+import type Shield from '../../cards/01_SOR/tokens/Shield';
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
-import { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
-import { Attack } from '../../core/attack/Attack';
-import { Card } from '../../core/card/Card';
+import type { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
+import type { Attack } from '../../core/attack/Attack';
+import type { Card } from '../../core/card/Card';
 import { KeywordName, WildcardZoneName } from '../../core/Constants';
-import Game from '../../core/Game';
+import type Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
-import { ITriggeredAbilityProps } from '../../Interfaces';
+import { DefeatCardSystem } from '../../gameSystems/DefeatCardSystem';
+import type { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
     public override readonly keyword: KeywordName | null = KeywordName.Saboteur;
@@ -26,7 +26,7 @@ export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
 
                     return card === context.event.attack.target && card.hasShield();
                 },
-                immediateEffect: AbilityHelper.immediateEffects.defeat((context) => {
+                immediateEffect: new DefeatCardSystem((context) => {
                     Contract.assertTrue(context.source.isUnit());
 
                     let target: Shield[];

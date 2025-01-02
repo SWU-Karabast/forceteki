@@ -1,10 +1,10 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { GameSystem } from '../../../core/gameSystem/GameSystem';
-import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { GameSystem } from '../../../core/gameSystem/GameSystem';
+import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { WildcardCardType } from '../../../core/Constants';
-import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
 export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;

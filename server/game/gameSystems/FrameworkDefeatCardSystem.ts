@@ -3,7 +3,8 @@ import type { Card } from '../core/card/Card';
 import { EventName, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import { DefeatSourceType, IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
+import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
+import { DefeatSourceType } from '../IDamageOrDefeatSource';
 import { DefeatCardSystem } from './DefeatCardSystem';
 
 export interface IFrameworkDefeatCardProperties extends ICardTargetSystemProperties {

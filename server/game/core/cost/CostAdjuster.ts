@@ -1,10 +1,12 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
-import { PlayType, Aspect, CardTypeFilter, CardType, WildcardCardType } from '../Constants';
+import type { PlayType, Aspect, CardTypeFilter } from '../Constants';
+import { WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 import * as Contract from '../../core/utils/Contract';
+import type { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -76,7 +78,7 @@ export class CostAdjuster {
 
     public constructor(
         private game: Game,
-        private source: Card,
+        protected source: Card,
         properties: ICostAdjusterProperties
     ) {
         this.costAdjustType = properties.costAdjustType;
@@ -103,6 +105,10 @@ export class CostAdjuster {
         if (this.limit) {
             this.limit.registerEvents(game);
         }
+    }
+
+    public isExploit(): this is ExploitPlayCardResourceCost {
+        return false;
     }
 
     public canAdjust(playingType: PlayType, card: Card, attachTarget?: Card, ignoredAspects?: Aspect): boolean {

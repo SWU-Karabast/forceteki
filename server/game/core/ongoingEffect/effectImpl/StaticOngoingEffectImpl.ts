@@ -1,6 +1,6 @@
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
-import { CardType, EffectName, Duration, AbilityType } from '../../Constants';
-import { AbilityContext } from '../../ability/AbilityContext';
+import { EffectName } from '../../Constants';
+import type { AbilityContext } from '../../ability/AbilityContext';
 import { OngoingEffectImpl } from './OngoingEffectImpl';
 
 const binaryCardEffects = [

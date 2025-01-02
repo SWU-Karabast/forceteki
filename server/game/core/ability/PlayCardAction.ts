@@ -1,52 +1,91 @@
-import * as CostLibrary from '../../costs/CostLibrary';
 import { resourceCard } from '../../gameSystems/GameSystemLibrary';
-import { IActionTargetResolver } from '../../TargetInterfaces';
-import { Card } from '../card/Card';
-import { EffectName, KeywordName, PhaseName, PlayType, Stage } from '../Constants';
-import { ICost } from '../cost/ICost';
+import type { IActionTargetResolver } from '../../TargetInterfaces';
+import type { Card } from '../card/Card';
+import { EffectName, EventName, KeywordName, PhaseName, PlayType, Stage } from '../Constants';
+import type { ICost } from '../cost/ICost';
 import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
-import { CostAdjuster } from '../cost/CostAdjuster';
+import type { CostAdjuster } from '../cost/CostAdjuster';
+import * as Helpers from '../utils/Helpers';
+import * as Contract from '../utils/Contract';
+import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
+import { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
+import { GameEvent } from '../event/GameEvent';
 
 export interface IPlayCardActionProperties {
     card: Card;
     title?: string;
     playType?: PlayType;
     triggerHandlingMode?: TriggerHandlingMode;
-    costAdjuster?: CostAdjuster;
+    costAdjusters?: CostAdjuster | CostAdjuster[];
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
+    exploitValue?: number;
 }
 
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
 export abstract class PlayCardAction extends PlayerAction {
-    protected readonly playType: PlayType;
-    public readonly costAdjuster: CostAdjuster;
+    public readonly costAdjusters: CostAdjuster[];
+    public readonly exploitValue?: number;
+    public readonly playType: PlayType;
+    public readonly usesExploit: boolean;
+
+    protected readonly createdWithProperties: IPlayCardActionProperties;
 
     public constructor(properties: IPlayCardActionProperties) {
-        const propertiesWithDefaults = { title: 'Play this card', playType: PlayType.PlayFromHand, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, additionalCosts: [], ...properties };
+        const usesExploit = !!properties.exploitValue;
+
+        const propertiesWithDefaults = {
+            title: `Play ${properties.card.title}`,
+            playType: PlayType.PlayFromHand,
+            triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers,
+            additionalCosts: [],
+            ...properties
+        };
+
+        const playCost = usesExploit
+            ? new ExploitPlayCardResourceCost(properties.exploitValue, propertiesWithDefaults.playType)
+            : new PlayCardResourceCost(propertiesWithDefaults.playType);
+
         super(
             propertiesWithDefaults.card,
-            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType),
-            propertiesWithDefaults.additionalCosts.concat(CostLibrary.payPlayCardResourceCost(propertiesWithDefaults.playType)),
+            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit),
+            propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
         );
 
         this.playType = propertiesWithDefaults.playType;
-        this.costAdjuster = propertiesWithDefaults.costAdjuster;
+        this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
+        this.usesExploit = usesExploit;
+        this.exploitValue = properties.exploitValue;
+        this.createdWithProperties = { ...properties };
     }
 
-    private static getTitle(title: string, playType: PlayType): string {
+    private static getTitle(title: string, playType: PlayType, withExploit: boolean = false): string {
+        let updatedTitle = title;
+
         switch (playType) {
             case PlayType.Smuggle:
-                return title + ' with Smuggle';
+                updatedTitle += ' with Smuggle';
+                break;
+            case PlayType.PlayFromHand:
+            case PlayType.PlayFromOutOfPlay:
+                break;
             default:
-                return title;
+                Contract.fail(`Unknown play type: ${playType}`);
         }
+
+        if (withExploit) {
+            updatedTitle += ' using Exploit';
+        }
+
+        return updatedTitle;
     }
+
+    public abstract clone(overrideProperties: IPlayCardActionProperties): PlayCardAction;
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
@@ -84,12 +123,12 @@ export abstract class PlayCardAction extends PlayerAction {
         });
     }
 
-    public override isCardPlayed(): this is PlayCardAction {
+    public override isPlayCardAbility(): this is PlayCardAction {
         return true;
     }
 
     public override getAdjustedCost(context) {
-        const resourceCost = this.cost.find((cost) => cost.getAdjustedCost);
+        const resourceCost = this.getCosts(context).find((cost) => cost.getAdjustedCost);
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
@@ -106,7 +145,21 @@ export abstract class PlayCardAction extends PlayerAction {
         return costs;
     }
 
-    public generateSmuggleEvent(context: PlayCardContext) {
+    protected generateSmuggleEvent(context: PlayCardContext) {
         return resourceCard({ target: context.player.getTopCardOfDeck() }).generateEvent(context);
+    }
+
+    protected generateOnPlayEvent(context: PlayCardContext, additionalProps: any = {}) {
+        return new GameEvent(EventName.OnCardPlayed, context, {
+            player: context.player,
+            card: context.source,
+            originalZone: context.source.zoneName,
+            originallyOnTopOfDeck:
+                        context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
+            onPlayCardSource: context.onPlayCardSource,
+            playType: context.playType,
+            costs: context.costs,
+            ...additionalProps
+        });
     }
 }

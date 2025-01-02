@@ -1,4 +1,5 @@
-import { CardType, CardTypeFilter, ZoneName, ZoneFilter, MoveZoneDestination, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
+import type { CardTypeFilter, ZoneFilter, MoveZoneDestination } from '../Constants';
+import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -20,7 +21,8 @@ export function isEnumValue<T>(value: string, enumObj: T): boolean {
     return Object.values(enumObj).indexOf(value) >= 0;
 }
 
-export const isArena = (zone: ZoneFilter) => {
+// TODO: Use type predicates in similar functions in this file to enable type narrowing
+export const isArena = (zone: ZoneFilter): zone is ZoneName.GroundArena | ZoneName.SpaceArena | WildcardZoneName.AnyArena => {
     switch (zone) {
         case ZoneName.GroundArena:
         case ZoneName.SpaceArena:

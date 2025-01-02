@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName, Trait, WildcardZoneName } from '../../../core/Constants';
+import { ZoneName, Trait } from '../../../core/Constants';
 
 export default class BountyGuildInitiate extends NonLeaderUnitCard {
     protected override getImplementationId () {

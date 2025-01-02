@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, WildcardZoneName } from '../../../core/Constants';
+import { Aspect } from '../../../core/Constants';
 
 export default class CargoJuggernaut extends NonLeaderUnitCard {
     protected override getImplementationId () {

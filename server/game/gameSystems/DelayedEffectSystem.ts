@@ -1,16 +1,19 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { IAbilityLimit, perGame } from '../core/ability/AbilityLimit';
-import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { IAbilityLimit } from '../core/ability/AbilityLimit';
+import { perGame } from '../core/ability/AbilityLimit';
+import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Duration, EventName } from '../core/Constants';
-import { GameEvent } from '../core/event/GameEvent';
-import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { WhenType } from '../Interfaces';
+import type { GameEvent } from '../core/event/GameEvent';
+import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
+import { GameSystem } from '../core/gameSystem/GameSystem';
+import type { WhenType } from '../Interfaces';
 import * as Contract from '../core/utils/Contract';
 import OngoingEffectLibrary from '../ongoingEffects/OngoingEffectLibrary';
+import type { GameObject } from '../core/GameObject';
 
 export enum DelayedEffectType {
-    Card,
-    Player
+    Card = 'card',
+    Player = 'player'
 }
 
 export interface IDelayedEffectSystemProperties extends IGameSystemProperties {
@@ -97,12 +100,30 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     }
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
-    protected override isTargetTypeValid(target: any): boolean {
+    protected override isTargetTypeValid(target: GameObject): boolean {
         return false;
     }
 
     private getDelayedEffectSource (event: any, context: TContext, additionalProperties?: any) {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.effectType === DelayedEffectType.Card ? event.context.target : event.context.source;
+        const { effectType, target } = this.generatePropertiesFromContext(context, additionalProperties);
+
+        switch (effectType) {
+            case DelayedEffectType.Card:
+                Contract.assertNotNullLike(target, `No target provided for delayed effect from card ${context.source.internalName}`);
+
+                let nonArrayTarget;
+                if (Array.isArray(target)) {
+                    Contract.assertArraySize(target, 1, `Expected exactly one target for delayed effect but found ${target.length}`);
+                    nonArrayTarget = target[0];
+                } else {
+                    nonArrayTarget = target;
+                }
+
+                return nonArrayTarget;
+            case DelayedEffectType.Player:
+                return event.context.source;
+            default:
+                Contract.fail(`Unknown delayed effect type: ${effectType}`);
+        }
     }
 }

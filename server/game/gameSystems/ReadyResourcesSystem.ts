@@ -1,7 +1,8 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, GameStateChangeRequired } from '../core/Constants';
-import Player from '../core/Player.js';
-import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
+import type Player from '../core/Player.js';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 
 
 export interface IReadyResourcesSystemProperties extends IPlayerTargetSystemProperties {

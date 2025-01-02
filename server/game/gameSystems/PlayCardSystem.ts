@@ -1,15 +1,14 @@
 import type { Card } from '../core/card/Card';
 import AbilityResolver from '../core/gameSteps/AbilityResolver';
-import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import { CardType, PlayType, MetaEventName } from '../core/Constants';
-import { PlayCardAction } from '../core/ability/PlayCardAction';
-import { PlayUnitAction } from '../actions/PlayUnitAction';
-import { PlayUpgradeAction } from '../actions/PlayUpgradeAction';
-import { PlayEventAction } from '../actions/PlayEventAction';
+import type { PlayCardAction } from '../core/ability/PlayCardAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
-import { CostAdjuster, ICostAdjusterProperties } from '../core/cost/CostAdjuster';
+import type { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
+import { CostAdjuster } from '../core/cost/CostAdjuster';
 
 export interface IPlayCardProperties extends ICardTargetSystemProperties {
     ignoredRequirements?: string[];
@@ -38,9 +37,24 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     };
 
     public eventHandler(event, additionalProperties): void {
-        const player = event.player;
-        const newContext = (event.playCardAbility as PlayCardAction).createContext(player);
+        const availablePlayCardAbilities = event.playCardAbilities as PlayCardAction[];
 
+        if (availablePlayCardAbilities.length === 1) {
+            this.resolvePlayCardAbility(availablePlayCardAbilities[0], event);
+        } else if (availablePlayCardAbilities.length > 1) {
+            event.context.game.promptWithHandlerMenu(event.context.player, {
+                activePromptTitle: `Choose an option for playing ${event.card.title}`,
+                source: event.card,
+                choices: availablePlayCardAbilities.map((action) => action.title),
+                handlers: availablePlayCardAbilities.map((action) => (() => this.resolvePlayCardAbility(action, event)))
+            });
+        } else {
+            Contract.fail(`No legal play card abilities found for card ${event.card.internalName}`);
+        }
+    }
+
+    private resolvePlayCardAbility(ability: PlayCardAction, event: any) {
+        const newContext = ability.createContext(event.player);
         event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
     }
 
@@ -54,7 +68,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
-        event.playCardAbility = this.generatePlayCardAbility(target, properties, context);
+        event.playCardAbilities = this.generateLegalPlayCardAbilities(target, properties, context);
         event.optional = properties.optional ?? context.ability.optional;
     }
 
@@ -67,10 +81,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             return false;
         }
 
-        const playCardAbility = this.generatePlayCardAbility(card, properties, context);
-        const newContext = playCardAbility.createContext(context.player);
-
-        return !playCardAbility.meetsRequirements(newContext, properties.ignoredRequirements);
+        return this.generateLegalPlayCardAbilities(card, properties, context).length > 0;
     }
 
     private makeCostAdjuster(properties: ICostAdjusterProperties | null, context: TContext) {
@@ -80,13 +91,44 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     /**
      * Generate a play card ability for the specified card.
      */
-    private generatePlayCardAbility(card: Card, properties: IPlayCardProperties, context: TContext) {
-        const actionProperties = { card, playType: properties.playType, triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers, costAdjuster: this.makeCostAdjuster(properties.adjustCost, context) };
-        switch (actionProperties.card.type) {
-            case CardType.BasicUnit: return new PlayUnitAction({ ...actionProperties, entersReady: properties.entersReady });
-            case CardType.BasicUpgrade: return new PlayUpgradeAction(actionProperties);
-            case CardType.Event: return new PlayEventAction(actionProperties);
-            default: Contract.fail(`Attempted to play a card with invalid type ${actionProperties.card.type} as part of an ability`);
+    private generateLegalPlayCardAbilities(card: Card, properties: IPlayCardProperties, context: TContext) {
+        Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
+
+        const availableCardPlayActions = properties.playType === PlayType.PlayFromOutOfPlay
+            ? card.getPlayCardFromOutOfPlayActions()
+            : card.getPlayCardActions();
+
+        // filter out actions that aren't legal
+        return this.clonePlayActionsWithOverrides(availableCardPlayActions, card, properties, context)
+            .filter((action) => {
+                const newContext = action.createContext(context.player);
+                return action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
+            });
+    }
+
+    protected clonePlayActionsWithOverrides(
+        availableCardPlayActions: PlayCardAction[],
+        card: Card,
+        properties: IPlayCardProperties,
+        context: TContext
+    ) {
+        return availableCardPlayActions
+            .filter((action) => action.playType === properties.playType)
+            .map((playAction) => playAction.clone(this.buildPlayActionProperties(card, properties, context, playAction)));
+    }
+
+    private buildPlayActionProperties(card: Card, properties: IPlayCardProperties, context: TContext, action: PlayCardAction = null) {
+        let costAdjusters = [this.makeCostAdjuster(properties.adjustCost, context)];
+        if (action) {
+            costAdjusters = costAdjusters.concat(action.costAdjusters);
         }
+
+        return {
+            card,
+            playType: properties.playType,
+            triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow,
+            costAdjusters,
+            entersReady: properties.entersReady
+        };
     }
 }

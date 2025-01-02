@@ -1,8 +1,8 @@
 import { EventName, MetaEventName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { EventWindow } from './EventWindow';
-import { AbilityContext } from '../ability/AbilityContext';
+import type { EventWindow } from './EventWindow';
+import type { AbilityContext } from '../ability/AbilityContext';
 
 export enum EventResolutionStatus {
     CREATED = 'created',
@@ -17,11 +17,11 @@ export class GameEvent {
     public condition = (event) => true;
     public order = 0;
     public isContingent = false;
-    public preResolutionEffect = () => true;
 
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
+    private _preResolutionEffect = null;
     private replacementEvent: any = null;
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
     private _window: EventWindow = null;
@@ -170,6 +170,18 @@ export class GameEvent {
         }
 
         return contingentEvents;
+    }
+
+    public setPreResolutionEffect(preResolutionEffect: (event) => void) {
+        Contract.assertIsNullLike(this._preResolutionEffect, 'Attempting to set preResolutionEffect but it already has a value');
+
+        this._preResolutionEffect = preResolutionEffect;
+    }
+
+    public preResolutionEffect() {
+        if (this._preResolutionEffect) {
+            this._preResolutionEffect(this);
+        }
     }
 
     public addCleanupHandler(handler) {

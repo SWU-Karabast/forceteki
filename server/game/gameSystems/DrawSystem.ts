@@ -1,10 +1,8 @@
-import AbilityHelper from '../AbilityHelper';
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName } from '../core/Constants';
-import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import Player from '../core/Player';
-import { GameEvent } from '../core/event/GameEvent';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import type Player from '../core/Player';
 import { DamageSystem } from './DamageSystem';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
@@ -40,6 +38,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
     protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
+        event.cards = event.player.drawDeck.slice(0, amount);
         event.amount = amount;
     }
 
@@ -53,7 +52,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
             if (event.amount > event.player.drawDeck.length) {
                 const damageAmount = 3 * (event.amount - event.player.drawDeck.length);
 
-                // Here we generate a the damage event with a new context that contains just the player,
+                // Here we generate a damage event with a new context that contains just the player,
                 // this way the damage is attributed to the player and not the card that triggered the draw (or its controller).
                 // As per rules, the player that is drawing is also the player that is causing the damage and
                 // this is important for cards like Forced Surrender. (FFG ruling confirms this)

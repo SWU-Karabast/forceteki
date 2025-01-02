@@ -1,17 +1,13 @@
-import { AbilityType, EffectName, ZoneName, ZoneFilter, PhaseName, RelativePlayer, WildcardZoneName } from '../Constants';
+import type { ZoneFilter } from '../Constants';
+import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import CardAbilityStep from './CardAbilityStep';
 import * as AbilityLimit from './AbilityLimit';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { ICost } from '../cost/ICost';
-import { Card } from '../card/Card';
-import { IAbilityProps } from '../../Interfaces';
-import { AbilityContext } from './AbilityContext';
-import Game from '../Game';
+import type { Card } from '../card/Card';
 
 export class CardAbility extends CardAbilityStep {
     public readonly abilityController: RelativePlayer;
-    public readonly abilityCost: ICost[];
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;
     public readonly zoneFilter: ZoneFilter | ZoneFilter[];
@@ -25,7 +21,6 @@ export class CardAbility extends CardAbilityStep {
         this.limit.ability = this;
 
         this.title = properties.title;
-        this.abilityCost = this.cost;
         this.printedAbility = properties.printedAbility !== false;
         this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
@@ -100,7 +95,7 @@ export class CardAbility extends CardAbilityStep {
     }
 
     public getAdjustedCost(context) {
-        const resourceCost = this.cost.find((cost) => cost.getAdjustedCost);
+        const resourceCost = this.getCosts(context).find((cost) => cost.getAdjustedCost);
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
@@ -152,7 +147,7 @@ export class CardAbility extends CardAbilityStep {
 
         const gainedAbility = gainAbilitySource ? '\'s gained ability from ' : '';
         let messageArgs = [context.player, ' ' + messageVerb + ' ', context.source, gainedAbility, gainAbilitySource];
-        const costMessages = this.cost
+        const costMessages = this.getCosts(context)
             .map((cost) => {
                 if (cost.getCostMessage && cost.getCostMessage(context)) {
                     let card = context.costs[cost.getActionName(context)];

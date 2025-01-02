@@ -1,12 +1,12 @@
-import Player from '../Player';
+import type Player from '../Player';
 import { Card } from './Card';
 import { CardType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import { WithDamage } from './propertyMixins/Damage';
 import { ActionAbility } from '../ability/ActionAbility';
-import AbilityHelper from '../../AbilityHelper';
-import { IActionAbilityProps, IEpicActionProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
+import { EpicActionLimit } from '../ability/AbilityLimit';
 
 const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
 
@@ -42,11 +42,18 @@ export class BaseCard extends BaseCardParent {
         return super.getActionAbilities();
     }
 
+    // TODO TYPE REFACTOR: this method is duplicated
+    protected addConstantAbility(properties: IConstantAbilityProps<this>): void {
+        const ability = this.createConstantAbility(properties);
+        ability.registeredEffects = this.addEffectToEngine(ability);
+        this.constantAbilities.push(ability);
+    }
+
     protected setEpicActionAbility(properties: IEpicActionProps<this>): void {
         Contract.assertIsNullLike(this._epicActionAbility, 'Epic action ability already set');
 
         const propertiesWithLimit: IActionAbilityProps<this> = Object.assign(properties, {
-            limit: AbilityHelper.limit.epicAction()
+            limit: new EpicActionLimit()
         });
 
         this._epicActionAbility = new ActionAbility(this.game, this, propertiesWithLimit);

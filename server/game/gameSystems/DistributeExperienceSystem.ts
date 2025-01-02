@@ -1,8 +1,9 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { Card } from '../core/card/Card';
 import { MetaEventName } from '../core/Constants';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
-import { DistributeAmongTargetsSystem, IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
+import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
+import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
 import { GiveExperienceSystem } from './GiveExperienceSystem';
 
 export type IDistributeExperienceSystemProperties<TContext extends AbilityContext = AbilityContext> = IDistributeAmongTargetsSystemProperties<TContext>;

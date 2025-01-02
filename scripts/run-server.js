@@ -37,13 +37,14 @@ async function runCommand() {
     }
 
     console.log('Building the server.');
-    childProcess.execSync('npm run build');
+    childProcess.execSync('npm run build-dev');
 
     const serverProcess = childProcess.spawn('node', ['./build/server/gamenode']);
 
     // pipe the server output to the current shell
     // so the dev can see it.
     serverProcess.stdout.pipe(process.stdout);
+    serverProcess.stderr.pipe(process.stdout);
 
     // Disconnect the pipe on exit
     serverProcess.on('exit', () => {

@@ -1,14 +1,14 @@
 import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { Stage, AbilityType, GameStateChangeRequired } from '../Constants';
-import { ITriggeredAbilityProps, WhenType } from '../../Interfaces';
-import { GameEvent } from '../event/GameEvent';
-import { Card } from '../card/Card';
-import Game from '../Game';
-import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
+import type { ITriggeredAbilityProps, WhenType } from '../../Interfaces';
+import type { GameEvent } from '../event/GameEvent';
+import type { Card } from '../card/Card';
+import type Game from '../Game';
+import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import * as Contract from '../utils/Contract';
-import { CardWithTriggeredAbilities } from '../card/CardTypes';
-import { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
+import type { CardWithTriggeredAbilities } from '../card/CardTypes';
+import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 
 interface IEventRegistration {
     name: string;

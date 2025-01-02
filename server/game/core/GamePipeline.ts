@@ -1,7 +1,7 @@
 import type Player from './Player';
 import type { Card } from './card/Card';
 import type { IStep } from './gameSteps/IStep';
-import { IStatefulPromptResults } from './gameSteps/PromptInterfaces';
+import type { IStatefulPromptResults } from './gameSteps/PromptInterfaces';
 
 type StepFactory = () => IStep;
 type StepItem = IStep | StepFactory;

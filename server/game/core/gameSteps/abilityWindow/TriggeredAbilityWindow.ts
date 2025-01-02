@@ -1,16 +1,15 @@
-import Player from '../../Player';
-import { GameEvent } from '../../event/GameEvent';
-import { EventWindow } from '../../event/EventWindow';
-import { AbilityType, WildcardZoneName } from '../../Constants';
+import type Player from '../../Player';
+import type { GameEvent } from '../../event/GameEvent';
+import type { EventWindow } from '../../event/EventWindow';
+import { AbilityType } from '../../Constants';
 import * as Contract from '../../utils/Contract';
-import { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
-import TriggeredAbility from '../../ability/TriggeredAbility';
-import { Card } from '../../card/Card';
+import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
+import type TriggeredAbility from '../../ability/TriggeredAbility';
+import type { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
-import { AbilityContext } from '../../ability/AbilityContext';
-import Game from '../../Game';
-import Shield from '../../../cards/01_SOR/tokens/Shield';
+import type Game from '../../Game';
+import type Shield from '../../../cards/01_SOR/tokens/Shield';
 
 export class TriggeredAbilityWindow extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */

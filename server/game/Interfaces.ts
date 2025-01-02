@@ -2,27 +2,28 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import { type RelativePlayer, type CardType, type ZoneName, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter, Duration, RelativePlayerFilter } from './core/Constants';
+import type { Duration, RelativePlayerFilter } from './core/Constants';
+import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
-import { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
-import { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
-import { ICost } from './core/cost/ICost';
-import Game from './core/Game';
-import PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
-import Player from './core/Player';
-import { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
-import { OngoingPlayerEffect } from './core/ongoingEffect/OngoingPlayerEffect';
-import { UnitCard } from './core/card/CardTypes';
-import { BaseZone } from './core/zone/BaseZone';
-import { DeckZone } from './core/zone/DeckZone';
-import { DiscardZone } from './core/zone/DiscardZone';
-import { HandZone } from './core/zone/HandZone';
-import { OutsideTheGameZone } from './core/zone/OutsideTheGameZone';
-import { ResourceZone } from './core/zone/ResourceZone';
-import { GroundArenaZone } from './core/zone/GroundArenaZone';
-import { SpaceArenaZone } from './core/zone/SpaceArenaZone';
-import { CaptureZone } from './core/zone/CaptureZone';
+import type { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
+import type { IInitiateAttackProperties } from './gameSystems/InitiateAttackSystem';
+import type { ICost } from './core/cost/ICost';
+import type Game from './core/Game';
+import type PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
+import type Player from './core/Player';
+import type { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
+import type { OngoingPlayerEffect } from './core/ongoingEffect/OngoingPlayerEffect';
+import type { UnitCard } from './core/card/CardTypes';
+import type { BaseZone } from './core/zone/BaseZone';
+import type { DeckZone } from './core/zone/DeckZone';
+import type { DiscardZone } from './core/zone/DiscardZone';
+import type { HandZone } from './core/zone/HandZone';
+import type { OutsideTheGameZone } from './core/zone/OutsideTheGameZone';
+import type { ResourceZone } from './core/zone/ResourceZone';
+import type { GroundArenaZone } from './core/zone/GroundArenaZone';
+import type { SpaceArenaZone } from './core/zone/SpaceArenaZone';
+import type { CaptureZone } from './core/zone/CaptureZone';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -36,7 +37,8 @@ export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IRepla
 /** Interface definition for addActionAbility */
 export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'optional'> & {
     condition?: (context?: AbilityContext<TSource>) => boolean;
-    cost?: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[];
+    cost?: ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[] |
+      ((context: AbilityContext<TSource>) => ICost<AbilityContext<TSource>> | ICost<AbilityContext<TSource>>[]);
 
     /**
      * If true, any player can trigger the ability. If false, only the card's controller can trigger it.

@@ -1,9 +1,10 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
 const { Stage, AbilityType, RelativePlayer } = require('../Constants.js');
-const AttackHelper = require('../attack/AttackHelper.js');
+const AttackHelper = require('../attack/AttackHelpers.js');
 const Helpers = require('../utils/Helpers.js');
 const Contract = require('../utils/Contract.js');
+const { TriggerHandlingMode } = require('../event/EventWindow.js');
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
@@ -81,7 +82,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         } else if (this.immediateEffect.isOptional(context) && this.properties.then) {
             const then =
                 typeof this.properties.then === 'function' ? this.properties.then(context) : this.properties.then;
-            const cardAbilityStep = new CardAbilityStep(this.game, this.card, then);
+            const cardAbilityStep = this.buildSubAbilityStep(then);
             return cardAbilityStep.meetsRequirements(cardAbilityStep.createContext(context.player)) === '';
         }
         return false;
@@ -132,6 +133,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
                 window.setSubAbilityStep(() => this.getSubAbilityStepContext(context, eventsToResolve));
             // if no events for the current step, skip directly to the "then" step (if any)
             } else {
+                // TODO THIS PR: make sure that this part also passes triggers to parent window?
                 const subAbilityStep = this.getSubAbilityStepContext(context, []);
                 if (!!subAbilityStep) {
                     this.game.resolveAbility(subAbilityStep);
@@ -150,7 +152,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
             const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
             const abilityController = this.getAbilityController(then, context);
             if (!then.thenCondition || then.thenCondition(context)) {
-                return new CardAbilityStep(this.game, this.card, then).createContext(abilityController);
+                return this.buildSubAbilityStepContext(then, abilityController);
             }
 
             return null;
@@ -172,7 +174,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
             if (resolvedAbilityEvents.length === 0) {
                 return this.buildSubAbilityStepContext(
                     this.getConcreteSubAbilityStepProperties(this.properties.ifYouDoNot, context),
-                    context
+                    context.player
                 );
             }
 
@@ -189,16 +191,23 @@ class CardAbilityStep extends PlayerOrCardAbility {
         const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
 
         return conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve
-            ? new CardAbilityStep(this.game, this.card, concreteIfAbility).createContext(abilityController)
+            ? this.buildSubAbilityStepContext(concreteIfAbility, abilityController)
             : null;
     }
 
     getConcreteSubAbilityStepProperties(subAbilityStep, context) {
-        return typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
+        const properties = typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
+
+        // sub-steps will always pass to a parent window
+        return { ...properties, triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
     }
 
-    buildSubAbilityStepContext(subAbilityStepProps, context) {
-        return new CardAbilityStep(this.game, this.card, subAbilityStepProps).createContext(context.player);
+    buildSubAbilityStepContext(subAbilityStepProps, abilityController) {
+        return this.buildSubAbilityStep(subAbilityStepProps).createContext(abilityController);
+    }
+
+    buildSubAbilityStep(subAbilityStepProps) {
+        return new CardAbilityStep(this.game, this.card, subAbilityStepProps, this.type);
     }
 
     getAbilityController(subAbilityStep, context) {

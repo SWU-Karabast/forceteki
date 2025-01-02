@@ -1,8 +1,9 @@
 import { EventName, ZoneName } from '../core/Constants';
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Helpers from '../core/utils/Helpers.js';
 import type Player from '../core/Player';
-import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type

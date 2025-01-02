@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { CardType, RelativePlayer } from '../../../core/Constants';
 
 export default class SmugglersAid extends EventCard {
     protected override getImplementationId() {

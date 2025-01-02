@@ -1,5 +1,5 @@
-import { skip } from 'node:test';
-import { EventName, PhaseName } from '../../Constants';
+import type { PhaseName } from '../../Constants';
+import { EventName } from '../../Constants';
 import type Game from '../../Game';
 import { BaseStepWithPipeline } from '../BaseStepWithPipeline';
 import { SimpleStep } from '../SimpleStep';

@@ -1,7 +1,10 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, TokenUnitName } from '../core/Constants';
-import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import Player from '../core/Player';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { TokenUnitName } from '../core/Constants';
+import { EventName } from '../core/Constants';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import type Player from '../core/Player';
+import * as Helpers from '../core/utils/Helpers';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 
 export interface ICreateTokenUnitProperties extends IPlayerTargetSystemProperties {
@@ -40,8 +43,10 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         // generate the tokens here so they can be used in the contingent events
         // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
         event.generatedTokens = [];
-        for (let i = 0; i < properties.amount; i++) {
-            event.generatedTokens.push(context.game.generateToken(context.source.controller, this.getTokenType()));
+        for (const player of Helpers.asArray(properties.target)) {
+            for (let i = 0; i < properties.amount; i++) {
+                event.generatedTokens.push(context.game.generateToken(player, this.getTokenType()));
+            }
         }
 
         // add contingent events for putting the generated unit token(s) into play

@@ -110,6 +110,8 @@ describe('Boba Fett, Disintegrator', function() {
 
                 // check game state
                 expect(context.consularSecurityForce.damage).toBe(8);
+
+                // TODO check with units rescued from being captured
             });
         });
     });

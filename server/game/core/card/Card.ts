@@ -1,29 +1,30 @@
-import { IActionAbilityProps, IConstantAbilityProps, Zone } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, Zone } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
-import PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, KeywordName, ZoneName, MoveZoneDestination, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
+import type { KeywordName, MoveZoneDestination } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { AbilityContext } from '../ability/AbilityContext';
-import { CardAbility } from '../ability/CardAbility';
+import type { AbilityContext } from '../ability/AbilityContext';
+import type { CardAbility } from '../ability/CardAbility';
 import type Shield from '../../cards/01_SOR/tokens/Shield';
-import { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
+import type { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
-import { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
+import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import type { EventCard } from './EventCard';
-import type { CardWithExhaustProperty, CardWithTriggeredAbilities, CardWithConstantAbilities, TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard } from './CardTypes';
+import type { TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard } from './CardTypes';
 import type { UpgradeCard } from './UpgradeCard';
 import type { BaseCard } from './BaseCard';
 import type { LeaderCard } from './LeaderCard';
 import type { LeaderUnitCard } from './LeaderUnitCard';
 import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
+import type { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
-import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
-import { CaptureZone } from '../zone/CaptureZone';
+import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -135,12 +136,13 @@ export class Card extends OngoingEffectSource {
     public getActionAbilities(): ActionAbility[] {
         const deduplicatedActionAbilities: ActionAbility[] = [];
 
+        // Add any gained action abilities, deduplicating by any identical gained action abilities from
+        // the same source card (e.g., two Heroic Resolve actions)
         const seenCardNameSources = new Set<string>();
         for (const action of this.actionAbilities) {
             if (action.printedAbility) {
                 deduplicatedActionAbilities.push(action);
             } else if (!seenCardNameSources.has(action.gainAbilitySource.internalName)) {
-                // Deduplicate any identical gained action abilities from the same source card (e.g., two Heroic Resolve actions)
                 deduplicatedActionAbilities.push(action);
                 seenCardNameSources.add(action.gainAbilitySource.internalName);
             }
@@ -307,6 +309,14 @@ export class Card extends OngoingEffectSource {
 
     public isToken(): this is TokenCard {
         return this.type === CardType.TokenUnit || this.type === CardType.TokenUpgrade;
+    }
+
+    public isTokenUnit(): this is TokenUnitCard {
+        return this.type === CardType.TokenUnit;
+    }
+
+    public isTokenUpgrade(): this is TokenUpgradeCard {
+        return this.type === CardType.TokenUpgrade;
     }
 
     public isShield(): this is Shield {
@@ -627,6 +637,10 @@ export class Card extends OngoingEffectSource {
     }
 
     // ******************************************* MISC *******************************************
+    public override isCard(): this is Card {
+        return true;
+    }
+
     protected assertPropertyEnabled(propertyVal: any, propertyName: string) {
         Contract.assertNotNullLike(propertyVal, this.buildPropertyDisabledStr(propertyName));
     }
@@ -792,6 +806,7 @@ export class Card extends OngoingEffectSource {
             id: this.cardData.id,
             setId: this.cardData.setId,
             controlled: this.owner !== this.controller,
+            aspects: this.aspects,
             // facedown: this.isFacedown(),
             zone: this.zoneName,
             // menu: this.getMenu(),

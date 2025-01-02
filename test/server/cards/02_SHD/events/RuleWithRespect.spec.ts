@@ -5,11 +5,12 @@ describe('Rule With Respect', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['rule-with-respect', 'battlefield-marine', 'death-star-stormtrooper', 'tieln-fighter'],
+                        hand: ['rule-with-respect', 'battlefield-marine', 'death-star-stormtrooper', 'tieln-fighter', 'change-of-heart', 'waylay'],
+                        resources: 30
                     },
                     player2: {
-                        groundArena: ['wampa', 'atst'],
-                        spaceArena: ['cartel-spacer'],
+                        groundArena: ['wampa', 'atst', 'swoop-racer'],
+                        spaceArena: ['cartel-spacer', 'wing-leader'],
                         leader: { card: 'boba-fett#daimyo', deployed: true }
                     },
 
@@ -68,8 +69,22 @@ describe('Rule With Respect', function() {
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.deathStarStormtrooper);
 
+                // Wing Leader attacks base and is taken control of by P1
+                context.player1.passAction();
+                context.player2.clickCard(context.wingLeader);
+                context.player2.clickCard(context.p1Base);
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.wingLeader);
+
+                // Swoop Racer attacks base and then is waylaid and played back out, so a previous copy is what attacked base
+                context.player2.clickCard(context.swoopRacer);
+                context.player2.clickCard(context.p1Base);
+                context.player1.clickCard(context.waylay);
+                context.player1.clickCard(context.swoopRacer);
+                context.player2.clickCard(context.swoopRacer);
+
                 context.player1.clickCard(context.ruleWithRespect);
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.tielnFighter]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.tielnFighter, context.wingLeader]);
                 context.player1.clickCard(context.battlefieldMarine);
 
                 expect(context.player2).toBeActivePlayer();
@@ -77,6 +92,8 @@ describe('Rule With Respect', function() {
                 expect(context.cartelSpacer).toBeCapturedBy(context.battlefieldMarine);
                 expect(context.bobaFett).not.toBeCapturedBy(context.battlefieldMarine);
                 expect(context.atst).not.toBeCapturedBy(context.battlefieldMarine);
+                expect(context.wingLeader).not.toBeCapturedBy(context.battlefieldMarine);
+                expect(context.swoopRacer).not.toBeCapturedBy(context.battlefieldMarine);
             });
         });
     });
