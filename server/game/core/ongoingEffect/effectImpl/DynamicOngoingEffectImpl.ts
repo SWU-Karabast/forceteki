@@ -2,13 +2,15 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import type { EffectName } from '../../Constants';
 import StaticOngoingEffectImpl from './StaticOngoingEffectImpl';
 
+export type CalculateOngoingEffect<TValue> = (target: any, context: AbilityContext) => TValue;
+
 // TODO: eventually this will subclass OngoingEffectImpl directly
 export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffectImpl<TValue> {
     private values: Record<string, TValue> = {};
 
     public constructor(
         type: EffectName,
-        private calculate: ((target: any, context: AbilityContext) => TValue)
+        private calculate: CalculateOngoingEffect<TValue>
     ) {
         super(type, null);
     }
@@ -22,12 +24,20 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
     public override recalculate(target) {
         const oldValue = this.getValue(target);
         const newValue = this.setValue(target, this.calculate(target, this.context));
+
+        // TODO: these comparison methods are really inefficient, consider a more explicit comparison implementation
+
         if (typeof oldValue === 'function' && typeof newValue === 'function') {
             return oldValue.toString() !== newValue.toString();
         }
-        if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+
+        if (
+            (Array.isArray(oldValue) && Array.isArray(newValue)) ||
+            (typeof oldValue === 'object' && typeof newValue === 'object')
+        ) {
             return JSON.stringify(oldValue) !== JSON.stringify(newValue);
         }
+
         return oldValue !== newValue;
     }
 
