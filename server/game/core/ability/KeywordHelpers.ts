@@ -1,8 +1,9 @@
 import type { IKeywordProperties } from '../../Interfaces';
-import { Aspect, KeywordName } from '../Constants';
+import { Aspect, KeywordName, PlayType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { BountyKeywordInstance, KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
+import type { PlayCardAction } from './PlayCardAction';
 
 export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, cardName: string): KeywordInstance[] {
     const expectedKeywords = EnumHelpers.checkConvertToEnum(expectedKeywordsRaw, KeywordName);
@@ -38,18 +39,30 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
     return keywords;
 }
 
+// "Gain Coordinate" and "gain Exploit" are not yet implemented
 export function keywordFromProperties(properties: IKeywordProperties) {
-    if (properties.keyword === KeywordName.Restore || properties.keyword === KeywordName.Raid) {
-        return new KeywordWithNumericValue(properties.keyword, properties.amount);
+    switch (properties.keyword) {
+        case KeywordName.Restore:
+        case KeywordName.Raid:
+            return new KeywordWithNumericValue(properties.keyword, properties.amount);
+
+        case KeywordName.Bounty:
+            return new BountyKeywordInstance(properties.keyword, properties.ability);
+
+        case KeywordName.Smuggle:
+            return new KeywordWithCostValues(properties.keyword, properties.cost, properties.aspects, false);
+
+        case KeywordName.Ambush:
+        case KeywordName.Grit:
+        case KeywordName.Overwhelm:
+        case KeywordName.Saboteur:
+        case KeywordName.Sentinel:
+        case KeywordName.Shielded:
+            return new KeywordInstance(properties.keyword);
+
+        default:
+            throw new Error(`Keyword '${(properties as any).keyword}' is not implemented yet`);
     }
-
-    if (properties.keyword === KeywordName.Bounty) {
-        return new BountyKeywordInstance(properties.keyword, properties.ability);
-    }
-
-    // TODO SMUGGLE: add smuggle here for "gain smuggle" abilities
-
-    return new KeywordInstance(properties.keyword);
 }
 
 export const isNumericType: Record<KeywordName, boolean> = {
@@ -180,3 +193,27 @@ function getRegexForKeyword(keyword: KeywordName) {
     }
 }
 
+export function getCheapestSmuggle<TAbility extends PlayCardAction>(smuggleActions: TAbility[]): PlayCardAction | null {
+    const nonSmuggleActions = smuggleActions.filter((action) => action.playType !== PlayType.Smuggle);
+    Contract.assertTrue(nonSmuggleActions.length === 0, 'Found at least one action that is not a Smuggle play action');
+
+    if (smuggleActions.length === 0) {
+        return null;
+    }
+    if (smuggleActions.length === 1) {
+        return smuggleActions[0];
+    }
+
+    let cheapestSmuggle = null;
+    let cheapestAmount = Infinity;
+    for (const smuggleAction of smuggleActions) {
+        Contract.assertTrue(smuggleAction.isPlayCardAbility());
+        const cost = smuggleAction.getAdjustedCost(smuggleAction.createContext());
+        if (cost < cheapestAmount) {
+            cheapestAmount = cost;
+            cheapestSmuggle = smuggleAction;
+        }
+    }
+
+    return cheapestSmuggle;
+}
