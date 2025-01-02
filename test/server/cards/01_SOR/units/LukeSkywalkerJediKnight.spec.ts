@@ -21,6 +21,7 @@ describe('Luke Skywalker, Jedi Knight', function () {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickCard(context.wampa);
 
                 // no friendly unit was defeated, so Wampa should be -3/-3
                 expect(context.player2).toBeActivePlayer();

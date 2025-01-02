@@ -50,6 +50,7 @@ describe('Emperor\'s Royal Guard', function () {
                 context.moveToNextActionPhase();
                 context.player1.clickCard(context.wartimeTradeOfficial);
                 context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.emperorsRoyalGuard);
                 expect(context.battlefieldMarine).toBeInZone('discard', context.player2);
                 expect(context.emperorsRoyalGuard.damage).toBe(3);
             });
