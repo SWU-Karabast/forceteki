@@ -20,7 +20,7 @@ describe('Tech, Source of Insight', function () {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.player1.readyResources(6);
+                    context.player1.readyResources(context.player1.resources.length);
                     context.player2.passAction();
                 };
 
@@ -54,10 +54,10 @@ describe('Tech, Source of Insight', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        leader: 'jyn-erso#resisting-oppression',
+                        leader: 'asajj-ventress#unparalleled-adversary',
                         base: 'echo-base',
                         groundArena: ['tech#source-of-insight'],
-                        resources: ['wampa', 'moment-of-peace', 'battlefield-marine', 'tobias-beckett#i-trust-no-one', 'atst', 'atst', 'atst']
+                        resources: ['wampa', 'moment-of-peace', 'battlefield-marine', 'tobias-beckett#i-trust-no-one', 'infiltrating-demolisher', 'atst', 'atst']
                     }
                 });
             });
@@ -66,7 +66,7 @@ describe('Tech, Source of Insight', function () {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.player1.readyResources(6);
+                    context.player1.readyResources(context.player1.resources.length);
                     context.player2.passAction();
                 };
 
@@ -74,7 +74,31 @@ describe('Tech, Source of Insight', function () {
                 context.player1.clickCard(context.tobiasBeckett);
                 expect(context.tobiasBeckett).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(6);
+
+                reset();
+
+                // check smuggle + exploit
+                context.player1.clickCard(context.infiltratingDemolisher);
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Play Infiltrating Demolisher with Smuggle',
+                    'Play Infiltrating Demolisher with Smuggle using Exploit',
+                    'Cancel'
+                ]);
+                context.player1.clickPrompt('Play Infiltrating Demolisher with Smuggle using Exploit');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.tech, context.tobiasBeckett]);
+                context.player1.clickCard(context.tobiasBeckett);
+                context.player1.clickPrompt('Done');
+
+                expect(context.tobiasBeckett).toBeInZone('discard');
+                expect(context.infiltratingDemolisher).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(4); // 4 base cost + 2 from smuggle - 2 from exploit 1
             });
         });
     });
+
+    // TODO: Smuggle + Exploit
+    // TODO: Smuggle + Bamboozle
+    // TODO: Smuggle an upgrade
+    // TODO: Lando leader
 });
