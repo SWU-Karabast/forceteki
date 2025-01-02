@@ -65,6 +65,12 @@ export class PlayableOrDeployableCard extends Card {
             .concat(this.getPlayCardActions());
     }
 
+    /**
+     * Get the available "play card" actions for this card in its current zone. If `propertyOverrides` is provided, will generate the actions using the included overrides.
+     *
+     * Note that if the card is currently in an out-of-play zone, by default this will return nothing since cards cannot be played from out of play in normal circumstances.
+     * If using an ability to grant an out-of-play action, use `getPlayCardFromOutOfPlayActions` which will generate the appropriate actions.
+     */
     public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         if (this.zoneName === ZoneName.Hand) {
             return this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
@@ -77,6 +83,12 @@ export class PlayableOrDeployableCard extends Card {
         return [];
     }
 
+    /**
+     * Get the available "play card" actions for this card in the current out-of-play zone.
+     * This will generate an action to play the card from out of play even if it would normally not have one available.
+     *
+     * If `propertyOverrides` is provided, will generate the actions using the included overrides.
+     */
     public getPlayCardFromOutOfPlayActions(propertyOverrides: IPlayCardActionOverrides = null) {
         Contract.assertFalse(
             [ZoneName.Hand, ZoneName.SpaceArena, ZoneName.GroundArena].includes(this.zoneName),
