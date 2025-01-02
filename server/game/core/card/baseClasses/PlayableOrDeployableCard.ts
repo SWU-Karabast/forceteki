@@ -1,8 +1,9 @@
 import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
+import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
-import type { IPlayCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
+import type { IPlayCardActionProperties, IPlayCardActionPropertiesBase, ISmuggleCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
 import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import type { Aspect, MoveZoneDestination } from '../../Constants';
 import { CardType, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
@@ -11,6 +12,8 @@ import { CostAdjustType } from '../../cost/CostAdjuster';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import { Card } from '../Card';
+
+export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
@@ -62,41 +65,73 @@ export class PlayableOrDeployableCard extends Card {
             .concat(this.getPlayCardActions());
     }
 
-    public getPlayCardActions(): PlayCardAction[] {
+    public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         if (this.zoneName === ZoneName.Hand) {
-            return this.buildPlayCardActions();
+            return this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
         }
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            return this.buildPlayCardActions(PlayType.Smuggle);
+            return this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
         }
 
         return [];
     }
 
-    public getPlayCardFromOutOfPlayActions() {
+    public getPlayCardFromOutOfPlayActions(propertyOverrides: IPlayCardActionOverrides = null) {
         Contract.assertFalse(
             [ZoneName.Hand, ZoneName.SpaceArena, ZoneName.GroundArena].includes(this.zoneName),
             `Attempting to get "play from out of play" actions for card ${this.internalName} in invalid zone: ${this.zoneName}`
         );
 
-        return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay);
+        return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
     }
 
-    protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand): PlayCardAction[] {
-        const actions = [this.buildPlayCardAction({ playType })];
+    protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
+        let defaultPlayAction: PlayCardAction = null;
+        if (playType === PlayType.Smuggle) {
+            if (this.hasSomeKeyword(KeywordName.Smuggle)) {
+                defaultPlayAction = this.buildCheapestSmuggleAction(propertyOverrides);
+            }
+        } else {
+            defaultPlayAction = this.buildPlayCardAction({ ...propertyOverrides, playType });
+        }
 
-        // generate "play with exploit" action
+        // if there's not a basic play action available for the requested play type, return nothing
+        if (defaultPlayAction == null) {
+            return [];
+        }
+
+        const actions: PlayCardAction[] = [defaultPlayAction];
+
+        // generate "play with exploit" action from default action
         const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
         if (exploitValue) {
-            actions.push(this.buildPlayCardAction({ playType, exploitValue }));
+            actions.push(defaultPlayAction.clone({ exploitValue }));
         }
 
         return actions;
     }
 
+    protected buildCheapestSmuggleAction(propertyOverrides: IPlayCardActionOverrides = null) {
+        Contract.assertTrue(this.hasSomeKeyword(KeywordName.Smuggle));
+
+        const smuggleKeywords = this.getKeywordsWithCostValues(KeywordName.Smuggle);
+        const smuggleActions = smuggleKeywords.map((smuggleKeyword) => {
+            const smuggleActionProps: ISmuggleCardActionProperties = {
+                ...propertyOverrides,
+                playType: PlayType.Smuggle,
+                smuggleResourceCost: smuggleKeyword.cost,
+                smuggleAspects: smuggleKeyword.aspects
+            };
+
+            return this.buildPlayCardAction(smuggleActionProps);
+        });
+
+        return KeywordHelpers.getCheapestSmuggle(smuggleActions);
+    }
+
     // can't do abstract due to mixins
-    public buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>): PlayCardAction {
+    public buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction {
         Contract.fail('This method should be overridden by the subclass');
     }
 

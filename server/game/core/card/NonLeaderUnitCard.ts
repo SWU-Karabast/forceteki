@@ -23,8 +23,8 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         return true;
     }
 
-    public override buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>) {
-        return new PlayUnitAction({ card: this, ...properties });
+    public override buildPlayCardAction(properties: IPlayCardActionProperties) {
+        return new PlayUnitAction(this, properties);
     }
 
     public override isTokenOrPlayable(): this is TokenOrPlayableCard {

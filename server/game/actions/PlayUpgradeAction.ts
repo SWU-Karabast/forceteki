@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
+import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, PlayType } from '../core/Constants';
 import * as Contract from '../core/utils/Contract';
@@ -9,13 +10,15 @@ import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
-    public constructor(properties: IPlayCardActionProperties) {
-        super({
-            ...properties,
-            targetResolver: {
-                immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({ upgrade: context.source }))
+    public constructor(card: Card, properties: IPlayCardActionProperties) {
+        super(card,
+            {
+                ...properties,
+                targetResolver: {
+                    immediateEffect: attachUpgrade<AbilityContext<UpgradeCard>>((context) => ({ upgrade: context.source }))
+                }
             }
-        });
+        );
     }
 
     public override executeHandler(context: PlayCardContext) {
@@ -37,8 +40,8 @@ export class PlayUpgradeAction extends PlayCardAction {
         context.game.openEventWindow(events);
     }
 
-    public override clone(overrideProperties: IPlayCardActionProperties) {
-        return new PlayUpgradeAction({ ...this.createdWithProperties, ...overrideProperties });
+    public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
+        return new PlayUpgradeAction(this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

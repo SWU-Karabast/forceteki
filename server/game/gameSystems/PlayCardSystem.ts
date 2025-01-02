@@ -94,27 +94,17 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     private generateLegalPlayCardAbilities(card: Card, properties: IPlayCardProperties, context: TContext) {
         Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
 
+        const overrideProperties = this.buildPlayActionProperties(card, properties, context);
+
         const availableCardPlayActions = properties.playType === PlayType.PlayFromOutOfPlay
-            ? card.getPlayCardFromOutOfPlayActions()
-            : card.getPlayCardActions();
+            ? card.getPlayCardFromOutOfPlayActions(overrideProperties)
+            : card.getPlayCardActions(overrideProperties);
 
-        // filter out actions that aren't legal
-        return this.clonePlayActionsWithOverrides(availableCardPlayActions, card, properties, context)
-            .filter((action) => {
-                const newContext = action.createContext(context.player);
-                return action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
-            });
-    }
-
-    protected clonePlayActionsWithOverrides(
-        availableCardPlayActions: PlayCardAction[],
-        card: Card,
-        properties: IPlayCardProperties,
-        context: TContext
-    ) {
-        return availableCardPlayActions
-            .filter((action) => action.playType === properties.playType)
-            .map((playAction) => playAction.clone(this.buildPlayActionProperties(card, properties, context, playAction)));
+        // filter out actions that don't match the expected playType or aren't legal in the current play context (e.g. can't be paid for)
+        return availableCardPlayActions.filter((action) => {
+            const newContext = action.createContext(context.player);
+            return action.playType === properties.playType && action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
+        });
     }
 
     private buildPlayActionProperties(card: Card, properties: IPlayCardProperties, context: TContext, action: PlayCardAction = null) {

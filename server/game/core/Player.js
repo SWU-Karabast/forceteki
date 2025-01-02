@@ -684,31 +684,18 @@ class Player extends GameObject {
     /**
      * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
      * Accounts for aspect penalties and any modifiers to those specifically
-     * @param {PlayType} playingType
-     * @param card
-     * @param target
+     * @param {number} cost
+     * @param {Aspect[]} aspects
+     * @param {AbilityContext} context
      * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
      */
-    getAdjustedCost(playingType, card, target, additionalCostAdjusters = null) {
+    getAdjustedCost(cost, aspects, context, additionalCostAdjusters = null) {
+        const playingType = context.playType;
+        const card = context.source;
+        const target = context.target;
+
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
-        let aspects;
-        let cost;
-
-        switch (playingType) {
-            case PlayType.PlayFromOutOfPlay:
-            case PlayType.PlayFromHand:
-                aspects = card.aspects;
-                cost = card.cost;
-                break;
-            case PlayType.Smuggle:
-                const smuggleInstance = card.getKeywordWithCostValues(KeywordName.Smuggle);
-                aspects = smuggleInstance.aspects;
-                cost = smuggleInstance.cost;
-                break;
-            default:
-                Contract.fail(`Invalid Play Type ${playingType}`);
-        }
 
         let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
