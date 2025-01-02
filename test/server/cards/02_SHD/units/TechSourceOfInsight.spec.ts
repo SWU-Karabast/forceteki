@@ -7,8 +7,8 @@ describe('Tech, Source of Insight', function () {
                     player1: {
                         leader: 'hera-syndulla#spectre-two',
                         base: 'tarkintown',
-                        groundArena: ['tech#source-of-insight'],
                         resources: [
+                            'tech#source-of-insight',
                             'wampa',
                             'moment-of-peace',
                             'battlefield-marine',
@@ -31,10 +31,19 @@ describe('Tech, Source of Insight', function () {
                     context.player2.passAction();
                 };
 
+                // check that Tech ability is off when he's in the resource zone
+                expect(context.wampa).not.toHaveAvailableActionWhenClickedBy(context.player1);
+
+                // smuggle Tech into play
+                context.player1.clickCard(context.tech);
+
+                reset();
+
                 // test smuggle with unit
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(6);
+                expect(context.player1.resources.length).toBe(7);
 
                 // check that player2 doesn't gain smuggle
                 context.player2.clickCardNonChecking(context.isbAgent);
@@ -45,11 +54,15 @@ describe('Tech, Source of Insight', function () {
                 // test that card can't be smuggled if the gained smuggle cost is too expensive
                 expect(context.mercenaryCompany).not.toHaveAvailableActionWhenClickedBy(context.player1);
 
+                // test that in-play cards don't gain smuggle somehow
+                expect(context.wampa).not.toHaveAvailableActionWhenClickedBy(context.player1);
+
                 // test smuggle with off-aspect event (printed cost is 1)
                 context.player1.clickCard(context.momentOfPeace);
                 context.player1.clickCard(context.tech);
                 expect(context.tech).toHaveExactUpgradeNames(['shield']);
                 expect(context.player1.exhaustedResourceCount).toBe(5);
+                expect(context.player1.resources.length).toBe(7);
 
                 reset();
 
@@ -57,6 +70,7 @@ describe('Tech, Source of Insight', function () {
                 context.player1.clickCard(context.collectionsStarhopper);
                 expect(context.collectionsStarhopper).toBeInZone('spaceArena');
                 expect(context.player1.exhaustedResourceCount).toBe(3);
+                expect(context.player1.resources.length).toBe(7);
 
                 reset();
 
@@ -65,6 +79,7 @@ describe('Tech, Source of Insight', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.tech, context.wampa, context.collectionsStarhopper]);
                 context.player1.clickCard(context.collectionsStarhopper);
                 expect(context.collectionsStarhopper).toHaveExactUpgradeNames(['resilient']);
+                expect(context.player1.resources.length).toBe(7);
             });
         });
 
@@ -94,6 +109,7 @@ describe('Tech, Source of Insight', function () {
                 context.player1.clickCard(context.tobiasBeckett);
                 expect(context.tobiasBeckett).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(6);
+                expect(context.player1.resources.length).toBe(7);
 
                 reset();
 
@@ -113,10 +129,8 @@ describe('Tech, Source of Insight', function () {
                 expect(context.tobiasBeckett).toBeInZone('discard');
                 expect(context.infiltratingDemolisher).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(4); // 4 base cost + 2 from smuggle - 2 from exploit 1
+                expect(context.player1.resources.length).toBe(7);
             });
         });
     });
-
-    // TODO: Smuggle + Bamboozle
-    // TODO: Lando leader
 });
