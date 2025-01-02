@@ -11,6 +11,11 @@ export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'abilit
     bountySource?: UnitCard;
 };
 
+/**
+ * Extension of {@link TriggeredAbility} to handle bounties. The major difference is that it emits an
+ * `onBountyCollected` event with the properties for the bounty ability (used for Bossk leader ability).
+ * This event is emitted regardless of whether the bounty's actual effects will change game state.
+ */
 export class BountyAbility extends TriggeredAbility {
     public override readonly keyword: KeywordName | null = KeywordName.Bounty;
 
