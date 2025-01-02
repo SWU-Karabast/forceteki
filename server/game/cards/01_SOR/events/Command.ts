@@ -1,5 +1,4 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { Card } from '../../../core/card/Card';
 import { EventCard } from '../../../core/card/EventCard';
 import { CardType, RelativePlayer, WildcardCardType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../../core/Constants';
 
@@ -30,8 +29,16 @@ export default class Command extends EventCard {
                         controller: RelativePlayer.Self,
                         cardTypeFilter: WildcardCardType.Unit,
                         zoneFilter: WildcardZoneName.AnyArena,
-                        innerSystem: AbilityHelper.immediateEffects.damage({
-                            amount: 0
+                        // name: 'friendlyUnit',
+                        innerSystem: AbilityHelper.immediateEffects.selectCard({
+                            controller: RelativePlayer.Opponent,
+                            cardTypeFilter: WildcardCardType.Unit,
+                            zoneFilter: WildcardZoneName.AnyArena,
+                            cardCondition: (card) => !card.unique,
+                            // name: 'enemyUnit',
+                            innerSystem: AbilityHelper.immediateEffects.damage({
+                                amount: 3
+                            })
                         })
                     }),
                     ['Put this event into play as a resource.']: AbilityHelper.immediateEffects.resourceCard({
