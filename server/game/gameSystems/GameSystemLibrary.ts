@@ -451,7 +451,7 @@ export function handler<TContext extends AbilityContext = AbilityContext>(proper
 export function noAction<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<INoActionSystemProperties, TContext> = {}) {
     return new NoActionSystem<TContext>(propertyFactory);
 }
-export function replacementEffect<TContext extends TriggeredAbilityContext = TriggeredAbilityContext>(propertyFactory: PropsFactory<IReplacementEffectSystemProperties, TContext>) {
+export function replacementEffect<TContext extends TriggeredAbilityContext = TriggeredAbilityContext>(propertyFactory: PropsFactory<IReplacementEffectSystemProperties<TContext>, TContext>) {
     return new ReplacementEffectSystem<TContext>(propertyFactory);
 }
 

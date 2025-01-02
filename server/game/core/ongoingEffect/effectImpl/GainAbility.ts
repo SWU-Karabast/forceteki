@@ -54,6 +54,7 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
                 return;
 
             case AbilityType.Triggered:
+            case AbilityType.ReplacementEffect:
                 this.abilityUuidByTargetCard.set(target, target.addGainedTriggeredAbility(properties));
                 return;
 
@@ -77,6 +78,7 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
                 return;
 
             case AbilityType.Triggered:
+            case AbilityType.ReplacementEffect:
                 target.removeGainedTriggeredAbility(this.abilityUuidByTargetCard.get(target));
                 this.abilityUuidByTargetCard.delete(target);
 

@@ -6,16 +6,16 @@ import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as Contract from '../core/utils/Contract';
 
-export interface IReplacementEffectSystemProperties extends IGameSystemProperties {
+export interface IReplacementEffectSystemProperties<TContext extends TriggeredAbilityContext> extends IGameSystemProperties {
     effect?: string;
 
     /** The immediate effect to replace the original effect with or `null` to indicate that the original effect should be cancelled with no replacement */
-    replacementImmediateEffect: GameSystem;
+    replacementImmediateEffect: GameSystem<TContext>;
 }
 
 // UP NEXT: convert this into a subclass of TriggeredAbilitySystem as TriggeredReplacementEffectSystem
 
-export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends GameSystem<TContext, IReplacementEffectSystemProperties> {
+export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends GameSystem<TContext, IReplacementEffectSystemProperties<TContext>> {
     protected override readonly eventName = MetaEventName.ReplacementEffect;
     public override eventHandler(event, additionalProperties = {}): void {
         const { replacementImmediateEffect } = this.generatePropertiesFromContext(event.context, additionalProperties);
@@ -66,8 +66,8 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         return ['cancel the effects of {0}', [context.event.card]];
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): IReplacementEffectSystemProperties {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties) as IReplacementEffectSystemProperties;
+    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties);
         if (properties.replacementImmediateEffect) {
             properties.replacementImmediateEffect.setDefaultTargetFn(() => properties.target);
         }
