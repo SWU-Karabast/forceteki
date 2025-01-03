@@ -26,10 +26,14 @@ export class Lobby {
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private gameChat: GameChat;
     private lobbyOwnerId: string;
+    private privacy: string;
+    private connectionLink: string;
 
-    public constructor() {
+    public constructor(privacy: string = 'public') {
         this._id = uuid();
         this.gameChat = new GameChat();
+        this.connectionLink = `http://localhost:3000/lobby?lobbyId=${this._id}`;
+        this.privacy = privacy;
     }
 
     public get id(): string {
@@ -48,6 +52,8 @@ export class Lobby {
             })),
             gameChat: this.gameChat,
             lobbyOwnerId: this.lobbyOwnerId,
+            privacy: this.privacy,
+            connectionLink: this.connectionLink,
         };
     }
 
@@ -79,7 +85,7 @@ export class Lobby {
         }
     }
 
-    public addLobbyUser(user, socket: Socket, owner = false): void {
+    public addLobbyUser(user, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
@@ -115,6 +121,12 @@ export class Lobby {
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
         this.gameChat.addChatMessage(socket.user, args[0]);
         this.sendLobbyState();
+    }
+
+    private changeDeck(socket: Socket, ...args) {
+        const activeUser = this.users.find((u) => u.id === socket.user.id);
+        Contract.assertTrue(args[0] !== null);
+        activeUser.deck = new Deck(args[0]);
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -178,8 +190,16 @@ export class Lobby {
         return user ? user.state : null;
     }
 
+    public getLobbyUserById(id: string): LobbyUser | undefined {
+        return this.users.find((u) => u.id === id);
+    }
+
     public isLobbyFilled(): boolean {
         return this.users.length === 2 && !this.game;
+    }
+
+    public isLobbyPublic(): boolean {
+        return this.privacy === 'Public';
     }
 
     public removeLobbyUser(id: string): void {

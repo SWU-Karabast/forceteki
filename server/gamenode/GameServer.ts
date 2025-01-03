@@ -5,6 +5,7 @@ import https from 'https';
 import express from 'express';
 import cors from 'cors';
 import socketio from 'socket.io';
+import { v4 as uuid } from 'uuid';
 
 import { logger } from '../logger';
 
@@ -79,11 +80,8 @@ export class GameServer {
 
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', (req, res) => {
-            if (this.createLobby(req.body.user, req.body.deck)) {
-                return res.status(200).json({ success: true });
-            }
-
-            return res.status(400).json({ success: false });
+            const new_user_id = this.createLobby(req.body.user, req.body.deck, req.body.privacy);
+            return res.status(200).json({ success: true, newUserId: new_user_id });
         });
         app.get('/api/available-lobbies', (_, res) => {
             const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, _]) => ({
@@ -128,18 +126,24 @@ export class GameServer {
 
     private lobbiesWithOpenSeat() {
         return new Map(
-            Array.from(this.lobbies.entries()).filter(([_, lobby]) => !lobby.isLobbyFilled())
+            Array.from(this.lobbies.entries()).filter(([_, lobby]) =>
+                !lobby.isLobbyFilled() && lobby.isLobbyPublic
+            )
         );
     }
 
-    private createLobby(user: any, deck: any) {
-        const lobby = new Lobby();
+    private createLobby(user: any, deck: any, privacy: string) {
+        const lobby = new Lobby(privacy);
         this.lobbies.set(lobby.id, lobby);
+        // set users for private lobbies
+        if (!user) {
+            user = { id: uuid(), username: 'Player1' };
+        }
         lobby.createLobbyUser(user, deck);
         lobby.setLobbyOwner(user.id);
         this.userLobbyMap.set(user.id, lobby.id);
         lobby.setTokens();
-        return true;
+        return user.id;
     }
 
     private startTestGame(filename: string) {
@@ -215,7 +219,8 @@ export class GameServer {
     }
 
     public onConnection(ioSocket) {
-        const user = JSON.parse(ioSocket.handshake.query.user);
+        let user = JSON.parse(ioSocket.handshake.query.user);
+        const requestedLobbyId = ioSocket.handshake.query.lobbyId || '';
         if (user) {
             ioSocket.request.user = user;
         }
@@ -224,6 +229,7 @@ export class GameServer {
             ioSocket.disconnect();
             return;
         }
+        // 1. If user is already in a lobby
         if (this.userLobbyMap.has(user.id)) {
             const lobbyId = this.userLobbyMap.get(user.id);
             const lobby = this.lobbies.get(lobbyId);
@@ -232,12 +238,30 @@ export class GameServer {
                 ioSocket.disconnect();
                 return;
             }
+            // we get the user from the lobby since this way we can be sure its the correct username.
+            user = lobby.getLobbyUserById(user.id);
             const socket = new Socket(ioSocket);
             lobby.addLobbyUser(user, socket);
+            socket.send('connectedUser', user.id);
             socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
             return;
         }
-
+        // 2. If user connected to the lobby via a link.
+        if (requestedLobbyId && this.lobbies.has(requestedLobbyId)) {
+            const lobby = this.lobbies.get(requestedLobbyId);
+            const socket = new Socket(ioSocket);
+            if (!user.username) {
+                const newUser = { username: 'Player2', id: user.id };
+                lobby.addLobbyUser(newUser, socket);
+                this.userLobbyMap.set(newUser.id, lobby.id);
+                socket.send('connectedUser', newUser.id);
+                socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
+                return;
+            }
+            lobby.addLobbyUser(user, socket);
+            this.userLobbyMap.set(user.id, lobby.id);
+            return;
+        }
         // if they are not in the lobby they could be in a queue
         const queuedPlayer = this.queue.find((p) => p.user.id === user.id);
         if (queuedPlayer) {
