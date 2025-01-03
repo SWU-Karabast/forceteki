@@ -5,24 +5,29 @@ describe('Maul, Shadow Collective Visionary', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['heroic-sacrifice', 'moment-of-peace', 'moment-of-peace'],
+                        hand: ['heroic-sacrifice'],
                         groundArena: [
                             { card: 'maul#shadow-collective-visionary', upgrades: ['resilient'] },
                             'mercenary-company',
-                            'greedo#slow-on-the-draw'
+                            'greedo#slow-on-the-draw',
+                            'tarfful#kashyyyk-chieftain',
+                            'krrsantan#muscle-for-hire'
                         ],
                         spaceArena: ['tieln-fighter', 'cartel-spacer']
                     },
                     player2: {
                         groundArena: [
                             'luminara-unduli#softspoken-master',
-                            'hylobon-enforcer',
+                            'enterprising-lackeys',
                             'tarfful#kashyyyk-chieftain'
                         ]
                     }
                 });
 
                 const { context } = contextRef;
+
+                const p1Tarfful = context.player1.findCardByName('tarfful#kashyyyk-chieftain');
+                const p2Tarfful = context.player2.findCardByName('tarfful#kashyyyk-chieftain');
 
                 const reset = (pass = true) => {
                     context.setDamage(context.luminaraUnduli, 0);
@@ -40,7 +45,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                 context.player1.clickCard(context.luminaraUnduli);
 
                 // damage redirect target selection
-                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer, context.greedo]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer, context.greedo, context.krrsantan]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.mercenaryCompany);
 
@@ -59,33 +64,54 @@ describe('Maul, Shadow Collective Visionary', function() {
 
                 reset(false);
 
-                // CASE 3: Maul ability only redirects combat damage
+                // CASE 3: Maul ability only redirects combat damage (test with opponent's Tarfful ability)
                 context.player1.clickCard(context.maul);
-                context.player1.clickCard(context.tarfful);
+                context.player1.clickCard(p2Tarfful);
 
                 // damage redirect target selection
-                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer, context.greedo]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer, context.greedo, context.krrsantan]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.mercenaryCompany);
 
                 // combat damage resolves first
                 expect(context.maul.damage).toBe(0);
-                expect(context.tarfful.damage).toBe(7);
+                expect(p2Tarfful.damage).toBe(7);
                 expect(context.mercenaryCompany.damage).toBe(3);
 
                 // Tarfful ability triggers, damage is not redirected away from Maul since it's not combat damage
-                expect(context.player2).toBeAbleToSelectExactly([context.maul, context.mercenaryCompany, context.greedo]);
+                expect(context.player2).toBeAbleToSelectExactly([context.maul, context.mercenaryCompany, context.greedo, p1Tarfful, context.krrsantan]);
                 context.player2.clickCard(context.maul);
                 expect(context.maul.damage).toBe(7);
 
                 reset();
 
-                // CASE 4: Maul ability doesn't trigger if no target is selected
+                // CASE 4: redirect damage from Maul ability still counts as combat damage (test with friendly Tarfful ability)
+                context.player1.clickCard(context.maul);
+                context.player1.clickCard(context.luminaraUnduli);
+
+                // damage redirect target selection
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer, context.greedo, context.krrsantan]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.krrsantan);
+
+                // combat damage resolves first
+                expect(context.maul.damage).toBe(0);
+                expect(context.luminaraUnduli.damage).toBe(7);
+                expect(context.krrsantan.damage).toBe(4);
+
+                // Tarfful ability triggers since damage to Krrsantan counts as combat damage
+                expect(context.player1).toBeAbleToSelectExactly([context.luminaraUnduli, context.enterprisingLackeys, p2Tarfful]);
+                context.player1.clickCard(context.enterprisingLackeys);
+                expect(context.enterprisingLackeys.damage).toBe(4);
+
+                reset();
+
+                // CASE 5: Maul ability doesn't trigger if no target is selected
                 context.player1.clickCard(context.maul);
                 context.player1.clickCard(context.luminaraUnduli);
 
                 // damage redirect prompt
-                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer, context.greedo]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer, context.greedo, context.krrsantan]);
                 context.player1.clickPrompt('Pass ability');
 
                 expect(context.maul.damage).toBe(4);
@@ -94,7 +120,7 @@ describe('Maul, Shadow Collective Visionary', function() {
 
                 reset();
 
-                // CASE 5: Maul ability doesn't prompt if attacking a base
+                // CASE 6: Maul ability doesn't prompt if attacking a base
                 context.player1.clickCard(context.maul);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(7);
@@ -102,12 +128,12 @@ describe('Maul, Shadow Collective Visionary', function() {
 
                 reset();
 
-                // CASE 6: If redirect target is defeated, "when defeated" abilities happen in the right timing window
+                // CASE 7: If redirect target is defeated, "when defeated" abilities happen in the right timing window
                 context.player1.clickCard(context.maul);
                 context.player1.clickCard(context.luminaraUnduli);
 
                 // damage redirect target selection
-                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer, context.greedo]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer, context.greedo, context.krrsantan]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.greedo);
 
@@ -120,13 +146,13 @@ describe('Maul, Shadow Collective Visionary', function() {
 
                 reset();
 
-                // CASE 7: Maul gains two temporary abilities, both of them work correctly
+                // CASE 8: Maul gains two temporary abilities, both of them work correctly
                 context.player1.clickCard(context.heroicSacrifice);
                 context.player1.clickCard(context.maul);
                 context.player1.clickCard(context.luminaraUnduli);
 
                 // damage redirect target selection
-                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer]);
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer, context.krrsantan]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.mercenaryCompany);
 

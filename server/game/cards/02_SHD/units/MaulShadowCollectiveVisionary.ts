@@ -32,10 +32,11 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
                             },
                             replaceWith: {
                                 target: maulContext.target,
-                                replacementImmediateEffect: AbilityHelper.immediateEffects.damage(
+                                replacementImmediateEffect: AbilityHelper.immediateEffects.combatDamage(
                                     (damageContext) => ({
                                         amount: damageContext.event.amount,
-                                        source: damageContext.source
+                                        sourceAttack: damageContext.event.damageSource.attack,
+                                        source: damageContext.event.damageSource.damageDealtBy
                                     })
                                 )
                             }
