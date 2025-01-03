@@ -127,7 +127,7 @@ export class GameServer {
     private lobbiesWithOpenSeat() {
         return new Map(
             Array.from(this.lobbies.entries()).filter(([_, lobby]) =>
-                !lobby.isLobbyFilled() && lobby.isLobbyPublic
+                !lobby.isLobbyFilled() && lobby.isLobbyPublic && !lobby.hasOngoingGame
             )
         );
     }

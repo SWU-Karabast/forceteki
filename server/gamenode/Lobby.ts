@@ -181,6 +181,10 @@ export class Lobby {
         }
     }
 
+    public hasOngoingGame(): boolean {
+        return this.game !== null;
+    }
+
     public setLobbyOwner(id: string): void {
         this.lobbyOwnerId = id;
     }
@@ -263,10 +267,15 @@ export class Lobby {
     }
 
     private onStartGame(): void {
+        // fix the defaultGameSettings later on.
+        defaultGameSettings.players[0].user.id = this.users[0].id;
+        defaultGameSettings.players[0].user.username = this.users[0].username;
+        defaultGameSettings.players[1].user.id = this.users[1].id;
+        defaultGameSettings.players[1].user.username = this.users[1].username;
+
         const game = new Game(defaultGameSettings, { router: this });
         this.game = game;
         game.started = true;
-
         // For each user, if they have a deck, select it in the game
         this.users.forEach((user) => {
             if (user.deck) {
