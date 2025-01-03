@@ -29,7 +29,6 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
 
         const replacementImmediateEffect = event.replacementImmediateEffect;
         if (replacementImmediateEffect) {
-            // TODO THIS PR: event.context.event seems redundant
             const eventWindow = event.context.event.window;
             const events = [];
             replacementImmediateEffect.queueGenerateEventGameSteps(

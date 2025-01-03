@@ -2,6 +2,7 @@ import type { Card } from '../card/Card';
 import { AbilityContext, type IAbilityContextProperties } from './AbilityContext';
 
 export interface ITriggeredAbilityContextProperties extends IAbilityContextProperties {
+    // TODO: rename this to "triggeringEvent"
     event: any;
 }
 

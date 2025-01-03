@@ -156,8 +156,6 @@ export class EventWindow extends BaseStepWithPipeline {
             return;
         }
 
-        // TODO EFFECTS: will need resolution for replacement effects here
-        // not sure if it will need a new window class or can just reuse the existing one
         const replacementEffectWindow = new ReplacementEffectWindow(this.game, this);
         replacementEffectWindow.emitEvents();
         this.queueStep(replacementEffectWindow);
