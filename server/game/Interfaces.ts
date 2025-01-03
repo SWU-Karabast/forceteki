@@ -133,10 +133,15 @@ export type IConstantAbilityPropsWithType<TSource extends Card = Card> = IConsta
     type: AbilityType.Constant;
 };
 
+export type IReplacementEffectAbilityPropsWithType<TSource extends Card = Card> = IReplacementEffectAbilityProps<TSource> & {
+    type: AbilityType.ReplacementEffect;
+};
+
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
   IActionAbilityPropsWithType<TSource> |
-  IConstantAbilityPropsWithType<TSource>;
+  IConstantAbilityPropsWithType<TSource> |
+  IReplacementEffectAbilityPropsWithType<TSource>;
 
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
 export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
@@ -213,7 +218,7 @@ export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbi
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
 > {
-    replaceWith: IReplacementEffectSystemProperties;
+    replaceWith: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
 }
 
 type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {

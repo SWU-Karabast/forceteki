@@ -5,6 +5,7 @@ import type { ICardLastingEffectProperties } from './CardLastingEffectSystem';
 import { CardLastingEffectSystem } from './CardLastingEffectSystem';
 import type { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract';
+import type { GameEvent } from '../core/event/GameEvent';
 
 export type ICardAttackLastingEffectProperties = Omit<ICardLastingEffectProperties, 'duration'>;
 
@@ -28,12 +29,16 @@ export class CardAttackLastingEffectSystem<TContext extends AbilityContext = Abi
         super(propertyWithDurationType);
     }
 
+    public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: any): void {
+        Contract.assertNotNullLike(target.activeAttack, `Attempting to apply an attack lasting effect to ${target.internalName} but it is not actively attacking`);
+
+        return super.updateEvent(event, target, context, additionalProperties);
+    }
+
     public override canAffect(card: Card, context: TContext) {
         if (!card.isUnit()) {
             return false;
         }
-
-        Contract.assertNotNullLike(card.activeAttack, `Attempting to apply an attack lasting effect to ${card.internalName} but it is not actively attacking`);
 
         return super.canAffect(card, context);
     }

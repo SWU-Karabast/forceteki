@@ -90,7 +90,7 @@ export default class TriggeredAbility extends CardAbility {
                 !this.eventsTriggeredFor.includes(event)
             ) {
                 this.eventsTriggeredFor.push(event);
-                window.addToWindow(context);
+                window.addTriggeredAbilityToWindow(context);
             }
         }
     }
@@ -165,7 +165,7 @@ export default class TriggeredAbility extends CardAbility {
                 this.aggregateWhen(events, context) &&
                 this.meetsRequirements(context) === ''
             ) {
-                window.addToWindow(context);
+                window.addTriggeredAbilityToWindow(context);
             }
         }
     }

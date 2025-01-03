@@ -1,6 +1,6 @@
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer } from '../core/Constants';
+import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer, DamageType } from '../core/Constants';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 
 import type { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
@@ -25,7 +25,7 @@ import type { ICreateBattleDroidProperties } from './CreateBattleDroidSystem';
 import { CreateBattleDroidSystem } from './CreateBattleDroidSystem';
 import type { ICreateCloneTrooperProperties } from './CreateCloneTrooperSystem';
 import { CreateCloneTrooperSystem } from './CreateCloneTrooperSystem';
-import type { IDamageProperties } from './DamageSystem';
+import type { IAbilityDamageProperties, ICombatDamageProperties, IDamageProperties, IExcessDamageProperties } from './DamageSystem';
 import { DamageSystem } from './DamageSystem';
 import type { IDefeatCardProperties } from './DefeatCardSystem';
 import { DefeatCardSystem } from './DefeatCardSystem';
@@ -131,14 +131,26 @@ export function cardLastingEffect<TContext extends AbilityContext = AbilityConte
 export function collectBounty<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICollectBountyProperties, TContext>) {
     return new CollectBountySystem<TContext>(propertyFactory);
 }
+/** Helper specifically for cases when the dealt damage needs to count as combat damage (these cases are very rare, use damage() by default) */
+export function combatDamage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<ICombatDamageProperties, 'type'>, TContext>) {
+    return new DamageSystem<TContext, IDamageProperties>(
+        GameSystem.appendToPropertiesOrPropertyFactory<ICombatDamageProperties, 'type'>(
+            propertyFactory,
+            { type: DamageType.Combat }
+        ));
+}
 export function createBattleDroid<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateBattleDroidProperties, TContext> = {}) {
     return new CreateBattleDroidSystem<TContext>(propertyFactory);
 }
 export function createCloneTrooper<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateCloneTrooperProperties, TContext> = {}) {
     return new CreateCloneTrooperSystem<TContext>(propertyFactory);
 }
-export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDamageProperties, TContext>) {
-    return new DamageSystem<TContext, IDamageProperties>(propertyFactory);
+export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IAbilityDamageProperties, 'type'>, TContext>) {
+    return new DamageSystem<TContext, IDamageProperties>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IAbilityDamageProperties, 'type'>(
+            propertyFactory,
+            { type: DamageType.Ability }
+        ));
 }
 export function distributeDamageAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeDamageSystemProperties, TContext>) {
     return new DistributeDamageSystem<TContext>(propertyFactory);
@@ -163,6 +175,14 @@ export function discardFromDeck<TContext extends AbilityContext = AbilityContext
 }
 export function discardSpecificCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDiscardSpecificCardProperties, TContext> = {}) {
     return new DiscardSpecificCardSystem<TContext>(propertyFactory);
+}
+/** Helper specifically for cases when the dealt damage needs to count as excess combat damage (these cases are very rare, use damage() by default) */
+export function excessDamage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IExcessDamageProperties, 'type'>, TContext>) {
+    return new DamageSystem<TContext, IDamageProperties>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IExcessDamageProperties, 'type'>(
+            propertyFactory,
+            { type: DamageType.Excess }
+        ));
 }
 // export function discardFromPlay(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}) {
 //     return new DiscardFromPlayAction(propertyFactory);
@@ -451,7 +471,7 @@ export function handler<TContext extends AbilityContext = AbilityContext>(proper
 export function noAction<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<INoActionSystemProperties, TContext> = {}) {
     return new NoActionSystem<TContext>(propertyFactory);
 }
-export function replacementEffect<TContext extends TriggeredAbilityContext = TriggeredAbilityContext>(propertyFactory: PropsFactory<IReplacementEffectSystemProperties, TContext>) {
+export function replacementEffect<TContext extends TriggeredAbilityContext = TriggeredAbilityContext>(propertyFactory: PropsFactory<IReplacementEffectSystemProperties<TContext>, TContext>) {
     return new ReplacementEffectSystem<TContext>(propertyFactory);
 }
 
