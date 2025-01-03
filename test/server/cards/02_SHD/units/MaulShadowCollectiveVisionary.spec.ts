@@ -193,9 +193,34 @@ describe('Maul, Shadow Collective Visionary', function() {
                 context.player1.clickPrompt('Redirect combat damage to another Underworld unit');
 
                 expect(context.maul.damage).toBe(0);
+                expect(context.maul).toHaveExactUpgradeNames(['shield']);
                 expect(context.luminaraUnduli.damage).toBe(7);
                 expect(context.mercenaryCompany.damage).toBe(0);
                 expect(context.mercenaryCompany.isUpgraded()).toBeFalse();
+
+                context.maul.exhausted = false;
+                context.setDamage(context.luminaraUnduli, 0);
+                context.player2.passAction();
+
+                // CASE 2: Resolve shield before Maul ability, it absorbs the damage and nothing is left for the Maul ability
+                context.player1.clickCard(context.maul);
+                context.player1.clickCard(context.luminaraUnduli);
+
+                // damage redirect target selection
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.mercenaryCompany);
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Defeat shield to prevent attached unit from taking damage',
+                    'Redirect combat damage to another Underworld unit'
+                ]);
+                context.player1.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+
+                expect(context.maul.damage).toBe(0);
+                expect(context.maul.isUpgraded()).toBeFalse();
+                expect(context.luminaraUnduli.damage).toBe(7);
+                expect(context.mercenaryCompany.damage).toBe(0);
             });
         });
     });

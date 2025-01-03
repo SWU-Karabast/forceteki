@@ -21,9 +21,9 @@ export abstract class TriggerWindowBase extends BaseStep {
     private resolvePlayerOrder?: Player[] = null;
 
     /** The events that were triggered as part of this window */
-    private triggeringEvents: GameEvent[] = [];
+    protected triggeringEvents: GameEvent[] = [];
 
-    private choosePlayerResolutionOrderComplete = false;
+    protected choosePlayerResolutionOrderComplete = false;
 
     public get currentlyResolvingPlayer(): Player | null {
         return this.resolvePlayerOrder?.[0] ?? null;
@@ -35,7 +35,7 @@ export abstract class TriggerWindowBase extends BaseStep {
 
     public constructor(
         game: Game,
-        private readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect,
+        protected readonly triggerAbilityType: AbilityType.Triggered | AbilityType.ReplacementEffect | AbilityType.DelayedEffect,
         private readonly eventWindow?: EventWindow
     ) {
         super(game);
@@ -63,25 +63,29 @@ export abstract class TriggerWindowBase extends BaseStep {
         this.game.emit('aggregateEvent:' + this.triggerAbilityType, events, this);
     }
 
-    public override continue() {
-        this.game.currentAbilityWindow = this;
+    public abstract shouldCleanUpTriggers(): boolean;
 
-        if (!this.choosePlayerResolutionOrderComplete) {
+    protected abstract resolveAbility(context: TriggeredAbilityContext): void;
+
+    public override continue() {
+        if (this.shouldCleanUpTriggers()) {
             this.cleanUpTriggers();
             // if no abilities trigged, continue with game flow
             if (this.unresolved.size === 0) {
                 return true;
             }
 
-            // if more than one player has triggered abilities, need to prompt for resolve order (SWU 7.6.10)
-            if (this.unresolved.size > 1) {
-                this.promptForResolvePlayerOrder();
-                return false;
-            }
+            if (!this.choosePlayerResolutionOrderComplete) {
+                // if more than one player has triggered abilities, need to prompt for resolve order (SWU 7.6.10)
+                if (this.unresolved.size > 1) {
+                    this.promptForResolvePlayerOrder();
+                    return false;
+                }
 
-            // if only one player, that player is automatically the resolving player
-            this.resolvePlayerOrder = [this.unresolved.keys().next().value];
-            this.choosePlayerResolutionOrderComplete = true;
+                // if only one player, that player is automatically the resolving player
+                this.resolvePlayerOrder = [this.unresolved.keys().next().value];
+                this.choosePlayerResolutionOrderComplete = true;
+            }
         }
 
         if (!this.choosePlayerResolutionOrderComplete) {
@@ -90,16 +94,13 @@ export abstract class TriggerWindowBase extends BaseStep {
 
         // prompt for any abilities not yet resolved, otherwise we're done
         if (this.promptUnresolvedAbilities()) {
-            this.game.currentAbilityWindow = null;
             return true;
         }
 
         return false;
     }
 
-    public addToWindow(context: TriggeredAbilityContext) {
-        this.assertWindowResolutionNotStarted('ability', context.source);
-
+    public addTriggeredAbilityToWindow(context: TriggeredAbilityContext) {
         if ((context.event.canResolve || context.event.isResolved) && context.ability) {
             if (!this.unresolved.has(context.player)) {
                 this.unresolved.set(context.player, [context]);
@@ -144,15 +145,6 @@ export abstract class TriggerWindowBase extends BaseStep {
 
         this.resolveAbility(abilitiesToResolve[0]);
         return false;
-    }
-
-    protected resolveAbility(context: TriggeredAbilityContext) {
-        const resolver = this.game.resolveAbility(context);
-        this.game.queueSimpleStep(() => {
-            if (resolver.resolutionComplete) {
-                this.postResolutionUpdate(resolver);
-            }
-        }, `Check and pass priority for ${resolver.context.ability}`);
     }
 
     /** Get the set of yet-unresolved abilities for the player whose turn it is to do resolution */
@@ -203,7 +195,7 @@ export abstract class TriggerWindowBase extends BaseStep {
         };
     }
 
-    private postResolutionUpdate(resolver) {
+    protected postResolutionUpdate(resolver) {
         const unresolvedAbilitiesForPlayer = this.getCurrentlyResolvingAbilities();
 
         const justResolvedAbility = unresolvedAbilitiesForPlayer.find((context) => context.ability === resolver.context.ability);
@@ -287,7 +279,5 @@ export abstract class TriggerWindowBase extends BaseStep {
         return triggeredAbilities.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext, true));
     }
 
-    public override toString() {
-        return `'TriggeredAbilityWindow: ${this.triggeringEvents.map((event) => event.name).join(', ')}'`;
-    }
+    public abstract override toString(): string;
 }

@@ -1,5 +1,5 @@
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
+import { AbilityType, GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { GameObject } from '../core/GameObject';
 import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
@@ -10,17 +10,26 @@ export interface IReplacementEffectSystemProperties<TContext extends TriggeredAb
     effect?: string;
 
     /** The immediate effect to replace the original effect with or `null` to indicate that the original effect should be cancelled with no replacement */
-    replacementImmediateEffect: GameSystem<TContext>;
+    replacementImmediateEffect?: GameSystem<TContext>;
 }
 
 // UP NEXT: convert this into a subclass of TriggeredAbilitySystem as TriggeredReplacementEffectSystem
 
 export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends GameSystem<TContext, IReplacementEffectSystemProperties<TContext>> {
     protected override readonly eventName = MetaEventName.ReplacementEffect;
-    public override eventHandler(event, additionalProperties = {}): void {
-        const { replacementImmediateEffect } = this.generatePropertiesFromContext(event.context, additionalProperties);
 
+    public override eventHandler(event, additionalProperties = {}): void {
+        const triggerWindow = event.context.replacementEffectWindow;
+
+        Contract.assertNotNullLike(triggerWindow, `Replacement effect '${this} resolving outside of any trigger window`);
+        Contract.assertTrue(
+            triggerWindow.triggerAbilityType === AbilityType.ReplacementEffect,
+            `Replacement effect '${this} resolving in trigger window of type ${triggerWindow.triggerAbilityType}`
+        );
+
+        const replacementImmediateEffect = event.replacementImmediateEffect;
         if (replacementImmediateEffect) {
+            // TODO THIS PR: event.context.event seems redundant
             const eventWindow = event.context.event.window;
             const events = [];
             replacementImmediateEffect.queueGenerateEventGameSteps(
@@ -40,6 +49,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             event.context.game.queueSimpleStep(() => {
                 event.context.event.setReplacementEvent(replacementEvent);
                 eventWindow.addEvent(replacementEvent);
+                triggerWindow.addReplacementEffectEvent(replacementEvent);
             }, 'replacementEffect: replace window event');
         }
 
@@ -49,7 +59,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}) {
         const event = this.createEvent(null, context, additionalProperties);
 
-        super.addPropertiesToEvent(event, null, context, additionalProperties);
+        this.addPropertiesToEvent(event, null, context, additionalProperties);
         event.setHandler((event) => this.eventHandler(event, additionalProperties));
 
         events.push(event);
@@ -72,6 +82,13 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             properties.replacementImmediateEffect.setDefaultTargetFn(() => properties.target);
         }
         return properties;
+    }
+
+    public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: any): void {
+        super.addPropertiesToEvent(event, target, context, additionalProperties);
+
+        const { replacementImmediateEffect } = this.generatePropertiesFromContext(event.context, additionalProperties);
+        event.replacementImmediateEffect = replacementImmediateEffect;
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
