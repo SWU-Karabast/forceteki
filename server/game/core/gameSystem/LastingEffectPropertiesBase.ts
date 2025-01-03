@@ -1,13 +1,27 @@
+import type { WhenType } from '../../Interfaces';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type { Duration } from '../Constants';
-import type { WhenType } from '../../Interfaces';
 import { type IGameSystemProperties } from './GameSystem';
 
-export interface ILastingEffectPropertiesBase extends IGameSystemProperties {
+interface ILastingEffectPropertiesAnyDuration extends IGameSystemProperties {
     duration: Duration;
+    ability: PlayerOrCardAbility;
     condition?: (context: AbilityContext) => boolean;
-    until?: WhenType;
     effect?: any;
-    ability?: PlayerOrCardAbility;
 }
+
+interface ILastingEffectPropertiesSetDuration extends ILastingEffectPropertiesAnyDuration {
+    duration:
+      Duration.Persistent |
+      Duration.UntilEndOfAttack |
+      Duration.UntilEndOfPhase |
+      Duration.UntilEndOfRound;
+}
+
+interface ILastingEffectPropertiesCustomDuration extends ILastingEffectPropertiesAnyDuration {
+    duration: Duration.Custom;
+    until: WhenType;
+}
+
+export type ILastingEffectPropertiesBase = ILastingEffectPropertiesSetDuration | ILastingEffectPropertiesCustomDuration;

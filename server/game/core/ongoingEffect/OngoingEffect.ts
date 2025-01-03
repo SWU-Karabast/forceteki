@@ -128,13 +128,20 @@ export abstract class OngoingEffect {
         return !this.source.facedown;
     }
 
+    private checkExpired() {
+
+    }
+
     public resolveEffectTargets(stateChanged) {
-        if (!this.isEffectActive() || !this.condition(this.context)) {
-            stateChanged = this.targets.length > 0 || stateChanged;
+        if (this.checkExpired()) {
             this.cancel();
-            return stateChanged;
-        } else if (typeof this.matchTarget === 'function') {
-            // HACK: type narrowing is not retained in filter call, so we cache it here as a workaround.
+            return this.targets.length > 0 || stateChanged;
+        }
+        if (!this.isEffectActive() || !this.condition(this.context)) {
+            this.cancel();
+            return this.targets.length > 0 || stateChanged;
+        }
+        if (typeof this.matchTarget === 'function') {
             const matchTarget = this.matchTarget;
             // Get any targets which are no longer valid
             const invalidTargets = this.targets.filter((target) => !matchTarget(target, this.context) || !this.isValidTarget(target));
@@ -148,16 +155,20 @@ export abstract class OngoingEffect {
             // Apply the effect to new targets
             newTargets.forEach((target) => this.addTarget(target));
             return stateChanged || newTargets.length > 0;
-        } else if (this.targets.includes(this.matchTarget)) {
+        }
+        if (this.targets.includes(this.matchTarget)) {
             if (!this.isValidTarget(this.matchTarget)) {
                 this.cancel();
                 return true;
             }
+
             return this.impl.recalculate(this.matchTarget) || stateChanged;
-        } else if (!this.targets.includes(this.matchTarget) && this.isValidTarget(this.matchTarget)) {
+        }
+        if (!this.targets.includes(this.matchTarget) && this.isValidTarget(this.matchTarget)) {
             this.addTarget(this.matchTarget);
             return true;
         }
+
         return stateChanged;
     }
 
