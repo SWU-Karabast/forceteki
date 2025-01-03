@@ -26,7 +26,7 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
         if (context.ability?.abilityIdentifier) {
             this.abilityIdentifier = `gained_from_${context.ability.abilityIdentifier}`;
         } else if (context.ability?.isLastingEffect) {
-            // TODO BUG: this will cause an error if a card gains two abilities from lasting effects because the abilityIdentifier for each will be the same
+            // TODO: currently all gained ability identifiers are the same, find a way to make these unique in case a card gains two
             this.abilityIdentifier = 'gained_from_lasting_effect';
         } else if (!this.abilityIdentifier) {
             Contract.fail('GainAbility.setContext() called without a valid context');

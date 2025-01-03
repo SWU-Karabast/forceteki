@@ -18,23 +18,31 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 cardCondition: (card, context) => card.hasSomeTrait(Trait.Underworld) && card !== context.source,
-                immediateEffect: AbilityHelper.immediateEffects.forThisAttackCardEffect((maulContext) => ({
-                    target: maulContext.source,
-                    effect: AbilityHelper.ongoingEffects.gainAbility({
-                        title: 'Redirect combat damage to another Underworld unit',
-                        type: AbilityType.ReplacementEffect,
-                        when: {
-                            onDamageDealt: (event, context) =>
-                                event.card === context.source && event.type === DamageType.Combat
-                        },
-                        replaceWith: {
-                            target: maulContext.target,
-                            replacementImmediateEffect: AbilityHelper.immediateEffects.damage(
-                                (damageContext) => ({ amount: damageContext.event.amount })
-                            )
-                        }
-                    })
-                }))
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    // don't bother triggering the ability if we're attacking a base
+                    condition: (context) => !context.event.attack.target.isBase(),
+                    onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect((maulContext) => ({
+                        target: maulContext.source,
+                        effect: AbilityHelper.ongoingEffects.gainAbility({
+                            title: 'Redirect combat damage to another Underworld unit',
+                            type: AbilityType.ReplacementEffect,
+                            when: {
+                                onDamageDealt: (event, context) =>
+                                    event.card === context.source && event.type === DamageType.Combat
+                            },
+                            replaceWith: {
+                                target: maulContext.target,
+                                replacementImmediateEffect: AbilityHelper.immediateEffects.damage(
+                                    (damageContext) => ({
+                                        amount: damageContext.event.amount,
+                                        source: damageContext.source
+                                    })
+                                )
+                            }
+                        })
+                    })),
+                    onFalse: AbilityHelper.immediateEffects.noAction()
+                })
             }
         });
     }
