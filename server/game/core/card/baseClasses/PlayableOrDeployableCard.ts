@@ -78,7 +78,7 @@ export class PlayableOrDeployableCard extends Card {
         return [];
     }
 
-    public isZoneInPlay(zoneName: ZoneName) : boolean {
+    public isZoneInPlay(zoneName: ZoneName): boolean {
         return [ZoneName.Hand, ZoneName.SpaceArena, ZoneName.GroundArena].includes(zoneName);
     }
 

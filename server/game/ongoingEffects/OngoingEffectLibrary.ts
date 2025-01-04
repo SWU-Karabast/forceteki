@@ -18,6 +18,8 @@ import * as KeywordHelpers from '../core/ability/KeywordHelpers';
 import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
 import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
+import type Player from '../core/Player';
+import type { Card } from '../core/card/Card';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -60,6 +62,12 @@ export = {
             },
             unapply: () => true
         }),
+
+    canPlayFromDiscard: (filter: (player: Player, card: Card) => boolean) =>
+        OngoingEffectBuilder.card.flexible(
+            EffectName.CanPlayFromOutOfPlay,
+            { player: filter, playType: PlayType.PlayFromOutOfPlay }
+        ),
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>

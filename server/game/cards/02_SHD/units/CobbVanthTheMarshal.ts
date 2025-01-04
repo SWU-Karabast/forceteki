@@ -1,9 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { Card } from '../../../core/card/Card';
+import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { EffectName, PlayType } from '../../../core/Constants';
-import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectBuilder';
+import { ZoneName } from '../../../core/Constants';
 import type Player from '../../../core/Player';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 
@@ -25,9 +23,8 @@ export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
                     AbilityHelper.immediateEffects.discardSpecificCard(),
                     AbilityHelper.immediateEffects.simultaneous([
                         AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                            effect: OngoingEffectLibrary.canPlayFromOutOfPlay(
-                                (player: Player, card: Card) => player === card.controller,
-                                PlayType.PlayFromOutOfPlay
+                            effect: OngoingEffectLibrary.canPlayFromDiscard(
+                                (player: Player, card: Card) => player === card.controller && card.zoneName === ZoneName.Discard,
                             ),
                         }),
                         AbilityHelper.immediateEffects.forThisPhaseCardEffect((deckSearchContext) => ({

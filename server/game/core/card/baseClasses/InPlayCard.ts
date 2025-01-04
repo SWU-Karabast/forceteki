@@ -1,6 +1,6 @@
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import type { ZoneName } from '../../Constants';
+import { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
@@ -324,7 +324,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
     /** Register / un-register the effect registrations for any constant abilities */
     private updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
         // removing any lasting effects from ourself -- any time we move into non arena zones
-        if (!EnumHelpers.isArena(to)) {
+        // TODO: we need to change this logic to just be not (Arena->Arena), but that breaks Ambush
+        if (!EnumHelpers.isArena(to) || from === ZoneName.Discard || from === ZoneName.Capture) {
             this.removeLastingEffects();
         }
 

@@ -7,7 +7,7 @@ import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
 
 export interface ICardLastingEffectProperties extends Omit<ILastingEffectPropertiesBase, 'target'>, ICardTargetSystemProperties {
-    targetZoneFilter?: ZoneName | ZoneName[];    
+    targetZoneFilter?: ZoneName | ZoneName[];
 }
 
 /**
