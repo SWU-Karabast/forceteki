@@ -323,8 +323,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     /** Register / un-register the effect registrations for any constant abilities */
     private updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
-        // removing any lasting effects from ourself
-        if (EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
+        // removing any lasting effects from ourself -- any time we move into non arena zones
+        if (!EnumHelpers.isArena(to)) {
             this.removeLastingEffects();
         }
 
