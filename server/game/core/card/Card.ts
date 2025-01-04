@@ -5,7 +5,7 @@ import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
 import type { KeywordName, MoveZoneDestination } from '../Constants';
-import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
@@ -792,9 +792,7 @@ export class Card extends OngoingEffectSource {
         const selectionState = activePlayer.getCardSelectionState(this);
 
         // If it is not the active player and in opposing hand or deck - return facedown card
-        if (
-            !isActivePlayer && (this.zoneName === ZoneName.Hand || this.zoneName === ZoneName.Deck)
-        ) {
+        if (!isActivePlayer && (this._zone.hiddenForPlayers === RelativePlayer.Opponent || this._zone.hiddenForPlayers === WildcardRelativePlayer.Any)) {
             const state = {
                 controller: this.controller.getShortSummary(),
                 // menu: isActivePlayer ? this.getMenu() : undefined,
