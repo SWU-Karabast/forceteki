@@ -196,6 +196,7 @@ export enum EventName {
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
     OnBeginRound = 'onBeginRound',
+    OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
     OnCardCaptured = 'onCardCaptured',

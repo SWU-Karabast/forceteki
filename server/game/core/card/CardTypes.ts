@@ -37,6 +37,14 @@ export type CardWithPrintedPower =
   UpgradeCard |
   TokenUpgradeCard;
 
+export type CardWithCost =
+  NonLeaderUnitCard |
+  LeaderUnitCard |
+  TokenUnitCard |
+  UpgradeCard |
+  TokenUpgradeCard |
+  EventCard;
+
 export type CardWithTriggeredAbilities = InPlayCard;
 export type CardWithConstantAbilities = InPlayCard;
 

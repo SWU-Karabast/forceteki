@@ -17,8 +17,8 @@ export class PlayEventAction extends PlayCardAction {
         context.game.resolveAbility(context.source.getEventAbility().createContext());
     }
 
-    public override clone(overrideProperties: IPlayCardActionProperties) {
-        return new PlayEventAction({ ...this.createdWithProperties, ...overrideProperties });
+    public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
+        return new PlayEventAction(this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

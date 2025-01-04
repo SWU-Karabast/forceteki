@@ -1,23 +1,34 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, PlayType } from '../core/Constants';
+import type { Aspect } from '../core/Constants';
+import { PlayType } from '../core/Constants';
+import { EventName } from '../core/Constants';
 import type { ICost, Result } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
 import type { ExploitPlayCardResourceCost } from '../abilities/keyword/ExploitPlayCardResourceCost';
+import type { CardWithCost } from '../core/card/CardTypes';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
  * any cost adjusters in play that increase or decrease the play cost for the relevant card.
  */
 export class PlayCardResourceCost<TContext extends AbilityContext = AbilityContext> implements ICost<TContext> {
+    public readonly aspects: Aspect[];
+    public readonly card: CardWithCost;
     public readonly isPlayCost = true;
-    public readonly isPrintedResourceCost = [PlayType.PlayFromHand, PlayType.PlayFromOutOfPlay].includes(this.playType);
-    public readonly isSmuggleCost = PlayType.Smuggle === this.playType;
+    public readonly playType: PlayType;
+    public readonly resources: number;
 
     // used for extending this class if any cards have unique after pay hooks
     protected afterPayHook?: ((event: any) => void) = null;
 
-    public constructor(public playType: PlayType) {}
+    public constructor(card: CardWithCost, playType: PlayType, resources: number = null, aspects: Aspect[] = null) {
+        this.card = card;
+        this.playType = playType;
+
+        this.resources = resources ?? card.cost;
+        this.aspects = aspects ?? card.aspects;
+    }
 
     public usesExploit(): this is ExploitPlayCardResourceCost {
         return false;
@@ -50,7 +61,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     }
 
     protected getAdjustedCost(context: TContext): number {
-        return context.player.getAdjustedCost(context.playType, context.source, context.target, this.costAdjustersFromAbility(context));
+        return context.player.getAdjustedCost(this.resources, this.aspects, context, this.costAdjustersFromAbility(context));
     }
 
     public payEvents(context: TContext): GameEvent[] {
@@ -62,7 +73,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     protected getExhaustResourceEvent(context: TContext, amount: number): GameEvent {
         return new GameEvent(EventName.onExhaustResources, context, { amount }, (event) => {
             event.context.player.markUsedAdjusters(context.playType, event.context.source);
-            if (this.isSmuggleCost) {
+            if (this.playType === PlayType.Smuggle) {
                 event.context.player.exhaustResources(amount, [event.context.source]);
             } else {
                 event.context.player.exhaustResources(amount);
