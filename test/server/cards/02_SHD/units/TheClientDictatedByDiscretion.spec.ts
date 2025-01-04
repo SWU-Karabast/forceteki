@@ -35,7 +35,7 @@ describe('The Client, Dictated by Discretion', function() {
                 context.player1.clickCard(context.wampa);
 
                 // heal 5 from kestro city
-                context.player1.clickPrompt('Bounty: Heal 5 damage from a base');
+                context.player1.clickPrompt('Collect Bounty: Heal 5 damage from a base');
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 expect(context.player1).toHavePassAbilityButton();
 

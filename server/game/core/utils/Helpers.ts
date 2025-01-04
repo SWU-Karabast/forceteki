@@ -119,3 +119,23 @@ export class IntersectingSet<T> extends Set<T> {
         }
     }
 }
+
+/**
+ * Splits an array into two based on a condition applied to each element.
+ */
+export function splitArray<T>(ara: T[], condition: (item: T) => boolean) {
+    const results = {
+        trueAra: [] as T[],
+        falseAra: [] as T[]
+    };
+
+    for (const item of ara) {
+        if (condition(item)) {
+            results.trueAra.push(item);
+        } else {
+            results.falseAra.push(item);
+        }
+    }
+
+    return results;
+}

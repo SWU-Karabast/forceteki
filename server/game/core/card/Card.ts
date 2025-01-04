@@ -14,7 +14,7 @@ import type { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordI
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import type { EventCard } from './EventCard';
-import type { TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard } from './CardTypes';
+import type { TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard, CardWithCost } from './CardTypes';
 import type { UpgradeCard } from './UpgradeCard';
 import type { BaseCard } from './BaseCard';
 import type { LeaderCard } from './LeaderCard';
@@ -341,6 +341,10 @@ export class Card extends OngoingEffectSource {
         return false;
     }
 
+    public hasCost(): this is CardWithCost {
+        return false;
+    }
+
     /**
      * Returns true if the card is in a playable card (not deployable) or a token
      */
@@ -386,10 +390,13 @@ export class Card extends OngoingEffectSource {
         return keywordInstances;
     }
 
-    public getKeywordWithCostValues(keywordName: KeywordName): KeywordWithCostValues {
-        const keyword = this.getKeywords().find((keyword) => keyword.valueOf() === keywordName);
-        Contract.assertTrue(keyword.hasCostValue(), `Keyword ${keywordName} does not have cost values.`);
-        return keyword as KeywordWithCostValues;
+    public getKeywordsWithCostValues(keywordName: KeywordName): KeywordWithCostValues[] {
+        const keywords = this.getKeywords().filter((keyword) => keyword.valueOf() === keywordName);
+
+        const keywordsWithoutCostValues = keywords.filter((keyword) => !keyword.hasCostValue());
+        Contract.assertTrue(keywordsWithoutCostValues.length === 0, 'Found at least one keyword with missing cost values');
+
+        return keywords as KeywordWithCostValues[];
     }
 
     public hasSomeKeyword(keywords: Set<KeywordName> | KeywordName | KeywordName[]): boolean {

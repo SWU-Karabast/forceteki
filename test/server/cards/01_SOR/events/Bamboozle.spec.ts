@@ -168,6 +168,33 @@ describe('Bamboozle', function () {
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });
 
-        // TODO TECH: add test for Bamboozle in Smuggle to make sure its alternate play mode doesn't work there
+        it('Bamboozle\'s alternate play mode should not be available when smuggled', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['wampa', 'crafty-smuggler', 'lothal-insurgent'],
+                    groundArena: ['tech#source-of-insight'],
+                    leader: 'jyn-erso#resisting-oppression',
+                    resources: ['bamboozle', 'atst', 'atst', 'atst', 'atst']
+                },
+                player2: {
+                    groundArena: [{ card: 'saw-gerrera#extremist', upgrades: ['entrenched', 'shield'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // expect to see both play actions, choose the discard mode
+            context.player1.clickCard(context.bamboozle);
+
+            // no play modes prompt, go directly to targeting
+            expect(context.player1).toBeAbleToSelectExactly([context.tech, context.sawGerrera]);
+            context.player1.clickCard(context.sawGerrera);
+            expect(context.sawGerrera.exhausted).toBeTrue();
+            expect(context.sawGerrera.isUpgraded()).toBeFalse();
+
+            expect(context.player1.exhaustedResourceCount).toBe(4);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

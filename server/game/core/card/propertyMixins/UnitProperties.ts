@@ -1,6 +1,6 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena } from '../../Constants';
-import { AbilityType, CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
+import { CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -11,7 +11,8 @@ import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { UpgradeCard } from '../UpgradeCard';
 import type { Card } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
@@ -25,10 +26,10 @@ import type { GameEvent } from '../../event/GameEvent';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
-import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { CaptureZone } from '../../zone/CaptureZone';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type Player from '../../Player';
+import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
 
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
@@ -216,9 +217,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.addTriggeredAbility(triggeredProperties);
         }
 
-        protected addBountyAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen' | 'abilityController'>): void {
-            const triggeredProperties = KeywordHelpers.createBountyAbilityFromProps(properties);
-
+        protected addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<this>, 'abilityController'>): void {
             const bountyKeywords = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Bounty);
             const bountyKeywordsWithoutImpl = bountyKeywords.filter((keyword) => !keyword.isFullyImplemented);
 
@@ -235,8 +234,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             const bountyAbilityToAssign = bountyKeywordsWithoutImpl[0];
 
             // TODO: see if there's a better way using discriminating unions to avoid needing a cast when getting keyword instances
-            Contract.assertTrue(bountyAbilityToAssign instanceof KeywordWithAbilityDefinition);
-            bountyAbilityToAssign.setAbilityProps({ ...triggeredProperties, type: AbilityType.Triggered });
+            Contract.assertTrue(bountyAbilityToAssign instanceof BountyKeywordInstance);
+            bountyAbilityToAssign.setAbilityProps(properties);
         }
 
         protected addCoordinateAbility(properties: IAbilityPropsWithType): void {
@@ -453,20 +452,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             event.addCleanupHandler(() => this.unregisterWhenCapturedKeywords());
         }
 
-        private registerBountyKeywords(bountyKeywords: KeywordWithAbilityDefinition[]): TriggeredAbility[] {
+        private registerBountyKeywords(bountyKeywords: BountyKeywordInstance[]): TriggeredAbility[] {
             const registeredAbilities: TriggeredAbility[] = [];
 
             for (const bountyKeyword of bountyKeywords) {
                 const abilityProps = bountyKeyword.abilityProps;
 
-                Contract.assertTrue(abilityProps.type === AbilityType.Triggered, `Bounty abilities must be triggered abilities but instead found ${abilityProps.type}`);
-
-                const { type, ...abilityPropsWithoutType } = abilityProps;
-
-                const bountyAbility = this.createTriggeredAbility({
-                    ...this.buildGeneralAbilityProps('keyword_bounty'),
-                    ...abilityPropsWithoutType,
-                });
+                const bountyAbility = new BountyAbility(this.game, this, { ...this.buildGeneralAbilityProps('triggered'), ...abilityProps });
 
                 bountyAbility.registerEvents();
                 registeredAbilities.push(bountyAbility);
@@ -477,7 +469,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         private getBountyAbilities() {
             return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Bounty)
-                .map((keyword) => keyword as KeywordWithAbilityDefinition);
+                .map((keyword) => keyword as BountyKeywordInstance);
         }
 
         private getCoordinateAbilities() {

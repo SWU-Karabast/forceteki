@@ -3,16 +3,17 @@ import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
+import type { Card } from '../core/card/Card.js';
 
-export interface IPlayUnitActionProperties extends IPlayCardActionProperties {
+export type IPlayUnitActionProperties = IPlayCardActionProperties & {
     entersReady?: boolean;
-}
+};
 
 export class PlayUnitAction extends PlayCardAction {
     private entersReady: boolean;
 
-    public constructor(properties: IPlayUnitActionProperties) {
-        super(properties);
+    public constructor(card: Card, properties: IPlayUnitActionProperties) {
+        super(card, properties);
 
         // default to false
         this.entersReady = !!properties.entersReady;
@@ -47,8 +48,8 @@ export class PlayUnitAction extends PlayCardAction {
         context.game.openEventWindow(events);
     }
 
-    public override clone(overrideProperties: IPlayUnitActionProperties) {
-        return new PlayUnitAction({ ...this.createdWithProperties, ...overrideProperties });
+    public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
+        return new PlayUnitAction(this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

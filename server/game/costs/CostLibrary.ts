@@ -1,11 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { PlayType } from '../core/Constants';
 import { DamageType, ZoneName } from '../core/Constants';
 import type { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
-import { PlayCardResourceCost } from './PlayCardResourceCost';
 import type { CardWithDamageProperty } from '../core/card/CardTypes';
 import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 import { DefeatCardSystem } from '../gameSystems/DefeatCardSystem';
@@ -265,14 +263,14 @@ export function returnSelfToHandFromPlay<TContext extends AbilityContext = Abili
 //     };
 // }
 
-/**
- * Cost that will pay the printed cost on the card minus any active
- * adjuster effects the play has activated. Upon playing the card, all
- * matching adjuster effects will expire, if applicable.
- */
-export function payPlayCardResourceCost<TContext extends AbilityContext = AbilityContext>(playType: PlayType): ICost<TContext> {
-    return new PlayCardResourceCost<TContext>(playType);
-}
+// /**
+//  * Cost that will pay the printed cost on the card minus any active
+//  * adjuster effects the play has activated. Upon playing the card, all
+//  * matching adjuster effects will expire, if applicable.
+//  */
+// export function payPlayCardResourceCost<TContext extends AbilityContext = AbilityContext>(playType: PlayType): ICost<TContext> {
+//     return new PlayCardResourceCost<TContext>(playType);
+// }
 
 // /**
 //  * Cost that is dependent on context.targets[targetName]
