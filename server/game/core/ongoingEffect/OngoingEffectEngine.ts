@@ -4,6 +4,7 @@ import type { OngoingEffect } from './OngoingEffect';
 import type { OngoingEffectSource } from './OngoingEffectSource';
 import { EventRegistrar } from '../event/EventRegistrar';
 import type Game from '../Game';
+import * as Contract from '../utils/Contract';
 
 interface ICustomDurationEvent {
     name: string;
@@ -125,8 +126,10 @@ export class OngoingEffectEngine {
         if (!prevStateChanged && !this.effectsChangedSinceLastCheck) {
             return false;
         }
-        let stateChanged = false;
         this.effectsChangedSinceLastCheck = false;
+
+        let stateChanged = this.checkWhileSourceInPlayEffectExpirations();
+
         // Check each effect's condition and find new targets
         stateChanged = this.effects.reduce((stateChanged, effect) => effect.resolveEffectTargets(stateChanged), stateChanged);
         if (loops === 10) {
@@ -135,6 +138,20 @@ export class OngoingEffectEngine {
             this.resolveEffects(stateChanged, loops + 1);
         }
         return stateChanged;
+    }
+
+    private checkWhileSourceInPlayEffectExpirations() {
+        return this.unapplyAndRemove((effect) => {
+            if (effect.duration === Duration.WhileSourceInPlay) {
+                Contract.assertTrue(effect.source.canBeInPlay(), `${effect.source.internalName} is not a legal target for an effect with duration '${Duration.WhileSourceInPlay}'`);
+
+                if (!effect.source.isInPlay() || effect.source.disableOngoingEffectsForDefeat) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
     }
 
     public unapplyAndRemove(match: (effect: OngoingEffect) => boolean) {

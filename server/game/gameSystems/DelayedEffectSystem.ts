@@ -10,6 +10,7 @@ import type { WhenType } from '../Interfaces';
 import * as Contract from '../core/utils/Contract';
 import OngoingEffectLibrary from '../ongoingEffects/OngoingEffectLibrary';
 import type { GameObject } from '../core/GameObject';
+import type { OngoingEffectSource } from '../core/ongoingEffect/OngoingEffectSource';
 
 export enum DelayedEffectType {
     Card = 'card',
@@ -45,7 +46,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         //     properties.ability = event.context.ability;
         // }
 
-        const delayedEffectSource = event.sourceCard;
+        const delayedEffectSource = event.sourceCard as OngoingEffectSource;
 
         const renamedProperties = event.renamedProperties;
         const duration = renamedProperties.duration;
