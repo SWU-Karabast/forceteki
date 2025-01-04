@@ -18,13 +18,20 @@ export default class BountyPosting extends EventCard {
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard(),
                 shuffleWhenDone: true
             }),
-            then: (context) => ({
-                title: 'You may play that upgrade (paying its cost).',
-                thenCondition: () => context.targets.length === 1,
+            ifYouDo: (context) => ({
+                title: 'Play that upgrade (paying its cost).',
                 optional: true,
-                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    target: context.targets[0]
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    condition: () =>
+                        context.targets.length === 1 &&
+                        context.source.controller.readyResourceCount >= context.targets[0].cost,
+                    onTrue: AbilityHelper.immediateEffects.playCardFromHand({
+                        target: context.targets[0]
+                    }),
+                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
+
+
             })
         });
     }
