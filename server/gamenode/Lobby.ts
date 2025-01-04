@@ -26,6 +26,7 @@ export class Lobby {
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private gameChat: GameChat;
     private lobbyOwnerId: string;
+    private playableCardTitles: string[];
 
     public constructor() {
         this._id = uuid();
@@ -196,6 +197,20 @@ export class Lobby {
         this.users = [];
     }
 
+    private async fetchPlayableCardTitles(): Promise<string[]> {
+        try {
+            const response = await fetch('https://karabast-assets.s3.amazonaws.com/data/_playableCardTitles.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data as string[];
+        } catch (error) {
+            console.error('Error fetching _playableCardTitles.json', error);
+            throw error;
+        }
+    }
+
     private async fetchCard(cardName: string): Promise<any> {
         try {
             const response = await fetch(`https://karabast-assets.s3.amazonaws.com/data/cards/${encodeURIComponent(cardName)}`);
@@ -208,6 +223,10 @@ export class Lobby {
             console.error(`Error fetching card: ${cardName}`, error);
             throw error;
         }
+    }
+
+    public async setPlayableCardTitles(): Promise<void> {
+        this.playableCardTitles = await this.fetchPlayableCardTitles();
     }
 
     public async setTokens(): Promise<void> {
@@ -243,6 +262,7 @@ export class Lobby {
     }
 
     private onStartGame(): void {
+        defaultGameSettings.playableCardTitles = this.playableCardTitles;
         const game = new Game(defaultGameSettings, { router: this });
         this.game = game;
         game.started = true;

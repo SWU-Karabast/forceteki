@@ -139,6 +139,7 @@ export class GameServer {
         lobby.setLobbyOwner(user.id);
         this.userLobbyMap.set(user.id, lobby.id);
         lobby.setTokens();
+        lobby.setPlayableCardTitles();
         return true;
     }
 
@@ -314,6 +315,7 @@ export class GameServer {
 
             // If needed, set tokens async
             lobby.setTokens();
+            lobby.setPlayableCardTitles();
             lobby.sendLobbyState();
             logger.info(`Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
         }
