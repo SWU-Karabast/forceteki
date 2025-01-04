@@ -30,8 +30,6 @@ export default class BountyPosting extends EventCard {
                     }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })
-
-
             })
         });
     }
