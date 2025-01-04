@@ -26,14 +26,14 @@ export class Lobby {
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private gameChat: GameChat;
     private lobbyOwnerId: string;
-    private privacy: string;
-    private connectionLink: string;
+    private isPrivate: boolean;
+    private connectionLink: string | null;
 
-    public constructor(privacy: string = 'public') {
+    public constructor(isPrivate: boolean = false, isCustomMatch: boolean = true) {
         this._id = uuid();
         this.gameChat = new GameChat();
-        this.connectionLink = `http://localhost:3000/lobby?lobbyId=${this._id}`;
-        this.privacy = privacy;
+        this.connectionLink = isCustomMatch ? `http://localhost:3000/lobby?lobbyId=${this._id}` : null;
+        this.isPrivate = isPrivate;
     }
 
     public get id(): string {
@@ -52,7 +52,7 @@ export class Lobby {
             })),
             gameChat: this.gameChat,
             lobbyOwnerId: this.lobbyOwnerId,
-            privacy: this.privacy,
+            isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
         };
     }
@@ -182,7 +182,7 @@ export class Lobby {
     }
 
     public hasOngoingGame(): boolean {
-        return this.game !== null;
+        return this.game !== undefined;
     }
 
     public setLobbyOwner(id: string): void {
@@ -194,16 +194,12 @@ export class Lobby {
         return user ? user.state : null;
     }
 
-    public getLobbyUserById(id: string): LobbyUser | undefined {
-        return this.users.find((u) => u.id === id);
-    }
-
     public isLobbyFilled(): boolean {
-        return this.users.length === 2 && !this.game;
+        return this.users.length === 2;
     }
 
-    public isLobbyPublic(): boolean {
-        return this.privacy === 'Public';
+    public isLobbyPrivate(): boolean {
+        return this.isPrivate;
     }
 
     public removeLobbyUser(id: string): void {
@@ -267,7 +263,7 @@ export class Lobby {
     }
 
     private onStartGame(): void {
-        // fix the defaultGameSettings later on.
+        // TODO Change this to actual new GameSettings when we get to that point.
         defaultGameSettings.players[0].user.id = this.users[0].id;
         defaultGameSettings.players[0].user.username = this.users[0].username;
         defaultGameSettings.players[1].user.id = this.users[1].id;

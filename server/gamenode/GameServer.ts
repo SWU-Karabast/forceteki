@@ -15,12 +15,20 @@ import * as env from '../env';
 import type { Deck } from '../game/Deck';
 
 /**
+ * Represents a user object
+ */
+interface User {
+    id: string;
+    username: string;
+}
+
+/**
  * Represents a player waiting in the queue.
  */
 interface QueuedPlayer {
     deck: Deck;
     socket?: socketio.Socket;
-    user: { id: string; username: string };
+    user: User;
 }
 
 export class GameServer {
@@ -80,8 +88,8 @@ export class GameServer {
 
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', (req, res) => {
-            const new_user_id = this.createLobby(req.body.user, req.body.deck, req.body.privacy);
-            return res.status(200).json({ success: true, newUserId: new_user_id });
+            const newUserId = this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
+            return res.status(200).json({ success: true, newUserId: newUserId });
         });
         app.get('/api/available-lobbies', (_, res) => {
             const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, _]) => ({
@@ -127,21 +135,36 @@ export class GameServer {
     private lobbiesWithOpenSeat() {
         return new Map(
             Array.from(this.lobbies.entries()).filter(([_, lobby]) =>
-                !lobby.isLobbyFilled() && lobby.isLobbyPublic && !lobby.hasOngoingGame
+                !lobby.isLobbyFilled() && !lobby.isLobbyPrivate() && !lobby.hasOngoingGame()
             )
         );
     }
 
-    private createLobby(user: any, deck: any, privacy: string) {
-        const lobby = new Lobby(privacy);
+    /**
+     * Creates a new lobby for the given user. If no user is provided and
+     * the lobby is private, a default user is created.
+     *
+     * @param {User | null} user - The user creating the lobby. If null is passed in for a private lobby, a default user is created.
+     * @param {Deck} deck - The deck used by this user.
+     * @param {boolean} isPrivate - Whether or not this lobby is private.
+     * @returns {string} The ID of the user who owns and created the newly created lobby.
+     */
+    private createLobby(user: User | null, deck: Deck, isPrivate: boolean) {
+        if (!isPrivate && !user) {
+            throw new Error('User must be provided for public lobbies');
+        }
+
+        const lobby = new Lobby(isPrivate);
         this.lobbies.set(lobby.id, lobby);
-        // set users for private lobbies
+        // set default user if no user is supplied for private lobbies
         if (!user) {
             user = { id: uuid(), username: 'Player1' };
         }
+
         lobby.createLobbyUser(user, deck);
         lobby.setLobbyOwner(user.id);
         this.userLobbyMap.set(user.id, lobby.id);
+
         lobby.setTokens();
         return user.id;
     }
@@ -219,36 +242,55 @@ export class GameServer {
     }
 
     public onConnection(ioSocket) {
-        let user = JSON.parse(ioSocket.handshake.query.user);
-        const requestedLobbyId = ioSocket.handshake.query.lobbyId || '';
+        const user = JSON.parse(ioSocket.handshake.query.user);
+        const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
+
         if (user) {
             ioSocket.request.user = user;
         }
+
         if (!ioSocket.request.user) {
             logger.info('socket connected with no user, disconnecting');
             ioSocket.disconnect();
             return;
         }
+
         // 1. If user is already in a lobby
         if (this.userLobbyMap.has(user.id)) {
             const lobbyId = this.userLobbyMap.get(user.id);
             const lobby = this.lobbies.get(lobbyId);
+
             if (!lobby) {
                 logger.info('No lobby for', ioSocket.request.user.username, 'disconnecting');
                 ioSocket.disconnect();
                 return;
             }
-            // we get the user from the lobby since this way we can be sure its the correct username.
-            user = lobby.getLobbyUserById(user.id);
+
+            // we get the user from the lobby since this way we can be sure it's the correct one.
             const socket = new Socket(ioSocket);
             lobby.addLobbyUser(user, socket);
+
             socket.send('connectedUser', user.id);
             socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
             return;
         }
+
         // 2. If user connected to the lobby via a link.
-        if (requestedLobbyId && this.lobbies.has(requestedLobbyId)) {
-            const lobby = this.lobbies.get(requestedLobbyId);
+        if (requestedLobby.lobbyId) {
+            const lobby = this.lobbies.get(requestedLobby.lobbyId);
+            if (!lobby) {
+                logger.info('No lobby with this link for', ioSocket.request.user.username, 'disconnecting');
+                ioSocket.disconnect();
+                return;
+            }
+
+            // check if the lobby is full
+            if (lobby.isLobbyFilled() && lobby.hasOngoingGame()) {
+                logger.info('Requested lobby', requestedLobby.lobbyId, 'is full or already in game, disconnecting');
+                ioSocket.disconnect();
+                return;
+            }
+
             const socket = new Socket(ioSocket);
             if (!user.username) {
                 const newUser = { username: 'Player2', id: user.id };
@@ -258,6 +300,7 @@ export class GameServer {
                 socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
                 return;
             }
+
             lobby.addLobbyUser(user, socket);
             this.userLobbyMap.set(user.id, lobby.id);
             return;
@@ -275,6 +318,10 @@ export class GameServer {
             this.matchmakeQueuePlayers();
             return;
         }
+
+        // A user should not get here
+        ioSocket.disconnect();
+        throw new Error(`Error state when connecting to lobby/game ${ioSocket.request.user.username} disconnecting`);
     }
 
     /**
@@ -313,7 +360,7 @@ export class GameServer {
             }
 
             // Create a new Lobby
-            const lobby = new Lobby();
+            const lobby = new Lobby(false, false);
             this.lobbies.set(lobby.id, lobby);
 
             // Create the 2 lobby users
