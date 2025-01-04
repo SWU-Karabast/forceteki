@@ -5,7 +5,7 @@ import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import type { IPlayCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
 import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import type { Aspect, MoveZoneDestination } from '../../Constants';
-import { CardType, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
+import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type Player from '../../Player';
@@ -71,12 +71,20 @@ export class PlayableOrDeployableCard extends Card {
             return this.buildPlayCardActions(PlayType.Smuggle);
         }
 
+        if (!this.isZoneInPlay(this.zoneName) && this.hasOngoingEffect(EffectName.CanPlayFromOutOfPlay)) {
+            return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay);
+        }
+
         return [];
     }
 
+    public isZoneInPlay(zoneName: ZoneName) : boolean {
+        return [ZoneName.Hand, ZoneName.SpaceArena, ZoneName.GroundArena].includes(zoneName);
+    }
+
+
     public getPlayCardFromOutOfPlayActions() {
-        Contract.assertFalse(
-            [ZoneName.Hand, ZoneName.SpaceArena, ZoneName.GroundArena].includes(this.zoneName),
+        Contract.assertFalse(this.isZoneInPlay(this.zoneName),
             `Attempting to get "play from out of play" actions for card ${this.internalName} in invalid zone: ${this.zoneName}`
         );
 

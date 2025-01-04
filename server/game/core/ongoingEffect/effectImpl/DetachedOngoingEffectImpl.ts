@@ -42,5 +42,9 @@ export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl
             }
         }
     }
+
+    public canBeApplied(target) {
+        return true;
+    }
 }
 
