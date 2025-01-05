@@ -1,8 +1,9 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { Card } from '../card/Card';
-import { TriggerHandlingMode } from '../event/EventWindow';
-import { GameEvent } from '../event/GameEvent';
-import Player from '../Player';
+import type { TriggerHandlingMode } from '../event/EventWindow';
+import type { GameEvent } from '../event/GameEvent';
+import type { GameObject } from '../GameObject';
+import type Player from '../Player';
+import * as Helpers from '../utils/Helpers';
 import { GameSystem, type IGameSystemProperties } from './GameSystem';
 
 export interface IPlayerTargetSystemProperties extends IGameSystemProperties {
@@ -13,8 +14,10 @@ export interface IPlayerTargetSystemProperties extends IGameSystemProperties {
  * A {@link GameSystem} which targets a player for its effect
  */
 export abstract class PlayerTargetSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IPlayerTargetSystemProperties = IPlayerTargetSystemProperties> extends GameSystem<TContext, TProperties> {
-    protected override isTargetTypeValid(target: any): boolean {
-        return target instanceof Player;
+    protected override isTargetTypeValid(target: GameObject | GameObject[]): boolean {
+        const targetAra = Helpers.asArray(target);
+
+        return targetAra.length > 0 && targetAra.every((targetItem) => targetItem.isPlayer());
     }
 
     public override defaultTargets(context: TContext): Player[] {

@@ -54,7 +54,7 @@ class PlayerInteractionWrapper {
     setHand(newContents = [], prevZones = ['deck']) {
         this.hand.forEach((card) => this.moveCard(card, 'deck'));
 
-        newContents.reverse().forEach((nameOrCard) => {
+        newContents.forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
             this.moveCard(card, 'hand');
         });
@@ -481,6 +481,7 @@ class PlayerInteractionWrapper {
 
     exhaustResources(number) {
         this.player.exhaustResources(number);
+        this.game.resolveGameState(true);
     }
 
     hasPrompt(title) {

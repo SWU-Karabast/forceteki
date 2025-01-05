@@ -1,13 +1,19 @@
-import AbilityHelper from '../../../AbilityHelper';
-import { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
-import { AbilityContext } from '../../ability/AbilityContext';
-import { PlayCardAction } from '../../ability/PlayCardAction';
-import PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import { Aspect, CardType, MoveZoneDestination, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
-import { CostAdjustType, ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
-import Player from '../../Player';
+import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
+import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
+import type { AbilityContext } from '../../ability/AbilityContext';
+import * as KeywordHelpers from '../../ability/KeywordHelpers';
+import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
+import type { IPlayCardActionProperties, IPlayCardActionPropertiesBase, ISmuggleCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
+import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
+import type { Aspect, MoveZoneDestination } from '../../Constants';
+import { CardType, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
+import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
+import { CostAdjustType } from '../../cost/CostAdjuster';
+import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import { Card } from '../Card';
+
+export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
 // required for mixins to be based on this class
 export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
@@ -34,12 +40,6 @@ export interface IIgnoreSpecificAspectPenaltyProps<TSource extends Card = Card> 
  * as well as exhausted status.
  */
 export class PlayableOrDeployableCard extends Card {
-    /**
-     * List of actions that the player can take with this card that aren't printed text abilities.
-     * Typical examples are playing / deploying cards and attacking.
-     */
-    protected defaultActions: PlayerOrCardAbility[] = [];
-
     private _exhausted?: boolean = null;
 
     public get exhausted(): boolean {
@@ -61,12 +61,90 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     public override getActions(): PlayerOrCardAbility[] {
-        return this.defaultActions.concat(super.getActions());
+        return super.getActions()
+            .concat(this.getPlayCardActions());
     }
 
-    // TODO: "underControlOf" is not yet generally supported
-    public getPlayCardActions(): PlayCardAction[] {
-        return this.getActions().filter((action) => action.isPlayCardAbility());
+    /**
+     * Get the available "play card" actions for this card in its current zone. If `propertyOverrides` is provided, will generate the actions using the included overrides.
+     *
+     * Note that if the card is currently in an out-of-play zone, by default this will return nothing since cards cannot be played from out of play in normal circumstances.
+     * If using an ability to grant an out-of-play action, use `getPlayCardFromOutOfPlayActions` which will generate the appropriate actions.
+     */
+    public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
+        if (this.zoneName === ZoneName.Hand) {
+            return this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
+        }
+
+        if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
+            return this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
+        }
+
+        return [];
+    }
+
+    /**
+     * Get the available "play card" actions for this card in the current out-of-play zone.
+     * This will generate an action to play the card from out of play even if it would normally not have one available.
+     *
+     * If `propertyOverrides` is provided, will generate the actions using the included overrides.
+     */
+    public getPlayCardFromOutOfPlayActions(propertyOverrides: IPlayCardActionOverrides = null) {
+        Contract.assertFalse(
+            [ZoneName.Hand, ZoneName.SpaceArena, ZoneName.GroundArena].includes(this.zoneName),
+            `Attempting to get "play from out of play" actions for card ${this.internalName} in invalid zone: ${this.zoneName}`
+        );
+
+        return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+    }
+
+    protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
+        let defaultPlayAction: PlayCardAction = null;
+        if (playType === PlayType.Smuggle) {
+            if (this.hasSomeKeyword(KeywordName.Smuggle)) {
+                defaultPlayAction = this.buildCheapestSmuggleAction(propertyOverrides);
+            }
+        } else {
+            defaultPlayAction = this.buildPlayCardAction({ ...propertyOverrides, playType });
+        }
+
+        // if there's not a basic play action available for the requested play type, return nothing
+        if (defaultPlayAction == null) {
+            return [];
+        }
+
+        const actions: PlayCardAction[] = [defaultPlayAction];
+
+        // generate "play with exploit" action from default action
+        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
+        if (exploitValue) {
+            actions.push(defaultPlayAction.clone({ exploitValue }));
+        }
+
+        return actions;
+    }
+
+    protected buildCheapestSmuggleAction(propertyOverrides: IPlayCardActionOverrides = null) {
+        Contract.assertTrue(this.hasSomeKeyword(KeywordName.Smuggle));
+
+        const smuggleKeywords = this.getKeywordsWithCostValues(KeywordName.Smuggle);
+        const smuggleActions = smuggleKeywords.map((smuggleKeyword) => {
+            const smuggleActionProps: ISmuggleCardActionProperties = {
+                ...propertyOverrides,
+                playType: PlayType.Smuggle,
+                smuggleResourceCost: smuggleKeyword.cost,
+                smuggleAspects: smuggleKeyword.aspects
+            };
+
+            return this.buildPlayCardAction(smuggleActionProps);
+        });
+
+        return KeywordHelpers.getCheapestSmuggle(smuggleActions);
+    }
+
+    // can't do abstract due to mixins
+    public buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction {
+        Contract.fail('This method should be overridden by the subclass');
     }
 
     public exhaust() {
@@ -99,6 +177,22 @@ export class PlayableOrDeployableCard extends Card {
 
     protected setExhaustEnabled(enabledStatus: boolean) {
         this._exhausted = enabledStatus ? true : null;
+    }
+
+    /**
+     * For the "numeric" keywords (e.g. Raid), finds all instances of that keyword that are active
+     * for this card and adds up the total of their effect values.
+     * @returns value of the total effect if enabled, `null` if the effect is not present
+     */
+    public getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null {
+        let keywordValueTotal = 0;
+
+        for (const keyword of this.keywords.filter((keyword) => keyword.name === keywordName)) {
+            Contract.assertTrue(keyword instanceof KeywordWithNumericValue);
+            keywordValueTotal += keyword.value;
+        }
+
+        return keywordValueTotal > 0 ? keywordValueTotal : null;
     }
 
     /**
@@ -154,7 +248,7 @@ export class PlayableOrDeployableCard extends Card {
             ...otherProps
         };
 
-        const effect = AbilityHelper.ongoingEffects.decreaseCost(costAdjusterProps);
+        const effect = OngoingEffectLibrary.decreaseCost(costAdjusterProps);
         return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
 
@@ -169,7 +263,7 @@ export class PlayableOrDeployableCard extends Card {
             ...otherProps
         };
 
-        const effect = AbilityHelper.ongoingEffects.ignoreAllAspectPenalties(costAdjusterProps);
+        const effect = OngoingEffectLibrary.ignoreAllAspectPenalties(costAdjusterProps);
         return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
 
@@ -185,7 +279,7 @@ export class PlayableOrDeployableCard extends Card {
             ...otherProps
         };
 
-        const effect = AbilityHelper.ongoingEffects.ignoreSpecificAspectPenalties(costAdjusterProps);
+        const effect = OngoingEffectLibrary.ignoreSpecificAspectPenalties(costAdjusterProps);
         return this.buildCostAdjusterAbilityProps(condition, title, effect);
     }
 

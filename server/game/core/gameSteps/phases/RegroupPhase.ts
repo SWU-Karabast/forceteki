@@ -3,7 +3,7 @@ import type Game from '../../Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { VariableResourcePrompt } from '../prompts/VariableResourcePrompt';
-import { CardWithExhaustProperty } from '../../card/CardTypes';
+import type { CardWithExhaustProperty } from '../../card/CardTypes';
 import { GameEvent } from '../../event/GameEvent';
 import * as GameSystemLibrary from '../../../gameSystems/GameSystemLibrary';
 import { DrawSystem } from '../../../gameSystems/DrawSystem';

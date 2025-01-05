@@ -1,12 +1,15 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import { Card } from '../card/Card';
-import { CardTypeFilter, EffectName, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../Constants';
-import { GameSystem as GameSystem, IGameSystemProperties as IGameSystemProperties } from './GameSystem';
+import type { Card } from '../card/Card';
+import type { CardTypeFilter } from '../Constants';
+import { EffectName, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../Constants';
+import type { IGameSystemProperties as IGameSystemProperties } from './GameSystem';
+import { GameSystem as GameSystem } from './GameSystem';
 import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
-import { UnitCard } from '../card/CardTypes';
+import type { UnitCard } from '../card/CardTypes';
+import type { GameObject } from '../GameObject';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
@@ -20,12 +23,14 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     /** The set of card types that can be legally targeted by the system. Defaults to {@link WildcardCardType.Any} unless overriden. */
     protected readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Any];
 
-    protected override isTargetTypeValid(target: any): boolean {
-        if (!(target instanceof Card)) {
-            return false;
+    protected override isTargetTypeValid(target: GameObject | GameObject[]): boolean {
+        for (const targetItem of Helpers.asArray(target)) {
+            if (!targetItem.isCard() || !EnumHelpers.cardTypeMatches(targetItem.type, this.targetTypeFilter)) {
+                return false;
+            }
         }
 
-        return EnumHelpers.cardTypeMatches(target.type, this.targetTypeFilter);
+        return Helpers.asArray(target).length > 0;
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {

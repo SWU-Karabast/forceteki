@@ -1,9 +1,9 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { EventCard } from '../../../core/card/EventCard';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
-import { GameSystem } from '../../../core/gameSystem/GameSystem';
-import { IThenAbilityPropsWithSystems } from '../../../Interfaces';
+import type { GameSystem } from '../../../core/gameSystem/GameSystem';
+import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 import * as Contract from '../../../core/utils/Contract';
 
 export default class DontGetCocky extends EventCard {

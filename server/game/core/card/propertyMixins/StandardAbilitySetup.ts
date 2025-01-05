@@ -1,5 +1,5 @@
 import * as Contract from '../../utils/Contract';
-import { CardConstructor } from '../Card';
+import type { CardConstructor } from '../Card';
 
 /** Mixin function that creates a version of the base class that is a Token. */
 export function WithStandardAbilitySetup<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {

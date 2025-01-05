@@ -1,6 +1,7 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { TokenUnitName } from '../core/Constants';
-import { CreateTokenUnitSystem, ICreateTokenUnitProperties } from './CreateTokenUnitSystem';
+import type { ICreateTokenUnitProperties } from './CreateTokenUnitSystem';
+import { CreateTokenUnitSystem } from './CreateTokenUnitSystem';
 
 export type ICreateCloneTrooperProperties = Omit<ICreateTokenUnitProperties, 'tokenType'>;
 

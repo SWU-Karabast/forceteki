@@ -1,8 +1,10 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { AbilityRestriction, CardTypeFilter, EventName, GameStateChangeRequired } from '../core/Constants';
-import { CardWithExhaustProperty } from '../core/card/CardTypes';
-import { ExhaustOrReadySystem, IExhaustOrReadyProperties } from './ExhaustOrReadySystem';
+import type { CardTypeFilter } from '../core/Constants';
+import { AbilityRestriction, EventName, GameStateChangeRequired } from '../core/Constants';
+import type { CardWithExhaustProperty } from '../core/card/CardTypes';
+import type { IExhaustOrReadyProperties } from './ExhaustOrReadySystem';
+import { ExhaustOrReadySystem } from './ExhaustOrReadySystem';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IExhaustSystemProperties extends IExhaustOrReadyProperties {}

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { TargetMode, WildcardCardType } from '../../../core/Constants';
+import { TargetMode } from '../../../core/Constants';
 
 
 export default class ReinforcementWalker extends NonLeaderUnitCard {

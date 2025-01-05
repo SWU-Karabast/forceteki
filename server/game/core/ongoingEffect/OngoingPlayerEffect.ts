@@ -1,10 +1,11 @@
 import { OngoingEffect } from './OngoingEffect';
-import { RelativePlayer, RelativePlayerFilter, WildcardRelativePlayer } from '../Constants';
-import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
-import Game from '../Game';
-import { Card } from '../card/Card';
-import { IOngoingPlayerEffectProps } from '../../Interfaces';
-import Player from '../Player';
+import type { RelativePlayerFilter } from '../Constants';
+import { RelativePlayer, WildcardRelativePlayer } from '../Constants';
+import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
+import type Game from '../Game';
+import type { Card } from '../card/Card';
+import type { IOngoingPlayerEffectProps } from '../../Interfaces';
+import type Player from '../Player';
 
 export class OngoingPlayerEffect extends OngoingEffect {
     public override matchTarget: (target: Player) => boolean;

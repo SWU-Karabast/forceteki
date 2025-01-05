@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
-import { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
+import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 
 // TODO: allow providing only onTrue or onFalse in the properties so we don't need to use noAction()

@@ -1,7 +1,8 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName } from '../core/Constants';
-import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import Player from '../core/Player';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import { DamageType, EventName } from '../core/Constants';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import type Player from '../core/Player';
 import { DamageSystem } from './DamageSystem';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
@@ -58,6 +59,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
                 // The downside is that we lose any connection with the original card that triggered the draw,
                 // which shouldn't matter for any of the existing cards.
                 contingentEvents.push(new DamageSystem({
+                    type: DamageType.Ability,
                     target: event.player.base,
                     amount: damageAmount
                 }).generateEvent(context.game.getFrameworkContext(event.player)));

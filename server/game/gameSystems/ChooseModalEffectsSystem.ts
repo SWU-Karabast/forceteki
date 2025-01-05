@@ -1,9 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import { GameEvent } from '../core/event/GameEvent';
+import type { GameEvent } from '../core/event/GameEvent';
 import { MetaEventName } from '../core/Constants';
-import { IChoicesInterface } from '../TargetInterfaces';
-import { GameSystem } from '../core/gameSystem/GameSystem';
+import type { IChoicesInterface } from '../TargetInterfaces';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type Player from '../core/Player';
 
 export interface IPlayModalCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {

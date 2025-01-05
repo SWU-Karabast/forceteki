@@ -1,10 +1,9 @@
-import axios, { all } from 'axios';
 import fs from 'fs';
+import path from 'path';
 import http from 'http';
 import https from 'https';
 import express from 'express';
 import cors from 'cors';
-import jwt from 'jsonwebtoken';
 import socketio from 'socket.io';
 
 import { logger } from '../logger';
@@ -12,13 +11,23 @@ import { logger } from '../logger';
 import { Lobby } from './Lobby';
 import Socket from '../socket';
 import * as env from '../env';
+import type { Deck } from '../game/Deck';
+
+/**
+ * Represents a player waiting in the queue.
+ */
+interface QueuedPlayer {
+    deck: Deck;
+    socket?: socketio.Socket;
+    user: { id: string; username: string };
+}
 
 export class GameServer {
     private lobbies = new Map<string, Lobby>();
     private userLobbyMap = new Map<string, string>();
-
     private protocol = 'https';
     private host = env.gameNodeHost;
+    private queue: QueuedPlayer[] = [];
     private io: socketio.Server;
     private titleCardData: any;
     private shortCardData: any;
@@ -71,17 +80,17 @@ export class GameServer {
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', (req, res) => {
             if (this.createLobby(req.body.user, req.body.deck)) {
-                res.status(200).json({ success: true });
-            } else {
-                res.status(400).json({ success: false });
+                return res.status(200).json({ success: true });
             }
+
+            return res.status(400).json({ success: false });
         });
         app.get('/api/available-lobbies', (_, res) => {
             const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, _]) => ({
                 id,
                 name: `Game #${id}`,
             }));
-            res.json(availableLobbies);
+            return res.json(availableLobbies);
         });
         app.post('/api/join-lobby', (req, res) => {
             const { lobbyId, user } = req.body;
@@ -98,6 +107,23 @@ export class GameServer {
             this.userLobbyMap.set(user.id, lobby.id);
             return res.status(200).json({ success: true });
         });
+        app.get('/api/test-game-setups', (_, res) => {
+            const testSetupFilenames = this.getTestSetupGames();
+            return res.json(testSetupFilenames);
+        });
+        app.post('/api/start-test-game', (req, res) => {
+            const { filename } = req.body;
+            this.startTestGame(filename);
+            return res.status(200).json({ success: true });
+        });
+        app.post('/api/enter-queue', (req, res) => {
+            const { user, deck } = req.body;
+            const success = this.enterQueue(user, deck, null);
+            if (!success) {
+                return res.status(400).json({ success: false, message: 'Failed to enter queue' });
+            }
+            return res.status(200).json({ success: true });
+        });
     }
 
     private lobbiesWithOpenSeat() {
@@ -110,8 +136,35 @@ export class GameServer {
         const lobby = new Lobby();
         this.lobbies.set(lobby.id, lobby);
         lobby.createLobbyUser(user, deck);
+        lobby.setLobbyOwner(user.id);
         this.userLobbyMap.set(user.id, lobby.id);
+        lobby.setTokens();
+        lobby.setPlayableCardTitles();
         return true;
+    }
+
+    private startTestGame(filename: string) {
+        const lobby = new Lobby();
+        this.lobbies.set(lobby.id, lobby);
+        const order66 = { id: 'exe66', username: 'Order66' };
+        const theWay = { id: 'th3w4y', username: 'ThisIsTheWay' };
+        lobby.createLobbyUser(order66);
+        lobby.createLobbyUser(theWay);
+        this.userLobbyMap.set(order66.id, lobby.id);
+        this.userLobbyMap.set(theWay.id, lobby.id);
+        lobby.startTestGame(filename);
+    }
+
+    private getTestSetupGames() {
+        const testGamesDirPath = path.resolve(__dirname, '../../test/gameSetups');
+        if (!fs.existsSync(testGamesDirPath)) {
+            return [];
+        }
+
+        return fs.readdirSync(testGamesDirPath).filter((file) => {
+            const filePath = path.join(testGamesDirPath, file);
+            return fs.lstatSync(filePath).isFile();
+        });
     }
 
     // public debugDump() {
@@ -157,86 +210,6 @@ export class GameServer {
     //     next();
     // }
 
-    // public gameWon(game: Game, reason: string, winner: Player): void {
-    // const saveState = game.getSaveState();
-    // // this.zmqSocket.send('GAMEWIN', { game: saveState, winner: winner.name, reason: reason });
-
-    // void axios
-    //     .post(
-    //         `https://l5r-analytics-engine-production.up.railway.app/api/game-report/${env.environment}`,
-    //         saveState
-    //     )
-    //     .catch(() => {});
-    // }
-
-    // TODO: Once we have lobbies this will take in game details. Not sure if we end up doing that through L5R's PendingGame or not.
-    // public onStartGame(): void {
-    //     const game = new Game(defaultGameSettings, { router: this, shortCardData: this.shortCardData });
-    //     this.games.set(defaultGameSettings.id, game);
-
-
-    //     game.started = true;
-    //     // for (const player of Object.values<Player>(pendingGame.players)) {
-    //     //     game.selectDeck(player.name, player.deck);
-    //     // }
-    //     game.selectDeck('Order66', defaultGameSettings.players[0].deck);
-    //     game.selectDeck('ThisIsTheWay', defaultGameSettings.players[1].deck);
-
-    //     game.initialise();
-    // }
-
-    // onSpectator(pendingGame: PendingGame, user) {
-    //     const game = this.games.get(pendingGame.id);
-    //     if (!game) {
-    //         return;
-    //     }
-
-    //     game.watch('TBA', user);
-
-    //     this.sendGameState(game);
-    // }
-
-    // onGameSync(callback) {
-    //     const gameSummaries = [];
-    //     for (const game of this.games.values()) {
-    //         const retGame = game.getSummary();
-    //         if (retGame) {
-    //             retGame.password = game.password;
-    //         }
-    //         return gameSummaries.push(retGame);
-    //     }
-
-    //     logger.info('syncing', gameSummaries.length, ' games');
-
-    //     callback(gameSummaries);
-    // }
-
-    // onFailedConnect(gameId, username) {
-    //     const game = this.findGameForUser(username);
-    //     if (!game || game.id !== gameId) {
-    //         return;
-    //     }
-
-    //     game.failedConnect(username);
-
-    //     if (game.isEmpty()) {
-    //         this.games.delete(game.id);
-    //         // this.zmqSocket.send('GAMECLOSED', { game: game.id });
-    //     }
-
-    //     this.sendGameState(game);
-    // }
-
-    // public onCloseGame(gameId) {
-    //     const game = this.games.get(gameId);
-    //     if (!game) {
-    //         return;
-    //     }
-
-    //     this.games.delete(gameId);
-    //     // this.zmqSocket.send('GAMECLOSED', { game: game.id });
-    // }
-
     public onCardData(cardData) {
         this.titleCardData = cardData.titleCardData;
         this.shortCardData = cardData.shortCardData;
@@ -252,39 +225,112 @@ export class GameServer {
             ioSocket.disconnect();
             return;
         }
-
-        if (!this.userLobbyMap.has(user.id)) {
-            logger.info('No lobby for', ioSocket.request.user.username, 'disconnecting');
-            ioSocket.disconnect();
+        if (this.userLobbyMap.has(user.id)) {
+            const lobbyId = this.userLobbyMap.get(user.id);
+            const lobby = this.lobbies.get(lobbyId);
+            if (!lobby) {
+                logger.info('No lobby for', ioSocket.request.user.username, 'disconnecting');
+                ioSocket.disconnect();
+                return;
+            }
+            const socket = new Socket(ioSocket);
+            lobby.addLobbyUser(user, socket);
+            socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
             return;
         }
-        const lobbyId = this.userLobbyMap.get(user.id);
-        const lobby = this.lobbies.get(lobbyId);
-        const socket = new Socket(ioSocket);
-        lobby.addLobbyUser(user, socket);
-        socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
 
-        // const player = game.playersAndSpectators[socket.user.username];
-        // if (!player) {
-        //     return;
-        // }
+        // if they are not in the lobby they could be in a queue
+        const queuedPlayer = this.queue.find((p) => p.user.id === user.id);
+        if (queuedPlayer) {
+            queuedPlayer.socket = ioSocket;
 
-        // player.id = socket.id;
-        // if (player.disconnected) {
-        //     logger.info(`user ${socket.user.username} reconnected to game`);
-        //     game.reconnect(socket, player.name);
-        // }
+            // handle queue-specific events and add lobby disconnect
+            ioSocket.on('disconnect', (reason) => {
+                this.onSocketDisconnected(user.id, reason);
+            });
 
+            this.matchmakeQueuePlayers();
+            return;
+        }
+    }
 
-        // player.socket = socket;
+    /**
+     * Put a user into the queue array.
+     */
+    private enterQueue(user: any, deck: any, socket: socketio.Socket | null): boolean {
+        // Quick check: if they're already in a lobby, no queue
+        if (this.userLobbyMap.has(user.id)) {
+            logger.info(`User ${user.id} already in a lobby, ignoring queue request.`);
+            return false;
+        }
+        // Also check if they're already queued
+        if (this.queue.find((q) => q.user.id === user.id)) {
+            logger.info(`User ${user.id} is already in queue, rejoining`);
+            this.removeFromQueue(user.id);
+        }
 
-        // if (!game.isSpectator(player)) {
-        //     game.addMessage('{0} has connected to the game server', player);
-        // }
+        this.queue.push({
+            user,
+            deck,
+            socket
+        });
+        return true;
+    }
+
+    /**
+     * Matchmake two users in a queue
+     */
+    private matchmakeQueuePlayers() {
+        // Simple approach: if at least 2 in queue, pair them up
+        while (this.queue.length >= 2) {
+            const p1 = this.queue.shift();
+            const p2 = this.queue.shift();
+            if (!p1 || !p2) {
+                throw new Error(`Matchmaking error status either p1 ${p1} or p2 ${p2} isn't a player object.`);
+            }
+
+            // Create a new Lobby
+            const lobby = new Lobby();
+            this.lobbies.set(lobby.id, lobby);
+
+            // Create the 2 lobby users
+            lobby.createLobbyUser(p1.user, p1.deck);
+            lobby.createLobbyUser(p2.user, p2.deck);
+
+            // Attach their sockets to the lobby (if they exist)
+            const socket1 = p1.socket ? new Socket(p1.socket) : null;
+            const socket2 = p2.socket ? new Socket(p2.socket) : null;
+            if (socket1) {
+                lobby.addLobbyUser(p1.user, socket1);
+                socket1.on('disconnect', (_, reason) => this.onSocketDisconnected(p1.user.id, reason));
+            }
+            if (socket2) {
+                lobby.addLobbyUser(p2.user, socket2);
+                socket2.on('disconnect', (_, reason) => this.onSocketDisconnected(p2.user.id, reason));
+            }
+
+            // Save user => lobby mapping
+            this.userLobbyMap.set(p1.user.id, lobby.id);
+            this.userLobbyMap.set(p2.user.id, lobby.id);
+
+            // If needed, set tokens async
+            lobby.setTokens();
+            lobby.setPlayableCardTitles();
+            lobby.sendLobbyState();
+            logger.info(`Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
+        }
+    }
+
+    /**
+     * Remove the user from the queue if they disconnect or otherwise.
+     */
+    private removeFromQueue(userId: string): void {
+        this.queue = this.queue.filter((q) => q.user.id !== userId);
     }
 
     public onSocketDisconnected(id: string, reason: string) {
         if (!this.userLobbyMap.has(id)) {
+            this.removeFromQueue(id);
             return;
         }
         const lobbyId = this.userLobbyMap.get(id);
@@ -299,7 +345,6 @@ export class GameServer {
                 if (lobby.getUserState(id) === 'disconnected') {
                     this.userLobbyMap.delete(id);
                     lobby.removeLobbyUser(id);
-
                     // Check if lobby is empty
                     if (lobby.isLobbyEmpty()) {
                         // Start the cleanup process
@@ -316,55 +361,5 @@ export class GameServer {
             lobby.cleanLobby();
             this.lobbies.delete(lobbyId);
         }
-
-        // logger.info(`user ${socket.user.username} disconnected from a game: ${reason}`);
-
-        // const isSpectator = game.isSpectator(game.playersAndSpectators[socket.user.username]);
-
-        // game.disconnect(socket.user.username);
-
-        // if (game.isEmpty()) {
-        //     this.games.delete(game.id);
-
-        //     // this.zmqSocket.send('GAMECLOSED', { game: game.id });
-        // } else if (isSpectator) {
-        //     // this.zmqSocket.send('PLAYERLEFT', {
-        //     //     gameId: game.id,
-        //     //     game: game.getSaveState(),
-        //     //     player: socket.user.username,
-        //     //     spectator: true
-        //     // });
-        // }
-
-        // this.sendGameState(game);
     }
-
-    // public onLeaveGame(socket) {
-    //     const game = this.findGameForUser(socket.user.username);
-    //     if (!game) {
-    //         return;
-    //     }
-
-    //     const isSpectator = game.isSpectator(game.playersAndSpectators[socket.user.username]);
-
-    //     game.leave(socket.user.username);
-
-    //     // this.zmqSocket.send('PLAYERLEFT', {
-    //     //     gameId: game.id,
-    //     //     game: game.getSaveState(),
-    //     //     player: socket.user.username,
-    //     //     spectator: isSpectator
-    //     // });
-
-    //     socket.send('cleargamestate');
-    //     socket.leaveChannel(game.id);
-
-    //     // if (game.isEmpty()) {
-    //     //     this.games.delete(game.id);
-
-    //     //     // this.zmqSocket.send('GAMECLOSED', { game: game.id });
-    //     // }
-
-    //     this.sendGameState(game);
-    // }
 }

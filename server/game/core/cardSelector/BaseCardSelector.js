@@ -14,6 +14,7 @@ class BaseCardSelector {
         this.capturedByFilter = properties.capturedByFilter;
         this.controller = properties.controller || WildcardRelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
+        this.appendToDefaultTitle = properties.appendToDefaultTitle;
 
         if (!Array.isArray(properties.cardTypeFilter)) {
             this.cardTypeFilter = [properties.cardTypeFilter];
@@ -135,9 +136,6 @@ class BaseCardSelector {
         if (!EnumHelpers.cardZoneMatches(card.zoneName, this.zoneFilter) && card.zoneName !== ZoneName.Capture) {
             return false;
         }
-        if (card.zoneName === ZoneName.Hand && card.controller !== choosingPlayer) {
-            return false;
-        }
         return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardConditionsAreSatisfied(card, selectedCards, context);
     }
 
@@ -160,11 +158,13 @@ class BaseCardSelector {
         return this.findPossibleCards(context).some((card) => this.canTarget(card, context, choosingPlayer));
     }
 
-
     defaultActivePromptTitle(context) {
-        return 'Choose cards';
+        return this.defaultPromptString(context) + (this.appendToDefaultTitle ? ' ' + this.appendToDefaultTitle : '');
     }
 
+    defaultPromptString(context) {
+        return 'Choose cards';
+    }
 
     automaticFireOnSelect(context) {
         return false;

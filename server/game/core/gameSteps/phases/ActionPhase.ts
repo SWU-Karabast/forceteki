@@ -1,6 +1,6 @@
 import { PhaseName } from '../../Constants';
 import type Game from '../../Game';
-import Player from '../../Player';
+import type Player from '../../Player';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import ActionWindow from '../ActionWindow';

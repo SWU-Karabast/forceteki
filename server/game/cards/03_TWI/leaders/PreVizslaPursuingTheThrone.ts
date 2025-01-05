@@ -1,8 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, WildcardCardType } from '../../../core/Constants';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { CardsDrawnThisPhaseWatcher } from '../../../stateWatchers/CardsDrawnThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { CardsDrawnThisPhaseWatcher } from '../../../stateWatchers/CardsDrawnThisPhaseWatcher';
 
 export default class PreVizslaPursuingTheThrone extends LeaderUnitCard {
     private cardsDrawnThisPhaseWatcher: CardsDrawnThisPhaseWatcher;

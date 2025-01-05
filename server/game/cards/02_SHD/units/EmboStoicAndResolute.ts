@@ -2,8 +2,8 @@ import AbilityHelper from '../../../AbilityHelper';
 import * as AttackHelpers from '../../../core/attack/AttackHelpers';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
 export default class EmboStoicAndResolute extends NonLeaderUnitCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;

@@ -2,12 +2,13 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
-import { CardTypeFilter, EffectName, GameStateChangeRequired, MetaEventName, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from '../core/Constants';
+import type { CardTypeFilter, MetaEventName, RelativePlayerFilter, ZoneFilter } from '../core/Constants';
+import { EffectName, GameStateChangeRequired, RelativePlayer, TargetMode } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
-import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
+import type { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     activePromptTitle?: string;
@@ -29,6 +30,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     cancelHandler?: () => void;
     effect?: string;
     effectArgs?: (context) => string[];
+    optional?: boolean;
 }
 
 /**
@@ -43,7 +45,8 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         innerSystem: null,
         innerSystemProperties: (card) => ({ target: card }),
         checkTarget: false,
-        manuallyRaiseEvent: false
+        manuallyRaiseEvent: false,
+        optional: false
     };
 
     public constructor(properties: ISelectCardProperties<TContext> | ((context: TContext) => ISelectCardProperties<TContext>)) {
@@ -187,9 +190,14 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     }
 
     private selectionIsOptional(properties, context): boolean {
-        if (properties.innerSystem.isOptional(context)) {
+        if (properties.optional || properties.innerSystem.isOptional(context)) {
             return true;
         }
+
+        if (properties.mode === TargetMode.Exactly || properties.mode === TargetMode.ExactlyVariable || properties.mode === TargetMode.Single) {
+            return false;
+        }
+
         const controller = typeof properties.controller === 'function' ? properties.controller(context) : properties.controller;
         return properties.canChooseNoCards || (CardTargetResolver.allZonesAreHidden(properties.zoneFilter, controller) && properties.selector.hasAnyCardFilter);
     }

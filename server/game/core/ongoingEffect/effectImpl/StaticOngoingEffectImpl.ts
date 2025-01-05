@@ -1,6 +1,6 @@
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
-import { CardType, EffectName, Duration, AbilityType } from '../../Constants';
-import { AbilityContext } from '../../ability/AbilityContext';
+import { EffectName } from '../../Constants';
+import type { AbilityContext } from '../../ability/AbilityContext';
 import { OngoingEffectImpl } from './OngoingEffectImpl';
 
 const binaryCardEffects = [
@@ -98,11 +98,10 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
     }
 
     // effects can't be applied to facedown cards
-    // TODO TECH: this needs to be updated for "gain smuggle"
     // TODO: can this know that it, for example, grants sentinel and so only return true here for unit cards?
-    public canBeApplied(target) {
-        return !target.facedown;
-    }
+    // public canBeApplied(target) {
+    //     return !target.facedown;
+    // }
 
     // isMilitaryModifier() {
     //     return MilitaryModifiers.includes(this.type);

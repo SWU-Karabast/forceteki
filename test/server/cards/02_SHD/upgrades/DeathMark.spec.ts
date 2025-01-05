@@ -17,7 +17,7 @@ describe('Death Mark', function() {
                 context.player1.clickCard(context.vanquish);
                 context.player1.clickCard(context.restoredArc170);
 
-                const prompt = 'Bounty: Draw 2 cards';
+                const prompt = 'Collect Bounty: Draw 2 cards';
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
                 context.player1.clickPrompt(prompt);
 

@@ -1,7 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
 export default class WartimeProfiteering extends EventCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;

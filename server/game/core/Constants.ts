@@ -124,6 +124,8 @@ export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',
+    // TODO: add 'Between'
+    BetweenVariable = 'betweenVariable',
     DropdownList = 'dropdownList',
     Exactly = 'exactly',
     ExactlyVariable = 'exactlyVariable',
@@ -194,6 +196,7 @@ export enum EventName {
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
     OnBeginRound = 'onBeginRound',
+    OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
     OnCardCaptured = 'onCardCaptured',
@@ -218,6 +221,7 @@ export enum EventName {
     OnEffectApplied = 'onEffectApplied',
     OnEntireHandDiscarded = 'onEntireHandDiscarded',
     onExhaustResources = 'onExhaustResources',
+    onExploitUnits = 'onExploitUnits',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCard = 'onLookAtCard',
@@ -286,7 +290,6 @@ export enum KeywordName {
     Ambush = 'ambush',
     Bounty = 'bounty',
     Coordinate = 'coordinate',
-    /** @deprecated Not yet implemented */
     Exploit = 'exploit',
     Grit = 'grit',
     Overwhelm = 'overwhelm',

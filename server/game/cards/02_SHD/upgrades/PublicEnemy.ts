@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { KeywordName, RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { KeywordName, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class PublicEnemy extends UpgradeCard {
     protected override getImplementationId() {

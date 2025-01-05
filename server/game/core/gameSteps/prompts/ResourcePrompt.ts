@@ -1,7 +1,7 @@
-import { Card } from '../../card/Card';
+import type { Card } from '../../card/Card';
 import type Game from '../../Game';
 import type Player from '../../Player';
-import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
+import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { AllPlayerPrompt } from './AllPlayerPrompt';
 import { PromptType } from '../../Constants';

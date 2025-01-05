@@ -1,5 +1,5 @@
-import { Card } from '../core/card/Card';
-import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
+import type { Card } from '../core/card/Card';
+import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import { AttacksThisPhaseWatcher } from './AttacksThisPhaseWatcher';
 import { CardsLeftPlayThisPhaseWatcher } from './CardsLeftPlayThisPhaseWatcher';
 import { CardsPlayedThisPhaseWatcher } from './CardsPlayedThisPhaseWatcher';

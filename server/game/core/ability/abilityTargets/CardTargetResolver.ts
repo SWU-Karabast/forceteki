@@ -1,15 +1,16 @@
-import { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
-import { AbilityContext } from '../AbilityContext';
-import PlayerOrCardAbility from '../PlayerOrCardAbility';
+import type { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
+import type { AbilityContext } from '../AbilityContext';
+import type PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
-import { Card } from '../../card/Card';
-import { EffectName, GameStateChangeRequired, RelativePlayer, Stage, TargetMode, ZoneFilter, ZoneName } from '../../Constants';
+import type { Card } from '../../card/Card';
+import type { RelativePlayer, ZoneFilter, ZoneName } from '../../Constants';
+import { EffectName, GameStateChangeRequired, Stage, TargetMode } from '../../Constants';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
 import * as EnumHelpers from '../../utils/EnumHelpers.js';
-import { GameSystem } from '../../gameSystem/GameSystem';
+import type { GameSystem } from '../../gameSystem/GameSystem';
 
 /**
  * Target resolver for selecting cards for the target of an effect.
@@ -18,13 +19,13 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     private immediateEffect: GameSystem;
     private selector: any;
 
-    private static choosingFromHiddenPrompt = '(because you are choosing from a hidden zone you may choose nothing)';
+    private static choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
 
     public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
         return zoneFilter && zoneFilter.length > 0 && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
     }
 
-    public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility) {
+    public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility = null) {
         super(name, properties, ability);
 
         if (this.properties.mode === TargetMode.UpTo || this.properties.mode === TargetMode.UpToVariable) {
@@ -67,11 +68,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return contextCopy;
     }
 
-    protected override hasLegalTarget(context: AbilityContext) {
+    public override hasLegalTarget(context: AbilityContext) {
         return this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
     }
 
-    private getAllLegalTargets(context: AbilityContext): Card[] {
+    public getAllLegalTargets(context: AbilityContext): Card[] {
         return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
     }
 
@@ -95,8 +96,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         if (CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)) {
             this.properties.optional = true;
             this.selector.optional = true;
-            this.selector.oldDefaultActivePromptTitle = this.selector.defaultActivePromptTitle();
-            this.selector.defaultActivePromptTitle = () => this.selector.oldDefaultActivePromptTitle.concat(' ' + CardTargetResolver.choosingFromHiddenPrompt);
+            this.selector.appendToDefaultTitle = CardTargetResolver.choosingFromHiddenPrompt;
             choosingFromHidden = true;
         }
 
