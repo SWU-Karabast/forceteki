@@ -17,6 +17,11 @@ interface LobbyUser {
     socket: Socket | null;
     deck: Deck | null;
 }
+export enum MatchType {
+    Custom = 'Custom',
+    Private = 'Private',
+    Quick = 'Quick',
+}
 
 export class Lobby {
     private readonly _id: string;
@@ -26,15 +31,19 @@ export class Lobby {
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private gameChat: GameChat;
     private lobbyOwnerId: string;
-    private isPrivate: boolean;
+    public isPrivate: boolean;
     private connectionLink: string | null;
     private playableCardTitles: string[];
 
-    public constructor(isPrivate: boolean = false, isCustomMatch: boolean = true) {
+    public constructor(lobbyGameType: MatchType) {
+        Contract.assertTrue(
+            [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
+            'Lobby game type doesn\'t match any MatchType values'
+        );
         this._id = uuid();
         this.gameChat = new GameChat();
-        this.connectionLink = isCustomMatch ? `http://localhost:3000/lobby?lobbyId=${this._id}` : null;
-        this.isPrivate = isPrivate;
+        this.connectionLink = lobbyGameType !== MatchType.Quick ? `http://localhost:3000/lobby?lobbyId=${this._id}` : null;
+        this.isPrivate = lobbyGameType === MatchType.Private;
     }
 
     public get id(): string {
@@ -195,20 +204,16 @@ export class Lobby {
         return user ? user.state : null;
     }
 
-    public isLobbyFilled(): boolean {
+    public isFilled(): boolean {
         return this.users.length === 2;
     }
 
-    public isLobbyPrivate(): boolean {
-        return this.isPrivate;
-    }
-
-    public removeLobbyUser(id: string): void {
+    public removeUser(id: string): void {
         this.users = this.users.filter((u) => u.id !== id);
         this.sendLobbyState();
     }
 
-    public isLobbyEmpty(): boolean {
+    public isEmpty(): boolean {
         return this.users.length === 0;
     }
 

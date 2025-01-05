@@ -9,7 +9,7 @@ import { v4 as uuid } from 'uuid';
 
 import { logger } from '../logger';
 
-import { Lobby } from './Lobby';
+import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
 import * as env from '../env';
 import type { Deck } from '../game/Deck';
@@ -106,7 +106,7 @@ export class GameServer {
                 return res.status(404).json({ success: false, message: 'Lobby not found' });
             }
 
-            if (lobby.isLobbyFilled()) {
+            if (lobby.isFilled()) {
                 return res.status(400).json({ success: false, message: 'Lobby is full' });
             }
             // Add the user to the lobby
@@ -135,7 +135,7 @@ export class GameServer {
     private lobbiesWithOpenSeat() {
         return new Map(
             Array.from(this.lobbies.entries()).filter(([_, lobby]) =>
-                !lobby.isLobbyFilled() && !lobby.isLobbyPrivate() && !lobby.hasOngoingGame()
+                !lobby.isFilled() && !lobby.isPrivate && !lobby.hasOngoingGame()
             )
         );
     }
@@ -154,7 +154,7 @@ export class GameServer {
             throw new Error('User must be provided for public lobbies');
         }
 
-        const lobby = new Lobby(isPrivate);
+        const lobby = new Lobby(isPrivate ? MatchType.Private : MatchType.Custom);
         this.lobbies.set(lobby.id, lobby);
         // set default user if no user is supplied for private lobbies
         if (!user) {
@@ -171,7 +171,7 @@ export class GameServer {
     }
 
     private startTestGame(filename: string) {
-        const lobby = new Lobby();
+        const lobby = new Lobby(MatchType.Custom);
         this.lobbies.set(lobby.id, lobby);
         const order66 = { id: 'exe66', username: 'Order66' };
         const theWay = { id: 'th3w4y', username: 'ThisIsTheWay' };
@@ -286,7 +286,7 @@ export class GameServer {
             }
 
             // check if the lobby is full
-            if (lobby.isLobbyFilled() && lobby.hasOngoingGame()) {
+            if (lobby.isFilled() && lobby.hasOngoingGame()) {
                 logger.info('Requested lobby', requestedLobby.lobbyId, 'is full or already in game, disconnecting');
                 ioSocket.disconnect();
                 return;
@@ -361,7 +361,7 @@ export class GameServer {
             }
 
             // Create a new Lobby
-            const lobby = new Lobby(false, false);
+            const lobby = new Lobby(MatchType.Quick);
             this.lobbies.set(lobby.id, lobby);
 
             // Create the 2 lobby users
@@ -408,16 +408,16 @@ export class GameServer {
         const lobby = this.lobbies.get(lobbyId);
         if (reason === 'client namespace disconnect') {
             this.userLobbyMap.delete(id);
-            lobby.removeLobbyUser(id);
+            lobby.removeUser(id);
         } else if (reason === 'ping timeout' || reason === 'transport close') {
             lobby.setUserDisconnected(id);
             setTimeout(() => {
                 // Check if the user is still disconnected after the timer
                 if (lobby.getUserState(id) === 'disconnected') {
                     this.userLobbyMap.delete(id);
-                    lobby.removeLobbyUser(id);
+                    lobby.removeUser(id);
                     // Check if lobby is empty
-                    if (lobby.isLobbyEmpty()) {
+                    if (lobby.isEmpty()) {
                         // Start the cleanup process
                         lobby.cleanLobby();
                         this.lobbies.delete(lobbyId);
@@ -427,7 +427,7 @@ export class GameServer {
         }
 
         // check if lobby is empty
-        if (lobby.isLobbyEmpty()) {
+        if (lobby.isEmpty()) {
             // cleanup process
             lobby.cleanLobby();
             this.lobbies.delete(lobbyId);
