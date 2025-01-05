@@ -250,6 +250,19 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return addedAbility.uuid;
     }
 
+    /**
+     * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+     *
+     * @returns The uuid of the created triggered ability
+     */
+    public addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string {
+        const addedAbility = this.createReplacementEffectAbility(properties);
+        this.triggeredAbilities.push(addedAbility);
+        addedAbility.registerEvents();
+
+        return addedAbility.uuid;
+    }
+
     /** Removes a dynamically gained triggered ability and unregisters its effects */
     public removeGainedTriggeredAbility(removeAbilityUuid: string): void {
         let abilityToRemove: TriggeredAbility = null;
@@ -273,6 +286,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         this.triggeredAbilities = remainingAbilities;
         abilityToRemove.unregisterEvents();
+    }
+
+    public removeGainedReplacementEffectAbility(removeAbilityUuid: string): void {
+        this.removeGainedTriggeredAbility(removeAbilityUuid);
     }
 
     public override resolveAbilitiesForNewZone() {
