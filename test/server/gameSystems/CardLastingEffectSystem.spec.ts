@@ -1,12 +1,12 @@
 describe('Card lasting effects', function() {
     integration(function (contextRef) {
-        describe('A card lasting effect with duration "while source is in play"', function() {
+        describe('A card lasting effect with duration "while source is in play" should', function() {
             beforeEach(function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['huyang#enduring-instructor'],
-                        groundArena: ['wampa']
+                        groundArena: ['wampa', 'snowspeeder']
                     },
                     player2: {
                         hand: ['vanquish', 'discerning-veteran', 'waylay', 'change-of-heart']
@@ -20,7 +20,7 @@ describe('Card lasting effects', function() {
                 context.player1.clickCard(context.wampa);
             });
 
-            it('should have effect while the source is in play and go away when it is defeated', function () {
+            it('have effect while the source is in play and go away when it is defeated', function () {
                 const { context } = contextRef;
 
                 expect(context.wampa.getPower()).toBe(6);
@@ -43,7 +43,7 @@ describe('Card lasting effects', function() {
                 expect(context.wampa.getHp()).toBe(5);
             });
 
-            it('go away when when the source is returned to hand', function () {
+            it('expire when the source is returned to hand, and not return if the source comes back into play', function () {
                 const { context } = contextRef;
 
                 context.player2.clickCard(context.waylay);
@@ -51,9 +51,31 @@ describe('Card lasting effects', function() {
 
                 expect(context.wampa.getPower()).toBe(4);
                 expect(context.wampa.getHp()).toBe(5);
+
+                // choose snowspeeder as effect target
+                context.player1.clickCard(context.huyang);
+                context.player1.clickCard(context.snowspeeder);
+
+                // wampa does not have effect, snowspeeder does
+                expect(context.wampa.getPower()).toBe(4);
+                expect(context.wampa.getHp()).toBe(5);
+                expect(context.snowspeeder.getPower()).toBe(5);
+                expect(context.snowspeeder.getHp()).toBe(8);
             });
 
-            it('should persist across rounds', function () {
+            it('stop affecting the target if it is returned to hand, and not resume if the target comes back into play', function () {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.wampa);
+
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa.getPower()).toBe(4);
+                expect(context.wampa.getHp()).toBe(5);
+            });
+
+            it('persist across rounds', function () {
                 const { context } = contextRef;
 
                 context.moveToNextActionPhase();
@@ -62,7 +84,7 @@ describe('Card lasting effects', function() {
                 expect(context.wampa.getHp()).toBe(7);
             });
 
-            it('should persist even if the source changes controllers', function () {
+            it('persist even if the source changes controllers', function () {
                 const { context } = contextRef;
 
                 context.player2.clickCard(context.changeOfHeart);

@@ -8,9 +8,7 @@ describe('Huyang, Enduring Instructor', function() {
                     groundArena: ['wampa']
                 },
                 player2: {
-                    groundArena: ['atst', 'atat-suppressor'],
-                    spaceArena: ['cartel-spacer'],
-                    hand: ['republic-attack-pod']
+                    groundArena: ['atst'],
                 }
             });
 
