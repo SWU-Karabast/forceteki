@@ -123,6 +123,37 @@ describe('Cobb Vanth, The Marshal', function() {
                 // it should no longer have these effects available to it
                 expect(context.battlefieldMarine).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
+
+            it('should allow another play from discard event to operate on the selected card without creating play action dupes', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['palpatines-return'],
+                        groundArena: ['cobb-vanth#the-marshal'],
+                        deck: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.cobbVanth);
+
+                context.player1.clickPrompt(context.battlefieldMarine.title);
+                expect(context.cobbVanth).toBeInZone('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
+
+                context.player1.clickCard(context.palpatinesReturn);
+                expect(context.player1.exhaustedResourceCount).toBe(8);
+                expect(context.player1).toBeAbleToSelectExactly([context.cobbVanth, context.battlefieldMarine]);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.exhaustedResourceCount).toBe(8); // should still be free and no net change
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+            });
         });
     });
 });
