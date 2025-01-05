@@ -80,15 +80,11 @@ export class PlayableOrDeployableCard extends Card {
             return this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
         }
 
-        if (!this.isZoneInPlay(this.zoneName) && this.hasOngoingEffect(EffectName.CanPlayFromOutOfPlay)) {
-            return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay);
+        if (this.zoneName === ZoneName.Discard && this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
+            return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
         }
 
         return [];
-    }
-
-    public isZoneInPlay(zoneName: ZoneName): boolean {
-        return [ZoneName.Hand, ZoneName.SpaceArena, ZoneName.GroundArena].includes(zoneName);
     }
 
 
@@ -99,7 +95,8 @@ export class PlayableOrDeployableCard extends Card {
      * If `propertyOverrides` is provided, will generate the actions using the included overrides.
      */
     public getPlayCardFromOutOfPlayActions(propertyOverrides: IPlayCardActionOverrides = null) {
-        Contract.assertFalse(this.isZoneInPlay(this.zoneName),
+        Contract.assertFalse(
+            [ZoneName.Hand, ZoneName.SpaceArena, ZoneName.GroundArena].includes(this.zoneName),
             `Attempting to get "play from out of play" actions for card ${this.internalName} in invalid zone: ${this.zoneName}`
         );
 

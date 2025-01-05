@@ -26,12 +26,11 @@ describe('Cobb Vanth, The Marshal', function() {
                 expect(context.cobbVanth).toBeInZone('discard');
                 expect(context.patrollingVwing).toBeInZone('discard');
 
-
-                // Lets exhaust 100% of the resources to ensure it can still be played
-                context.player2.exhaustResources(20);
+                // Lets exhaust 100% of the resources to ensure it can still be played free of cost (ignoring aspect penalties too)
+                context.player1.exhaustResources(20);
                 context.player1.clickCard(context.patrollingVwing);
                 expect(context.patrollingVwing).toBeInZone('spaceArena');
-                expect(context.player1.exhaustedResourceCount).toBe(0); // free cost on aspect penalty too!
+                expect(context.player1.exhaustedResourceCount).toBe(20);
 
                 // Have player 2 remove the patrolling Vwing to make sure the abilities don't persist after being played
                 context.player2.clickCard(context.systemPatrolCraft);

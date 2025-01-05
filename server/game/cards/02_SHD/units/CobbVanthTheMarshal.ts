@@ -21,19 +21,15 @@ export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
                 cardCondition: (card) => card.isUnit() && card.cost <= 2,
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.discardSpecificCard(),
-                    AbilityHelper.immediateEffects.simultaneous([
-                        AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                            effect: OngoingEffectLibrary.canPlayFromDiscard(
-                                (player: Player, card: Card) => player === card.controller && card.zoneName === ZoneName.Discard,
-                            ),
-                        }),
-                        AbilityHelper.immediateEffects.forThisPhaseCardEffect((deckSearchContext) => ({
-                            effect: OngoingEffectLibrary.freeCost({
-                                match: (card) => deckSearchContext.targets.includes(card)
+                    AbilityHelper.immediateEffects.forThisPhaseCardEffect((deckSearchContext) => ({
+                        effect: [
+                            OngoingEffectLibrary.canPlayFromDiscard(),
+                            OngoingEffectLibrary.forFree({
+                                match: (card) => deckSearchContext.targets.includes(card) // note cost adjusters are attached to player, so have to refilter
                             })
-                        })),
-                    ]),
-                ])
+                        ]
+                    })),
+                ]),
             })
         });
     }

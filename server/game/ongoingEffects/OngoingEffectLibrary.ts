@@ -46,29 +46,23 @@ export = {
     blankEventCard: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     // calculatePrintedMilitarySkill: (func) => OngoingEffectBuilder.card.static(EffectName.CalculatePrintedMilitarySkill, func),
 
-    /** @deprected This has not yet been tested */
-    canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>
-        OngoingEffectBuilder.card.flexible(
-            EffectName.CanPlayFromOutOfPlay,
-            Object.assign({ player: player, playType: playType })
-        ),
+    // canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>
+    //    OngoingEffectBuilder.card.flexible(
+    //        EffectName.CanPlayFromOutOfPlay,
+    //        Object.assign({ player: player, playType: playType })
+    //    ),
 
-    /** @deprected This has not yet been tested */
-    registerToPlayFromOutOfPlay: () =>
-        OngoingEffectBuilder.card.detached(EffectName.CanPlayFromOutOfPlay, {
-            apply: (card) => {
-                for (const triggeredAbility of card.getTriggeredAbilities()) {
-                    triggeredAbility.registerEvents();
-                }
-            },
-            unapply: () => true
-        }),
+    // registerToPlayFromOutOfPlay: () =>
+    //    OngoingEffectBuilder.card.detached(EffectName.CanPlayFromDiscard, {
+    //        apply: (card) => {
+    //            for (const triggeredAbility of card.getTriggeredAbilities()) {
+    //                triggeredAbility.registerEvents();
+    //            }
+    //        },
+    //        unapply: () => true
+    //    }),
 
-    canPlayFromDiscard: (filter: (player: Player, card: Card) => boolean) =>
-        OngoingEffectBuilder.card.flexible(
-            EffectName.CanPlayFromOutOfPlay,
-            { player: filter, playType: PlayType.PlayFromOutOfPlay }
-        ),
+    canPlayFromDiscard: () => OngoingEffectBuilder.card.static(EffectName.CanPlayFromDiscard),
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>
@@ -237,7 +231,7 @@ export = {
     //         unapply: (player) => (player.actionPhasePriority = false)
     //     }),
     increaseCost: (properties: Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Increase, ...properties }),
-    freeCost: (properties: Omit<IForFreeCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Free, ...properties }),
+    forFree: (properties: Omit<IForFreeCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Free, ...properties }),
     ignoreAllAspectPenalties: (properties: Omit<IIgnoreAllAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreAllAspects, ...properties }),
     ignoreSpecificAspectPenalties: (properties: Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreSpecificAspects, ...properties }),
     // modifyCardsDrawnInDrawPhase: (amount) =>
