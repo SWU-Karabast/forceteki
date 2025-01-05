@@ -9,6 +9,7 @@ import { TriggerWindowBase } from './TriggerWindowBase';
 import type Shield from '../../../cards/01_SOR/tokens/Shield';
 
 export class ReplacementEffectWindow extends TriggerWindowBase {
+    // starts as true so that we will do the trigger cleanup and initial prompt setup on the first pass
     private newReplacementEvents = true;
 
     public constructor(
@@ -58,8 +59,6 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
         // pass 1: go through all triggers and select at most 1 shield effect per unit with shield(s)
         const selectedShieldEffectPerUnit = new Map<Card, TriggeredAbilityContext<Shield>>();
         for (const [_player, triggeredAbilities] of this.unresolved) {
-            // let selectedShieldEffect: TriggeredAbilityContext<Shield> | null = null;
-
             for (const triggeredAbility of triggeredAbilities) {
                 const abilitySource = triggeredAbility.source;
 
@@ -81,13 +80,13 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
 
         // pass 2: go through all triggers and filter out all shield effects other than those selected in pass 1
         if (selectedShieldEffectPerUnit.size !== 0) {
-            const selectedShieldEffectsFlat = Array.from(selectedShieldEffectPerUnit.values()).flat();
+            const selectedShieldEffectsFlat = new Set(Array.from(selectedShieldEffectPerUnit.values()).flat());
             const postConsolidateUnresolved = new Map<Player, TriggeredAbilityContext[]>();
 
             for (const [player, triggeredAbilities] of this.unresolved) {
                 const postConsolidateAbilities = triggeredAbilities.filter((ability) =>
                     !ability.source.isShield() ||
-                    selectedShieldEffectsFlat.includes(ability as TriggeredAbilityContext<Shield>)
+                    selectedShieldEffectsFlat.has(ability as TriggeredAbilityContext<Shield>)
                 );
 
                 postConsolidateUnresolved.set(player, postConsolidateAbilities);

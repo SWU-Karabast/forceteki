@@ -26,7 +26,7 @@ export interface ICombatDamageProperties extends IDamagePropertiesBase {
 
 /** Used for when an ability is directly dealing damage to a target (most common case for card implementations) */
 export interface IAbilityDamageProperties extends IDamagePropertiesBase {
-    type: DamageType.Ability;    // this is optional so it can be the default property type
+    type: DamageType.Ability;
     amount: number | ((card: UnitCard) => number);
 
     /** The source of the damage, if different from the card that triggered the ability */
