@@ -1,10 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { Duration, EffectName, EventName, WildcardZoneName } from '../core/Constants';
+import { EffectName, EventName, WildcardZoneName } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
-import * as Contract from '../core/utils/Contract';
 
 export interface ICardLastingEffectProperties extends Omit<ILastingEffectPropertiesBase, 'target'>, ICardTargetSystemProperties {}
 
@@ -79,25 +78,11 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         return { effectFactories: effect, effectProperties };
     }
 
-    private filterApplicableEffects(card: Card, effects: any[]) {
+    protected filterApplicableEffects(card: Card, effects: any[]) {
         const lastingEffectRestrictions = card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
         return effects.filter(
             (props) =>
-                !lastingEffectRestrictions.some((condition) => condition(props.impl)) &&
-                this.whileSourceInPlayCondition(props)
+                !lastingEffectRestrictions.some((condition) => condition(props.impl))
         );
-    }
-
-    /**
-     * If the duration is {@link Duration.WhileSourceInPlay}, checks if the source unit is still in play. Returns true if so, or if the duration is not `WhileSourceInPlay`.
-     * */
-    private whileSourceInPlayCondition(props: any) {
-        if (props.duration !== Duration.WhileSourceInPlay) {
-            return true;
-        }
-
-        Contract.assertTrue(props.source.canBeInPlay(), `${props.source.internalName} is not a legal target for an effect with duration '${Duration.WhileSourceInPlay}'`);
-
-        return props.source.isInPlay();
     }
 }

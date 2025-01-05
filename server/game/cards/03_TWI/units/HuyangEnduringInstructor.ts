@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Duration, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class HuyangEnduringInstructor extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -17,9 +17,8 @@ export default class HuyangEnduringInstructor extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card, context) => card !== context.source,
-                immediateEffect: AbilityHelper.immediateEffects.cardLastingEffect({
-                    effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 }),
-                    duration: Duration.WhileSourceInPlay
+                immediateEffect: AbilityHelper.immediateEffects.whileSourceInPlayCardEffect({
+                    effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                 })
             }
         });

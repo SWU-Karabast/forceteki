@@ -15,6 +15,8 @@ import { CardLastingEffectSystem } from './CardLastingEffectSystem';
 import type { ICardPhaseLastingEffectProperties } from './CardPhaseLastingEffectSystem';
 import { CardPhaseLastingEffectSystem } from './CardPhaseLastingEffectSystem';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import type { ICardWhileSourceInPlayLastingEffectProperties } from './CardWhileSourceInPlayLastingEffectSystem';
+import { CardWhileSourceInPlayLastingEffectSystem } from './CardWhileSourceInPlayLastingEffectSystem';
 import type { IPlayModalCardProperties } from './ChooseModalEffectsSystem';
 import { ChooseModalEffectsSystem } from './ChooseModalEffectsSystem';
 import type { ICollectBountyProperties } from './CollectBountySystem';
@@ -337,6 +339,9 @@ export function takeControlOfUnit<TContext extends AbilityContext = AbilityConte
 // export function placeCardUnderneath(propertyFactory: PropsFactory<PlaceCardUnderneathProperties>) {
 //     return new PlaceCardUnderneathAction(propertyFactory);
 // }
+export function whileSourceInPlayCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardWhileSourceInPlayLastingEffectProperties, TContext>) {
+    return new CardWhileSourceInPlayLastingEffectSystem<TContext>(propertyFactory);
+}
 
 // //////////////
 // // PLAYER
