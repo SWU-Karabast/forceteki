@@ -6,7 +6,7 @@ import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import type { IPlayCardActionProperties, IPlayCardActionPropertiesBase, ISmuggleCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
 import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import type { Aspect, MoveZoneDestination } from '../../Constants';
-import { CardType, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
+import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type Player from '../../Player';
@@ -78,6 +78,10 @@ export class PlayableOrDeployableCard extends Card {
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             return this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
+        }
+
+        if (this.zoneName === ZoneName.Discard && this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
+            return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
         }
 
         return [];

@@ -427,22 +427,12 @@ class Player extends GameObject {
      * @param {String} playingType
      */
     isCardInPlayableZone(card, playingType = null) {
-        // use an effect check to see if this card is in an out of play zone but can still be played from
-        if (card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
-            return true;
-        }
-
         return this.playableZones.some(
             (zone) => (!playingType || zone.playingType === playingType) && zone.includes(card)
         );
     }
 
     findPlayType(card) {
-        if (card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
-            let effects = card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card));
-            return effects[effects.length - 1].playType || PlayType.PlayFromHand;
-        }
-
         let zone = this.playableZones.find((zone) => zone.includes(card));
         if (zone) {
             return zone.playingType;

@@ -469,12 +469,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         private getBountyAbilities() {
             return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Bounty)
-                .map((keyword) => keyword as BountyKeywordInstance);
+                .map((keyword) => keyword as BountyKeywordInstance)
+                .filter((keyword) => keyword.isFullyImplemented);
         }
 
         private getCoordinateAbilities() {
             return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Coordinate)
-                .map((keyword) => keyword as KeywordWithAbilityDefinition);
+                .map((keyword) => keyword as KeywordWithAbilityDefinition)
+                .filter((keyword) => keyword.isFullyImplemented);
         }
 
         public unregisterWhenPlayedKeywords() {
