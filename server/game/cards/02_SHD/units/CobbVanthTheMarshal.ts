@@ -1,8 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName } from '../../../core/Constants';
-import type Player from '../../../core/Player';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 
 export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
