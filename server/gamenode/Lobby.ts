@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
+import { Spectator } from '../Spectator';
 
 interface LobbyUser {
     id: string;
@@ -17,12 +18,20 @@ interface LobbyUser {
     socket: Socket | null;
     deck: Deck | null;
 }
+interface ISpectatorUser {
+    id: string;
+    user: { username: string; emailHash: string };
+    state: 'connected' | 'disconnected';
+    socket: Socket | null;
+}
+
 
 export class Lobby {
     private readonly _id: string;
     private game: Game;
     // switch partic
     private users: LobbyUser[] = [];
+    private spectators: ISpectatorUser[] = [];
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private gameChat: GameChat;
     private lobbyOwnerId: string;
@@ -46,6 +55,7 @@ export class Lobby {
                 ready: u.ready,
                 deck: u.deck?.data,
             })),
+            spectators: this.spectators,
             gameChat: this.gameChat,
             lobbyOwnerId: this.lobbyOwnerId,
         };
@@ -68,6 +78,19 @@ export class Lobby {
         }));
     }
 
+    public createNewSpectatorUser(user): void {
+        const existingUser = this.spectators.find((u) => u.id === user.id);
+        if (existingUser) {
+            return;
+        }
+        this.spectators.push(({
+            id: user.id,
+            user: { username: user.username, emailHash: 'testEmail' },
+            state: null,
+            socket: null
+        }));
+    }
+
     private useDefaultDeck(user) {
         switch (user.id) {
             case 'exe66':
@@ -81,12 +104,19 @@ export class Lobby {
 
     public addLobbyUser(user, socket: Socket, owner = false): void {
         const existingUser = this.users.find((u) => u.id === user.id);
+        const spectatorUser = this.spectators.find((u) => u.id === user.id);
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
-        socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
+        if (!spectatorUser) {
+            socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
+        }
+
         // maybe we neeed to be using socket.data
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
+        } else if (spectatorUser) {
+            spectatorUser.state = 'connected';
+            spectatorUser.socket = socket;
         } else {
             this.users.push({
                 id: user.id,
@@ -98,6 +128,7 @@ export class Lobby {
         }
 
         if (this.game) {
+            this.game.playersAndSpectators[spectatorUser.id] = new Spectator(spectatorUser.id, spectatorUser.user);
             this.sendGameState(this.game);
         } else {
             this.sendLobbyState();
@@ -348,6 +379,12 @@ export class Lobby {
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
                 user.socket.send('gamestate', game.getState(user.id));
+            }
+        }
+        // for every spectator aswell
+        for (const spectator of this.spectators) {
+            if (spectator.state === 'connected' && spectator.socket) {
+                spectator.socket.send('gamestate', game.getState(spectator.id));
             }
         }
     }

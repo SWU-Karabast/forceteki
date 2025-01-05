@@ -5,7 +5,7 @@ import https from 'https';
 import express from 'express';
 import cors from 'cors';
 import socketio from 'socket.io';
-
+import { v4 as uuid } from 'uuid';
 import { logger } from '../logger';
 
 import { Lobby } from './Lobby';
@@ -92,6 +92,13 @@ export class GameServer {
             }));
             return res.json(availableLobbies);
         });
+        app.get('/api/current-running-public-games', (_, res) => {
+            const currentPublicGames = Array.from(this.publicRunningGames().entries()).map(([id, _]) => ({
+                id,
+                name: `Game #${id}`,
+            }));
+            return res.json(currentPublicGames);
+        });
         app.post('/api/join-lobby', (req, res) => {
             const { lobbyId, user } = req.body;
 
@@ -106,6 +113,15 @@ export class GameServer {
             // Add the user to the lobby
             this.userLobbyMap.set(user.id, lobby.id);
             return res.status(200).json({ success: true });
+        });
+        app.post('/api/join-spectator', (req, res) => {
+            const { lobbyId, user } = req.body;
+
+            const lobby = this.lobbies.get(lobbyId);
+            if (!lobby) {
+                return res.status(404).json({ success: false, message: 'Lobby not found' });
+            }
+            return res.status(200).json({ success: true, spectatorId: this.createSpectator(user, lobby) });
         });
         app.get('/api/test-game-setups', (_, res) => {
             const testSetupFilenames = this.getTestSetupGames();
@@ -132,6 +148,12 @@ export class GameServer {
         );
     }
 
+    private publicRunningGames() {
+        return new Map(
+            Array.from(this.lobbies.entries()).filter(([_, lobby]) => lobby.isLobbyFilled())
+        );
+    }
+
     private createLobby(user: any, deck: any) {
         const lobby = new Lobby();
         this.lobbies.set(lobby.id, lobby);
@@ -140,6 +162,18 @@ export class GameServer {
         this.userLobbyMap.set(user.id, lobby.id);
         lobby.setTokens();
         return true;
+    }
+
+    private createSpectator(user: any, lobby: Lobby) {
+        if (!user) {
+            const guestSpectator = { id: uuid(), username: 'Guest' };
+            lobby.createNewSpectatorUser(guestSpectator);
+            this.userLobbyMap.set(guestSpectator.id, lobby.id);
+            return guestSpectator.id;
+        }
+        lobby.createNewSpectatorUser(user);
+        this.userLobbyMap.set(user.id, lobby.id);
+        return user.id;
     }
 
     private startTestGame(filename: string) {

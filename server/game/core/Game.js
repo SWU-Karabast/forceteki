@@ -90,7 +90,7 @@ class Game extends EventEmitter {
         });
 
         details.spectators?.forEach((spectator) => {
-            this.playersAndSpectators[spectator.user.id] = new Spectator(spectator.id, spectator.user);
+            this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator.user);
         });
 
         const [player1, player2] = this.getPlayers();
