@@ -103,7 +103,9 @@ import { SequentialSystem } from './SequentialSystem';
 import type { IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem';
 import { SimultaneousGameSystem } from './SimultaneousSystem';
-import type { ITakeControlProperties } from './TakeControlOfUnitSystem';
+import type { ITakeControlOfResourceProperties } from './TakeControlOfResourceSystem';
+import { TakeControlOfResourceSystem } from './TakeControlOfResourceSystem';
+import type { ITakeControlOfUnitProperties } from './TakeControlOfUnitSystem';
 import { TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
 
 
@@ -321,7 +323,7 @@ export function reveal<TContext extends AbilityContext = AbilityContext>(propert
 // export function sacrifice(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}) {
 //     return new DiscardFromPlayAction(propertyFactory, true);
 // }
-export function takeControlOfUnit<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ITakeControlProperties, TContext>) {
+export function takeControlOfUnit<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ITakeControlOfUnitProperties, TContext>) {
     return new TakeControlOfUnitSystem(propertyFactory);
 }
 // export function triggerAbility(propertyFactory: PropsFactory<TriggerAbilityProperties>) {
@@ -445,6 +447,9 @@ export function delayedPlayerEffect<TContext extends AbilityContext = AbilityCon
             propertyFactory,
             { effectType: DelayedEffectType.Player }
         ));
+}
+export function takeControlOfResource<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ITakeControlOfResourceProperties, TContext> = {}) {
+    return new TakeControlOfResourceSystem(propertyFactory);
 }
 
 // //////////////

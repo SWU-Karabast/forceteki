@@ -66,11 +66,11 @@ export class UpgradeCard extends UpgradeCardParent {
         return true;
     }
 
-    public override moveTo(targetZone: MoveZoneDestination, resetController?: boolean) {
-        Contract.assertFalse(this._parentCard && targetZone !== this._parentCard.zoneName,
+    public override moveTo(targetZoneName: MoveZoneDestination, resetController?: boolean) {
+        Contract.assertFalse(this._parentCard && targetZoneName !== this._parentCard.zoneName,
             `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
 
-        super.moveTo(targetZone, resetController);
+        super.moveTo(targetZoneName, resetController);
     }
 
     public attachTo(newParentCard: UnitCard) {

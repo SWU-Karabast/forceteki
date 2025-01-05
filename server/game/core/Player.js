@@ -224,6 +224,29 @@ class Player extends GameObject {
         return this.leader.title === title || this.hasSomeArenaUnit({ condition: (card) => card.title === title });
     }
 
+    getZone(zoneName) {
+        switch (zoneName) {
+            case ZoneName.Hand:
+                return this.handZone;
+            case ZoneName.Deck:
+                return this.deckZone;
+            case ZoneName.Discard:
+                return this.discardZone;
+            case ZoneName.Resource:
+                return this.resourceZone;
+            case ZoneName.Base:
+                return this.baseZone;
+            case ZoneName.OutsideTheGame:
+                return this.outsideTheGameZone;
+            case ZoneName.SpaceArena:
+                return this.game.spaceArena;
+            case ZoneName.GroundArena:
+                return this.game.groundArena;
+            default:
+                Contract.fail(`Unknown zone: ${zoneName}`);
+        }
+    }
+
     getCardsInZone(zoneName) {
         switch (zoneName) {
             case ZoneName.Hand:
