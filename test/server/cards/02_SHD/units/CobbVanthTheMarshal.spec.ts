@@ -26,6 +26,16 @@ describe('Cobb Vanth, The Marshal', function() {
                 expect(context.cobbVanth).toBeInZone('discard');
                 expect(context.patrollingVwing).toBeInZone('discard');
 
+                context.player1.passAction();
+
+                // Lets make sure the 2nd player can't take control and play this discarded card
+                expect(context.patrollingVwing).not.toHaveAvailableActionWhenClickedBy(context.player2);
+
+                // perform an action so we don't double pass
+                context.player2.clickCard(context.systemPatrolCraft);
+                context.player2.clickCard(context.p1Base);
+                context.systemPatrolCraft.exhausted = false;
+
                 // Lets exhaust 100% of the resources to ensure it can still be played free of cost (ignoring aspect penalties too)
                 context.player1.exhaustResources(20);
                 context.player1.clickCard(context.patrollingVwing);
