@@ -87,7 +87,6 @@ export class PlayableOrDeployableCard extends Card {
         return [];
     }
 
-
     /**
      * Get the available "play card" actions for this card in the current out-of-play zone.
      * This will generate an action to play the card from out of play even if it would normally not have one available.
