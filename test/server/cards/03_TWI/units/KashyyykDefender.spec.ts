@@ -27,9 +27,9 @@ describe('Kashyyyk Defender', function() {
 
             // reset card
             context.player2.clickCard(context.waylay);
+            context.player2.clickCard(context.kashyyykDefender);
 
             // play card, heal 1 damage from own unit. deals 1 damage to Kashyyyk Defender
-            context.player2.clickCard(context.kashyyykDefender);
             context.player1.clickCard(context.kashyyykDefender);
             context.player1.setDistributeHealingPromptState(new Map([
                 [context.tacticalDroidCommander, 1],
@@ -39,10 +39,10 @@ describe('Kashyyyk Defender', function() {
 
             // reset card
             context.player2.moveCard(context.waylay, 'hand');
-
-            // play card, heal 0 damage from own unit. deals 0 damage to Kashyyyk Defender
             context.player2.clickCard(context.waylay);
             context.player2.clickCard(context.kashyyykDefender);
+
+            // play card, heal 0 damage from own unit. deals 0 damage to Kashyyyk Defender
             context.player1.clickCard(context.kashyyykDefender);
             context.player1.setDistributeHealingPromptState(new Map([
                 [context.tacticalDroidCommander, 0],

@@ -21,13 +21,13 @@ export default class KashyyykDefender extends NonLeaderUnitCard {
                 cardCondition: (card, context) => card !== context.source,
                 controller: WildcardRelativePlayer.Any,
                 canDistributeLess: true,
-                canChooseNoTargets: false,
+                canChooseNoTargets: true,
                 cardTypeFilter: WildcardCardType.Unit,
                 maxTargets: 1
             }),
-            then: (thenContext) => ({
+            ifYouDo: (ifYouDoContext) => ({
                 title: 'Deal that much damage to this unit.',
-                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: thenContext.events[0].damageRemoved }),
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: ifYouDoContext.events[0].damageRemoved }),
             })
         });
     }
