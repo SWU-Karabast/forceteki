@@ -28,6 +28,7 @@ export class Lobby {
     private lobbyOwnerId: string;
     private isPrivate: boolean;
     private connectionLink: string | null;
+    private playableCardTitles: string[];
 
     public constructor(isPrivate: boolean = false, isCustomMatch: boolean = true) {
         this._id = uuid();
@@ -216,6 +217,20 @@ export class Lobby {
         this.users = [];
     }
 
+    private async fetchPlayableCardTitles(): Promise<string[]> {
+        try {
+            const response = await fetch('https://karabast-assets.s3.amazonaws.com/data/_playableCardTitles.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data as string[];
+        } catch (error) {
+            console.error('Error fetching _playableCardTitles.json', error);
+            throw error;
+        }
+    }
+
     private async fetchCard(cardName: string): Promise<any> {
         try {
             const response = await fetch(`https://karabast-assets.s3.amazonaws.com/data/cards/${encodeURIComponent(cardName)}`);
@@ -228,6 +243,10 @@ export class Lobby {
             console.error(`Error fetching card: ${cardName}`, error);
             throw error;
         }
+    }
+
+    public async setPlayableCardTitles(): Promise<void> {
+        this.playableCardTitles = await this.fetchPlayableCardTitles();
     }
 
     public async setTokens(): Promise<void> {
@@ -266,8 +285,10 @@ export class Lobby {
         // TODO Change this to actual new GameSettings when we get to that point.
         defaultGameSettings.players[0].user.id = this.users[0].id;
         defaultGameSettings.players[0].user.username = this.users[0].username;
+
         defaultGameSettings.players[1].user.id = this.users[1].id;
         defaultGameSettings.players[1].user.username = this.users[1].username;
+        defaultGameSettings.playableCardTitles = this.playableCardTitles;
 
         const game = new Game(defaultGameSettings, { router: this });
         this.game = game;
