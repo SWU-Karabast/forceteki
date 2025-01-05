@@ -792,7 +792,7 @@ export class Card extends OngoingEffectSource {
         const selectionState = activePlayer.getCardSelectionState(this);
 
         // If it is not the active player and in opposing hand or deck - return facedown card
-        if (!isActivePlayer && (this._zone.hiddenForPlayers === RelativePlayer.Opponent || this._zone.hiddenForPlayers === WildcardRelativePlayer.Any)) {
+        if (this._zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this._zone.hiddenForPlayers === RelativePlayer.Opponent)) {
             const state = {
                 controller: this.controller.getShortSummary(),
                 // menu: isActivePlayer ? this.getMenu() : undefined,
