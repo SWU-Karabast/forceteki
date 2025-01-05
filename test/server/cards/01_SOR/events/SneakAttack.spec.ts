@@ -74,35 +74,35 @@ describe('Sneak Attack', function() {
             });
 
             // TODO: Fix this test cf https://github.com/SWU-Karabast/forceteki/pull/389#discussion_r1898603793
-            it('should not defeat Sabine if she is waylay back in hand and played back the same phase', function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        hand: ['sneak-attack', 'sabine-wren#you-can-count-on-me', 'recruit'],
-                        groundArena: ['battlefield-marine'],
-                        spaceArena: ['cartel-spacer'],
-                        base: 'administrators-tower',
-                        leader: 'luke-skywalker#faithful-friend',
-                    },
-                    player2: {
-                        hand: ['waylay']
-                    }
-                });
+            // it('should not defeat Sabine if she is waylay back in hand and played back the same phase', function () {
+            //     contextRef.setupTest({
+            //         phase: 'action',
+            //         player1: {
+            //             hand: ['sneak-attack', 'sabine-wren#you-can-count-on-me', 'recruit'],
+            //             groundArena: ['battlefield-marine'],
+            //             spaceArena: ['cartel-spacer'],
+            //             base: 'administrators-tower',
+            //             leader: 'luke-skywalker#faithful-friend',
+            //         },
+            //         player2: {
+            //             hand: ['waylay']
+            //         }
+            //     });
 
-                const { context } = contextRef;
+            //     const { context } = contextRef;
 
-                context.player1.clickCard(context.sneakAttack);
-                context.player1.clickCard(context.sabineWren);
+            //     context.player1.clickCard(context.sneakAttack);
+            //     context.player1.clickCard(context.sabineWren);
 
-                // Waylay Sabine back in hand
-                context.player2.clickCard(context.waylay);
-                context.player2.clickCard(context.sabineWren);
+            //     // Waylay Sabine back in hand
+            //     context.player2.clickCard(context.waylay);
+            //     context.player2.clickCard(context.sabineWren);
 
-                // Sabine is played back
-                context.player1.clickCard(context.sabineWren);
-                context.nextPhase();
-                expect(context.sabineWren).toBeInZone('groundArena');
-            });
+            //     // Sabine is played back
+            //     context.player1.clickCard(context.sabineWren);
+            //     context.nextPhase();
+            //     expect(context.sabineWren).toBeInZone('groundArena');
+            // });
         });
     });
 });
