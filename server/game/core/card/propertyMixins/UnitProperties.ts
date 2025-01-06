@@ -636,7 +636,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this._upgrades.push(upgrade);
         }
 
-        public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
+        public override getSummary(activePlayer: Player) {
             if (this.isInPlay()) {
                 // Check for sentinel keyword and no blanking effects
                 const keywords = this.keywords;
@@ -648,13 +648,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const hasSentinel = !!sentinelKeyword;
 
                 return {
-                    ...super.getSummary(activePlayer, hideWhenFaceup),
+                    ...super.getSummary(activePlayer),
                     power: this.getPower(),
                     hp: this.getHp(),
                     sentinel: hasSentinel
                 };
             }
-            return super.getSummary(activePlayer, hideWhenFaceup);
+            return super.getSummary(activePlayer);
         }
     };
 }

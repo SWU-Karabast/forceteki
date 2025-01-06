@@ -5,7 +5,7 @@ import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
 import type { KeywordName, MoveZoneDestination } from '../Constants';
-import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
@@ -787,17 +787,12 @@ export class Card extends OngoingEffectSource {
     * This is the infomation for each card that is sent to the client.
     */
 
-    public getSummary(activePlayer, hideWhenFaceup) {
+    public getSummary(activePlayer) {
         const isActivePlayer = activePlayer === this.controller;
         const selectionState = activePlayer.getCardSelectionState(this);
 
-        // This is my facedown card, but I'm not allowed to look at it
-        // OR This is not my card, and it's either facedown or hidden from me
-        if (
-            isActivePlayer
-                ? this.facedown
-                : this.facedown || hideWhenFaceup
-        ) {
+        // If it is not the active player and in opposing hand or deck - return facedown card
+        if (this._zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this._zone.hiddenForPlayers === RelativePlayer.Opponent)) {
             const state = {
                 controller: this.controller.getShortSummary(),
                 // menu: isActivePlayer ? this.getMenu() : undefined,

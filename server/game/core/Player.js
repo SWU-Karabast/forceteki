@@ -427,22 +427,12 @@ class Player extends GameObject {
      * @param {String} playingType
      */
     isCardInPlayableZone(card, playingType = null) {
-        // use an effect check to see if this card is in an out of play zone but can still be played from
-        if (card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
-            return true;
-        }
-
         return this.playableZones.some(
             (zone) => (!playingType || zone.playingType === playingType) && zone.includes(card)
         );
     }
 
     findPlayType(card) {
-        if (card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
-            let effects = card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card));
-            return effects[effects.length - 1].playType || PlayType.PlayFromHand;
-        }
-
         let zone = this.playableZones.find((zone) => zone.includes(card));
         if (zone) {
             return zone.playingType;
@@ -999,25 +989,25 @@ class Player extends GameObject {
         this.promptState.clearSelectableCards();
     }
 
-    getSummaryForHand(list, activePlayer, hideWhenFaceup) {
+    getSummaryForHand(list, activePlayer) {
         // if (this.optionSettings.sortHandByName) {
-        //     return this.getSortedSummaryForCardList(list, activePlayer, hideWhenFaceup);
+        //     return this.getSortedSummaryForCardList(list, activePlayer);
         // }
-        return this.getSummaryForZone(list, activePlayer, hideWhenFaceup);
+        return this.getSummaryForZone(list, activePlayer);
     }
 
-    getSummaryForZone(zone, activePlayer, hideWhenFaceup) {
+    getSummaryForZone(zone, activePlayer) {
         return this.getCardsInZone(zone).map((card) => {
-            return card.getSummary(activePlayer, hideWhenFaceup);
+            return card.getSummary(activePlayer);
         });
     }
 
-    getSortedSummaryForCardList(list, activePlayer, hideWhenFaceup) {
+    getSortedSummaryForCardList(list, activePlayer) {
         let cards = list.map((card) => card);
         cards.sort((a, b) => a.printedName.localeCompare(b.printedName));
 
         return cards.map((card) => {
-            return card.getSummary(activePlayer, hideWhenFaceup);
+            return card.getSummary(activePlayer);
         });
     }
 
@@ -1085,7 +1075,7 @@ class Player extends GameObject {
         let { email, password, ...safeUser } = this.user;
         let state = {
             cardPiles: {
-                hand: this.getSummaryForZone(ZoneName.Hand, activePlayer, false),
+                hand: this.getSummaryForZone(ZoneName.Hand, activePlayer),
                 outsideTheGame: this.getSummaryForZone(ZoneName.OutsideTheGame, activePlayer),
                 resources: this.getSummaryForZone(ZoneName.Resource, activePlayer),
                 groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer),
