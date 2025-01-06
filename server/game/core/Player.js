@@ -1149,6 +1149,11 @@ class Player extends GameObject {
 
         return state;
     }
+
+    /** @override */
+    toString() {
+        return this.name;
+    }
 }
 
 module.exports = Player;

@@ -41,11 +41,6 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     };
 
     public eventHandler(event: any, additionalProperties: any): void {
-        // TODO Remove this if we don't need it
-        // if (!properties.ability) {
-        //     properties.ability = event.context.ability;
-        // }
-
         const delayedEffectSource = event.sourceCard as OngoingEffectSource;
 
         const renamedProperties = event.renamedProperties;
@@ -64,6 +59,9 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
             case Duration.UntilEndOfRound:
                 delayedEffectSource.untilEndOfRound(() => renamedProperties);
                 break;
+            case Duration.WhileSourceInPlay:
+                delayedEffectSource.whileSourceInPlay(() => renamedProperties);
+                break;
             case Duration.Custom:
                 throw new Error(`Duration ${duration} not implemented yet`);
             default:
@@ -73,6 +71,9 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
 
     public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: any): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        // TODO THIS PR: add guards here for WhileSourceInPlay
+
         event.sourceCard = this.getDelayedEffectSource(event, context, additionalProperties);
         Contract.assertNotNullLike(properties.immediateEffect, 'Immediate Effect cannot be null');
 

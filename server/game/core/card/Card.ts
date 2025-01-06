@@ -856,4 +856,8 @@ export class Card extends OngoingEffectSource {
                 return false;
         }
     }
+
+    public override toString() {
+        return this.internalName;
+    }
 }

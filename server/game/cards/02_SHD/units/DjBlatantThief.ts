@@ -18,8 +18,19 @@ export default class DjBlatantThief extends NonLeaderUnitCard {
                     event.card === context.source &&
                     event.playType === PlayType.Smuggle
             },
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.takeControlOfResource((context) => ({ target: context.player }))
+            immediateEffect: AbilityHelper.immediateEffects.sequential((sequentialContext) => [
+                AbilityHelper.immediateEffects.takeControlOfResource((context) => ({ target: context.player })),
+                AbilityHelper.immediateEffects.delayedCardEffect((delayedEffectContext) => ({
+                    title: 'Return the stolen resource to its owner',
+                    when: {
+                        onCardLeavesPlay: (event, context) => event.card === context.source
+                    },
+                    target: delayedEffectContext.source,
+                    immediateEffect: AbilityHelper.immediateEffects.takeControlOfResource({
+                        target: sequentialContext.events[0].card.owner,
+                        specificResource: sequentialContext.events[0].card
+                    })
+                }))
             ])
         });
     }

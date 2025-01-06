@@ -1156,6 +1156,11 @@ class Game extends EventEmitter {
         }
         this.movedCards = [];
 
+        if (events.length > 0) {
+            // check for any delayed effects which need to fire
+            this.ongoingEffectEngine.checkDelayedEffects(events);
+        }
+
         // check for a game state change (recalculating attack stats if necessary)
         if (
             // (!this.currentAttack && this.ongoingEffectEngine.resolveEffects(hasChanged)) ||
@@ -1166,10 +1171,6 @@ class Game extends EventEmitter {
 
             // - any defeated units
             this.findAnyCardsInPlay((card) => card.isUnit()).forEach((card) => card.checkDefeatedByOngoingEffect());
-        }
-        if (events.length > 0) {
-            // check for any delayed effects which need to fire
-            this.ongoingEffectEngine.checkDelayedEffects(events);
         }
     }
 
