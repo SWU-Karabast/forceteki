@@ -1,21 +1,15 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { Card } from '../core/card/Card';
-import { GameStateChangeRequired, EventName, ZoneName } from '../core/Constants';
+import { GameStateChangeRequired, EventName } from '../core/Constants';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import type Player from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
 
-
-export interface ITakeControlOfResourceProperties extends IPlayerTargetSystemProperties {
-    specificResource?: Card;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ITakeControlOfResourceProperties extends IPlayerTargetSystemProperties {}
 
 /**
- * Used for taking control of a resource from a player.
- *
- * A specific resource card can be specified for taking control. If it is not specified, a resource of the player's will be selected at random
- * (but always a ready resource if available).
+ * Used for taking control of a resource from a player. The selected resource is random, but always a ready resource if available.
  *
  * The `target` player is the player who will be _taking_ the resource, and their opponent will be losing it.
  */
@@ -34,18 +28,6 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
             return false;
         }
 
-        const { specificResource } = this.generatePropertiesFromContext(context);
-        if (specificResource) {
-            if (specificResource.zoneName !== ZoneName.Resource) {
-                return false;
-            }
-
-            // if a specific resource is specified and the player already controls it, there will be no game state change
-            if (specificResource.controller === takingResourcePlayer && mustChangeGameState !== GameStateChangeRequired.None) {
-                return false;
-            }
-        }
-
         return super.canAffect(takingResourcePlayer, context);
     }
 
@@ -62,12 +44,6 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
         event.newController = player;
 
-        const { specificResource } = this.generatePropertiesFromContext(context);
-        if (specificResource) {
-            event.card = specificResource;
-            return;
-        }
-
         // TODO: randomize player resource ready / exhausted state in accordance with new rules
         // (should probably prioritize making Smuggle cards exhausted)
         const opponentReadyResources = player.opponent.resources.filter((resource) => !resource.exhausted);
@@ -77,7 +53,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
             return;
         }
 
-        // randomly select a ready resource if possible; if none is available then randomly select from all resources
+        // randomly select a ready resource if possible; otherwise randomly select from all resources
         const resourcesToChooseFrom = opponentReadyResources.length > 0 ? opponentReadyResources : player.opponent.resources;
         event.card = Helpers.randomItem(resourcesToChooseFrom);
     }
