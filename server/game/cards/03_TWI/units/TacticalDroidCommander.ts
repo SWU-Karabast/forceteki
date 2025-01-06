@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait, RelativePlayer } from '../../../core/Constants';
+import { Trait } from '../../../core/Constants';
 
 export default class TacticalDroidCommander extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -21,8 +21,7 @@ export default class TacticalDroidCommander extends NonLeaderUnitCard {
                     event.card.hasSomeTrait(Trait.Separatist)
             },
             targetResolver: {
-                cardCondition: (card, context) => card.isUnit() && card.cost <= context.event.card.cost,
-                controller: RelativePlayer.Opponent,
+                cardCondition: (card, context) => card.isUnit() && card.cost <= context.event.card.cost && card !== context.event.card,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }
         });

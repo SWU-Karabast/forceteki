@@ -20,7 +20,6 @@ export default class KashyyykDefender extends NonLeaderUnitCard {
                 amountToDistribute: 2,
                 cardCondition: (card, context) => card !== context.source,
                 controller: WildcardRelativePlayer.Any,
-                canDistributeLess: true,
                 canChooseNoTargets: true,
                 cardTypeFilter: WildcardCardType.Unit,
                 maxTargets: 1

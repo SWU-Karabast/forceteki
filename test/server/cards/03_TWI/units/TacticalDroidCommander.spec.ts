@@ -5,26 +5,41 @@ describe('Tactical Droid Commander', function() {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    hand: ['confederate-trifighter', 'morgan-elsbeth#keeper-of-many-secrets'],
-                    groundArena: ['tactical-droid-commander']
+                    hand: ['providence-destroyer', 'morgan-elsbeth#keeper-of-many-secrets', 'planetary-invasion'],
+                    groundArena: ['tactical-droid-commander'],
+                    resources: 30
+
                 },
                 player2: {
-                    groundArena: ['battlefield-marine', 'plo-koon#kohtoyah']
+                    groundArena: ['battlefield-marine', 'plo-koon#kohtoyah', 'droid-commando', 'battle-droid'],
+                    hand: ['wartime-trade-official'],
+                    leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
                 }
             });
 
             const { context } = contextRef;
 
-            // play separatist unit, able to exhaust unit of same cost or less.
-            context.player1.clickCard(context.confederateTrifighter);
-            expect(context.player1).toBeAbleToSelectExactly(context.battlefieldMarine);
+            // play Separatist unit, able to exhaust unit of same cost or less.
+            context.player1.clickCard(context.providenceDestroyer);
+            context.player1.clickPrompt('Play Providence Destroyer');
+            expect(context.player1).toBeAbleToSelectExactly([context.tacticalDroidCommander, context.battlefieldMarine, context.droidCommando, context.lukeSkywalker, context.ploKoon, context.battleDroid]);
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.battlefieldMarine.exhausted).toBeTrue();
 
             context.player2.passAction();
 
-            // play non separatist, no trigger.
+            // play non Separatist, no trigger.
             context.player1.clickCard(context.morganElsbeth);
+            expect(context.player2).toBeActivePlayer();
+
+            // Opponent plays Separatist unit, no trigger.
+            context.player2.clickCard(context.wartimeTradeOfficial);
+            expect(context.player1).toBeActivePlayer();
+
+            // Play a Separatist event, no trigger
+            context.player1.clickCard(context.planetaryInvasion);
+            context.player1.clickPrompt('Play Planetary Invasion');
+            context.player1.clickPrompt('Done');
             expect(context.player2).toBeActivePlayer();
         });
     });
