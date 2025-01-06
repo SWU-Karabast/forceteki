@@ -25,20 +25,20 @@ export enum MatchType {
 
 export class Lobby {
     private readonly _id: string;
+    public readonly isPrivate: boolean;
+    private readonly connectionLink?: string;
+    private readonly gameChat: GameChat;
     private game: Game;
     // switch partic
     private users: LobbyUser[] = [];
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
-    private gameChat: GameChat;
     private lobbyOwnerId: string;
-    public isPrivate: boolean;
-    private connectionLink: string | null;
     private playableCardTitles: string[];
 
     public constructor(lobbyGameType: MatchType) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
-            'Lobby game type doesn\'t match any MatchType values'
+            `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
         );
         this._id = uuid();
         this.gameChat = new GameChat();
