@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer } from '../../../core/Constants';
 
 export default class FrontlineShuttle extends NonLeaderUnitCard {
     protected override getImplementationId() {

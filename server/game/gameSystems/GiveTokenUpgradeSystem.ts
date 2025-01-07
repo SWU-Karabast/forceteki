@@ -1,7 +1,9 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
-import { CardTypeFilter, EventName, TokenUpgradeName, WildcardCardType } from '../core/Constants';
-import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { Card } from '../core/card/Card';
+import type { CardTypeFilter, TokenUpgradeName } from '../core/Constants';
+import { EventName, WildcardCardType } from '../core/Constants';
+import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
 

@@ -1,9 +1,10 @@
-import { BaseCard } from '../card/BaseCard';
-import { LeaderCard } from '../card/LeaderCard';
+import type { BaseCard } from '../card/BaseCard';
+import type { LeaderCard } from '../card/LeaderCard';
 import { ZoneName } from '../Constants';
-import Player from '../Player';
+import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { IZoneCardFilterProperties, ZoneAbstract } from './ZoneAbstract';
+import type { IZoneCardFilterProperties } from './ZoneAbstract';
+import { ZoneAbstract } from './ZoneAbstract';
 
 /**
  * Base zone which holds the player's base and leader

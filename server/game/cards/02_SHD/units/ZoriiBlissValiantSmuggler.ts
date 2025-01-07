@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Duration, PhaseName } from '../../../core/Constants';
+import { PhaseName } from '../../../core/Constants';
 
 export default class ZoriiBlissValiantSmuggler extends NonLeaderUnitCard {
     protected override getImplementationId () {

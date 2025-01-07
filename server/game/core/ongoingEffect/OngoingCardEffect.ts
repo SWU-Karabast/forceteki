@@ -1,13 +1,14 @@
 import { OngoingEffect } from './OngoingEffect';
-import { RelativePlayer, WildcardZoneName, WildcardCardType, CardTypeFilter, ZoneFilter } from '../Constants';
+import type { CardTypeFilter, ZoneFilter } from '../Constants';
+import { RelativePlayer, WildcardZoneName, WildcardCardType } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
-import Game from '../Game';
-import { Card } from '../card/Card';
-import { IOngoingCardEffectProps } from '../../Interfaces';
-import { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
-import { AbilityContext } from '../ability/AbilityContext';
+import type Game from '../Game';
+import type { Card } from '../card/Card';
+import type { IOngoingCardEffectProps } from '../../Interfaces';
+import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
+import type { AbilityContext } from '../ability/AbilityContext';
 
 export class OngoingCardEffect extends OngoingEffect {
     public readonly targetsSourceOnly: boolean;

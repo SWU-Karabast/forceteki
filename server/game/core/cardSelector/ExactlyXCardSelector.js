@@ -8,7 +8,7 @@ class ExactlyXCardSelector extends BaseCardSelector {
     }
 
     /** @override */
-    defaultActivePromptTitle() {
+    defaultPromptString() {
         if (this.cardTypeFilter.length === 1) {
             return this.numCards === 1 ? 'Choose a ' + this.cardTypeFilter[0] : `Choose ${this.numCards} ${this.cardTypeFilter[0]}`;
         }

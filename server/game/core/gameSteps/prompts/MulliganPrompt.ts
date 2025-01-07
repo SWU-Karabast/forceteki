@@ -1,8 +1,8 @@
 import { AllPlayerPrompt } from './AllPlayerPrompt';
-import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
+import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import type Game from '../../Game';
 import * as Contract from '../../utils/Contract';
-import { ZoneName, DeckZoneDestination } from '../../Constants';
+import { DeckZoneDestination } from '../../Constants';
 
 export class MulliganPrompt extends AllPlayerPrompt {
     protected playersDone = new Map<string, boolean>();

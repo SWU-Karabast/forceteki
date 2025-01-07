@@ -1,6 +1,7 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { AbilityRestriction, Aspect, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import type { Aspect } from '../../../core/Constants';
+import { AbilityRestriction, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class SabineWrenYouCanCountOnMe extends NonLeaderUnitCard {
     protected override getImplementationId() {

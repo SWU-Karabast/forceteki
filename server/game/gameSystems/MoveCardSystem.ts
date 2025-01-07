@@ -1,11 +1,11 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import type { MoveZoneDestination } from '../core/Constants';
 import {
     CardType,
     DeckZoneDestination,
     EventName,
     GameStateChangeRequired,
-    MoveZoneDestination,
     WildcardCardType,
     ZoneName
 } from '../core/Constants';

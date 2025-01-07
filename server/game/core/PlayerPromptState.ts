@@ -1,5 +1,5 @@
 import type { Card } from './card/Card';
-import { IDistributeAmongTargetsPromptData } from './gameSteps/PromptInterfaces';
+import type { IDistributeAmongTargetsPromptData } from './gameSteps/PromptInterfaces';
 import type Player from './Player';
 
 export interface IPlayerPromptStateProperties {

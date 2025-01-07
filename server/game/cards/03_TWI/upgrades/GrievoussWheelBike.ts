@@ -1,6 +1,6 @@
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, Trait } from '../../../core/Constants';
-import { Card } from '../../../core/card/Card';
+import type { Card } from '../../../core/card/Card';
 
 export default class GrievoussWheelBike extends UpgradeCard {
     protected override getImplementationId() {

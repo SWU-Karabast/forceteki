@@ -1,7 +1,7 @@
-import { KeywordName } from '../../Constants';
+import type { KeywordName } from '../../Constants';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
-import { KeywordInstance } from '../../ability/KeywordInstance';
+import type { KeywordInstance } from '../../ability/KeywordInstance';
 
 export class LoseKeyword extends OngoingEffectValueWrapper<KeywordName> {
     private blankedKeywordInstances: KeywordInstance[] = [];

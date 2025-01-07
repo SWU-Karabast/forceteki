@@ -1,9 +1,9 @@
-import { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
-import { Card } from '../card/Card';
-import { PhaseName, StateWatcherName } from '../Constants';
-import Player from '../Player';
+import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
+import type { Card } from '../card/Card';
+import type { StateWatcherName } from '../Constants';
+import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import { StateWatcherRegistrar } from './StateWatcherRegistrar';
+import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 
 /**
  * State watchers are used for cards that need to refer to events that happened in the past.

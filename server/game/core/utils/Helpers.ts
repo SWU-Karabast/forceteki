@@ -1,5 +1,6 @@
-import { Card } from '../card/Card';
-import { Aspect, CardType, CardTypeFilter, ZoneName } from '../Constants';
+import type { Card } from '../card/Card';
+import type { Aspect, CardTypeFilter } from '../Constants';
+import { CardType, ZoneName } from '../Constants';
 import * as Contract from './Contract';
 import * as EnumHelpers from './EnumHelpers';
 
@@ -117,4 +118,24 @@ export class IntersectingSet<T> extends Set<T> {
             }
         }
     }
+}
+
+/**
+ * Splits an array into two based on a condition applied to each element.
+ */
+export function splitArray<T>(ara: T[], condition: (item: T) => boolean) {
+    const results = {
+        trueAra: [] as T[],
+        falseAra: [] as T[]
+    };
+
+    for (const item of ara) {
+        if (condition(item)) {
+            results.trueAra.push(item);
+        } else {
+            results.falseAra.push(item);
+        }
+    }
+
+    return results;
 }

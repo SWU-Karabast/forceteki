@@ -9,13 +9,16 @@ import { cardCannot } from './CardCannot';
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
 import { modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-import { EffectName, PlayType, KeywordName } from '../core/Constants';
-import { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
-import { IAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
+import type { KeywordName } from '../core/Constants';
+import { EffectName } from '../core/Constants';
+import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
+import type { IAbilityPropsWithType, IKeywordProperties, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import * as KeywordHelpers from '../core/ability/KeywordHelpers';
-import { CostAdjustType, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
+import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
+import { CostAdjustType } from '../core/cost/CostAdjuster';
 import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
+import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -41,23 +44,23 @@ export = {
     blankEventCard: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     // calculatePrintedMilitarySkill: (func) => OngoingEffectBuilder.card.static(EffectName.CalculatePrintedMilitarySkill, func),
 
-    /** @deprected This has not yet been tested */
-    canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>
-        OngoingEffectBuilder.card.flexible(
-            EffectName.CanPlayFromOutOfPlay,
-            Object.assign({ player: player, playType: playType })
-        ),
+    // canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>
+    //    OngoingEffectBuilder.card.flexible(
+    //        EffectName.CanPlayFromOutOfPlay,
+    //        Object.assign({ player: player, playType: playType })
+    //    ),
 
-    /** @deprected This has not yet been tested */
-    registerToPlayFromOutOfPlay: () =>
-        OngoingEffectBuilder.card.detached(EffectName.CanPlayFromOutOfPlay, {
-            apply: (card) => {
-                for (const triggeredAbility of card.getTriggeredAbilities()) {
-                    triggeredAbility.registerEvents();
-                }
-            },
-            unapply: () => true
-        }),
+    // registerToPlayFromOutOfPlay: () =>
+    //    OngoingEffectBuilder.card.detached(EffectName.CanPlayFromDiscard, {
+    //        apply: (card) => {
+    //            for (const triggeredAbility of card.getTriggeredAbilities()) {
+    //                triggeredAbility.registerEvents();
+    //            }
+    //        },
+    //        unapply: () => true
+    //    }),
+
+    canPlayFromDiscard: () => OngoingEffectBuilder.card.static(EffectName.CanPlayFromDiscard),
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>
@@ -95,11 +98,19 @@ export = {
     gainAbility: (properties: IAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(properties)),
     // TODO BUG: if multiple cards gain keywords from the same effect and one of them is blanked, they will all be blanked
-    gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties) =>
-        OngoingEffectBuilder.card.static(EffectName.GainKeyword,
-            typeof keywordOrKeywordProperties === 'string'
-                ? KeywordHelpers.keywordFromProperties({ keyword: keywordOrKeywordProperties })
-                : KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties)),
+    gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<IKeywordProperties>) => {
+        switch (typeof keywordOrKeywordProperties) {
+            case 'string':
+                return OngoingEffectBuilder.card.static(EffectName.GainKeyword,
+                    KeywordHelpers.keywordFromProperties({ keyword: keywordOrKeywordProperties }));
+            case 'function':
+                return OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword,
+                    (target, context) => KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties(target, context)));
+            default:
+                return OngoingEffectBuilder.card.static(EffectName.GainKeyword,
+                    KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties));
+        }
+    },
     loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, new LoseKeyword(keyword)),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
@@ -129,7 +140,8 @@ export = {
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
     // modifyBasePoliticalSkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
-    modifyStats: (modifier: StatsModifier) => OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
+    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) =>
+        OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
     // modifyMilitarySkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
     // switchAttachmentSkillModifiers,
     // modifyMilitarySkillMultiplier: (value) =>
@@ -217,6 +229,7 @@ export = {
     //         unapply: (player) => (player.actionPhasePriority = false)
     //     }),
     increaseCost: (properties: Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Increase, ...properties }),
+    forFree: (properties: Omit<IForFreeCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Free, ...properties }),
     ignoreAllAspectPenalties: (properties: Omit<IIgnoreAllAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreAllAspects, ...properties }),
     ignoreSpecificAspectPenalties: (properties: Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreSpecificAspects, ...properties }),
     // modifyCardsDrawnInDrawPhase: (amount) =>

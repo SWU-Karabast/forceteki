@@ -3,7 +3,7 @@ import { BaseStep } from './BaseStep';
 import type { IStep } from './IStep';
 import type { Card } from '../card/Card';
 import type Player from '../Player';
-import { IStatefulPromptResults } from './PromptInterfaces';
+import type { IStatefulPromptResults } from './PromptInterfaces';
 
 export abstract class BaseStepWithPipeline extends BaseStep implements IStep {
     public pipeline = new GamePipeline();

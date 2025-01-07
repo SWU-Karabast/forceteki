@@ -59,6 +59,7 @@ class PlayerOrCardAbility {
         this.optional = !!properties.optional;
         this.immediateEffect = properties.immediateEffect;
         this.uuid = uuidv4();
+        this.canResolveWithoutLegalTargets = false;
 
         // TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
 
@@ -213,16 +214,11 @@ class PlayerOrCardAbility {
                         }
                         context.game.queueSimpleStep(() => {
                             if (!results.cancelled) {
-                                let newEvents = cost.payEvent
-                                    ? cost.payEvent(context)
-                                    : new GameEvent('payCost', context, {}, () => cost.pay(context));
-                                if (Array.isArray(newEvents)) {
-                                    for (let event of newEvents) {
-                                        results.events.push(event);
-                                    }
-                                } else {
-                                    results.events.push(newEvents);
-                                }
+                                let newEvents = cost.payEvents
+                                    ? cost.payEvents(context)
+                                    : [new GameEvent('payCost', context, {}, () => cost.pay(context))];
+
+                                results.events = results.events.concat(newEvents);
                             }
                         }, `Generate cost events for ${cost.gameSystem ? cost.gameSystem : cost.constructor.name} for ${this}`);
                     }

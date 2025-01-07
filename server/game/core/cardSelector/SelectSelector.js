@@ -12,7 +12,7 @@ class SelectSelector extends BaseCardSelector {
     }
 
     /** @override */
-    defaultActivePromptTitle() {
+    defaultPromptString() {
         return 'Select one';
     }
 }

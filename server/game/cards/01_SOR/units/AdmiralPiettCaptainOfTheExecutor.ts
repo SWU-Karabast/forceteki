@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, KeywordName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { KeywordName, RelativePlayer } from '../../../core/Constants';
 
 export default class AdmiralPiettCaptainOfTheExecutor extends NonLeaderUnitCard {
     protected override getImplementationId() {

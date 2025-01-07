@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName, RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { ZoneName, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class ImperialInterceptor extends NonLeaderUnitCard {
     protected override getImplementationId() {

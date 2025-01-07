@@ -37,7 +37,7 @@ async function runCommand() {
     }
 
     console.log('Building the server.');
-    childProcess.execSync('npm run build');
+    childProcess.execSync('npm run build-dev');
 
     const serverProcess = childProcess.spawn('node', ['./build/server/gamenode']);
 
