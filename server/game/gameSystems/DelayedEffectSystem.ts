@@ -17,7 +17,7 @@ export enum DelayedEffectType {
     Player = 'player'
 }
 
-export interface IDelayedEffectSystemProperties extends IGameSystemProperties {
+export interface IDelayedEffectProperties extends IGameSystemProperties {
     title: string;
     when: WhenType;
     duration?: Duration;
@@ -26,12 +26,12 @@ export interface IDelayedEffectSystemProperties extends IGameSystemProperties {
     effectType: DelayedEffectType;
 }
 
-export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IDelayedEffectSystemProperties> {
+export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IDelayedEffectProperties> {
     public override readonly name: string = 'applyDelayedEffect';
     public override readonly eventName: EventName = EventName.OnEffectApplied;
     public override readonly effectDescription: string = 'apply a delayed effect';
 
-    protected override defaultProperties: IDelayedEffectSystemProperties = {
+    protected override defaultProperties: IDelayedEffectProperties = {
         title: null,
         when: null,
         duration: Duration.Persistent,
@@ -40,39 +40,25 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         effectType: null
     };
 
-    public eventHandler(event: any, additionalProperties: any): void {
+    public eventHandler(event: any, _additionalProperties: any): void {
         const delayedEffectSource = event.sourceCard as Card;
 
-        const renamedProperties = event.renamedProperties;
-        const duration = renamedProperties.duration;
+        const effectProperties = event.effectProperties;
+        const duration = effectProperties.duration;
 
         switch (duration) {
             case Duration.Persistent:
-                delayedEffectSource.persistent(() => renamedProperties);
+                delayedEffectSource.persistent(() => effectProperties);
                 break;
             case Duration.UntilEndOfAttack:
-                delayedEffectSource.untilEndOfAttack(() => renamedProperties);
+                delayedEffectSource.untilEndOfAttack(() => effectProperties);
                 break;
             case Duration.UntilEndOfPhase:
-                delayedEffectSource.untilEndOfPhase(() => renamedProperties);
+                delayedEffectSource.untilEndOfPhase(() => effectProperties);
                 break;
             case Duration.UntilEndOfRound:
-                delayedEffectSource.untilEndOfRound(() => renamedProperties);
+                delayedEffectSource.untilEndOfRound(() => effectProperties);
                 break;
-            case Duration.WhileSourceInPlay:
-                // if the source card has already left play, trigger the effects immediately
-                Contract.assertTrue(delayedEffectSource.canBeInPlay());
-                if (!delayedEffectSource.isInPlay()) {
-                    event.context.game.addSubwindowEvents(
-                        event.immediateEffect.generateEvent(event.context, additionalProperties)
-                    );
-                    break;
-                }
-
-                delayedEffectSource.whileSourceInPlay(() => renamedProperties);
-                break;
-            case Duration.Custom:
-                throw new Error(`Duration ${duration} not implemented yet`);
             default:
                 Contract.fail(`Invalid Duration ${duration} for DelayedEffect`);
         }
@@ -81,14 +67,14 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: any): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        // TODO THIS PR: add guards here for WhileSourceInPlay
+        this.checkDuration(properties.duration);
 
-        event.sourceCard = this.getDelayedEffectSource(event, context, additionalProperties);
+        event.sourceCard = this.getDelayedEffectSource(context, additionalProperties);
         Contract.assertNotNullLike(properties.immediateEffect, 'Immediate Effect cannot be null');
 
         const { title, when, limit, immediateEffect, ...otherProperties } = properties;
 
-        const renamedProperties = { ...otherProperties, ongoingEffect:
+        const effectProperties = { ...otherProperties, ongoingEffect:
             OngoingEffectLibrary.delayedEffect({
                 title,
                 when,
@@ -96,7 +82,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
                 limit
             }) };
 
-        event.renamedProperties = renamedProperties;
+        event.effectProperties = effectProperties;
         event.immediateEffect = properties.immediateEffect;
     }
 
@@ -116,7 +102,19 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         return false;
     }
 
-    private getDelayedEffectSource (event: any, context: TContext, additionalProperties?: any) {
+    protected checkDuration(duration: Duration) {
+        Contract.assertFalse(
+            duration === Duration.WhileSourceInPlay,
+            'Do not use DelayedEffectSystem for "while in play" delayed effects, use WhileSourceInPlayDelayedEffectSystem instead'
+        );
+
+        Contract.assertFalse(
+            duration === Duration.Custom,
+            'Custom duration not implemented yet'
+        );
+    }
+
+    protected getDelayedEffectSource(context: TContext, additionalProperties?: any) {
         const { effectType, target } = this.generatePropertiesFromContext(context, additionalProperties);
 
         switch (effectType) {
@@ -133,7 +131,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
 
                 return nonArrayTarget;
             case DelayedEffectType.Player:
-                return event.context.source;
+                return context.source;
             default:
                 Contract.fail(`Unknown delayed effect type: ${effectType}`);
         }

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Duration, PlayType, RelativePlayer } from '../../../core/Constants';
+import { PlayType, RelativePlayer } from '../../../core/Constants';
 
 export default class DjBlatantThief extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -20,19 +20,16 @@ export default class DjBlatantThief extends NonLeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.sequential((sequentialContext) => [
                 AbilityHelper.immediateEffects.takeControlOfResource((context) => ({ target: context.player })),
-                AbilityHelper.immediateEffects.delayedCardEffect((delayedEffectContext) => ({
+                AbilityHelper.immediateEffects.whenSourceLeavesPlayDelayedCardEffect({
                     title: 'Return the stolen resource to its owner',
-                    when: {
-                        onCardLeavesPlay: (event, context) => event.card === context.source
-                    },
-                    duration: Duration.WhileSourceInPlay,
-                    target: delayedEffectContext.source,
+                    // we use a context handler here to force evaluation of the target's exhausted state to happen when the delayed effect resolves,
+                    // instead of when it's created
                     immediateEffect: AbilityHelper.immediateEffects.resourceCard((_context) => ({
                         targetPlayer: RelativePlayer.Opponent,
                         target: sequentialContext.events[0].card,
                         readyResource: !sequentialContext.events[0].card.exhausted
                     }))
-                }))
+                })
             ])
         });
     }

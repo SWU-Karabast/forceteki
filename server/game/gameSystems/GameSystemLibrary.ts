@@ -31,7 +31,7 @@ import type { IDamageProperties } from './DamageSystem';
 import { DamageSystem } from './DamageSystem';
 import type { IDefeatCardProperties } from './DefeatCardSystem';
 import { DefeatCardSystem } from './DefeatCardSystem';
-import type { IDelayedEffectSystemProperties } from './DelayedEffectSystem';
+import type { IDelayedEffectProperties } from './DelayedEffectSystem';
 import { DelayedEffectSystem, DelayedEffectType } from './DelayedEffectSystem';
 import type { IDeployLeaderProperties } from './DeployLeaderSystem';
 import { DeployLeaderSystem } from './DeployLeaderSystem';
@@ -107,6 +107,7 @@ import type { ITakeControlOfResourceProperties } from './TakeControlOfResourceSy
 import { TakeControlOfResourceSystem } from './TakeControlOfResourceSystem';
 import type { ITakeControlOfUnitProperties } from './TakeControlOfUnitSystem';
 import { TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
+import { WhenSourceLeavesPlayDelayedEffectSystem, type IWhenSourceLeavesPlayDelayedEffectProperties } from './WhileSourceInPlayDelayedEffectSystem';
 
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
@@ -143,6 +144,13 @@ export function createCloneTrooper<TContext extends AbilityContext = AbilityCont
 }
 export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDamageProperties, TContext>) {
     return new DamageSystem<TContext, IDamageProperties>(propertyFactory);
+}
+export function delayedCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectProperties, 'effectType'>>) {
+    return new DelayedEffectSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectProperties, 'effectType'>(
+            propertyFactory,
+            { effectType: DelayedEffectType.Card }
+        ));
 }
 export function distributeDamageAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeDamageSystemProperties, TContext>) {
     return new DistributeDamageSystem<TContext>(propertyFactory);
@@ -344,6 +352,13 @@ export function takeControlOfUnit<TContext extends AbilityContext = AbilityConte
 export function whileSourceInPlayCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardWhileSourceInPlayLastingEffectProperties, TContext>) {
     return new CardWhileSourceInPlayLastingEffectSystem<TContext>(propertyFactory);
 }
+export function whenSourceLeavesPlayDelayedCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IWhenSourceLeavesPlayDelayedEffectProperties, 'effectType'>>) {
+    return new WhenSourceLeavesPlayDelayedEffectSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IWhenSourceLeavesPlayDelayedEffectProperties, 'effectType'>(
+            propertyFactory,
+            { effectType: DelayedEffectType.Card }
+        ));
+}
 
 // //////////////
 // // PLAYER
@@ -434,16 +449,9 @@ export function readyResources<TContext extends AbilityContext = AbilityContext>
 export function playerLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayerLastingEffectProperties>) {
     return new PlayerLastingEffectSystem<TContext>(propertyFactory);
 }
-export function delayedCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectSystemProperties, 'effectType'>>) {
+export function delayedPlayerEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectProperties, 'effectType'>>) {
     return new DelayedEffectSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectSystemProperties, 'effectType'>(
-            propertyFactory,
-            { effectType: DelayedEffectType.Card }
-        ));
-}
-export function delayedPlayerEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectSystemProperties, 'effectType'>>) {
-    return new DelayedEffectSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectSystemProperties, 'effectType'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IDelayedEffectProperties, 'effectType'>(
             propertyFactory,
             { effectType: DelayedEffectType.Player }
         ));
