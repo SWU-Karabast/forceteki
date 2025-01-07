@@ -1,4 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { Card } from '../core/card/Card';
 import { GameStateChangeRequired, EventName } from '../core/Constants';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import type Player from '../core/Player';
@@ -9,7 +10,8 @@ import * as Helpers from '../core/utils/Helpers';
 export interface ITakeControlOfResourceProperties extends IPlayerTargetSystemProperties {}
 
 /**
- * Used for taking control of a resource from a player. The selected resource is random, but always a ready resource if available.
+ * Used for taking control of some resource from a player algorithmically, instead of specifying a specific card in advance.
+ * The selected resource is random, but always a ready resource if available.
  *
  * The `target` player is the player who will be _taking_ the resource, and their opponent will be losing it.
  */
@@ -18,7 +20,17 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
     public override readonly eventName = EventName.OnTakeControl;
 
     public eventHandler(event): void {
-        event.card.takeControl(event.newController);
+        const card = event.card as Card;
+        Contract.assertTrue(card.canBeExhausted());
+
+        const exhausted = card.exhausted;
+        card.takeControl(event.newController);
+
+        if (exhausted) {
+            card.exhaust();
+        } else {
+            card.ready();
+        }
     }
 
     public override canAffect(player: Player | Player[], context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

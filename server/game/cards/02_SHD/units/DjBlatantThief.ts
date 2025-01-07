@@ -26,10 +26,11 @@ export default class DjBlatantThief extends NonLeaderUnitCard {
                         onCardLeavesPlay: (event, context) => event.card === context.source
                     },
                     target: delayedEffectContext.source,
-                    immediateEffect: AbilityHelper.immediateEffects.resourceCard({
+                    immediateEffect: AbilityHelper.immediateEffects.resourceCard((_context) => ({
                         targetPlayer: RelativePlayer.Opponent,
-                        target: sequentialContext.events[0].card
-                    })
+                        target: sequentialContext.events[0].card,
+                        readyResource: !sequentialContext.events[0].card.exhausted
+                    }))
                 }))
             ])
         });
