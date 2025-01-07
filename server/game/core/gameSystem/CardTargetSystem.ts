@@ -36,7 +36,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
         let { target } = this.generatePropertiesFromContext(context, additionalProperties);
-        target = this.processTargets(target);
+        target = this.processTargets(target, context);
         for (const card of Helpers.asArray(target)) {
             let allCostsPaid = true;
             const additionalCosts = card
@@ -303,7 +303,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
      * You can override this method in case you need to make operations on targets before queuing events
      * (for example you can look MoveCardSystem.ts for shuffleMovedCards part)
      */
-    protected processTargets(target: Card | Card[]) {
+    protected processTargets(target: Card | Card[], context: TContext): Card | Card[] {
         return target;
     }
 }

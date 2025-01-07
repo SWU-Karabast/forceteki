@@ -605,7 +605,7 @@ class Player extends GameObject {
      */
     shuffleDeck(context = null) {
         this.game.addMessage('{0} is shuffling their deck', this);
-        this.deckZone.shuffle();
+        this.deckZone.shuffle(this.game.randomGenerator);
     }
 
     /**

@@ -130,9 +130,9 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return super.canAffect(card, context, additionalProperties, mustChangeGameState);
     }
 
-    protected override processTargets(target: Card | Card[]) {
+    protected override processTargets(target: Card | Card[], context: TContext) {
         if (this.properties?.shuffleMovedCards && Array.isArray(target)) {
-            Helpers.shuffleArray(target);
+            Helpers.shuffleArray(target, context.game.randomGenerator);
         }
         return target;
     }

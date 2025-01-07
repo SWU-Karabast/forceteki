@@ -1,4 +1,6 @@
 const EventEmitter = require('events');
+const seedrandom = require('seedrandom');
+
 const { GameChat } = require('./chat/GameChat.js');
 const { OngoingEffectEngine } = require('./ongoingEffect/OngoingEffectEngine.js');
 const Player = require('./Player.js');
@@ -71,6 +73,7 @@ class Game extends EventEmitter {
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
+        this.randomGenerator = seedrandom();
 
         this.registerGlobalRulesListeners();
 
@@ -248,6 +251,10 @@ class Game extends EventEmitter {
         }
 
         // by default, if the opponent has passed and the active player has not, they remain the active player and play continues
+    }
+
+    setRandomSeed(seed) {
+        this.randomGenerator = seedrandom(seed);
     }
 
     /**

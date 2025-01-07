@@ -145,7 +145,7 @@ export class OngoingEffectEngine {
             if (effect.duration === Duration.WhileSourceInPlay) {
                 Contract.assertTrue(effect.source.canBeInPlay(), `${effect.source.internalName} is not a legal target for an effect with duration '${Duration.WhileSourceInPlay}'`);
 
-                if (!effect.source.isInPlay() || effect.source.disableOngoingEffectsForDefeat) {
+                if (!effect.source.isInPlay()) {
                     return true;
                 }
             }
