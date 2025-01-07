@@ -151,7 +151,7 @@ describe('Delayed effects', function() {
                 context.game.setRandomSeed('12345');
             });
 
-            it('should activate if the in-play card is defeated due to the uniqueness rule', function() {
+            it('should activate if the in-play card is defeated', function() {
                 const { context } = contextRef;
 
                 // play DJ from hand, defeat the DJ in play
@@ -165,7 +165,7 @@ describe('Delayed effects', function() {
                 expect(context.stolenResource1).not.toBe(stolenResource2);
             });
 
-            it('should immediately activate if the from-hand card is defeated due to the uniqueness rule', function() {
+            it('should immediately activate if the from-hand card is defeated', function() {
                 const { context } = contextRef;
 
                 // play DJ from hand, defeat that same DJ

@@ -118,5 +118,61 @@ describe('Card lasting effects', function() {
             // check that the player is never prompted for the trigger since Huyang is defeated by the time it happens
             expect(context.player2).toBeActivePlayer();
         });
+
+        describe('A card lasting effect with duration "while source is in play", when the unique rule is triggered,', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['huyang#enduring-instructor', 'huyang#enduring-instructor'],
+                        groundArena: ['death-star-stormtrooper', 'wampa'],
+                    },
+                    player2: {
+                        hand: ['daring-raid']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const [huyangInPlay, huyangInHand] = context.player1.findCardsByName('huyang#enduring-instructor');
+                context.huyangInPlay = huyangInPlay;
+                context.huyangInHand = huyangInHand;
+
+                // play the first Huyang and put +2/+2 on the Stormtrooper
+                context.player1.clickCard(huyangInPlay);
+                context.player1.clickCard(context.deathStarStormtrooper);
+
+                // then hit it with Daring Raid so it will die if the Huyang effect is lost
+                context.player2.clickCard(context.daringRaid);
+                context.player2.clickCard(context.deathStarStormtrooper);
+            });
+
+            it('should expire before the new effect can resolve if the in-play copy is defeated', function() {
+                const { context } = contextRef;
+
+                // play Huyang from hand, defeat the Huyang in play
+                context.player1.clickCard(context.huyangInHand);
+                context.player1.clickCard(context.huyangInPlay);
+
+                // effect expires before the new one can be applied, so the Stormtrooper dies
+                expect(context.deathStarStormtrooper).toBeInZone('discard');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.getPower()).toBe(6);
+                expect(context.wampa.getHp()).toBe(7);
+            });
+
+            it('should persist if the from-hand copy is defeated', function() {
+                const { context } = contextRef;
+
+                // play Huyang from hand, defeat that same Huyang
+                context.player1.clickCard(context.huyangInHand);
+                context.player1.clickCard(context.huyangInHand);
+
+                // since the new one was defeated, the effect persists and the Stormtrooper lives
+                expect(context.deathStarStormtrooper).toBeInZone('groundArena');
+            });
+        });
     });
 });
