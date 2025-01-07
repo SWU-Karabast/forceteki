@@ -1,8 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Trait } from '../../../core/Constants';
-import { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 
 export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
     private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;

@@ -1,7 +1,7 @@
-import { AbilityType } from '../Constants';
-import { IConstantAbility } from '../ongoingEffect/IConstantAbility';
-import { ActionAbility } from './ActionAbility';
-import TriggeredAbility from './TriggeredAbility';
+import type { AbilityType } from '../Constants';
+import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
+import type { ActionAbility } from './ActionAbility';
+import type TriggeredAbility from './TriggeredAbility';
 
 interface IAbilityWithTypeBase {
     type: AbilityType;

@@ -3,11 +3,10 @@ import { DamageType, EventName } from '../Constants';
 import type { Attack } from './Attack';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
-import { CardWithDamageProperty } from '../card/CardTypes';
+import type { CardWithDamageProperty } from '../card/CardTypes';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import AbilityHelper from '../../AbilityHelper';
-import { GameEvent } from '../event/GameEvent';
-import { Card } from '../card/Card';
+import type { GameEvent } from '../event/GameEvent';
+import type { Card } from '../card/Card';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
 
@@ -93,7 +92,7 @@ export class AttackFlow extends BaseStepWithPipeline {
 
     private createAttackerDamageEvent(): GameEvent {
         // event for damage dealt to target by attacker
-        const attackerDamageEvent = AbilityHelper.immediateEffects.damage({
+        const attackerDamageEvent = new DamageSystem({
             type: DamageType.Combat,
             amount: this.attack.getAttackerTotalPower(),
             sourceAttack: this.attack,
@@ -123,7 +122,7 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private createDefenderDamageEvent(): GameEvent {
-        return AbilityHelper.immediateEffects.damage({
+        return new DamageSystem({
             type: DamageType.Combat,
             amount: this.attack.getTargetTotalPower(),
             sourceAttack: this.attack,

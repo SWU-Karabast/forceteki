@@ -5,6 +5,7 @@ import { AbilityRestriction, EffectName, Stage } from './Constants';
 import type { IOngoingCardEffect } from './ongoingEffect/IOngoingCardEffect';
 import type Game from './Game';
 import type Player from './Player';
+import type { Card } from './card/Card';
 
 export abstract class GameObject {
     public uuid = uuidv4();
@@ -104,5 +105,13 @@ export abstract class GameObject {
         const suppressEffects = this.ongoingEffects.filter((ongoingEffect) => ongoingEffect.type === EffectName.SuppressEffects);
         const suppressedEffects = suppressEffects.reduce((array, ongoingEffect) => array.concat(ongoingEffect.getValue(this)), []);
         return this.ongoingEffects.filter((ongoingEffect) => !suppressedEffects.includes(ongoingEffect));
+    }
+
+    public isPlayer(): this is Player {
+        return false;
+    }
+
+    public isCard(): this is Card {
+        return false;
     }
 }

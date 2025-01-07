@@ -1,6 +1,6 @@
-import { Zone } from '../Interfaces';
+import type { Zone } from '../Interfaces';
 import type { PlayType } from './Constants';
-import { Card } from './card/Card';
+import type { Card } from './card/Card';
 
 export class PlayableZone {
     public constructor(

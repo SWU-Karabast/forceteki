@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { Card } from '../../../core/card/Card';
+import type { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { ZoneName, Trait } from '../../../core/Constants';
 

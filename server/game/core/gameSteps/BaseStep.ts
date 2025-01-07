@@ -2,7 +2,7 @@ import type { Card } from '../card/Card';
 import type Game from '../Game';
 import type Player from '../Player';
 import type { IStep } from './IStep';
-import { IStatefulPromptResults } from './PromptInterfaces';
+import type { IStatefulPromptResults } from './PromptInterfaces';
 
 export abstract class BaseStep implements IStep {
     public constructor(public game: Game) {}

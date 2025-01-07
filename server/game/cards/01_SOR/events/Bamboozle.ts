@@ -1,9 +1,10 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { Aspect, EffectName, WildcardCardType } from '../../../core/Constants';
+import { Aspect, PlayType, WildcardCardType } from '../../../core/Constants';
 import { PlayEventAction } from '../../../actions/PlayEventAction';
-import { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
+import type { IPlayCardActionProperties } from '../../../core/ability/PlayCardAction';
 import { CostAdjuster, CostAdjustType } from '../../../core/cost/CostAdjuster';
+import type { IPlayCardActionOverrides } from '../../../core/card/baseClasses/PlayableOrDeployableCard';
 
 export default class Bamboozle extends EventCard {
     protected override getImplementationId() {
@@ -13,8 +14,12 @@ export default class Bamboozle extends EventCard {
         };
     }
 
-    public override getActions() {
-        return super.getActions().concat(new PlayBamboozleAction({ card: this }));
+    protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null) {
+        const bamboozleAction = playType === PlayType.Smuggle
+            ? []
+            : [new PlayBamboozleAction(this, { playType })];
+
+        return super.buildPlayCardActions(playType, propertyOverrides).concat(bamboozleAction);
     }
 
     public override setupCardAbilities() {
@@ -34,8 +39,7 @@ export default class Bamboozle extends EventCard {
 }
 
 class PlayBamboozleAction extends PlayEventAction {
-    private static generateProperties(properties: IPlayCardActionProperties) {
-        const card = properties.card;
+    private static generateProperties(card: Bamboozle, properties: IPlayCardActionProperties) {
         const discardCost = AbilityHelper.costs.discardCardFromOwnHand({ cardCondition: (c) => c !== card && c.hasSomeAspect(Aspect.Cunning) });
 
         return {
@@ -46,15 +50,19 @@ class PlayBamboozleAction extends PlayEventAction {
         };
     }
 
-    public constructor(properties: IPlayCardActionProperties) {
-        super(PlayBamboozleAction.generateProperties(properties));
+    public constructor(card: Bamboozle, properties: IPlayCardActionProperties) {
+        super(card, PlayBamboozleAction.generateProperties(card, properties));
     }
 
-    public override clone(overrideProperties: IPlayCardActionProperties) {
-        return new PlayBamboozleAction(PlayBamboozleAction.generateProperties({
-            ...this.createdWithProperties,
-            ...overrideProperties
-        }));
+    public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
+        return new PlayBamboozleAction(
+            this.card,
+            PlayBamboozleAction.generateProperties(this.card,
+                {
+                    ...this.createdWithProperties,
+                    ...overrideProperties
+                })
+        );
     }
 }
 

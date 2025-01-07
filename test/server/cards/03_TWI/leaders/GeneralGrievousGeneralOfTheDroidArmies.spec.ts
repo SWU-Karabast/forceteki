@@ -1,4 +1,3 @@
-import { log } from 'console';
 
 describe('General Grievous, General Of The Droid Armies', function () {
     integration(function (contextRef) {

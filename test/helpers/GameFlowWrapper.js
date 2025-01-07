@@ -5,6 +5,7 @@ const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
 const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');
 const playableCardTitles = require('../json/_playableCardTitles.json');
+const Util = require('./Util.js');
 
 class GameFlowWrapper {
     /**
@@ -185,7 +186,7 @@ class GameFlowWrapper {
         var promptedPlayer = this.allPlayers.find((p) => p.hasPrompt(title));
 
         if (!promptedPlayer) {
-            var promptString = this.allPlayers.map((player) => player.name + ': ' + player.formatPrompt()).join('\n\n');
+            var promptString = this.allPlayers.map((player) => player.name + ': ' + Util.formatPrompt(player.currentPrompt(), player.currentActionTargets)).join('\n\n');
             throw new TestSetupError(`No players are being prompted with '${title}'. Current prompts are:\n\n${promptString}`);
         }
 
@@ -222,6 +223,8 @@ class GameFlowWrapper {
         } else if (damageDiff < 0) {
             card.removeDamage(-damageDiff, {});
         }
+
+        this.game.resolveGameState(true);
     }
 
     /**

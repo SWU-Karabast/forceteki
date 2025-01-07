@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect } from '../../../core/Constants';
 
 export default class AgentKallusSeekingTheRebels extends NonLeaderUnitCard {
     protected override getImplementationId() {

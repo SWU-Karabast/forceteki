@@ -1,7 +1,7 @@
 import type { GamePipeline } from '../GamePipeline';
 import type { Card } from '../card/Card';
 import type Player from '../Player';
-import { IStatefulPromptResults } from './PromptInterfaces';
+import type { IStatefulPromptResults } from './PromptInterfaces';
 
 export interface IStep {
     onCardClicked(player: Player, card: Card): boolean;

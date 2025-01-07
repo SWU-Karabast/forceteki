@@ -1,8 +1,9 @@
-import Game from '../../Game';
-import Player from '../../Player';
-import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
+import type Game from '../../Game';
+import type Player from '../../Player';
+import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
-import { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IStatefulPromptResults, StatefulPromptType } from '../PromptInterfaces';
+import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IStatefulPromptResults } from '../PromptInterfaces';
+import { StatefulPromptType } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 /**

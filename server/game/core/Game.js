@@ -1,6 +1,4 @@
 const EventEmitter = require('events');
-
-const ChatCommands = require('./chat/ChatCommands.js');
 const { GameChat } = require('./chat/GameChat.js');
 const { OngoingEffectEngine } = require('./ongoingEffect/OngoingEffectEngine.js');
 const Player = require('./Player.js');
@@ -45,7 +43,6 @@ class Game extends EventEmitter {
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.playersAndSpectators = {};
         this.gameChat = new GameChat();
-        this.chatCommands = new ChatCommands(this);
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.name = details.name;
@@ -57,7 +54,6 @@ class Game extends EventEmitter {
         this.createdAt = new Date();
         // this.savedGameId = details.savedGameId;
         // this.gameType = details.gameType;
-        this.currentAbilityWindow = null;
         this.currentActionWindow = null;
         this.currentEventWindow = null;
         this.currentAttack = null;

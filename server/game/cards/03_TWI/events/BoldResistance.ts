@@ -1,7 +1,7 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
-import { Card } from '../../../core/card/Card';
+import type { Card } from '../../../core/card/Card';
 import * as Helpers from '../../../core/utils/Helpers';
 
 export default class BoldResistance extends EventCard {

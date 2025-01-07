@@ -1,15 +1,12 @@
-import { AbilityType, EffectName, ZoneName, ZoneFilter, PhaseName, RelativePlayer, WildcardZoneName } from '../Constants';
+import type { ZoneFilter } from '../Constants';
+import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import CardAbilityStep from './CardAbilityStep';
 import * as AbilityLimit from './AbilityLimit';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { ICost } from '../cost/ICost';
-import { Card } from '../card/Card';
-import { IAbilityProps } from '../../Interfaces';
-import { AbilityContext } from './AbilityContext';
-import Game from '../Game';
+import type { Card } from '../card/Card';
 
-export class CardAbility extends CardAbilityStep {
+export abstract class CardAbility extends CardAbilityStep {
     public readonly abilityController: RelativePlayer;
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;

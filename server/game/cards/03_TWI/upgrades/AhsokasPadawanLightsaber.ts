@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { Card } from '../../../core/card/Card';
+import type { Card } from '../../../core/card/Card';
 import { Trait } from '../../../core/Constants';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 

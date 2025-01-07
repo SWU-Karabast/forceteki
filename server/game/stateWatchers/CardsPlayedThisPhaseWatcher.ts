@@ -1,14 +1,17 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
-import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
-import Player from '../core/Player';
-import { TokenOrPlayableCard } from '../core/card/CardTypes';
-import { Card } from '../core/card/Card';
+import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
+import type Player from '../core/Player';
+import type { TokenOrPlayableCard } from '../core/card/CardTypes';
+import type { Card } from '../core/card/Card';
+import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 
 export interface PlayedCardEntry {
     card: TokenOrPlayableCard;
     inPlayId?: number;
     playedBy: Player;
+    parentCard?: InPlayCard;
+    parentCardInPlayId?: number;
 }
 
 export type ICardsPlayedThisPhase = PlayedCardEntry[];
@@ -50,6 +53,8 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
             update: (currentState: ICardsPlayedThisPhase, event: any) =>
                 currentState.concat({
                     card: event.card,
+                    parentCard: event.card.parentCard ?? null,
+                    parentCardInPlayId: event.card.parentCard?.canBeInPlay() ? event.card.parentCard.inPlayId : null,
                     inPlayId: event.card.canBeInPlay() ? event.card.inPlayId : null,
                     playedBy: event.card.controller
                 })
