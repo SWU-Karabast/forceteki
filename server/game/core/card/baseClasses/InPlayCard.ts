@@ -1,6 +1,6 @@
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import type { ZoneName } from '../../Constants';
+import { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
@@ -250,6 +250,19 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return addedAbility.uuid;
     }
 
+    /**
+     * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+     *
+     * @returns The uuid of the created triggered ability
+     */
+    public addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string {
+        const addedAbility = this.createReplacementEffectAbility(properties);
+        this.triggeredAbilities.push(addedAbility);
+        addedAbility.registerEvents();
+
+        return addedAbility.uuid;
+    }
+
     /** Removes a dynamically gained triggered ability and unregisters its effects */
     public removeGainedTriggeredAbility(removeAbilityUuid: string): void {
         let abilityToRemove: TriggeredAbility = null;
@@ -273,6 +286,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         this.triggeredAbilities = remainingAbilities;
         abilityToRemove.unregisterEvents();
+    }
+
+    public removeGainedReplacementEffectAbility(removeAbilityUuid: string): void {
+        this.removeGainedTriggeredAbility(removeAbilityUuid);
     }
 
     public override resolveAbilitiesForNewZone() {
@@ -323,8 +340,9 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     /** Register / un-register the effect registrations for any constant abilities */
     private updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
-        // removing any lasting effects from ourself
-        if (EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
+        // removing any lasting effects from ourself -- any time we move into non arena zones
+        // TODO: we need to change this logic to just be not (Arena->Arena), but that breaks Ambush
+        if (!EnumHelpers.isArena(to) || from === ZoneName.Discard || from === ZoneName.Capture) {
             this.removeLastingEffects();
         }
 

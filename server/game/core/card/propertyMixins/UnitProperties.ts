@@ -469,12 +469,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         private getBountyAbilities() {
             return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Bounty)
-                .map((keyword) => keyword as BountyKeywordInstance);
+                .map((keyword) => keyword as BountyKeywordInstance)
+                .filter((keyword) => keyword.isFullyImplemented);
         }
 
         private getCoordinateAbilities() {
             return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Coordinate)
-                .map((keyword) => keyword as KeywordWithAbilityDefinition);
+                .map((keyword) => keyword as KeywordWithAbilityDefinition)
+                .filter((keyword) => keyword.isFullyImplemented);
         }
 
         public unregisterWhenPlayedKeywords() {
@@ -634,7 +636,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this._upgrades.push(upgrade);
         }
 
-        public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
+        public override getSummary(activePlayer: Player) {
             if (this.isInPlay()) {
                 // Check for sentinel keyword and no blanking effects
                 const keywords = this.keywords;
@@ -646,13 +648,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 const hasSentinel = !!sentinelKeyword;
 
                 return {
-                    ...super.getSummary(activePlayer, hideWhenFaceup),
+                    ...super.getSummary(activePlayer),
                     power: this.getPower(),
                     hp: this.getHp(),
                     sentinel: hasSentinel
                 };
             }
-            return super.getSummary(activePlayer, hideWhenFaceup);
+            return super.getSummary(activePlayer);
         }
     };
 }
