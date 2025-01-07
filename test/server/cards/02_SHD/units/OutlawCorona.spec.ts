@@ -21,8 +21,8 @@ describe('Outlaw Corona', function() {
                 context.player1.clickCard(context.outlawCorona);
                 context.player1.clickCard(context.fettsFirespray);
 
-                expect(context.player2).toHavePassAbilityPrompt('Bounty: Put the top card of your deck into play as a resource.');
-                context.player2.clickPrompt('Bounty: Put the top card of your deck into play as a resource.');
+                expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Put the top card of your deck into play as a resource.');
+                context.player2.clickPrompt('Collect Bounty: Put the top card of your deck into play as a resource.');
 
                 expect(context.player2.resources.length).toBe(startingResources + 1);
                 expect(context.player2).toBeActivePlayer();

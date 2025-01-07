@@ -1,5 +1,6 @@
 import * as Contract from '../../utils/Contract';
 import type { CardConstructor } from '../Card';
+import type { CardWithCost } from '../CardTypes';
 
 /** Mixin function that adds the `cost` property to a base class. */
 export function WithCost<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
@@ -17,6 +18,10 @@ export function WithCost<TBaseClass extends CardConstructor>(BaseClass: TBaseCla
 
             Contract.assertNotNullLike(cardData.cost);
             this.printedCost = cardData.cost;
+        }
+
+        public override hasCost(): this is CardWithCost {
+            return true;
         }
     };
 }

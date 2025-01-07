@@ -26,7 +26,7 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
         if (context.ability?.abilityIdentifier) {
             this.abilityIdentifier = `gained_from_${context.ability.abilityIdentifier}`;
         } else if (context.ability?.isLastingEffect) {
-            // TODO BUG: this will cause an error if a card gains two abilities from lasting effects because the abilityIdentifier for each will be the same
+            // TODO: currently all gained ability identifiers are the same, find a way to make these unique in case a card gains two
             this.abilityIdentifier = 'gained_from_lasting_effect';
         } else if (!this.abilityIdentifier) {
             Contract.fail('GainAbility.setContext() called without a valid context');
@@ -44,22 +44,29 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
 
         const properties = Object.assign(this.value, { gainAbilitySource: this.gainAbilitySource, abilityIdentifier: this.abilityIdentifier });
 
+        let gainedAbilityUuid: string;
         switch (properties.type) {
             case AbilityType.Action:
-                this.abilityUuidByTargetCard.set(target, target.addGainedActionAbility(properties));
-                return;
+                gainedAbilityUuid = target.addGainedActionAbility(properties);
+                break;
 
             case AbilityType.Constant:
-                this.abilityUuidByTargetCard.set(target, target.addGainedConstantAbility(properties));
-                return;
+                gainedAbilityUuid = target.addGainedConstantAbility(properties);
+                break;
 
             case AbilityType.Triggered:
-                this.abilityUuidByTargetCard.set(target, target.addGainedTriggeredAbility(properties));
-                return;
+                gainedAbilityUuid = target.addGainedTriggeredAbility(properties);
+                break;
+
+            case AbilityType.ReplacementEffect:
+                gainedAbilityUuid = target.addGainedReplacementEffectAbility(properties);
+                break;
 
             default:
                 Contract.fail(`Unknown ability type: ${this.abilityType}`);
         }
+
+        this.abilityUuidByTargetCard.set(target, gainedAbilityUuid);
     }
 
     public override unapply(target: InPlayCard) {
@@ -68,22 +75,24 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
         switch (this.abilityType) {
             case AbilityType.Action:
                 target.removeGainedActionAbility(this.abilityUuidByTargetCard.get(target));
-                this.abilityUuidByTargetCard.delete(target);
-                return;
+                break;
 
             case AbilityType.Constant:
                 target.removeGainedConstantAbility(this.abilityUuidByTargetCard.get(target));
-                this.abilityUuidByTargetCard.delete(target);
-                return;
+                break;
 
             case AbilityType.Triggered:
                 target.removeGainedTriggeredAbility(this.abilityUuidByTargetCard.get(target));
-                this.abilityUuidByTargetCard.delete(target);
+                break;
 
-                return;
+            case AbilityType.ReplacementEffect:
+                target.removeGainedReplacementEffectAbility(this.abilityUuidByTargetCard.get(target));
+                break;
 
             default:
                 Contract.fail(`Unknown ability type: ${this.abilityType}`);
         }
+
+        this.abilityUuidByTargetCard.delete(target);
     }
 }

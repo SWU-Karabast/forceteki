@@ -5,7 +5,7 @@ import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
 import type { KeywordName, MoveZoneDestination } from '../Constants';
-import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
@@ -14,7 +14,7 @@ import type { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordI
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
 import type { EventCard } from './EventCard';
-import type { TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard } from './CardTypes';
+import type { TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard, CardWithCost } from './CardTypes';
 import type { UpgradeCard } from './UpgradeCard';
 import type { BaseCard } from './BaseCard';
 import type { LeaderCard } from './LeaderCard';
@@ -341,6 +341,10 @@ export class Card extends OngoingEffectSource {
         return false;
     }
 
+    public hasCost(): this is CardWithCost {
+        return false;
+    }
+
     /**
      * Returns true if the card is in a playable card (not deployable) or a token
      */
@@ -386,10 +390,13 @@ export class Card extends OngoingEffectSource {
         return keywordInstances;
     }
 
-    public getKeywordWithCostValues(keywordName: KeywordName): KeywordWithCostValues {
-        const keyword = this.getKeywords().find((keyword) => keyword.valueOf() === keywordName);
-        Contract.assertTrue(keyword.hasCostValue(), `Keyword ${keywordName} does not have cost values.`);
-        return keyword as KeywordWithCostValues;
+    public getKeywordsWithCostValues(keywordName: KeywordName): KeywordWithCostValues[] {
+        const keywords = this.getKeywords().filter((keyword) => keyword.valueOf() === keywordName);
+
+        const keywordsWithoutCostValues = keywords.filter((keyword) => !keyword.hasCostValue());
+        Contract.assertTrue(keywordsWithoutCostValues.length === 0, 'Found at least one keyword with missing cost values');
+
+        return keywords as KeywordWithCostValues[];
     }
 
     public hasSomeKeyword(keywords: Set<KeywordName> | KeywordName | KeywordName[]): boolean {
@@ -780,17 +787,12 @@ export class Card extends OngoingEffectSource {
     * This is the infomation for each card that is sent to the client.
     */
 
-    public getSummary(activePlayer, hideWhenFaceup) {
+    public getSummary(activePlayer) {
         const isActivePlayer = activePlayer === this.controller;
         const selectionState = activePlayer.getCardSelectionState(this);
 
-        // This is my facedown card, but I'm not allowed to look at it
-        // OR This is not my card, and it's either facedown or hidden from me
-        if (
-            isActivePlayer
-                ? this.facedown
-                : this.facedown || hideWhenFaceup
-        ) {
+        // If it is not the active player and in opposing hand or deck - return facedown card
+        if (this._zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this._zone.hiddenForPlayers === RelativePlayer.Opponent)) {
             const state = {
                 controller: this.controller.getShortSummary(),
                 // menu: isActivePlayer ? this.getMenu() : undefined,

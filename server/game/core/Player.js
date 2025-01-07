@@ -427,22 +427,12 @@ class Player extends GameObject {
      * @param {String} playingType
      */
     isCardInPlayableZone(card, playingType = null) {
-        // use an effect check to see if this card is in an out of play zone but can still be played from
-        if (card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
-            return true;
-        }
-
         return this.playableZones.some(
             (zone) => (!playingType || zone.playingType === playingType) && zone.includes(card)
         );
     }
 
     findPlayType(card) {
-        if (card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card)).length > 0) {
-            let effects = card.getOngoingEffectValues(EffectName.CanPlayFromOutOfPlay).filter((a) => a.player(this, card));
-            return effects[effects.length - 1].playType || PlayType.PlayFromHand;
-        }
-
         let zone = this.playableZones.find((zone) => zone.includes(card));
         if (zone) {
             return zone.playingType;
@@ -684,31 +674,18 @@ class Player extends GameObject {
     /**
      * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
      * Accounts for aspect penalties and any modifiers to those specifically
-     * @param {PlayType} playingType
-     * @param card
-     * @param target
+     * @param {number} cost
+     * @param {Aspect[]} aspects
+     * @param {AbilityContext} context
      * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
      */
-    getAdjustedCost(playingType, card, target, additionalCostAdjusters = null) {
+    getAdjustedCost(cost, aspects, context, additionalCostAdjusters = null) {
+        const playingType = context.playType;
+        const card = context.source;
+        const target = context.target;
+
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
-        let aspects;
-        let cost;
-
-        switch (playingType) {
-            case PlayType.PlayFromOutOfPlay:
-            case PlayType.PlayFromHand:
-                aspects = card.aspects;
-                cost = card.cost;
-                break;
-            case PlayType.Smuggle:
-                const smuggleInstance = card.getKeywordWithCostValues(KeywordName.Smuggle);
-                aspects = smuggleInstance.aspects;
-                cost = smuggleInstance.cost;
-                break;
-            default:
-                Contract.fail(`Invalid Play Type ${playingType}`);
-        }
 
         let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
@@ -1012,25 +989,25 @@ class Player extends GameObject {
         this.promptState.clearSelectableCards();
     }
 
-    getSummaryForHand(list, activePlayer, hideWhenFaceup) {
+    getSummaryForHand(list, activePlayer) {
         // if (this.optionSettings.sortHandByName) {
-        //     return this.getSortedSummaryForCardList(list, activePlayer, hideWhenFaceup);
+        //     return this.getSortedSummaryForCardList(list, activePlayer);
         // }
-        return this.getSummaryForZone(list, activePlayer, hideWhenFaceup);
+        return this.getSummaryForZone(list, activePlayer);
     }
 
-    getSummaryForZone(zone, activePlayer, hideWhenFaceup) {
+    getSummaryForZone(zone, activePlayer) {
         return this.getCardsInZone(zone).map((card) => {
-            return card.getSummary(activePlayer, hideWhenFaceup);
+            return card.getSummary(activePlayer);
         });
     }
 
-    getSortedSummaryForCardList(list, activePlayer, hideWhenFaceup) {
+    getSortedSummaryForCardList(list, activePlayer) {
         let cards = list.map((card) => card);
         cards.sort((a, b) => a.printedName.localeCompare(b.printedName));
 
         return cards.map((card) => {
-            return card.getSummary(activePlayer, hideWhenFaceup);
+            return card.getSummary(activePlayer);
         });
     }
 
@@ -1098,7 +1075,7 @@ class Player extends GameObject {
         let { email, password, ...safeUser } = this.user;
         let state = {
             cardPiles: {
-                hand: this.getSummaryForZone(ZoneName.Hand, activePlayer, false),
+                hand: this.getSummaryForZone(ZoneName.Hand, activePlayer),
                 outsideTheGame: this.getSummaryForZone(ZoneName.OutsideTheGame, activePlayer),
                 resources: this.getSummaryForZone(ZoneName.Resource, activePlayer),
                 groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer),

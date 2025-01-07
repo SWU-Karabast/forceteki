@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { Duration, RelativePlayerFilter } from './core/Constants';
+import type { Aspect, Duration, RelativePlayerFilter } from './core/Constants';
 import { type RelativePlayer, type CardType, type EventName, type PhaseName, type ZoneFilter, type KeywordName, type AbilityType, type CardTypeFilter } from './core/Constants';
 import type { GameEvent } from './core/event/GameEvent';
 import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTargetResolver, ITriggeredAbilityTargetsResolver } from './TargetInterfaces';
@@ -133,10 +133,15 @@ export type IConstantAbilityPropsWithType<TSource extends Card = Card> = IConsta
     type: AbilityType.Constant;
 };
 
+export type IReplacementEffectAbilityPropsWithType<TSource extends Card = Card> = IReplacementEffectAbilityProps<TSource> & {
+    type: AbilityType.ReplacementEffect;
+};
+
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
   IActionAbilityPropsWithType<TSource> |
-  IConstantAbilityPropsWithType<TSource>;
+  IConstantAbilityPropsWithType<TSource> |
+  IReplacementEffectAbilityPropsWithType<TSource>;
 
 // exported for use in situations where we need to exclude "when" and "aggregateWhen"
 export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>> & {
@@ -164,7 +169,8 @@ export type IKeywordProperties =
   | IRestoreKeywordProperties
   | ISaboteurKeywordProperties
   | ISentinelKeywordProperties
-  | IShieldedKeywordProperties;
+  | IShieldedKeywordProperties
+  | ISmuggleKeywordProperties;
 
 export type KeywordNameOrProperties = IKeywordProperties | NonParameterKeywordName;
 
@@ -212,7 +218,7 @@ export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbi
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
 > {
-    replaceWith: IReplacementEffectSystemProperties;
+    replaceWith: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
 }
 
 type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
@@ -283,7 +289,7 @@ interface IAmbushKeywordProperties extends IKeywordPropertiesBase {
 
 interface IBountyKeywordProperties<TSource extends UnitCard = UnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
     keyword: KeywordName.Bounty;
-    ability: Omit<ITriggeredAbilityProps<TSource>, 'when' | 'aggregateWhen' | 'abilityController'>;
+    ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'abilityController'>;
 }
 
 interface IGritKeywordProperties extends IKeywordPropertiesBase {
@@ -308,6 +314,12 @@ interface ISaboteurKeywordProperties extends IKeywordPropertiesBase {
 
 interface ISentinelKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Sentinel;
+}
+
+interface ISmuggleKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Smuggle;
+    cost: number;
+    aspects: Aspect[];
 }
 
 interface IShieldedKeywordProperties extends IKeywordPropertiesBase {

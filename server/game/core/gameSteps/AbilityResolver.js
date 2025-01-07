@@ -245,16 +245,18 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
         this.context.stage = Stage.Target;
 
-        if (this.context.ability.hasTargets() && !this.context.ability.hasSomeLegalTarget(this.context)) {
+        const ability = this.context.ability;
+
+        if (this.context.ability.hasTargets() && !ability.hasSomeLegalTarget(this.context) && !ability.canResolveWithoutLegalTargets) {
             // Ability cannot resolve, so display a message and cancel it
             this.game.addMessage('{0} attempted to use {1}, but there are insufficient legal targets', this.context.player, this.context.source);
             this.cancelled = true;
         } else if (this.targetResults.delayTargeting) {
             // Targeting was delayed due to an opponent needing to choose targets (which shouldn't happen until costs have been paid), so continue
-            this.targetResults = this.context.ability.resolveRemainingTargets(this.context, this.targetResults.delayTargeting, this.passAbilityHandler);
-        } else if (this.targetResults.payCostsFirst || !this.context.ability.checkAllTargets(this.context)) {
+            this.targetResults = ability.resolveRemainingTargets(this.context, this.targetResults.delayTargeting, this.passAbilityHandler);
+        } else if (this.targetResults.payCostsFirst || !ability.checkAllTargets(this.context)) {
             // Targeting was stopped by the player choosing to pay costs first, or one of the chosen targets is no longer legal. Retarget from scratch
-            this.targetResults = this.context.ability.resolveTargets(this.context, this.passAbilityHandler);
+            this.targetResults = ability.resolveTargets(this.context, this.passAbilityHandler);
         }
     }
 

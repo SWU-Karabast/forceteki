@@ -43,13 +43,13 @@ export class UpgradeCard extends UpgradeCardParent {
         return true;
     }
 
-    public override buildPlayCardAction(properties: Omit<IPlayCardActionProperties, 'card'>) {
-        return new PlayUpgradeAction({ card: this, ...properties });
+    public override buildPlayCardAction(properties: IPlayCardActionProperties) {
+        return new PlayUpgradeAction(this, properties);
     }
 
-    public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
+    public override getSummary(activePlayer: Player) {
         return {
-            ...super.getSummary(activePlayer, hideWhenFaceup),
+            ...super.getSummary(activePlayer),
             parentCardId: this._parentCard ? this._parentCard.uuid : null
         };
     }
