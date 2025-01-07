@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { PhaseName } from '../../../core/Constants';
+import { PhaseName, WildcardCardType } from '../../../core/Constants';
 
 export default class ChirrutImweOneWithTheForce extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -11,7 +11,16 @@ export default class ChirrutImweOneWithTheForce extends LeaderUnitCard {
     }
 
     protected override setupLeaderSideAbilities() {
-        // test
+        this.addActionAbility({
+            title: 'Give a unit +0/+2 for this phase',
+            cost: AbilityHelper.costs.exhaustSelf(),
+            targetResolver: {
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                    effect: AbilityHelper.ongoingEffects.modifyStats({ power: 0, hp: 2 })
+                })
+            }
+        });
     }
 
     protected override setupLeaderUnitSideAbilities() {

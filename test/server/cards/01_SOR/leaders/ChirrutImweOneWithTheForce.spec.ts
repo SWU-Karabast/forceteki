@@ -1,7 +1,57 @@
 describe('Chirrut Îmwe, One with the Force', function() {
     integration(function(contextRef) {
+        it('Chirrut\'s undeployed ability', function() {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    leader: 'chirrut-imwe#one-with-the-force',
+                    groundArena: ['death-star-stormtrooper'],
+                    resources: 4
+                },
+                player2: {
+                    spaceArena: ['tieln-fighter'],
+                    hand: ['daring-raid']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // apply +2/+2 effect to Death Star Stormtrooper
+            context.player1.clickCard(context.chirrutImwe);
+            expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.tielnFighter]);
+            context.player1.clickCard(context.deathStarStormtrooper);
+
+            expect(context.deathStarStormtrooper.getPower()).toBe(3);
+            expect(context.deathStarStormtrooper.getHp()).toBe(3);
+            expect(context.tielnFighter.getPower()).toBe(2);
+            expect(context.tielnFighter.getHp()).toBe(1);
+            expect(context.chirrutImwe.exhausted).toBeTrue();
+
+            // deal 2 damage to stormtrooper so it will be defeated when the effect expires
+            context.player2.clickCard(context.daringRaid);
+            context.player2.clickCard(context.deathStarStormtrooper);
+
+            // give the +2 effect to the TIE/LN Fighter as well
+            context.chirrutImwe.exhausted = false;
+            context.player1.clickCard(context.chirrutImwe);
+            expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.tielnFighter]);
+            context.player1.clickCard(context.tielnFighter);
+
+            expect(context.deathStarStormtrooper.getPower()).toBe(3);
+            expect(context.deathStarStormtrooper.getHp()).toBe(3);
+            expect(context.tielnFighter.getPower()).toBe(2);
+            expect(context.tielnFighter.getHp()).toBe(3);
+            expect(context.chirrutImwe.exhausted).toBeTrue();
+
+            // move to regroup phase, confirm effects have expired
+            context.moveToRegroupPhase();
+            expect(context.deathStarStormtrooper).toBeInZone('discard');
+            expect(context.tielnFighter.getPower()).toBe(2);
+            expect(context.tielnFighter.getHp()).toBe(1);
+        });
+
         describe('Chirrut\'s deployed ability', function() {
-            beforeEach(function () {
+            it('prevents him from being defeated by damage during the action phase', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -13,9 +63,7 @@ describe('Chirrut Îmwe, One with the Force', function() {
                         hand: ['daring-raid']
                     }
                 });
-            });
 
-            it('prevents him from being defeated by damage during the action phase', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.chirrutImwe);
@@ -51,10 +99,8 @@ describe('Chirrut Îmwe, One with the Force', function() {
                 context.moveToRegroupPhase();
                 expect(context.chirrutImwe).toBeInZone('base');
             });
-        });
 
-        describe('Chirrut\'s deployed ability', function() {
-            beforeEach(function () {
+            it('prevents him from being defeated by HP reduction effects during the action phase', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -66,9 +112,7 @@ describe('Chirrut Îmwe, One with the Force', function() {
                         hand: ['make-an-opening', 'supreme-leader-snoke#shadow-ruler']
                     }
                 });
-            });
 
-            it('prevents him from being defeated by HP reduction effects during the action phase', function () {
                 const { context } = contextRef;
 
                 // deal 4 damage to Chirrut
