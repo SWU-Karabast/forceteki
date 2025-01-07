@@ -1,6 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { Attack } from '../../../core/attack/Attack';
 
 export default class CornerThePrey extends EventCard {
     protected override getImplementationId() {
