@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { PlayType, RelativePlayer } from '../../../core/Constants';
+import { Duration, PlayType, RelativePlayer } from '../../../core/Constants';
 
 export default class DjBlatantThief extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -25,6 +25,7 @@ export default class DjBlatantThief extends NonLeaderUnitCard {
                     when: {
                         onCardLeavesPlay: (event, context) => event.card === context.source
                     },
+                    duration: Duration.WhileSourceInPlay,
                     target: delayedEffectContext.source,
                     immediateEffect: AbilityHelper.immediateEffects.resourceCard((_context) => ({
                         targetPlayer: RelativePlayer.Opponent,

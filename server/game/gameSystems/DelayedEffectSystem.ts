@@ -10,7 +10,7 @@ import type { WhenType } from '../Interfaces';
 import * as Contract from '../core/utils/Contract';
 import OngoingEffectLibrary from '../ongoingEffects/OngoingEffectLibrary';
 import type { GameObject } from '../core/GameObject';
-import type { OngoingEffectSource } from '../core/ongoingEffect/OngoingEffectSource';
+import type { Card } from '../core/card/Card';
 
 export enum DelayedEffectType {
     Card = 'card',
@@ -41,7 +41,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     };
 
     public eventHandler(event: any, additionalProperties: any): void {
-        const delayedEffectSource = event.sourceCard as OngoingEffectSource;
+        const delayedEffectSource = event.sourceCard as Card;
 
         const renamedProperties = event.renamedProperties;
         const duration = renamedProperties.duration;
@@ -60,6 +60,15 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
                 delayedEffectSource.untilEndOfRound(() => renamedProperties);
                 break;
             case Duration.WhileSourceInPlay:
+                // if the source card has already left play, trigger the effects immediately
+                Contract.assertTrue(delayedEffectSource.canBeInPlay());
+                if (!delayedEffectSource.isInPlay()) {
+                    event.context.game.addSubwindowEvents(
+                        event.immediateEffect.generateEvent(event.context, additionalProperties)
+                    );
+                    break;
+                }
+
                 delayedEffectSource.whileSourceInPlay(() => renamedProperties);
                 break;
             case Duration.Custom:
@@ -88,6 +97,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
             }) };
 
         event.renamedProperties = renamedProperties;
+        event.immediateEffect = properties.immediateEffect;
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
