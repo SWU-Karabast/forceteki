@@ -551,7 +551,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.checkDefeated(DefeatSourceType.FrameworkEffect);
         }
 
-        private checkDefeated(source: IDamageSource | DefeatSourceType.FrameworkEffect) {
+        protected checkDefeated(source: IDamageSource | DefeatSourceType.FrameworkEffect) {
+            // if this card can't be defeated by damage (e.g. Chirrut), skip the check
+            if (this.hasOngoingEffect(EffectName.CannotBeDefeatedByDamage)) {
+                return;
+            }
+
             if (this.damage >= this.getHp() && !this._pendingDefeat) {
                 // add defeat event to window
                 this.game.addSubwindowEvents(
