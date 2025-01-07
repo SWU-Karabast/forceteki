@@ -14,15 +14,11 @@ export default class CornerThePrey extends EventCard {
         this.setEventAbility({
             title: 'Attack with a unit. It gets +1/+0 for this attack for each damage on the defender at the start of this attack.',
             initiateAttack: {
-                attackerLastingEffects: [
-                    {
-                        condition: (attack: Attack) => !attack.target.isBase(),
-                        effect: (attack: Attack) => {
-                            const damageOnDefender = attack.target.damage;
-                            return AbilityHelper.ongoingEffects.modifyStats({ power: damageOnDefender, hp: 0 });
-                        }
-                    }
-                ]
+                attackerLastingEffects: (_context, attack) =>
+                    ({
+                        condition: () => !attack.target.isBase(),
+                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: attack.target.damage, hp: 0 })
+                    })
             }
         });
     }

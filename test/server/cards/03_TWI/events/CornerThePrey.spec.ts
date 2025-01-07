@@ -9,7 +9,7 @@ describe('Corner The Prey', function() {
                         groundArena: ['consular-security-force'],
                     },
                     player2: {
-                        groundArena: [{ card: 'atst', damage: 1 }],
+                        groundArena: [{ card: 'chewbacca#pykesbane', damage: 2 }],
                     }
                 });
 
@@ -17,10 +17,31 @@ describe('Corner The Prey', function() {
 
                 context.player1.clickCard(context.cornerThePrey);
                 context.player1.clickCard(context.consularSecurityForce);
-                context.player1.clickCard(context.atst);
-                expect(context.atst.damage).toBe(5);
-                expect(context.battlefieldMarine.getPower()).toBe(3);
-                expect(context.battlefieldMarine.damage).toBe(6);
+                context.player1.clickCard(context.chewbacca);
+                expect(context.chewbacca.damage).toBe(7);
+                expect(context.consularSecurityForce.getPower()).toBe(3);
+                expect(context.consularSecurityForce.damage).toBe(6);
+            });
+
+            it('should attack with a unit getting +0/+0 while attacking a base', function() {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['corner-the-prey'],
+                        groundArena: ['consular-security-force'],
+                    },
+                    player2: {
+                        groundArena: [{ card: 'chewbacca#pykesbane', damage: 2 }],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.cornerThePrey);
+                context.player1.clickCard(context.consularSecurityForce);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player2.base.damage).toBe(3);
+                expect(context.consularSecurityForce.getPower()).toBe(3);
             });
         });
     });
