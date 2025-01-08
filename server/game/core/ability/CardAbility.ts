@@ -6,7 +6,7 @@ import * as AbilityLimit from './AbilityLimit';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
 
-export class CardAbility extends CardAbilityStep {
+export abstract class CardAbility extends CardAbilityStep {
     public readonly abilityController: RelativePlayer;
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;

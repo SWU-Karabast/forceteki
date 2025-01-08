@@ -89,11 +89,13 @@ export class AbilityContext<TSource extends Card = Card> {
             player: this.player,
             ability: this.ability,
             costs: Object.assign({}, this.costs),
+            costAspects: this.costAspects,
             targets: Object.assign({}, this.targets),
             selects: Object.assign({}, this.selects),
             events: this.events,
             stage: this.stage,
-            targetAbility: this.targetAbility
+            targetAbility: this.targetAbility,
+            playType: this.playType
         };
     }
 }

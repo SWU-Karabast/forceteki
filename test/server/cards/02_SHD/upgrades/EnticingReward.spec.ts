@@ -1,7 +1,7 @@
 describe('Enticing Reward', function () {
     integration(function (contextRef) {
         describe('Enticing reward bounty\'s ability', function () {
-            const prompt = 'Bounty: Search the top 10 cards of your deck for 2 non-unit cards, reveal them, and draw them.';
+            const prompt = 'Collect Bounty: Search the top 10 cards of your deck for 2 non-unit cards, reveal them, and draw them.';
 
             it('should prompt to choose up to 2 non-units from the top 10 cards, reveal them, draw them, and move the rest to the bottom of the deck and discard a card from hand because attached unit is not unique', function () {
                 contextRef.setupTest({

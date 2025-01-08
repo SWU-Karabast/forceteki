@@ -100,8 +100,8 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             this._damage = enabledStatus ? 0 : null;
         }
 
-        public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
-            return { ...super.getSummary(activePlayer, hideWhenFaceup), damage: this._damage };
+        public override getSummary(activePlayer: Player) {
+            return { ...super.getSummary(activePlayer), damage: this._damage };
         }
 
         protected setActiveAttackEnabled(enabledStatus: boolean) {

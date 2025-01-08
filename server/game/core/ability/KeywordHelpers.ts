@@ -1,8 +1,9 @@
-import type { IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
-import { AbilityType, Aspect, KeywordName, RelativePlayer } from '../Constants';
+import type { IKeywordProperties } from '../../Interfaces';
+import { Aspect, KeywordName, PlayType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
+import { BountyKeywordInstance, KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
+import type { PlayCardAction } from './PlayCardAction';
 
 export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, cardName: string): KeywordInstance[] {
     const expectedKeywords = EnumHelpers.checkConvertToEnum(expectedKeywordsRaw, KeywordName);
@@ -20,7 +21,11 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
             if (smuggleValuesOrNull != null) {
                 keywords.push(smuggleValuesOrNull);
             }
-        } else if (keywordName === KeywordName.Bounty || keywordName === KeywordName.Coordinate) {
+        } else if (keywordName === KeywordName.Bounty) {
+            if (isKeywordEnabled(keywordName, cardText, cardName)) {
+                keywords.push(new BountyKeywordInstance(keywordName));
+            }
+        } else if (keywordName === KeywordName.Coordinate) {
             if (isKeywordEnabled(keywordName, cardText, cardName)) {
                 keywords.push(new KeywordWithAbilityDefinition(keywordName));
             }
@@ -34,36 +39,30 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
     return keywords;
 }
 
+// "Gain Coordinate" and "gain Exploit" are not yet implemented
 export function keywordFromProperties(properties: IKeywordProperties) {
-    if (properties.keyword === KeywordName.Restore || properties.keyword === KeywordName.Raid) {
-        return new KeywordWithNumericValue(properties.keyword, properties.amount);
+    switch (properties.keyword) {
+        case KeywordName.Restore:
+        case KeywordName.Raid:
+            return new KeywordWithNumericValue(properties.keyword, properties.amount);
+
+        case KeywordName.Bounty:
+            return new BountyKeywordInstance(properties.keyword, properties.ability);
+
+        case KeywordName.Smuggle:
+            return new KeywordWithCostValues(properties.keyword, properties.cost, properties.aspects, false);
+
+        case KeywordName.Ambush:
+        case KeywordName.Grit:
+        case KeywordName.Overwhelm:
+        case KeywordName.Saboteur:
+        case KeywordName.Sentinel:
+        case KeywordName.Shielded:
+            return new KeywordInstance(properties.keyword);
+
+        default:
+            throw new Error(`Keyword '${(properties as any).keyword}' is not implemented yet`);
     }
-
-    if (properties.keyword === KeywordName.Bounty) {
-        const bountyAbilityProps = createBountyAbilityFromProps(properties.ability);
-
-        return new KeywordWithAbilityDefinition(properties.keyword, { ...bountyAbilityProps, type: AbilityType.Triggered });
-    }
-
-    // TODO SMUGGLE: add smuggle here for "gain smuggle" abilities
-
-    return new KeywordInstance(properties.keyword);
-}
-
-export function createBountyAbilityFromProps(properties: Omit<ITriggeredAbilityProps, 'when' | 'aggregateWhen' | 'abilityController'>): ITriggeredAbilityProps {
-    const { title, ...otherProps } = properties;
-
-    return {
-        title: 'Bounty: ' + title,
-        // 7.5.13.E : Resolving a Bounty ability is optional. If a player chooses not to resolve a Bounty ability, they are not considered to have collected that Bounty.
-        optional: true,
-        when: {
-            onCardDefeated: (event, context) => event.card === context.source,
-            onCardCaptured: (event, context) => event.card === context.source
-        },
-        abilityController: RelativePlayer.Opponent,
-        ...otherProps
-    };
 }
 
 export const isNumericType: Record<KeywordName, boolean> = {
@@ -194,3 +193,27 @@ function getRegexForKeyword(keyword: KeywordName) {
     }
 }
 
+export function getCheapestSmuggle<TAbility extends PlayCardAction>(smuggleActions: TAbility[]): PlayCardAction | null {
+    const nonSmuggleActions = smuggleActions.filter((action) => action.playType !== PlayType.Smuggle);
+    Contract.assertTrue(nonSmuggleActions.length === 0, 'Found at least one action that is not a Smuggle play action');
+
+    if (smuggleActions.length === 0) {
+        return null;
+    }
+    if (smuggleActions.length === 1) {
+        return smuggleActions[0];
+    }
+
+    let cheapestSmuggle = null;
+    let cheapestAmount = Infinity;
+    for (const smuggleAction of smuggleActions) {
+        Contract.assertTrue(smuggleAction.isPlayCardAbility());
+        const cost = smuggleAction.getAdjustedCost(smuggleAction.createContext());
+        if (cost < cheapestAmount) {
+            cheapestAmount = cost;
+            cheapestSmuggle = smuggleAction;
+        }
+    }
+
+    return cheapestSmuggle;
+}

@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
+const seedrandom = require('seedrandom');
 
-// const ChatCommands = require('./chat/ChatCommands.js');
 const { GameChat } = require('./chat/GameChat.js');
 const { OngoingEffectEngine } = require('./ongoingEffect/OngoingEffectEngine.js');
 const Player = require('./Player.js');
@@ -45,7 +45,6 @@ class Game extends EventEmitter {
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
         this.playersAndSpectators = {};
         this.gameChat = new GameChat();
-        // this.chatCommands = new ChatCommands(this);
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.name = details.name;
@@ -57,7 +56,6 @@ class Game extends EventEmitter {
         this.createdAt = new Date();
         // this.savedGameId = details.savedGameId;
         // this.gameType = details.gameType;
-        this.currentAbilityWindow = null;
         this.currentActionWindow = null;
         this.currentEventWindow = null;
         this.currentAttack = null;
@@ -74,6 +72,7 @@ class Game extends EventEmitter {
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
+        this.randomGenerator = seedrandom();
 
         this.registerGlobalRulesListeners();
 
@@ -251,6 +250,10 @@ class Game extends EventEmitter {
         }
 
         // by default, if the opponent has passed and the active player has not, they remain the active player and play continues
+    }
+
+    setRandomSeed(seed) {
+        this.randomGenerator = seedrandom(seed);
     }
 
     /**
@@ -1159,6 +1162,11 @@ class Game extends EventEmitter {
         }
         this.movedCards = [];
 
+        if (events.length > 0) {
+            // check for any delayed effects which need to fire
+            this.ongoingEffectEngine.checkDelayedEffects(events);
+        }
+
         // check for a game state change (recalculating attack stats if necessary)
         if (
             // (!this.currentAttack && this.ongoingEffectEngine.resolveEffects(hasChanged)) ||
@@ -1169,10 +1177,6 @@ class Game extends EventEmitter {
 
             // - any defeated units
             this.findAnyCardsInPlay((card) => card.isUnit()).forEach((card) => card.checkDefeatedByOngoingEffect());
-        }
-        if (events.length > 0) {
-            // check for any delayed effects which need to fire
-            this.ongoingEffectEngine.checkDelayedEffects(events);
         }
     }
 

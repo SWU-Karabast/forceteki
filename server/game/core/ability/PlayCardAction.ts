@@ -1,6 +1,7 @@
 import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
+import type { Aspect } from '../Constants';
 import { EffectName, EventName, KeywordName, PhaseName, PlayType, Stage } from '../Constants';
 import type { ICost } from '../cost/ICost';
 import { AbilityContext } from './AbilityContext';
@@ -13,16 +14,27 @@ import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';
 
-export interface IPlayCardActionProperties {
-    card: Card;
+export interface IPlayCardActionPropertiesBase {
+    playType: PlayType;
     title?: string;
-    playType?: PlayType;
     triggerHandlingMode?: TriggerHandlingMode;
     costAdjusters?: CostAdjuster | CostAdjuster[];
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
     exploitValue?: number;
 }
+
+interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
+    playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay;
+}
+
+export interface ISmuggleCardActionProperties extends IPlayCardActionPropertiesBase {
+    playType: PlayType.Smuggle;
+    smuggleResourceCost: number;
+    smuggleAspects: Aspect[];
+}
+
+export type IPlayCardActionProperties = IStandardPlayActionProperties | ISmuggleCardActionProperties;
 
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
@@ -34,23 +46,35 @@ export abstract class PlayCardAction extends PlayerAction {
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
-    public constructor(properties: IPlayCardActionProperties) {
+    public constructor(card: Card, properties: IPlayCardActionProperties) {
+        Contract.assertTrue(card.hasCost());
+
         const usesExploit = !!properties.exploitValue;
 
         const propertiesWithDefaults = {
-            title: `Play ${properties.card.title}`,
+            title: `Play ${card.title}`,
             playType: PlayType.PlayFromHand,
             triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers,
             additionalCosts: [],
             ...properties
         };
 
+        let cost: number;
+        let aspects: Aspect[];
+        if (properties.playType === PlayType.Smuggle) {
+            cost = properties.smuggleResourceCost;
+            aspects = properties.smuggleAspects;
+        } else {
+            cost = card.cost;
+            aspects = card.aspects;
+        }
+
         const playCost = usesExploit
-            ? new ExploitPlayCardResourceCost(properties.exploitValue, propertiesWithDefaults.playType)
-            : new PlayCardResourceCost(propertiesWithDefaults.playType);
+            ? new ExploitPlayCardResourceCost(card, properties.exploitValue, propertiesWithDefaults.playType, cost, aspects)
+            : new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
 
         super(
-            propertiesWithDefaults.card,
+            card,
             PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit),
             propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
@@ -85,7 +109,7 @@ export abstract class PlayCardAction extends PlayerAction {
         return updatedTitle;
     }
 
-    public abstract clone(overrideProperties: IPlayCardActionProperties): PlayCardAction;
+    public abstract clone(overrideProperties: Partial<IPlayCardActionProperties>): PlayCardAction;
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
@@ -146,7 +170,10 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     protected generateSmuggleEvent(context: PlayCardContext) {
-        return resourceCard({ target: context.player.getTopCardOfDeck() }).generateEvent(context);
+        return resourceCard({
+            target: context.player.getTopCardOfDeck(),
+            readyResource: !this.card.exhausted,
+        }).generateEvent(context);
     }
 
     protected generateOnPlayEvent(context: PlayCardContext, additionalProps: any = {}) {
