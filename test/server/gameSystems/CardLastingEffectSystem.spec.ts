@@ -75,6 +75,14 @@ describe('Card lasting effects', function() {
                 expect(context.wampa.getHp()).toBe(5);
             });
 
+            it('not cause any error if the target is defeated while under the effect', function () {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.wampa);
+                expect(context.player1).toBeActivePlayer();
+            });
+
             it('persist across rounds', function () {
                 const { context } = contextRef;
 
