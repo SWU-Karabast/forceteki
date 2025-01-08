@@ -130,6 +130,9 @@ export class GameServer {
             }
             return res.status(200).json({ success: true });
         });
+        app.get('/api/health', (_, res) => {
+            return res.status(200).json({ success: true });
+        });
     }
 
     private lobbiesWithOpenSeat() {
