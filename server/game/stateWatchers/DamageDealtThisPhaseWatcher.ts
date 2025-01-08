@@ -1,9 +1,10 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
-import { StateWatcherName, DamageType } from '../core/Constants';
-import { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
-import { IDamageSource } from '../IDamageOrDefeatSource';
-import Player from '../core/Player';
-import { Card } from '../core/card/Card';
+import type { DamageType } from '../core/Constants';
+import { StateWatcherName } from '../core/Constants';
+import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
+import type { IDamageSource } from '../IDamageOrDefeatSource';
+import type Player from '../core/Player';
+import type { Card } from '../core/card/Card';
 
 export interface DamageDealtEntry {
     damageType: DamageType;

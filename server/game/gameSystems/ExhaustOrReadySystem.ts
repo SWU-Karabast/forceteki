@@ -1,4 +1,4 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { CardType, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';

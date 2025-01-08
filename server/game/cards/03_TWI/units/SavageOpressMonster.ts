@@ -1,7 +1,5 @@
-import { on } from 'events';
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer } from '../../../core/Constants';
 
 export default class SavageOpressMonster extends NonLeaderUnitCard {
     protected override getImplementationId() {

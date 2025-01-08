@@ -1,11 +1,13 @@
 import Game from '../game/core/Game';
 import { v4 as uuid } from 'uuid';
-import Socket from '../socket';
+import type Socket from '../socket';
 import defaultGameSettings from './defaultGame';
 import { Deck } from '../game/Deck';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
+import path from 'path';
 import { logger } from '../logger';
+import { GameChat } from '../game/core/chat/GameChat';
 
 interface LobbyUser {
     id: string;
@@ -15,30 +17,71 @@ interface LobbyUser {
     socket: Socket | null;
     deck: Deck | null;
 }
+export enum MatchType {
+    Custom = 'Custom',
+    Private = 'Private',
+    Quick = 'Quick',
+}
 
 export class Lobby {
     private readonly _id: string;
+    public readonly isPrivate: boolean;
+    private readonly connectionLink?: string;
+    private readonly gameChat: GameChat;
     private game: Game;
     // switch partic
     private users: LobbyUser[] = [];
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
-    public constructor() {
+    private lobbyOwnerId: string;
+    private playableCardTitles: string[];
+
+    public constructor(lobbyGameType: MatchType) {
+        Contract.assertTrue(
+            [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
+            `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
+        );
         this._id = uuid();
+        this.gameChat = new GameChat();
+        this.connectionLink = lobbyGameType !== MatchType.Quick ? `http://localhost:3000/lobby?lobbyId=${this._id}` : null;
+        this.isPrivate = lobbyGameType === MatchType.Private;
     }
 
     public get id(): string {
         return this._id;
     }
 
-    public createLobbyUser(user, deck): void {
+    public getLobbyState(): any {
+        return {
+            id: this._id,
+            users: this.users.map((u) => ({
+                id: u.id,
+                username: u.username,
+                state: u.state,
+                ready: u.ready,
+                deck: u.deck?.data,
+            })),
+            gameChat: this.gameChat,
+            lobbyOwnerId: this.lobbyOwnerId,
+            isPrivate: this.isPrivate,
+            connectionLink: this.connectionLink,
+        };
+    }
+
+    public createLobbyUser(user, deck = null): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         const newDeck = deck ? new Deck(deck) : this.useDefaultDeck(user);
-
         if (existingUser) {
             existingUser.deck = newDeck;
             return;
         }
-        this.users.push(({ id: user.id, username: user.username, state: null, ready: false, socket: null, deck: newDeck }));
+        this.users.push(({
+            id: user.id,
+            username: user.username,
+            state: null,
+            ready: false,
+            socket: null,
+            deck: newDeck,
+        }));
     }
 
     private useDefaultDeck(user) {
@@ -54,22 +97,46 @@ export class Lobby {
 
     public addLobbyUser(user, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === user.id);
-        socket.registerEvent('startGame', () => this.onStartGame(user.id));
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
-        socket.registerEvent('updateDeck', (socket, ...args) => this.updateDeck(socket, ...args));
+        socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
         // maybe we neeed to be using socket.data
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
         } else {
-            this.users.push({ id: user.id, username: user.username, state: 'connected', ready: false, socket, deck: this.useDefaultDeck(user) });
+            this.users.push({
+                id: user.id,
+                username: user.username,
+                state: 'connected',
+                ready: false, socket,
+                deck: this.useDefaultDeck(user),
+            });
         }
 
         if (this.game) {
             this.sendGameState(this.game);
         } else {
-            this.sendDeckInfo();
+            this.sendLobbyState();
         }
+    }
+
+    private setReadyStatus(socket: Socket, ...args) {
+        Contract.assertTrue(args.length === 1 && typeof args[0] === 'boolean', 'Ready status arguments aren\'t boolean or present');
+        const currentUser = this.users.find((u) => u.id === socket.user.id);
+        currentUser.ready = args[0];
+    }
+
+    private sendChatMessage(socket: Socket, ...args) {
+        // we need to get the player and message
+        Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
+        this.gameChat.addChatMessage(socket.user, args[0]);
+        this.sendLobbyState();
+    }
+
+    private changeDeck(socket: Socket, ...args) {
+        const activeUser = this.users.find((u) => u.id === socket.user.id);
+        Contract.assertTrue(args[0] !== null);
+        activeUser.deck = new Deck(args[0]);
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -115,32 +182,58 @@ export class Lobby {
         }
 
         socket.user.deck = userDeck;
-        socket.send('deckData', socket.user.deck);
     }
 
     public setUserDisconnected(id: string): void {
-        this.users.find((u) => u.id === id).state = 'disconnected';
+        const user = this.users.find((u) => u.id === id);
+        if (user) {
+            user.state = 'disconnected';
+        }
+    }
+
+    public hasOngoingGame(): boolean {
+        return this.game !== undefined;
+    }
+
+    public setLobbyOwner(id: string): void {
+        this.lobbyOwnerId = id;
     }
 
     public getUserState(id: string): string {
-        return this.users.find((u) => u.id === id).state;
+        const user = this.users.find((u) => u.id === id);
+        return user ? user.state : null;
     }
 
-    public isLobbyFilled(): boolean {
+    public isFilled(): boolean {
         return this.users.length === 2;
     }
 
-    public removeLobbyUser(id: string): void {
+    public removeUser(id: string): void {
         this.users = this.users.filter((u) => u.id !== id);
+        this.sendLobbyState();
     }
 
-    public isLobbyEmpty(): boolean {
+    public isEmpty(): boolean {
         return this.users.length === 0;
     }
 
     public cleanLobby(): void {
         this.game = null;
         this.users = [];
+    }
+
+    private async fetchPlayableCardTitles(): Promise<string[]> {
+        try {
+            const response = await fetch('https://karabast-assets.s3.amazonaws.com/data/_playableCardTitles.json');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data as string[];
+        } catch (error) {
+            console.error('Error fetching _playableCardTitles.json', error);
+            throw error;
+        }
     }
 
     private async fetchCard(cardName: string): Promise<any> {
@@ -157,6 +250,10 @@ export class Lobby {
         }
     }
 
+    public async setPlayableCardTitles(): Promise<void> {
+        this.playableCardTitles = await this.fetchPlayableCardTitles();
+    }
+
     public async setTokens(): Promise<void> {
         const cardData = {
             battleDroid: (await this.fetchCard('battle-droid.json'))[0],
@@ -168,54 +265,61 @@ export class Lobby {
     }
 
     // example method to demonstrate the use of the test game setup utility
-    private checkLoadTestGame() {
-        if (!fs.existsSync('../../test')) {
+    public startTestGame(filename: string): void {
+        const testDirPath = path.resolve(__dirname, '../../test');
+        const testJSONPath = path.resolve(__dirname, `../../test/gameSetups/${filename}`);
+        if (!fs.existsSync(testDirPath) || !fs.existsSync(testJSONPath)) {
             return null;
         }
 
+        const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
+
+        const gameSetupPath = path.resolve(__dirname, '../../test/helpers/GameStateSetup.js');
         // eslint-disable-next-line
-        const game: Game = require('../../test/helpers/GameStateSetup.js').setUpTestGame({
-            phase: 'action',
-            player1: {
-                hand: ['tactical-advantage'],
-                groundArena: ['pyke-sentinel']
-            },
-            player2: {
-                groundArena: ['wampa']
-            },
-            autoSingleTarget: false
-        },
-        {},
-        { id: '111', username: 'player1' },
-        { id: '222', username: 'player2' }
+        const game: Game = require(gameSetupPath).setUpTestGame(
+            setupData,
+            {},
+            { id: 'exe66', username: 'Order66' },
+            { id: 'th3w4y', username: 'ThisIsTheWay' }
         );
 
-        return game;
+        this.game = game;
     }
 
-    private onStartGame(id: string): void {
+    private onStartGame(): void {
+        // TODO Change this to actual new GameSettings when we get to that point.
+        defaultGameSettings.players[0].user.id = this.users[0].id;
+        defaultGameSettings.players[0].user.username = this.users[0].username;
+
+        defaultGameSettings.players[1].user.id = this.users[1].id;
+        defaultGameSettings.players[1].user.username = this.users[1].username;
+        defaultGameSettings.playableCardTitles = this.playableCardTitles;
+
         const game = new Game(defaultGameSettings, { router: this });
         this.game = game;
-        const existingUser = this.users.find((u) => u.id === id);
-        const opponent = this.users.find((u) => u.id !== id);
         game.started = true;
-        // for (const player of Object.values<Player>(pendingGame.players)) {
-        //     game.selectDeck(player.name, player.deck);
-        // }
-
-        // fetch deck for existing user otherwise set default
-        if (existingUser.deck) {
-            game.selectDeck(id, existingUser.deck.data);
-        }
-
-        if (opponent.deck) {
-            game.selectDeck(opponent.id, opponent.deck.data);
-        }
+        // For each user, if they have a deck, select it in the game
+        this.users.forEach((user) => {
+            if (user.deck) {
+                game.selectDeck(user.id, user.deck.data);
+            }
+        });
 
         game.initialiseTokens(this.tokens);
         game.initialise();
 
         this.sendGameState(game);
+    }
+
+    private onLobbyMessage(socket: Socket, command: string, ...args): void {
+        if (!this[command] || typeof this[command] !== 'function') {
+            throw new Error(`Incorrect command or command format expected function but got: ${command}`);
+        }
+
+        this.runLobbyFuncAndCatchErrors(() => {
+            this[command](socket, ...args);
+            this.sendLobbyState();
+        });
     }
 
     private onGameMessage(socket: Socket, command: string, ...args): void {
@@ -246,8 +350,17 @@ export class Lobby {
             func();
         } catch (e) {
             this.handleError(game, e);
+            this.sendGameState(game);
+        }
+    }
 
-            // this.sendGameState(game);
+    // might just use the top function at some point?
+    private runLobbyFuncAndCatchErrors(func: () => void) {
+        try {
+            func();
+        } catch (e) {
+            logger.error(e);
+            this.sendLobbyState();
         }
     }
 
@@ -290,12 +403,10 @@ export class Lobby {
         }
     }
 
-    public sendDeckInfo(): void {
+    public sendLobbyState(): void {
         for (const user of this.users) {
-            if (user.state === 'connected' && user.socket && user.deck) {
-                user.socket.send('deckData', user.deck.data);
-            } else if (user.state === 'connected' && user.socket) {
-                user.socket.send('deckData', defaultGameSettings.players[0].deck);
+            if (user.state === 'connected' && user.socket) {
+                user.socket.send('lobbystate', this.getLobbyState());
             }
         }
     }

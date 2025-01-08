@@ -33,8 +33,13 @@ describe('Han Solo, Worth the Risk', function () {
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickCard(context.vanguardInfantry);
 
-                // TODO FIX TRIGGER WINDOW (YULAREN & VANGUARD INFANTRY SHOULD BE ON THE SAME WINDOW)
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Heal 1 damage from your base',
+                    'Give an Experience token to a unit'
+                ]);
+
                 // choose which unit to give an experience token (vanguard infantry when defeated ability)
+                context.player1.clickPrompt('Give an Experience token to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.colonelYularen]);
                 context.player1.clickCard(context.cantinaBraggart);
 
@@ -81,8 +86,13 @@ describe('Han Solo, Worth the Risk', function () {
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickCard(context.vanguardInfantry);
 
-                // TODO FIX TRIGGER WINDOW (YULAREN & VANGUARD INFANTRY SHOULD BE ON THE SAME WINDOW)
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Heal 1 damage from your base',
+                    'Give an Experience token to a unit'
+                ]);
+
                 // choose which unit to give an experience token (vanguard infantry when defeated ability)
+                context.player1.clickPrompt('Give an Experience token to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.colonelYularen, context.hanSolo]);
                 context.player1.clickCard(context.hanSolo);
 

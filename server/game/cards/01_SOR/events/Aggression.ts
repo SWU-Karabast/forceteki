@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
-import { UnitCard } from '../../../core/card/CardTypes';
+import type { UnitCard } from '../../../core/card/CardTypes';
 
 export default class Aggression extends EventCard {
     protected override getImplementationId() {

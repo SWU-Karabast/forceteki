@@ -1,6 +1,6 @@
-import { IDropdownListTargetResolver } from '../../../TargetInterfaces';
-import PlayerOrCardAbility from '../PlayerOrCardAbility';
-import { AbilityContext } from '../AbilityContext';
+import type { IDropdownListTargetResolver } from '../../../TargetInterfaces';
+import type PlayerOrCardAbility from '../PlayerOrCardAbility';
+import type { AbilityContext } from '../AbilityContext';
 import { TargetResolver } from './TargetResolver';
 import { SelectChoice } from './SelectChoice';
 import type Player from '../../Player';

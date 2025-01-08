@@ -1,8 +1,7 @@
-import AbilityHelper from '../../AbilityHelper';
 import { GameObject } from '../GameObject.js';
 
 import { Duration, WildcardZoneName } from '../Constants.js';
-import { OngoingEffect } from './OngoingEffect';
+import type { OngoingEffect } from './OngoingEffect';
 
 // This class is inherited by Card and also represents Framework effects
 
@@ -15,7 +14,7 @@ export class OngoingEffectSource extends GameObject {
      * Applies an effect which persists.
      */
     public persistent(propertyFactory) {
-        const properties = propertyFactory(AbilityHelper);
+        const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.Persistent, zoneFilter: WildcardZoneName.Any }, properties));
     }
 
@@ -23,7 +22,7 @@ export class OngoingEffectSource extends GameObject {
      * Applies an effect which lasts until the end of the attack.
      */
     public untilEndOfAttack(propertyFactory) {
-        const properties = propertyFactory(AbilityHelper);
+        const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfAttack, zoneFilter: WildcardZoneName.Any }, properties));
     }
 
@@ -31,7 +30,7 @@ export class OngoingEffectSource extends GameObject {
      * Applies an effect which lasts until the end of the phase.
      */
     public untilEndOfPhase(propertyFactory) {
-        const properties = propertyFactory(AbilityHelper);
+        const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfPhase, zoneFilter: WildcardZoneName.Any }, properties));
     }
 
@@ -39,7 +38,7 @@ export class OngoingEffectSource extends GameObject {
      * Applies an effect which lasts until the end of the round.
      */
     public untilEndOfRound(propertyFactory) {
-        const properties = propertyFactory(AbilityHelper);
+        const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.UntilEndOfRound, zoneFilter: WildcardZoneName.Any }, properties));
     }
 
@@ -47,7 +46,7 @@ export class OngoingEffectSource extends GameObject {
      * Applies a 'lasting effect' (SWU 7.7.3) which lasts until an event contained in the `until` property for the effect has occurred.
      */
     public lastingEffect(propertyFactory) {
-        const properties = propertyFactory(AbilityHelper);
+        const properties = propertyFactory();
         this.addEffectToEngine(Object.assign({ duration: Duration.Custom, zoneFilter: WildcardZoneName.Any }, properties));
     }
 

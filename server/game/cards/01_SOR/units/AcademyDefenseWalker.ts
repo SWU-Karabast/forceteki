@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardZoneName } from '../../../core/Constants';
-import { UnitCard } from '../../../core/card/CardTypes';
+import type { UnitCard } from '../../../core/card/CardTypes';
 
 export default class AcademyDefenseWalker extends NonLeaderUnitCard {
     protected override getImplementationId() {

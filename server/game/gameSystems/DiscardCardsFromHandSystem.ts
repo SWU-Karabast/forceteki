@@ -1,12 +1,15 @@
-import { CardTypeFilter, EventName, GameStateChangeRequired, ZoneName, RelativePlayer, TargetMode, WildcardCardType } from '../core/Constants';
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { CardTypeFilter } from '../core/Constants';
+import { EventName, GameStateChangeRequired, ZoneName, RelativePlayer, TargetMode, WildcardCardType } from '../core/Constants';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import type Player from '../core/Player';
-import { IPlayerTargetSystemProperties, PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import { Card } from '../core/card/Card';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import type { Card } from '../core/card/Card';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers';
-import { Derivable, derive } from '../core/utils/Helpers';
+import type { Derivable } from '../core/utils/Helpers';
+import { derive } from '../core/utils/Helpers';
 import * as Contract from '../core/utils/Contract';
 
 export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProperties {
@@ -75,7 +78,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
 
             const amount = Math.min(availableHand.length, derive(properties.amount, player));
             if (amount === 0) {
-                events.push(this.generateEvent(context, additionalProperties));
+                // No event generated here as no discard occured
                 continue;
             }
 

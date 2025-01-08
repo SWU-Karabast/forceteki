@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { CardType, KeywordName, RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { CardType, KeywordName, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class TopTarget extends UpgradeCard {
     protected override getImplementationId() {

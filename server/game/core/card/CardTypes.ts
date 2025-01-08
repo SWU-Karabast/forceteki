@@ -1,12 +1,11 @@
-import { BaseCard } from './BaseCard';
-import { InPlayCard } from './baseClasses/InPlayCard';
-import { Card } from './Card';
-import { EventCard } from './EventCard';
-import { LeaderCard } from './LeaderCard';
-import { LeaderUnitCard } from './LeaderUnitCard';
-import { NonLeaderUnitCard } from './NonLeaderUnitCard';
-import { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
-import { UpgradeCard } from './UpgradeCard';
+import type { BaseCard } from './BaseCard';
+import type { InPlayCard } from './baseClasses/InPlayCard';
+import type { EventCard } from './EventCard';
+import type { LeaderCard } from './LeaderCard';
+import type { LeaderUnitCard } from './LeaderUnitCard';
+import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
+import type { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
+import type { UpgradeCard } from './UpgradeCard';
 
 export type UnitCard =
   NonLeaderUnitCard |
@@ -37,6 +36,14 @@ export type CardWithPrintedPower =
   TokenUnitCard |
   UpgradeCard |
   TokenUpgradeCard;
+
+export type CardWithCost =
+  NonLeaderUnitCard |
+  LeaderUnitCard |
+  TokenUnitCard |
+  UpgradeCard |
+  TokenUpgradeCard |
+  EventCard;
 
 export type CardWithTriggeredAbilities = InPlayCard;
 export type CardWithConstantAbilities = InPlayCard;

@@ -1,6 +1,6 @@
-import { AbilityContext } from '../ability/AbilityContext';
-import CardAbilityStep from '../ability/CardAbilityStep';
+import type { AbilityContext } from '../ability/AbilityContext';
 import { AbilityType } from '../Constants';
+import { ReplacementEffectWindow } from '../gameSteps/abilityWindow/ReplacementEffectWindow';
 import { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
@@ -156,9 +156,7 @@ export class EventWindow extends BaseStepWithPipeline {
             return;
         }
 
-        // TODO EFFECTS: will need resolution for replacement effects here
-        // not sure if it will need a new window class or can just reuse the existing one
-        const replacementEffectWindow = new TriggeredAbilityWindow(this.game, AbilityType.ReplacementEffect, this);
+        const replacementEffectWindow = new ReplacementEffectWindow(this.game, this);
         replacementEffectWindow.emitEvents();
         this.queueStep(replacementEffectWindow);
     }

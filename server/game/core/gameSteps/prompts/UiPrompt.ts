@@ -2,8 +2,7 @@ import { v1 as uuid } from 'uuid';
 import type Player from '../../Player';
 import { BaseStep } from '../BaseStep';
 import * as Contract from '../../utils/Contract';
-import { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import { IStatefulPromptResults } from '../PromptInterfaces';
+import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 
 export abstract class UiPrompt extends BaseStep {
     public completed = false;

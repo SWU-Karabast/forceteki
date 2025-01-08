@@ -1,11 +1,12 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
-import { UpgradeCard } from '../core/card/UpgradeCard';
-import { AbilityRestriction, CardTypeFilter, EventName, WildcardCardType } from '../core/Constants';
-import { CardTargetSystem, ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import type { UpgradeCard } from '../core/card/UpgradeCard';
+import type { CardTypeFilter } from '../core/Constants';
+import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constants';
+import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import * as Helpers from '../core/utils/Helpers';
 
 export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
     upgrade?: UpgradeCard;

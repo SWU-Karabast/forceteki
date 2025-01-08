@@ -5,7 +5,7 @@ import type { GameSystem } from '../gameSystem/GameSystem';
 import type { ISelectCardProperties } from '../../gameSystems/SelectCardSystem';
 import { randomItem } from '../utils/Helpers';
 import { GameSystemCost } from './GameSystemCost';
-import { GameEvent } from '../event/GameEvent';
+import type { GameEvent } from '../event/GameEvent';
 
 export class MetaActionCost<TContext extends AbilityContext = AbilityContext> extends GameSystemCost<TContext> implements ICost<TContext> {
     public constructor(
