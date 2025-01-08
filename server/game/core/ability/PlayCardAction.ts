@@ -32,6 +32,7 @@ export interface ISmuggleCardActionProperties extends IPlayCardActionPropertiesB
     playType: PlayType.Smuggle;
     smuggleResourceCost: number;
     smuggleAspects: Aspect[];
+    appendSmuggleToTitle?: boolean;
 }
 
 export type IPlayCardActionProperties = IStandardPlayActionProperties | ISmuggleCardActionProperties;
@@ -61,9 +62,11 @@ export abstract class PlayCardAction extends PlayerAction {
 
         let cost: number;
         let aspects: Aspect[];
+        let appendSmuggleToTitle: boolean = null;
         if (properties.playType === PlayType.Smuggle) {
             cost = properties.smuggleResourceCost;
             aspects = properties.smuggleAspects;
+            appendSmuggleToTitle = properties.appendSmuggleToTitle;
         } else {
             cost = card.cost;
             aspects = card.aspects;
@@ -75,7 +78,7 @@ export abstract class PlayCardAction extends PlayerAction {
 
         super(
             card,
-            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit),
+            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit, appendSmuggleToTitle),
             propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
@@ -88,12 +91,12 @@ export abstract class PlayCardAction extends PlayerAction {
         this.createdWithProperties = { ...properties };
     }
 
-    private static getTitle(title: string, playType: PlayType, withExploit: boolean = false): string {
+    private static getTitle(title: string, playType: PlayType, withExploit: boolean = false, appendToTitle: boolean = true): string {
         let updatedTitle = title;
 
         switch (playType) {
             case PlayType.Smuggle:
-                updatedTitle += ' with Smuggle';
+                updatedTitle += appendToTitle ? ' with Smuggle' : '';
                 break;
             case PlayType.PlayFromHand:
             case PlayType.PlayFromOutOfPlay:

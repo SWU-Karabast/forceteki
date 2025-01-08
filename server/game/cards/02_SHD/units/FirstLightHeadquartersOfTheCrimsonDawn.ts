@@ -44,7 +44,8 @@ class FirstLightSmuggleAction extends PlayUnitAction {
             playType: PlayType.Smuggle,
             smuggleAspects: [Aspect.Vigilance, Aspect.Villainy],
             smuggleResourceCost: 7,
-            additionalCosts: [damageCost]
+            additionalCosts: [damageCost],
+            appendSmuggleToTitle: false
         };
     }
 
