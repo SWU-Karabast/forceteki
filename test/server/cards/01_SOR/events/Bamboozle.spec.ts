@@ -86,6 +86,18 @@ describe('Bamboozle', function () {
 
             // no resource exhausted since the last action
             expect(context.player1.exhaustedResourceCount).toBe(2);
+
+            reset();
+
+            // alternate play mode should no longer be available since no cunning card in hand
+            context.player1.clickCard(context.bamboozle);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.sawGerrera]);
+            context.player1.clickCard(context.greenSquadronAwing);
+
+            expect(context.bamboozle).toBeInZone('discard');
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p1Base.damage).toBe(2);
+            expect(context.player1.exhaustedResourceCount).toBe(4);
         });
 
         it('Bamboozle\'s play modes should be available even if it is played by another card\'s effect', function () {
