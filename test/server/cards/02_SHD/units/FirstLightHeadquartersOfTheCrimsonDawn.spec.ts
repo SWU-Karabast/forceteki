@@ -129,4 +129,5 @@ describe('First Light, Headquarters of the Crimson Dawn', function() {
     });
 
     // TODO: test with tie phantom and confirm it can't be used to pay the damage cost
+    // TODO: test with General's Blade or Lando leader to confirm that cost adjusters apply correctly
 });
