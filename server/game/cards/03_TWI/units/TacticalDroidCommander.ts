@@ -21,7 +21,7 @@ export default class TacticalDroidCommander extends NonLeaderUnitCard {
                     event.card.hasSomeTrait(Trait.Separatist)
             },
             targetResolver: {
-                cardCondition: (card, context) => card.isUnit() && card.cost <= context.event.card.cost && card !== context.event.card,
+                cardCondition: (card, context) => card.isUnit() && card.cost <= context.event.card.cost,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }
         });

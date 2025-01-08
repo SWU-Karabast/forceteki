@@ -22,7 +22,7 @@ describe('Tactical Droid Commander', function() {
             // play Separatist unit, able to exhaust unit of same cost or less.
             context.player1.clickCard(context.providenceDestroyer);
             context.player1.clickPrompt('Play Providence Destroyer');
-            expect(context.player1).toBeAbleToSelectExactly([context.tacticalDroidCommander, context.battlefieldMarine, context.droidCommando, context.lukeSkywalker, context.ploKoon, context.battleDroid]);
+            expect(context.player1).toBeAbleToSelectExactly([context.tacticalDroidCommander, context.battlefieldMarine, context.droidCommando, context.lukeSkywalker, context.ploKoon, context.battleDroid, context.providenceDestroyer]);
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.battlefieldMarine.exhausted).toBeTrue();
 
