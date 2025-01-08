@@ -4,7 +4,8 @@ import http from 'http';
 import https from 'https';
 import express from 'express';
 import cors from 'cors';
-import socketio from 'socket.io';
+import type { Socket as IOSocket } from 'socket.io';
+import { Server as IOServer } from 'socket.io';
 import { v4 as uuid } from 'uuid';
 
 import { logger } from '../logger';
@@ -23,11 +24,18 @@ interface User {
 }
 
 /**
+ * Represents additional SocketData
+ */
+interface SocketData {
+    manualDisconnect?: boolean;
+}
+
+/**
  * Represents a player waiting in the queue.
  */
 interface QueuedPlayer {
     deck: Deck;
-    socket?: socketio.Socket;
+    socket?: IOSocket<any, any, any, SocketData>;
     user: User;
 }
 
@@ -37,7 +45,7 @@ export class GameServer {
     private protocol = 'https';
     private host = env.gameNodeHost;
     private queue: QueuedPlayer[] = [];
-    private io: socketio.Server;
+    private io: IOServer<any, any, any, SocketData>;
     private titleCardData: any;
     private shortCardData: any;
 
@@ -75,7 +83,7 @@ export class GameServer {
             ? 'https://tbd.com'
             : 'http://localhost:3000';
 
-        this.io = new socketio.Server(server, {
+        this.io = new IOServer<any, any, any, SocketData>(server, {
             perMessageDeflate: false,
             cors: {
                 origin: corsOrigin,
@@ -83,7 +91,13 @@ export class GameServer {
             }
         });
 
-        this.io.on('connection', (socket) => this.onConnection(socket));
+        this.io.on('connection', (socket: IOSocket<any, any, any, SocketData>) => {
+            this.onConnection(socket);
+            socket.on('manualDisconnect', () => {
+                socket.data.manualDisconnect = true;
+                socket.disconnect();
+            });
+        });
     }
 
     private setupAppRoutes(app: express.Application) {
@@ -275,7 +289,7 @@ export class GameServer {
             lobby.addLobbyUser(user, socket);
 
             socket.send('connectedUser', user.id);
-            socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
+            socket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
             return;
         }
 
@@ -301,7 +315,7 @@ export class GameServer {
                 lobby.addLobbyUser(newUser, socket);
                 this.userLobbyMap.set(newUser.id, lobby.id);
                 socket.send('connectedUser', newUser.id);
-                socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
+                socket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
                 return;
             }
 
@@ -315,9 +329,7 @@ export class GameServer {
             queuedPlayer.socket = ioSocket;
 
             // handle queue-specific events and add lobby disconnect
-            ioSocket.on('disconnect', (reason) => {
-                this.onSocketDisconnected(user.id, reason);
-            });
+            ioSocket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
 
             this.matchmakeQueuePlayers();
             return;
@@ -331,7 +343,7 @@ export class GameServer {
     /**
      * Put a user into the queue array.
      */
-    private enterQueue(user: any, deck: any, socket: socketio.Socket | null): boolean {
+    private enterQueue(user: any, deck: any, socket: IOSocket<any, any, any, SocketData> | null): boolean {
         // Quick check: if they're already in a lobby, no queue
         if (this.userLobbyMap.has(user.id)) {
             logger.info(`User ${user.id} already in a lobby, ignoring queue request.`);
@@ -376,11 +388,11 @@ export class GameServer {
             const socket2 = p2.socket ? new Socket(p2.socket) : null;
             if (socket1) {
                 lobby.addLobbyUser(p1.user, socket1);
-                socket1.on('disconnect', (_, reason) => this.onSocketDisconnected(p1.user.id, reason));
+                socket1.on('disconnect', () => this.onSocketDisconnected(p1.socket, p1.user.id));
             }
             if (socket2) {
                 lobby.addLobbyUser(p2.user, socket2);
-                socket2.on('disconnect', (_, reason) => this.onSocketDisconnected(p2.user.id, reason));
+                socket2.on('disconnect', () => this.onSocketDisconnected(p2.socket, p2.user.id));
             }
 
             // Save user => lobby mapping
@@ -390,6 +402,8 @@ export class GameServer {
             // If needed, set tokens async
             lobby.setTokens();
             lobby.setPlayableCardTitles();
+            // this needs to be here since we only send start game via the LobbyOwner.
+            lobby.setLobbyOwner(p1.user.id);
             lobby.sendLobbyState();
             logger.info(`Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
         }
@@ -402,38 +416,42 @@ export class GameServer {
         this.queue = this.queue.filter((q) => q.user.id !== userId);
     }
 
-    public onSocketDisconnected(id: string, reason: string) {
+    public onSocketDisconnected(socket: IOSocket<any, any, any, SocketData>, id: string) {
         if (!this.userLobbyMap.has(id)) {
             this.removeFromQueue(id);
             return;
         }
         const lobbyId = this.userLobbyMap.get(id);
         const lobby = this.lobbies.get(lobbyId);
-        if (reason === 'client namespace disconnect') {
+
+
+        const wasManualDisconnect = socket?.data?.manualDisconnect === true;
+        if (wasManualDisconnect) {
             this.userLobbyMap.delete(id);
             lobby.removeUser(id);
-        } else if (reason === 'ping timeout' || reason === 'transport close') {
-            lobby.setUserDisconnected(id);
-            setTimeout(() => {
-                // Check if the user is still disconnected after the timer
-                if (lobby.getUserState(id) === 'disconnected') {
-                    this.userLobbyMap.delete(id);
-                    lobby.removeUser(id);
-                    // Check if lobby is empty
-                    if (lobby.isEmpty()) {
-                        // Start the cleanup process
-                        lobby.cleanLobby();
-                        this.lobbies.delete(lobbyId);
-                    }
-                }
-            }, 30000);
+
+            // check if lobby is empty
+            if (lobby.isEmpty()) {
+                // cleanup process
+                lobby.cleanLobby();
+                this.lobbies.delete(lobbyId);
+            }
+            return;
         }
 
-        // check if lobby is empty
-        if (lobby.isEmpty()) {
-            // cleanup process
-            lobby.cleanLobby();
-            this.lobbies.delete(lobbyId);
-        }
+        lobby.setUserDisconnected(id);
+        setTimeout(() => {
+            // Check if the user is still disconnected after the timer
+            if (lobby.getUserState(id) === 'disconnected') {
+                this.userLobbyMap.delete(id);
+                lobby.removeUser(id);
+                // Check if lobby is empty
+                if (lobby.isEmpty()) {
+                    // Start the cleanup process
+                    lobby.cleanLobby();
+                    this.lobbies.delete(lobbyId);
+                }
+            }
+        }, 20000);
     }
 }
