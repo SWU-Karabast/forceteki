@@ -6,6 +6,7 @@ describe('Obi Wan\'s Aethersprite, This Is Why I Hate Flying', function () {
                 player1: {
                     hand: ['obiwans-aethersprite#this-is-why-i-hate-flying'],
                     spaceArena: ['corellian-freighter'],
+                    groundArena: ['battlefield-marine']
                 },
                 player2: {
                     spaceArena: ['green-squadron-awing', 'tieln-fighter'],

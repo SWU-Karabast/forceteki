@@ -1,3 +1,4 @@
+import { log } from 'console';
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType } from '../../../core/Constants';

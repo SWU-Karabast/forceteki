@@ -20,10 +20,10 @@ export default class PoggleTheLesserArchdukeOfTheStalgasinHive extends NonLeader
             },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
-            ifYouDo: () => ({
+            ifYouDo: {
                 title: 'Create a Battle Droid token',
                 immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
-            })
+            }
         });
     }
 }
