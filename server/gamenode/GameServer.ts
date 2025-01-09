@@ -400,6 +400,7 @@ export class GameServer {
             this.userLobbyMap.set(p2.user.id, lobby.id);
 
             // If needed, set tokens async
+            lobby.setLobbyOwner(p1.user.id);
             lobby.setTokens();
             lobby.setPlayableCardTitles();
             // this needs to be here since we only send start game via the LobbyOwner.
