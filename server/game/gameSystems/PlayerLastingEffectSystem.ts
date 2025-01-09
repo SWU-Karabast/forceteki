@@ -7,11 +7,11 @@ import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
 import type Player from '../core/Player';
 
-export interface IPlayerLastingEffectProperties extends ILastingEffectPropertiesBase {
+export type IPlayerLastingEffectProperties = ILastingEffectPropertiesBase & {
 
     /** Default is `RelativePlayer.Self` */
     targetPlayer?: RelativePlayer | Player;
-}
+};
 
 export class PlayerLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IPlayerLastingEffectProperties> {
     public override readonly name: string = 'applyPlayerLastingEffect';

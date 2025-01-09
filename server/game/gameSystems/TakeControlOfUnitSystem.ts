@@ -1,27 +1,27 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, GameStateChangeRequired, ZoneName, WildcardCardType, EventName } from '../core/Constants';
+import { GameStateChangeRequired, WildcardCardType, EventName } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type Player from '../core/Player';
 
-export interface ITakeControlProperties extends ICardTargetSystemProperties {
+export interface ITakeControlOfUnitProperties extends ICardTargetSystemProperties {
     newController: Player;
 }
 
 /**
  * Used for taking control of a unit in the arena
  */
-export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ITakeControlProperties = ITakeControlProperties> extends CardTargetSystem<TContext, TProperties> {
+export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ITakeControlOfUnitProperties> {
     public override readonly name = 'takeControl';
     public override readonly eventName = EventName.OnTakeControl;
-    protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit, CardType.Event, WildcardCardType.Upgrade];
+    protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit];
 
     public eventHandler(event): void {
         event.card.takeControl(event.newController);
     }
 
     public override canAffect(card: Card, context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        if (![ZoneName.Resource, ZoneName.SpaceArena, ZoneName.GroundArena].includes(card.zoneName)) {
+        if (!card.canBeInPlay() || !card.isInPlay()) {
             return false;
         }
 

@@ -29,7 +29,8 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (properties.checkTarget && context.choosingPlayerOverride) {
             context.costs[properties.innerSystem.name] = randomItem(
-                properties.selector.getAllLegalTargets(context, context.player)
+                properties.selector.getAllLegalTargets(context, context.player),
+                context.game.randomGenerator
             );
             context.costs[properties.innerSystem.name + 'StateWhenChosen'] =
                 context.costs[properties.innerSystem.name].createSnapshot();

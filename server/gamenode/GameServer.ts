@@ -130,6 +130,9 @@ export class GameServer {
             }
             return res.status(200).json({ success: true });
         });
+        app.get('/api/health', (_, res) => {
+            return res.status(200).json({ success: true });
+        });
     }
 
     private lobbiesWithOpenSeat() {
@@ -385,6 +388,7 @@ export class GameServer {
             this.userLobbyMap.set(p2.user.id, lobby.id);
 
             // If needed, set tokens async
+            lobby.setLobbyOwner(p1.user.id);
             lobby.setTokens();
             lobby.setPlayableCardTitles();
             lobby.sendLobbyState();

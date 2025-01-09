@@ -5,7 +5,7 @@ import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import type { IPlayCardActionProperties, IPlayCardActionPropertiesBase, ISmuggleCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
 import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import type { Aspect, MoveZoneDestination } from '../../Constants';
+import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
@@ -159,16 +159,6 @@ export class PlayableOrDeployableCard extends Card {
     public ready() {
         this.assertPropertyEnabled(this._exhausted, 'exhausted');
         this._exhausted = false;
-    }
-
-    public override moveTo(targetZone: MoveZoneDestination, resetController?: boolean): void {
-        // If this card is a resource and it is ready, try to ready another resource instead
-        // and exhaust this one. This should be the desired behavior for most cases.
-        if (this.zoneName === ZoneName.Resource && !this.exhausted) {
-            this.controller.swapResourceReadyState(this);
-        }
-
-        super.moveTo(targetZone, resetController);
     }
 
     public override canBeExhausted(): this is PlayableOrDeployableCard {
