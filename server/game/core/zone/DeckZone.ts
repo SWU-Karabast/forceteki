@@ -1,3 +1,4 @@
+import type seedrandom from 'seedrandom';
 import type { Card } from '../card/Card';
 import type { TokenOrPlayableCard } from '../card/CardTypes';
 import type { MoveZoneDestination } from '../Constants';
@@ -87,8 +88,8 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
         this.deck.splice(cardIdx, 1);
     }
 
-    public shuffle() {
-        this.deck = Helpers.shuffle(this.deck);
+    public shuffle(randomGenerator: seedrandom) {
+        this.deck = Helpers.shuffle(this.deck, randomGenerator);
     }
 
     protected override checkZoneMatches(card: Card, zone: MoveZoneDestination | null) {
