@@ -60,7 +60,7 @@ describe('Corner The Prey', function () {
                 expect(context.chewbacca.damage).toBe(3);
                 context.player2.passAction();
 
-                // Attacking a base should increase the power of the Battlefield Marine
+                // Attacking a base should not increase the power of the Battlefield Marine
                 context.player1.clickCard(cornerThePreys[1]);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
