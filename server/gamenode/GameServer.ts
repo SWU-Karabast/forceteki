@@ -337,7 +337,8 @@ export class GameServer {
 
         // A user should not get here
         ioSocket.disconnect();
-        throw new Error(`Error state when connecting to lobby/game ${ioSocket.request.user.username} disconnecting`);
+        // this can happen when someone tries to reconnect to the game but are out of the mapping TODO make a notification for the player
+        logger.info(`Error state when connecting to lobby/game ${user.id} disconnecting`);
     }
 
     /**
