@@ -45,12 +45,13 @@ describe('Corner The Prey', function () {
                     },
                     player2: {
                         groundArena: ['chewbacca#pykesbane'],
+                        base: { card: 'echo-base', damage: 6 },
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Attacking a unit with no damage shold not increase the power of the Consular Security Force
+                // Attacking a unit with no damage should not increase the power of the Consular Security Force
                 // and it should not crash
                 const cornerThePreys = context.player1.findCardsByName('corner-the-prey');
                 context.player1.clickCard(cornerThePreys[0]);
@@ -63,7 +64,7 @@ describe('Corner The Prey', function () {
                 context.player1.clickCard(cornerThePreys[1]);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.p2Base);
-                expect(context.p2Base.damage).toBe(3);
+                expect(context.p2Base.damage).toBe(9);
             });
         });
     });
