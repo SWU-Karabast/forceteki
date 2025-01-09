@@ -24,6 +24,8 @@ export class PlayUpgradeAction extends PlayCardAction {
     public override executeHandler(context: PlayCardContext) {
         Contract.assertTrue(context.source.isUpgrade());
 
+        super.logPlayCardEvent(context);
+
         const events = [
             new AttachUpgradeSystem({
                 upgrade: context.source,

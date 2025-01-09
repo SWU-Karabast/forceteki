@@ -111,6 +111,12 @@ export abstract class PlayCardAction extends PlayerAction {
 
     public abstract clone(overrideProperties: Partial<IPlayCardActionProperties>): PlayCardAction;
 
+    public logPlayCardEvent(context: any): void {
+        if (context.playType === PlayType.PlayFromHand) {
+            context.game.lastPlayedCard = context.source;
+        }
+    }
+
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
             !ignoredRequirements.includes('phase') &&

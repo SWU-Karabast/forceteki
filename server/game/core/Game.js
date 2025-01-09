@@ -73,6 +73,7 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
         this.randomGenerator = seedrandom();
+        this.lastPlayedCard = null;
 
         this.registerGlobalRulesListeners();
 
@@ -1351,6 +1352,7 @@ class Game extends EventEmitter {
                 players: playerState,
                 phase: this.currentPhase,
                 messages: this.gameChat.messages,
+                lastPlayedCard: this.lastPlayedCard?.cardData.setId,
                 spectators: this.getSpectators().map((spectator) => {
                     return {
                         id: spectator.id,
