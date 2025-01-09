@@ -1,3 +1,4 @@
+import type seedrandom from 'seedrandom';
 import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter } from '../Constants';
 import { CardType, ZoneName } from '../Constants';
@@ -5,17 +6,17 @@ import * as Contract from './Contract';
 import * as EnumHelpers from './EnumHelpers';
 
 /* Randomize array in-place using Durstenfeld shuffle algorithm */
-export function shuffleArray<T>(array: T[]): void {
+export function shuffleArray<T>(array: T[], randomGenerator: seedrandom): void {
     for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(randomGenerator() * (i + 1));
         const temp = array[i];
         array[i] = array[j];
         array[j] = temp;
     }
 }
 
-export function randomItem<T>(array: T[]): undefined | T {
-    const j = Math.floor(Math.random() * array.length);
+export function randomItem<T>(array: T[], randomGenerator: seedrandom): undefined | T {
+    const j = Math.floor(randomGenerator() * array.length);
     return array[j];
 }
 
@@ -36,10 +37,10 @@ export function countUniqueAspects(cards: Card | Card[]): number {
 
 // TODO: remove this
 /** @deprecated Use `shuffleArray` instead */
-export function shuffle<T>(array: T[]): T[] {
+export function shuffle<T>(array: T[], randomGenerator: seedrandom): T[] {
     const shuffleArray = [...array];
     for (let i = shuffleArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(randomGenerator() * (i + 1));
         [shuffleArray[i], shuffleArray[j]] = [shuffleArray[j], shuffleArray[i]];
     }
     return shuffleArray;
@@ -96,12 +97,12 @@ export function asArray<T>(val: T | T[]): T[] {
     return Array.isArray(val) ? val : [val];
 }
 
-export function getRandomArrayElements(array: any[], nValues: number) {
+export function getRandomArrayElements(array: any[], nValues: number, randomGenerator: seedrandom) {
     Contract.assertTrue(nValues <= array.length, `Attempting to retrieve ${nValues} random elements from an array of length ${array.length}`);
 
     const chosenItems = [];
     for (let i = 0; i < nValues; i++) {
-        const index = Math.floor(Math.random() * array.length);
+        const index = Math.floor(randomGenerator() * array.length);
         const choice = array.splice(index, 1)[0];
 
         chosenItems.push(choice);
