@@ -14,6 +14,7 @@ export interface IButton {
 export interface IDisplayCard {
     cardUuid: string;
     setId: ISetId;
+    internalName: string;
     canBeSelected: boolean;
     displayText?: string;
 }

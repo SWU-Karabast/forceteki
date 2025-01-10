@@ -1,17 +1,20 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
+import { GameStateChangeRequired } from '../core/Constants';
 import { EventName, DeckZoneDestination } from '../core/Constants';
 import { LookAtSystem } from './LookAtSystem';
 import { MoveCardSystem } from './MoveCardSystem';
 import * as Contract from '../core/utils/Contract';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import type Player from '../core/Player';
 
-export interface ILookMoveDeckCardsTopOrBottomProperties extends ICardTargetSystemProperties {
+export interface ILookMoveDeckCardsTopOrBottomProperties extends IPlayerTargetSystemProperties {
     amount: number;
 }
 
-export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ILookMoveDeckCardsTopOrBottomProperties> {
+export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ILookMoveDeckCardsTopOrBottomProperties> {
     public override readonly name = 'lookMoveDeckCardsTopOrBottomSystem';
     protected override readonly eventName = EventName.OnLookMoveDeckCardsTopOrBottom;
 
@@ -47,6 +50,32 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
                 }
             });
         }
+    }
+
+    public override defaultTargets(context: TContext): Player[] {
+        return [context.player];
+    }
+
+    public override canAffect(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
+        let nonAraTarget: Player;
+
+        if (Array.isArray(target)) {
+            if (target.length > 1) {
+                throw new Error('Support for multiple players in LookMoveDeckCardsTopOrBottomSystem not implemented yet');
+            }
+
+            Contract.assertTrue(target.length === 1);
+
+            nonAraTarget = target[0];
+        } else {
+            nonAraTarget = target;
+        }
+
+        if (mustChangeGameState !== GameStateChangeRequired.None && nonAraTarget.drawDeck.length === 0) {
+            return false;
+        }
+
+        return super.canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
     // Helper method for pushing the move card event into the events array.

@@ -33,6 +33,7 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
         return this.displayCards.map((card) => ({
             cardUuid: card.uuid,
             setId: card.setId,
+            internalName: card.internalName,
             canBeSelected: true
         }));
     }
