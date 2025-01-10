@@ -38,11 +38,6 @@ const { AllArenasZone } = require('./zone/AllArenasZone.js');
 const EnumHelpers = require('./utils/EnumHelpers.js');
 const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
 
-/**
- * @typedef {import('../Interfaces').IClientUIProperties} IClientUIProperties
- * @property {{set: string; number: number} | undefined} [lastPlayedCard] - the last card played from hand by a player
- */
-
 class Game extends EventEmitter {
     constructor(details, options = {}) {
         super();
@@ -79,7 +74,7 @@ class Game extends EventEmitter {
         this.movedCards = [];
         this.randomGenerator = seedrandom();
 
-        /** @type {IClientUIProperties} */
+        /** @type {import('../Interfaces').IClientUIProperties} */
         this.clientUIProperties = {};
 
         this.registerGlobalRulesListeners();
