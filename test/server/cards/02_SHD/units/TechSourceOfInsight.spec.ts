@@ -4,8 +4,9 @@ describe('Tech, Source of Insight', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    leader: 'hera-syndulla#spectre-two',
+                    leader: { card: 'boba-fett#daimyo', deployed: true },
                     base: 'tarkintown',
+                    groundArena: ['bendu#the-one-in-the-middle', 'death-trooper'],
                     resources: [
                         'tech#source-of-insight',
                         'wampa',
@@ -33,6 +34,9 @@ describe('Tech, Source of Insight', function () {
 
             // smuggle Tech into play
             context.player1.clickCard(context.tech);
+
+            // check that arena units haven't gained the Smuggle keyword by checking for the Boba buff
+            expect(context.deathTrooper.getPower()).toBe(3);
 
             reset();
 
@@ -73,10 +77,23 @@ describe('Tech, Source of Insight', function () {
 
             // test smuggle with upgrade
             context.player1.clickCard(context.resilient);
-            expect(context.player1).toBeAbleToSelectExactly([context.tech, context.wampa, context.collectionsStarhopper]);
+            expect(context.player1).toBeAbleToSelectExactly(
+                [context.tech, context.wampa, context.collectionsStarhopper, context.bendu, context.bobaFett, context.deathTrooper]
+            );
             context.player1.clickCard(context.collectionsStarhopper);
             expect(context.collectionsStarhopper).toHaveExactUpgradeNames(['resilient']);
             expect(context.player1.resources.length).toBe(7);
+
+            reset();
+
+            // confirm that cost adjusters still work
+            context.player1.clickCard(context.bendu);
+            context.player1.clickCard(context.p2Base);
+            context.player2.passAction();
+
+            context.player1.clickCard(context.mercenaryCompany);
+            expect(context.mercenaryCompany).toBeInZone('groundArena');
+            expect(context.player1.exhaustedResourceCount).toBe(6);
         });
 
 
