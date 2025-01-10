@@ -34,53 +34,58 @@ describe('Clear the Field\'s ability', function () {
             expect(context.duchesssChampion).toBeInZone('groundArena');
             expect(context.yoda).toBeInZone('groundArena');
         });
-        fit('should make unit only return to hand and token go out of combat', function () {
+        it('should only make unit return to hand and tokens go out of combat instead', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
                     hand: ['clear-the-field'],
-                    leader: { card: 'jyn-erso#resisting-oppression', deployed: true },
-                    groundArena: ['battle-droid', 'jyn-erso#stardust']
+                    leader: { card: 'bokatan-kryze#princess-in-exile', deployed: true },
+                    groundArena: ['battle-droid', 'bokatan-kryze#fighting-for-mandalore', 'bokatan-kryze#death-watch-lieutenant']
                 },
                 player2: {
                     hand: ['clear-the-field'],
-                    leader: { card: 'jyn-erso#resisting-oppression', deployed: true },
-                    groundArena: ['jyn-erso#stardust', 'battle-droid'],
+                    leader: { card: 'bokatan-kryze#princess-in-exile', deployed: true },
+                    groundArena: ['bokatan-kryze#fighting-for-mandalore', 'bokatan-kryze#death-watch-lieutenant', 'battle-droid'],
                 },
             });
             const { context } = contextRef;
 
             // Player 1
-            const jynLeaderP1 = context.player1.findCardByName('jyn-erso#resisting-oppression');
-            const jynUnitP1 = context.player1.findCardByName('jyn-erso#stardust');
+            const bokatanLeaderP1 = context.player1.findCardByName('bokatan-kryze#princess-in-exile');
+            const bokatanMandaloreP1 = context.player1.findCardByName('bokatan-kryze#fighting-for-mandalore');
+            const bokatanDeathWatchP1 = context.player1.findCardByName('bokatan-kryze#death-watch-lieutenant');
             const clearTheFieldP1 = context.player1.findCardByName('clear-the-field');
             const droidToken1 = context.player1.findCardByName('battle-droid');
             // Player 2
-            const jynLeaderP2 = context.player2.findCardByName('jyn-erso#resisting-oppression');
-            const jynUnitP2 = context.player2.findCardByName('jyn-erso#stardust');
+            const bokatanLeaderP2 = context.player2.findCardByName('bokatan-kryze#princess-in-exile');
+            const bokatanMandaloreP2 = context.player2.findCardByName('bokatan-kryze#fighting-for-mandalore');
+            const bokatanDeathWatchP2 = context.player2.findCardByName('bokatan-kryze#death-watch-lieutenant');
             const clearTheFieldP2 = context.player2.findCardByName('clear-the-field');
             const droidToken2 = context.player2.findCardByName('battle-droid');
 
             // Case 1: Targeting a unit card doesn't return the deployed leader with same name
             context.player1.clickCard(clearTheFieldP1);
-            expect(context.player1).toBeAbleToSelectExactly([jynUnitP1, jynUnitP2, droidToken1, droidToken2]);
-            context.player1.clickCard(jynUnitP1);
+            expect(context.player1).toBeAbleToSelectExactly([bokatanMandaloreP1, bokatanDeathWatchP1, bokatanMandaloreP2, bokatanDeathWatchP2, droidToken1, droidToken2]);
+            context.player1.clickCard(bokatanMandaloreP1);
             expect(context.player2).toBeActivePlayer();
 
-            expect(jynLeaderP1).toBeInZone('groundArena', context.player1);
+            expect(bokatanLeaderP1).toBeInZone('groundArena', context.player1);
             // Check that if the target is an ally unit, return to hand as well
-            expect(jynUnitP1).toBeInZone('hand', context.player1);
+            expect(bokatanMandaloreP1).toBeInZone('hand', context.player1);
+            // Check that only the target ally goes back to hand and not all matching cards
+            expect(bokatanDeathWatchP1).toBeInZone('groundArena', context.player1);
             expect(droidToken1).toBeInZone('groundArena', context.player1);
 
-            expect(jynLeaderP2).toBeInZone('groundArena', context.player2);
-            expect(jynUnitP2).toBeInZone('hand', context.player2);
+            expect(bokatanLeaderP2).toBeInZone('groundArena', context.player2);
+            expect(bokatanDeathWatchP2).toBeInZone('hand', context.player2);
+            expect(bokatanMandaloreP2).toBeInZone('hand', context.player2);
             expect(droidToken2).toBeInZone('groundArena', context.player2);
 
             // Case 2: Targeting a token, will make it leave the game and not go to hand
             context.player2.clickCard(clearTheFieldP2);
-            expect(context.player2).toBeAbleToSelectExactly([droidToken1, droidToken2]);
+            expect(context.player2).toBeAbleToSelectExactly([droidToken1, droidToken2, bokatanDeathWatchP1]);
 
-            context.player2.clickCard(droidToken1);
+            context.player2.clickCard(droidToken2);
             expect(context.player1).toBeActivePlayer();
 
             expect(droidToken1).toBeInZone('outsideTheGame');
