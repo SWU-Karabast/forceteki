@@ -78,9 +78,8 @@ describe('First Light, Headquarters of the Crimson Dawn', function() {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    leader: { card: 'jyn-erso#resisting-oppression', deployed: true, damage: 2 },
+                    leader: { card: 'jyn-erso#resisting-oppression', deployed: true },
                     base: 'echo-base',
-                    groundArena: ['wampa'],
                     // 11 total resources
                     resources: [
                         'first-light#headquarters-of-the-crimson-dawn', 'atst', 'atst', 'atst',
@@ -92,15 +91,15 @@ describe('First Light, Headquarters of the Crimson Dawn', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.firstLight);
-            expect(context.player1).toBeAbleToSelectExactly(context.wampa);
-            context.player1.clickCard(context.wampa);
+            expect(context.player1).toBeAbleToSelectExactly(context.jynErso);
+            context.player1.clickCard(context.jynErso);
 
             expect(context.firstLight).toBeInZone('spaceArena');
-            expect(context.wampa.damage).toBe(4);
+            expect(context.jynErso.damage).toBe(4);
             expect(context.player1.exhaustedResourceCount).toBe(11);
 
             // confirm that leader unit doesn't get grit
-            expect(context.jynErso.damage).toBe(4);
+            expect(context.jynErso.getPower()).toBe(4);
         });
 
         it('First Light\'s Smuggle ability will appear as an alternative to a gained Smuggle ability', function() {
