@@ -1,29 +1,28 @@
 describe('Senatorial Corvette', function() {
     integration(function(contextRef) {
-        describe('Senatorial Corvette\'s When Defeated ability', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        spaceArena: ['senatorial-corvette'],
-                    },
-                    player2: {
-                        hand: ['wampa'],
-                        spaceArena: ['ruthless-raider'],
-                    },
-                    autoSingleTarget: true
-                });
+        it('should discard a card from opponents hand', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['wampa'],
+                    spaceArena: ['senatorial-corvette'],
+                },
+                player2: {
+                    hand: ['atst'],
+                    spaceArena: ['ruthless-raider'],
+                }
             });
 
-            it('should discard a card from opponents hand', function () {
-                const { context } = contextRef;
+            const { context } = contextRef;
 
-                context.player1.clickCard(context.senatorialCorvette);
-                context.player1.clickCard(context.ruthlessRaider);
+            context.player1.clickCard(context.senatorialCorvette);
+            context.player1.clickCard(context.ruthlessRaider);
+            context.player2.clickCard(context.atst);
 
-                expect(context.player2.handSize).toBe(0);
-                expect(context.wampa).toBeInZone('discard');
-            });
+            expect(context.player2.handSize).toBe(0);
+            expect(context.atst).toBeInZone('discard');
+            expect(context.player1.handSize).toBe(1);
+            expect(context.wampa).toBeInZone('hand');
         });
     });
 });
