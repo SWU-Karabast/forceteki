@@ -22,8 +22,6 @@ export class PlayUnitAction extends PlayCardAction {
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isUnit());
 
-        super.logPlayCardEvent(context);
-
         context.game.addMessage(
             '{0} plays {1}',
             context.player,

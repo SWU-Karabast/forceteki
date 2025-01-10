@@ -114,12 +114,6 @@ export abstract class PlayCardAction extends PlayerAction {
 
     public abstract clone(overrideProperties: Partial<IPlayCardActionProperties>): PlayCardAction;
 
-    public logPlayCardEvent(context: any): void {
-        if (context.playType === PlayType.PlayFromHand) {
-            context.game.lastPlayedCard = context.source;
-        }
-    }
-
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (
             !ignoredRequirements.includes('phase') &&
@@ -186,6 +180,13 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     protected generateOnPlayEvent(context: PlayCardContext, additionalProps: any = {}) {
+        const handler = () => {
+            this.logPlayCardEvent(context);
+            if (additionalProps.handler) {
+                additionalProps.handler();
+            }
+        };
+
         return new GameEvent(EventName.OnCardPlayed, context, {
             player: context.player,
             card: context.source,
@@ -195,7 +196,14 @@ export abstract class PlayCardAction extends PlayerAction {
             onPlayCardSource: context.onPlayCardSource,
             playType: context.playType,
             costs: context.costs,
-            ...additionalProps
+            ...additionalProps,
+            handler
         });
+    }
+
+    private logPlayCardEvent(context: any): void {
+        if (context.playType === PlayType.PlayFromHand) {
+            context.game.lastPlayedCard = context.source;
+        }
     }
 }
