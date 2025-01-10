@@ -6,7 +6,7 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
 import type { GameEvent } from '../core/event/GameEvent';
-import type { IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults, StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
+import type { DistributePromptType, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults } from '../core/gameSteps/PromptInterfaces';
 import type { DamageSystem } from './DamageSystem';
 import type { HealSystem } from './HealSystem';
 import * as Contract from '../core/utils/Contract';
@@ -44,7 +44,7 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
         maxTargets: null,
     };
 
-    public abstract promptType: StatefulPromptType;
+    public abstract promptType: DistributePromptType;
     protected abstract generateEffectSystem(target?: Card, amount?: number): DamageSystem | HealSystem | GiveExperienceSystem;
     protected abstract canDistributeLessDefault(): boolean;
 

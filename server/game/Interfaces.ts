@@ -214,9 +214,9 @@ export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbi
     thenCondition?: (context?: TContext) => boolean;
 };
 
-export interface IButton {
-    text: string;
-    arg: string;
+export interface ISetId {
+    set: string;
+    number: number;
 }
 
 // ********************************************** INTERNAL TYPES **********************************************

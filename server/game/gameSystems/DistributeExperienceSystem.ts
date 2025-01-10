@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { MetaEventName } from '../core/Constants';
+import type { DistributePromptType } from '../core/gameSteps/PromptInterfaces';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
 import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
@@ -16,7 +17,7 @@ export class DistributeExperienceSystem<TContext extends AbilityContext = Abilit
     protected override readonly eventName = MetaEventName.DistributeExperience;
     public override readonly name = 'distributeExperience';
 
-    public override promptType = StatefulPromptType.DistributeExperience;
+    public override promptType: DistributePromptType = StatefulPromptType.DistributeExperience;
 
     protected override generateEffectSystem(target: Card = null, amount = 1): GiveExperienceSystem {
         return new GiveExperienceSystem({ target, amount });

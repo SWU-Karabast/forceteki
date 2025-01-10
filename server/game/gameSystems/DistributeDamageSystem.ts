@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { DamageType, MetaEventName } from '../core/Constants';
+import type { DistributePromptType } from '../core/gameSteps/PromptInterfaces';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
 import { DamageSystem } from './DamageSystem';
 import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
@@ -17,7 +18,7 @@ export class DistributeDamageSystem<TContext extends AbilityContext = AbilityCon
     protected override readonly eventName = MetaEventName.DistributeDamage;
     public override readonly name = 'distributeDamage';
 
-    public override promptType = StatefulPromptType.DistributeDamage;
+    public override promptType: DistributePromptType = StatefulPromptType.DistributeDamage;
 
     protected override generateEffectSystem(target: Card = null, amount = 1): DamageSystem | HealSystem {
         return new DamageSystem({ type: DamageType.Ability, target, amount });

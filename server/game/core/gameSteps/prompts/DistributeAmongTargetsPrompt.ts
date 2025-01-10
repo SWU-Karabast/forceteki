@@ -2,7 +2,7 @@ import type Game from '../../Game';
 import type Player from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
-import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IStatefulPromptResults } from '../PromptInterfaces';
+import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults, IStatefulPromptResults } from '../PromptInterfaces';
 import { StatefulPromptType } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
@@ -44,6 +44,7 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             default:
                 Contract.fail(`Unknown prompt type: ${this.properties.type}`);
         }
+
         let menuTitle = null;
         if (this.properties.maxTargets) {
             menuTitle = this.properties.maxTargets > 1
@@ -62,7 +63,7 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             menuTitle,
             promptTitle: this.properties.promptTitle || (this.properties.source ? this.properties.source.name : undefined),
             distributeAmongTargets: promptData,
-            buttons: this.properties.canChooseNoTargets ? [{ text: 'Choose no targets', arg: 'noTargets' }] : null,
+            buttons: this.properties.canChooseNoTargets ? [{ text: 'Choose no targets', arg: 'noTargets' }] : [],
             promptUuid: this.uuid
         };
     }
@@ -109,8 +110,8 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         return true;
     }
 
-    private assertPromptResultsValid(player: Player, results: IStatefulPromptResults) {
-        Contract.assertEqual(results.type, this.properties.type, `Unexpected prompt results type, expected '${this.properties.type}' but received result of type '${results.type}'`);
+    private assertPromptResultsValid(player: Player, results: IStatefulPromptResults): asserts results is IDistributeAmongTargetsPromptResults {
+        Contract.assertTrue(results.type === this.properties.type, `Unexpected prompt results type, expected '${this.properties.type}' but received result of type '${results.type}'`);
 
         const distributedValues = Array.from(results.valueDistribution.values());
         const distributedSum = distributedValues.reduce((sum, curr) => sum + curr, 0);

@@ -1,13 +1,12 @@
-import type { IButton } from '../../../Interfaces';
 import { AbilityContext } from '../../ability/AbilityContext';
 import type { Card } from '../../card/Card';
 import type BaseCardSelector from '../../cardSelector/BaseCardSelector';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import type Game from '../../Game';
-import type { GameSystem } from '../../gameSystem/GameSystem';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
+import type { ISelectCardPromptProperties } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 /**
@@ -55,31 +54,13 @@ import { UiPrompt } from './UiPrompt';
  *                      the order of the selection during the prompt.
  * mustSelect         - an array of cards which must be selected
  */
-export interface ISelectCardPromptProperties {
-    activePromptTitle?: string;
-    availableCards?: Card[];
-    buttons?: IButton[];
-    cardCondition?: (card: Card, context?: AbilityContext) => boolean;
-    context?: AbilityContext;
-    hideIfNoLegalTargets?: boolean;
-    immediateEffect?: GameSystem;
-    mustSelect?: Card[];
-    onCancel: (player: Player) => boolean;
-    onMenuCommand: (player: Player, arg: string) => boolean;
-    onSelect?: (player: Player, card: any) => boolean;
-    selectCard?: boolean;
-    selectOrder?: boolean;
-    selector?: BaseCardSelector;
-    source?: string | OngoingEffectSource;
-    waitingPromptTitle?: string;
-}
-
 export class SelectCardPrompt extends UiPrompt {
     private readonly cannotUnselectMustSelect: boolean = false;
     private readonly choosingPlayer: Player;
     private readonly context: AbilityContext;
     private readonly hideIfNoLegalTargets: boolean;
     private readonly onlyMustSelectMayBeChosen: boolean = false;
+    private readonly promptTitle: string;
     private readonly properties: ISelectCardPromptProperties;
     private readonly selector: BaseCardSelector;
     private readonly source: OngoingEffectSource;
@@ -97,11 +78,8 @@ export class SelectCardPrompt extends UiPrompt {
             properties.source = properties.context.source;
         }
 
-        if (properties.source && !properties.waitingPromptTitle) {
+        if (!properties.waitingPromptTitle) {
             properties.waitingPromptTitle = 'Waiting for opponent to use ' + properties.source.name;
-        }
-        if (!properties.source) {
-            properties.source = new OngoingEffectSource(game);
         }
 
         this.source = properties.source;
@@ -129,32 +107,22 @@ export class SelectCardPrompt extends UiPrompt {
                 this.cannotUnselectMustSelect = true;
             }
         }
+
+        this.promptTitle = properties.promptTitle || this.source.name;
+
         this.savePreviouslySelectedCards();
     }
 
     private defaultProperties() {
         return {
             buttons: [],
-            controls: this.getDefaultControls(),
             selectCard: true,
             cardCondition: () => true,
             onSelect: () => true,
             onMenuCommand: () => true,
-            onCancel: () => true,
+            onCancel: () => undefined,
             hideIfNoLegalTargets: false
         };
-    }
-
-    private getDefaultControls() {
-        let targets: Card[] = this.properties.availableCards ??
-          this.context.targets ? Object.values(this.context.targets) : [];
-        targets = targets.reduce((array, target) => array.concat(target), []);
-
-        return [{
-            type: 'targeting',
-            source: this.context.source.getShortSummary(),
-            targets: targets.map((target) => target.getShortSummaryForControls(this.choosingPlayer))
-        }];
     }
 
     private savePreviouslySelectedCards() {
@@ -190,16 +158,13 @@ export class SelectCardPrompt extends UiPrompt {
                 buttons = [{ text: 'Done', arg: 'done' }].concat(buttons);
             }
         }
-        if (this.game.manualMode && buttons.every((button) => button.arg !== 'cancel')) {
-            buttons = buttons.concat({ text: 'Cancel Prompt', arg: 'cancel' });
-        }
+
         return {
             selectCard: this.properties.selectCard,
-            selectRing: true,
             selectOrder: this.properties.selectOrder,
             menuTitle: this.properties.activePromptTitle || this.selector.defaultActivePromptTitle(this.context),
             buttons: buttons,
-            promptTitle: this.source.name,
+            promptTitle: this.promptTitle,
             promptUuid: this.uuid
         };
     }
@@ -260,7 +225,7 @@ export class SelectCardPrompt extends UiPrompt {
 
     private fireOnSelect() {
         const cardParam = this.selector.formatSelectParam(this.selectedCards);
-        if (this.properties.onSelect(this.choosingPlayer, cardParam)) {
+        if (this.properties.onSelect(cardParam)) {
             this.complete();
             return true;
         }
@@ -275,7 +240,7 @@ export class SelectCardPrompt extends UiPrompt {
             return true;
         } else if (arg === 'done' && this.selector.hasEnoughSelected(this.selectedCards, this.context)) {
             return this.fireOnSelect();
-        } else if (this.properties.onMenuCommand(player, arg)) {
+        } else if (this.properties.onMenuCommand(arg)) {
             this.complete();
             return true;
         }

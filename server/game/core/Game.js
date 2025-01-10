@@ -37,6 +37,7 @@ const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
 const { AllArenasZone } = require('./zone/AllArenasZone.js');
 const EnumHelpers = require('./utils/EnumHelpers.js');
 const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
+const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -636,11 +637,15 @@ class Game extends EventEmitter {
         }
     }
 
-    // promptWithCardDisplay(player, properties) {
-    //     Contract.assertNotNullLike(player);
+    /**
+     *  @param {Player} player
+     *  @param {import('./gameSteps/PromptInterfaces.js').IDisplayCardsWithButtonsPromptProperties} properties
+     */
+    promptWithDisplayedCardsWithButtons(player, properties) {
+        Contract.assertNotNullLike(player);
 
-    //     this.queueStep(new CardDisplayPrompt(this, player, properties));
-    // }
+        this.queueStep(new DisplayCardsWithButtonsPrompt(this, player, properties));
+    }
 
     /**
      * Prompts a player with a menu for selecting a string from a list of options
@@ -656,7 +661,7 @@ class Game extends EventEmitter {
     /**
      * Prompts a player to click a card
      * @param {Player} player
-     * @param {Object} properties - see selectcardprompt.js
+     * @param {import('./gameSteps/PromptInterfaces.js').ISelectCardPromptProperties} properties - see selectcardprompt.js
      */
     promptForSelect(player, properties) {
         Contract.assertNotNullLike(player);

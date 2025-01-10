@@ -1,20 +1,52 @@
+import type { ISetId } from '../../Interfaces';
+import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
+import type BaseCardSelector from '../cardSelector/BaseCardSelector';
+import type { GameSystem } from '../gameSystem/GameSystem';
+import type { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
+import type Player from '../Player';
+
+export interface IButton {
+    text: string;
+    arg: string;
+}
+
+export interface IDisplayCard {
+    cardUuid: string;
+    setId: ISetId;
+    canBeSelected: boolean;
+    displayText?: string;
+}
 
 export enum StatefulPromptType {
+    DisplayCardsWithButtons = 'displayCardsWithButtons',
     DistributeDamage = 'distributeDamage',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
 }
 
-export type IStatefulPromptResults = IDistributeAmongTargetsPromptResults;
+export type DistributePromptType =
+  | StatefulPromptType.DistributeDamage
+  | StatefulPromptType.DistributeExperience
+  | StatefulPromptType.DistributeHealing;
+
+export type IStatefulPromptResults =
+  | IDistributeAmongTargetsPromptResults
+  | IDisplayCardsWithButtonsPromptResults;
 
 export interface IPromptPropertiesBase {
     waitingPromptTitle?: string;
     promptTitle?: string;
 }
 
+export interface IDisplayCardsWithButtonsPromptResults {
+    type: StatefulPromptType.DisplayCardsWithButtons;
+    cardUuid: string;
+    arg: string;
+}
+
 export interface IDistributeAmongTargetsPromptProperties extends IPromptPropertiesBase {
-    type: StatefulPromptType;
+    type: DistributePromptType;
     amount: number;
     source: Card;
     canChooseNoTargets: boolean;
@@ -25,11 +57,64 @@ export interface IDistributeAmongTargetsPromptProperties extends IPromptProperti
 }
 
 export interface IDistributeAmongTargetsPromptData {
-    type: StatefulPromptType;
+    type: DistributePromptType;
     amount: number;
 }
 
 export interface IDistributeAmongTargetsPromptResults {
-    type: StatefulPromptType;
+    type: DistributePromptType;
     valueDistribution: Map<Card, number>;
+}
+
+export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
+    source: string | OngoingEffectSource;
+
+    activePromptTitle?: string;
+    availableCards?: Card[];
+    buttons?: IButton[];
+    cardCondition?: (card: Card, context?: AbilityContext) => boolean;
+    context?: AbilityContext;
+    hideIfNoLegalTargets?: boolean;
+    immediateEffect?: GameSystem;
+    mustSelect?: Card[];
+    onCancel?: (player: Player) => void;
+    onMenuCommand?: (arg: string) => boolean;
+    onSelect?: (card: Card[]) => boolean;
+    selectCard?: boolean;
+    selectOrder?: boolean;
+    selector?: BaseCardSelector;
+}
+
+export interface IDisplayCardPromptPropertiesBase extends IPromptPropertiesBase {
+    displayCards: Card[];
+    source: string | OngoingEffectSource;
+
+    activePromptTitle?: string;
+    context?: AbilityContext;
+    waitingPromptTitle?: string;
+}
+
+export interface IViewCardPromptProperties extends IDisplayCardPromptPropertiesBase {
+    cardDisplayText?: string[];
+}
+
+export interface IDisplayCardsWithButtonsPromptProperties extends IDisplayCardPromptPropertiesBase {
+    onCardButton: (card: Card, arg: string) => boolean;
+    perCardButtons: IButton[];
+}
+
+export interface IDisplayCardPromptPropertiesTest extends IPromptPropertiesBase {
+    displayCards: Card[];
+    source: string | OngoingEffectSource;
+
+    activePromptTitle?: string;
+    cardDisplayText?: string[];
+    context?: AbilityContext;
+    immediateEffect?: GameSystem;
+    onCardMenuCommand?: (card: Card, arg: string) => boolean;
+    onDone?: (selectedCards: Card[], notSelectedCards: Card[]) => boolean;
+    perCardButtons?: IButton[];
+    selectableCardCondition?: (card: Card, alreadySelected: Card[], context?: AbilityContext) => boolean;
+    showDoneButton?: boolean;
+    waitingPromptTitle?: string;
 }
