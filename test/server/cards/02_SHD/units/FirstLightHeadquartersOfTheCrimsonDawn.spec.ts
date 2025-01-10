@@ -78,7 +78,7 @@ describe('First Light, Headquarters of the Crimson Dawn', function() {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    leader: 'jyn-erso#resisting-oppression',
+                    leader: { card: 'jyn-erso#resisting-oppression', deployed: true, damage: 2 },
                     base: 'echo-base',
                     groundArena: ['wampa'],
                     // 11 total resources
@@ -98,6 +98,9 @@ describe('First Light, Headquarters of the Crimson Dawn', function() {
             expect(context.firstLight).toBeInZone('spaceArena');
             expect(context.wampa.damage).toBe(4);
             expect(context.player1.exhaustedResourceCount).toBe(11);
+
+            // confirm that leader unit doesn't get grit
+            expect(context.jynErso.damage).toBe(4);
         });
 
         it('First Light\'s Smuggle ability will appear as an alternative to a gained Smuggle ability', function() {

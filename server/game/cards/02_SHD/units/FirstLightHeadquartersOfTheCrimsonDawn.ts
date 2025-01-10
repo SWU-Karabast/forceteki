@@ -25,6 +25,7 @@ export default class FirstLightHeadquartersOfTheCrimsonDawn extends NonLeaderUni
         this.addConstantAbility({
             title: 'Each other friendly non-leader unit gains Grit',
             targetController: RelativePlayer.Self,
+            targetCardTypeFilter: WildcardCardType.NonLeaderUnit,
             matchTarget: (card, context) => card !== context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Grit)
         });
