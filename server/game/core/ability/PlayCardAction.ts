@@ -203,7 +203,7 @@ export abstract class PlayCardAction extends PlayerAction {
 
     private logPlayCardEvent(context: any): void {
         if (context.playType === PlayType.PlayFromHand) {
-            context.game.lastPlayedCard = context.source;
+            context.game.clientUIProperties.lastPlayedCard = context.source.cardData.setId;
         }
     }
 }
