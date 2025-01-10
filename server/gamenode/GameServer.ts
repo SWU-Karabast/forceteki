@@ -4,7 +4,7 @@ import http from 'http';
 import https from 'https';
 import express from 'express';
 import cors from 'cors';
-import type { Socket as IOSocket } from 'socket.io';
+import type { Socket as IOSocket, DefaultEventsMap } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 import { v4 as uuid } from 'uuid';
 
@@ -24,8 +24,9 @@ interface User {
 }
 
 /**
- * Represents additional SocketData
+ * Represents additional Socket types we can leverage these later.
  */
+
 interface SocketData {
     manualDisconnect?: boolean;
 }
@@ -35,7 +36,7 @@ interface SocketData {
  */
 interface QueuedPlayer {
     deck: Deck;
-    socket?: IOSocket<any, any, any, SocketData>;
+    socket?: Socket;
     user: User;
 }
 
@@ -45,7 +46,7 @@ export class GameServer {
     private protocol = 'https';
     private host = env.gameNodeHost;
     private queue: QueuedPlayer[] = [];
-    private io: IOServer<any, any, any, SocketData>;
+    private io: IOServer;
     private titleCardData: any;
     private shortCardData: any;
 
@@ -83,15 +84,15 @@ export class GameServer {
             ? 'https://tbd.com'
             : 'http://localhost:3000';
 
-        this.io = new IOServer<any, any, any, SocketData>(server, {
+        this.io = new IOServer(server, {
             perMessageDeflate: false,
             cors: {
                 origin: corsOrigin,
                 methods: ['GET', 'POST']
             }
         });
-
-        this.io.on('connection', (socket: IOSocket<any, any, any, SocketData>) => {
+        // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
+        this.io.on('connection', (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
             this.onConnection(socket);
             socket.on('manualDisconnect', () => {
                 socket.data.manualDisconnect = true;
@@ -138,7 +139,7 @@ export class GameServer {
         });
         app.post('/api/enter-queue', (req, res) => {
             const { user, deck } = req.body;
-            const success = this.enterQueue(user, deck, null);
+            const success = this.enterQueue(user, deck);
             if (!success) {
                 return res.status(400).json({ success: false, message: 'Failed to enter queue' });
             }
@@ -323,10 +324,10 @@ export class GameServer {
             this.userLobbyMap.set(user.id, lobby.id);
             return;
         }
-        // if they are not in the lobby they could be in a queue
+        // 3. if they are not in the lobby they could be in a queue
         const queuedPlayer = this.queue.find((p) => p.user.id === user.id);
         if (queuedPlayer) {
-            queuedPlayer.socket = ioSocket;
+            queuedPlayer.socket = new Socket(ioSocket);
 
             // handle queue-specific events and add lobby disconnect
             ioSocket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
@@ -342,9 +343,9 @@ export class GameServer {
     }
 
     /**
-     * Put a user into the queue array.
+     * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(user: any, deck: any, socket: IOSocket<any, any, any, SocketData> | null): boolean {
+    private enterQueue(user: any, deck: any): boolean {
         // Quick check: if they're already in a lobby, no queue
         if (this.userLobbyMap.has(user.id)) {
             logger.info(`User ${user.id} already in a lobby, ignoring queue request.`);
@@ -355,11 +356,10 @@ export class GameServer {
             logger.info(`User ${user.id} is already in queue, rejoining`);
             this.removeFromQueue(user.id);
         }
-
         this.queue.push({
             user,
             deck,
-            socket
+            socket: null
         });
         return true;
     }
@@ -385,15 +385,15 @@ export class GameServer {
             lobby.createLobbyUser(p2.user, p2.deck);
 
             // Attach their sockets to the lobby (if they exist)
-            const socket1 = p1.socket ? new Socket(p1.socket) : null;
-            const socket2 = p2.socket ? new Socket(p2.socket) : null;
+            const socket1 = p1.socket ? p1.socket : null;
+            const socket2 = p2.socket ? p2.socket : null;
             if (socket1) {
                 lobby.addLobbyUser(p1.user, socket1);
-                socket1.on('disconnect', () => this.onSocketDisconnected(p1.socket, p1.user.id));
+                socket1.on('disconnect', () => this.onSocketDisconnected(socket1.socket, p1.user.id));
             }
             if (socket2) {
                 lobby.addLobbyUser(p2.user, socket2);
-                socket2.on('disconnect', () => this.onSocketDisconnected(p2.socket, p2.user.id));
+                socket2.on('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.id));
             }
 
             // Save user => lobby mapping
@@ -418,7 +418,7 @@ export class GameServer {
         this.queue = this.queue.filter((q) => q.user.id !== userId);
     }
 
-    public onSocketDisconnected(socket: IOSocket<any, any, any, SocketData>, id: string) {
+    public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {
         if (!this.userLobbyMap.has(id)) {
             this.removeFromQueue(id);
             return;
@@ -427,7 +427,7 @@ export class GameServer {
         const lobby = this.lobbies.get(lobbyId);
 
 
-        const wasManualDisconnect = socket?.data?.manualDisconnect === true;
+        const wasManualDisconnect = !!socket?.data?.manualDisconnect;
         if (wasManualDisconnect) {
             this.userLobbyMap.delete(id);
             lobby.removeUser(id);
@@ -440,7 +440,8 @@ export class GameServer {
             }
             return;
         }
-
+        // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
+        //  without triggering onSocketDisconnect
         lobby.setUserDisconnected(id);
         setTimeout(() => {
             // Check if the user is still disconnected after the timer
