@@ -38,6 +38,11 @@ const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
 const { AllArenasZone } = require('./zone/AllArenasZone.js');
 const EnumHelpers = require('./utils/EnumHelpers.js');
 
+/**
+ * @typedef {import('../Interfaces').IClientUIProperties} IClientUIProperties
+ * @property {{set: string; number: number} | undefined} [lastPlayedCard] - the last card played from hand by a player
+ */
+
 class Game extends EventEmitter {
     constructor(details, options = {}) {
         super();
@@ -73,6 +78,9 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
         this.randomGenerator = seedrandom();
+
+        /** @type {IClientUIProperties} */
+        this.clientUIProperties = {};
 
         this.registerGlobalRulesListeners();
 
@@ -1351,6 +1359,7 @@ class Game extends EventEmitter {
                 players: playerState,
                 phase: this.currentPhase,
                 messages: this.gameChat.messages,
+                clientUIProperties: this.clientUIProperties,
                 spectators: this.getSpectators().map((spectator) => {
                     return {
                         id: spectator.id,
