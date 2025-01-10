@@ -218,6 +218,11 @@ export interface IClientUIProperties {
     lastPlayedCard?: { set: string; number: number };
 }
 
+export interface ISetId {
+    set: string;
+    number: number;
+}
+
 // ********************************************** INTERNAL TYPES **********************************************
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'

@@ -13,7 +13,6 @@ const { RegroupPhase } = require('./gameSteps/phases/RegroupPhase.js');
 const { SimpleStep } = require('./gameSteps/SimpleStep.js');
 const MenuPrompt = require('./gameSteps/prompts/MenuPrompt.js');
 const HandlerMenuPrompt = require('./gameSteps/prompts/HandlerMenuPrompt.js');
-const SelectCardPrompt = require('./gameSteps/prompts/SelectCardPrompt.js');
 const GameOverPrompt = require('./gameSteps/prompts/GameOverPrompt.js');
 const GameSystems = require('../gameSystems/GameSystemLibrary.js');
 const { GameEvent } = require('./event/GameEvent.js');
@@ -37,6 +36,7 @@ const { GroundArenaZone } = require('./zone/GroundArenaZone.js');
 const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
 const { AllArenasZone } = require('./zone/AllArenasZone.js');
 const EnumHelpers = require('./utils/EnumHelpers.js');
+const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
 
 /**
  * @typedef {import('../Interfaces').IClientUIProperties} IClientUIProperties
@@ -658,7 +658,7 @@ class Game extends EventEmitter {
     /**
      * Prompts a player to click a card
      * @param {Player} player
-     * @param {Object} properties - see selectcardprompt.js
+     * @param {import('./gameSteps/PromptInterfaces.js').ISelectCardPromptProperties} properties - see selectcardprompt.js
      */
     promptForSelect(player, properties) {
         Contract.assertNotNullLike(player);

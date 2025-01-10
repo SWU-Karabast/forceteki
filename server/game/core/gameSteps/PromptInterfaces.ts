@@ -1,4 +1,14 @@
+import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
+import type BaseCardSelector from '../cardSelector/BaseCardSelector';
+import type { GameSystem } from '../gameSystem/GameSystem';
+import type { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
+import type Player from '../Player';
+
+export interface IButton {
+    text: string;
+    arg: string;
+}
 
 export enum StatefulPromptType {
     DistributeDamage = 'distributeDamage',
@@ -32,4 +42,23 @@ export interface IDistributeAmongTargetsPromptData {
 export interface IDistributeAmongTargetsPromptResults {
     type: StatefulPromptType;
     valueDistribution: Map<Card, number>;
+}
+
+export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
+    source: string | OngoingEffectSource;
+
+    activePromptTitle?: string;
+    availableCards?: Card[];
+    buttons?: IButton[];
+    cardCondition?: (card: Card, context?: AbilityContext) => boolean;
+    context?: AbilityContext;
+    hideIfNoLegalTargets?: boolean;
+    immediateEffect?: GameSystem;
+    mustSelect?: Card[];
+    onCancel?: (player: Player) => void;
+    onMenuCommand?: (arg: string) => boolean;
+    onSelect?: (card: Card[]) => boolean;
+    selectCard?: boolean;
+    selectOrder?: boolean;
+    selector?: BaseCardSelector;
 }
