@@ -463,17 +463,23 @@ export class Card extends OngoingEffectSource {
     /**
      * Moves a card to a new zone, optionally resetting the card's controller back to its owner.
      *
-     * @param targetZone Zone to move to
+     * @param targetZoneName Zone to move to
      * @param resetController If true (default behavior), sets `card.controller = card.owner` on move. Set to
      * false for a hypothetical situation where a controlled opponent unit is being moved between zones and
      * needs to not change hands back to the owner.
      */
-    public moveTo(targetZone: MoveZoneDestination, resetController = true) {
+    public moveTo(targetZoneName: MoveZoneDestination, resetController = true) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
-        const originalZone = this.zoneName;
-        if (originalZone === targetZone) {
-            return;
+        // if we're moving to deck top / bottom, don't bother checking if we're already in the zone
+        if (!([DeckZoneDestination.DeckBottom, DeckZoneDestination.DeckTop] as MoveZoneDestination[]).includes(targetZoneName)) {
+            const originalZone = this._zone;
+            const moveToZone = (resetController ? this.owner : this.controller)
+                .getZone(EnumHelpers.asConcreteZone(targetZoneName));
+
+            if (originalZone === moveToZone) {
+                return;
+            }
         }
 
         const prevZone = this.zoneName;
@@ -483,7 +489,7 @@ export class Card extends OngoingEffectSource {
             this._controller = this.owner;
         }
 
-        this.addSelfToZone(targetZone);
+        this.addSelfToZone(targetZoneName);
 
         this.postMoveSteps(prevZone);
     }
@@ -844,5 +850,9 @@ export class Card extends OngoingEffectSource {
                 Contract.fail(`Unknown player: ${player}`);
                 return false;
         }
+    }
+
+    public override toString() {
+        return this.internalName;
     }
 }

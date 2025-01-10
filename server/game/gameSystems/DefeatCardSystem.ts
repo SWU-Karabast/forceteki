@@ -47,8 +47,11 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
     public eventHandler(event): void {
         const card: Card = event.card;
+        Contract.assertTrue(card.canBeExhausted());
 
-        if (card.zoneName !== ZoneName.Resource && card.isUpgrade()) {
+        if (card.zoneName === ZoneName.Resource) {
+            this.leavesResourceZoneEventHandler(card, event.context);
+        } else if (card.isUpgrade()) {
             card.unattach();
         }
 

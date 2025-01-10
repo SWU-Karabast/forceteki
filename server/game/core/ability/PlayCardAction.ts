@@ -173,7 +173,10 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     protected generateSmuggleEvent(context: PlayCardContext) {
-        return resourceCard({ target: context.player.getTopCardOfDeck() }).generateEvent(context);
+        return resourceCard({
+            target: context.player.getTopCardOfDeck(),
+            readyResource: !this.card.exhausted,
+        }).generateEvent(context);
     }
 
     protected generateOnPlayEvent(context: PlayCardContext, additionalProps: any = {}) {
