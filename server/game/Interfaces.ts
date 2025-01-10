@@ -214,6 +214,10 @@ export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbi
     thenCondition?: (context?: TContext) => boolean;
 };
 
+export interface IClientUIProperties {
+    lastPlayedCard?: ISetId;
+}
+
 export interface ISetId {
     set: string;
     number: number;

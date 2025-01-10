@@ -220,7 +220,9 @@ class PlayerInteractionWrapper {
                 card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
             }
 
-            if (card.isUnit() && card.defaultArena !== arenaName) {
+            if (!card.isUnit()) {
+                throw new TestSetupError(`Attempting to add non-unit card ${card.internalName} to ${arenaName}`);
+            } else if (card.defaultArena !== arenaName) {
                 throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
             }
 

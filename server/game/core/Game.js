@@ -75,6 +75,9 @@ class Game extends EventEmitter {
         this.movedCards = [];
         this.randomGenerator = seedrandom();
 
+        /** @type {import('../Interfaces').IClientUIProperties} */
+        this.clientUIProperties = {};
+
         this.registerGlobalRulesListeners();
 
         this.shortCardData = options.shortCardData || [];
@@ -1362,6 +1365,7 @@ class Game extends EventEmitter {
                 players: playerState,
                 phase: this.currentPhase,
                 messages: this.gameChat.messages,
+                clientUIProperties: this.clientUIProperties,
                 spectators: this.getSpectators().map((spectator) => {
                     return {
                         id: spectator.id,

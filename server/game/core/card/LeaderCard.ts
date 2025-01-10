@@ -19,7 +19,7 @@ export class LeaderCard extends InPlayCard {
 
         this.hasImplementationFile = true;
         this.setupLeaderUnitSide = false;
-        this.setupLeaderSideAbilities();
+        this.setupLeaderSideAbilities(this);
     }
 
     public override isLeader(): this is LeaderCard {
@@ -33,7 +33,7 @@ export class LeaderCard extends InPlayCard {
     /**
      * Create card abilities for the leader (non-unit) side by calling subsequent methods with appropriate properties
      */
-    protected setupLeaderSideAbilities() {
+    protected setupLeaderSideAbilities(sourceCard: this) {
         this.hasImplementationFile = false;
     }
 
