@@ -13,7 +13,6 @@ const { RegroupPhase } = require('./gameSteps/phases/RegroupPhase.js');
 const { SimpleStep } = require('./gameSteps/SimpleStep.js');
 const MenuPrompt = require('./gameSteps/prompts/MenuPrompt.js');
 const HandlerMenuPrompt = require('./gameSteps/prompts/HandlerMenuPrompt.js');
-const SelectCardPrompt = require('./gameSteps/prompts/SelectCardPrompt.js');
 const GameOverPrompt = require('./gameSteps/prompts/GameOverPrompt.js');
 const GameSystems = require('../gameSystems/GameSystemLibrary.js');
 const { GameEvent } = require('./event/GameEvent.js');
@@ -37,6 +36,7 @@ const { GroundArenaZone } = require('./zone/GroundArenaZone.js');
 const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
 const { AllArenasZone } = require('./zone/AllArenasZone.js');
 const EnumHelpers = require('./utils/EnumHelpers.js');
+const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -635,6 +635,12 @@ class Game extends EventEmitter {
             this.queueStep(new HandlerMenuPrompt(this, player, properties));
         }
     }
+
+    // promptWithCardDisplay(player, properties) {
+    //     Contract.assertNotNullLike(player);
+
+    //     this.queueStep(new CardDisplayPrompt(this, player, properties));
+    // }
 
     /**
      * Prompts a player with a menu for selecting a string from a list of options

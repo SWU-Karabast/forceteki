@@ -1,8 +1,14 @@
-const { AbilityContext } = require('../../ability/AbilityContext.js');
-const CardSelectorFactory = require('../../cardSelector/CardSelectorFactory.js');
-const { OngoingEffectSource } = require('../../ongoingEffect/OngoingEffectSource');
-const Contract = require('../../utils/Contract.js');
-const { UiPrompt } = require('./UiPrompt.js');
+import type { IButton } from '../../../Interfaces';
+import { AbilityContext } from '../../ability/AbilityContext';
+import type { Card } from '../../card/Card';
+import type BaseCardSelector from '../../cardSelector/BaseCardSelector';
+import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
+import type Game from '../../Game';
+import type { GameSystem } from '../../gameSystem/GameSystem';
+import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
+import type Player from '../../Player';
+import * as Contract from '../../utils/Contract';
+import { UiPrompt } from './UiPrompt';
 
 /**
  * General purpose prompt that asks the user to select 1 or more cards.
@@ -45,12 +51,43 @@ const { UiPrompt } = require('./UiPrompt.js');
  *                      used to provide a default waitingPromptTitle, if missing
  * gameSystem         - a GameSystem object representing the game effect to be checked on
  *                      target cards.
- * ordered            - an optional boolean indicating whether or not to display
+ * selectOrder        - an optional boolean indicating whether or not to display
  *                      the order of the selection during the prompt.
  * mustSelect         - an array of cards which must be selected
  */
-class SelectCardPrompt extends UiPrompt {
-    constructor(game, choosingPlayer, properties) {
+export interface ISelectCardPromptProperties {
+    activePromptTitle?: string;
+    availableCards?: Card[];
+    buttons?: IButton[];
+    cardCondition?: (card: Card, context?: AbilityContext) => boolean;
+    context?: AbilityContext;
+    hideIfNoLegalTargets?: boolean;
+    immediateEffect?: GameSystem;
+    mustSelect?: Card[];
+    onCancel: (player: Player) => boolean;
+    onMenuCommand: (player: Player, arg: string) => boolean;
+    onSelect?: (player: Player, card: any) => boolean;
+    selectCard?: boolean;
+    selectOrder?: boolean;
+    selector?: BaseCardSelector;
+    source?: string | OngoingEffectSource;
+    waitingPromptTitle?: string;
+}
+
+export class SelectCardPrompt extends UiPrompt {
+    private readonly cannotUnselectMustSelect: boolean = false;
+    private readonly choosingPlayer: Player;
+    private readonly context: AbilityContext;
+    private readonly hideIfNoLegalTargets: boolean;
+    private readonly onlyMustSelectMayBeChosen: boolean = false;
+    private readonly properties: ISelectCardPromptProperties;
+    private readonly selector: BaseCardSelector;
+    private readonly source: OngoingEffectSource;
+
+    private previouslySelectedCards?: Card[];
+    private selectedCards: Card[];
+
+    public constructor(game: Game, choosingPlayer: Player, properties: ISelectCardPromptProperties) {
         super(game);
 
         this.choosingPlayer = choosingPlayer;
@@ -59,6 +96,7 @@ class SelectCardPrompt extends UiPrompt {
         } else if (properties.context && properties.context.source) {
             properties.source = properties.context.source;
         }
+
         if (properties.source && !properties.waitingPromptTitle) {
             properties.waitingPromptTitle = 'Waiting for opponent to use ' + properties.source.name;
         }
@@ -66,20 +104,24 @@ class SelectCardPrompt extends UiPrompt {
             properties.source = new OngoingEffectSource(game);
         }
 
+        this.source = properties.source;
+
         this.properties = properties;
         this.context = properties.context || new AbilityContext({ game: game, player: choosingPlayer, source: properties.source });
         this.properties = Object.assign(this.defaultProperties(), properties);
         if (properties.immediateEffect) {
-            let cardCondition = this.properties.cardCondition;
+            const cardCondition = this.properties.cardCondition;
             this.properties.cardCondition = (card, context) =>
                 cardCondition(card, context) && this.properties.immediateEffect.canAffect(card, context);
         }
-        this.hideIfNoLegalTargets = properties.hideIfNoLegalTargets;
+        this.hideIfNoLegalTargets = !!properties.hideIfNoLegalTargets;
 
         this.selector = properties.selector || CardSelectorFactory.create(this.properties);
 
         this.selectedCards = [];
-        if (properties.mustSelect) {
+        if (properties.mustSelect && properties.mustSelect.length > 0) {
+            Contract.assertHasProperty(this.selector, 'numCards');
+
             if (this.selector.hasEnoughSelected(properties.mustSelect, properties.context) && this.selector.numCards > 0 && properties.mustSelect.length >= this.selector.numCards) {
                 this.onlyMustSelectMayBeChosen = true;
             } else {
@@ -90,7 +132,7 @@ class SelectCardPrompt extends UiPrompt {
         this.savePreviouslySelectedCards();
     }
 
-    defaultProperties() {
+    private defaultProperties() {
         return {
             buttons: [],
             controls: this.getDefaultControls(),
@@ -103,13 +145,11 @@ class SelectCardPrompt extends UiPrompt {
         };
     }
 
-    getDefaultControls() {
-        let targets = this.properties.availableCards ??
+    private getDefaultControls() {
+        let targets: Card[] = this.properties.availableCards ??
           this.context.targets ? Object.values(this.context.targets) : [];
         targets = targets.reduce((array, target) => array.concat(target), []);
-        if (targets.length === 0 && this.context.event && this.context.event.card) {
-            this.targets = [this.context.event.card];
-        }
+
         return [{
             type: 'targeting',
             source: this.context.source.getShortSummary(),
@@ -117,14 +157,13 @@ class SelectCardPrompt extends UiPrompt {
         }];
     }
 
-    savePreviouslySelectedCards() {
+    private savePreviouslySelectedCards() {
         this.previouslySelectedCards = this.choosingPlayer.selectedCards;
         this.choosingPlayer.clearSelectedCards();
         this.choosingPlayer.setSelectedCards(this.selectedCards);
     }
 
-    /** @override */
-    continue() {
+    public override continue() {
         if (this.hideIfNoLegalTargets && this.selector.optional && !this.selector.hasEnoughTargets(this.context, this.choosingPlayer)) {
             this.complete();
         }
@@ -136,17 +175,15 @@ class SelectCardPrompt extends UiPrompt {
         return super.continue();
     }
 
-    highlightSelectableCards() {
+    private highlightSelectableCards() {
         this.choosingPlayer.setSelectableCards(this.selector.findPossibleCards(this.context).filter((card) => this.checkCardCondition(card)));
     }
 
-    /** @override */
-    activeCondition(player) {
+    public override activeCondition(player) {
         return player === this.choosingPlayer;
     }
 
-    /** @override */
-    activePrompt() {
+    public override activePrompt() {
         let buttons = this.properties.buttons;
         if (!this.selector.automaticFireOnSelect(this.context) && this.selector.hasEnoughSelected(this.selectedCards, this.context) || this.selector.optional) {
             if (buttons.every((button) => button.arg !== 'done')) {
@@ -159,22 +196,19 @@ class SelectCardPrompt extends UiPrompt {
         return {
             selectCard: this.properties.selectCard,
             selectRing: true,
-            selectOrder: this.properties.ordered,
+            selectOrder: this.properties.selectOrder,
             menuTitle: this.properties.activePromptTitle || this.selector.defaultActivePromptTitle(this.context),
             buttons: buttons,
-            promptTitle: this.properties.source ? this.properties.source.name : undefined,
-            controls: this.properties.controls,
+            promptTitle: this.source.name,
             promptUuid: this.uuid
         };
     }
 
-    /** @override */
-    waitingPrompt() {
+    public override waitingPrompt() {
         return { menuTitle: this.properties.waitingPromptTitle || 'Waiting for opponent' };
     }
 
-    /** @override */
-    onCardClicked(player, card) {
+    public override onCardClicked(player, card) {
         if (player !== this.choosingPlayer) {
             return false;
         }
@@ -194,7 +228,7 @@ class SelectCardPrompt extends UiPrompt {
         return true;
     }
 
-    checkCardCondition(card) {
+    private checkCardCondition(card) {
         if (this.onlyMustSelectMayBeChosen && !this.properties.mustSelect.includes(card)) {
             return false;
         } else if (this.selectedCards.includes(card)) {
@@ -207,7 +241,7 @@ class SelectCardPrompt extends UiPrompt {
         );
     }
 
-    selectCard(card) {
+    private selectCard(card) {
         if (this.selector.hasReachedLimit(this.selectedCards, this.context) && !this.selectedCards.includes(card)) {
             return false;
         } else if (this.cannotUnselectMustSelect && this.properties.mustSelect.includes(card)) {
@@ -221,15 +255,11 @@ class SelectCardPrompt extends UiPrompt {
         }
         this.choosingPlayer.setSelectedCards(this.selectedCards);
 
-        if (this.properties.onCardToggle) {
-            this.properties.onCardToggle(this.choosingPlayer, card);
-        }
-
         return true;
     }
 
-    fireOnSelect() {
-        let cardParam = this.selector.formatSelectParam(this.selectedCards);
+    private fireOnSelect() {
+        const cardParam = this.selector.formatSelectParam(this.selectedCards);
         if (this.properties.onSelect(this.choosingPlayer, cardParam)) {
             this.complete();
             return true;
@@ -238,8 +268,7 @@ class SelectCardPrompt extends UiPrompt {
         return false;
     }
 
-    /** @override */
-    menuCommand(player, arg) {
+    public override menuCommand(player, arg) {
         if (arg === 'cancel') {
             this.properties.onCancel(player);
             this.complete();
@@ -253,13 +282,12 @@ class SelectCardPrompt extends UiPrompt {
         Contract.fail(`Unexpected menu command: '${arg}'`);
     }
 
-    /** @override */
-    complete() {
+    public override complete() {
         this.clearSelection();
         return super.complete();
     }
 
-    clearSelection() {
+    private clearSelection() {
         this.selectedCards = [];
         this.choosingPlayer.clearSelectedCards();
         this.choosingPlayer.clearSelectableCards();
@@ -268,5 +296,3 @@ class SelectCardPrompt extends UiPrompt {
         this.choosingPlayer.setSelectedCards(this.previouslySelectedCards);
     }
 }
-
-module.exports = SelectCardPrompt;

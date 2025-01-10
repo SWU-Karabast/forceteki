@@ -14,6 +14,10 @@ export class TriggeredAbilityContext<TSource extends Card = Card> extends Abilit
         this.event = properties.event;
     }
 
+    public override isTriggered(): this is TriggeredAbilityContext<TSource> {
+        return true;
+    }
+
     public override createCopy(newProps: unknown) {
         return new TriggeredAbilityContext<TSource>(Object.assign(this.getProps(), newProps));
     }

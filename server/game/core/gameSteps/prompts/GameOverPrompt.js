@@ -19,14 +19,14 @@ class GameOverPrompt extends AllPlayerPrompt {
             return {
                 promptTitle: 'Tie Game',
                 menuTitle: 'The game ended in a draw!',
-                buttons: [{ text: 'Continue Playing' }],
+                buttons: [{ text: 'Continue Playing', arg: 'continue' }],
                 promptUuid: this.uuid
             };
         }
         return {
             promptTitle: 'Game Won',
             menuTitle: this.winner.name + ' has won the game!',
-            buttons: [{ text: 'Continue Playing' }],
+            buttons: [{ text: 'Continue Playing', arg: 'continue' }],
             promptUuid: this.uuid
         };
     }

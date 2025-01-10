@@ -6,6 +6,7 @@ import type Game from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type Player from '../Player';
 import type { Card } from '../card/Card';
+import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 
 export interface IAbilityContextProperties {
     game: Game;
@@ -64,6 +65,10 @@ export class AbilityContext<TSource extends Card = Card> {
         this.playType = this.ability?.isPlayCardAbility()
             ? properties.playType ?? (this.player && this.player.findPlayType(this.source))
             : null;
+    }
+
+    public isTriggered(): this is TriggeredAbilityContext<TSource> {
+        return false;
     }
 
     public copy(newProps: Partial<IAbilityContextProperties> = {}): AbilityContext<TSource> {
