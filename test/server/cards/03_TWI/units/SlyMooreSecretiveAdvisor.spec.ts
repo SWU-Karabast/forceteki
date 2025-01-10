@@ -10,7 +10,7 @@ describe('Sly Moore Secretive Advisor', function() {
                         spaceArena: ['cartel-spacer']
                     },
                     player2: {
-                        groundArena: ['clone-trooper', 'advanced-recon-commando']
+                        groundArena: [{ card: 'clone-trooper', exhausted: true }, 'advanced-recon-commando']
                     }
                 });
             });
@@ -30,7 +30,7 @@ describe('Sly Moore Secretive Advisor', function() {
                 expect(context.cloneTrooper).toBeInZone('groundArena', context.player2);
             });
 
-            it('should take control of an enemy token unit and ready it. At the start of the regroup phase, the owner should not take control.', function () {
+            it('should take control of an enemy token unit and ready it. At the start of the regroup phase, the owner should not take control if the unit is defeated.', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.slyMoore);
