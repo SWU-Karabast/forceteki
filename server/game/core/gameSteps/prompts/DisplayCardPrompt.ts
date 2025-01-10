@@ -23,8 +23,6 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
         this.choosingPlayer = choosingPlayer;
         if (typeof properties.source === 'string') {
             properties.source = new OngoingEffectSource(game, properties.source);
-        } else if (properties.context && properties.context.source) {
-            properties.source = properties.context.source;
         }
 
         if (!properties.waitingPromptTitle) {
@@ -35,17 +33,8 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
         }
 
         this.source = properties.source;
-
-        // this.context = properties.context || new AbilityContext({ game: game, player: choosingPlayer, source: properties.source });
         this.properties = Object.assign(this.defaultProperties(), properties);
-        // if (properties.immediateEffect) {
-        //     const selectableCardCondition = this.properties.selectableCardCondition;
-        //     this.properties.selectableCardCondition = (card, alreadySelected, context) =>
-        //         selectableCardCondition(card, alreadySelected, context) &&
-        //         this.properties.immediateEffect.canAffect(card, context);
-        // }
 
-        // this.showDoneButton = !!this.properties.showDoneButton;
         this.promptTitle = properties.promptTitle || this.source.name;
         this.displayCards = properties.displayCards;
     }

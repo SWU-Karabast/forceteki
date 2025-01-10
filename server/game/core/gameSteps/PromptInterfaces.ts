@@ -36,6 +36,7 @@ export type IStatefulPromptResults =
   | IDisplayCardsWithButtonsPromptResults;
 
 export interface IPromptPropertiesBase {
+    activePromptTitle?: string;
     waitingPromptTitle?: string;
     promptTitle?: string;
 }
@@ -70,7 +71,6 @@ export interface IDistributeAmongTargetsPromptResults {
 export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     source: string | OngoingEffectSource;
 
-    activePromptTitle?: string;
     availableCards?: Card[];
     buttons?: IButton[];
     cardCondition?: (card: Card, context?: AbilityContext) => boolean;
@@ -89,10 +89,6 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
 export interface IDisplayCardPromptPropertiesBase extends IPromptPropertiesBase {
     displayCards: Card[];
     source: string | OngoingEffectSource;
-
-    activePromptTitle?: string;
-    context?: AbilityContext;
-    waitingPromptTitle?: string;
 }
 
 export interface IViewCardPromptProperties extends IDisplayCardPromptPropertiesBase {
@@ -104,18 +100,3 @@ export interface IDisplayCardsWithButtonsPromptProperties extends IDisplayCardPr
     perCardButtons: IButton[];
 }
 
-export interface IDisplayCardPromptPropertiesTest extends IPromptPropertiesBase {
-    displayCards: Card[];
-    source: string | OngoingEffectSource;
-
-    activePromptTitle?: string;
-    cardDisplayText?: string[];
-    context?: AbilityContext;
-    immediateEffect?: GameSystem;
-    onCardMenuCommand?: (card: Card, arg: string) => boolean;
-    onDone?: (selectedCards: Card[], notSelectedCards: Card[]) => boolean;
-    perCardButtons?: IButton[];
-    selectableCardCondition?: (card: Card, alreadySelected: Card[], context?: AbilityContext) => boolean;
-    showDoneButton?: boolean;
-    waitingPromptTitle?: string;
-}
