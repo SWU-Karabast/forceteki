@@ -3,18 +3,16 @@ import type { Card } from '../core/card/Card';
 import { EventName, ZoneName } from '../core/Constants';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { IViewCardProperties } from './ViewCardSystem';
-import { ViewCardMode, ViewCardSystem } from './ViewCardSystem';
+import { ViewCardMode, ViewCardsSystem } from './ViewCardSystem';
 
 export type IRevealProperties = Omit<IViewCardProperties, 'viewType'>;
 
-export class RevealSystem<TContext extends AbilityContext = AbilityContext> extends ViewCardSystem<TContext> {
+export class RevealSystem<TContext extends AbilityContext = AbilityContext> extends ViewCardsSystem<TContext> {
     public override readonly name = 'reveal';
     public override readonly eventName = EventName.OnCardRevealed;
     public override readonly costDescription = 'revealing {0}';
 
     protected override readonly defaultProperties: IViewCardProperties = {
-        sendChatMessage: true,
-        message: '{0} reveals {1} due to {2}',
         viewType: ViewCardMode.Reveal
     };
 
@@ -25,12 +23,29 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
     }
 
     public override eventHandler(event, additionalProperties = {}): void {
-        const context = event.context;
+        super.eventHandler(event, additionalProperties);
+
+        event.context.game.addMessage(event.message, event.messageArgs);
+    }
+
+    public override addPropertiesToEvent(event, cards, context: TContext, additionalProperties): void {
+        super.addPropertiesToEvent(event, cards, context, additionalProperties);
+
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (properties.sendChatMessage) {
-            const messageArgs = this.getMessageArgs(event, context, additionalProperties);
-            context.game.addMessage(this.getMessage(properties.message, context), ...messageArgs);
+
+        event.message = '{0} reveals {1} due to {2}';
+        event.messageArgs = [
+            properties.player || event.context.player,
+            event.cards.map((card) => card.title).join(', '),
+            event.context.source
+        ];
+    }
+
+    public override canAffect(card: Card, context: TContext): boolean {
+        if (card.zoneName === ZoneName.Deck || card.zoneName === ZoneName.Hand || card.zoneName === ZoneName.Resource) {
+            return super.canAffect(card, context);
         }
+        return false;
     }
 
     public override checkEventCondition(event): boolean {
@@ -41,30 +56,6 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         }
 
         return true;
-    }
-
-    public override canAffect(card: Card, context: TContext): boolean {
-        if (card.zoneName === ZoneName.Deck || card.zoneName === ZoneName.Hand || card.zoneName === ZoneName.Resource) {
-            return super.canAffect(card, context);
-        }
-        return false;
-    }
-
-    public getMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
-            properties.player || event.context.player,
-            event.cards.map((card) => card.title).join(', '),
-            event.context.source
-        ];
-        return messageArgs;
-    }
-
-    public getMessage(message, context: TContext): string {
-        if (typeof message === 'function') {
-            return message(context);
-        }
-        return message;
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

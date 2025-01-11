@@ -1,16 +1,13 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { GameEvent } from '../core/event/GameEvent';
-import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
+import type Game from '../core/Game';
+import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type Player from '../core/Player';
 import * as Helpers from '../core/utils/Helpers';
 
 // TODO: Need some future work to fully implement Thrawn
 export interface IViewCardProperties extends ICardTargetSystemProperties {
     viewType: ViewCardMode;
-    sendChatMessage?: boolean;
-    message?: string | ((context) => string);
-    messageArgs?: (cards: any) => any[];
 
     /** The player who is viewing or revealing the card. */
     player?: Player;
@@ -25,7 +22,17 @@ export enum ViewCardMode {
     Reveal = 'reveal'
 }
 
-export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IViewCardProperties> {
+export abstract class ViewCardsSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IViewCardProperties> {
+    public override eventHandler(event, additionalProperties = {}): void {
+        (event.context.game as Game).promptDisplayCards(
+            event.context.player,
+            {
+                source: event.context.source,
+                displayCards: event.cards,
+            }
+        );
+    }
+
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         const cards = Helpers.asArray(target).filter((card) => this.canAffect(card, context));

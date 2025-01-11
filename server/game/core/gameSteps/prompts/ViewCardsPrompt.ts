@@ -4,7 +4,7 @@ import * as Contract from '../../utils/Contract';
 import type { IDisplayCard, IViewCardPromptProperties } from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
-export class LookAtCardsPrompt extends DisplayCardPrompt<IViewCardPromptProperties> {
+export class ViewCardsPrompt extends DisplayCardPrompt<IViewCardPromptProperties> {
     private cardDisplayText?: string[];
 
     public constructor(game: Game, choosingPlayer: Player, properties: IViewCardPromptProperties) {

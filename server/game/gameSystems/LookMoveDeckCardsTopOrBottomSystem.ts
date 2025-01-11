@@ -28,8 +28,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
 
         if (deckLength === 1) {
             const lookAtEvent = new LookAtSystem({
-                target: player.drawDeck[0],
-                sendChatMessage: true
+                target: player.drawDeck[0]
             }).generateEvent(context);
             events.push(lookAtEvent);
         } else {
