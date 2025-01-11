@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName } from '../core/Constants';
+import type Game from '../core/Game';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { IViewCardProperties } from './ViewCardSystem';
 import { ViewCardMode, ViewCardSystem } from './ViewCardSystem';
@@ -23,13 +24,13 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         super(propsWithViewType);
     }
 
-    // TODO: we need a 'look at' prompt for secretly revealing, currently chat logs go to all players
-    public override getMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
-            context.source, event.cards
-        ];
-        return messageArgs;
+    public override eventHandler(event, additionalProperties = {}): void {
+        (event.context.game as Game).promptLookAtCards(event.context.player,
+            {
+                source: event.context.source,
+                displayCards: event.cards,
+            }
+        );
     }
 
     public override checkEventCondition(): boolean {

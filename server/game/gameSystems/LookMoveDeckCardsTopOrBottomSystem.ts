@@ -36,7 +36,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
             const actualAmount = Math.min(amount, deckLength);
             const cards = player.drawDeck.slice(0, actualAmount);
 
-            context.game.promptWithDisplayedCardsWithButtons(player, {
+            context.game.promptDisplayCardsWithButtons(player, {
                 activePromptTitle: 'Select card to move to the top or bottom of the deck',
                 source: context.source,
                 displayCards: cards,

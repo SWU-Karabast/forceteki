@@ -26,15 +26,6 @@ export enum ViewCardMode {
 }
 
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IViewCardProperties> {
-    public override eventHandler(event, additionalProperties = {}): void {
-        const context = event.context;
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (properties.sendChatMessage) {
-            const messageArgs = this.getMessageArgs(event, context, additionalProperties);
-            context.game.addMessage(this.getMessage(properties.message, context), ...messageArgs);
-        }
-    }
-
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         const cards = Helpers.asArray(target).filter((card) => this.canAffect(card, context));
@@ -59,13 +50,4 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
 
         event.cards = cards;
     }
-
-    public getMessage(message, context: TContext): string {
-        if (typeof message === 'function') {
-            return message(context);
-        }
-        return message;
-    }
-
-    public abstract getMessageArgs(event: any, context: TContext, additionalProperties);
 }

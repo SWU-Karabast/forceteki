@@ -24,6 +24,15 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         super(propsWithViewType);
     }
 
+    public override eventHandler(event, additionalProperties = {}): void {
+        const context = event.context;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        if (properties.sendChatMessage) {
+            const messageArgs = this.getMessageArgs(event, context, additionalProperties);
+            context.game.addMessage(this.getMessage(properties.message, context), ...messageArgs);
+        }
+    }
+
     public override checkEventCondition(event): boolean {
         for (const card of event.cards) {
             if (!this.canAffect(card, event.context)) {
@@ -41,7 +50,7 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         return false;
     }
 
-    public override getMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {
+    public getMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
             properties.player || event.context.player,
@@ -49,6 +58,13 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
             event.context.source
         ];
         return messageArgs;
+    }
+
+    public getMessage(message, context: TContext): string {
+        if (typeof message === 'function') {
+            return message(context);
+        }
+        return message;
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

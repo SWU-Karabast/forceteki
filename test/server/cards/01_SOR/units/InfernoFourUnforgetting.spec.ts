@@ -57,6 +57,7 @@ describe('Inferno Four - Unforgetting', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
         describe('Inferno Four - Unforgetting\'s ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({

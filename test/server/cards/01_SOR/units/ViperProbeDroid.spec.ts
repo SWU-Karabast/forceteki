@@ -18,8 +18,10 @@ describe('Viper Probe Droid', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.viperProbeDroid);
-                expect(context.viperProbeDroid.zoneName).toBe('groundArena');
-                expect(context.getChatLogs(1)).toContain('Viper Probe Droid sees Wampa, Battlefield Marine, and Pyke Sentinel');
+                expect(context.player1).toHaveExactDisplayPromptCards([context.wampa, context.battlefieldMarine, context.pykeSentinel]);
+                expect(context.player1).toHaveExactPromptButtons(['Done']);
+                context.player1.clickPrompt('Done');
+
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -28,6 +30,7 @@ describe('Viper Probe Droid', function() {
 
                 context.player2.setHand([]);
                 context.player1.clickCard(context.viperProbeDroid);
+
                 expect(context.player2).toBeActivePlayer();
             });
         });
