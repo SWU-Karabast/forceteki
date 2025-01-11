@@ -8,7 +8,7 @@ import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCardsWithButtonsPromptProperties> {
     private onCardButton: (card: Card, arg: string) => boolean;
-    private perCardButtons: IButton[];
+    private perCardButtons: Omit<IButton, 'command'>[];
 
     public constructor(game: Game, choosingPlayer: Player, properties: IDisplayCardsWithButtonsPromptProperties) {
         Contract.assertTrue(properties.perCardButtons.length > 0);
@@ -16,6 +16,11 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
         super(game, choosingPlayer, properties);
 
         this.onCardButton = properties.onCardButton;
+
+        for (const button of properties.perCardButtons) {
+            button.command = 'statefulPromptResults';
+        }
+
         this.perCardButtons = properties.perCardButtons;
     }
 

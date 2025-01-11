@@ -9,6 +9,7 @@ import type Player from '../Player';
 export interface IButton {
     text: string;
     arg: string;
+    command?: string;
 }
 
 export interface IDisplayCard {
