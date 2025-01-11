@@ -86,6 +86,18 @@ describe('Bamboozle', function () {
 
             // no resource exhausted since the last action
             expect(context.player1.exhaustedResourceCount).toBe(2);
+
+            reset();
+
+            // There are no cards left to discard
+            context.player1.clickCard(context.bamboozle);
+
+            // Auto plays for 2 cost as nothing to discard
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.player2).toBeActivePlayer();
+
+            // Full cost of bamboozle (+2)
+            expect(context.player1.exhaustedResourceCount).toBe(4);
         });
 
         it('Bamboozle\'s play modes should be available even if it is played by another card\'s effect', function () {
