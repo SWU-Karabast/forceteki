@@ -1,4 +1,5 @@
 import type { Card } from '../../card/Card';
+import { PromptType } from '../../Constants';
 import type Game from '../../Game';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type Player from '../../Player';
@@ -53,7 +54,8 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
             promptTitle: this.promptTitle,
             promptUuid: this.uuid,
             displayCards: this.getDisplayCards(),
-            ...this.activePromptInternal()
+            ...this.activePromptInternal(),
+            promptType: PromptType.DisplayCards
         };
     }
 
