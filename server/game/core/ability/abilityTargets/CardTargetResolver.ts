@@ -25,7 +25,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         if (!zoneFilter) {
             return false;
         }
-        const zoneArray = Array.isArray(zoneFilter) ? zoneFilter : [zoneFilter];
+        const zoneArray = Helpers.asArray(zoneFilter);
         return zoneArray.length > 0 && zoneArray.every((zone) => EnumHelpers.isHidden(zone, controller));
     }
 
