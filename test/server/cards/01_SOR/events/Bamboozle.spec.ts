@@ -89,14 +89,14 @@ describe('Bamboozle', function () {
 
             reset();
 
-            // There are no cards left to discard
+            // alternate play mode should no longer be available since no cunning card in hand
             context.player1.clickCard(context.bamboozle);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.sawGerrera]);
+            context.player1.clickCard(context.greenSquadronAwing);
 
-            // Auto plays for 2 cost as nothing to discard
-            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.bamboozle).toBeInZone('discard');
             expect(context.player2).toBeActivePlayer();
-
-            // Full cost of bamboozle (+2)
+            expect(context.p1Base.damage).toBe(2);
             expect(context.player1.exhaustedResourceCount).toBe(4);
         });
 

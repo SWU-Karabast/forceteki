@@ -1,4 +1,6 @@
 const EventEmitter = require('events');
+const seedrandom = require('seedrandom');
+
 const { GameChat } = require('./chat/GameChat.js');
 const { OngoingEffectEngine } = require('./ongoingEffect/OngoingEffectEngine.js');
 const Player = require('./Player.js');
@@ -11,7 +13,6 @@ const { RegroupPhase } = require('./gameSteps/phases/RegroupPhase.js');
 const { SimpleStep } = require('./gameSteps/SimpleStep.js');
 const MenuPrompt = require('./gameSteps/prompts/MenuPrompt.js');
 const HandlerMenuPrompt = require('./gameSteps/prompts/HandlerMenuPrompt.js');
-const SelectCardPrompt = require('./gameSteps/prompts/SelectCardPrompt.js');
 const GameOverPrompt = require('./gameSteps/prompts/GameOverPrompt.js');
 const GameSystems = require('../gameSystems/GameSystemLibrary.js');
 const { GameEvent } = require('./event/GameEvent.js');
@@ -35,6 +36,7 @@ const { GroundArenaZone } = require('./zone/GroundArenaZone.js');
 const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
 const { AllArenasZone } = require('./zone/AllArenasZone.js');
 const EnumHelpers = require('./utils/EnumHelpers.js');
+const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -70,6 +72,10 @@ class Game extends EventEmitter {
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
+        this.randomGenerator = seedrandom();
+
+        /** @type {import('../Interfaces').IClientUIProperties} */
+        this.clientUIProperties = {};
 
         this.registerGlobalRulesListeners();
 
@@ -247,6 +253,10 @@ class Game extends EventEmitter {
         }
 
         // by default, if the opponent has passed and the active player has not, they remain the active player and play continues
+    }
+
+    setRandomSeed(seed) {
+        this.randomGenerator = seedrandom(seed);
     }
 
     /**
@@ -643,7 +653,7 @@ class Game extends EventEmitter {
     /**
      * Prompts a player to click a card
      * @param {Player} player
-     * @param {Object} properties - see selectcardprompt.js
+     * @param {import('./gameSteps/PromptInterfaces.js').ISelectCardPromptProperties} properties - see selectcardprompt.js
      */
     promptForSelect(player, properties) {
         Contract.assertNotNullLike(player);
@@ -1155,6 +1165,11 @@ class Game extends EventEmitter {
         }
         this.movedCards = [];
 
+        if (events.length > 0) {
+            // check for any delayed effects which need to fire
+            this.ongoingEffectEngine.checkDelayedEffects(events);
+        }
+
         // check for a game state change (recalculating attack stats if necessary)
         if (
             // (!this.currentAttack && this.ongoingEffectEngine.resolveEffects(hasChanged)) ||
@@ -1165,10 +1180,6 @@ class Game extends EventEmitter {
 
             // - any defeated units
             this.findAnyCardsInPlay((card) => card.isUnit()).forEach((card) => card.checkDefeatedByOngoingEffect());
-        }
-        if (events.length > 0) {
-            // check for any delayed effects which need to fire
-            this.ongoingEffectEngine.checkDelayedEffects(events);
         }
     }
 
@@ -1343,6 +1354,7 @@ class Game extends EventEmitter {
                 players: playerState,
                 phase: this.currentPhase,
                 messages: this.gameChat.messages,
+                clientUIProperties: this.clientUIProperties,
                 spectators: this.getSpectators().map((spectator) => {
                     return {
                         id: spectator.id,

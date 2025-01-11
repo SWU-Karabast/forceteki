@@ -44,14 +44,17 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     };
 
     public eventHandler(event: any, additionalProperties = {}): void {
-        // Check if the card is leaving play
-        if (EnumHelpers.isArena(event.card.zoneName) && !EnumHelpers.isArena(event.destination)) {
-            this.leavesPlayEventHandler(event.card, event.destination, event.context, () => event.card.moveTo(event.destination));
-        } else {
-            // TODO: remove this completely if determined we don't need card snapshots
-            // event.cardStateWhenMoved = card.createSnapshot();
-            const card = event.card as Card;
+        const card = event.card as Card;
+        Contract.assertTrue(card.canBeExhausted());
 
+        if (card.zoneName === ZoneName.Resource) {
+            this.leavesResourceZoneEventHandler(card, event.context);
+        }
+
+        // Check if the card is leaving play
+        if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
+            this.leavesPlayEventHandler(card, event.destination, event.context, () => card.moveTo(event.destination));
+        } else {
             card.moveTo(event.destination);
 
             // TODO: use ShuffleDeckSystem instead
@@ -127,9 +130,9 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return super.canAffect(card, context, additionalProperties, mustChangeGameState);
     }
 
-    protected override processTargets(target: Card | Card[]) {
+    protected override processTargets(target: Card | Card[], context: TContext) {
         if (this.properties?.shuffleMovedCards && Array.isArray(target)) {
-            Helpers.shuffleArray(target);
+            Helpers.shuffleArray(target, context.game.randomGenerator);
         }
         return target;
     }

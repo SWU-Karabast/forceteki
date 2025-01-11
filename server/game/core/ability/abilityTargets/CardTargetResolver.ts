@@ -172,7 +172,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             selector: this.selector,
             buttons: buttons,
             mustSelect: mustSelect,
-            onSelect: (player, card) => {
+            onSelect: (card) => {
                 this.setTargetResult(context, card);
                 return true;
             },
@@ -180,7 +180,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
                 this.cancel(targetResults);
                 return true;
             },
-            onMenuCommand: (player: Player, arg) => {
+            onMenuCommand: (arg) => {
                 switch (arg) {
                     case 'costsFirst':
                         targetResults.payCostsFirst = true;

@@ -17,20 +17,33 @@ interface LobbyUser {
     socket: Socket | null;
     deck: Deck | null;
 }
+export enum MatchType {
+    Custom = 'Custom',
+    Private = 'Private',
+    Quick = 'Quick',
+}
 
 export class Lobby {
     private readonly _id: string;
+    public readonly isPrivate: boolean;
+    private readonly connectionLink?: string;
+    private readonly gameChat: GameChat;
     private game: Game;
     // switch partic
     private users: LobbyUser[] = [];
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
-    private gameChat: GameChat;
     private lobbyOwnerId: string;
     private playableCardTitles: string[];
 
-    public constructor() {
+    public constructor(lobbyGameType: MatchType) {
+        Contract.assertTrue(
+            [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
+            `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
+        );
         this._id = uuid();
         this.gameChat = new GameChat();
+        this.connectionLink = lobbyGameType !== MatchType.Quick ? `http://localhost:3000/lobby?lobbyId=${this._id}` : null;
+        this.isPrivate = lobbyGameType === MatchType.Private;
     }
 
     public get id(): string {
@@ -49,6 +62,8 @@ export class Lobby {
             })),
             gameChat: this.gameChat,
             lobbyOwnerId: this.lobbyOwnerId,
+            isPrivate: this.isPrivate,
+            connectionLink: this.connectionLink,
         };
     }
 
@@ -80,7 +95,7 @@ export class Lobby {
         }
     }
 
-    public addLobbyUser(user, socket: Socket, owner = false): void {
+    public addLobbyUser(user, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
@@ -116,6 +131,12 @@ export class Lobby {
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
         this.gameChat.addChatMessage(socket.user, args[0]);
         this.sendLobbyState();
+    }
+
+    private changeDeck(socket: Socket, ...args) {
+        const activeUser = this.users.find((u) => u.id === socket.user.id);
+        Contract.assertTrue(args[0] !== null);
+        activeUser.deck = new Deck(args[0]);
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -170,6 +191,10 @@ export class Lobby {
         }
     }
 
+    public hasOngoingGame(): boolean {
+        return this.game !== undefined;
+    }
+
     public setLobbyOwner(id: string): void {
         this.lobbyOwnerId = id;
     }
@@ -179,16 +204,16 @@ export class Lobby {
         return user ? user.state : null;
     }
 
-    public isLobbyFilled(): boolean {
-        return this.users.length === 2 && !this.game;
+    public isFilled(): boolean {
+        return this.users.length === 2;
     }
 
-    public removeLobbyUser(id: string): void {
+    public removeUser(id: string): void {
         this.users = this.users.filter((u) => u.id !== id);
         this.sendLobbyState();
     }
 
-    public isLobbyEmpty(): boolean {
+    public isEmpty(): boolean {
         return this.users.length === 0;
     }
 
@@ -262,11 +287,17 @@ export class Lobby {
     }
 
     private onStartGame(): void {
+        // TODO Change this to actual new GameSettings when we get to that point.
+        defaultGameSettings.players[0].user.id = this.users[0].id;
+        defaultGameSettings.players[0].user.username = this.users[0].username;
+
+        defaultGameSettings.players[1].user.id = this.users[1].id;
+        defaultGameSettings.players[1].user.username = this.users[1].username;
         defaultGameSettings.playableCardTitles = this.playableCardTitles;
+
         const game = new Game(defaultGameSettings, { router: this });
         this.game = game;
         game.started = true;
-
         // For each user, if they have a deck, select it in the game
         this.users.forEach((user) => {
             if (user.deck) {

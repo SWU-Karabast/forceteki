@@ -161,6 +161,7 @@ export = {
     // mustBeDeclaredAsAttackerIfType: (type = 'both') =>
     //     OngoingEffectBuilder.card.static(EffectName.MustBeDeclaredAsAttackerIfType, type),
     // mustBeDeclaredAsDefender: (type = 'both') => OngoingEffectBuilder.card.static(EffectName.MustBeDeclaredAsDefender, type),
+    cannotBeDefeatedByDamage: () => OngoingEffectBuilder.card.static(EffectName.CannotBeDefeatedByDamage),
     // setBaseDash: (type) => OngoingEffectBuilder.card.static(EffectName.SetBaseDash, type),
     // setBaseMilitarySkill: (value) => OngoingEffectBuilder.card.static(EffectName.SetBaseMilitarySkill, value),
     // setBasePoliticalSkill: (value) => OngoingEffectBuilder.card.static(EffectName.SetBasePoliticalSkill, value),
