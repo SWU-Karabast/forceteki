@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
+import { WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
 
 export default class KyloRenRashAndDeadly extends LeaderUnitCard {
     protected override getImplementationId() {
