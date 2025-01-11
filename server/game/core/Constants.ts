@@ -447,4 +447,5 @@ export enum PromptType {
     Initiative = 'initiative',
     Resource = 'resource',
     ActionWindow = 'actionWindow',
+    DisplayCards = 'displayCards'
 }

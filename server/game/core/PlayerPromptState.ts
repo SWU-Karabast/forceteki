@@ -1,4 +1,5 @@
 import type { Card } from './card/Card';
+import type { PromptType } from './Constants';
 import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData } from './gameSteps/PromptInterfaces';
 import type Player from './Player';
 
@@ -7,7 +8,7 @@ export interface IPlayerPromptStateProperties {
     menuTitle: string;
     promptUuid: string;
     promptTitle?: string;
-    promptType?: string;
+    promptType?: PromptType;
 
     selectCard?: boolean;
     selectOrder?: boolean;

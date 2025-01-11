@@ -99,4 +99,3 @@ export interface IDisplayCardsWithButtonsPromptProperties extends IDisplayCardPr
     onCardButton: (card: Card, arg: string) => boolean;
     perCardButtons: IButton[];
 }
-

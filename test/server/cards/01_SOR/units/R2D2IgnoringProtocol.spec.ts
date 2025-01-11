@@ -48,6 +48,7 @@ describe('R2D2 - Ignoring Protocol', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
         describe('R2D2 - Ignoring Protocol\'s ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({
