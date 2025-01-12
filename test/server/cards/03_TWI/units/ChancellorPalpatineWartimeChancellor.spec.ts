@@ -23,11 +23,10 @@ describe('Chancellor Palpatine Wartime Chancellor', function() {
             expect(cloneTroopers.length).toBe(2);
             expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.ready)).toBeTrue();
 
+            // Not unit left play this phase, so no clone trooper should be created
             context.player2.passAction();
             context.player1.clickCard(context.chancellorPalpatine);
             context.player1.clickCard(context.p2Base);
-
-            // Not unit left play this phase, so no clone trooper should be created
             cloneTroopers = context.player1.findCardsByName('clone-trooper');
             expect(cloneTroopers.length).toBe(2);
             expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.ready)).toBeTrue();
@@ -44,7 +43,7 @@ describe('Chancellor Palpatine Wartime Chancellor', function() {
             expect(cloneTroopers.length).toBe(3);
             expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.ready)).toBeTrue();
 
-            // Even if it's an opponent unit
+            // Even if it's an opponent unit that left play, we should still create a clone trooper
             context.moveToNextActionPhase();
             context.player1.clickCard(context.daringRaid);
             context.player1.clickCard(context.vanguardDroidBomber);
@@ -72,6 +71,9 @@ describe('Chancellor Palpatine Wartime Chancellor', function() {
             const controllerBattleDroids = context.player1.findCardsByName('battle-droid');
             expect(controllerBattleDroids.length).toBe(2);
             expect(controllerBattleDroids.every((battleDroid) => battleDroid.ready)).toBeTrue();
+
+            // Not token units should not enter play ready
+            expect(context.kraken.exhausted).toBeTrue();
         });
     });
 });
