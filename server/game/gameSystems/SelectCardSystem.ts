@@ -195,6 +195,10 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             return true;
         }
 
+        if (properties.isCost === true) {
+            return false;
+        }
+
         if (properties.mode === TargetMode.Exactly || properties.mode === TargetMode.ExactlyVariable || properties.mode === TargetMode.Single) {
             return false;
         }
