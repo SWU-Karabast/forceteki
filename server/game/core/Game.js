@@ -701,6 +701,22 @@ class Game extends EventEmitter {
     }
 
     /**
+     * This function is called by the client whenever a player clicks a "per card" button
+     * in a prompt (e.g. Inferno Four prompt). See {@link DisplayCardsWithButtonsPrompt}.
+     * @param {String} playerName
+     * @param {String} arg - arg property of the button clicked
+     * @param {String} uuid - unique identifier of the prompt clicked
+     * @param {String} method - method property of the button clicked
+     * @returns {Boolean} this indicates to the server whether the received input is legal or not
+     */
+    perCardMenuButton(playerName, arg, cardUuid, uuid, method) {
+        var player = this.getPlayerByName(playerName);
+
+        // check to see if the current step in the pipeline is waiting for input
+        return this.pipeline.handlePerCardMenuCommand(player, arg, cardUuid, uuid, method);
+    }
+
+    /**
      * Gets the results of a "stateful" prompt from the frontend. This is for more
      * involved prompts such as distributing damage / healing that require the frontend
      * to gather some state and send back, instead of just individual clicks.

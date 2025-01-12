@@ -3,7 +3,7 @@ import type Game from '../../Game';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import type { IDisplayCard } from '../PromptInterfaces';
-import { StatefulPromptType, type IButton, type IDisplayCardsWithButtonsPromptProperties, type IStatefulPromptResults } from '../PromptInterfaces';
+import { DisplayCardSelectionState, type IButton, type IDisplayCardsWithButtonsPromptProperties } from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCardsWithButtonsPromptProperties> {
@@ -39,21 +39,21 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
             cardUuid: card.uuid,
             setId: card.setId,
             internalName: card.internalName,
-            canBeSelected: true
+            selectionState: DisplayCardSelectionState.Selectable,
+            command: 'perCardMenuButton',
         }));
     }
 
-    public override onStatefulPromptResults(player: Player, results: IStatefulPromptResults, uuid: string): boolean {
+
+    public override onPerCardMenuCommand(player: Player, arg: string, cardUuid: string, uuid: string, method: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
 
-        Contract.assertTrue(results.type === StatefulPromptType.DisplayCardsWithButtons);
-
-        const selectedCard = this.displayCards.find((card) => card.uuid === results.cardUuid);
+        const selectedCard = this.displayCards.find((card) => card.uuid === cardUuid);
         if (!selectedCard) {
-            Contract.fail(`Could not find card in prompt with uuid '${results.cardUuid}'`);
+            Contract.fail(`Could not find card in prompt with uuid '${cardUuid}'`);
         }
 
-        this.onCardButton(selectedCard, results.arg);
+        this.onCardButton(selectedCard, arg);
 
         this.displayCards = this.displayCards.filter((card) => card !== selectedCard);
 

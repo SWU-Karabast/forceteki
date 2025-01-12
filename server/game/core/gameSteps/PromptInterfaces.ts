@@ -6,6 +6,12 @@ import type { GameSystem } from '../gameSystem/GameSystem';
 import type { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 
+export enum DisplayCardSelectionState {
+    Selectable = 'selectable',
+    Selected = 'selected',
+    Unselectable = 'unselectable'
+}
+
 export interface IButton {
     text: string;
     arg: string;
@@ -16,12 +22,11 @@ export interface IDisplayCard {
     cardUuid: string;
     setId: ISetId;
     internalName: string;
-    canBeSelected: boolean;
+    selectionState: DisplayCardSelectionState;
     displayText?: string;
 }
 
 export enum StatefulPromptType {
-    DisplayCardsWithButtons = 'displayCardsWithButtons',
     DistributeDamage = 'distributeDamage',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
@@ -32,20 +37,12 @@ export type DistributePromptType =
   | StatefulPromptType.DistributeExperience
   | StatefulPromptType.DistributeHealing;
 
-export type IStatefulPromptResults =
-  | IDistributeAmongTargetsPromptResults
-  | IDisplayCardsWithButtonsPromptResults;
+export type IStatefulPromptResults = IDistributeAmongTargetsPromptResults;
 
 export interface IPromptPropertiesBase {
     activePromptTitle?: string;
     waitingPromptTitle?: string;
     promptTitle?: string;
-}
-
-export interface IDisplayCardsWithButtonsPromptResults {
-    type: StatefulPromptType.DisplayCardsWithButtons;
-    cardUuid: string;
-    arg: string;
 }
 
 export interface IDistributeAmongTargetsPromptProperties extends IPromptPropertiesBase {

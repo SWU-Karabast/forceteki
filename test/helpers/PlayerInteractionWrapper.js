@@ -558,13 +558,7 @@ class PlayerInteractionWrapper {
     clickDisplayCardPromptButton(cardUuid, arg) {
         var currentPrompt = this.player.currentPrompt();
 
-        const promptResults = {
-            cardUuid,
-            arg,
-            type: 'displayCardsWithButtons'
-        };
-
-        this.game.statefulPromptResults(this.player.name, promptResults, currentPrompt.promptUuid);
+        this.game.perCardMenuButton(this.player.name, arg, cardUuid, currentPrompt.promptUuid);
         this.game.continue();
     }
 
