@@ -555,6 +555,13 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
+    clickDisplayCardPromptButton(cardUuid, arg) {
+        var currentPrompt = this.player.currentPrompt();
+
+        this.game.perCardMenuButton(this.player.name, arg, cardUuid, currentPrompt.promptUuid);
+        this.game.continue();
+    }
+
     clickPromptButtonIndex(index) {
         var currentPrompt = this.player.currentPrompt();
 

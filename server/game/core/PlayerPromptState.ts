@@ -1,5 +1,6 @@
 import type { Card } from './card/Card';
-import type { IButton, IDistributeAmongTargetsPromptData } from './gameSteps/PromptInterfaces';
+import type { PromptType } from './Constants';
+import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData } from './gameSteps/PromptInterfaces';
 import type Player from './Player';
 
 export interface IPlayerPromptStateProperties {
@@ -7,12 +8,14 @@ export interface IPlayerPromptStateProperties {
     menuTitle: string;
     promptUuid: string;
     promptTitle?: string;
-    promptType?: string;
+    promptType?: PromptType;
 
     selectCard?: boolean;
     selectOrder?: boolean;
     distributeAmongTargets?: IDistributeAmongTargetsPromptData;
     dropdownListOptions?: string[];
+    displayCards?: IDisplayCard[];
+    perCardButtons?: IButton[];
 }
 
 export class PlayerPromptState {
@@ -25,6 +28,8 @@ export class PlayerPromptState {
     public promptType = '';
     public buttons = [];
     public dropdownListOptions: string[] = [];
+    public displayCards: IDisplayCard[] = [];
+    public perCardButtons: IButton[] = [];
 
     private _selectableCards: Card[] = [];
     private _selectedCards?: Card[] = [];
@@ -65,6 +70,8 @@ export class PlayerPromptState {
         this.dropdownListOptions = prompt.dropdownListOptions ?? [];
         this.promptUuid = prompt.promptUuid;
         this.buttons = prompt.buttons ?? [];
+        this.displayCards = prompt.displayCards ?? [];
+        this.perCardButtons = prompt.perCardButtons ?? [];
     }
 
     public cancelPrompt() {
@@ -99,7 +106,9 @@ export class PlayerPromptState {
             promptTitle: this.promptTitle,
             buttons: this.buttons,
             promptUuid: this.promptUuid,
-            promptType: this.promptType
+            promptType: this.promptType,
+            displayCards: this.displayCards,
+            perCardButtons: this.perCardButtons
         };
     }
 }

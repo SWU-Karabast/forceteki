@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { DamageType, ZoneName } from '../core/Constants';
+import { DamageType, RelativePlayer, ZoneName } from '../core/Constants';
 import type { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
@@ -69,8 +69,8 @@ export function defeatSelf<TContext extends AbilityContext = AbilityContext>(): 
 /**
  * Cost that requires discard a card from hand that matches the passed condition predicate function.
  */
-export function discardCardFromOwnHand<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext>): ICost<TContext> {
-    return getSelectCost(new DiscardSpecificCardSystem<TContext>({}), { ...properties, zoneFilter: ZoneName.Hand, isCost: true }, 'Select card to discard');
+export function discardCardFromOwnHand<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext> = {}): ICost<TContext> {
+    return getSelectCost(new DiscardSpecificCardSystem<TContext>({}), { ...properties, zoneFilter: ZoneName.Hand, isCost: true, controller: RelativePlayer.Self }, 'Select card to discard');
 }
 
 /**

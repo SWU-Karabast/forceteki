@@ -69,6 +69,7 @@ export abstract class UiPrompt extends BaseStep {
         const newPrompt = { ...original };
         if (newPrompt.buttons) {
             for (const button of newPrompt.buttons) {
+                button.command = button.command || 'menuButton';
                 (button as any).uuid = this.uuid;
             }
         }

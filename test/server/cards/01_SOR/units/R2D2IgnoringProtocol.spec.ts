@@ -20,8 +20,9 @@ describe('R2D2 - Ignoring Protocol', function() {
 
                 // Case 1 on play move top card to bottom
                 context.player1.clickCard(context.r2d2);
-                expect(context.player1).toHaveExactPromptButtons(['Put Foundling on bottom', 'Put Foundling on top']);
-                context.player1.clickPrompt('Put Foundling on bottom');
+                expect(context.player1).toHaveExactDisplayPromptCards([context.foundling]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
+                context.player1.clickDisplayCardPromptButton(context.foundling.uuid, 'bottom');
 
                 // check board state
                 expect(context.player1.deck.length).toBe(5);
@@ -37,8 +38,9 @@ describe('R2D2 - Ignoring Protocol', function() {
                 // Case 2 on attack move to top
                 context.player1.clickCard(context.r2d2);
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player1).toHaveExactPromptButtons(['Put Pyke Sentinel on top', 'Put Pyke Sentinel on bottom']);
-                context.player1.clickPrompt('Put Pyke Sentinel on top');
+                expect(context.player1).toHaveExactDisplayPromptCards([context.pykeSentinel]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
+                context.player1.clickDisplayCardPromptButton(context.pykeSentinel.uuid, 'top');
 
                 // Check board state
                 expect(context.player1.deck.length).toBe(5);
@@ -46,6 +48,7 @@ describe('R2D2 - Ignoring Protocol', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
         describe('R2D2 - Ignoring Protocol\'s ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({

@@ -808,6 +808,74 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    toHaveExactDisplayPromptCards: function() {
+        return {
+            compare: function (player, expectedCardsInPrompt) {
+                let result = {};
+
+                if (!Array.isArray(expectedCardsInPrompt)) {
+                    throw new TestSetupError(`Parameter 'expectedCardsInPrompt' is not an array: ${expectedCardsInPrompt}`);
+                }
+
+                const actualCardsInPrompt = player.currentPrompt().displayCards;
+
+                const actualCardsUuids = new Set(actualCardsInPrompt.map((displayEntry) => displayEntry.cardUuid));
+                const expectedCardsUuids = new Set(expectedCardsInPrompt.map((card) => card.uuid));
+
+                let expectedAndFound = actualCardsInPrompt.filter((displayEntry) => expectedCardsUuids.has(displayEntry.cardUuid));
+                let foundAndNotExpected = actualCardsInPrompt.filter((displayEntry) => !expectedCardsUuids.has(displayEntry.cardUuid));
+                let expectedAndNotFound = expectedCardsInPrompt.filter((card) => !actualCardsUuids.has(card.uuid));
+
+                result.pass = foundAndNotExpected.length === 0 && expectedAndNotFound.length === 0;
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have exactly these cards in the card display prompt but they did: ${cardNamesToString(expectedAndFound)}`;
+                } else {
+                    let message = '';
+
+                    if (expectedAndNotFound.length > 0) {
+                        message = `Expected the following cards to be in the card display prompt for ${player.name} but they were not: ${cardNamesToString(expectedAndNotFound)}`;
+                    }
+                    if (foundAndNotExpected.length > 0) {
+                        if (message.length > 0) {
+                            message += '\n';
+                        }
+                        message += `Expected the following cards not to be in the card display prompt for ${player.name} but they were: ${cardNamesToString(foundAndNotExpected)}`;
+                    }
+                    result.message = message;
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
+
+                return result;
+            }
+        };
+    },
+    toHaveExactDisplayPromptPerCardButtons: function() {
+        return {
+            compare: function (player, expectedButtonsInPrompt) {
+                let result = {};
+
+                if (!Array.isArray(expectedButtonsInPrompt)) {
+                    throw new TestSetupError(`Parameter 'expectedButtonsInPrompt' is not an array: ${expectedButtonsInPrompt}`);
+                }
+
+                const actualButtonsInPrompt = player.currentPrompt().perCardButtons.map((button) => button.text);
+
+                result.pass = Util.stringArraysEqual(actualButtonsInPrompt, expectedButtonsInPrompt);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have this exact set of "per card" buttons but it did: ${expectedButtonsInPrompt.join(', ')}`;
+                } else {
+                    result.message = `Expected ${player.name} to have this exact set of "per card" buttons: '${expectedButtonsInPrompt.join(', ')}' but it has: '${actualButtonsInPrompt.join(', ')}'`;
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
+
+                return result;
+            }
+        };
     }
 };
 
@@ -816,7 +884,7 @@ function generatePromptHelpMessage(testContext) {
 }
 
 function cardNamesToString(cards) {
-    return cards.map((card) => card.name).join(', ');
+    return cards.map((card) => card.internalName).join(', ');
 }
 
 function checkConsistentZoneState(card, result) {

@@ -37,6 +37,7 @@ const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
 const { AllArenasZone } = require('./zone/AllArenasZone.js');
 const EnumHelpers = require('./utils/EnumHelpers.js');
 const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
+const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -640,6 +641,16 @@ class Game extends EventEmitter {
     }
 
     /**
+     *  @param {Player} player
+     *  @param {import('./gameSteps/PromptInterfaces.js').IDisplayCardsWithButtonsPromptProperties} properties
+     */
+    promptDisplayCardsWithButtons(player, properties) {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new DisplayCardsWithButtonsPrompt(this, player, properties));
+    }
+
+    /**
      * Prompts a player with a menu for selecting a string from a list of options
      * @param {Player} player
      * @param {import('./gameSteps/prompts/DropdownListPrompt.js').IDropdownListPromptProperties} properties
@@ -687,6 +698,22 @@ class Game extends EventEmitter {
 
         // check to see if the current step in the pipeline is waiting for input
         return this.pipeline.handleMenuCommand(player, arg, uuid, method);
+    }
+
+    /**
+     * This function is called by the client whenever a player clicks a "per card" button
+     * in a prompt (e.g. Inferno Four prompt). See {@link DisplayCardsWithButtonsPrompt}.
+     * @param {String} playerName
+     * @param {String} arg - arg property of the button clicked
+     * @param {String} uuid - unique identifier of the prompt clicked
+     * @param {String} method - method property of the button clicked
+     * @returns {Boolean} this indicates to the server whether the received input is legal or not
+     */
+    perCardMenuButton(playerName, arg, cardUuid, uuid, method) {
+        var player = this.getPlayerByName(playerName);
+
+        // check to see if the current step in the pipeline is waiting for input
+        return this.pipeline.handlePerCardMenuCommand(player, arg, cardUuid, uuid, method);
     }
 
     /**
