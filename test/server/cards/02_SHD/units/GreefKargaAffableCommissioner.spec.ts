@@ -15,17 +15,17 @@ describe('Greef Karga, Affable Commissioner', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.greefKarga);
-                expect(context.player1).toHaveExactDisplayPromptCards([context.foundling, context.pykeSentinel, context.atst, context.battlefieldMarine, context.cartelSpacer]);
+
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.foundling],
+                    unselectable: [context.pykeSentinel, context.atst, context.battlefieldMarine, context.cartelSpacer]
+                });
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                expect(context.player1).not.toHaveEnabledPromptButton('Take nothing');
+
                 context.player1.clickCardInDisplayCardPrompt(context.foundling);
                 expect(context.foundling).toBeInZone('hand');
                 expect(context.getChatLogs(2)).toContain('player1 takes Foundling');
-
-                // expect(context.player1).toHavePrompt('Select a card to reveal');
-                // expect(context.player1).toHaveEnabledPromptButton(context.foundling.title);
-                // expect(context.player1).toHaveDisabledPromptButtons([context.atst.title, context.battlefieldMarine.title, context.cartelSpacer.title, context.pykeSentinel.title]);
-                // context.player1.clickPrompt(context.foundling.title);
-                // expect(context.foundling).toBeInZone('hand');
-                // expect(context.getChatLogs(2)).toContain('player1 takes Foundling');
             });
         });
     });
