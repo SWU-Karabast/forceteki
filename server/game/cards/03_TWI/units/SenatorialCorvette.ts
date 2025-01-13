@@ -11,7 +11,7 @@ export default class SenatorialCorvette extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenDefeatedAbility({
-            title: 'Each player discards a card from their hand',
+            title: 'The opponent discards a card from their hand',
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                 target: context.source.controller.opponent,
                 amount: 1
