@@ -335,13 +335,13 @@ var customMatchers = {
                     if (selectable.length === 1) {
                         result.message = `Expected ${selectable[0].name} not to be selectable by ${player.name} but it was.`;
                     } else {
-                        result.message = `Expected at least 1 of the following cards not to be selectable by ${player.name} but they all were: ${cardNamesToString(selectable)}`;
+                        result.message = `Expected at least 1 of the following cards not to be selectable by ${player.name} but they all were: ${Util.cardNamesToString(selectable)}`;
                     }
                 } else {
                     if (unselectable.length === 1) {
                         result.message = `Expected ${unselectable[0].name} to be selectable by ${player.name} but it wasn't.`;
                     } else {
-                        result.message = `Expected the following cards to be selectable by ${player.name} but they were not: ${cardNamesToString(unselectable)}`;
+                        result.message = `Expected the following cards to be selectable by ${player.name} but they were not: ${Util.cardNamesToString(unselectable)}`;
                     }
                 }
 
@@ -379,13 +379,13 @@ var customMatchers = {
                     if (unselectable.length === 1) {
                         result.message = `Expected ${unselectable[0].name} to be selectable by ${player.name} but it wasn't.`;
                     } else {
-                        result.message = `Expected at least 1 of the following cards to be selectable by ${player.name} but they all were not: ${cardNamesToString(unselectable)}`;
+                        result.message = `Expected at least 1 of the following cards to be selectable by ${player.name} but they all were not: ${Util.cardNamesToString(unselectable)}`;
                     }
                 } else {
                     if (selectable.length === 1) {
                         result.message = `Expected ${selectable[0].name} not to be selectable by ${player.name} but it was.`;
                     } else {
-                        result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${cardNamesToString(selectable)}`;
+                        result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${Util.cardNamesToString(selectable)}`;
                     }
                 }
 
@@ -421,18 +421,18 @@ var customMatchers = {
                 result.pass = unexpectedUnselectable.length === 0 && unexpectedSelectable.length === 0;
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to be able to select exactly these cards but they can: ${cardNamesToString(expectedSelectable)}`;
+                    result.message = `Expected ${player.name} not to be able to select exactly these cards but they can: ${Util.cardNamesToString(expectedSelectable)}`;
                 } else {
                     let message = '';
 
                     if (unexpectedUnselectable.length > 0) {
-                        message = `Expected the following cards to be selectable by ${player.name} but they were not: ${cardNamesToString(unexpectedUnselectable)}`;
+                        message = `Expected the following cards to be selectable by ${player.name} but they were not: ${Util.cardNamesToString(unexpectedUnselectable)}`;
                     }
                     if (unexpectedSelectable.length > 0) {
                         if (message.length > 0) {
                             message += '\n';
                         }
-                        message += `Expected the following cards not to be selectable by ${player.name} but they were: ${cardNamesToString(unexpectedSelectable)}`;
+                        message += `Expected the following cards not to be selectable by ${player.name} but they were: ${Util.cardNamesToString(unexpectedSelectable)}`;
                     }
                     result.message = message;
                 }
@@ -691,7 +691,7 @@ var customMatchers = {
                 const playerStr = player ? ` for player ${player}` : '';
 
                 if (result.pass) {
-                    result.message = `Expected these cards not to be in zone ${zone}${playerStr} but they are: ${cardNamesToString(cards)}`;
+                    result.message = `Expected these cards not to be in zone ${zone}${playerStr} but they are: ${Util.cardNamesToString(cards)}`;
                 } else {
                     result.message = `Expected the following cards to be in zone ${zone}${playerStr} but they were not:`;
 
@@ -798,9 +798,9 @@ var customMatchers = {
                 result.pass = Util.stringArraysEqual(actualOptions, expectedOptions);
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to have this exact list of options but it does: '${Util.createStringForOptions(expectedOptions)}'`;
+                    result.message = `Expected ${player.name} not to have this exact list of options but it does: '${Util.formatDropdownListOptions(expectedOptions)}'`;
                 } else {
-                    result.message = `Expected ${player.name} to have this exact list of options: '${Util.createStringForOptions(expectedOptions)}'`;
+                    result.message = `Expected ${player.name} to have this exact list of options: '${Util.formatDropdownListOptions(expectedOptions)}'`;
                 }
 
                 result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
@@ -830,18 +830,18 @@ var customMatchers = {
                 result.pass = foundAndNotExpected.length === 0 && expectedAndNotFound.length === 0;
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to have exactly these cards in the card display prompt but they did: ${cardNamesToString(expectedAndFound)}`;
+                    result.message = `Expected ${player.name} not to have exactly these cards in the card display prompt but they did: ${Util.cardNamesToString(expectedAndFound)}`;
                 } else {
                     let message = '';
 
                     if (expectedAndNotFound.length > 0) {
-                        message = `Expected the following cards to be in the card display prompt for ${player.name} but they were not: ${cardNamesToString(expectedAndNotFound)}`;
+                        message = `Expected the following cards to be in the card display prompt for ${player.name} but they were not: ${Util.cardNamesToString(expectedAndNotFound)}`;
                     }
                     if (foundAndNotExpected.length > 0) {
                         if (message.length > 0) {
                             message += '\n';
                         }
-                        message += `Expected the following cards not to be in the card display prompt for ${player.name} but they were: ${cardNamesToString(foundAndNotExpected)}`;
+                        message += `Expected the following cards not to be in the card display prompt for ${player.name} but they were: ${Util.cardNamesToString(foundAndNotExpected)}`;
                     }
                     result.message = message;
                 }
@@ -881,10 +881,6 @@ var customMatchers = {
 
 function generatePromptHelpMessage(testContext) {
     return `Current prompts for players:\n${Util.formatBothPlayerPrompts(testContext)}`;
-}
-
-function cardNamesToString(cards) {
-    return cards.map((card) => card.internalName).join(', ');
 }
 
 function checkConsistentZoneState(card, result) {

@@ -562,47 +562,26 @@ class PlayerInteractionWrapper {
         this.game.continue();
     }
 
-    clickPromptButtonIndex(index) {
+    clickCardInDisplayCardPrompt(card, allowClickUnselectable = false) {
+        Util.checkNullCard(card, this.testContext);
+
         var currentPrompt = this.player.currentPrompt();
 
-        if (currentPrompt.buttons.length <= index) {
-            throw new TestSetupError(
-                `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
-            );
-        }
-
-        var promptButton = currentPrompt.buttons[index];
-
-        if (!promptButton || promptButton.disabled) {
-            throw new TestSetupError(
-                `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
-            );
-        }
-
-        this.game.menuButton(this.player.name, promptButton.arg, promptButton.uuid, promptButton.method);
-        this.game.continue();
-        // this.checkUnserializableGameState();
-    }
-
-    chooseCardInPrompt(cardName, controlName) {
-        var currentPrompt = this.player.currentPrompt();
-
-        let promptControl = currentPrompt.controls.find(
-            (control) => control.name.toLowerCase() === controlName.toLowerCase()
+        var clickingCard = currentPrompt.displayCards.find(
+            (cardEntry) => cardEntry.cardUuid === card.uuid
         );
 
-        if (!promptControl) {
+        if (!clickingCard || (!allowClickUnselectable && clickingCard.selectionState === 'unselectable')) {
             throw new TestSetupError(
-                `Couldn't click card '${cardName}' for ${this.player.name
-                } - unable to find control '${controlName}'. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
+                `Couldn't click on '${card.internalName}' in card display prompt for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
-        this.game.menuButton(this.player.name, cardName, promptControl.uuid, promptControl.method);
+        this.game.menuButton(this.player.name, card.uuid, currentPrompt.promptUuid, 'menuButton');
         this.game.continue();
+
         // this.checkUnserializableGameState();
+        return card;
     }
 
     // click any N of the selectable cards available

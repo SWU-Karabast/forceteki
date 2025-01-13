@@ -16,11 +16,12 @@ import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';
 type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((context: TContext) => T);
 
 export interface ISearchDeckProperties<TContext extends AbilityContext = AbilityContext> extends IPlayerTargetSystemProperties {
-    targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable | TargetMode.Unlimited | TargetMode.Exactly | TargetMode.ExactlyVariable;
+    targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable;
     activePromptTitle?: string;
 
     /** The number of cards from the top of the deck to search, or a function to determine how many cards to search. Default is -1, which indicates the whole deck. */
     searchCount?: number | ((context: TContext) => number);
+    canChooseNothing?: boolean;
 
     /** The number of cards to select from the search, or a function to determine how many cards to select. Default is 1. The targetMode will interact with this to determine the min/max number of cards to retrieve. */
     selectCount?: number | ((context: TContext) => number);
@@ -31,7 +32,6 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     /** This determines what to do with the selected cards (if a custom selectedCardsHandler is not provided). */
     selectedCardsImmediateEffect?: GameSystem<TContext>;
     message?: string;
-    chosenCardsMustHaveUniqueNames?: boolean;
     player?: Player;
     choosingPlayer?: Player;
     messageArgs?: (context: TContext, cards: Card[]) => any | any[];
@@ -59,7 +59,6 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
         chooseNothingImmediateEffect: null,
         shuffleWhenDone: false,
         revealSelected: true,
-        chosenCardsMustHaveUniqueNames: false,
         cardCondition: () => true,
         remainingCardsHandler: this.remainingCardsDefaultHandler
     };
@@ -114,7 +113,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
         if (event.amount === -1) {
             cards = cards.filter((card) => properties.cardCondition(card, context));
         }
-        this.selectCard(event, additionalProperties, cards, new Set());
+        this.promptSelectCards(event, additionalProperties, cards, new Set());
         events.push(event);
     }
 
@@ -134,29 +133,22 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
         return player.drawDeck;
     }
 
-    private selectCard(event: any, additionalProperties: any, cards: Card[], selectedCards: Set<Card>): void {
+    private promptSelectCards(event: any, additionalProperties: any, cards: Card[], selectedCards: Set<Card>): void {
         const context: TContext = event.context;
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
-        const canCancel = properties.targetMode !== TargetMode.Exactly;
-        let selectAmount = 1;
+        let selectAmount: number;
         const choosingPlayer = properties.choosingPlayer || event.player;
 
         switch (properties.targetMode) {
             case TargetMode.UpTo:
             case TargetMode.UpToVariable:
-            case TargetMode.Exactly:
-            case TargetMode.ExactlyVariable:
                 selectAmount = this.getNumCards(properties.selectCount, context);
-                break;
-            case TargetMode.Unlimited:
-                selectAmount = -1;
                 break;
             case TargetMode.Single:
                 selectAmount = 1;
                 break;
             default:
                 Contract.fail(`Invalid targetMode: ${properties.targetMode}`);
-                break;
         }
 
         let title = properties.activePromptTitle;
@@ -169,48 +161,37 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
             }
         }
 
-        // TODO: I don't think this actually does anything. Further research needed
-        // if (properties.shuffleWhenDone) {
-        //     cards.sort((a, b) => a.name.localeCompare(b.name));
-        // }
-
-        context.game.promptWithHandlerMenu(choosingPlayer, {
-            activePromptTitle: title,
-            context: context,
-            cards: cards,
-            cardCondition: (card: Card, context: TContext) =>
-                properties.cardCondition(card, context) &&
-                (!properties.chosenCardsMustHaveUniqueNames || !Array.from(selectedCards).some((sel) => sel.name === card.name)) &&
-                (!properties.selectedCardsImmediateEffect || properties.selectedCardsImmediateEffect.canAffect(card, context, additionalProperties)),
-            choices: canCancel ? (selectedCards.size > 0 ? ['Done'] : ['Take nothing']) : [],
-            handlers: [() => this.onSearchComplete(properties, context, event, selectedCards, cards)],
-            cardHandler: (card: Card) => {
-                const newSelectedCards = new Set(selectedCards);
-                newSelectedCards.add(card);
-                const index = cards.indexOf(card, 0);
-                if (index > -1) {
-                    cards.splice(index, 1);
-                }
-                if ((selectAmount < 0 || newSelectedCards.size < selectAmount) && cards.length > 0) {
-                    this.selectCard(event, additionalProperties, cards, newSelectedCards);
-                } else {
-                    this.onSearchComplete(properties, context, event, newSelectedCards, cards);
-                }
+        context.game.promptSelectDisplayCards(
+            choosingPlayer,
+            {
+                activePromptTitle: title,
+                source: context.source,
+                displayCards: cards,
+                maxCards: selectAmount,
+                canChooseNothing: properties.canChooseNothing || true,
+                selectableCondition: (card: Card) =>
+                    properties.cardCondition(card, context) &&
+                    (!properties.selectedCardsImmediateEffect || properties.selectedCardsImmediateEffect.canAffect(card, context, additionalProperties)),
+                selectedCardsHandler: (selectedCards: Card[]) =>
+                    this.onSearchComplete(properties, context, event, selectedCards, cards)
             }
-        });
+        );
     }
 
-    private onSearchComplete(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>, allCards: Card[]): void {
-        event.selectedCards = Array.from(selectedCards);
+    private onSearchComplete(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Card[], allCards: Card[]): void {
+        event.selectedCards = selectedCards;
         context.selects['deckSearch'] = Array.from(selectedCards);
-        this.searchCompleteHandler(properties, context, event, selectedCards);
+
+        const selectedCardsSet = new Set(selectedCards);
+
+        this.searchCompleteHandler(properties, context, event, selectedCardsSet);
         if (properties.selectedCardsHandler === null) {
-            this.selectedCardsDefaultHandler(properties, context, event, selectedCards);
+            this.selectedCardsDefaultHandler(properties, context, event, selectedCardsSet);
         } else {
-            properties.selectedCardsHandler(context, event, Array.from(selectedCards));
+            properties.selectedCardsHandler(context, event, selectedCards);
         }
 
-        const cardsToMove = allCards.filter((card) => !selectedCards.has(card));
+        const cardsToMove = allCards.filter((card) => !selectedCardsSet.has(card));
         properties.remainingCardsHandler(context, event, cardsToMove);
 
         if (this.shouldShuffle(this.properties.shuffleWhenDone, context)) {
