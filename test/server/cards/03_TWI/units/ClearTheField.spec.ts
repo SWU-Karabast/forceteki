@@ -34,6 +34,7 @@ describe('Clear the Field\'s ability', function () {
             expect(context.duchesssChampion).toBeInZone('groundArena');
             expect(context.yoda).toBeInZone('groundArena');
         });
+
         it('should only make unit return to hand and tokens go out of combat instead', function () {
             contextRef.setupTest({
                 phase: 'action',
@@ -90,6 +91,31 @@ describe('Clear the Field\'s ability', function () {
 
             expect(droidToken1).toBeInZone('outsideTheGame');
             expect(droidToken2).toBeInZone('outsideTheGame');
+        });
+
+        it('should only make unit return to hand and tokens go out of combat instead', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+
+                    groundArena: ['bokatan-kryze#fighting-for-mandalore']
+                },
+                player2: {
+                    hand: ['change-of-heart', 'clear-the-field'],
+                    hasInitiative: true,
+                },
+            });
+            const { context } = contextRef;
+            const bokatanDeathWatch = context.player1.findCardByName('bokatan-kryze#fighting-for-mandalore');
+
+            context.player2.clickCard(context.changeOfHeart);
+            context.player2.clickCard(bokatanDeathWatch);
+            expect(bokatanDeathWatch).toBeInZone('groundArena', context.player2);
+            context.player1.passAction();
+            // Check that the unit is returned to the hand of its owner
+            context.player2.clickCard(context.clearTheField);
+            context.player2.clickCard(bokatanDeathWatch);
+            expect(bokatanDeathWatch).toBeInZone('hand', context.player1);
         });
     });
 });

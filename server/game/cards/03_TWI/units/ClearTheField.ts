@@ -18,7 +18,7 @@ export default class ClearTheField extends EventCard {
                     const allOpponentUnits = context.player.opponent.getUnitsInPlay();
                     const returnedCards = allOpponentUnits.filter((card) => card.isNonLeaderUnit() && card.title === context.target.title);
                     // Add the target to the list of targets if it's an ally unit
-                    if (context.target.owner !== context.player.opponent) {
+                    if (context.target.controller !== context.player.opponent) {
                         returnedCards.push(context.target);
                     }
                     return { target: returnedCards };
