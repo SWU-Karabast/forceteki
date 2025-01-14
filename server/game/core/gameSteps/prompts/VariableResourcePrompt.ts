@@ -3,6 +3,7 @@ import type Player from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { ResourcePrompt } from './ResourcePrompt';
+import { PromptType } from '../../Constants';
 
 export class VariableResourcePrompt extends ResourcePrompt {
     private readonly minCardsToResource: number;
@@ -25,7 +26,8 @@ export class VariableResourcePrompt extends ResourcePrompt {
             menuTitle: promptText,
             buttons: [{ text: 'Done', arg: 'done' }],
             promptTitle: 'Resource Step',
-            promptUuid: this.uuid
+            promptUuid: this.uuid,
+            promptType: PromptType.Resource
         };
     }
 

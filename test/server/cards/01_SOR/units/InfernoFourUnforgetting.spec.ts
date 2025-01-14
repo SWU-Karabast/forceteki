@@ -20,10 +20,11 @@ describe('Inferno Four - Unforgetting', function() {
 
                 // Case 1 on play move the first top card to top and second card to bottom.
                 context.player1.clickCard(context.infernoFour);
-                expect(context.player1).toHaveExactPromptButtons(['Put Pyke Sentinel on top', 'Put Pyke Sentinel on bottom', 'Put Foundling on bottom', 'Put Foundling on top']);
-                context.player1.clickPrompt('Put Pyke Sentinel on top');
+                expect(context.player1).toHaveExactDisplayPromptCards([context.foundling, context.pykeSentinel]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
+                context.player1.clickDisplayCardPromptButton(context.pykeSentinel.uuid, 'top');
                 expect(context.player1.deck).toEqual(preSwapDeck);
-                context.player1.clickPrompt('Put Foundling on bottom');
+                context.player1.clickDisplayCardPromptButton(context.foundling.uuid, 'bottom');
 
                 // check board state
                 expect(context.player1.deck.length).toBe(5);
@@ -41,10 +42,11 @@ describe('Inferno Four - Unforgetting', function() {
                 // Case 2 on defeat move both cards to the top of the deck
                 context.player2.clickCard(context.tieAdvanced);
                 context.player2.clickCard(context.infernoFour);
-                expect(context.player1).toHaveExactPromptButtons(['Put Pyke Sentinel on top', 'Put Pyke Sentinel on bottom', 'Put AT-ST on bottom', 'Put AT-ST on top']);
-                context.player1.clickPrompt('Put Pyke Sentinel on top');
+                expect(context.player1).toHaveExactDisplayPromptCards([context.pykeSentinel, context.atst]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
+                context.player1.clickDisplayCardPromptButton(context.pykeSentinel.uuid, 'top');
                 expect(context.player1.deck).toEqual(preSwapDeck);
-                context.player1.clickPrompt('Put AT-ST on top');
+                context.player1.clickDisplayCardPromptButton(context.atst.uuid, 'top');
 
                 // Check board state
                 // preswap deck deck: ['pyke-sentinel', 'atst', 'cartel-spacer', 'wampa', 'foundling']
@@ -55,6 +57,7 @@ describe('Inferno Four - Unforgetting', function() {
                 expect(context.player1).toBeActivePlayer();
             });
         });
+
         describe('Inferno Four - Unforgetting\'s ability', function() {
             beforeEach(function () {
                 contextRef.setupTest({

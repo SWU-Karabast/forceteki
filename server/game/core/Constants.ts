@@ -65,6 +65,7 @@ export enum EffectName {
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
+    CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
     CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
     CostAdjuster = 'costAdjuster',
@@ -446,4 +447,5 @@ export enum PromptType {
     Initiative = 'initiative',
     Resource = 'resource',
     ActionWindow = 'actionWindow',
+    DisplayCards = 'displayCards'
 }

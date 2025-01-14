@@ -13,7 +13,6 @@ const { RegroupPhase } = require('./gameSteps/phases/RegroupPhase.js');
 const { SimpleStep } = require('./gameSteps/SimpleStep.js');
 const MenuPrompt = require('./gameSteps/prompts/MenuPrompt.js');
 const HandlerMenuPrompt = require('./gameSteps/prompts/HandlerMenuPrompt.js');
-const SelectCardPrompt = require('./gameSteps/prompts/SelectCardPrompt.js');
 const GameOverPrompt = require('./gameSteps/prompts/GameOverPrompt.js');
 const GameSystems = require('../gameSystems/GameSystemLibrary.js');
 const { GameEvent } = require('./event/GameEvent.js');
@@ -37,6 +36,8 @@ const { GroundArenaZone } = require('./zone/GroundArenaZone.js');
 const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
 const { AllArenasZone } = require('./zone/AllArenasZone.js');
 const EnumHelpers = require('./utils/EnumHelpers.js');
+const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
+const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -73,6 +74,9 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
         this.randomGenerator = seedrandom();
+
+        /** @type {import('../Interfaces').IClientUIProperties} */
+        this.clientUIProperties = {};
 
         this.registerGlobalRulesListeners();
 
@@ -637,6 +641,16 @@ class Game extends EventEmitter {
     }
 
     /**
+     *  @param {Player} player
+     *  @param {import('./gameSteps/PromptInterfaces.js').IDisplayCardsWithButtonsPromptProperties} properties
+     */
+    promptDisplayCardsWithButtons(player, properties) {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new DisplayCardsWithButtonsPrompt(this, player, properties));
+    }
+
+    /**
      * Prompts a player with a menu for selecting a string from a list of options
      * @param {Player} player
      * @param {import('./gameSteps/prompts/DropdownListPrompt.js').IDropdownListPromptProperties} properties
@@ -650,7 +664,7 @@ class Game extends EventEmitter {
     /**
      * Prompts a player to click a card
      * @param {Player} player
-     * @param {Object} properties - see selectcardprompt.js
+     * @param {import('./gameSteps/PromptInterfaces.js').ISelectCardPromptProperties} properties - see selectcardprompt.js
      */
     promptForSelect(player, properties) {
         Contract.assertNotNullLike(player);
@@ -684,6 +698,22 @@ class Game extends EventEmitter {
 
         // check to see if the current step in the pipeline is waiting for input
         return this.pipeline.handleMenuCommand(player, arg, uuid, method);
+    }
+
+    /**
+     * This function is called by the client whenever a player clicks a "per card" button
+     * in a prompt (e.g. Inferno Four prompt). See {@link DisplayCardsWithButtonsPrompt}.
+     * @param {String} playerName
+     * @param {String} arg - arg property of the button clicked
+     * @param {String} uuid - unique identifier of the prompt clicked
+     * @param {String} method - method property of the button clicked
+     * @returns {Boolean} this indicates to the server whether the received input is legal or not
+     */
+    perCardMenuButton(playerName, arg, cardUuid, uuid, method) {
+        var player = this.getPlayerByName(playerName);
+
+        // check to see if the current step in the pipeline is waiting for input
+        return this.pipeline.handlePerCardMenuCommand(player, arg, cardUuid, uuid, method);
     }
 
     /**
@@ -1351,6 +1381,7 @@ class Game extends EventEmitter {
                 players: playerState,
                 phase: this.currentPhase,
                 messages: this.gameChat.messages,
+                clientUIProperties: this.clientUIProperties,
                 spectators: this.getSpectators().map((spectator) => {
                     return {
                         id: spectator.id,

@@ -20,7 +20,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     checkTarget?: boolean;
     message?: string;
     manuallyRaiseEvent?: boolean;
-    messageArgs?: (card: Card, player: RelativePlayer, properties: ISelectCardProperties<TContext>) => any[];
+    messageArgs?: (card: Card, properties: ISelectCardProperties<TContext>) => any[];
     innerSystem: CardTargetSystem<TContext> | AggregateSystem<TContext>;
     selector?: BaseCardSelector;
     mode?: TargetMode;
@@ -135,10 +135,11 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             selector: properties.selector,
             mustSelect: mustSelect,
             buttons: buttons,
+            source: context.source,
             onCancel: properties.cancelHandler,
-            onSelect: (player, cards) => {
+            onSelect: (cards) => {
                 if (properties.message) {
-                    context.game.addMessage(properties.message, ...properties.messageArgs(cards, player, properties));
+                    context.game.addMessage(properties.message, ...properties.messageArgs(cards, properties));
                 }
                 properties.innerSystem.queueGenerateEventGameSteps(
                     events,
@@ -150,7 +151,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 }
                 return true;
             },
-            onMenuCommand: (player, arg) => {
+            onMenuCommand: (arg) => {
                 if (arg === 'noTarget' || arg === 'cancel') {
                     return true;
                 }
@@ -176,7 +177,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         const finalProperties = Object.assign(defaultProperties, properties);
         if (player.autoSingleTarget) {
             if (legalTargets.length === 1) {
-                finalProperties.onSelect(player, legalTargets[0]);
+                finalProperties.onSelect(legalTargets[0]);
                 return;
             }
         }
@@ -192,6 +193,10 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     private selectionIsOptional(properties, context): boolean {
         if (properties.optional || properties.innerSystem.isOptional(context)) {
             return true;
+        }
+
+        if (properties.isCost === true) {
+            return false;
         }
 
         if (properties.mode === TargetMode.Exactly || properties.mode === TargetMode.ExactlyVariable || properties.mode === TargetMode.Single) {
