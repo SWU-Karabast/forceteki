@@ -32,7 +32,7 @@ export class DisplayCardsSearchPrompt extends DisplayCardPrompt<IDisplayCardsSel
         this.canChooseNothing = !!properties.canChooseNothing;
 
         if (this.canChooseNothing) {
-            this.doneButton = { text: 'Take no cards', arg: 'done' };
+            this.doneButton = { text: 'Take nothing', arg: 'done' };
         } else if (this.maxCards > 1) {
             this.doneButton = { text: 'Done', arg: 'done', disabled: true };
         }
@@ -44,7 +44,9 @@ export class DisplayCardsSearchPrompt extends DisplayCardPrompt<IDisplayCardsSel
     }
 
     public override activePromptInternal() {
-        return {};
+        return {
+            buttons: this.doneButton ? [this.doneButton] : [],
+        };
     }
 
     protected override getDisplayCards(): IDisplayCard[] {

@@ -563,7 +563,7 @@ class PlayerInteractionWrapper {
     }
 
     clickCardInDisplayCardPrompt(card, allowClickUnselectable = false) {
-        Util.checkNullCard(card, this.testContext);
+        Util.checkNullCard(card);
 
         var currentPrompt = this.player.currentPrompt();
 
@@ -605,7 +605,7 @@ class PlayerInteractionWrapper {
     }
 
     clickCard(card, zone = 'any', side = 'self', expectChange = true) {
-        Util.checkNullCard(card, this.testContext);
+        Util.checkNullCard(card);
 
         if (typeof card === 'string') {
             card = this.findCardByName(card, zone, side);

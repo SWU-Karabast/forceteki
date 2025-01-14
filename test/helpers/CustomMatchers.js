@@ -827,6 +827,8 @@ var customMatchers = {
                 const expectedCardsInPrompt = [];
 
                 for (const [selectionState, cards] of Object.entries(expectedCardsInPromptObject)) {
+                    Util.checkNullCard(cards, `Card list for '${selectionState}' contains one more null elements`);
+
                     for (const card of cards) {
                         expectedCardsInPrompt.push(card);
                         expectedSelectionStateByUuid.set(card.uuid, selectionState);

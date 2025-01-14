@@ -16,11 +16,29 @@ describe('Prepare for Takeoff', function () {
 
                 context.player1.clickCard(context.prepareForTakeoff);
                 expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
-                expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.pykeSentinel.title, context.consularSecurityForce.title, context.echoBaseDefender.title]);
-                expect(context.player1).toHaveEnabledPromptButtons([context.greenSquadronAwing.title, context.restoredArc170.title, context.infernoFour.title, context.escortSkiff.title, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour, context.escortSkiff],
+                    unselectable: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.greenSquadronAwing.title);
-                context.player1.clickPrompt(context.restoredArc170.title);
+                context.player1.clickCardInDisplayCardPrompt(context.greenSquadronAwing);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.greenSquadronAwing],
+                    selectable: [context.restoredArc170, context.infernoFour, context.escortSkiff],
+                    unselectable: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCardInDisplayCardPrompt(context.restoredArc170);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.greenSquadronAwing, context.restoredArc170],
+                    selectable: [context.infernoFour, context.escortSkiff],
+                    unselectable: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                context.player1.clickPrompt('Done');
                 expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing and Restored ARC-170');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
                 expect(context.restoredArc170).toBeInZone('hand');
@@ -38,10 +56,21 @@ describe('Prepare for Takeoff', function () {
 
                 context.player1.clickCard(context.prepareForTakeoff);
                 expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
-                expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.pykeSentinel.title, context.consularSecurityForce.title, context.echoBaseDefender.title]);
-                expect(context.player1).toHaveEnabledPromptButtons([context.greenSquadronAwing.title, context.restoredArc170.title, context.infernoFour.title, context.escortSkiff.title, 'Take nothing']);
 
-                context.player1.clickPrompt(context.greenSquadronAwing.title);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour, context.escortSkiff],
+                    unselectable: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                context.player1.clickCardInDisplayCardPrompt(context.greenSquadronAwing);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.greenSquadronAwing],
+                    selectable: [context.restoredArc170, context.infernoFour, context.escortSkiff],
+                    unselectable: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
                 context.player1.clickPrompt('Done');
                 expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing');
                 expect(context.greenSquadronAwing).toBeInZone('hand');

@@ -2,6 +2,7 @@ import { PromptType } from '../../Constants';
 import type Game from '../../Game';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type Player from '../../Player';
+import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import type { IDisplayCard, IDisplayCardPromptPropertiesBase } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
@@ -33,7 +34,7 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
         this.promptTitle = properties.promptTitle || this.source.name;
     }
 
-    protected abstract activePromptInternal(): Partial<TProperties>;
+    protected abstract activePromptInternal(): Partial<IPlayerPromptStateProperties>;
     protected abstract defaultProperties(): Partial<TProperties>;
     protected abstract getDisplayCards(): IDisplayCard[];
 

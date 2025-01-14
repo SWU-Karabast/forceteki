@@ -1,10 +1,10 @@
 const TestSetupError = require('./TestSetupError.js');
 
 // card can be a single or an array
-function checkNullCard(card, testContext) {
+function checkNullCard(card, prefix = 'Card list contains one more null elements') {
     if (Array.isArray(card)) {
         if (card.some((cardInList) => cardInList == null)) {
-            throw new TestSetupError(`Card list contains one more null elements: ${card.map((cardInList) => getCardName(cardInList)).join(', ')}`);
+            throw new TestSetupError(`${prefix}: ${card.map((cardInList) => getCardName(cardInList)).join(', ')}`);
         }
     }
 
