@@ -8,12 +8,11 @@ import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCardsSelectProperties> {
     private readonly canChooseNothing: boolean;
+    private readonly displayCards: ISelectableCard[];
     private readonly doneButton?: IButton;
     private readonly maxCards: number;
     private readonly selectableCondition: (card: Card) => boolean;
     private readonly selectedCardsHandler: (cards: Card[]) => void;
-
-    private displayCards: ISelectableCard[];
 
     public constructor(game: Game, choosingPlayer: Player, properties: IDisplayCardsSelectProperties) {
         super(game, choosingPlayer, properties);
