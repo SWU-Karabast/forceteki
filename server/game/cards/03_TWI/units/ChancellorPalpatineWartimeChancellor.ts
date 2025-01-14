@@ -30,7 +30,7 @@ export default class ChancellorPalpatineWartimeChancellor extends NonLeaderUnitC
         this.addOnAttackAbility({
             title: 'Create a Clone Trooper token.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlayByAnyPlayer({ filter: (entry) => entry.card.isUnit() }),
+                condition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ filter: (entry) => entry.card.isUnit() }),
                 onTrue: AbilityHelper.immediateEffects.createCloneTrooper(),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
