@@ -34,6 +34,7 @@ export class Lobby {
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private lobbyOwnerId: string;
     private playableCardTitles: string[];
+    private gameType: MatchType;
 
     public constructor(lobbyGameType: MatchType) {
         Contract.assertTrue(
@@ -44,6 +45,7 @@ export class Lobby {
         this.gameChat = new GameChat();
         this.connectionLink = lobbyGameType !== MatchType.Quick ? `http://localhost:3000/lobby?lobbyId=${this._id}` : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
+        this.gameType = lobbyGameType;
     }
 
     public get id(): string {
@@ -64,6 +66,7 @@ export class Lobby {
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
+            gameType: this.gameType,
         };
     }
 

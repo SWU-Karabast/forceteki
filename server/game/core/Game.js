@@ -509,8 +509,7 @@ class Game extends EventEmitter {
 
         this.finishedAt = new Date();
         this.gameEndReason = reason;
-
-        this.router.gameWon(this, reason, winner);
+        // this.router.gameWon(this, reason, winner);
 
         this.queueStep(new GameOverPrompt(this, winner));
     }
@@ -1390,7 +1389,11 @@ class Game extends EventEmitter {
                 }),
                 started: this.started,
                 gameMode: this.gameMode,
-                // winner: this.winner ? this.winner.user.name : undefined
+                winner: this.winner
+                    ? Array.isArray(this.winner)
+                        ? this.winner[0]?.user?.username
+                        : this.winner?.user?.username
+                    : undefined
             };
         }
         return {};
