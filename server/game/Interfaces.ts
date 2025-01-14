@@ -215,7 +215,12 @@ export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbi
 };
 
 export interface IClientUIProperties {
-    lastPlayedCard?: { set: string; number: number };
+    lastPlayedCard?: ISetId;
+}
+
+export interface ISetId {
+    set: string;
+    number: number;
 }
 
 // ********************************************** INTERNAL TYPES **********************************************

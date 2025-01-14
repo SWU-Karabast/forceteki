@@ -1,4 +1,4 @@
-import type { IActionAbilityProps, IConstantAbilityProps, Zone } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, ISetId, Zone } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
@@ -77,6 +77,10 @@ export class Card extends OngoingEffectSource {
     /** @deprecated use title instead**/
     public override get name() {
         return super.name;
+    }
+
+    public get setId(): ISetId {
+        return this.cardData.setId;
     }
 
     public get traits(): Set<Trait> {
@@ -812,7 +816,7 @@ export class Card extends OngoingEffectSource {
 
         const state = {
             id: this.cardData.id,
-            setId: this.cardData.setId,
+            setId: this.setId,
             controlled: this.owner !== this.controller,
             aspects: this.aspects,
             // facedown: this.isFacedown(),

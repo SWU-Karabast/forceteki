@@ -25,6 +25,10 @@ export abstract class BaseStep implements IStep {
         return false;
     }
 
+    public onPerCardMenuCommand(player: Player, arg: string, cardUuid: string, uuid: string, method: string): boolean {
+        return false;
+    }
+
     public getDebugInfo(): string {
         return this.constructor.name;
     }
