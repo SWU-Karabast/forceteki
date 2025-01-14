@@ -21,11 +21,11 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
         return super.getCurrentValue();
     }
 
-    public getCardsLeftPlayControlledByPlayer({ controller, filter }: {
-        controller: Player;
+    public getCardsLeftPlay({ controller, filter }: {
+        controller?: Player;
         filter?: (event: CardLeftPlayEntry) => boolean;
     }) {
-        const playerFilter = (entry: CardLeftPlayEntry) => entry.controlledBy === controller;
+        const playerFilter = (entry: CardLeftPlayEntry) => (controller != null ? entry.controlledBy === controller : true);
 
         if (filter != null) {
             return this.getCurrentValue().filter(filter)
@@ -37,11 +37,11 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
             .map((entry) => entry.card);
     }
 
-    public someCardLeftPlayControlledByPlayer({ controller, filter }: {
-        controller: Player;
+    public someCardLeftPlay({ controller, filter }: {
+        controller?: Player;
         filter?: (event: CardLeftPlayEntry) => boolean;
     }) {
-        return this.getCardsLeftPlayControlledByPlayer({ controller, filter }).length > 0;
+        return this.getCardsLeftPlay({ controller, filter }).length > 0;
     }
 
     protected override setupWatcher() {
