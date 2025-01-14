@@ -95,6 +95,7 @@ export class GameServer {
         this.io.on('connection', (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
             this.onConnection(socket);
             socket.on('manualDisconnect', () => {
+                console.log('Manual disconnected');
                 socket.data.manualDisconnect = true;
                 socket.disconnect();
             });
@@ -263,7 +264,7 @@ export class GameServer {
     public onConnection(ioSocket) {
         const user = JSON.parse(ioSocket.handshake.query.user);
         const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
-
+        console.log('CONNECTION CAME IN!');
         if (user) {
             ioSocket.request.user = user;
         }

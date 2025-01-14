@@ -62,6 +62,7 @@ export class Lobby {
                 ready: u.ready,
                 deck: u.deck?.data,
             })),
+            gameOngoing: !!this.game,
             gameChat: this.gameChat,
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
@@ -133,6 +134,11 @@ export class Lobby {
         // we need to get the player and message
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
         this.gameChat.addChatMessage(socket.user, args[0]);
+        this.sendLobbyState();
+    }
+
+    private regularRematch(socket: Socket, ...args) {
+        this.game = null;
         this.sendLobbyState();
     }
 
@@ -278,10 +284,15 @@ export class Lobby {
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
 
         const gameSetupPath = path.resolve(__dirname, '../../test/helpers/GameStateSetup.js');
+        this.setTokens();
+        this.setPlayableCardTitles();
+        // TODO to address this a refactor and change router to lobby
+        // eslint-disable-next-line
+        const router = this;
         // eslint-disable-next-line
         const game: Game = require(gameSetupPath).setUpTestGame(
             setupData,
-            {},
+            router,
             { id: 'exe66', username: 'Order66' },
             { id: 'th3w4y', username: 'ThisIsTheWay' }
         );
@@ -307,7 +318,6 @@ export class Lobby {
                 game.selectDeck(user.id, user.deck.data);
             }
         });
-
         game.initialiseTokens(this.tokens);
         game.initialise();
 
@@ -401,7 +411,11 @@ export class Lobby {
     public sendGameState(game: Game): void {
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
-                user.socket.send('gamestate', game.getState(user.id));
+                if (game) {
+                    user.socket.send('gamestate', game.getState(user.id));
+                } else {
+                    user.socket.send('gamestate', null);
+                }
             }
         }
     }
