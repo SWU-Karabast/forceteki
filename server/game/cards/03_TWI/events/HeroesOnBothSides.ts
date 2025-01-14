@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { KeywordName, TargetMode, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { KeywordName, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class HeroesOnBothSides extends EventCard {
     protected override getImplementationId() {
