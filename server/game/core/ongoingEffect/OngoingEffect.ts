@@ -6,6 +6,7 @@ import type { ZoneFilter } from '../Constants';
 import { Duration, WildcardZoneName, EffectName } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
+import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 
 /**
@@ -51,6 +52,11 @@ export abstract class OngoingEffect {
     public context: AbilityContext;
 
     public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effectImpl: OngoingEffectImpl<any>) {
+        Contract.assertFalse(
+            properties.duration === Duration.WhileSourceInPlay && !source.canBeInPlay(),
+            `${source.internalName} is not a legal target for an effect with duration '${Duration.WhileSourceInPlay}'`
+        );
+
         this.game = game;
         this.source = source;
         this.matchTarget = properties.matchTarget || (() => true);

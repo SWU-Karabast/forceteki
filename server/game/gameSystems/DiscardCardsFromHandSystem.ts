@@ -1,5 +1,5 @@
 import type { CardTypeFilter } from '../core/Constants';
-import { EventName, GameStateChangeRequired, ZoneName, RelativePlayer, TargetMode, WildcardCardType } from '../core/Constants';
+import { EventName, GameStateChangeRequired, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type Player from '../core/Player';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
@@ -11,6 +11,7 @@ import * as Helpers from '../core/utils/Helpers';
 import type { Derivable } from '../core/utils/Helpers';
 import { derive } from '../core/utils/Helpers';
 import * as Contract from '../core/utils/Contract';
+import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 
 export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProperties {
     amount: Derivable<number, Player>;
@@ -88,20 +89,25 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
             }
 
             if (properties.random) {
-                const randomCards = Helpers.getRandomArrayElements(availableHand, amount);
+                const randomCards = Helpers.getRandomArrayElements(availableHand, amount, context.game.randomGenerator);
                 this.generateEventsForCards(randomCards, context, events, additionalProperties);
                 continue;
             }
 
-            context.game.promptForSelect(choosingPlayer, {
-                activePromptTitle: 'Choose ' + (amount === 1 ? 'a card' : amount + ' cards') + ' to discard',
-                context: context,
+            const selector = CardSelectorFactory.create({
                 mode: TargetMode.Exactly,
                 numCards: amount,
                 zoneFilter: ZoneName.Hand,
                 controller: player === context.player ? RelativePlayer.Self : RelativePlayer.Opponent,
-                cardCondition: (card) => properties.cardCondition(card, context),
-                onSelect: (_player, cards) => {
+                cardCondition: (card) => properties.cardCondition(card, context)
+            });
+
+            context.game.promptForSelect(choosingPlayer, {
+                activePromptTitle: 'Choose ' + (amount === 1 ? 'a card' : amount + ' cards') + ' to discard',
+                source: context.source,
+                selector: selector,
+                context: context,
+                onSelect: (cards) => {
                     this.generateEventsForCards(cards, context, events, additionalProperties);
                     return true;
                 }

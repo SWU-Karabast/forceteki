@@ -1,16 +1,20 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
+import { GameStateChangeRequired } from '../core/Constants';
 import { EventName, DeckZoneDestination } from '../core/Constants';
 import { LookAtSystem } from './LookAtSystem';
 import { MoveCardSystem } from './MoveCardSystem';
+import * as Contract from '../core/utils/Contract';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
+import type Player from '../core/Player';
 
-export interface ILookMoveDeckCardsTopOrBottomProperties extends ICardTargetSystemProperties {
+export interface ILookMoveDeckCardsTopOrBottomProperties extends IPlayerTargetSystemProperties {
     amount: number;
 }
 
-export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ILookMoveDeckCardsTopOrBottomProperties> {
+export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ILookMoveDeckCardsTopOrBottomProperties> {
     public override readonly name = 'lookMoveDeckCardsTopOrBottomSystem';
     protected override readonly eventName = EventName.OnLookMoveDeckCardsTopOrBottom;
 
@@ -24,59 +28,77 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
 
         if (deckLength === 1) {
             const lookAtEvent = new LookAtSystem({
-                target: player.drawDeck[0],
-                sendChatMessage: true
+                target: player.drawDeck[0]
             }).generateEvent(context);
             events.push(lookAtEvent);
         } else {
             const actualAmount = Math.min(amount, deckLength);
             const cards = player.drawDeck.slice(0, actualAmount);
 
-            // Each card has two options to be put on top or on bottom for each option we have a handler whcih
-            // recursively calls the function and removes handlers from the list until the card pool reaches 0.
-            const choiceHandler = (player, cards: any[]) => {
-                if (cards.length === 0) {
-                    return;
+            context.game.promptDisplayCardsWithButtons(player, {
+                activePromptTitle: 'Select card to move to the top or bottom of the deck',
+                source: context.source,
+                displayCards: cards,
+                perCardButtons: [
+                    { text: 'Put on top', arg: 'top' },
+                    { text: 'Put on bottom', arg: 'bottom' }
+                ],
+                onCardButton: (card: Card, arg: string) => {
+                    this.pushMoveEvent(arg, card, events, context);
+                    return true;
                 }
-                // setup the choices for each card top and bottom
-                const choices = cards.map((card: Card) => [
-                    'Put ' + card.title + ' on top',
-                    'Put ' + card.title + ' on bottom',
-                ]).flat();
-
-                context.game.promptWithHandlerMenu(player, {
-                    activePromptTitle: 'Select card to move to the top or bottom of the deck',
-                    choices,
-                    handlers: cards.map((card: Card) => [
-                        () => this.pushMoveEvent(false, card, cards, events, context, choiceHandler),
-                        () => this.pushMoveEvent(true, card, cards, events, context, choiceHandler),
-                    ]).flat()
-                });
-            };
-
-            choiceHandler(context.player, cards);
+            });
         }
+    }
+
+    public override defaultTargets(context: TContext): Player[] {
+        return [context.player];
+    }
+
+    public override canAffect(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
+        let nonAraTarget: Player;
+
+        if (Array.isArray(target)) {
+            if (target.length > 1) {
+                throw new Error('Support for multiple players in LookMoveDeckCardsTopOrBottomSystem not implemented yet');
+            }
+
+            Contract.assertTrue(target.length === 1);
+
+            nonAraTarget = target[0];
+        } else {
+            nonAraTarget = target;
+        }
+
+        if (mustChangeGameState !== GameStateChangeRequired.None && nonAraTarget.drawDeck.length === 0) {
+            return false;
+        }
+
+        return super.canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
     // Helper method for pushing the move card event into the events array.
     private pushMoveEvent(
-        bottom: boolean,
+        arg: string,
         card: Card,
-        cards: any[],
         events: GameEvent[],
-        context: TContext,
-        choiceHandler: (player: any, cards: any[]) => void
+        context: TContext
     ) {
+        let bottom: boolean;
+        if (arg === 'top') {
+            bottom = false;
+        } else if (arg === 'bottom') {
+            bottom = true;
+        } else {
+            Contract.fail(`Unknown arg: ${arg}`);
+        }
+
         // create a new card event
         const moveCardEvent = new MoveCardSystem({
             destination: bottom ? DeckZoneDestination.DeckBottom : DeckZoneDestination.DeckTop,
             target: card
         }).generateEvent(context);
         events.push(moveCardEvent);
-
-        // get rid of the card from cards
-        cards = cards.filter((a) => a !== card);
-        choiceHandler(context.player, cards);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

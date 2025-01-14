@@ -9,7 +9,7 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor>(Bas
             super(...args);
 
             this.hasImplementationFile = true;
-            this.setupCardAbilities();
+            this.setupCardAbilities(this);
 
             // if an implementation file is provided, enforce that all keywords requiring explicit setup have been set up
             if (this.hasImplementationFile) {
@@ -25,7 +25,7 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor>(Bas
         /**
          * Create card abilities by calling subsequent methods with appropriate properties
          */
-        protected setupCardAbilities() {
+        protected setupCardAbilities(sourceCard: this) {
             this.hasImplementationFile = false;
         }
     };
