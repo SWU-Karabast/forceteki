@@ -835,16 +835,6 @@ var customMatchers = {
                     }
                 }
 
-                // for (const card of expectedCardsInPromptObject) {
-                //     if (card.hasOwnProperty('selectionState')) {
-                //         expectedSelectionStateByUuid.set(card.card.uuid, card.selectionState);
-                //         expectedCardsInPrompt.push(card.card);
-                //     } else {
-                //         expectedSelectionStateByUuid.set(card.uuid, 'selectable');
-                //         expectedCardsInPrompt.push(card);
-                //     }
-                // }
-
                 const actualCardsInPrompt = player.currentPrompt().displayCards;
 
                 const actualCardsUuids = new Set(actualCardsInPrompt.map((displayEntry) => displayEntry.cardUuid));
@@ -862,8 +852,6 @@ var customMatchers = {
                     const expectedState = expectedSelectionStateByUuid.get(foundCard.cardUuid);
                     if (expectedState !== foundCard.selectionState) {
                         incorrectSelectionStateCards.push({ internalName: foundCard.internalName, expectedState, actualState: foundCard.selectionState });
-                        // result.pass = false;
-                        // message += `Expected card ${foundCard.internalName} in prompt for ${player.name} to have selection state '${expectedState}' but it has state '${foundCard.selectionState}'\n`;
                     }
                 }
 

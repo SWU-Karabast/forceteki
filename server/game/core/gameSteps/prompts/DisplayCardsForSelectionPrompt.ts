@@ -6,7 +6,7 @@ import type { IButton, IDisplayCard, ISelectableCard } from '../PromptInterfaces
 import { DisplayCardSelectionState, type IDisplayCardsSelectProperties } from '../PromptInterfaces';
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
-export class DisplayCardsSearchPrompt extends DisplayCardPrompt<IDisplayCardsSelectProperties> {
+export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCardsSelectProperties> {
     private readonly canChooseNothing: boolean;
     private readonly doneButton?: IButton;
     private readonly maxCards: number;
@@ -65,32 +65,32 @@ export class DisplayCardsSearchPrompt extends DisplayCardPrompt<IDisplayCardsSel
             return true;
         }
 
-        const searchResultCard = this.displayCards.find(({ card }) => card.uuid === arg);
-        Contract.assertNotNullLike(searchResultCard, `Unexpected menu command: '${arg}'`);
+        const selectedCard = this.displayCards.find(({ card }) => card.uuid === arg);
+        Contract.assertNotNullLike(selectedCard, `Unexpected menu command: '${arg}'`);
 
-        switch (searchResultCard.selectionState) {
+        switch (selectedCard.selectionState) {
             case DisplayCardSelectionState.Selectable:
                 // if max cards are already selected, do nothing
                 if (this.getSelectedCards().length === this.maxCards) {
                     return false;
                 }
 
-                searchResultCard.selectionState = DisplayCardSelectionState.Selected;
+                selectedCard.selectionState = DisplayCardSelectionState.Selected;
 
                 if (this.maxCards === 1) {
-                    this.selectedCardsHandler([searchResultCard.card]);
+                    this.selectedCardsHandler([selectedCard.card]);
                     this.complete();
                     return true;
                 }
 
                 break;
             case DisplayCardSelectionState.Selected:
-                searchResultCard.selectionState = DisplayCardSelectionState.Selectable;
+                selectedCard.selectionState = DisplayCardSelectionState.Selectable;
                 break;
             case DisplayCardSelectionState.Unselectable:
                 return false;
             default:
-                Contract.fail(`Unexpected selection state: '${searchResultCard.selectionState}'`);
+                Contract.fail(`Unexpected selection state: '${selectedCard.selectionState}'`);
         }
 
         this.refreshCardSelectableStatus();
@@ -103,8 +103,8 @@ export class DisplayCardsSearchPrompt extends DisplayCardPrompt<IDisplayCardsSel
 
     private getSelectedCards(): Card[] {
         return this.displayCards
-            .filter((searchResultCard) => searchResultCard.selectionState === DisplayCardSelectionState.Selected)
-            .map((searchResultCard) => searchResultCard.card);
+            .filter((displayCard) => displayCard.selectionState === DisplayCardSelectionState.Selected)
+            .map((displayCard) => displayCard.card);
     }
 
     private refreshCardSelectableStatus() {

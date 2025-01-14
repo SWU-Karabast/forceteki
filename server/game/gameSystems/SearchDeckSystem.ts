@@ -158,7 +158,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
             }
         }
 
-        context.game.promptSelectDisplayCards(
+        context.game.promptDisplayCardsForSelection(
             choosingPlayer,
             {
                 activePromptTitle: title,

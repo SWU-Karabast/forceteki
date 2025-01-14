@@ -38,7 +38,7 @@ const { AllArenasZone } = require('./zone/AllArenasZone.js');
 const EnumHelpers = require('./utils/EnumHelpers.js');
 const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
 const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
-const { DisplayCardsSearchPrompt } = require('./gameSteps/prompts/DisplayCardsSearchPrompt.js');
+const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayCardsForSelectionPrompt.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -655,10 +655,10 @@ class Game extends EventEmitter {
      *  @param {Player} player
      *  @param {import('./gameSteps/PromptInterfaces.js').IDisplayCardsSelectProperties} properties
      */
-    promptSelectDisplayCards(player, properties) {
+    promptDisplayCardsForSelection(player, properties) {
         Contract.assertNotNullLike(player);
 
-        this.queueStep(new DisplayCardsSearchPrompt(this, player, properties));
+        this.queueStep(new DisplayCardsForSelectionPrompt(this, player, properties));
     }
 
     /**
