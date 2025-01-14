@@ -1,14 +1,17 @@
 import * as Contract from '../../utils/Contract';
-import type { CardConstructor } from '../Card';
+import type { CardConstructor, ICardState } from '../Card';
 import type { CardWithCost } from '../CardTypes';
 
-/** Mixin function that adds the `cost` property to a base class. */
-export function WithCost<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    return class WithCost extends BaseClass {
-        public readonly printedCost: number;
+export interface ICostState extends ICardState {
+    printedCost: number;
+    get cost(): number;
+}
 
+/** Mixin function that adds the `cost` property to a base class. */
+export function WithCost<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
+    return class WithCost extends (BaseClass as TBaseClass & CardConstructor<TState & ICostState>) {
         public get cost(): number {
-            return this.printedCost;
+            return this.state.printedCost;
         }
 
         // see Card constructor for list of expected args
@@ -17,11 +20,16 @@ export function WithCost<TBaseClass extends CardConstructor>(BaseClass: TBaseCla
             const [Player, cardData] = this.unpackConstructorArgs(...args);
 
             Contract.assertNotNullLike(cardData.cost);
-            this.printedCost = cardData.cost;
+            this.state.printedCost = cardData.cost;
         }
 
         public override hasCost(): this is CardWithCost {
             return true;
         }
+
+        // protected override onSetupDefaultState(): void {
+        //     super.onSetupDefaultState();
+        //     this.state.printedCost = 0;
+        // }
     };
 }

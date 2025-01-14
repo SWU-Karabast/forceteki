@@ -46,7 +46,7 @@ class Player extends GameObject {
 
         this.user = user;
         this.emailHash = this.user.emailHash;
-        this.id = id;
+        this.state.id = id;
         this.owner = owner;
         this.printedType = 'player';
         this.socket = null;
@@ -116,6 +116,13 @@ class Player extends GameObject {
 
     resetClock() {
         this.clock.reset();
+    }
+
+    /**
+     * @param {string} id
+     */
+    setId(id) {
+        this.state.id = id;
     }
 
     /**
@@ -1120,7 +1127,7 @@ class Player extends GameObject {
             availableResources: this.readyResourceCount,
             leader: this.leader.getSummary(activePlayer),
             base: this.base.getSummary(activePlayer),
-            id: this.id,
+            id: this.state.id,
             left: this.left,
             name: this.name,
             // optionSettings: this.optionSettings,

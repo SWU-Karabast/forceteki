@@ -1,5 +1,4 @@
 import { v4 as uuidv4 } from 'uuid';
-
 import type { AbilityContext } from './ability/AbilityContext';
 import { AbilityRestriction, EffectName, Stage } from './Constants';
 import type { IOngoingCardEffect } from './ongoingEffect/IOngoingCardEffect';
@@ -7,23 +6,62 @@ import type Game from './Game';
 import type Player from './Player';
 import type { Card } from './card/Card';
 
-export abstract class GameObject {
-    public uuid = uuidv4();
-    protected id: string;
+export interface IGameObjectState {
+    id: string;
+    uuid: any;
+    nameField: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
+export interface GameObjectRef<T extends GameObject = GameObject> {
+    uuid: any;
+    id: string;
+}
+
+export abstract class GameObject<T extends IGameObjectState = IGameObjectState> {
+    public get uuid() {
+        return this.state.uuid;
+    }
+
+    public get id() {
+        return this.state.id;
+    }
+
     private ongoingEffects = [] as IOngoingCardEffect[];
-    private nameField: string;
+    protected state: T;
 
     public get name() {
-        return this.nameField;
+        return this.state.nameField;
     }
 
     public constructor(
         public game: Game,
-        name: string
+        name: string,
+        uuid?: any
     ) {
-        this.id = name;
-        this.nameField = name;
+        // @ts-expect-error state is a generic object that is defined by the deriving classes, it's essentially w/e the children want it to be.
+        this.state = {};
+        this.state.id = name;
+        this.state.nameField = name;
+        if (!uuid) {
+            this.state.uuid = uuidv4();
+        } else {
+            // If we have uuid, that means it's old UUID is being restored (useful if we wanted to rebuild a match from the ground up, rather than updating game objects to a previous state)
+            this.state.uuid = uuid;
+        }
+        // STATE ISSUE: This has an initial issue because in theory the derived constructors could still affect the state, overriding this.
+        //              So, logically, we'd need to call the setState *after* the object was fully instantiated and let the default setup happen unhindered.
+        // else {
+        //     this.setState(storedState);
+        // }
+        this.onSetupDefaultState();
+        // TODO: Does this actually work like I think it does?
+        this.game.registerGameObject(this);
     }
+
+    /** A overridable method so a child can set defaults for it's state. Always ensure to call super.onSetupGameState() as the first line if you do override this.  */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected onSetupDefaultState() { }
 
     public addOngoingEffect(ongoingEffect: IOngoingCardEffect) {
         this.ongoingEffects.push(ongoingEffect);
@@ -54,11 +92,15 @@ export abstract class GameObject {
 
     public getShortSummary() {
         return {
-            id: this.id,
+            id: this.state.id,
             label: this.name,
             name: this.name,
             uuid: this.uuid
         };
+    }
+
+    public setState(state: T) {
+        this.state = state;
     }
 
     public canBeTargeted(context: AbilityContext, selectedCards: GameObject | GameObject[] = []) {
@@ -113,5 +155,9 @@ export abstract class GameObject {
 
     public isCard(): this is Card {
         return false;
+    }
+
+    public getRef<T extends GameObject = this>(): GameObjectRef<T> {
+        return { uuid: this.state.uuid, id: this.state.id };
     }
 }

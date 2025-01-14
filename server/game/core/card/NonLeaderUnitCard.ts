@@ -11,7 +11,9 @@ import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithCost(WithStandardAbilitySetup(InPlayCard)));
 
-export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
+class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent {
+    protected override state: never;
+
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
@@ -61,4 +63,8 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
                 break;
         }
     }
+}
+
+export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
+    protected override state: never;
 }

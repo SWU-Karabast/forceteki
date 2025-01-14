@@ -1,14 +1,18 @@
 import * as Contract from '../../utils/Contract';
-import type { CardConstructor } from '../Card';
+import type { CardConstructor, ICardState } from '../Card';
+
 
 /** Mixin function that creates a version of the base class that is a Token. */
-export function WithStandardAbilitySetup<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    return class WithStandardAbilitySetup extends BaseClass {
+export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
+    // type MixinState = TState & IWithStandardAbilitySetupState;
+    // Use with (this.state as MixinState)
+
+    class WithStandardAbilitySetup extends BaseClass {
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
 
-            this.hasImplementationFile = true;
+            this.state.hasImplementationFile = true;
             this.setupCardAbilities(this);
 
             // if an implementation file is provided, enforce that all keywords requiring explicit setup have been set up
@@ -23,10 +27,13 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor>(Bas
         }
 
         /**
+         *
          * Create card abilities by calling subsequent methods with appropriate properties
          */
         protected setupCardAbilities(sourceCard: this) {
-            this.hasImplementationFile = false;
+            this.state.hasImplementationFile = false;
         }
-    };
+    }
+
+    return WithStandardAbilitySetup;
 }

@@ -11,6 +11,7 @@ import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, 
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
+import type { ICardState } from '../Card';
 import { Card } from '../Card';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
@@ -34,22 +35,24 @@ export interface IIgnoreSpecificAspectPenaltyProps<TSource extends Card = Card> 
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
 
+export interface IPlayableOrDeployableCardState extends ICardState {
+    exhausted: boolean | null;
+}
+
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-export class PlayableOrDeployableCard extends Card {
-    private _exhausted?: boolean = null;
-
+export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> extends Card<T> {
     public get exhausted(): boolean {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
-        return this._exhausted;
+        this.assertPropertyEnabled(this.state.exhausted, 'exhausted');
+        return this.state.exhausted;
     }
 
     public set exhausted(val: boolean) {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
-        this._exhausted = val;
+        this.assertPropertyEnabled(this.state.exhausted, 'exhausted');
+        this.state.exhausted = val;
     }
 
     // see Card constructor for list of expected args
@@ -58,6 +61,10 @@ export class PlayableOrDeployableCard extends Card {
 
         // this class is for all card types other than Base
         Contract.assertFalse(this.printedType === CardType.Base);
+    }
+
+    protected override onSetupDefaultState(): void {
+        this.state.exhausted = null;
     }
 
     public override getActions(): PlayerOrCardAbility[] {
@@ -155,13 +162,13 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     public exhaust() {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
-        this._exhausted = true;
+        this.assertPropertyEnabled(this.state.exhausted, 'exhausted');
+        this.state.exhausted = true;
     }
 
     public ready() {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
-        this._exhausted = false;
+        this.assertPropertyEnabled(this.state.exhausted, 'exhausted');
+        this.state.exhausted = false;
     }
 
     public override canBeExhausted(): this is PlayableOrDeployableCard {
@@ -169,11 +176,11 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     public override getSummary(activePlayer: Player) {
-        return { ...super.getSummary(activePlayer), exhausted: this._exhausted };
+        return { ...super.getSummary(activePlayer), exhausted: this.state.exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {
-        this._exhausted = enabledStatus ? true : null;
+        this.state.exhausted = enabledStatus ? true : null;
     }
 
     /**

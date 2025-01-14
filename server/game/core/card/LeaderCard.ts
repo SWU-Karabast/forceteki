@@ -1,24 +1,27 @@
 import type Player from '../Player';
+import type { IInPlayCardState } from './baseClasses/InPlayCard';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import * as Contract from '../utils/Contract';
 import type { ZoneName } from '../Constants';
 import { CardType } from '../Constants';
 
-export class LeaderCard extends InPlayCard {
-    protected _deployed = false;
+export interface ILeaderCardState extends IInPlayCardState {
+    deployed: boolean;
+    setupLeaderUnitSide: boolean;
+}
 
-    protected setupLeaderUnitSide;
-
+export class LeaderCard extends InPlayCard<ILeaderCardState> {
     public get deployed() {
-        return this._deployed;
+        return this.state.deployed;
     }
 
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Leader);
 
-        this.hasImplementationFile = true;
-        this.setupLeaderUnitSide = false;
+        // HACK: Don't love this, would rather have a getter/setter at the level that defines hasImplementationFile.
+        this.state.hasImplementationFile = true;
+        this.state.setupLeaderUnitSide = false;
         this.setupLeaderSideAbilities(this);
     }
 
@@ -34,7 +37,7 @@ export class LeaderCard extends InPlayCard {
      * Create card abilities for the leader (non-unit) side by calling subsequent methods with appropriate properties
      */
     protected setupLeaderSideAbilities(sourceCard: this) {
-        this.hasImplementationFile = false;
+        this.state.hasImplementationFile = false;
     }
 
     // TODO TYPE REFACTOR: separate out the Leader types from the playable types

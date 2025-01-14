@@ -1,6 +1,7 @@
 import type { IActionAbilityProps, IConstantAbilityProps, ISetId, Zone } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import type { IOngoingEffectSourceState } from '../ongoingEffect/OngoingEffectSource';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
@@ -19,15 +20,32 @@ import type { UpgradeCard } from './UpgradeCard';
 import type { BaseCard } from './BaseCard';
 import type { LeaderCard } from './LeaderCard';
 import type { LeaderUnitCard } from './LeaderUnitCard';
-import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import type { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
+import type { GameObjectRef } from '../GameObject';
+import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
 
 // required for mixins to be based on this class
-export type CardConstructor = new (...args: any[]) => Card;
+export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
+
+
+export interface ICardState extends IOngoingEffectSourceState {
+    aspects: Aspect[];
+    internalName: string;
+    title: string;
+    subtitle?: string;
+    unique: boolean;
+
+    facedown: boolean;
+    hasImplementationFile: boolean;
+    hiddenForController: boolean;
+    hiddenForOpponent: boolean;
+
+    controllerRef: GameObjectRef<Player>;
+}
 
 /**
  * The base class for all card types. Any shared properties among all cards will be present here.
@@ -36,38 +54,64 @@ export type CardConstructor = new (...args: any[]) => Card;
  * or {@link Card.canBeExhausted} to confirm that the card has the expected properties and then cast
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
-export class Card extends OngoingEffectSource {
+export class Card<T extends ICardState = ICardState> extends OngoingEffectSource<T> {
     public static implemented = false;
-    public readonly aspects: Aspect[] = [];
-    public readonly internalName: string;
-    public readonly subtitle?: string;
-    public readonly title: string;
-    public readonly unique: boolean;
+    public get aspects(): Aspect[] {
+        // return a copy of the array.
+        return this.state.aspects;
+    }
 
-    protected override readonly id: string;
+    public get internalName(): string {
+        return this.state.internalName;
+    }
+
+    public get subtitle(): string | undefined {
+        return this.state.subtitle;
+    }
+
+    public get title(): string {
+        return this.state.title;
+    }
+
+    public get unique(): boolean {
+        return this.state.unique;
+    }
+
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
 
     protected actionAbilities: ActionAbility[] = [];
     protected constantAbilities: IConstantAbility[] = [];
-    protected _controller: Player;
-    protected _facedown = true;
-    protected hasImplementationFile: boolean;   // this will be set by the ability setup methods
-    protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
-    protected hiddenForOpponent = true;
+
+    // this will be set by the ability setup methods
+    protected get hasImplementationFile(): boolean {
+        return this.state.hasImplementationFile;
+    }
+
+    // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
+    protected get hiddenForController() {
+        return this.state.hiddenForController;
+    }
+
+    protected get hiddenForOpponent() {
+        return this.state.hiddenForOpponent;
+    }
 
     private nextAbilityIdx = 0;
     private _zone: Zone;
 
-
     // ******************************************** PROPERTY GETTERS ********************************************
     public get controller(): Player {
-        return this._controller;
+        return this.game.findAnyGameObjectByUuid(this.state.controllerRef);
+    }
+
+    public set controller(player: Player) {
+        this.state.controllerRef = player.getRef();
     }
 
     public get facedown(): boolean {
-        return this._facedown;
+        return this.state.facedown;
     }
 
     public get keywords(): KeywordInstance[] {
@@ -113,14 +157,16 @@ export class Card extends OngoingEffectSource {
         this.validateCardData(cardData);
         this.validateImplementationId(cardData);
 
-        this.aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
-        this.internalName = cardData.internalName;
-        this.subtitle = cardData.subtitle;
-        this.title = cardData.title;
-        this.unique = cardData.unique;
+        // STATE NOTES: This almost doesn't need to be saved in state, there could be a CardState object that represents the original cardData, and then state would be any additions or subtractions.
+        //  Addendum: Hm, no that doesn't seem ideal. If aspects can be removed/added, it's safer to treat the original cardData is a prefab, and then treat this as a copy that can be edited, so keeping it in state seems like a solid plan.
+        this.state.aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
+        this.state.internalName = cardData.internalName;
+        this.state.subtitle = cardData.subtitle;
+        this.state.title = cardData.title;
+        this.state.unique = cardData.unique;
 
-        this._controller = owner;
-        this.id = cardData.id;
+        this.controller = owner;
+        this.state.id = cardData.id;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
@@ -129,6 +175,15 @@ export class Card extends OngoingEffectSource {
             this.internalName);
 
         this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
+    }
+
+    protected override onSetupDefaultState() {
+        super.onSetupDefaultState();
+        this.state.aspects = [];
+
+        this.state.facedown = true;
+        this.state.hiddenForController = false;
+        this.state.hiddenForOpponent = false;
     }
 
 
@@ -490,7 +545,7 @@ export class Card extends OngoingEffectSource {
         this.removeFromCurrentZone();
 
         if (resetController) {
-            this._controller = this.owner;
+            this.controller = this.owner;
         }
 
         this.addSelfToZone(targetZoneName);
@@ -534,7 +589,7 @@ export class Card extends OngoingEffectSource {
 
 
     protected initializeForStartZone(): void {
-        this._controller = this.owner;
+        this.controller = this.owner;
     }
 
     private addSelfToZone(zoneName: MoveZoneDestination) {
@@ -608,44 +663,44 @@ export class Card extends OngoingEffectSource {
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentZone(prevZone?: ZoneName) {
-        this.hiddenForOpponent = EnumHelpers.isHidden(this.zoneName, RelativePlayer.Self);
+        this.state.hiddenForOpponent = EnumHelpers.isHidden(this.zoneName, RelativePlayer.Self);
 
         switch (this.zoneName) {
             case ZoneName.SpaceArena:
             case ZoneName.GroundArena:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Base:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Resource:
-                this._facedown = true;
-                this.hiddenForController = false;
+                this.state.facedown = true;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Deck:
-                this._facedown = true;
-                this.hiddenForController = true;
+                this.state.facedown = true;
+                this.state.hiddenForController = true;
                 break;
 
             case ZoneName.Hand:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Capture:
-                this._facedown = true;
-                this.hiddenForController = false;
+                this.state.facedown = true;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Discard:
             case ZoneName.OutsideTheGame:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             default:

@@ -38,6 +38,7 @@ const { AllArenasZone } = require('./zone/AllArenasZone.js');
 const EnumHelpers = require('./utils/EnumHelpers.js');
 const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
 const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
+const { GameObject } = require('./GameObject.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -54,6 +55,8 @@ class Game extends EventEmitter {
         this.owner = details.owner;
         this.started = false;
         this.playStarted = false;
+        this.allGameObjects = [];
+        this.gameObjectMapping = new Map();
         this.createdAt = new Date();
         // this.savedGameId = details.savedGameId;
         // this.gameType = details.gameType;
@@ -285,6 +288,16 @@ class Game extends EventEmitter {
      */
     findAnyCardInAnyList(cardId) {
         return this.allCards.find((card) => card.uuid === cardId);
+    }
+
+    /**
+     *
+     * @template {GameObject} T
+     * @param {import('./GameObject.js').GameObjectRef<T>} gameObjectRef
+     * @returns {T}
+     */
+    findAnyGameObjectByUuid(gameObjectRef) {
+        return this.gameObjectMapping.get(gameObjectRef.uuid);
     }
 
     /**
@@ -1169,7 +1182,7 @@ class Game extends EventEmitter {
             return;
         }
 
-        player.id = socket.id;
+        player.setId(socket.id);
         player.socket = socket;
         player.disconnected = false;
 
@@ -1272,6 +1285,17 @@ class Game extends EventEmitter {
         this.filterCardFromList(token, player.decklist.tokens);
         this.filterCardFromList(token, player.decklist.allCards);
         token.removeFromGame();
+    }
+
+    /** @param {GameObject} gameObject */
+    registerGameObject(gameObject) {
+        this.allGameObjects.push(gameObject);
+        this.gameObjectMapping.set(gameObject.uuid, gameObject);
+    }
+
+    /** @param {GameObject[]} gameObjects */
+    registerGameObjects(gameObjects) {
+        gameObjects.forEach((gameObject) => this.registerGameObject(gameObject));
     }
 
     /**

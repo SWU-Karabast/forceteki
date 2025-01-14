@@ -4,7 +4,7 @@ import { CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
-import type { InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import type { IInPlayCardState, InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { InPlayCard } from '../baseClasses/InPlayCard';
 import { WithDamage } from './Damage';
 import { WithPrintedPower } from './PrintedPower';
@@ -34,6 +34,10 @@ import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
+export interface IUnitPropertiesCardState extends IInPlayCardState {
+    defaultArena: Arena;
+}
+
 /**
  * Mixin function that adds the standard properties for a unit (leader or non-leader) to a base class.
  * Specifically it gains:
@@ -42,11 +46,11 @@ export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
  * - the {@link InitiateAttackAction} ability so that the card can attack
  * - the ability to have attached upgrades
  */
-export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(BaseClass: TBaseClass) {
+export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TState>, TState extends IInPlayCardState>(BaseClass: TBaseClass) {
     // create a "base" class that has the damage, hp, and power properties from other mixins
     const StatsAndDamageClass = WithDamage(WithPrintedPower(BaseClass));
 
-    return class AsUnit extends StatsAndDamageClass {
+    return class AsUnit extends (StatsAndDamageClass as typeof StatsAndDamageClass & InPlayCardConstructor<TState & IUnitPropertiesCardState>) {
         public static registerRulesListeners(game: Game) {
             // register listeners for when-played keyword abilities (see comment in EventWindow.ts for explanation of 'postResolve')
             game.on(EventName.OnUnitEntersPlay + ':postResolve', (event) => {
@@ -81,7 +85,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ************************************* FIELDS AND PROPERTIES *************************************
-        public readonly defaultArena: Arena;
+        public get defaultArena(): Arena {
+            return this.state.defaultArena;
+        }
 
         protected _captureZone?: CaptureZone = null;
         protected _upgrades?: UpgradeCard[] = null;
@@ -143,10 +149,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             Contract.assertNotNullLike(cardData.arena);
             switch (cardData.arena) {
                 case 'space':
-                    this.defaultArena = ZoneName.SpaceArena;
+                    this.state.defaultArena = ZoneName.SpaceArena;
                     break;
                 case 'ground':
-                    this.defaultArena = ZoneName.GroundArena;
+                    this.state.defaultArena = ZoneName.GroundArena;
                     break;
                 default:
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
@@ -201,9 +207,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
             targetZone.addCard(this);
-            this.zone = targetZone;
+            // HACK: Probably isn't loving my state changes but this will do for now.
+            (this as AsUnit).zone = targetZone;
 
-            this.postMoveSteps(prevZone);
+            (this as AsUnit).postMoveSteps(prevZone);
         }
 
         // ***************************************** ABILITY HELPERS *****************************************
@@ -557,7 +564,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return;
             }
 
-            if (this.damage >= this.getHp() && !this._pendingDefeat) {
+            if (this.damage >= this.getHp() && !this.pendingDefeat) {
                 // add defeat event to window
                 this.game.addSubwindowEvents(
                     new FrameworkDefeatCardSystem({ target: this, defeatSource: source })
@@ -565,7 +572,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 );
 
                 // mark that this unit has a defeat pending so that other effects targeting it will not resolve
-                this._pendingDefeat = true;
+                // HACK: Do we want a setter instead?
+                this.state.pendingDefeat = true;
             }
         }
 

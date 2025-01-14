@@ -1,18 +1,22 @@
 import type Player from '../Player';
-import { WithCost } from './propertyMixins/Cost';
 import { CardType, ZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
-import type { IDecreaseCostAbilityProps } from './baseClasses/PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IPlayableOrDeployableCardState } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
+import { WithCost } from './propertyMixins/Cost';
 import type { TokenOrPlayableCard } from './CardTypes';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 
-const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IEventCardState extends IPlayableOrDeployableCardState { }
+
+const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard<IEventCardState>));
 
 export class EventCard extends EventCardParent {
     private _eventAbility: EventAbility;

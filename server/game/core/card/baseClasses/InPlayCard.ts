@@ -4,7 +4,7 @@ import { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCardState } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
@@ -14,7 +14,13 @@ import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatC
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 
 // required for mixins to be based on this class
-export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
+export type InPlayCardConstructor<T extends IInPlayCardState = IInPlayCardState> = new (...args: any[]) => InPlayCard<T>;
+
+export interface IInPlayCardState extends IPlayableOrDeployableCardState {
+    disableOngoingEffectsForDefeat: boolean | null;
+    mostRecentInPlayId: number;
+    pendingDefeat: boolean | null;
+}
 
 /**
  * Subclass of {@link Card} (via {@link PlayableOrDeployableCard}) that adds properties for cards that
@@ -25,10 +31,10 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 2. Defeat state management
  * 3. Uniqueness management
  */
-export class InPlayCard extends PlayableOrDeployableCard {
-    protected _disableOngoingEffectsForDefeat?: boolean = null;
-    protected _mostRecentInPlayId = -1;
-    protected _pendingDefeat?: boolean = null;
+export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends PlayableOrDeployableCard<T> {
+    // protected _disableOngoingEffectsForDefeat?: boolean = null;
+    // protected _mostRecentInPlayId = -1;
+    // protected _pendingDefeat?: boolean = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
     private movedFromZone?: ZoneName = null;
@@ -40,8 +46,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
      * Can only be true if pendingDefeat is also true.
      */
     public get disableOngoingEffectsForDefeat() {
-        this.assertPropertyEnabled(this._disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
-        return this._disableOngoingEffectsForDefeat;
+        this.assertPropertyEnabled(this.state.disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
+        return this.state.disableOngoingEffectsForDefeat;
     }
 
     /**
@@ -51,7 +57,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
      */
     public get inPlayId() {
         this.assertPropertyEnabledBoolean(EnumHelpers.isArena(this.zoneName), 'inPlayId');
-        return this._mostRecentInPlayId;
+        return this.state.mostRecentInPlayId;
     }
 
     /**
@@ -64,7 +70,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
             'mostRecentInPlayId'
         );
 
-        return this._mostRecentInPlayId;
+        return this.state.mostRecentInPlayId;
     }
 
     /**
@@ -74,8 +80,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
      * When this is true, most systems cannot target the card.
      */
     public get pendingDefeat() {
-        this.assertPropertyEnabled(this._pendingDefeat, 'pendingDefeat');
-        return this._pendingDefeat;
+        this.assertPropertyEnabled(this.state.pendingDefeat, 'pendingDefeat');
+        return this.state.pendingDefeat;
     }
 
     public constructor(owner: Player, cardData: any) {
@@ -83,6 +89,12 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
         Contract.assertFalse(this.printedType === CardType.Event);
+    }
+
+    protected override onSetupDefaultState(): void {
+        this.state.disableOngoingEffectsForDefeat = null;
+        this.state.mostRecentInPlayId = -1;
+        this.state.pendingDefeat = null;
     }
 
     public isInPlay(): boolean {
@@ -94,8 +106,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
     protected setPendingDefeatEnabled(enabledStatus: boolean) {
-        this._pendingDefeat = enabledStatus ? false : null;
-        this._disableOngoingEffectsForDefeat = enabledStatus ? false : null;
+        this.state.pendingDefeat = enabledStatus ? false : null;
+        this.state.disableOngoingEffectsForDefeat = enabledStatus ? false : null;
     }
 
     // ********************************************** ABILITY GETTERS **********************************************
@@ -316,7 +328,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
             // increment to a new in-play id if we're entering play, indicating that we are now a new "copy" of this card (SWU 8.6.4)
             if (!EnumHelpers.isArena(prevZone)) {
-                this._mostRecentInPlayId += 1;
+                this.state.mostRecentInPlayId += 1;
             }
         } else {
             this.setPendingDefeatEnabled(false);
@@ -384,8 +396,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
     public registerPendingUniqueDefeat() {
         Contract.assertTrue(this.getDuplicatesInPlayForController().length === 1);
 
-        this._pendingDefeat = true;
-        this._disableOngoingEffectsForDefeat = true;
+        this.state.pendingDefeat = true;
+        this.state.disableOngoingEffectsForDefeat = true;
     }
 
     public checkUnique() {
