@@ -93,7 +93,7 @@ describe('Clear the Field\'s ability', function () {
             expect(droidToken2).toBeInZone('outsideTheGame');
         });
 
-        it('should only make unit return to hand and tokens go out of combat instead', function () {
+        it('should return owned unit into the owner\'s hand', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
