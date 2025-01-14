@@ -27,12 +27,33 @@ describe('Enticing Reward', function () {
                 context.player1.clickPrompt(prompt);
 
                 // choose up to 2 non-units cards
-                expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.infernoFour.title, context.consularSecurityForce.title, context.echoBaseDefender.title, context.sabineWren.title, context.swoopRacer.title]);
-                expect(context.player1).toHaveEnabledPromptButtons([context.waylay, context.protector.title, context.devotion.title, context.resupply.title, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    selectable: [context.waylay, context.protector, context.devotion, context.resupply]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.devotion.title);
-                context.player1.clickPrompt(context.waylay.title);
-                expect(context.getChatLogs(2)).toContain('player1 takes Devotion and Waylay');
+                context.player1.clickCardInDisplayCardPrompt(context.devotion);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.devotion],
+                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    selectable: [context.waylay, context.protector, context.resupply]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCardInDisplayCardPrompt(context.waylay);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.devotion, context.waylay],
+                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    selectable: [context.protector, context.resupply]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                // one click to confirm that additional cards can't be selected
+                context.player1.clickCardInDisplayCardPrompt(context.protector, true);
+
+                context.player1.clickPrompt('Done');
+                expect(context.getChatLogs(2)).toContain('player1 takes Waylay and Devotion');
                 expect(context.waylay).toBeInZone('hand');
                 expect(context.devotion).toBeInZone('hand');
 
@@ -79,12 +100,30 @@ describe('Enticing Reward', function () {
                 context.player1.clickPrompt(prompt);
 
                 // choose up to 2 non-units cards
-                expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.infernoFour.title, context.consularSecurityForce.title, context.echoBaseDefender.title, context.sabineWren.title, context.swoopRacer.title]);
-                expect(context.player1).toHaveEnabledPromptButtons([context.waylay, context.protector.title, context.devotion.title, context.resupply.title, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    selectable: [context.waylay, context.protector, context.devotion, context.resupply]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.devotion.title);
-                context.player1.clickPrompt(context.waylay.title);
-                expect(context.getChatLogs(2)).toContain('player1 takes Devotion and Waylay');
+                context.player1.clickCardInDisplayCardPrompt(context.devotion);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.devotion],
+                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    selectable: [context.waylay, context.protector, context.resupply]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCardInDisplayCardPrompt(context.waylay);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.devotion, context.waylay],
+                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    selectable: [context.protector, context.resupply]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                context.player1.clickPrompt('Done');
+                expect(context.getChatLogs(2)).toContain('player1 takes Waylay and Devotion');
                 expect(context.waylay).toBeInZone('hand');
                 expect(context.devotion).toBeInZone('hand');
 

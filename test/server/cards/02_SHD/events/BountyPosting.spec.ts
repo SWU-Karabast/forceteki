@@ -19,16 +19,20 @@ describe('Bounty Posting', function() {
                 const preShuffleDeck = context.player1.deck;
 
                 context.player1.clickCard(context.bountyPosting);
-                expect(context.player1).toHaveEnabledPromptButtons([context.deathMark, context.topTarget, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.deathMark, context.topTarget],
+                    unselectable: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.topTarget.title);
+                context.player1.clickCardInDisplayCardPrompt(context.topTarget);
                 expect(context.topTarget).toBeInZone('hand', context.player1);
                 expect(context.player1).toHavePassAbilityPrompt('Play that upgrade (paying its cost).');
 
                 expect(context.getChatLogs(4)).toEqual([
                     'player1 plays Bounty Posting to search their deck',
                     'player1 takes Top Target',
-                    'player1 puts 1 card on the bottom of their deck',
+                    'player1 puts 5 cards on the bottom of their deck',
                     'player1 is shuffling their deck'
                 ]);
 
@@ -56,9 +60,13 @@ describe('Bounty Posting', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.bountyPosting);
-                expect(context.player1).toHaveEnabledPromptButtons([context.deathMark, context.topTarget, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.deathMark, context.topTarget],
+                    unselectable: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.topTarget.title);
+                context.player1.clickCardInDisplayCardPrompt(context.topTarget);
                 expect(context.topTarget).toBeInZone('hand', context.player1);
 
                 expect(context.player2).toBeActivePlayer();
@@ -80,7 +88,10 @@ describe('Bounty Posting', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.bountyPosting);
-                expect(context.player1).toHaveEnabledPromptButtons(['Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    unselectable: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickPrompt('Take nothing');
                 expect(context.player2).toBeActivePlayer();

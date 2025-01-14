@@ -109,10 +109,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
         const event = this.generateRetargetedEvent(player, context, additionalProperties) as any;
         const deckLength = this.getDeck(player).length;
         const amount = event.amount === -1 ? deckLength : (event.amount > deckLength ? deckLength : event.amount);
-        let cards = this.getDeck(player).slice(0, amount);
-        if (event.amount === -1) {
-            cards = cards.filter((card) => properties.cardCondition(card, context));
-        }
+        const cards = this.getDeck(player).slice(0, amount);
         this.promptSelectCards(event, additionalProperties, cards, new Set());
         events.push(event);
     }

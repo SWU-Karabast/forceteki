@@ -70,17 +70,17 @@ export class DisplayCardsSearchPrompt extends DisplayCardPrompt<IDisplayCardsSel
 
         switch (searchResultCard.selectionState) {
             case DisplayCardSelectionState.Selectable:
+                // if max cards are already selected, do nothing
+                if (this.getSelectedCards().length === this.maxCards) {
+                    return false;
+                }
+
                 searchResultCard.selectionState = DisplayCardSelectionState.Selected;
 
                 if (this.maxCards === 1) {
                     this.selectedCardsHandler([searchResultCard.card]);
                     this.complete();
                     return true;
-                }
-
-                // if max cards are already selected, do nothing
-                if (this.getSelectedCards().length === this.maxCards) {
-                    return false;
                 }
 
                 break;

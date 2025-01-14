@@ -21,7 +21,7 @@ describe('Greef Karga, Affable Commissioner', function() {
                     unselectable: [context.pykeSentinel, context.atst, context.battlefieldMarine, context.cartelSpacer]
                 });
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
-                expect(context.player1).not.toHaveEnabledPromptButton('Take nothing');
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.foundling);
                 expect(context.foundling).toBeInZone('hand');
