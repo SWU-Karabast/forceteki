@@ -20,7 +20,6 @@ export default class HeroesOnBothSides extends EventCard {
                     numCards: 1,
                     canChooseNoCards: true,
                     cardTypeFilter: WildcardCardType.Unit,
-                    zoneFilter: WildcardZoneName.AnyArena,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Republic),
                     immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: [
@@ -35,7 +34,6 @@ export default class HeroesOnBothSides extends EventCard {
                     numCards: 1,
                     canChooseNoCards: true,
                     cardTypeFilter: WildcardCardType.Unit,
-                    zoneFilter: WildcardZoneName.AnyArena,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Separatist),
                     immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: [
