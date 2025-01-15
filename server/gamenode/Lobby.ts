@@ -411,11 +411,7 @@ export class Lobby {
     public sendGameState(game: Game): void {
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
-                if (game) {
-                    user.socket.send('gamestate', game.getState(user.id));
-                } else {
-                    user.socket.send('gamestate', null);
-                }
+                user.socket.send('gamestate', game.getState(user.id));
             }
         }
     }

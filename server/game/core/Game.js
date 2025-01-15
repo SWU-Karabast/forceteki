@@ -499,6 +499,11 @@ class Game extends EventEmitter {
             return;
         }
 
+        /**
+         * TODO we currently set the winner here as to send the winner via gameState.
+         * TODO this will likely change when we decide on how the popup will look like seperately
+         * TODO from the preference popup
+         */
         if (Array.isArray(winner)) {
             this.winner = winner.map((w) => w.user.nameField);
             this.addMessage('The game ends in a draw');
@@ -510,8 +515,8 @@ class Game extends EventEmitter {
         this.finishedAt = new Date();
         this.gameEndReason = reason;
         // this.router.gameWon(this, reason, winner);
-        this.router.sendGameState(this);
-        // this.queueStep(new GameOverPrompt(this, winner)); TODO once we clarify how to display the end game screen
+        this.router.sendGameState(this); // TODO swap once we clarify how to display the end game screen
+        // this.queueStep(new GameOverPrompt(this, winner)); TODO swap once we clarify how to display the end game screen
     }
 
     /**
@@ -1388,7 +1393,7 @@ class Game extends EventEmitter {
                 }),
                 started: this.started,
                 gameMode: this.gameMode,
-                winner: this.winner ? this.winner : undefined,
+                winner: this.winner ? this.winner : undefined, // TODO comment once we clarify how to display endgame screen
             };
         }
         return {};
