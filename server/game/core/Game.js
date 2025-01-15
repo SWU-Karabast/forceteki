@@ -1375,6 +1375,7 @@ class Game extends EventEmitter {
             for (const player of this.getPlayers()) {
                 playerState[player.id] = player.getState(activePlayer);
             }
+
             return {
                 playerUpdate: activePlayer.name,
                 id: this.id,
