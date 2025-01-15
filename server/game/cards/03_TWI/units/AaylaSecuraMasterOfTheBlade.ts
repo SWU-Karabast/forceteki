@@ -9,21 +9,21 @@ export default class AaylaSecuraMasterOfTheBlade extends NonLeaderUnitCard {
             internalName: 'aayla-secura#master-of-the-blade',
         };
     }
-    
+
     public override setupCardAbilities () {
         this.addCoordinateAbility({
             type: AbilityType.Triggered,
-            title: "Prevent all combat damage that would be dealt to this unit for this attack.",
+            title: 'Prevent all combat damage that would be dealt to this unit for this attack.',
             when: {
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({
                 target: context.source,
                 effect: AbilityHelper.ongoingEffects.gainAbility({
-                    title: "Prevent all combat damage that would be dealt to this unit",
+                    title: 'Prevent all combat damage that would be dealt to this unit',
                     type: AbilityType.ReplacementEffect,
                     when: {
-                        onDamageDealt: (event, context) => 
+                        onDamageDealt: (event, context) =>
                             event.card === context.source && event.type === DamageType.Combat
                     },
                     replaceWith: {
