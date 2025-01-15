@@ -505,13 +505,12 @@ class Game extends EventEmitter {
          * TODO from the preference popup
          */
         if (Array.isArray(winner)) {
-            this.winner = winner.map((w) => w.user.nameField);
+            this.winner = winner.map((w) => w.name);
             this.addMessage('The game ends in a draw');
         } else {
-            this.winner = [winner.user.nameField];
+            this.winner = [winner.name];
             this.addMessage('{0} has won the game', winner);
         }
-
         this.finishedAt = new Date();
         this.gameEndReason = reason;
         // this.router.gameWon(this, reason, winner);
