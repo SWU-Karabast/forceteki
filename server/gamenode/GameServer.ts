@@ -263,6 +263,7 @@ export class GameServer {
     public onConnection(ioSocket) {
         const user = JSON.parse(ioSocket.handshake.query.user);
         const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
+
         if (user) {
             ioSocket.request.user = user;
         }

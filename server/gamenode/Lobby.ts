@@ -318,6 +318,7 @@ export class Lobby {
                 game.selectDeck(user.id, user.deck.data);
             }
         });
+
         game.initialiseTokens(this.tokens);
         game.initialise();
 
