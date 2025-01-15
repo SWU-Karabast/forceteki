@@ -11,6 +11,7 @@ import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, 
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
+import * as Helpers from '../../utils/Helpers';
 import { Card } from '../Card';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
@@ -62,7 +63,7 @@ export class PlayableOrDeployableCard extends Card {
 
     public override getActions(): PlayerOrCardAbility[] {
         return super.getActions()
-            .concat(this.getPlayCardActions());
+            .concat(this.getPlayCardActions().flatMap((action) => action.getModes()));
     }
 
     /**
@@ -103,13 +104,17 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
+        // add this card's Exploit amount onto any that come from the property overrides
+        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
+        const propertyOverridesWithExploit = Helpers.mergeNumericProperty(propertyOverrides, 'exploitValue', exploitValue);
+
         let defaultPlayAction: PlayCardAction = null;
         if (playType === PlayType.Smuggle) {
             if (this.hasSomeKeyword(KeywordName.Smuggle)) {
-                defaultPlayAction = this.buildCheapestSmuggleAction(propertyOverrides);
+                defaultPlayAction = this.buildCheapestSmuggleAction(propertyOverridesWithExploit);
             }
         } else {
-            defaultPlayAction = this.buildPlayCardAction({ ...propertyOverrides, playType });
+            defaultPlayAction = this.buildPlayCardAction({ ...propertyOverridesWithExploit, playType });
         }
 
         // if there's not a basic play action available for the requested play type, return nothing
@@ -118,12 +123,6 @@ export class PlayableOrDeployableCard extends Card {
         }
 
         const actions: PlayCardAction[] = [defaultPlayAction];
-
-        // generate "play with exploit" action from default action
-        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
-        if (exploitValue) {
-            actions.push(defaultPlayAction.clone({ exploitValue }));
-        }
 
         return actions;
     }

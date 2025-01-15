@@ -224,7 +224,7 @@ class GameFlowWrapper {
             card.removeDamage(-damageDiff, {});
         }
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     /**

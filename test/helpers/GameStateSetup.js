@@ -178,7 +178,7 @@ function setupGameState(context, options = {}) {
         context.cardPropertyNames.push(card.propertyName);
     });
 
-    context.game.resolveGameState(true);
+    Util.refreshGameState(context.game);
 
     attachAbbreviatedContextInfo(context, context);
 }

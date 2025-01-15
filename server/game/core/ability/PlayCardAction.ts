@@ -11,8 +11,8 @@ import type { CostAdjuster } from '../cost/CostAdjuster';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
-import { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';
+import { ExploitCostAdjuster } from '../../abilities/keyword/ExploitCostAdjuster';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -50,15 +50,26 @@ export abstract class PlayCardAction extends PlayerAction {
     public constructor(card: Card, properties: IPlayCardActionProperties) {
         Contract.assertTrue(card.hasCost());
 
-        const usesExploit = !!properties.exploitValue;
-
-        const propertiesWithDefaults = {
+        let propertiesWithDefaults = {
             title: `Play ${card.title}`,
             playType: PlayType.PlayFromHand,
             triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers,
             additionalCosts: [],
-            ...properties
+            ...properties,
+            costAdjusters: Helpers.asArray(properties.costAdjusters)
         };
+
+        Contract.assertFalse(
+            Helpers.asArray(propertiesWithDefaults.costAdjusters).some(((adjuster) => adjuster.isExploit())),
+            `PlayCardAction for ${card.internalName} has an exploit adjuster already included in properties`
+        );
+
+        const usesExploit = !!properties.exploitValue;
+        if (usesExploit) {
+            propertiesWithDefaults = Helpers.mergeArrayProperty(
+                propertiesWithDefaults, 'costAdjusters', [new ExploitCostAdjuster(card.game, card, properties.exploitValue)]
+            );
+        }
 
         let cost: number;
         let aspects: Aspect[];
@@ -72,9 +83,7 @@ export abstract class PlayCardAction extends PlayerAction {
             aspects = card.aspects;
         }
 
-        const playCost = usesExploit
-            ? new ExploitPlayCardResourceCost(card, properties.exploitValue, propertiesWithDefaults.playType, cost, aspects)
-            : new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
+        const playCost = new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
 
         super(
             card,
@@ -113,6 +122,19 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     public abstract clone(overrideProperties: Partial<IPlayCardActionProperties>): PlayCardAction;
+
+    public override hasMultipleModes(): boolean {
+        return this.usesExploit;
+    }
+
+    // UP NEXT: correctly build out the (at most) two actions, including handling a gained exploit
+
+    // if we support Exploit, return a play mode with and without triggering the Exploit
+    public override getModes(): PlayCardAction[] {
+        return this.usesExploit
+            ? [this, this.clone({ exploitValue: null })]
+            : [this];
+    }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (

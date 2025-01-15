@@ -199,7 +199,15 @@ class ActionWindow extends UiPrompt {
             this.activePlayer.handZone.cards,
             this.activePlayer.baseZone.cards
         );
-        this.activePlayer.setSelectableCards(allPossibleCards.filter((card) => this.getCardLegalActions(card, this.activePlayer).length > 0));
+
+        const cardsWithLegalActions = [];
+        for (const card of allPossibleCards) {
+            if (this.getCardLegalActions(card, this.activePlayer).length > 0) {
+                cardsWithLegalActions.push(card);
+            }
+        }
+
+        this.activePlayer.setSelectableCards(cardsWithLegalActions);
     }
 
     // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.

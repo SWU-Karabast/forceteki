@@ -178,6 +178,21 @@ class PlayerOrCardAbility {
     }
 
     /**
+     * True if this ability has multiple activation modes (e.g. playing a card with or without Exploit triggering)
+     */
+    hasMultipleModes() {
+        return false;
+    }
+
+    /**
+     * Get this card's available activation modes (e.g. playing a card with or without Exploit triggering)
+     * @returns {PlayerOrCardAbility[]}
+     */
+    getModes() {
+        return [this];
+    }
+
+    /**
      * Return whether all costs are capable of being paid for the ability.
      *
      * @returns {Boolean}

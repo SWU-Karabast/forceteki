@@ -703,43 +703,38 @@ class Player extends GameObject {
      * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
      */
     getAdjustedCost(cost, aspects, context, additionalCostAdjusters = null) {
-        const playingType = context.playType;
         const card = context.source;
-        const target = context.target;
 
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
 
         let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
-            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(playingType, 2, card, target, aspect, additionalCostAdjusters);
+            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(2, card, aspect, additionalCostAdjusters);
         }
 
         let penalizedCost = cost + aspectPenaltiesTotal;
-        return this.runAdjustersForCostType(playingType, penalizedCost, card, target, additionalCostAdjusters);
+        return this.runAdjustersForCostType(penalizedCost, card, context, additionalCostAdjusters);
     }
 
     /**
      * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
-     * @param {PlayType} playingType
      * @param {number} baseCost
      * @param card
      * @param target
      * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
      */
-    runAdjustersForCostType(playingType, baseCost, card, target, additionalCostAdjusters = null) {
-        var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjusters).filter((adjuster) =>
-            adjuster?.canAdjust(playingType, card, target, null)
-        );
-        var costIncreases = matchingAdjusters
+    runAdjustersForCostType(baseCost, card, context, additionalCostAdjusters = null) {
+        const matchingAdjusters = this.getMatchingCostAdjusters(context, null, additionalCostAdjusters);
+        const costIncreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
-            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 0);
-        var costDecreases = matchingAdjusters
+            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context), 0);
+        const costDecreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Decrease)
-            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this), 0);
+            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context), 0);
 
         baseCost += costIncreases;
-        var reducedCost = baseCost - costDecreases;
+        let reducedCost = baseCost - costDecreases;
 
         if (matchingAdjusters.some((adjuster) => adjuster.costAdjustType === CostAdjustType.Free)) {
             reducedCost = 0;
@@ -751,30 +746,33 @@ class Player extends GameObject {
 
     /**
      * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
-     * @param {PlayType} playingType
      * @param {number} baseCost
      * @param card
      * @param target
      * @param penaltyAspect Aspect that is not present on the current base or leader
      * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
      */
-    runAdjustersForAspectPenalties(playingType, baseCost, card, target, penaltyAspect, additionalCostAdjusters = null) {
-        var matchingAdjusters = this.costAdjusters.concat(additionalCostAdjusters).filter((adjuster) =>
-            adjuster?.canAdjust(playingType, card, target, penaltyAspect)
-        );
+    runAdjustersForAspectPenalties(baseCost, context, penaltyAspect, additionalCostAdjusters = null) {
+        const matchingAdjusters = this.getMatchingCostAdjusters(context, penaltyAspect, additionalCostAdjusters);
 
-        var ignoreAllAspectPenalties = matchingAdjusters
+        const ignoreAllAspectPenalties = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects).length > 0;
 
-        var ignoreSpecificAspectPenalty = matchingAdjusters
+        const ignoreSpecificAspectPenalty = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreSpecificAspects).length > 0;
 
-        var cost = baseCost;
+        let cost = baseCost;
         if (ignoreAllAspectPenalties || ignoreSpecificAspectPenalty) {
             cost -= 2;
         }
 
         return Math.max(cost, 0);
+    }
+
+    getMatchingCostAdjusters(context, penaltyAspect = null, additionalCostAdjusters = null) {
+        return this.costAdjusters.concat(additionalCostAdjusters).filter((adjuster) =>
+            adjuster?.canAdjust(context.playingType, context.source, context, context.target, penaltyAspect)
+        );
     }
 
     /**
@@ -783,8 +781,8 @@ class Player extends GameObject {
      * @param card DrawCard
      * @param target BaseCard
      */
-    markUsedAdjusters(playingType, card, target = null, aspects = null) {
-        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(playingType, card, target, null, aspects));
+    markUsedAdjusters(playingType, card, context, target = null, aspects = null) {
+        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(playingType, card, context, target, null, aspects));
         matchingAdjusters.forEach((adjuster) => {
             adjuster.markUsed();
             if (adjuster.isExpired()) {
