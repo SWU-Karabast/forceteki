@@ -500,18 +500,18 @@ class Game extends EventEmitter {
         }
 
         if (Array.isArray(winner)) {
+            this.winner = winner.map((w) => w.user.nameField);
             this.addMessage('The game ends in a draw');
         } else {
+            this.winner = [winner.user.nameField];
             this.addMessage('{0} has won the game', winner);
         }
-        this.winner = winner;
-
 
         this.finishedAt = new Date();
         this.gameEndReason = reason;
         // this.router.gameWon(this, reason, winner);
-
-        this.queueStep(new GameOverPrompt(this, winner));
+        this.router.sendGameState(this);
+        // this.queueStep(new GameOverPrompt(this, winner)); TODO once we clarify how to display the end game screen
     }
 
     /**
@@ -1370,7 +1370,6 @@ class Game extends EventEmitter {
             for (const player of this.getPlayers()) {
                 playerState[player.id] = player.getState(activePlayer);
             }
-
             return {
                 playerUpdate: activePlayer.name,
                 id: this.id,
@@ -1389,11 +1388,7 @@ class Game extends EventEmitter {
                 }),
                 started: this.started,
                 gameMode: this.gameMode,
-                winner: this.winner
-                    ? Array.isArray(this.winner)
-                        ? this.winner[0]?.user?.username
-                        : this.winner?.user?.username
-                    : undefined
+                winner: this.winner ? this.winner : undefined,
             };
         }
         return {};
