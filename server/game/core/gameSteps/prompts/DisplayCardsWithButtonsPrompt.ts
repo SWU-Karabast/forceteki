@@ -43,7 +43,7 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
             cardUuid: card.uuid,
             setId: card.setId,
             internalName: card.internalName,
-            selectionState: DisplayCardSelectionState.Selectable
+            selectionState: DisplayCardSelectionState.Selectable,
         }));
     }
 
