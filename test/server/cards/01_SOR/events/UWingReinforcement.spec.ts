@@ -30,7 +30,7 @@ describe('U-Wing Reinforcement', function() {
                 expect(context.player1).toHavePrompt('Choose up to 3 units with combined cost 7 or less to play for free');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.wampa, context.vanguardInfantry, context.battlefieldMarine, context.huntingNexu, context.partisanInsurgent, context.aurraSingCrackshotSniper],
-                    unselectable: [context.daringRaid, context.protector, context.strikeTrue, context.atatSuppressor]
+                    invalid: [context.daringRaid, context.protector, context.strikeTrue, context.atatSuppressor]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -38,7 +38,8 @@ describe('U-Wing Reinforcement', function() {
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.wampa],
                     selectable: [context.vanguardInfantry, context.battlefieldMarine, context.partisanInsurgent],
-                    unselectable: [context.daringRaid, context.protector, context.huntingNexu, context.strikeTrue, context.atatSuppressor, context.aurraSingCrackshotSniper]
+                    unselectable: [context.huntingNexu, context.aurraSingCrackshotSniper],
+                    invalid: [context.daringRaid, context.protector, context.strikeTrue, context.atatSuppressor]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
@@ -46,14 +47,16 @@ describe('U-Wing Reinforcement', function() {
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.wampa, context.battlefieldMarine],
                     selectable: [context.vanguardInfantry],
-                    unselectable: [context.daringRaid, context.protector, context.huntingNexu, context.strikeTrue, context.atatSuppressor, context.aurraSingCrackshotSniper, context.partisanInsurgent]
+                    unselectable: [context.huntingNexu, context.partisanInsurgent, context.aurraSingCrackshotSniper],
+                    invalid: [context.daringRaid, context.protector, context.strikeTrue, context.atatSuppressor]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickCardInDisplayCardPrompt(context.vanguardInfantry);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.wampa, context.battlefieldMarine, context.vanguardInfantry],
-                    unselectable: [context.daringRaid, context.protector, context.huntingNexu, context.strikeTrue, context.atatSuppressor, context.aurraSingCrackshotSniper, context.partisanInsurgent]
+                    unselectable: [context.huntingNexu, context.partisanInsurgent, context.aurraSingCrackshotSniper],
+                    invalid: [context.daringRaid, context.protector, context.strikeTrue, context.atatSuppressor]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 

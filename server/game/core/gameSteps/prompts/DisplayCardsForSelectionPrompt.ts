@@ -11,19 +11,20 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
     private readonly displayCards: ISelectableCard[];
     private readonly doneButton?: IButton;
     private readonly maxCards: number;
-    private readonly selectableCondition: (card: Card, currentlySelectedCards: Card[]) => boolean;
+    private readonly multiSelectCardCondition: (card: Card, currentlySelectedCards: Card[]) => boolean;
     private readonly selectedCardsHandler: (cards: Card[]) => void;
 
     public constructor(game: Game, choosingPlayer: Player, properties: IDisplayCardsSelectProperties) {
         super(game, choosingPlayer, properties);
 
         this.maxCards = properties.maxCards || 1;
-        this.selectableCondition = properties.selectableCondition;
         this.selectedCardsHandler = properties.selectedCardsHandler;
+        this.multiSelectCardCondition = properties.multiSelectCondition || (() => true);
 
         this.displayCards = properties.displayCards.map((card) => ({
             card,
-            selectionState: this.selectableCondition(card, [])
+            // if a card doesn't meet the multi-select condition even when nothing else is selected, we can safely consider it invalid
+            selectionState: properties.validCardCondition(card) && this.multiSelectCardCondition(card, [])
                 ? DisplayCardSelectionState.Selectable
                 : DisplayCardSelectionState.Invalid,
         }));
@@ -111,14 +112,14 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
         const selectedCards = this.getSelectedCards();
 
         for (const card of this.displayCards) {
-            // if the card is already selected, don't change anything
-            if (card.selectionState === DisplayCardSelectionState.Selected) {
+            // if the card is already selected or is not valid for this prompt, don't change anything
+            if ([DisplayCardSelectionState.Selected, DisplayCardSelectionState.Invalid].includes(card.selectionState)) {
                 continue;
             }
 
-            card.selectionState = this.selectableCondition(card.card, selectedCards)
+            card.selectionState = this.multiSelectCardCondition(card.card, selectedCards)
                 ? DisplayCardSelectionState.Selectable
-                : DisplayCardSelectionState.Invalid;
+                : DisplayCardSelectionState.Unselectable;
         }
 
         // update done button state

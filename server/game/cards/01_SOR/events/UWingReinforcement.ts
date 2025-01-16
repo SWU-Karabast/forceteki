@@ -20,8 +20,8 @@ export default class UWingReinforcement extends EventCard {
                 activePromptTitle: 'Choose up to 3 units with combined cost 7 or less to play for free',
                 searchCount: 10,
                 selectCount: 3,
-                cardCondition: (card, _context, currentlySelectedCards) =>
-                    card.isUnit() && this.costSum([...currentlySelectedCards, card]) <= 7,
+                cardCondition: (card) => card.isUnit(),
+                multiSelectCondition: (card, currentlySelectedCards) => this.costSum(currentlySelectedCards.concat(card)) <= 7,
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.playCard({
                     playType: PlayType.PlayFromOutOfPlay,
                     nested: true,
