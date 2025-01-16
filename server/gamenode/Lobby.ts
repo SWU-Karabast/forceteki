@@ -34,6 +34,7 @@ export class Lobby {
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private lobbyOwnerId: string;
     private playableCardTitles: string[];
+    private gameType: MatchType;
 
     public constructor(lobbyGameType: MatchType) {
         Contract.assertTrue(
@@ -44,6 +45,7 @@ export class Lobby {
         this.gameChat = new GameChat();
         this.connectionLink = lobbyGameType !== MatchType.Quick ? `http://localhost:3000/lobby?lobbyId=${this._id}` : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
+        this.gameType = lobbyGameType;
     }
 
     public get id(): string {
@@ -60,10 +62,12 @@ export class Lobby {
                 ready: u.ready,
                 deck: u.deck?.data,
             })),
+            gameOngoing: !!this.game,
             gameChat: this.gameChat,
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
+            gameType: this.gameType,
         };
     }
 
@@ -130,6 +134,11 @@ export class Lobby {
         // we need to get the player and message
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
         this.gameChat.addChatMessage(socket.user, args[0]);
+        this.sendLobbyState();
+    }
+
+    private regularRematch(socket: Socket, ...args) {
+        this.game = null;
         this.sendLobbyState();
     }
 
@@ -275,10 +284,15 @@ export class Lobby {
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
 
         const gameSetupPath = path.resolve(__dirname, '../../test/helpers/GameStateSetup.js');
+        this.setTokens();
+        this.setPlayableCardTitles();
+        // TODO to address this a refactor and change router to lobby
+        // eslint-disable-next-line
+        const router = this;
         // eslint-disable-next-line
         const game: Game = require(gameSetupPath).setUpTestGame(
             setupData,
-            {},
+            router,
             { id: 'exe66', username: 'Order66' },
             { id: 'th3w4y', username: 'ThisIsTheWay' }
         );
