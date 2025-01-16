@@ -43,7 +43,7 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     remainingCardsHandler?: (context: TContext, event: any, cards: Card[]) => void;
 
     /** Used for filtering selection based on things like trait, type, etc. */
-    cardCondition?: (card: Card, context: TContext) => boolean;
+    cardCondition?: (card: Card, context: TContext, currentlySelectedCards: Card[]) => boolean;
     chooseNothingImmediateEffect?: GameSystem<TContext>;
 }
 
@@ -166,8 +166,8 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
                 displayCards: cards,
                 maxCards: selectAmount,
                 canChooseNothing: properties.canChooseNothing || true,
-                selectableCondition: (card: Card) =>
-                    properties.cardCondition(card, context) &&
+                selectableCondition: (card: Card, currentlySelectedCards: Card[]) =>
+                    properties.cardCondition(card, context, currentlySelectedCards) &&
                     (!properties.selectedCardsImmediateEffect || properties.selectedCardsImmediateEffect.canAffect(card, context, additionalProperties)),
                 selectedCardsHandler: (selectedCards: Card[]) =>
                     this.onSearchComplete(properties, context, event, selectedCards, cards)

@@ -11,7 +11,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
     private readonly displayCards: ISelectableCard[];
     private readonly doneButton?: IButton;
     private readonly maxCards: number;
-    private readonly selectableCondition: (card: Card) => boolean;
+    private readonly selectableCondition: (card: Card, currentlySelectedCards: Card[]) => boolean;
     private readonly selectedCardsHandler: (cards: Card[]) => void;
 
     public constructor(game: Game, choosingPlayer: Player, properties: IDisplayCardsSelectProperties) {
@@ -23,7 +23,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
 
         this.displayCards = properties.displayCards.map((card) => ({
             card,
-            selectionState: this.selectableCondition(card)
+            selectionState: this.selectableCondition(card, [])
                 ? DisplayCardSelectionState.Selectable
                 : DisplayCardSelectionState.Unselectable,
         }));
@@ -107,22 +107,22 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
     }
 
     private refreshCardSelectableStatus() {
-        let nSelected = 0;
+        const selectedCards = this.getSelectedCards();
+
         for (const card of this.displayCards) {
             // if the card is already selected, don't change anything
             if (card.selectionState === DisplayCardSelectionState.Selected) {
-                nSelected++;
                 continue;
             }
 
-            card.selectionState = this.selectableCondition(card.card)
+            card.selectionState = this.selectableCondition(card.card, selectedCards)
                 ? DisplayCardSelectionState.Selectable
                 : DisplayCardSelectionState.Unselectable;
         }
 
         // update done button state
         if (this.doneButton) {
-            if (nSelected === 0) {
+            if (selectedCards.length === 0) {
                 if (this.canChooseNothing) {
                     this.doneButton.disabled = false;
                     this.doneButton.text = 'Take no cards';
