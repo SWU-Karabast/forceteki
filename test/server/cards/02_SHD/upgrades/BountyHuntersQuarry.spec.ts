@@ -29,7 +29,7 @@ describe('Bounty hunter\'s quarry', function () {
                 context.player1.clickPrompt(prompt);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.battlefieldMarine, context.infernoFour, context.sabineWren],
-                    unselectable: [context.waylay, context.protector]
+                    invalid: [context.waylay, context.protector]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -57,7 +57,7 @@ describe('Bounty hunter\'s quarry', function () {
                 context.player1.clickPrompt(prompt);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.sabineWren, context.infernoFour, context.superlaserTechnician, context.echoBaseDefender, context.swoopRacer],
-                    unselectable: [context.devotion, context.waylay, context.protector, context.consularSecurityForce, context.resupply]
+                    invalid: [context.devotion, context.waylay, context.protector, context.consularSecurityForce, context.resupply]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 

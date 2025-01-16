@@ -21,7 +21,7 @@ describe('Bounty Posting', function() {
                 context.player1.clickCard(context.bountyPosting);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.deathMark, context.topTarget],
-                    unselectable: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
+                    invalid: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -62,7 +62,7 @@ describe('Bounty Posting', function() {
                 context.player1.clickCard(context.bountyPosting);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.deathMark, context.topTarget],
-                    unselectable: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
+                    invalid: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -89,7 +89,7 @@ describe('Bounty Posting', function() {
 
                 context.player1.clickCard(context.bountyPosting);
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
+                    invalid: [context.tielnFighter, context.cellBlockGuard, context.pykeSentinel, context.hylobonEnforcer]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 

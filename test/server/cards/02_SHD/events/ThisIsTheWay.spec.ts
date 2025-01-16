@@ -17,7 +17,7 @@ describe('This is the Way', function () {
                 context.player1.clickCard(context.thisIsTheWay);
                 expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
                     selectable: [context.sabineWren, context.supercommandoSquad, context.protector, context.devotion]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -25,7 +25,7 @@ describe('This is the Way', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.devotion);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.devotion],
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
                     selectable: [context.sabineWren, context.supercommandoSquad, context.protector]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -33,7 +33,7 @@ describe('This is the Way', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.sabineWren);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.devotion, context.sabineWren],
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
                     selectable: [context.supercommandoSquad, context.protector]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -57,7 +57,7 @@ describe('This is the Way', function () {
                 context.player1.clickCard(context.thisIsTheWay);
                 expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
                     selectable: [context.sabineWren, context.supercommandoSquad, context.protector, context.devotion]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -65,7 +65,7 @@ describe('This is the Way', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.devotion);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.devotion],
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
                     selectable: [context.sabineWren, context.supercommandoSquad, context.protector]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -88,7 +88,7 @@ describe('This is the Way', function () {
 
                 context.player1.clickCard(context.thisIsTheWay);
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
                     selectable: [context.sabineWren, context.supercommandoSquad, context.protector, context.devotion]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');

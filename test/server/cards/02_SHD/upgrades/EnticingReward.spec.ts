@@ -28,7 +28,7 @@ describe('Enticing Reward', function () {
 
                 // choose up to 2 non-units cards
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
                     selectable: [context.waylay, context.protector, context.devotion, context.resupply]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -36,7 +36,7 @@ describe('Enticing Reward', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.devotion);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.devotion],
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
                     selectable: [context.waylay, context.protector, context.resupply]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -44,7 +44,7 @@ describe('Enticing Reward', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.waylay);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.devotion, context.waylay],
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
                     selectable: [context.protector, context.resupply]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -101,7 +101,7 @@ describe('Enticing Reward', function () {
 
                 // choose up to 2 non-units cards
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
                     selectable: [context.waylay, context.protector, context.devotion, context.resupply]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -109,7 +109,7 @@ describe('Enticing Reward', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.devotion);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.devotion],
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
                     selectable: [context.waylay, context.protector, context.resupply]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -117,7 +117,7 @@ describe('Enticing Reward', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.waylay);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.devotion, context.waylay],
-                    unselectable: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender, context.sabineWren, context.swoopRacer],
                     selectable: [context.protector, context.resupply]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');

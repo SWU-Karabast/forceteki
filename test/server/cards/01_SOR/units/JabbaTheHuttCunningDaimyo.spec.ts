@@ -26,7 +26,7 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
                 // select a trick event on the top 8 cards
                 expect(context.player1).toHavePrompt('Select a card to reveal');
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.battlefieldMarine, context.echoBaseDefender, context.cantinaBraggart, context.ardentSympathizer, context.pykeSentinel],
+                    invalid: [context.battlefieldMarine, context.echoBaseDefender, context.cantinaBraggart, context.ardentSympathizer, context.pykeSentinel],
                     selectable: [context.waylay, p1ShootFirst, context.asteroidSanctuary]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');

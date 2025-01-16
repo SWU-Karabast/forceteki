@@ -18,7 +18,7 @@ describe('Prepare for Takeoff', function () {
                 expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour, context.escortSkiff],
-                    unselectable: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
+                    invalid: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -26,7 +26,7 @@ describe('Prepare for Takeoff', function () {
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.greenSquadronAwing],
                     selectable: [context.restoredArc170, context.infernoFour, context.escortSkiff],
-                    unselectable: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
+                    invalid: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
@@ -34,7 +34,7 @@ describe('Prepare for Takeoff', function () {
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.greenSquadronAwing, context.restoredArc170],
                     selectable: [context.infernoFour, context.escortSkiff],
-                    unselectable: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
+                    invalid: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
@@ -62,7 +62,7 @@ describe('Prepare for Takeoff', function () {
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour, context.escortSkiff],
-                    unselectable: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
+                    invalid: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -70,7 +70,7 @@ describe('Prepare for Takeoff', function () {
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.greenSquadronAwing],
                     selectable: [context.restoredArc170, context.infernoFour, context.escortSkiff],
-                    unselectable: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
+                    invalid: [context.battlefieldMarine, context.pykeSentinel, context.consularSecurityForce, context.echoBaseDefender]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 

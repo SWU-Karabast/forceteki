@@ -9,7 +9,8 @@ import type Player from '../Player';
 export enum DisplayCardSelectionState {
     Selectable = 'selectable',
     Selected = 'selected',
-    Unselectable = 'unselectable'
+    Unselectable = 'unselectable',
+    Invalid = 'invalid'
 }
 
 export interface IButton {

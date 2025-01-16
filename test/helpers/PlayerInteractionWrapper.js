@@ -571,7 +571,7 @@ class PlayerInteractionWrapper {
             (cardEntry) => cardEntry.cardUuid === card.uuid
         );
 
-        if (!clickingCard || (!allowClickUnselectable && clickingCard.selectionState === 'unselectable')) {
+        if (!clickingCard || (!allowClickUnselectable && (clickingCard.selectionState === 'unselectable' || clickingCard.selectionState === 'invalid'))) {
             throw new TestSetupError(
                 `Couldn't click on '${card.internalName}' in card display prompt for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );

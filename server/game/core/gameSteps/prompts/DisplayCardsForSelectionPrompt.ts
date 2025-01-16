@@ -25,7 +25,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
             card,
             selectionState: this.selectableCondition(card)
                 ? DisplayCardSelectionState.Selectable
-                : DisplayCardSelectionState.Unselectable,
+                : DisplayCardSelectionState.Invalid,
         }));
 
         this.canChooseNothing = !!properties.canChooseNothing;
@@ -87,6 +87,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
                 selectedCard.selectionState = DisplayCardSelectionState.Selectable;
                 break;
             case DisplayCardSelectionState.Unselectable:
+            case DisplayCardSelectionState.Invalid:
                 return false;
             default:
                 Contract.fail(`Unexpected selection state: '${selectedCard.selectionState}'`);
@@ -117,7 +118,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
 
             card.selectionState = this.selectableCondition(card.card)
                 ? DisplayCardSelectionState.Selectable
-                : DisplayCardSelectionState.Unselectable;
+                : DisplayCardSelectionState.Invalid;
         }
 
         // update done button state
