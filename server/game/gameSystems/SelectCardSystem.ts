@@ -31,6 +31,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     effect?: string;
     effectArgs?: (context) => string[];
     optional?: boolean;
+    name?: string;
 }
 
 /**
