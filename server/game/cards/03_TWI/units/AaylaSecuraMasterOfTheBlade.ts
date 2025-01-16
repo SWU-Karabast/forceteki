@@ -25,8 +25,7 @@ export default class AaylaSecuraMasterOfTheBlade extends NonLeaderUnitCard {
                     when: {
                         onDamageDealt: (event, context) =>
                             event.card === context.source && event.type === DamageType.Combat
-                    },
-                    replaceWith: { /* replace with nothing */ }
+                    }
                 }),
             })),
         });
