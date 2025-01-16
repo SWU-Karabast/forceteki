@@ -9,6 +9,7 @@ const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.
 const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTargetResolver.js');
 const { TriggerHandlingMode } = require('../event/EventWindow.js');
 const Helpers = require('../utils/Helpers.js');
+const { AbilityContext } = require('./AbilityContext.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -179,16 +180,18 @@ class PlayerOrCardAbility {
 
     /**
      * True if this ability has multiple activation modes (e.g. playing a card with or without Exploit triggering)
+     * @param {AbilityContext} context
      */
-    hasMultipleModes() {
+    hasMultipleModes(context) {
         return false;
     }
 
     /**
      * Get this card's available activation modes (e.g. playing a card with or without Exploit triggering)
+     * @param {AbilityContext} context
      * @returns {PlayerOrCardAbility[]}
      */
-    getModes() {
+    getModes(context) {
         return [this];
     }
 

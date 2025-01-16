@@ -63,7 +63,7 @@ export class PlayableOrDeployableCard extends Card {
 
     public override getActions(): PlayerOrCardAbility[] {
         return super.getActions()
-            .concat(this.getPlayCardActions().flatMap((action) => action.getModes()));
+            .concat(this.getPlayCardActions());
     }
 
     /**
@@ -73,19 +73,21 @@ export class PlayableOrDeployableCard extends Card {
      * If using an ability to grant an out-of-play action, use `getPlayCardFromOutOfPlayActions` which will generate the appropriate actions.
      */
     public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
+        let playCardActions: PlayCardAction[] = [];
+
         if (this.zoneName === ZoneName.Hand) {
-            return this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
+            playCardActions = this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
         }
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            return this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
+            playCardActions = this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
         }
 
         if (this.zoneName === ZoneName.Discard && this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
-            return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+            playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
         }
 
-        return [];
+        return playCardActions.flatMap((action) => action.getModes(action.createContext()));
     }
 
     /**

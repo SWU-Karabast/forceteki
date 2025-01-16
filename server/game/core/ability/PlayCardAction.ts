@@ -43,7 +43,6 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly costAdjusters: CostAdjuster[];
     public readonly exploitValue?: number;
     public readonly playType: PlayType;
-    public readonly usesExploit: boolean;
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
@@ -60,7 +59,7 @@ export abstract class PlayCardAction extends PlayerAction {
         };
 
         Contract.assertFalse(
-            Helpers.asArray(propertiesWithDefaults.costAdjusters).some(((adjuster) => adjuster.isExploit())),
+            Helpers.asArray(propertiesWithDefaults.costAdjusters).some(((adjuster) => adjuster && adjuster.isExploit())),
             `PlayCardAction for ${card.internalName} has an exploit adjuster already included in properties`
         );
 
@@ -95,9 +94,12 @@ export abstract class PlayCardAction extends PlayerAction {
 
         this.playType = propertiesWithDefaults.playType;
         this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
-        this.usesExploit = usesExploit;
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
+    }
+
+    public hasAvailableExploit(context: AbilityContext) {
+        return this.getCosts(context).some((cost) => cost.usesExploit(context));
     }
 
     private static getTitle(title: string, playType: PlayType, withExploit: boolean = false, appendToTitle: boolean = true): string {
@@ -123,15 +125,15 @@ export abstract class PlayCardAction extends PlayerAction {
 
     public abstract clone(overrideProperties: Partial<IPlayCardActionProperties>): PlayCardAction;
 
-    public override hasMultipleModes(): boolean {
-        return this.usesExploit;
+    public override hasMultipleModes(context: AbilityContext): boolean {
+        return this.hasAvailableExploit(context);
     }
 
     // UP NEXT: correctly build out the (at most) two actions, including handling a gained exploit
 
-    // if we support Exploit, return a play mode with and without triggering the Exploit
-    public override getModes(): PlayCardAction[] {
-        return this.usesExploit
+    // if we have Exploit available, return a play mode with and without triggering the Exploit
+    public override getModes(context: AbilityContext): PlayCardAction[] {
+        return this.hasAvailableExploit(context)
             ? [this, this.clone({ exploitValue: null })]
             : [this];
     }

@@ -32,10 +32,9 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
 
     // TODO THIS PR: remove if not needed
 
-    // public usesExploit(context: TContext): boolean {
-    //     return context.player.getMatchingCostAdjusters(context, null, this.costAdjustersFromAbility(context))
-    //         .some((adjuster) => adjuster.isExploit());
-    // }
+    public usesExploit(context: TContext): boolean {
+        return this.getMatchingCostAdjusters(context).some((adjuster) => adjuster.isExploit());
+    }
 
     public canPay(context: TContext): boolean {
         if (!('printedCost' in context.source)) {
