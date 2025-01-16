@@ -65,6 +65,7 @@ export enum EffectName {
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
+    CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
     CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
     CostAdjuster = 'costAdjuster',
@@ -101,6 +102,7 @@ export enum Duration {
     UntilEndOfAttack = 'untilEndOfAttack',
     UntilEndOfPhase = 'untilEndOfPhase',
     UntilEndOfRound = 'untilEndOfRound',
+    WhileSourceInPlay = 'whileSourceInPlay'
 }
 
 export enum Stage {
@@ -445,4 +447,5 @@ export enum PromptType {
     Initiative = 'initiative',
     Resource = 'resource',
     ActionWindow = 'actionWindow',
+    DisplayCards = 'displayCards'
 }

@@ -5,6 +5,7 @@ import type Player from '../../Player';
 import type { CardWithDamageProperty } from '../CardTypes';
 import { WithPrintedHp } from './PrintedHp';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
+import { EffectName } from '../../Constants';
 
 /**
  * Mixin function that adds the `damage` property and corresponding methods to a base class.
@@ -74,8 +75,12 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             if (amount === 0) {
                 return 0;
             }
+            // if a card can't be defeated by damage (e.g. Chirrut) we consider all damage to have been
+            // applied to the card, even if it goes above max hp (important for overwhelm calculation)
+            const damageToAdd = this.hasOngoingEffect(EffectName.CannotBeDefeatedByDamage)
+                ? amount
+                : Math.min(amount, this.remainingHp);
 
-            const damageToAdd = Math.min(amount, this.remainingHp);
             this.damage += damageToAdd;
 
             return damageToAdd;

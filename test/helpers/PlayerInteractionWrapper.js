@@ -220,7 +220,9 @@ class PlayerInteractionWrapper {
                 card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
             }
 
-            if (card.isUnit() && card.defaultArena !== arenaName) {
+            if (!card.isUnit()) {
+                throw new TestSetupError(`Attempting to add non-unit card ${card.internalName} to ${arenaName}`);
+            } else if (card.defaultArena !== arenaName) {
                 throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
             }
 
@@ -551,6 +553,13 @@ class PlayerInteractionWrapper {
         this.game.statefulPromptResults(this.player.name, promptResults, currentPrompt.promptUuid);
         this.game.continue();
         // this.checkUnserializableGameState();
+    }
+
+    clickDisplayCardPromptButton(cardUuid, arg) {
+        var currentPrompt = this.player.currentPrompt();
+
+        this.game.perCardMenuButton(this.player.name, arg, cardUuid, currentPrompt.promptUuid);
+        this.game.continue();
     }
 
     clickPromptButtonIndex(index) {
