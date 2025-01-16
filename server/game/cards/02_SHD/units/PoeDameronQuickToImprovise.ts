@@ -25,7 +25,7 @@ export default class PoeDameronQuickToImprovise extends NonLeaderUnitCard {
                 effectArgs: [ifYouDoContext.target.length],
                 immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
                     amountOfChoices: ifYouDoContext.target.length,
-                    choices: (context) => ({
+                    choices: () => ({
                         ['Deal 2 damage to a unit or base.']: AbilityHelper.immediateEffects.selectCard({
                             innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
                         }),
