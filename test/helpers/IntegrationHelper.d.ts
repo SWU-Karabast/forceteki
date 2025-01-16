@@ -78,6 +78,7 @@ interface ICardDisplaySelectionState {
     selectable?: Card[];
     selected?: Card[];
     unselectable?: Card[];
+    invalid?: Card[];
 }
 
 declare namespace jasmine {

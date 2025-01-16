@@ -17,7 +17,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 context.player1.clickCard(context.monMothma);
                 expect(context.player1).toHavePrompt('Select a card to reveal');
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier],
+                    invalid: [context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier],
                     selectable: [context.battlefieldMarine]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -52,7 +52,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.battlefieldMarine],
-                    unselectable: [context.cartelSpacer, context.cellBlockGuard],
+                    invalid: [context.cartelSpacer, context.cellBlockGuard],
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
                 context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
@@ -96,7 +96,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 context.player1.clickCard(context.monMothma);
                 expect(context.player1).toHavePrompt('Select a card to reveal');
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.academyDefenseWalker, context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier]
+                    invalid: [context.academyDefenseWalker, context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 

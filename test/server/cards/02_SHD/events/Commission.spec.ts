@@ -18,7 +18,7 @@ describe('Commission', function () {
                     context.player1.clickCard(context.commission);
                     expect(context.player1).toHavePrompt('Select a card to reveal');
                     expect(context.player1).toHaveExactDisplayPromptCards({
-                        unselectable: [context.viperProbeDroid, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.cellBlockGuard, context.tieAdvanced],
+                        invalid: [context.viperProbeDroid, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.cellBlockGuard, context.tieAdvanced],
                         selectable: [context.frontlineShuttle, context.electrostaff, context.greedo, context.mandalorianArmor]
                     });
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -65,7 +65,7 @@ describe('Commission', function () {
                     context.player1.clickCard(context.commission);
                     expect(context.player1).toHaveExactDisplayPromptCards({
                         selectable: [context.mandalorianArmor],
-                        unselectable: [context.confiscate, context.iAmYourFather]
+                        invalid: [context.confiscate, context.iAmYourFather]
                     });
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
                     context.player1.clickCardInDisplayCardPrompt(context.mandalorianArmor);
@@ -116,7 +116,7 @@ describe('Commission', function () {
                     context.player1.clickCard(context.commission);
                     expect(context.player1).toHavePrompt('Select a card to reveal');
                     expect(context.player1).toHaveExactDisplayPromptCards({
-                        unselectable: [
+                        invalid: [
                             context.disarm,
                             context.confiscate,
                             context.iAmYourFather,

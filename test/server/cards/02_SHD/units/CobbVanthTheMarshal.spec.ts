@@ -22,7 +22,7 @@ describe('Cobb Vanth, The Marshal', function() {
                 context.player2.clickCard(context.cobbVanth);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.sabineWren, context.battlefieldMarine, context.patrollingVwing],
-                    unselectable: [context.waylay, context.protector, context.devotion, context.consularSecurityForce, context.echoBaseDefender, context.swoopRacer, context.resupply]
+                    invalid: [context.waylay, context.protector, context.devotion, context.consularSecurityForce, context.echoBaseDefender, context.swoopRacer, context.resupply]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 

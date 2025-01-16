@@ -395,7 +395,7 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player1.clickPrompt(prompt);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.battlefieldMarine, context.snowtrooperLieutenant, context.sabineWren],
-                    unselectable: [context.waylay, context.protector]
+                    invalid: [context.waylay, context.protector]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -409,7 +409,7 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player1.clickPrompt('Collect the Bounty again');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.infernoFour, context.sabineWren, context.snowtrooperLieutenant],
-                    unselectable: [context.waylay, context.protector]
+                    invalid: [context.waylay, context.protector]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -441,7 +441,7 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player1.clickPrompt(prompt);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.battlefieldMarine, context.snowtrooperLieutenant, context.sabineWren],
-                    unselectable: [context.waylay, context.protector]
+                    invalid: [context.waylay, context.protector]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 

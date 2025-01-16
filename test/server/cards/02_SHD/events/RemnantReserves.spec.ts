@@ -18,7 +18,7 @@ describe('Remnant Reserves', function () {
                 expect(context.player1).toHavePrompt('Select up to 3 cards to reveal');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    invalid: [context.recruit, context.prepareForTakeoff],
                     selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -26,7 +26,7 @@ describe('Remnant Reserves', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.greenSquadronAwing);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.greenSquadronAwing],
-                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    invalid: [context.recruit, context.prepareForTakeoff],
                     selectable: [context.restoredArc170, context.infernoFour]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -34,7 +34,7 @@ describe('Remnant Reserves', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.restoredArc170);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.greenSquadronAwing, context.restoredArc170],
-                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    invalid: [context.recruit, context.prepareForTakeoff],
                     selectable: [context.infernoFour]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -42,7 +42,7 @@ describe('Remnant Reserves', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.infernoFour);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour],
-                    unselectable: [context.recruit, context.prepareForTakeoff]
+                    invalid: [context.recruit, context.prepareForTakeoff]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
@@ -62,7 +62,7 @@ describe('Remnant Reserves', function () {
                 context.player1.clickCard(context.remnantReserves);
                 expect(context.player1).toHavePrompt('Select up to 3 cards to reveal');
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    invalid: [context.recruit, context.prepareForTakeoff],
                     selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
@@ -70,7 +70,7 @@ describe('Remnant Reserves', function () {
                 context.player1.clickCardInDisplayCardPrompt(context.greenSquadronAwing);
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selected: [context.greenSquadronAwing],
-                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    invalid: [context.recruit, context.prepareForTakeoff],
                     selectable: [context.restoredArc170, context.infernoFour]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -90,7 +90,7 @@ describe('Remnant Reserves', function () {
 
                 context.player1.clickCard(context.remnantReserves);
                 expect(context.player1).toHaveExactDisplayPromptCards({
-                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    invalid: [context.recruit, context.prepareForTakeoff],
                     selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');

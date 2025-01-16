@@ -19,7 +19,7 @@ describe('Recruit', function () {
                     expect(context.player1).toHavePrompt('Select a card to reveal');
                     expect(context.player1).toHaveExactDisplayPromptCards({
                         selectable: [context.viperProbeDroid],
-                        unselectable: [context.confiscate, context.iAmYourFather, context.surpriseStrike, context.vanquish]
+                        invalid: [context.confiscate, context.iAmYourFather, context.surpriseStrike, context.vanquish]
                     });
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -50,7 +50,7 @@ describe('Recruit', function () {
 
                     expect(context.player1).toHaveExactDisplayPromptCards({
                         selectable: [context.viperProbeDroid],
-                        unselectable: [context.confiscate, context.iAmYourFather]
+                        invalid: [context.confiscate, context.iAmYourFather]
                     });
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
@@ -101,7 +101,7 @@ describe('Recruit', function () {
                     context.player1.clickCard(context.recruit);
                     expect(context.player1).toHavePrompt('Select a card to reveal');
                     expect(context.player1).toHaveExactDisplayPromptCards({
-                        unselectable: [context.disarm, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.vanquish]
+                        invalid: [context.disarm, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.vanquish]
                     });
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
                     context.player1.clickPrompt('Take nothing');
@@ -129,7 +129,7 @@ describe('Recruit', function () {
                     expect(context.player1).toHavePrompt('Select a card to reveal');
                     expect(context.player1).toHaveExactDisplayPromptCards({
                         selectable: [context.viperProbeDroid, context.cellBlockGuard],
-                        unselectable: [context.confiscate, context.iAmYourFather, context.surpriseStrike]
+                        invalid: [context.confiscate, context.iAmYourFather, context.surpriseStrike]
                     });
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 

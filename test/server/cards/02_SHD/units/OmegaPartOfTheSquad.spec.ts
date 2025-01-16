@@ -24,7 +24,7 @@ describe('Omega, Part of the Squad', function() {
                 expect(context.player1).toHavePrompt('Select a card to reveal');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.crosshair],
-                    unselectable: [context.atst, context.battlefieldMarine, context.cartelSpacer, context.pykeSentinel]
+                    invalid: [context.atst, context.battlefieldMarine, context.cartelSpacer, context.pykeSentinel]
                 });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
