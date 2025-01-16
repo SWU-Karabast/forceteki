@@ -7,14 +7,18 @@ import { DisplayCardSelectionState, type IButton, type IDisplayCardsWithButtonsP
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCardsWithButtonsPromptProperties> {
-    private onCardButton: (card: Card, arg: string) => boolean;
-    private perCardButtons: Omit<IButton, 'command'>[];
+    private readonly onCardButton: (card: Card, arg: string) => boolean;
+    private readonly perCardButtons: Omit<IButton, 'command'>[];
+
+    private displayCards: Card[];
 
     public constructor(game: Game, choosingPlayer: Player, properties: IDisplayCardsWithButtonsPromptProperties) {
         Contract.assertTrue(properties.perCardButtons.length > 0);
+        Contract.assertTrue(properties.displayCards.length > 0);
 
         super(game, choosingPlayer, properties);
 
+        this.displayCards = properties.displayCards;
         this.onCardButton = properties.onCardButton;
 
         for (const button of properties.perCardButtons) {

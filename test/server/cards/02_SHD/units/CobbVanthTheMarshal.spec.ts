@@ -20,9 +20,13 @@ describe('Cobb Vanth, The Marshal', function() {
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.cobbVanth);
-                expect(context.player1).toHaveEnabledPromptButtons([context.sabineWren.title, context.battlefieldMarine.title, context.patrollingVwing.title, 'Take nothing']);
-                expect(context.player1).toHaveDisabledPromptButtons([context.waylay.title, context.protector.title, context.devotion.title, context.consularSecurityForce.title, context.echoBaseDefender.title, context.swoopRacer.title, context.resupply.title]);
-                context.player1.clickPrompt(context.patrollingVwing.title);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.sabineWren, context.battlefieldMarine, context.patrollingVwing],
+                    unselectable: [context.waylay, context.protector, context.devotion, context.consularSecurityForce, context.echoBaseDefender, context.swoopRacer, context.resupply]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                context.player1.clickCardInDisplayCardPrompt(context.patrollingVwing);
                 expect(context.cobbVanth).toBeInZone('discard');
                 expect(context.patrollingVwing).toBeInZone('discard');
 
@@ -72,8 +76,10 @@ describe('Cobb Vanth, The Marshal', function() {
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.cobbVanth);
+                expect(context.player1).toHaveExactDisplayPromptCards([context.battlefieldMarine]);
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.battlefieldMarine.title);
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
                 expect(context.cobbVanth).toBeInZone('discard');
                 expect(context.battlefieldMarine).toBeInZone('discard');
 
@@ -102,8 +108,10 @@ describe('Cobb Vanth, The Marshal', function() {
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.cobbVanth);
+                expect(context.player1).toHaveExactDisplayPromptCards([context.battlefieldMarine]);
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.battlefieldMarine.title);
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
                 expect(context.cobbVanth).toBeInZone('discard');
                 expect(context.battlefieldMarine).toBeInZone('discard');
 
@@ -152,8 +160,10 @@ describe('Cobb Vanth, The Marshal', function() {
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.cobbVanth);
+                expect(context.player1).toHaveExactDisplayPromptCards([context.battlefieldMarine]);
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.battlefieldMarine.title);
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
                 expect(context.cobbVanth).toBeInZone('discard');
                 expect(context.battlefieldMarine).toBeInZone('discard');
 

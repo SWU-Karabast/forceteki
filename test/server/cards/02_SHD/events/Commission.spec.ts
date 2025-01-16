@@ -17,10 +17,13 @@ describe('Commission', function () {
 
                     context.player1.clickCard(context.commission);
                     expect(context.player1).toHavePrompt('Select a card to reveal');
-                    expect(context.player1).toHaveDisabledPromptButtons([context.viperProbeDroid.title, context.confiscate.title, context.iAmYourFather.title, context.surpriseStrike.title, context.cellBlockGuard.title, context.tieAdvanced.title]);
-                    expect(context.player1).toHaveEnabledPromptButtons([context.frontlineShuttle.title, context.electrostaff.title, context.greedo.title, context.mandalorianArmor.title, 'Take nothing']);
+                    expect(context.player1).toHaveExactDisplayPromptCards({
+                        unselectable: [context.viperProbeDroid, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.cellBlockGuard, context.tieAdvanced],
+                        selectable: [context.frontlineShuttle, context.electrostaff, context.greedo, context.mandalorianArmor]
+                    });
+                    expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                    context.player1.clickPrompt(context.electrostaff.title);
+                    context.player1.clickCardInDisplayCardPrompt(context.electrostaff);
                     expect(context.getChatLogs(2)).toContain('player1 takes Electrostaff');
                     expect(context.electrostaff).toBeInZone('hand');
 
@@ -60,9 +63,12 @@ describe('Commission', function () {
 
                     context.player1.setDeck([context.mandalorianArmor, context.confiscate, context.iAmYourFather]);
                     context.player1.clickCard(context.commission);
-                    expect(context.player1).toHaveEnabledPromptButtons([context.mandalorianArmor.title, 'Take nothing']);
-                    expect(context.player1).toHaveDisabledPromptButtons([context.confiscate.title, context.iAmYourFather.title]);
-                    context.player1.clickPrompt(context.mandalorianArmor.title);
+                    expect(context.player1).toHaveExactDisplayPromptCards({
+                        selectable: [context.mandalorianArmor],
+                        unselectable: [context.confiscate, context.iAmYourFather]
+                    });
+                    expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+                    context.player1.clickCardInDisplayCardPrompt(context.mandalorianArmor);
 
                     expect(context.player1.deck.length).toBe(2);
                     expect([context.confiscate, context.iAmYourFather]).toAllBeInBottomOfDeck(context.player1, 2);
@@ -109,7 +115,20 @@ describe('Commission', function () {
 
                     context.player1.clickCard(context.commission);
                     expect(context.player1).toHavePrompt('Select a card to reveal');
-                    expect(context.player1).toHaveDisabledPromptButtons([context.disarm.title, context.confiscate.title, context.iAmYourFather.title, context.surpriseStrike.title, context.vanquish.title]);
+                    expect(context.player1).toHaveExactDisplayPromptCards({
+                        unselectable: [
+                            context.disarm,
+                            context.confiscate,
+                            context.iAmYourFather,
+                            context.surpriseStrike,
+                            context.vanquish,
+                            context.cellBlockGuard,
+                            context.tieAdvanced,
+                            context.battlefieldMarine,
+                            context.greenSquadronAwing,
+                            context.pykeSentinel
+                        ]
+                    });
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                     context.player1.clickPrompt('Take nothing');

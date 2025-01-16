@@ -24,12 +24,30 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
 
                 context.player1.clickCard(context.p1Tarkin);
                 expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
-                expect(context.player1).toHaveEnabledPromptButtons([context.academyDefenseWalker.title, context.cellBlockGuard.title, context.scoutBikePursuer.title, 'Take nothing']);
-                expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.wampa.title]);
 
-                // Choose Cell Block Guard and Scout Bike Pursuer
-                context.player1.clickPrompt(context.cellBlockGuard.title);
-                context.player1.clickPrompt(context.scoutBikePursuer.title);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.academyDefenseWalker, context.cellBlockGuard, context.scoutBikePursuer],
+                    unselectable: [context.battlefieldMarine, context.wampa]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                context.player1.clickCardInDisplayCardPrompt(context.cellBlockGuard);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.cellBlockGuard],
+                    selectable: [context.academyDefenseWalker, context.scoutBikePursuer],
+                    unselectable: [context.battlefieldMarine, context.wampa]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCardInDisplayCardPrompt(context.scoutBikePursuer);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.cellBlockGuard, context.scoutBikePursuer],
+                    selectable: [context.academyDefenseWalker],
+                    unselectable: [context.battlefieldMarine, context.wampa]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickPrompt('Done');
+
                 expect(context.getChatLogs(2)).toContain('player1 takes Cell Block Guard and Scout Bike Pursuer');
 
                 // Check cards in hand
@@ -45,18 +63,20 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.p1Tarkin);
-                expect(context.player1).toHaveEnabledPromptButtons([context.academyDefenseWalker.title, context.cellBlockGuard.title, context.scoutBikePursuer.title]);
-                expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.wampa.title]);
 
-                // Done prompt doesn't show up til one card selected
-                expect(context.player1).not.toHaveEnabledPromptButton('Done');
-                context.player1.clickPrompt(context.cellBlockGuard.title);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.academyDefenseWalker, context.cellBlockGuard, context.scoutBikePursuer],
+                    unselectable: [context.battlefieldMarine, context.wampa]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+                context.player1.clickCardInDisplayCardPrompt(context.cellBlockGuard);
 
                 // Cell Block Guard and Take nothing should no longer be present
-                expect(context.player1).toHaveEnabledPromptButtons([context.academyDefenseWalker.title, context.scoutBikePursuer.title]);
-                expect(context.player1).not.toHaveEnabledPromptButton(context.cellBlockGuard.title);
-                expect(context.player1).not.toHaveEnabledPromptButton('Take nothing');
-                expect(context.player1).not.toHaveDisabledPromptButton(context.cellBlockGuard.title);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.cellBlockGuard],
+                    selectable: [context.academyDefenseWalker, context.scoutBikePursuer],
+                    unselectable: [context.battlefieldMarine, context.wampa]
+                });
 
                 // Click Done
                 expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -83,7 +103,10 @@ describe('Grand Moff Tarkin, Death Star Overseer', function() {
 
                 context.player2.setActivePlayer();
                 context.player2.clickCard(context.p2tarkin);
-                expect(context.player2).toHaveDisabledPromptButtons([context.clanWrenRescuer.title, context.concordDawnInterceptors.title, context.gentleGiant.title, context.systemPatrolCraft.title, context.villageProtectors.title]);
+
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    unselectable: [context.clanWrenRescuer, context.concordDawnInterceptors, context.gentleGiant, context.systemPatrolCraft, context.villageProtectors]
+                });
                 expect(context.player2).toHaveEnabledPromptButton('Take nothing');
                 context.player2.clickPrompt('Take nothing');
 

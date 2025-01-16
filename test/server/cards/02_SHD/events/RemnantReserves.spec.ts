@@ -16,12 +16,37 @@ describe('Remnant Reserves', function () {
 
                 context.player1.clickCard(context.remnantReserves);
                 expect(context.player1).toHavePrompt('Select up to 3 cards to reveal');
-                expect(context.player1).toHaveDisabledPromptButtons([context.recruit.title, context.prepareForTakeoff.title]);
-                expect(context.player1).toHaveEnabledPromptButtons([context.greenSquadronAwing.title, context.restoredArc170.title, context.infernoFour.title, 'Take nothing']);
 
-                context.player1.clickPrompt(context.greenSquadronAwing.title);
-                context.player1.clickPrompt(context.restoredArc170.title);
-                context.player1.clickPrompt(context.infernoFour.title);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                context.player1.clickCardInDisplayCardPrompt(context.greenSquadronAwing);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.greenSquadronAwing],
+                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    selectable: [context.restoredArc170, context.infernoFour]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCardInDisplayCardPrompt(context.restoredArc170);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.greenSquadronAwing, context.restoredArc170],
+                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    selectable: [context.infernoFour]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCardInDisplayCardPrompt(context.infernoFour);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour],
+                    unselectable: [context.recruit, context.prepareForTakeoff]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                context.player1.clickPrompt('Done');
                 expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing, Restored ARC-170, and Inferno Four');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
                 expect(context.restoredArc170).toBeInZone('hand');
@@ -36,10 +61,20 @@ describe('Remnant Reserves', function () {
 
                 context.player1.clickCard(context.remnantReserves);
                 expect(context.player1).toHavePrompt('Select up to 3 cards to reveal');
-                expect(context.player1).toHaveDisabledPromptButtons([context.recruit.title, context.prepareForTakeoff.title]);
-                expect(context.player1).toHaveEnabledPromptButtons([context.greenSquadronAwing.title, context.restoredArc170.title, context.infernoFour.title, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.greenSquadronAwing.title);
+                context.player1.clickCardInDisplayCardPrompt(context.greenSquadronAwing);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.greenSquadronAwing],
+                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    selectable: [context.restoredArc170, context.infernoFour]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
                 context.player1.clickPrompt('Done');
                 expect(context.getChatLogs(2)).toContain('player1 takes Green Squadron A-Wing');
                 expect(context.greenSquadronAwing).toBeInZone('hand');
@@ -54,6 +89,11 @@ describe('Remnant Reserves', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.remnantReserves);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    unselectable: [context.recruit, context.prepareForTakeoff],
+                    selectable: [context.greenSquadronAwing, context.restoredArc170, context.infernoFour]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
                 context.player1.clickPrompt('Take nothing');
 
                 expect([

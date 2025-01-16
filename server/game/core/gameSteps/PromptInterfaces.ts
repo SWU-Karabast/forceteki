@@ -16,6 +16,7 @@ export interface IButton {
     text: string;
     arg: string;
     command?: string;
+    disabled?: boolean;
 }
 
 export interface IDisplayCard {
@@ -85,11 +86,24 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
 }
 
 export interface IDisplayCardPromptPropertiesBase extends IPromptPropertiesBase {
-    displayCards: Card[];
     source: string | OngoingEffectSource;
 }
 
 export interface IDisplayCardsWithButtonsPromptProperties extends IDisplayCardPromptPropertiesBase {
+    displayCards: Card[];
     onCardButton: (card: Card, arg: string) => boolean;
     perCardButtons: IButton[];
+}
+
+export interface ISelectableCard {
+    card: Card;
+    selectionState: DisplayCardSelectionState;
+}
+
+export interface IDisplayCardsSelectProperties extends IDisplayCardPromptPropertiesBase {
+    displayCards: Card[];
+    selectableCondition: (card: Card) => boolean;
+    selectedCardsHandler: (cards: Card[]) => void;
+    maxCards?: number;
+    canChooseNothing?: boolean;
 }
