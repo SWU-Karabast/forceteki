@@ -18,7 +18,7 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
         this.onCardButton = properties.onCardButton;
 
         for (const button of properties.perCardButtons) {
-            button.command = 'statefulPromptResults';
+            button.command = 'perCardMenuButton';
         }
 
         this.perCardButtons = properties.perCardButtons;
@@ -40,7 +40,6 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
             setId: card.setId,
             internalName: card.internalName,
             selectionState: DisplayCardSelectionState.Selectable,
-            command: 'perCardMenuButton',
         }));
     }
 
