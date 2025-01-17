@@ -7,6 +7,8 @@ import { DisplayCardSelectionState, type IDisplayCardsSelectProperties } from '.
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCardsSelectProperties> {
+    private static readonly takeNothingButtonText = 'Take nothing';
+
     private readonly canChooseNothing: boolean;
     private readonly displayCards: ISelectableCard[];
     private readonly doneButton?: IButton;
@@ -32,7 +34,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
         this.canChooseNothing = !!properties.canChooseNothing;
 
         if (this.canChooseNothing) {
-            this.doneButton = { text: 'Take nothing', arg: 'done' };
+            this.doneButton = { text: DisplayCardsForSelectionPrompt.takeNothingButtonText, arg: 'done' };
         } else if (this.maxCards > 1) {
             this.doneButton = { text: 'Done', arg: 'done', disabled: true };
         }
@@ -127,7 +129,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
             if (selectedCards.length === 0) {
                 if (this.canChooseNothing) {
                     this.doneButton.disabled = false;
-                    this.doneButton.text = 'Take no cards';
+                    this.doneButton.text = DisplayCardsForSelectionPrompt.takeNothingButtonText;
                 } else {
                     this.doneButton.disabled = true;
                     this.doneButton.text = 'Done';
