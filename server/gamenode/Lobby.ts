@@ -112,7 +112,8 @@ export class Lobby {
                 id: user.id,
                 username: user.username,
                 state: 'connected',
-                ready: false, socket,
+                ready: false,
+                socket,
                 deck: this.useDefaultDeck(user),
             });
         }
@@ -139,6 +140,9 @@ export class Lobby {
 
     private regularRematch(socket: Socket, ...args) {
         this.game = null;
+        if (this.gameType === MatchType.Quick) {
+            this.gameType = MatchType.Custom;
+        }
         this.sendLobbyState();
     }
 
@@ -302,6 +306,7 @@ export class Lobby {
 
     private onStartGame(): void {
         // TODO Change this to actual new GameSettings when we get to that point.
+        console.log(this.users);
         defaultGameSettings.players[0].user.id = this.users[0].id;
         defaultGameSettings.players[0].user.username = this.users[0].username;
 
