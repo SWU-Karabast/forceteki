@@ -21,9 +21,14 @@ describe('Triple Dark Raid', function () {
                 const resourcesBefore = context.player1.readyResourceCount;
 
                 context.player1.clickCard(context.tripleDarkRaid);
-                expect(context.player1).toHaveEnabledPromptButtons([context.grievoussWheelBike, context.atst, context.allianceXWing, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.grievoussWheelBike, context.atst, context.allianceXwing],
+                    invalid: [context.battlefieldMarine, context.pykeSentinel, context.rebelPathfinder, context.wampa]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
                 // Click vehicle unit
-                context.player1.clickPrompt(context.atst.title);
+                context.player1.clickCardInDisplayCardPrompt(context.atst);
                 // Check that it is in play, ready, and resources were paid
                 expect(context.atst).toBeInZone('groundArena', context.player1);
                 expect(context.atst.exhausted).toBe(false);
@@ -39,9 +44,14 @@ describe('Triple Dark Raid', function () {
                 const resourcesBefore = context.player1.readyResourceCount;
 
                 context.player1.clickCard(context.tripleDarkRaid);
-                expect(context.player1).toHaveEnabledPromptButtons([context.grievoussWheelBike, context.atst, context.allianceXWing, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.grievoussWheelBike, context.atst, context.allianceXwing],
+                    invalid: [context.battlefieldMarine, context.pykeSentinel, context.rebelPathfinder, context.wampa]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
                 // Click vehicle unit
-                context.player1.clickPrompt(context.atst.title);
+                context.player1.clickCardInDisplayCardPrompt(context.atst);
                 // Check that it is in play, ready, and resources were paid
                 expect(context.atst).toBeInZone('groundArena', context.player1);
                 expect(context.atst.exhausted).toBe(false);
@@ -61,10 +71,14 @@ describe('Triple Dark Raid', function () {
                 const resourcesBefore = context.player1.readyResourceCount;
 
                 context.player1.clickCard(context.tripleDarkRaid);
-                expect(context.player1).toHaveEnabledPromptButtons([context.grievoussWheelBike, context.atst, context.allianceXWing, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.grievoussWheelBike, context.atst, context.allianceXwing],
+                    invalid: [context.battlefieldMarine, context.pykeSentinel, context.rebelPathfinder, context.wampa]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 // Click vehicle upgrade
-                context.player1.clickPrompt(context.grievoussWheelBike.title);
+                context.player1.clickCardInDisplayCardPrompt(context.grievoussWheelBike);
                 context.player1.clickCard(context.jangoFett);
 
                 // Check that it is in play, ready, and resources were paid
