@@ -133,7 +133,7 @@ describe('U-Wing Reinforcement', function() {
             });
         });
 
-        it('should allow no more than 3 units to be played even if the total cost is less than 7', function () {
+        it('U-Wing\'s ability should allow no more than 3 units to be played even if the total cost is less than 7', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
@@ -209,6 +209,67 @@ describe('U-Wing Reinforcement', function() {
             expect(context.player1.exhaustedResourceCount).toBe(7);
             expect([context.daringRaid, context.protector, context.criminalMuscle, context.strikeTrue, context.atatSuppressor, context.aurraSingCrackshotSniper, context.wampa])
                 .toAllBeInBottomOfDeck(context.player1, 7);
+        });
+
+        it('U-Wing\'s ability should play each card as a nested action (triggered abilities happen immediately)', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    leader: 'hera-syndulla#spectre-two',
+                    hand: ['uwing-reinforcement'],
+                    groundArena: ['bossk#deadly-stalker'],
+                    deck: [
+                        'admiral-ackbar#brilliant-strategist',
+                        'vanguard-ace',
+                        'snowtrooper-lieutenant'
+                    ],
+                },
+                player2: {
+                    groundArena: ['wartime-trade-official']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.uwingReinforcement);
+
+            expect(context.player1).toHavePrompt('Choose up to 3 units with combined cost 7 or less to play for free');
+            context.player1.clickCardInDisplayCardPrompt(context.admiralAckbar);
+            context.player1.clickCardInDisplayCardPrompt(context.snowtrooperLieutenant);
+            context.player1.clickCardInDisplayCardPrompt(context.vanguardAce);
+            context.player1.clickPrompt('Done');
+
+            // Ackbar ability triggers and does 2 damage because it's the first unit played out
+            expect(context.player1).toBeAbleToSelectExactly([context.wartimeTradeOfficial, context.admiralAckbar, context.bossk]);
+            expect(context.admiralAckbar).toBeInZone('groundArena');
+            expect(context.snowtrooperLieutenant).toBeInZone('deck');
+            expect(context.vanguardAce).toBeInZone('deck');
+            context.player1.clickCard(context.wartimeTradeOfficial);
+            expect(context.wartimeTradeOfficial.damage).toBe(2);
+
+            // Snowtrooper Lieutenant ability triggers
+            expect(context.player1).toBeAbleToSelectExactly(context.bossk);
+            expect(context.admiralAckbar).toBeInZone('groundArena');
+            expect(context.snowtrooperLieutenant).toBeInZone('groundArena');
+            expect(context.vanguardAce).toBeInZone('deck');
+
+            // Bossk attacks and defeats Wartime Trade Official. its on-defeat ability triggers immediately since it's nested as well
+            context.player1.clickCard(context.bossk);
+            context.player1.clickCard(context.wartimeTradeOfficial);
+            const battleDroids = context.player2.findCardsByName('battle-droid');
+            expect(battleDroids.length).toBe(1);
+
+            // Bossk ability triggers after all when played abilities (including Vanguard Ace)
+            expect(context.player1).toBeAbleToSelectExactly([context.bossk, context.admiralAckbar, context.snowtrooperLieutenant, context.vanguardAce, battleDroids[0]]);
+            expect(context.admiralAckbar).toBeInZone('groundArena');
+            expect(context.snowtrooperLieutenant).toBeInZone('groundArena');
+            expect(context.vanguardAce).toBeInZone('spaceArena');
+
+            // Vanguard Ace gets two experience since two other cards were previously played
+            expect(context.vanguardAce).toHaveExactUpgradeNames(['experience', 'experience']);
+
+            context.player1.clickCard(context.admiralAckbar);
+            expect(context.admiralAckbar.damage).toBe(2);
         });
     });
 });
