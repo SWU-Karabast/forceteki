@@ -212,6 +212,27 @@ describe('U-Wing Reinforcement', function() {
             });
             expect(context.player1).toHaveEnabledPromptButton('Play cards in selection order');
 
+            // unselect and reselect battlefield marine to change the selection order
+            context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
+            expect(context.player1).toHaveExactDisplayPromptCards({
+                selected: [context.vanguardInfantry, context.cartelTurncoat],
+                selectable: [context.criminalMuscle, context.battlefieldMarine, context.wampa],
+                unselectable: [context.aurraSingCrackshotSniper],
+                invalid: [context.daringRaid, context.protector, context.strikeTrue, context.atatSuppressor],
+                usesSelectionOrder: true
+            });
+            expect(context.player1).toHaveEnabledPromptButton('Play cards in selection order');
+
+            context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
+            expect(context.player1).toHaveExactDisplayPromptCards({
+                selected: [context.vanguardInfantry, context.cartelTurncoat, context.battlefieldMarine],
+                selectable: [context.criminalMuscle],
+                unselectable: [context.aurraSingCrackshotSniper, context.wampa],
+                invalid: [context.daringRaid, context.protector, context.strikeTrue, context.atatSuppressor],
+                usesSelectionOrder: true
+            });
+            expect(context.player1).toHaveEnabledPromptButton('Play cards in selection order');
+
             context.player1.clickPrompt('Play cards in selection order');
             expect([context.battlefieldMarine, context.vanguardInfantry]).toAllBeInZone('groundArena');
             expect(context.cartelTurncoat).toBeInZone('spaceArena');
