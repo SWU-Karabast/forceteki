@@ -26,6 +26,7 @@ export interface IDisplayCard {
     internalName: string;
     selectionState: DisplayCardSelectionState;
     displayText?: string;
+    selectionOrder?: number;
 }
 
 export enum StatefulPromptType {
@@ -104,8 +105,11 @@ export interface ISelectableCard {
 export interface IDisplayCardsSelectProperties extends IDisplayCardPromptPropertiesBase {
     displayCards: Card[];
     selectedCardsHandler: (cards: Card[]) => void;
+    validCardCondition: (card: Card) => boolean;
     canChooseNothing?: boolean;
     maxCards?: number;
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[]) => boolean;
-    validCardCondition: (card: Card) => boolean;
+    noSelectedCardsButtonText?: string;
+    selectedCardsButtonText?: string;
+    showSelectionOrder?: boolean;
 }

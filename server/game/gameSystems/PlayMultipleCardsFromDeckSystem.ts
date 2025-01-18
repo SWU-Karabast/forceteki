@@ -10,16 +10,9 @@ import { SearchDeckSystem, type ISearchDeckProperties } from './SearchDeckSystem
 export interface IPlayMultipleCardsFromDeckProperties<TContext extends AbilityContext = AbilityContext>
     extends Omit<ISearchDeckProperties<TContext>,
       | 'revealSelected'
-      | 'shuffleWhenDone'
-      | 'title'
       | 'selectedCardsImmediateEffect'
-      | 'message'
-      | 'player'
-      | 'choosingPlayer'
-      | 'messageArgs'
       | 'selectedCardsHandler'
-      | 'remainingCardsHandler'
-      | 'chooseNothingImmediateEffect'> {
+      | 'remainingCardsHandler'> {
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[], context: TContext) => boolean;
 }
 
@@ -54,6 +47,8 @@ export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = A
             ...super.buildPromptProperties(cards, properties, context, title, selectAmount, event, additionalProperties),
             multiSelectCondition: (card: Card, currentlySelectedCards: Card[]) =>
                 properties.multiSelectCondition(card, currentlySelectedCards, context),
+            showSelectionOrder: true,
+            selectedCardsButtonText: 'Play cards in selection order',
         };
     }
 }

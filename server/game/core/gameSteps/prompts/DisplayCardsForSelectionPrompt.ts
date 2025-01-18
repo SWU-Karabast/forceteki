@@ -7,14 +7,17 @@ import { DisplayCardSelectionState, type IDisplayCardsSelectProperties } from '.
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCardsSelectProperties> {
-    private static readonly takeNothingButtonText = 'Take nothing';
-
     private readonly canChooseNothing: boolean;
     private readonly displayCards: ISelectableCard[];
     private readonly doneButton?: IButton;
     private readonly maxCards: number;
     private readonly multiSelectCardCondition: (card: Card, currentlySelectedCards: Card[]) => boolean;
+    private readonly noSelectedCardsButtonText: string;
+    private readonly selectedCardsButtonText: string;
     private readonly selectedCardsHandler: (cards: Card[]) => void;
+    private readonly showSelectionOrder: boolean;
+
+    private selectedCards: Card[] = [];
 
     public constructor(game: Game, choosingPlayer: Player, properties: IDisplayCardsSelectProperties) {
         super(game, choosingPlayer, properties);
@@ -32,11 +35,14 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
         }));
 
         this.canChooseNothing = !!properties.canChooseNothing;
+        this.showSelectionOrder = !!properties.showSelectionOrder;
+        this.selectedCardsButtonText = properties.selectedCardsButtonText || 'Done';
+        this.noSelectedCardsButtonText = properties.noSelectedCardsButtonText || 'Take nothing';
 
         if (this.canChooseNothing) {
-            this.doneButton = { text: DisplayCardsForSelectionPrompt.takeNothingButtonText, arg: 'done' };
+            this.doneButton = { text: this.noSelectedCardsButtonText, arg: 'done' };
         } else if (this.maxCards > 1) {
-            this.doneButton = { text: 'Done', arg: 'done', disabled: true };
+            this.doneButton = { text: this.selectedCardsButtonText, arg: 'done', disabled: true };
         }
         // if there is only one card to select, the done button is not needed as we'll auto-fire when it's clicked
     }
@@ -56,13 +62,16 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
             cardUuid: card.uuid,
             setId: card.setId,
             internalName: card.internalName,
-            selectionState
+            selectionState,
+            selectionOrder: selectionState === DisplayCardSelectionState.Selected && this.showSelectionOrder
+                ? this.selectedCards.indexOf(card) + 1
+                : null,
         }));
     }
 
     public override menuCommand(_player: Player, arg: string, _uuid: string): boolean {
         if (arg === 'done') {
-            this.selectedCardsHandler(this.getSelectedCards());
+            this.selectedCardsHandler(this.selectedCards);
             this.complete();
             return true;
         }
@@ -73,11 +82,12 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
         switch (selectedCard.selectionState) {
             case DisplayCardSelectionState.Selectable:
                 // if max cards are already selected, do nothing
-                if (this.getSelectedCards().length === this.maxCards) {
+                if (this.selectedCards.length === this.maxCards) {
                     return false;
                 }
 
                 selectedCard.selectionState = DisplayCardSelectionState.Selected;
+                this.selectedCards.push(selectedCard.card);
 
                 if (this.maxCards === 1) {
                     this.selectedCardsHandler([selectedCard.card]);
@@ -88,6 +98,14 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
                 break;
             case DisplayCardSelectionState.Selected:
                 selectedCard.selectionState = DisplayCardSelectionState.Selectable;
+
+                const beforeRemoveLength = this.selectedCards.length;
+                this.selectedCards = this.selectedCards.filter((card) => card !== selectedCard.card);
+                Contract.assertTrue(
+                    this.selectedCards.length === beforeRemoveLength - 1,
+                    `Attempting to unselect card ${selectedCard.card.internalName} but it is not in the selected cards list`
+                );
+
                 break;
             case DisplayCardSelectionState.Unselectable:
             case DisplayCardSelectionState.Invalid:
@@ -104,39 +122,31 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
         return { menuTitle: this.properties.waitingPromptTitle || 'Waiting for opponent' };
     }
 
-    private getSelectedCards(): Card[] {
-        return this.displayCards
-            .filter((displayCard) => displayCard.selectionState === DisplayCardSelectionState.Selected)
-            .map((displayCard) => displayCard.card);
-    }
-
     private refreshCardSelectableStatus() {
-        const selectedCards = this.getSelectedCards();
-
         for (const card of this.displayCards) {
             // if the card is already selected or is not valid for this prompt, don't change anything
             if ([DisplayCardSelectionState.Selected, DisplayCardSelectionState.Invalid].includes(card.selectionState)) {
                 continue;
             }
 
-            card.selectionState = this.multiSelectCardCondition(card.card, selectedCards)
+            card.selectionState = this.multiSelectCardCondition(card.card, this.selectedCards)
                 ? DisplayCardSelectionState.Selectable
                 : DisplayCardSelectionState.Unselectable;
         }
 
         // update done button state
         if (this.doneButton) {
-            if (selectedCards.length === 0) {
+            if (this.selectedCards.length === 0) {
                 if (this.canChooseNothing) {
                     this.doneButton.disabled = false;
-                    this.doneButton.text = DisplayCardsForSelectionPrompt.takeNothingButtonText;
+                    this.doneButton.text = this.noSelectedCardsButtonText;
                 } else {
                     this.doneButton.disabled = true;
-                    this.doneButton.text = 'Done';
+                    this.doneButton.text = this.selectedCardsButtonText;
                 }
             } else {
                 this.doneButton.disabled = false;
-                this.doneButton.text = 'Done';
+                this.doneButton.text = this.selectedCardsButtonText;
             }
         }
     }
