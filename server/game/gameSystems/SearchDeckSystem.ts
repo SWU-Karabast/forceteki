@@ -12,6 +12,7 @@ import type Player from '../core/Player.js';
 import { shuffleArray } from '../core/utils/Helpers.js';
 import * as Contract from '../core/utils/Contract.js';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';
+import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
 
 type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((context: TContext) => T);
 
@@ -44,11 +45,10 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
 
     /** Used for filtering selection based on things like trait, type, etc. */
     cardCondition?: (card: Card, context: TContext) => boolean;
-    multiSelectCondition?: (card: Card, currentlySelectedCards: Card[], context: TContext) => boolean;
     chooseNothingImmediateEffect?: GameSystem<TContext>;
 }
 
-export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ISearchDeckProperties<TContext>> {
+export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ISearchDeckProperties<TContext> = ISearchDeckProperties<TContext>> extends PlayerTargetSystem<TContext, TProperties> {
     public override readonly name = 'deckSearch';
     public override readonly eventName = EventName.OnDeckSearch;
 
@@ -133,7 +133,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
 
     private promptSelectCards(event: any, additionalProperties: any, cards: Card[], selectedCards: Set<Card>): void {
         const context: TContext = event.context;
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as ISearchDeckProperties;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         let selectAmount: number;
         const choosingPlayer = properties.choosingPlayer || event.player;
 
@@ -161,21 +161,39 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext> 
 
         context.game.promptDisplayCardsForSelection(
             choosingPlayer,
-            {
-                activePromptTitle: title,
-                source: context.source,
-                displayCards: cards,
-                maxCards: selectAmount,
-                canChooseNothing: properties.canChooseNothing || true,
-                validCardCondition: (card: Card) =>
-                    properties.cardCondition(card, context) &&
-                    (!properties.selectedCardsImmediateEffect || properties.selectedCardsImmediateEffect.canAffect(card, context, additionalProperties)),
-                multiSelectCondition: (card: Card, currentlySelectedCards: Card[]) =>
-                    properties.multiSelectCondition(card, currentlySelectedCards, context),
-                selectedCardsHandler: (selectedCards: Card[]) =>
-                    this.onSearchComplete(properties, context, event, selectedCards, cards)
-            }
+            this.buildPromptProperties(
+                cards,
+                properties,
+                context,
+                title,
+                selectAmount,
+                event,
+                additionalProperties
+            )
         );
+    }
+
+    protected buildPromptProperties(
+        cards: Card[],
+        properties: ISearchDeckProperties<TContext>,
+        context: TContext,
+        title: string,
+        selectAmount: number,
+        event: any,
+        additionalProperties: any
+    ): IDisplayCardsSelectProperties {
+        return {
+            activePromptTitle: title,
+            source: context.source,
+            displayCards: cards,
+            maxCards: selectAmount,
+            canChooseNothing: properties.canChooseNothing || true,
+            validCardCondition: (card: Card) =>
+                properties.cardCondition(card, context) &&
+                (!properties.selectedCardsImmediateEffect || properties.selectedCardsImmediateEffect.canAffect(card, context, additionalProperties)),
+            selectedCardsHandler: (selectedCards: Card[]) =>
+                this.onSearchComplete(properties, context, event, selectedCards, cards)
+        };
     }
 
     private onSearchComplete(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Card[], allCards: Card[]): void {
