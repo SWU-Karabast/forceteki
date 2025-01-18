@@ -23,6 +23,11 @@ export enum MatchType {
     Quick = 'Quick',
 }
 
+export interface RematchRequest {
+    initiator?: string;
+    mode: 'reset' | 'regular';
+}
+
 export class Lobby {
     private readonly _id: string;
     public readonly isPrivate: boolean;
@@ -35,6 +40,7 @@ export class Lobby {
     private lobbyOwnerId: string;
     private playableCardTitles: string[];
     private gameType: MatchType;
+    private rematchRequest?: RematchRequest = null;
 
     public constructor(lobbyGameType: MatchType) {
         Contract.assertTrue(
@@ -68,6 +74,7 @@ export class Lobby {
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
             gameType: this.gameType,
+            rematchRequest: this.rematchRequest,
         };
     }
 
@@ -143,11 +150,34 @@ export class Lobby {
         this.sendLobbyState();
     }
 
-    private regularRematch(socket: Socket, ...args) {
+    private requestRematch(socket: Socket, ...args: any[]): void {
+        // Expect the rematch mode to be passed as the first argument: 'reset' or 'regular'
+        Contract.assertTrue(args.length === 1, 'Expected rematch mode argument');
+        const mode = args[0];
+        Contract.assertTrue(mode === 'reset' || mode === 'regular', 'Invalid rematch mode');
+
+        // Set the rematch request property (allow only one request at a time)
+        if (!this.rematchRequest) {
+            this.rematchRequest = {
+                initiator: socket.user.id,
+                mode,
+            };
+            logger.info(`User ${socket.user.id} requested a rematch (${mode}) in lobby ${this._id}`);
+        }
+        this.sendLobbyState();
+    }
+
+    private regularRematch() {
+        // Clear the rematch request and reset the game.
+        this.rematchRequest = null;
         this.game = null;
         if (this.gameType === MatchType.Quick) {
             this.gameType = MatchType.Custom;
         }
+        // Clear the 'ready' state for all users.
+        this.users.forEach((user) => {
+            user.ready = false;
+        });
         this.sendLobbyState();
     }
 
@@ -311,12 +341,7 @@ export class Lobby {
 
     private onStartGame(): void {
         // TODO Change this to actual new GameSettings when we get to that point.
-
-        if (this.users.length === 0) {
-            console.log(this.game);
-            console.log(this.id);
-            return;
-        }
+        this.rematchRequest = null;
         defaultGameSettings.players[0].user.id = this.users[0].id;
         defaultGameSettings.players[0].user.username = this.users[0].username;
 
