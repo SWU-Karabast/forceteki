@@ -3,7 +3,7 @@ import type { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
 import type { CardTypeFilter } from '../core/Constants';
-import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constants';
+import { AbilityRestriction, EventName, WildcardCardType, ZoneName } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
@@ -34,6 +34,12 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
 
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
         event.originalZone = upgradeCard.zoneName;
+
+        if (event.context.player !== upgradeCard.controller) {
+            const validZones = [ZoneName.SpaceArena, ZoneName.GroundArena];
+            Contract.assertTrue(validZones.includes(parentCard.zoneName));
+            upgradeCard.takeControl(event.context.player, parentCard.zoneName as ZoneName.SpaceArena | ZoneName.GroundArena);
+        }
 
         // attachTo manages all of the unattach and move zone logic
         upgradeCard.attachTo(parentCard);

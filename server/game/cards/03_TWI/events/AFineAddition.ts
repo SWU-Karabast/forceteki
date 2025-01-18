@@ -42,9 +42,10 @@ export default class AFineAddition extends EventCard {
                         return context.target.zoneName === ZoneName.Discard;
                     },
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                        adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects }
+                        adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
+                        canPlayOpponentOwned: true
                     }),
-                    onFalse: AbilityHelper.immediateEffects.playCardFromHand({ 
+                    onFalse: AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects }
                     }),
                 })
