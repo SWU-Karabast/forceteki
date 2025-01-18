@@ -101,9 +101,14 @@ export class Lobby {
 
     public addLobbyUser(user, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === user.id);
+        // we check if listeners for the events already exist
+        if (socket.eventContainsListener('game') || socket.eventContainsListener('lobby')) {
+            socket.removeEventsListeners(['game', 'lobby']);
+        }
+
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
-        // maybe we neeed to be using socket.data
+        // maybe we need to be using socket.data
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
@@ -306,7 +311,12 @@ export class Lobby {
 
     private onStartGame(): void {
         // TODO Change this to actual new GameSettings when we get to that point.
-        console.log(this.users);
+
+        if (this.users.length === 0) {
+            console.log(this.game);
+            console.log(this.id);
+            return;
+        }
         defaultGameSettings.players[0].user.id = this.users[0].id;
         defaultGameSettings.players[0].user.username = this.users[0].username;
 

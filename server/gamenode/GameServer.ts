@@ -419,13 +419,15 @@ export class GameServer {
         this.queue = this.queue.filter((q) => q.user.id !== userId);
     }
 
+    /**
+     * requeues the user and removes him from the previous lobby. If the lobby is empty, it cleans it up.
+     */
     private requeueUser(socket: Socket, user: User, deck: any): void {
         if (this.userLobbyMap.has(user.id)) {
             const lobbyId = this.userLobbyMap.get(user.id);
             const lobby = this.lobbies.get(lobbyId);
             this.userLobbyMap.delete(user.id);
             lobby.removeUser(user.id);
-
             // check if lobby is empty
             if (lobby.isEmpty()) {
                 // cleanup process
@@ -433,12 +435,14 @@ export class GameServer {
                 this.lobbies.delete(lobbyId);
             }
         }
+        // add user to queue
         this.queue.push({
             user,
             deck,
             socket: socket
         });
 
+        // perform matchmaking
         this.matchmakeQueuePlayers();
     }
 
