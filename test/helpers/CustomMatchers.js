@@ -1,5 +1,6 @@
 /* global describe, beforeEach, jasmine */
 
+const exp = require('constants');
 const Contract = require('../../server/game/core/utils/Contract.js');
 const TestSetupError = require('./TestSetupError.js');
 const Util = require('./Util.js');
@@ -335,13 +336,13 @@ var customMatchers = {
                     if (selectable.length === 1) {
                         result.message = `Expected ${selectable[0].name} not to be selectable by ${player.name} but it was.`;
                     } else {
-                        result.message = `Expected at least 1 of the following cards not to be selectable by ${player.name} but they all were: ${cardNamesToString(selectable)}`;
+                        result.message = `Expected at least 1 of the following cards not to be selectable by ${player.name} but they all were: ${Util.cardNamesToString(selectable)}`;
                     }
                 } else {
                     if (unselectable.length === 1) {
                         result.message = `Expected ${unselectable[0].name} to be selectable by ${player.name} but it wasn't.`;
                     } else {
-                        result.message = `Expected the following cards to be selectable by ${player.name} but they were not: ${cardNamesToString(unselectable)}`;
+                        result.message = `Expected the following cards to be selectable by ${player.name} but they were not: ${Util.cardNamesToString(unselectable)}`;
                     }
                 }
 
@@ -379,13 +380,13 @@ var customMatchers = {
                     if (unselectable.length === 1) {
                         result.message = `Expected ${unselectable[0].name} to be selectable by ${player.name} but it wasn't.`;
                     } else {
-                        result.message = `Expected at least 1 of the following cards to be selectable by ${player.name} but they all were not: ${cardNamesToString(unselectable)}`;
+                        result.message = `Expected at least 1 of the following cards to be selectable by ${player.name} but they all were not: ${Util.cardNamesToString(unselectable)}`;
                     }
                 } else {
                     if (selectable.length === 1) {
                         result.message = `Expected ${selectable[0].name} not to be selectable by ${player.name} but it was.`;
                     } else {
-                        result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${cardNamesToString(selectable)}`;
+                        result.message = `Expected the following cards to not be selectable by ${player.name} but they were: ${Util.cardNamesToString(selectable)}`;
                     }
                 }
 
@@ -421,18 +422,18 @@ var customMatchers = {
                 result.pass = unexpectedUnselectable.length === 0 && unexpectedSelectable.length === 0;
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to be able to select exactly these cards but they can: ${cardNamesToString(expectedSelectable)}`;
+                    result.message = `Expected ${player.name} not to be able to select exactly these cards but they can: ${Util.cardNamesToString(expectedSelectable)}`;
                 } else {
                     let message = '';
 
                     if (unexpectedUnselectable.length > 0) {
-                        message = `Expected the following cards to be selectable by ${player.name} but they were not: ${cardNamesToString(unexpectedUnselectable)}`;
+                        message = `Expected the following cards to be selectable by ${player.name} but they were not: ${Util.cardNamesToString(unexpectedUnselectable)}`;
                     }
                     if (unexpectedSelectable.length > 0) {
                         if (message.length > 0) {
                             message += '\n';
                         }
-                        message += `Expected the following cards not to be selectable by ${player.name} but they were: ${cardNamesToString(unexpectedSelectable)}`;
+                        message += `Expected the following cards not to be selectable by ${player.name} but they were: ${Util.cardNamesToString(unexpectedSelectable)}`;
                     }
                     result.message = message;
                 }
@@ -691,7 +692,7 @@ var customMatchers = {
                 const playerStr = player ? ` for player ${player}` : '';
 
                 if (result.pass) {
-                    result.message = `Expected these cards not to be in zone ${zone}${playerStr} but they are: ${cardNamesToString(cards)}`;
+                    result.message = `Expected these cards not to be in zone ${zone}${playerStr} but they are: ${Util.cardNamesToString(cards)}`;
                 } else {
                     result.message = `Expected the following cards to be in zone ${zone}${playerStr} but they were not:`;
 
@@ -798,9 +799,107 @@ var customMatchers = {
                 result.pass = Util.stringArraysEqual(actualOptions, expectedOptions);
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to have this exact list of options but it does: '${Util.createStringForOptions(expectedOptions)}'`;
+                    result.message = `Expected ${player.name} not to have this exact list of options but it does: '${Util.formatDropdownListOptions(expectedOptions)}'`;
                 } else {
-                    result.message = `Expected ${player.name} to have this exact list of options: '${Util.createStringForOptions(expectedOptions)}'`;
+                    result.message = `Expected ${player.name} to have this exact list of options: '${Util.formatDropdownListOptions(expectedOptions)}'`;
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
+
+                return result;
+            }
+        };
+    },
+    toHaveExactDisplayPromptCards: function() {
+        return {
+            compare: function (player, expectedCardsInPromptRaw) {
+                let result = {};
+
+                // if we're just passed in an array, then all cards should be selectable
+                let expectedCardsInPromptObject;
+                if (Array.isArray(expectedCardsInPromptRaw)) {
+                    expectedCardsInPromptObject = { selectable: expectedCardsInPromptRaw };
+                } else {
+                    expectedCardsInPromptObject = expectedCardsInPromptRaw;
+                }
+
+                const expectedSelectionStateByUuid = new Map();
+                const expectedCardsInPrompt = [];
+
+                for (const [selectionState, cards] of Object.entries(expectedCardsInPromptObject)) {
+                    Util.checkNullCard(cards, `Card list for '${selectionState}' contains one more null elements`);
+
+                    for (const card of cards) {
+                        expectedCardsInPrompt.push(card);
+                        expectedSelectionStateByUuid.set(card.uuid, selectionState);
+                    }
+                }
+
+                const actualCardsInPrompt = player.currentPrompt().displayCards;
+
+                const actualCardsUuids = new Set(actualCardsInPrompt.map((displayEntry) => displayEntry.cardUuid));
+                const expectedCardsUuids = new Set(expectedCardsInPrompt.map((card) => card.uuid));
+
+                let expectedAndFound = actualCardsInPrompt.filter((displayEntry) => expectedCardsUuids.has(displayEntry.cardUuid));
+                let foundAndNotExpected = actualCardsInPrompt.filter((displayEntry) => !expectedCardsUuids.has(displayEntry.cardUuid));
+                let expectedAndNotFound = expectedCardsInPrompt.filter((card) => !actualCardsUuids.has(card.uuid));
+
+                let message = '';
+                result.pass = foundAndNotExpected.length === 0 && expectedAndNotFound.length === 0;
+
+                const incorrectSelectionStateCards = [];
+                for (const foundCard of expectedAndFound) {
+                    const expectedState = expectedSelectionStateByUuid.get(foundCard.cardUuid);
+                    if (expectedState !== foundCard.selectionState) {
+                        incorrectSelectionStateCards.push({ internalName: foundCard.internalName, expectedState, actualState: foundCard.selectionState });
+                    }
+                }
+
+                if (incorrectSelectionStateCards.length > 0) {
+                    result.pass = false;
+                    message += `Found cards with incorrect selection state in prompt for ${player.name}:\n`;
+                    message += incorrectSelectionStateCards.map((card) => `\t${card.internalName} - expected: [${card.expectedState}], actual: [${card.actualState}]`).join('\n');
+                    message += '\n';
+                }
+
+                if (result.pass) {
+                    message += `Expected ${player.name} not to have exactly these cards in the card display prompt but they did: ${Util.cardNamesToString(expectedAndFound)}`;
+                } else {
+                    if (expectedAndNotFound.length > 0) {
+                        message += `Expected the following cards to be in the card display prompt for ${player.name} but they were not: ${Util.cardNamesToString(expectedAndNotFound)}`;
+                    }
+                    if (foundAndNotExpected.length > 0) {
+                        if (message.length > 0) {
+                            message += '\n';
+                        }
+                        message += `Expected the following cards not to be in the card display prompt for ${player.name} but they were: ${Util.cardNamesToString(foundAndNotExpected)}`;
+                    }
+                }
+
+                message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
+                result.message = message;
+
+                return result;
+            }
+        };
+    },
+    toHaveExactDisplayPromptPerCardButtons: function() {
+        return {
+            compare: function (player, expectedButtonsInPrompt) {
+                let result = {};
+
+                if (!Array.isArray(expectedButtonsInPrompt)) {
+                    throw new TestSetupError(`Parameter 'expectedButtonsInPrompt' is not an array: ${expectedButtonsInPrompt}`);
+                }
+
+                const actualButtonsInPrompt = player.currentPrompt().perCardButtons.map((button) => button.text);
+
+                result.pass = Util.stringArraysEqual(actualButtonsInPrompt, expectedButtonsInPrompt);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have this exact set of "per card" buttons but it did: ${expectedButtonsInPrompt.join(', ')}`;
+                } else {
+                    result.message = `Expected ${player.name} to have this exact set of "per card" buttons: '${expectedButtonsInPrompt.join(', ')}' but it has: '${actualButtonsInPrompt.join(', ')}'`;
                 }
 
                 result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
@@ -813,10 +912,6 @@ var customMatchers = {
 
 function generatePromptHelpMessage(testContext) {
     return `Current prompts for players:\n${Util.formatBothPlayerPrompts(testContext)}`;
-}
-
-function cardNamesToString(cards) {
-    return cards.map((card) => card.name).join(', ');
 }
 
 function checkConsistentZoneState(card, result) {

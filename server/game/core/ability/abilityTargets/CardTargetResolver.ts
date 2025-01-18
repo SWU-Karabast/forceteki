@@ -22,7 +22,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     private static choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
 
     public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
-        return zoneFilter && zoneFilter.length > 0 && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
+        if (!zoneFilter) {
+            return false;
+        }
+        const zoneArray = Helpers.asArray(zoneFilter);
+        return zoneArray.length > 0 && zoneArray.every((zone) => EnumHelpers.isHidden(zone, controller));
     }
 
     public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility = null) {
