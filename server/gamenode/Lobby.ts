@@ -152,9 +152,9 @@ export class Lobby {
 
     private requestRematch(socket: Socket, ...args: any[]): void {
         // Expect the rematch mode to be passed as the first argument: 'reset' or 'regular'
-        Contract.assertTrue(args.length === 1, 'Expected rematch mode argument');
+        Contract.assertTrue(args.length === 1, 'Expected rematch mode argument but argument length is: ' + args.length);
         const mode = args[0];
-        Contract.assertTrue(mode === 'reset' || mode === 'regular', 'Invalid rematch mode');
+        Contract.assertTrue(mode === 'reset' || mode === 'regular', 'Invalid rematch mode, expected reset or regular but receieved: ' + mode);
 
         // Set the rematch request property (allow only one request at a time)
         if (!this.rematchRequest) {
@@ -167,7 +167,7 @@ export class Lobby {
         this.sendLobbyState();
     }
 
-    private regularRematch() {
+    private rematch() {
         // Clear the rematch request and reset the game.
         this.rematchRequest = null;
         this.game = null;
