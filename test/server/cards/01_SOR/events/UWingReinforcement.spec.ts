@@ -271,17 +271,24 @@ describe('U-Wing Reinforcement', function() {
 
             // Ackbar ability triggers and does 2 damage because it's the first unit played out
             expect(context.player1).toBeAbleToSelectExactly([context.wartimeTradeOfficial, context.admiralAckbar, context.bossk]);
-            expect(context.admiralAckbar).toBeInZone('groundArena');
+
+            // the cards selected but not yet played are in the deck zone but not in the deck
             expect(context.snowtrooperLieutenant).toBeInZone('deck');
+            expect(context.player1.deck).not.toContain(context.snowtrooperLieutenant);
             expect(context.vanguardAce).toBeInZone('deck');
+            expect(context.player1.deck).not.toContain(context.vanguardAce);
+            expect(context.admiralAckbar).toBeInZone('groundArena');
+
             context.player1.clickCard(context.wartimeTradeOfficial);
             expect(context.wartimeTradeOfficial.damage).toBe(2);
 
             // Snowtrooper Lieutenant ability triggers
             expect(context.player1).toBeAbleToSelectExactly(context.bossk);
+
             expect(context.admiralAckbar).toBeInZone('groundArena');
             expect(context.snowtrooperLieutenant).toBeInZone('groundArena');
             expect(context.vanguardAce).toBeInZone('deck');
+            expect(context.player1.deck).not.toContain(context.vanguardAce);
 
             // Bossk attacks and defeats Wartime Trade Official. its on-defeat ability triggers immediately since it's nested as well
             context.player1.clickCard(context.bossk);

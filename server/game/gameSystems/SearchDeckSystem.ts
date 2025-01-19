@@ -3,7 +3,7 @@
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
-import { EventName, DeckZoneDestination, TargetMode } from '../core/Constants.js';
+import { EventName, DeckZoneDestination, TargetMode, ZoneName } from '../core/Constants.js';
 import type { GameEvent } from '../core/event/GameEvent.js';
 import type { GameSystem } from '../core/gameSystem/GameSystem.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
@@ -13,6 +13,7 @@ import { shuffleArray } from '../core/utils/Helpers.js';
 import * as Contract from '../core/utils/Contract.js';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
+import type { DeckZone } from '../core/zone/DeckZone.js';
 
 type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((context: TContext) => T);
 
@@ -202,15 +203,15 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
         const selectedCardsSet = new Set(selectedCards);
 
+        const cardsToMove = allCards.filter((card) => !selectedCardsSet.has(card));
+        properties.remainingCardsHandler(context, event, cardsToMove);
+
         this.searchCompleteHandler(properties, context, event, selectedCardsSet);
         if (properties.selectedCardsHandler === null) {
             this.selectedCardsDefaultHandler(properties, context, event, selectedCardsSet);
         } else {
             properties.selectedCardsHandler(context, event, selectedCards);
         }
-
-        const cardsToMove = allCards.filter((card) => !selectedCardsSet.has(card));
-        properties.remainingCardsHandler(context, event, cardsToMove);
 
         if (this.shouldShuffle(this.properties.shuffleWhenDone, context)) {
             context.game.openEventWindow([
@@ -239,6 +240,10 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         if (gameSystem) {
             const selectedArray = Array.from(selectedCards);
             event.context.targets = selectedArray;
+
+            const deckZone = context.player.getZone(ZoneName.Deck) as DeckZone;
+            deckZone.moveCardsToSearching(selectedArray, event);
+
             gameSystem.setDefaultTargetFn(() => selectedArray);
             context.game.queueSimpleStep(() => {
                 if (gameSystem.hasLegalTarget(context)) {

@@ -31,8 +31,8 @@ describe('Bounty Posting', function() {
 
                 expect(context.getChatLogs(4)).toEqual([
                     'player1 plays Bounty Posting to search their deck',
-                    'player1 takes Top Target',
                     'player1 puts 5 cards on the bottom of their deck',
+                    'player1 takes Top Target',
                     'player1 is shuffling their deck'
                 ]);
 
