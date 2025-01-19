@@ -23,6 +23,11 @@ export enum MatchType {
     Quick = 'Quick',
 }
 
+export interface RematchRequest {
+    initiator?: string;
+    mode: 'reset' | 'regular';
+}
+
 export class Lobby {
     private readonly _id: string;
     public readonly isPrivate: boolean;
@@ -34,6 +39,8 @@ export class Lobby {
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private lobbyOwnerId: string;
     private playableCardTitles: string[];
+    private gameType: MatchType;
+    private rematchRequest?: RematchRequest = null;
 
     public constructor(lobbyGameType: MatchType) {
         Contract.assertTrue(
@@ -44,6 +51,7 @@ export class Lobby {
         this.gameChat = new GameChat();
         this.connectionLink = lobbyGameType !== MatchType.Quick ? `http://localhost:3000/lobby?lobbyId=${this._id}` : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
+        this.gameType = lobbyGameType;
     }
 
     public get id(): string {
@@ -60,10 +68,13 @@ export class Lobby {
                 ready: u.ready,
                 deck: u.deck?.data,
             })),
+            gameOngoing: !!this.game,
             gameChat: this.gameChat,
             lobbyOwnerId: this.lobbyOwnerId,
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
+            gameType: this.gameType,
+            rematchRequest: this.rematchRequest,
         };
     }
 
@@ -97,9 +108,14 @@ export class Lobby {
 
     public addLobbyUser(user, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === user.id);
+        // we check if listeners for the events already exist
+        if (socket.eventContainsListener('game') || socket.eventContainsListener('lobby')) {
+            socket.removeEventsListeners(['game', 'lobby']);
+        }
+
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
-        // maybe we neeed to be using socket.data
+        // maybe we need to be using socket.data
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
@@ -108,7 +124,8 @@ export class Lobby {
                 id: user.id,
                 username: user.username,
                 state: 'connected',
-                ready: false, socket,
+                ready: false,
+                socket,
                 deck: this.useDefaultDeck(user),
             });
         }
@@ -130,6 +147,37 @@ export class Lobby {
         // we need to get the player and message
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
         this.gameChat.addChatMessage(socket.user, args[0]);
+        this.sendLobbyState();
+    }
+
+    private requestRematch(socket: Socket, ...args: any[]): void {
+        // Expect the rematch mode to be passed as the first argument: 'reset' or 'regular'
+        Contract.assertTrue(args.length === 1, 'Expected rematch mode argument but argument length is: ' + args.length);
+        const mode = args[0];
+        Contract.assertTrue(mode === 'reset' || mode === 'regular', 'Invalid rematch mode, expected reset or regular but receieved: ' + mode);
+
+        // Set the rematch request property (allow only one request at a time)
+        if (!this.rematchRequest) {
+            this.rematchRequest = {
+                initiator: socket.user.id,
+                mode,
+            };
+            logger.info(`User ${socket.user.id} requested a rematch (${mode}) in lobby ${this._id}`);
+        }
+        this.sendLobbyState();
+    }
+
+    private rematch() {
+        // Clear the rematch request and reset the game.
+        this.rematchRequest = null;
+        this.game = null;
+        if (this.gameType === MatchType.Quick) {
+            this.gameType = MatchType.Custom;
+        }
+        // Clear the 'ready' state for all users.
+        this.users.forEach((user) => {
+            user.ready = false;
+        });
         this.sendLobbyState();
     }
 
@@ -275,10 +323,15 @@ export class Lobby {
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
 
         const gameSetupPath = path.resolve(__dirname, '../../test/helpers/GameStateSetup.js');
+        this.setTokens();
+        this.setPlayableCardTitles();
+        // TODO to address this a refactor and change router to lobby
+        // eslint-disable-next-line
+        const router = this;
         // eslint-disable-next-line
         const game: Game = require(gameSetupPath).setUpTestGame(
             setupData,
-            {},
+            router,
             { id: 'exe66', username: 'Order66' },
             { id: 'th3w4y', username: 'ThisIsTheWay' }
         );
@@ -288,6 +341,7 @@ export class Lobby {
 
     private onStartGame(): void {
         // TODO Change this to actual new GameSettings when we get to that point.
+        this.rematchRequest = null;
         defaultGameSettings.players[0].user.id = this.users[0].id;
         defaultGameSettings.players[0].user.username = this.users[0].username;
 
