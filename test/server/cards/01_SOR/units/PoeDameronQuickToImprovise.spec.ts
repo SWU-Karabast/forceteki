@@ -6,7 +6,7 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
                     phase: 'action',
                     player1: {
                         hand: ['sneak-attack', 'battlefield-marine', 'daring-raid', 'specforce-soldier'],
-                        groundArena: ['poe-dameron#quick-to-improvise'],
+                        groundArena: [{ card: 'poe-dameron#quick-to-improvise', upgrades: ['resilient'] }],
                     },
                     player2: {
                         hand: ['open-fire', 'karabast'],
@@ -29,10 +29,18 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
                     'daring-raid',
                     'specforce-soldier',
                 ]);
+                expect(context.player1).toHaveChooseNoTargetButton();
+
                 context.player1.clickCard(context.sneakAttack);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.daringRaid);
+                context.player1.clickCardNonChecking(context.specforceSoldier);
                 context.player1.clickPrompt('Done');
+
+                expect(context.sneakAttack).toBeInZone('discard');
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.daringRaid).toBeInZone('discard');
+                expect(context.specforceSoldier).toBeInZone('hand');
 
                 expect(context.player1).toHaveEnabledPromptButtons([
                     'Deal 2 damage to a unit or base.',
@@ -49,9 +57,15 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
                     'An opponent discards a card from their hand.',
                 ]);
                 context.player1.clickPrompt('Defeat an upgrade.');
-                context.player1.clickCard(context.academyTraining);
-                expect(context.academyTraining).toBeInZone('discard');
-                expect(context.deathStarStormtrooper).toBeInZone('discard');
+                expect(context.player1).toBeAbleToSelectExactly([context.academyTraining, context.resilient]);
+
+                context.player1.clickCard(context.resilient);
+                context.player1.clickCardNonChecking(context.academyTraining);
+                context.player1.clickPrompt('Done');
+
+                expect(context.academyTraining).toBeInZone('groundArena');
+                expect(context.deathStarStormtrooper).toBeInZone('groundArena');
+                expect(context.resilient).toBeInZone('discard');
 
                 expect(context.player1).toHaveEnabledPromptButtons([
                     'An opponent discards a card from their hand.',
@@ -59,12 +73,20 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
                 context.player1.clickPrompt('An opponent discards a card from their hand.');
                 context.player2.clickCard(context.karabast);
                 expect(context.karabast).toBeInZone('discard');
-            });
 
-            it('should work even if there is not upgrade to defeat or no card discarded', function () {
-                const { context } = contextRef;
+                // Second Poe attacks we discard no card
+                context.moveToNextActionPhase();
+                context.player1.clickCard(context.poeDameron);
+                context.player1.clickCard(context.p2Base);
 
-                // First we let the player trade attack with stormtrooper
+                // can choose no targets
+                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Done');
+                expect(context.player2).toBeActivePlayer();
+
+                // Third Poe attacks we one card to defeat an upgrade
+                // but there is no upgrade to defeat
+                context.moveToNextActionPhase();
                 context.player1.passAction();
                 context.player2.clickCard(context.deathStarStormtrooper);
                 context.player2.clickCard(context.poeDameron);
@@ -72,34 +94,19 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
                 expect(context.deathStarStormtrooper).toBeInZone('discard');
                 expect(context.academyTraining).toBeInZone('discard');
 
-                // Poe can attack
+                expect(context.player1).toBeActivePlayer();
                 context.player1.clickCard(context.poeDameron);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([
-                    'sneak-attack',
-                    'battlefield-marine',
-                    'daring-raid',
-                    'specforce-soldier',
-                ]);
                 context.player1.clickCard(context.specforceSoldier);
                 context.player1.clickPrompt('Done');
                 expect(context.specforceSoldier).toBeInZone('discard');
-                expect(context.sneakAttack).toBeInZone('hand');
-                expect(context.battlefieldMarine).toBeInZone('hand');
-                expect(context.daringRaid).toBeInZone('hand');
+
                 expect(context.player1).toHaveEnabledPromptButtons([
                     'Deal 2 damage to a unit or base.',
                     'Defeat an upgrade.',
                     'An opponent discards a card from their hand.',
                 ]);
                 context.player1.clickPrompt('Defeat an upgrade.');
-                expect(context.player2).toBeActivePlayer();
-
-                // But poe can also discard nothing
-                context.moveToNextActionPhase();
-                context.player1.clickCard(context.poeDameron);
-                context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('Done');
                 expect(context.player2).toBeActivePlayer();
             });
         });
