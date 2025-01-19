@@ -447,5 +447,6 @@ export enum PromptType {
     Initiative = 'initiative',
     Resource = 'resource',
     ActionWindow = 'actionWindow',
-    DisplayCards = 'displayCards'
+    DisplayCards = 'displayCards',
+    DistributeAmongTargets = 'distributeAmongTargets',
 }
