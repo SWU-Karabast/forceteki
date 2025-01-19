@@ -5,6 +5,7 @@ import * as Contract from '../../utils/Contract';
 import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults, IStatefulPromptResults } from '../PromptInterfaces';
 import { StatefulPromptType } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
+import { PromptType } from '../../Constants';
 
 /**
  * Prompt for distributing healing or damage among target cards.
@@ -59,12 +60,18 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             amount: this.properties.amount
         };
 
+        const buttons = [{ text: 'Done', arg: 'done', command: 'statefulPromptResults' }];
+        if (this.properties.canChooseNoTargets) {
+            buttons.push({ text: 'Choose no targets', arg: 'noTargets', command: '' });
+        }
+
         this._activePrompt = {
             menuTitle,
             promptTitle: this.properties.promptTitle || (this.properties.source ? this.properties.source.name : undefined),
             distributeAmongTargets: promptData,
-            buttons: this.properties.canChooseNoTargets ? [{ text: 'Choose no targets', arg: 'noTargets' }] : [],
-            promptUuid: this.uuid
+            buttons: buttons,
+            promptUuid: this.uuid,
+            promptType: PromptType.DistributeAmongTargets
         };
     }
 
