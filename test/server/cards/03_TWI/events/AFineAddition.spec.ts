@@ -4,9 +4,10 @@ describe('A Fine Addition', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    hand: ['a-fine-addition'],
+                    hand: ['a-fine-addition', 'ahsokas-padawan-lightsaber'],
                     leader: 'darth-vader#dark-lord-of-the-sith',
-                    groundArena: ['battlefield-marine']
+                    groundArena: ['battlefield-marine'],
+                    discard: ['lukes-lightsaber']
                 },
                 player2: {
                     groundArena: ['wampa', 'criminal-muscle'],
@@ -26,11 +27,15 @@ describe('A Fine Addition', function () {
             context.player1.clickCard(context.aFineAddition);
 
             // Select upgrade from opponents discard
+            expect(context.player1).toBeAbleToSelectExactly([context.jediLightsaber, context.lukesLightsaber, context.ahsokasPadawanLightsaber]);
             context.player1.clickCard(context.jediLightsaber);
 
+
             // Select attachment target
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa]);
             context.player1.clickCard(context.battlefieldMarine);
 
+            expect(context.battlefieldMarine.upgrades).toContain(context.jediLightsaber);
             expect(context.player1.exhaustedResourceCount).toBe(3); // no aspect penalty applied
         });
     });

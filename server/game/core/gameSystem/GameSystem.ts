@@ -277,6 +277,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         const { contingentSourceEvent } = this.generatePropertiesFromContext(context, additionalProperties);
 
         event.contingentSourceEvent = contingentSourceEvent;
+        event.player = context.player;
     }
 
     /**
