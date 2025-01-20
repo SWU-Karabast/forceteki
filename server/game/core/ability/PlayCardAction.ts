@@ -124,12 +124,12 @@ export abstract class PlayCardAction extends PlayerAction {
         ) {
             return 'phase';
         }
-        if (
-            !ignoredRequirements.includes('zone') &&
-            (this.canPlayOpponentOwned && !context.player.opponent.isCardInPlayableZone(context.source, this.playType)) &&
-            (!this.canPlayOpponentOwned && !context.player.isCardInPlayableZone(context.source, this.playType))
-        ) {
-            return 'zone';
+        if (!ignoredRequirements.includes('zone')) {
+            const isInPlayableZone: boolean = context.player.isCardInPlayableZone(context.source, this.playType);
+            const isInOpponentPlayAbleZone: boolean = this.canPlayOpponentOwned && context.player.opponent.isCardInPlayableZone(context.source, this.playType);
+            if (!isInPlayableZone && !isInOpponentPlayAbleZone) {
+                return 'zone';
+            }
         }
         if (
             !ignoredRequirements.includes('cannotTrigger') &&
