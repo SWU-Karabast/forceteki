@@ -1,12 +1,14 @@
 import { AsToken } from './propertyMixins/Token';
-import { NonLeaderUnitCard } from './NonLeaderUnitCard';
+import { NonLeaderUnitCardInternal } from './NonLeaderUnitCard';
 import { UpgradeCard } from './UpgradeCard';
 
-const TokenUnitParent = AsToken(NonLeaderUnitCard);
+const TokenUnitParent = AsToken(NonLeaderUnitCardInternal);
 const TokenUpgradeParent = AsToken(UpgradeCard);
 
 export class TokenUnitCard extends TokenUnitParent {
+    protected override state: never;
 }
 
 export class TokenUpgradeCard extends TokenUpgradeParent {
+    protected override state: never;
 }

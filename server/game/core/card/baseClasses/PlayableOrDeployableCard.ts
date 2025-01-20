@@ -17,7 +17,7 @@ import { Card } from '../Card';
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
 // required for mixins to be based on this class
-export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
+export type PlayableOrDeployableCardConstructor<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> = new (...args: any[]) => PlayableOrDeployableCard<T>;
 
 export interface IDecreaseCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
@@ -213,7 +213,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
             return;
         }
 
-        this._controller = newController;
+        this.controller = newController;
 
         const moveDestination = moveTo || this.zone.name;
 

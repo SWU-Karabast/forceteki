@@ -20,6 +20,7 @@ export interface IInPlayCardState extends IPlayableOrDeployableCardState {
     disableOngoingEffectsForDefeat: boolean | null;
     mostRecentInPlayId: number;
     pendingDefeat: boolean | null;
+    movedFromZone: ZoneName | null;
 }
 
 /**
@@ -36,8 +37,6 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends P
     // protected _mostRecentInPlayId = -1;
     // protected _pendingDefeat?: boolean = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
-
-    private movedFromZone?: ZoneName = null;
 
     /**
      * If true, then this card's ongoing effects are disabled in preparation for it to be defeated (usually due to unique rule).
@@ -307,17 +306,17 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends P
     public override resolveAbilitiesForNewZone() {
         // TODO: do we need to consider a case where a card is moved from one arena to another,
         // where we maybe wouldn't reset events / effects / limits?
-        this.updateTriggeredAbilityEvents(this.movedFromZone, this.zoneName);
-        this.updateConstantAbilityEffects(this.movedFromZone, this.zoneName);
-        this.updateKeywordAbilityEffects(this.movedFromZone, this.zoneName);
+        this.updateTriggeredAbilityEvents(this.state.movedFromZone, this.zoneName);
+        this.updateConstantAbilityEffects(this.state.movedFromZone, this.zoneName);
+        this.updateKeywordAbilityEffects(this.state.movedFromZone, this.zoneName);
 
-        this.movedFromZone = null;
+        this.state.movedFromZone = null;
     }
 
     public override registerMove(movedFromZone: ZoneName): void {
         super.registerMove(movedFromZone);
 
-        this.movedFromZone = movedFromZone;
+        this.state.movedFromZone = movedFromZone;
     }
 
     protected override initializeForCurrentZone(prevZone?: ZoneName) {
