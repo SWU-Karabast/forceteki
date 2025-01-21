@@ -126,8 +126,8 @@ export abstract class PlayCardAction extends PlayerAction {
         }
         if (!ignoredRequirements.includes('zone')) {
             const isInPlayableZone: boolean = context.player.isCardInPlayableZone(context.source, this.playType);
-            const isInOpponentPlayAbleZone: boolean = this.opponentZonesEnabled && context.player.opponent.isCardInPlayableZone(context.source, this.playType);
-            if (!isInPlayableZone && !isInOpponentPlayAbleZone) {
+            const isInOpponentPlayableZone: boolean = this.opponentZonesEnabled && context.player.opponent.isCardInPlayableZone(context.source, this.playType);
+            if (!isInPlayableZone && !isInOpponentPlayableZone) {
                 return 'zone';
             }
         }
