@@ -22,7 +22,7 @@ export interface IPlayCardActionPropertiesBase {
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
     exploitValue?: number;
-    opponentZonesEnabled?: boolean;
+    canTargetOppponentZones?: boolean;
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
@@ -45,7 +45,7 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly exploitValue?: number;
     public readonly playType: PlayType;
     public readonly usesExploit: boolean;
-    public readonly opponentZonesEnabled: boolean;
+    public readonly canTargetOppponentZones: boolean;
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
@@ -91,7 +91,7 @@ export abstract class PlayCardAction extends PlayerAction {
         this.usesExploit = usesExploit;
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
-        this.opponentZonesEnabled = !!properties.opponentZonesEnabled;
+        this.canTargetOppponentZones = !!properties.canTargetOppponentZones;
     }
 
     private static getTitle(title: string, playType: PlayType, withExploit: boolean = false, appendToTitle: boolean = true): string {
@@ -126,7 +126,7 @@ export abstract class PlayCardAction extends PlayerAction {
         }
         if (!ignoredRequirements.includes('zone')) {
             const isInPlayableZone: boolean = context.player.isCardInPlayableZone(context.source, this.playType);
-            const isInOpponentPlayableZone: boolean = this.opponentZonesEnabled && context.player.opponent.isCardInPlayableZone(context.source, this.playType);
+            const isInOpponentPlayableZone: boolean = this.canTargetOppponentZones && context.player.opponent.isCardInPlayableZone(context.source, this.playType);
             if (!isInPlayableZone && !isInOpponentPlayableZone) {
                 return 'zone';
             }
