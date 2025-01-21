@@ -27,4 +27,8 @@ export class DistributeHealingSystem<TContext extends AbilityContext = AbilityCo
     protected override canDistributeLessDefault(): boolean {
         return true;
     }
+
+    protected override getDistributedAmountFromEvent(event: any): number {
+        return event.damageRemoved;
+    }
 }

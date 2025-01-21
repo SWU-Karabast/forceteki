@@ -26,4 +26,8 @@ export class DistributeExperienceSystem<TContext extends AbilityContext = Abilit
     protected override canDistributeLessDefault(): boolean {
         return false;
     }
+
+    protected override getDistributedAmountFromEvent(event: any): number {
+        return event.amount;
+    }
 }
