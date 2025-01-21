@@ -33,7 +33,7 @@ describe('MagnaGuard Wing Leader', function () {
             context.player2.passAction();
 
             // Player 1 can't choose MagnaGuard Wing Leader action again in the same round
-            expect(context.player1).not.toBeAbleToSelect(context.magnaguardWingLeader);
+            expect(context.magnaguardWingLeader).not.toHaveAvailableActionWhenClickedBy(context.player1);
 
             context.moveToNextActionPhase();
         });
@@ -55,7 +55,7 @@ describe('MagnaGuard Wing Leader', function () {
             const { context } = contextRef;
 
             // Player 1 can't choose MagnaGuard Wing Leader action if it would have no game state changing effect
-            expect(context.player1).not.toBeAbleToSelect(context.magnaguardWingLeader);
+            expect(context.magnaguardWingLeader).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
     });
 });
