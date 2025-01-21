@@ -107,7 +107,6 @@ describe('Kylo Ren, Rash And Deadly', function() {
                 context.player2.clickCard(moistureFarmer1);
                 expect(context.player2).toBeAbleToSelectExactly([context.kyloRenRashAndDeadly, context.p1Base]);
                 context.player2.clickCard(context.kyloRenRashAndDeadly);
-                context.player2.clickCard(context.p2Base); // explict restore2
                 expect(context.kyloRenRashAndDeadly.getPower()).toBe(0);
                 expect(moistureFarmer1.damage).toBe(0);
 
@@ -116,7 +115,6 @@ describe('Kylo Ren, Rash And Deadly', function() {
                 // 5 cards in hand - still 0
                 context.player2.clickCard(moistureFarmer2);
                 context.player2.clickCard(context.kyloRenRashAndDeadly);
-                context.player2.clickCard(context.p2Base); // explict restore2
 
                 expect(context.kyloRenRashAndDeadly.getPower()).toBe(0);
                 expect(moistureFarmer2.damage).toBe(0);
@@ -129,7 +127,6 @@ describe('Kylo Ren, Rash And Deadly', function() {
                 // 3 cards left in hand Kylo should be 2/4
                 context.player2.clickCard(moistureFarmer3);
                 context.player2.clickCard(context.kyloRenRashAndDeadly);
-                context.player2.clickCard(context.p2Base); // explict restore2
                 expect(context.kyloRenRashAndDeadly.getPower()).toBe(2);
                 expect(moistureFarmer3.damage).toBe(2);
 
@@ -141,7 +138,6 @@ describe('Kylo Ren, Rash And Deadly', function() {
                 // 1 cards left in hand Kylo should be 4/4
                 context.player2.clickCard(moistureFarmer4);
                 context.player2.clickCard(context.kyloRenRashAndDeadly);
-                context.player2.clickCard(context.p2Base); // explict restore2
                 expect(context.kyloRenRashAndDeadly.getPower()).toBe(4);
                 expect(moistureFarmer4).toBeInZone('discard'); // took 4 damage and was defeated
 
