@@ -2,7 +2,7 @@ import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
 import type { Aspect } from '../Constants';
-import { EffectName, EventName, KeywordName, PhaseName, PlayType, Stage, ZoneName } from '../Constants';
+import { EffectName, EventName, KeywordName, PhaseName, PlayType, Stage } from '../Constants';
 import type { ICost } from '../cost/ICost';
 import { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
@@ -22,7 +22,7 @@ export interface IPlayCardActionPropertiesBase {
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
     exploitValue?: number;
-    canPlayOpponentOwned?: boolean;
+    opponentZonesEnabled?: boolean;
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
@@ -45,7 +45,7 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly exploitValue?: number;
     public readonly playType: PlayType;
     public readonly usesExploit: boolean;
-    public readonly canPlayOpponentOwned: boolean;
+    public readonly opponentZonesEnabled: boolean;
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
@@ -91,7 +91,7 @@ export abstract class PlayCardAction extends PlayerAction {
         this.usesExploit = usesExploit;
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
-        this.canPlayOpponentOwned = !!properties.canPlayOpponentOwned;
+        this.opponentZonesEnabled = !!properties.opponentZonesEnabled;
     }
 
     private static getTitle(title: string, playType: PlayType, withExploit: boolean = false, appendToTitle: boolean = true): string {
@@ -126,7 +126,7 @@ export abstract class PlayCardAction extends PlayerAction {
         }
         if (!ignoredRequirements.includes('zone')) {
             const isInPlayableZone: boolean = context.player.isCardInPlayableZone(context.source, this.playType);
-            const isInOpponentPlayAbleZone: boolean = this.canPlayOpponentOwned && context.player.opponent.isCardInPlayableZone(context.source, this.playType);
+            const isInOpponentPlayAbleZone: boolean = this.opponentZonesEnabled && context.player.opponent.isCardInPlayableZone(context.source, this.playType);
             if (!isInPlayableZone && !isInOpponentPlayAbleZone) {
                 return 'zone';
             }
