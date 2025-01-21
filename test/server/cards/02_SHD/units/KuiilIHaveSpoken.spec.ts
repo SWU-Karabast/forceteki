@@ -14,36 +14,47 @@ describe('Kuiil, I Have Spoken', function () {
                 });
             });
 
-            it('should dicarded card that shares aspect with their base and draw the card', function () {
+            it('should discard a card and only draw it if it shares an aspect with the base', function () {
                 const { context } = contextRef;
 
+                // Should draw the discarded card since it shares an aspect with the base
                 context.player1.clickCard(context.kuiil);
                 context.player1.clickCard(context.player2.base);
 
-                expect(context.player1).toHaveEnabledPromptButtons(['Discard a card from your deck.', 'Restore 1']);
+                expect(context.player1).toHaveExactPromptButtons(['Discard a card from your deck.', 'Restore 1']);
 
                 context.player1.clickPrompt('Discard a card from your deck.');
-                // Following prompt is to use Kuiil's Restore 1 ability
-                context.player1.clickCard(context.player1.base);
-
                 expect(context.greenSquadronAwing).toBeInZone('hand');
-            });
+                expect(context.player2).toBeActivePlayer();
 
-            it('should dicarded card that does not share an aspect with their base and not draw the card', function () {
-                const { context } = contextRef;
+                context.moveToNextActionPhase();
 
-                context.player1.setDeck([context.restoredArc170, context.greenSquadronAwing]);
+                // Should not draw the discarded card since it does not share an aspect with the base
+                context.player1.setDeck([context.restoredArc170]);
+
                 context.player1.clickCard(context.kuiil);
                 context.player1.clickCard(context.player2.base);
 
-                expect(context.player1).toHaveEnabledPromptButtons(['Discard a card from your deck.', 'Restore 1']);
+                expect(context.player1).toHaveExactPromptButtons(['Discard a card from your deck.', 'Restore 1']);
 
                 context.player1.clickPrompt('Discard a card from your deck.');
-                // Following prompt is to use Kuiil's Restore 1 ability
-                context.player1.clickCard(context.player1.base);
-
                 expect(context.restoredArc170).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+
+                context.moveToNextActionPhase();
+
+                // Should do nothing since there are no cards in the deck
+                context.player1.setDeck([]);
+
+                context.player1.clickCard(context.kuiil);
+                context.player1.clickCard(context.player2.base);
+
+                expect(context.player1).toHaveExactPromptButtons(['Discard a card from your deck.', 'Restore 1']);
+
+                context.player1.clickPrompt('Discard a card from your deck.');
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
 });
+

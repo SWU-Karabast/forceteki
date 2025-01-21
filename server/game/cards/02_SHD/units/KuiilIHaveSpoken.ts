@@ -12,19 +12,20 @@ export default class KuiilIHaveSpoken extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addOnAttackAbility({
             title: 'Discard a card from your deck.',
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.discardFromDeck((context) => ({
-                    amount: 1,
-                    target: context.source.controller
-                })),
-                AbilityHelper.immediateEffects.conditional((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
+                amount: 1,
+                target: context.source.controller
+            })),
+            ifYouDo: (context) => ({
+                title: 'If it shares an aspect with your base, return it to your hand.',
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: this.hasMatchingAspects(context),
                     onTrue: AbilityHelper.immediateEffects.returnToHand({
                         target: context.events[0].card
                     }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
-                }))
-            ])
+                })
+            })
         });
     }
 
