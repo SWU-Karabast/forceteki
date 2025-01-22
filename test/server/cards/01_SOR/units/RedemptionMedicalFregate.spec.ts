@@ -1,6 +1,6 @@
-describe('Redemption Medical Fregate', function() {
+describe('Redemption Medical Frigate', function() {
     integration(function(contextRef) {
-        it('Redemption\'s ability can heal up to 9 damages from units and base and deal damage to itself', function () {
+        it('Redemption\'s ability can heal up to 8 damages from units and base and deal damage to itself', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
@@ -25,12 +25,15 @@ describe('Redemption Medical Fregate', function() {
 
             // select card to give healing
             expect(context.player1).toBeAbleToSelectExactly([
+                context.redemption,
                 context.yoda,
                 context.hanSolo,
                 context.allianceXwing,
+                context.battlefieldMarine,
                 context.atst,
                 context.p1Base,
-                context.p2Base
+                context.p2Base,
+                context.tielnFighter
             ]);
             expect(context.player1).toHaveChooseNoTargetButton();
             context.player1.setDistributeHealingPromptState(new Map([
@@ -42,6 +45,7 @@ describe('Redemption Medical Fregate', function() {
                 [context.atst, 1] // We can heal opponent's unit
             ]));
             expect(context.yoda.damage).toBe(0);
+            expect(context.battlefieldMarine.damage).toBe(0);
             expect(context.hanSolo.damage).toBe(3);
             expect(context.allianceXwing.damage).toBe(0);
             expect(context.p1Base.damage).toBe(4);
@@ -58,16 +62,9 @@ describe('Redemption Medical Fregate', function() {
 
             // We can heal less than 8 damages
             context.player1.clickCard(context.redemption);
-            // select card to give healing
-            expect(context.player1).toBeAbleToSelectExactly([
-                context.hanSolo,
-                context.atst,
-                context.p1Base,
-                context.p2Base
-            ]);
-            expect(context.player1).toHaveChooseNoTargetButton();
             context.player1.setDistributeHealingPromptState(new Map([
                 [context.hanSolo, 4], // We try to heal more than the leader's damage
+                [context.battlefieldMarine, 1], // We over heal undamaged unit
                 [context.p1Base, 2],
             ]));
 
@@ -84,12 +81,6 @@ describe('Redemption Medical Fregate', function() {
 
             // We can heal 0 damage
             context.player1.clickCard(context.redemption);
-            expect(context.player1).toBeAbleToSelectExactly([
-                context.atst,
-                context.p1Base,
-                context.p2Base
-            ]);
-            expect(context.player1).toHaveChooseNoTargetButton();
             context.player1.clickPrompt('Choose no targets');
 
             expect(context.atst.damage).toBe(2);
@@ -111,12 +102,6 @@ describe('Redemption Medical Fregate', function() {
             context.player1.clickCard(context.hanSolo);
             context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.');
             context.player1.clickCard(context.redemption);
-            expect(context.player1).toBeAbleToSelectExactly([
-                context.redemption,
-                context.atst,
-                context.p1Base,
-                context.p2Base
-            ]);
             context.player1.setDistributeHealingPromptState(new Map([
                 [context.p2Base, 8],
             ]));

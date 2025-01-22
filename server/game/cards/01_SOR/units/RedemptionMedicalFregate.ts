@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardRelativePlayer } from '../../../core/Constants';
 
-export default class RedemptionMedicalFregate extends NonLeaderUnitCard {
+export default class RedemptionMedicalFrigate extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '3896582249',
@@ -18,11 +18,10 @@ export default class RedemptionMedicalFregate extends NonLeaderUnitCard {
                 controller: WildcardRelativePlayer.Any,
                 canChooseNoTargets: true,
                 canDistributeLess: true,
-                cardCondition: (card) => (card.isUnit() || card.isBase()) && card.damage > 0,
+                cardCondition: (card) => card.isUnit() || card.isBase(),
             }),
             then: (thenContext) => ({
                 title: 'Deal that much damage to this unit.',
-                optional: false,
                 immediateEffect: AbilityHelper.immediateEffects.damage(() => {
                     const totalDamageRemoved = thenContext.events.reduce((acc, healedCard) => acc + healedCard.damageRemoved, 0);
                     return { amount: totalDamageRemoved };
@@ -32,4 +31,4 @@ export default class RedemptionMedicalFregate extends NonLeaderUnitCard {
     }
 }
 
-RedemptionMedicalFregate.implemented = true;
+RedemptionMedicalFrigate.implemented = true;
