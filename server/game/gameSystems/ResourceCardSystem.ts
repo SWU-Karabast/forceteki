@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType } from '../core/Constants';
+import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType, GameStateChangeRequired } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -84,10 +84,18 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         event.resourceControllingPlayer = this.getResourceControllingPlayer(properties, context);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { targetPlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
 
         const resourceControllingPlayer = this.getResourceControllingPlayer({ targetPlayer }, context);
+
+        // if the card is already resourced by the target player, no game state change will occur
+        if (
+            mustChangeGameState !== GameStateChangeRequired.None &&
+            card.controller === resourceControllingPlayer && card.zoneName === ZoneName.Resource
+        ) {
+            return false;
+        }
 
         if (resourceControllingPlayer !== card.controller && card.hasRestriction(EffectName.TakeControl, context)) {
             return false;

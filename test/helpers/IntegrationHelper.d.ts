@@ -74,6 +74,14 @@ interface SwuPlayerSetupOptions {
     [field: string]: any;
 }
 
+interface ICardDisplaySelectionState {
+    selectable?: Card[];
+    selected?: Card[];
+    unselectable?: Card[];
+    invalid?: Card[];
+    usesSelectionOrder?: boolean;
+}
+
 declare namespace jasmine {
     export interface Matchers<T> {
         toHavePrompt<T extends PlayerInteractionWrapper>(this: Matchers<T>, expected: any): boolean;
@@ -102,5 +110,7 @@ declare namespace jasmine {
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
+        toHaveExactDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: Card[] | ICardDisplaySelectionState): boolean;
+        toHaveExactDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: Card[]): boolean;
     }
 }

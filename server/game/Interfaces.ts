@@ -214,11 +214,20 @@ export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbi
     thenCondition?: (context?: TContext) => boolean;
 };
 
+export interface IClientUIProperties {
+    lastPlayedCard?: ISetId;
+}
+
+export interface ISetId {
+    set: string;
+    number: number;
+}
+
 // ********************************************** INTERNAL TYPES **********************************************
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
 > {
-    replaceWith: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
+    replaceWith?: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
 }
 
 type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {
