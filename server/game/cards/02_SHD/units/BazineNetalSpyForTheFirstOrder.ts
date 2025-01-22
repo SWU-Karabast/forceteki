@@ -24,10 +24,10 @@ export default class BazineNetalSpyForTheFirstOrder extends NonLeaderUnitCard {
                     target: context.player.opponent,
                     amount: 1,
                 })),
-                ifYouDo: () => ({
+                ifYouDo: {
                     title: 'That player draws a card',
                     immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player.opponent })),
-                })
+                }
             },
         });
     }
