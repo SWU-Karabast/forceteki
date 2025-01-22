@@ -295,7 +295,9 @@ class PlayerInteractionWrapper {
     }
 
     setDeck(newContents = [], prevZones = ['any']) {
-        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        this.player.deckZone.cards.forEach(
+            (card) => this.moveCard(card, 'outsideTheGame')
+        );
         newContents.reverse().forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
             this.moveCard(card, 'deck');

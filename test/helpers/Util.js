@@ -57,7 +57,8 @@ function formatCurrentActionTargets(currentActionTargets) {
 function formatSelectableDisplayCardsPromptData(prompt) {
     let result = '';
     for (const displayCard of prompt.displayCards) {
-        result += `[${displayCard.selectionState}]${displayCard.internalName}\n`;
+        const selectionOrderStr = displayCard.selectionOrder ? `, selectionOrder: ${displayCard.selectionOrder}` : '';
+        result += `[${displayCard.selectionState}${selectionOrderStr}]${displayCard.internalName}\n`;
     }
     return result;
 }
