@@ -22,10 +22,7 @@ export default class RedemptionMedicalFrigate extends NonLeaderUnitCard {
             }),
             then: (thenContext) => ({
                 title: 'Deal that much damage to this unit.',
-                immediateEffect: AbilityHelper.immediateEffects.damage(() => {
-                    const totalDamageRemoved = thenContext.events.reduce((acc, healedCard) => acc + healedCard.damageRemoved, 0);
-                    return { amount: totalDamageRemoved };
-                }),
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: thenContext.events[0].totalDistributed })
             })
         });
     }
