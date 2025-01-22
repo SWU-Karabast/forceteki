@@ -9,7 +9,7 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                         deck: ['battlefield-marine', 'freelance-assassin']
                     },
                     player2: {
-                        hand: ['confiscate', 'atst', 'blood-sport', 'vanquish', 'tieln-fighter']
+                        hand: ['confiscate', 'atst', 'blood-sport', 'death-star-stormtrooper', 'tieln-fighter']
                     }
                 });
 
@@ -44,8 +44,7 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                 expect(context.player1.getCardsInZone('groundArena').length).toBe(3);
                 expect(context.player2).toBeActivePlayer();
 
-                context.player2.clickCard(context.vanquish); // Opponent plays third card, nothing should happend
-                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.deathStarStormtrooper); // Opponent plays third card, nothing should happend
                 expect(context.player1).toBeActivePlayer();
             });
 

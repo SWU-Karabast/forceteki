@@ -1,9 +1,8 @@
-import { log } from 'console';
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType } from '../../../core/Constants';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
 export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -26,14 +25,22 @@ export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 2 }),
             when: {
-                onCardPlayed: (context, card) => this.isSecondCardPlayedByOpponentThisPhase(context, card)
+                onCardPlayed: (event) => this.isSecondCardPlayedByOpponentThisPhase(event.card)
             }
         });
     }
 
-    private isSecondCardPlayedByOpponentThisPhase(context, card) {
-        return card.controller !== this.controller && this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
-            playedCardEntry.playedBy === this.controller.opponent).length === 2;
+    private isSecondCardPlayedByOpponentThisPhase(card) {
+        if (card.controller !== this.controller) {
+            const cardsPlayedByOpponent = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
+                playedCardEntry.playedBy === this.controller.opponent && playedCardEntry.card !== card);
+            let amountCardsPlayedByOpponent = cardsPlayedByOpponent.length;
+            if (!cardsPlayedByOpponent.find((c) => c.title === card.title && c.subtitle === card.subtitle)) {
+                amountCardsPlayedByOpponent += 1;
+            }
+            return amountCardsPlayedByOpponent === 2;
+        }
+        return false;
     }
 }
 
