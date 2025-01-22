@@ -4,14 +4,15 @@ import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, PlayType } from '../core/Constants';
+import type Game from '../core/Game';
 import * as Contract from '../core/utils/Contract';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
 
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
-    public constructor(card: Card, properties: IPlayCardActionProperties) {
-        super(card,
+    public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
+        super(game, card,
             {
                 ...properties,
                 targetResolver: {
@@ -41,7 +42,7 @@ export class PlayUpgradeAction extends PlayCardAction {
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
-        return new PlayUpgradeAction(this.card, { ...this.createdWithProperties, ...overrideProperties });
+        return new PlayUpgradeAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

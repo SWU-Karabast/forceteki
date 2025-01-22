@@ -1,6 +1,6 @@
 import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
-import { Stage, AbilityType, GameStateChangeRequired } from '../Constants';
+import { AbilityType, GameStateChangeRequired, Stage } from '../Constants';
 import type { ITriggeredAbilityProps, WhenType } from '../../Interfaces';
 import type { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
@@ -95,13 +95,10 @@ export default class TriggeredAbility extends CardAbility {
         }
     }
 
-    public override createContext(player = this.card.controller, event: GameEvent) {
+    public override createContext(player = this.card.controller, event) {
         return new TriggeredAbilityContext({
-            event: event,
-            game: this.game,
-            source: this.card,
-            player: player,
-            ability: this,
+            ...super.getContextProperties(player, event),
+            event,
             stage: Stage.Trigger
         });
     }

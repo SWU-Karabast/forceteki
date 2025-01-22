@@ -152,7 +152,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
             }
 
-            this.attackAction = new InitiateAttackAction(this);
+            this.attackAction = new InitiateAttackAction(this.game, this);
         }
 
         // ****************************************** PROPERTY HELPERS ******************************************

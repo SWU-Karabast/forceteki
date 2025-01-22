@@ -44,7 +44,7 @@ export class UpgradeCard extends UpgradeCardParent {
     }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
-        return new PlayUpgradeAction(this, properties);
+        return new PlayUpgradeAction(this.game, this, properties);
     }
 
     public override getSummary(activePlayer: Player) {
