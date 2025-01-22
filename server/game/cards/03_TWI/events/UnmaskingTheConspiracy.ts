@@ -18,7 +18,7 @@ export default class UnmaskingTheConspirancy extends EventCard {
                 target: context.source.controller,
                 amount: 1
             })),
-            ifYouDo: () => ({
+            ifYouDo: {
                 title: 'Look at your opponent\'s hand and discard a card from it',
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.lookAt((context) => ({
@@ -29,7 +29,7 @@ export default class UnmaskingTheConspirancy extends EventCard {
                         amount: 1
                     })),
                 ])
-            }),
+            },
         });
     }
 }

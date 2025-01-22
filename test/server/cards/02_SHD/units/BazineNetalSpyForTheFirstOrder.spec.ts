@@ -62,11 +62,10 @@ describe('Bazin Netal, Spy For The First Order', function() {
                 });
                 const { context } = contextRef;
 
-                // Player looks at the opponent's hand and discards a card from it, opponent draws a card
+                // Player plays Bazine Netal but opponent does not have any cards in hand
                 context.player1.clickCard(context.bazineNetal);
-                expect(context.getChatLogs(1)).toContain('player1 plays Bazine Netal');
 
-                // Opponent drew a card
+                expect(context.getChatLogs(1)).toContain('player1 plays Bazine Netal');
                 expect(context.player2).toBeActivePlayer();
             });
         });
