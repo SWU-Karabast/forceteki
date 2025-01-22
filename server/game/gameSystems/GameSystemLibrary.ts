@@ -81,6 +81,8 @@ import type { IPlayerLastingEffectProperties } from './PlayerLastingEffectSystem
 import { PlayerLastingEffectSystem } from './PlayerLastingEffectSystem';
 import type { IPlayerPhaseLastingEffectProperties } from './PlayerPhaseLastingEffectSystem';
 import { PlayerPhaseLastingEffectSystem } from './PlayerPhaseLastingEffectSystem';
+import type { IPlayMultipleCardsFromDeckProperties } from './PlayMultipleCardsFromDeckSystem';
+import { PlayMultipleCardsFromDeckSystem } from './PlayMultipleCardsFromDeckSystem';
 import type { IPutIntoPlayProperties } from './PutIntoPlaySystem';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 import type { IReadyResourcesSystemProperties } from './ReadyResourcesSystem';
@@ -468,6 +470,9 @@ export function readyResources<TContext extends AbilityContext = AbilityContext>
 }
 export function playerLastingEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayerLastingEffectProperties>) {
     return new PlayerLastingEffectSystem<TContext>(propertyFactory);
+}
+export function playMultipleCardsFromDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayMultipleCardsFromDeckProperties<TContext>, TContext>) {
+    return new PlayMultipleCardsFromDeckSystem<TContext>(propertyFactory);
 }
 export function delayedPlayerEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IDelayedEffectProperties, 'effectType'>>) {
     return new DelayedEffectSystem<TContext>(

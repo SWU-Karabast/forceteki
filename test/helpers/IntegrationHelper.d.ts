@@ -79,6 +79,7 @@ interface ICardDisplaySelectionState {
     selected?: Card[];
     unselectable?: Card[];
     invalid?: Card[];
+    usesSelectionOrder?: boolean;
 }
 
 declare namespace jasmine {
