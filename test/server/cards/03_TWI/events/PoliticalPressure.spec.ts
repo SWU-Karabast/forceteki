@@ -23,6 +23,7 @@ describe('Political Pressure', function() {
                 context.player1.clickCard(context.politicalPressure);
 
                 expect(context.player2).toHavePassAbilityPrompt('Discard a random card from your hand');
+                context.player2.clickPrompt('Discard a random card from your hand');
                 expect(context.player2.getCardsInZone('discard').length).toBe(1);
                 expect(context.player1.getCardsInZone('groundArena').length).toBe(0); // No Battle Droids tokens are created
                 expect(context.player2.hand.length).toBe(2);

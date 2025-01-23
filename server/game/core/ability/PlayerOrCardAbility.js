@@ -1,6 +1,6 @@
 const { CardTargetResolver } = require('./abilityTargets/CardTargetResolver.js');
 const { SelectTargetResolver } = require('./abilityTargets/SelectTargetResolver.js');
-const { Stage, TargetMode, AbilityType } = require('../Constants.js');
+const { Stage, TargetMode, AbilityType, RelativePlayer } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
 const { GameSystem } = require('../gameSystem/GameSystem.js');
@@ -47,6 +47,7 @@ class PlayerOrCardAbility {
         this.immediateEffect = properties.immediateEffect;
         this.uuid = uuidv4();
         this.canResolveWithoutLegalTargets = false;
+        this.abilityController = properties.abilityController ?? RelativePlayer.Self;
 
         this.game = game;
         this.card = card;
@@ -287,7 +288,7 @@ class PlayerOrCardAbility {
         return {
             ability: this,
             game: this.game,
-            player: player,
+            player,
             source: this.card,
             stage: Stage.PreTarget
         };
