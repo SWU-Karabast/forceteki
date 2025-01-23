@@ -10,7 +10,7 @@ export default class SecondChance extends UpgradeCard {
         };
     }
 
-    protected override setupCardAbilities() {
+    public override setupCardAbilities() {
         this.setAttachCondition((card) => card.isNonLeaderUnit());
         this.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'For this phase, this unit\'s owner may play it from their discard pile for free.',
@@ -18,10 +18,15 @@ export default class SecondChance extends UpgradeCard {
                 effect: [
                     OngoingEffectLibrary.canPlayFromDiscard(),
                     OngoingEffectLibrary.forFree({
-                        match: (card) => card === context.source
+                        match: (card) => {
+                            console.log(`checking if '${card.title}' can be played from discard pile. Source:`, context.source.title);
+                            return card === context.source;
+                        }
                     })
                 ]
             }))
         });
     }
 }
+
+SecondChance.implemented = true;
