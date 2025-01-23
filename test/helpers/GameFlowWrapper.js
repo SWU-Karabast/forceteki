@@ -5,29 +5,35 @@ const PlayerInteractionWrapper = require('./PlayerInteractionWrapper.js');
 const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');
 const playableCardTitles = require('../json/_playableCardTitles.json');
+const Util = require('./Util.js');
 
 class GameFlowWrapper {
-    constructor() {
-        var gameRouter = jasmine.createSpyObj('gameRouter', ['gameWon', 'playerLeft', 'handleError']);
-        gameRouter.handleError.and.callFake((game, error) => {
-            throw error;
-        });
+    /**
+     * @param {any} router
+     * @param {PlayerInfo} player1Info
+     * @param {PlayerInfo} player2Info
+     */
+    constructor(router, player1Info, player2Info) {
         var details = {
-            name: 'player1\'s game',
+            name: `${player1Info.username}'s game`,
             id: 12345,
-            owner: 'player1',
+            owner: player1Info.username,
             saveGameId: 12345,
             players: [
-                { id: '111', user: Settings.getUserWithDefaultsSet({ username: 'player1' }) },
-                { id: '222', user: Settings.getUserWithDefaultsSet({ username: 'player2' }) }
+                { user: Settings.getUserWithDefaultsSet({ username: player1Info.username, id: player1Info.id }) },
+                { user: Settings.getUserWithDefaultsSet({ username: player2Info.username, id: player2Info.id }) },
             ],
             playableCardTitles: this.getPlayableCardTitles()
         };
-        this.game = new Game(details, { router: gameRouter });
+
+        this.game = new Game(details, { router });
         this.game.started = true;
 
-        this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player1'), this);
-        this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName('player2'), this);
+        this.player1Name = player1Info.username;
+        this.player2Name = player2Info.username;
+
+        this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName(this.player1Name), this);
+        this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName(this.player2Name), this);
         // this.player1.player.timerSettings.events = false;
         // this.player2.player.timerSettings.events = false;
         this.allPlayers = [this.player1, this.player2];
@@ -180,7 +186,7 @@ class GameFlowWrapper {
         var promptedPlayer = this.allPlayers.find((p) => p.hasPrompt(title));
 
         if (!promptedPlayer) {
-            var promptString = this.allPlayers.map((player) => player.name + ': ' + player.formatPrompt()).join('\n\n');
+            var promptString = this.allPlayers.map((player) => player.name + ': ' + Util.formatPrompt(player.currentPrompt(), player.currentActionTargets)).join('\n\n');
             throw new TestSetupError(`No players are being prompted with '${title}'. Current prompts are:\n\n${promptString}`);
         }
 
@@ -217,6 +223,8 @@ class GameFlowWrapper {
         } else if (damageDiff < 0) {
             card.removeDamage(-damageDiff, {});
         }
+
+        this.game.resolveGameState(true);
     }
 
     /**

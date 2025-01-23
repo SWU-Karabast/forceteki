@@ -1,15 +1,17 @@
-import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import { CardType, ZoneName, RelativePlayer, WildcardZoneName } from '../../Constants';
-import Player from '../../Player';
+import { ZoneName } from '../../Constants';
+import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
+import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, PlayableOrDeployableCard } from './PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './PlayableOrDeployableCard';
+import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
-import { Card } from '../Card';
+import type { Card } from '../Card';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
-import { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
+import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -24,8 +26,9 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 3. Uniqueness management
  */
 export class InPlayCard extends PlayableOrDeployableCard {
-    protected _disableOngoingEffectsForDefeat? = null;
-    protected _pendingDefeat? = null;
+    protected _disableOngoingEffectsForDefeat?: boolean = null;
+    protected _mostRecentInPlayId = -1;
+    protected _pendingDefeat?: boolean = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
     private movedFromZone?: ZoneName = null;
@@ -39,6 +42,29 @@ export class InPlayCard extends PlayableOrDeployableCard {
     public get disableOngoingEffectsForDefeat() {
         this.assertPropertyEnabled(this._disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
         return this._disableOngoingEffectsForDefeat;
+    }
+
+    /**
+     * Every time a card enters play, it becomes a new "copy" of the card as far as the game is concerned (SWU 8.6.4).
+     * This in-play id is used to distinguish copies of the card - every time it enters play, the id is incremented.
+     * If the card is no longer in play, this property is not available and {@link mostRecentInPlayId} should be used instead.
+     */
+    public get inPlayId() {
+        this.assertPropertyEnabledBoolean(EnumHelpers.isArena(this.zoneName), 'inPlayId');
+        return this._mostRecentInPlayId;
+    }
+
+    /**
+     * If the card is in a non-hidden, non-arena zone, this property is the most recent value of {@link inPlayId} for the card.
+     * This is used to determine e.g. if a card in the discard pile was defeated this phase.
+     */
+    public get mostRecentInPlayId() {
+        this.assertPropertyEnabledBoolean(
+            !EnumHelpers.isArena(this.zoneName) && this.zone.hiddenForPlayers == null,
+            'mostRecentInPlayId'
+        );
+
+        return this._mostRecentInPlayId;
     }
 
     /**
@@ -224,6 +250,19 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return addedAbility.uuid;
     }
 
+    /**
+     * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+     *
+     * @returns The uuid of the created triggered ability
+     */
+    public addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string {
+        const addedAbility = this.createReplacementEffectAbility(properties);
+        this.triggeredAbilities.push(addedAbility);
+        addedAbility.registerEvents();
+
+        return addedAbility.uuid;
+    }
+
     /** Removes a dynamically gained triggered ability and unregisters its effects */
     public removeGainedTriggeredAbility(removeAbilityUuid: string): void {
         let abilityToRemove: TriggeredAbility = null;
@@ -249,6 +288,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
         abilityToRemove.unregisterEvents();
     }
 
+    public removeGainedReplacementEffectAbility(removeAbilityUuid: string): void {
+        this.removeGainedTriggeredAbility(removeAbilityUuid);
+    }
+
     public override resolveAbilitiesForNewZone() {
         // TODO: do we need to consider a case where a card is moved from one arena to another,
         // where we maybe wouldn't reset events / effects / limits?
@@ -270,6 +313,11 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         if (EnumHelpers.isArena(this.zoneName)) {
             this.setPendingDefeatEnabled(true);
+
+            // increment to a new in-play id if we're entering play, indicating that we are now a new "copy" of this card (SWU 8.6.4)
+            if (!EnumHelpers.isArena(prevZone)) {
+                this._mostRecentInPlayId += 1;
+            }
         } else {
             this.setPendingDefeatEnabled(false);
         }
@@ -292,8 +340,9 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     /** Register / un-register the effect registrations for any constant abilities */
     private updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
-        // removing any lasting effects from ourself
-        if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
+        // removing any lasting effects from ourself -- any time we move into non arena zones
+        // TODO: we need to change this logic to just be not (Arena->Arena), but that breaks Ambush
+        if (!EnumHelpers.isArena(to) || from === ZoneName.Discard || from === ZoneName.Capture) {
             this.removeLastingEffects();
         }
 
@@ -358,11 +407,12 @@ export class InPlayCard extends PlayableOrDeployableCard {
         const chooseDuplicateToDefeatPromptProperties = {
             activePromptTitle: `Choose which copy of ${unitDisplayName} to defeat`,
             waitingPromptTitle: `Waiting for opponent to choose which copy of ${unitDisplayName} to defeat`,
+            source: 'Unique rule',
             zoneFilter: WildcardZoneName.AnyArena,
             controller: RelativePlayer.Self,
             cardCondition: (card: InPlayCard) =>
                 card.unique && card.title === this.title && card.subtitle === this.subtitle && !card.pendingDefeat,
-            onSelect: (player, card) => this.resolveUniqueDefeat(card)
+            onSelect: (card) => this.resolveUniqueDefeat(card)
         };
         this.game.promptForSelect(this.controller, chooseDuplicateToDefeatPromptProperties);
     }

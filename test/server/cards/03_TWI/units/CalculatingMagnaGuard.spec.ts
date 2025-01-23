@@ -19,6 +19,8 @@ describe('Calculating MagnaGuard', function () {
 
             // opponent attack with battlefield marine, it should choose automatically calculating magna guard
             context.player2.clickCard(context.battlefieldMarine);
+            expect(context.player2).toBeAbleToSelectExactly([context.calculatingMagnaguard]);
+            context.player2.clickCard(context.calculatingMagnaguard);
             expect(context.player1).toBeActivePlayer();
             expect(context.calculatingMagnaguard.damage).toBe(3);
 
@@ -36,8 +38,10 @@ describe('Calculating MagnaGuard', function () {
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.atst);
 
-            // opponent attack with consular security force, it should choose automatically calculating magna guard
+            // opponent attack with consular security force, his only choice is calculating magna guard
             context.player2.clickCard(context.consularSecurityForce);
+            expect(context.player2).toBeAbleToSelectExactly([context.calculatingMagnaguard]);
+            context.player2.clickCard(context.calculatingMagnaguard);
             expect(context.player1).toBeActivePlayer();
             expect(context.calculatingMagnaguard.damage).toBe(3);
         });

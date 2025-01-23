@@ -15,6 +15,7 @@ describe('Jyn Erso, Stardust', function () {
 
             // attack, no unit was defeated this phase, jyn should not have +1 and saboteur
             context.player1.clickCard(context.jynErso);
+            context.player1.clickCard(context.echoBaseDefender);
             expect(context.echoBaseDefender).toBeInZone('discard');
 
             context.player2.moveCard(context.echoBaseDefender, 'groundArena');
@@ -34,6 +35,7 @@ describe('Jyn Erso, Stardust', function () {
 
             expect(context.jynErso.getPower()).toBe(6);
             context.player1.clickCard(context.jynErso);
+            context.player1.clickCard(context.echoBaseDefender);
             expect(context.echoBaseDefender).toBeInZone('discard');
         });
     });

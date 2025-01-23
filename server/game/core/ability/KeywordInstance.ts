@@ -1,7 +1,7 @@
-import { IAbilityPropsWithType, ITriggeredAbilityProps } from '../../Interfaces';
-import { Card } from '../card/Card';
-import { Aspect, KeywordName } from '../Constants';
-import { LoseKeyword } from '../ongoingEffect/effectImpl/LoseKeyword';
+import type { IAbilityPropsWithType, ITriggeredAbilityBaseProps } from '../../Interfaces';
+import type { Card } from '../card/Card';
+import type { Aspect, KeywordName } from '../Constants';
+import type { LoseKeyword } from '../ongoingEffect/effectImpl/LoseKeyword';
 import * as Contract from '../utils/Contract';
 
 export class KeywordInstance {
@@ -68,13 +68,46 @@ export class KeywordWithCostValues extends KeywordInstance {
         name: KeywordName,
         public readonly cost: number,
         public readonly aspects: Aspect[],
-        public readonly additionalCosts: boolean // TODO: implement additional costs (First Light)
+        public readonly additionalSmuggleCosts: boolean
     ) {
         super(name);
     }
 
     public override hasCostValue(): this is KeywordWithCostValues {
         return true;
+    }
+}
+
+export class BountyKeywordInstance<TSource extends Card = Card> extends KeywordInstance {
+    private _abilityProps?: Omit<ITriggeredAbilityBaseProps<TSource>, 'abilityController'> = null;
+
+    public get abilityProps() {
+        if (this._abilityProps == null) {
+            Contract.fail(`Attempting to read property 'abilityProps' on a ${this.name} ability before it is defined`);
+        }
+
+        return this._abilityProps;
+    }
+
+    public override hasAbilityDefinition(): this is KeywordWithAbilityDefinition {
+        return true;
+    }
+
+    public override get isFullyImplemented(): boolean {
+        return this._abilityProps != null;
+    }
+
+    /** @param abilityProps Optional, but if not provided must be provided via `abilityProps` */
+    public constructor(name: KeywordName, abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'abilityController'> = null) {
+        super(name);
+        this._abilityProps = abilityProps;
+    }
+
+    public setAbilityProps(abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'abilityController'>) {
+        Contract.assertNotNullLike(abilityProps, `Attempting to set null ability definition for ${this.name}`);
+        Contract.assertIsNullLike(this._abilityProps, `Attempting to set ability definition for ${this.name} but it already has a value`);
+
+        this._abilityProps = abilityProps;
     }
 }
 
@@ -97,7 +130,7 @@ export class KeywordWithAbilityDefinition<TSource extends Card = Card> extends K
         return this._abilityProps != null;
     }
 
-    /** @param abilityProps Optional, but if not provided must be provided via {@link KeywordWithAbilityDefinition.setAbilityProps} */
+    /** @param abilityProps Optional, but if not provided must be provided via `abilityProps` */
     public constructor(name: KeywordName, abilityProps: IAbilityPropsWithType<TSource> = null) {
         super(name);
         this._abilityProps = abilityProps;

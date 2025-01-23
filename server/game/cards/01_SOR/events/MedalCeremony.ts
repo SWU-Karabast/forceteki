@@ -1,8 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import { TargetMode, Trait } from '../../../core/Constants';
-import { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 
 export default class MedalCeremony extends EventCard {
     private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;
@@ -27,7 +27,7 @@ export default class MedalCeremony extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience(),
                 cardCondition: (card, context) => {
                     const rebelUnitsAttackedThisPhase =
-                        this.attacksThisPhaseWatcher.getAttackers((attack) => attack.attacker.hasSomeTrait(Trait.Rebel));
+                        this.attacksThisPhaseWatcher.getAttackersInPlay((attack) => attack.attacker.hasSomeTrait(Trait.Rebel));
                     return rebelUnitsAttackedThisPhase.includes(card);
                 }
             }

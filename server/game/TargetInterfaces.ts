@@ -2,8 +2,8 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import { CardTypeFilter, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from './core/Constants';
-import { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
+import type { CardTypeFilter, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from './core/Constants';
+import type { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -12,6 +12,7 @@ import { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 export type ICardTargetResolver<TContext extends AbilityContext> =
   | ICardExactlyUpToTargetResolver<TContext>
   | ICardExactlyUpToVariableTargetResolver<TContext>
+  | ICardBetweenVariableTargetResolver<TContext>
   | ICardMaxStatTargetResolver<TContext>
   | CardSingleUnlimitedTargetResolver<TContext>;
 
@@ -60,6 +61,7 @@ export interface IDropdownListTargetResolver<TContext extends AbilityContext> ex
 
 export interface ITargetResolverBase<TContext extends AbilityContext> {
     activePromptTitle?: string;
+    appendToDefaultTitle?: string;
     zoneFilter?: ZoneFilter | ZoneFilter[];
 
     /** If zoneFilter includes ZoneName.Capture, use this to filter down to only the capture zones of specific units. Otherwise, all captured units in the arena will be targeted. */
@@ -103,6 +105,13 @@ interface ICardExactlyUpToVariableTargetResolver<TContext extends AbilityContext
     mode: TargetMode.ExactlyVariable | TargetMode.UpToVariable;
     numCardsFunc: (context: TContext) => number;
     canChooseNoCards?: boolean;
+    multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
+}
+
+interface ICardBetweenVariableTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
+    mode: TargetMode.BetweenVariable;
+    minNumCardsFunc: (context: TContext) => number;
+    maxNumCardsFunc: (context: TContext) => number;
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 

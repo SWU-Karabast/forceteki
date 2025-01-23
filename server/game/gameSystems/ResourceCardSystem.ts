@@ -1,11 +1,10 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType, WildcardRelativePlayer } from '../core/Constants';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType, GameStateChangeRequired } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import { ready } from './GameSystemLibrary';
 import * as Contract from '../core/utils/Contract';
-import { GameEvent } from '../core/event/GameEvent';
+import type { GameEvent } from '../core/event/GameEvent';
+import { ReadySystem } from './ReadySystem';
 
 export interface IResourceCardProperties extends ICardTargetSystemProperties {
     // TODO: remove completely if faceup logic is not needed
@@ -56,7 +55,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
         if (properties.readyResource) {
             event.setContingentEventsGenerator((event) => {
-                return [ready({ target: card }).generateEvent(context)];
+                return [new ReadySystem({ target: card }).generateEvent(context)];
             });
         }
         super.updateEvent(event, target, context, additionalProperties);
@@ -85,10 +84,18 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         event.resourceControllingPlayer = this.getResourceControllingPlayer(properties, context);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { targetPlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
 
         const resourceControllingPlayer = this.getResourceControllingPlayer({ targetPlayer }, context);
+
+        // if the card is already resourced by the target player, no game state change will occur
+        if (
+            mustChangeGameState !== GameStateChangeRequired.None &&
+            card.controller === resourceControllingPlayer && card.zoneName === ZoneName.Resource
+        ) {
+            return false;
+        }
 
         if (resourceControllingPlayer !== card.controller && card.hasRestriction(EffectName.TakeControl, context)) {
             return false;

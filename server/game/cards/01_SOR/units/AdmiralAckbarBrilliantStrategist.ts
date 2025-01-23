@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 

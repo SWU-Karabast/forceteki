@@ -65,7 +65,8 @@ export enum EffectName {
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
-    CanPlayFromOutOfPlay = 'canPlayFromOutOfPlay',
+    CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
+    CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
     CostAdjuster = 'costAdjuster',
     DelayedEffect = 'delayedEffect',
@@ -101,6 +102,7 @@ export enum Duration {
     UntilEndOfAttack = 'untilEndOfAttack',
     UntilEndOfPhase = 'untilEndOfPhase',
     UntilEndOfRound = 'untilEndOfRound',
+    WhileSourceInPlay = 'whileSourceInPlay'
 }
 
 export enum Stage {
@@ -124,6 +126,8 @@ export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',
+    // TODO: add 'Between'
+    BetweenVariable = 'betweenVariable',
     DropdownList = 'dropdownList',
     Exactly = 'exactly',
     ExactlyVariable = 'exactlyVariable',
@@ -194,6 +198,7 @@ export enum EventName {
     OnAttackDamageResolved = 'onAttackDamageResolved',
     OnAttackDeclared = 'onAttackDeclared',
     OnBeginRound = 'onBeginRound',
+    OnBountyCollected = 'onBountyCollected',
     OnCardAbilityInitiated = 'onCardAbilityInitiated',
     OnCardAbilityTriggered = 'onCardAbilityTriggered',
     OnCardCaptured = 'onCardCaptured',
@@ -218,6 +223,7 @@ export enum EventName {
     OnEffectApplied = 'onEffectApplied',
     OnEntireHandDiscarded = 'onEntireHandDiscarded',
     onExhaustResources = 'onExhaustResources',
+    onExploitUnits = 'onExploitUnits',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCard = 'onLookAtCard',
@@ -239,6 +245,7 @@ export enum EventName {
     OnTokensCreated = 'OnTokensCreated',
     OnUnitEntersPlay = 'onUnitEntersPlay',
     OnUpgradeAttached = 'onUpgradeAttached',
+    OnUpgradeUnattached = 'onUpgradeUnattached',
 }
 
 /**
@@ -285,7 +292,6 @@ export enum KeywordName {
     Ambush = 'ambush',
     Bounty = 'bounty',
     Coordinate = 'coordinate',
-    /** @deprecated Not yet implemented */
     Exploit = 'exploit',
     Grit = 'grit',
     Overwhelm = 'overwhelm',
@@ -402,6 +408,7 @@ export enum AbilityRestriction {
 
 export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
+    CardsDrawnThisPhase = 'cardsDrawnThisPhase',
     CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
@@ -434,4 +441,12 @@ export enum GameStateChangeRequired {
      * would be required to exhaust the full number of requested resources.
      */
     MustFullyResolve = 'mustFullyResolve',
+}
+
+export enum PromptType {
+    Initiative = 'initiative',
+    Resource = 'resource',
+    ActionWindow = 'actionWindow',
+    DisplayCards = 'displayCards',
+    DistributeAmongTargets = 'distributeAmongTargets',
 }

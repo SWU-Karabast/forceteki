@@ -1,8 +1,10 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { Card } from '../core/card/Card';
 import { MetaEventName } from '../core/Constants';
+import type { DistributePromptType } from '../core/gameSteps/PromptInterfaces';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
-import { DistributeAmongTargetsSystem, IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
+import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
+import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
 import { GiveExperienceSystem } from './GiveExperienceSystem';
 
 export type IDistributeExperienceSystemProperties<TContext extends AbilityContext = AbilityContext> = IDistributeAmongTargetsSystemProperties<TContext>;
@@ -15,7 +17,7 @@ export class DistributeExperienceSystem<TContext extends AbilityContext = Abilit
     protected override readonly eventName = MetaEventName.DistributeExperience;
     public override readonly name = 'distributeExperience';
 
-    public override promptType = StatefulPromptType.DistributeExperience;
+    public override promptType: DistributePromptType = StatefulPromptType.DistributeExperience;
 
     protected override generateEffectSystem(target: Card = null, amount = 1): GiveExperienceSystem {
         return new GiveExperienceSystem({ target, amount });
@@ -23,5 +25,9 @@ export class DistributeExperienceSystem<TContext extends AbilityContext = Abilit
 
     protected override canDistributeLessDefault(): boolean {
         return false;
+    }
+
+    protected override getDistributedAmountFromEvent(event: any): number {
+        return event.amount;
     }
 }

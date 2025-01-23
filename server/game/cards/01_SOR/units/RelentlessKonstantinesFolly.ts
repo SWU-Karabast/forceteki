@@ -1,9 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../../core/Constants';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
-import { Card } from '../../../core/card/Card';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 
 export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -30,6 +29,7 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
         });
     }
 
+    // TODO: fix this to use "context.source" instead of "this"
     private isFirstEventPlayedByThisOpponentThisPhase(card) {
         return card.controller !== this.controller && card.type === CardType.Event && !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
             playedCardEntry.playedBy === card.controller &&

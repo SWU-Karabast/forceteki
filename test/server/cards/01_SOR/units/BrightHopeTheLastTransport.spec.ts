@@ -52,17 +52,18 @@ describe('Bright Hope, The Last Transport', function() {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    hand: ['bright-hope#the-last-transport', 'drop-in'],
+                    hand: ['bright-hope#the-last-transport'],
+                    groundArena: ['clone-trooper'],
                     deck: ['atst']
                 }
             });
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.dropIn);
+            // context.player1.clickCard(context.dropIn);
             const cloneTroopers = context.player1.findCardsByName('clone-trooper');
 
-            context.player2.passAction();
+            // context.player2.passAction();
             context.player1.clickCard(context.brightHope);
             expect(context.player1).toBeAbleToSelectExactly(cloneTroopers);
 

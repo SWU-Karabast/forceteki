@@ -1,7 +1,7 @@
 import type Player from './Player';
 import type { Card } from './card/Card';
 import type { IStep } from './gameSteps/IStep';
-import { IStatefulPromptResults } from './gameSteps/PromptInterfaces';
+import type { IStatefulPromptResults } from './gameSteps/PromptInterfaces';
 
 type StepFactory = () => IStep;
 type StepItem = IStep | StepFactory;
@@ -98,6 +98,15 @@ export class GamePipeline {
 
         const step = this.getCurrentStep();
         return step.onMenuCommand(player, arg, uuid, method) !== false;
+    }
+
+    public handlePerCardMenuCommand(player: Player, arg: string, cardUuid: string, uuid: string, method: string) {
+        if (this.pipeline.length === 0) {
+            return false;
+        }
+
+        const step = this.getCurrentStep();
+        return step.onPerCardMenuCommand(player, arg, cardUuid, uuid, method) !== false;
     }
 
     public handleStatefulPromptResults(player: Player, results: IStatefulPromptResults, uuid: string) {

@@ -30,11 +30,14 @@ describe('Steela Gerrera, Beloved Tactician', function () {
             expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to your base');
             context.player1.clickPrompt('Deal 2 damage to your base');
 
-            expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.wampa.title, context.consularSecurityForce.title, context.atst.title, context.pykeSentinel.title]);
-            expect(context.player1).toHaveEnabledPromptButtons([context.takedown.title, context.superlaserBlast.title, context.strikeTrue.title, 'Take nothing']);
+            expect(context.player1).toHaveExactDisplayPromptCards({
+                selectable: [context.takedown, context.superlaserBlast, context.strikeTrue],
+                invalid: [context.battlefieldMarine, context.wampa, context.consularSecurityForce, context.atst, context.pykeSentinel]
+            });
+            expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
             // draw superlaser blast
-            context.player1.clickPrompt(context.superlaserBlast.title);
+            context.player1.clickCardInDisplayCardPrompt(context.superlaserBlast);
 
             expect(context.player2).toBeActivePlayer();
             expect(context.p1Base.damage).toBe(2);
@@ -52,6 +55,7 @@ describe('Steela Gerrera, Beloved Tactician', function () {
 
             // kill steela gerrera, should have prompt again
             context.player2.clickCard(context.rivalsFall);
+            context.player2.clickCard(context.steelaGerrera);
 
             expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to your base');
 

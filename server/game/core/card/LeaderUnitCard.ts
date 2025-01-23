@@ -1,14 +1,16 @@
-import Player from '../Player';
+import type Player from '../Player';
 import { LeaderCard } from './LeaderCard';
-import { CardType, ZoneName, ZoneFilter } from '../Constants';
+import type { ZoneFilter } from '../Constants';
+import { CardType, ZoneName } from '../Constants';
 import { WithCost } from './propertyMixins/Cost';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import type { UnitCard } from './CardTypes';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 import * as Helpers from '../utils/Helpers';
-import AbilityHelper from '../../AbilityHelper';
 import * as Contract from '../utils/Contract';
+import { EpicActionLimit } from '../ability/AbilityLimit';
+import { DeployLeaderSystem } from '../../gameSystems/DeployLeaderSystem';
 
 const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 
@@ -21,15 +23,15 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         super(owner, cardData);
 
         this.setupLeaderUnitSide = true;
-        this.setupLeaderUnitSideAbilities();
+        this.setupLeaderUnitSideAbilities(this);
 
         // add deploy leader action
         this.addActionAbility({
             title: `Deploy ${this.title}`,
-            limit: AbilityHelper.limit.epicAction(),
+            limit: new EpicActionLimit(),
             condition: (context) => context.source.controller.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
-            immediateEffect: AbilityHelper.immediateEffects.deploy()
+            immediateEffect: new DeployLeaderSystem({})
         });
     }
 
@@ -69,7 +71,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
      * Create card abilities for the leader unit side by calling subsequent methods with appropriate properties
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected setupLeaderUnitSideAbilities() {
+    protected setupLeaderUnitSideAbilities(sourceCard: this) {
     }
 
     protected override addActionAbility(properties: IActionAbilityProps<this>) {

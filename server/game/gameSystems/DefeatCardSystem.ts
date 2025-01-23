@@ -1,12 +1,14 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { Card } from '../core/card/Card';
-import { UnitCard } from '../core/card/CardTypes';
-import { UpgradeCard } from '../core/card/UpgradeCard';
+import type { UnitCard } from '../core/card/CardTypes';
+import type { UpgradeCard } from '../core/card/UpgradeCard';
 import { EventName, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import Player from '../core/Player';
+import type Player from '../core/Player';
 import * as Contract from '../core/utils/Contract';
-import { DamageSourceType, DefeatSourceType, IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
+import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
+import { DamageSourceType, DefeatSourceType } from '../IDamageOrDefeatSource';
 
 export interface IDefeatCardPropertiesBase extends ICardTargetSystemProperties {
     defeatSource?: IDamageSource | DefeatSourceType.Ability | DefeatSourceType.UniqueRule | DefeatSourceType.FrameworkEffect;
@@ -23,6 +25,7 @@ export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
 
 /** Records the "last known information" of a card before it left the arena, in case ability text needs to refer back to it. See SWU 8.12. */
 export interface ILastKnownInformation {
+    card: InPlayCard;
     controller: Player;
     arena: ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Resource;
     power?: number;
@@ -44,8 +47,11 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
     public eventHandler(event): void {
         const card: Card = event.card;
+        Contract.assertTrue(card.canBeExhausted());
 
-        if (card.zoneName !== ZoneName.Resource && card.isUpgrade()) {
+        if (card.zoneName === ZoneName.Resource) {
+            this.leavesResourceZoneEventHandler(card, event.context);
+        } else if (card.isUpgrade()) {
             card.unattach();
         }
 
@@ -132,6 +138,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         if (card.zoneName === ZoneName.Resource) {
             return {
+                card,
                 controller: card.controller,
                 arena: card.zoneName
             };
@@ -139,6 +146,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         if (card.isUnit()) {
             return {
+                card,
                 power: card.getPower(),
                 hp: card.getHp(),
                 arena: card.zoneName,
@@ -150,6 +158,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         if (card.isUpgrade()) {
             return {
+                card,
                 power: card.getPower(),
                 hp: card.getHp(),
                 arena: card.zoneName,

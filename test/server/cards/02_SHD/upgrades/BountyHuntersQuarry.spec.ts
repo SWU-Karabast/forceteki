@@ -1,7 +1,7 @@
 describe('Bounty hunter\'s quarry', function () {
     integration(function (contextRef) {
         describe('Bounty hunter\'s quarry bounty ability', function () {
-            const prompt = 'Bounty: Search the top 5 cards of your deck, or 10 cards instead if this unit is unique, for a unit that costs 3 or less and play it for free.';
+            const prompt = 'Collect Bounty: Search the top 5 cards of your deck, or 10 cards instead if this unit is unique, for a unit that costs 3 or less and play it for free.';
 
             it('should prompt to choose a unit with a cost of 3 or less from the top 5 cards or top 10 cards (if unit is unique) and play it for free', function () {
                 contextRef.setupTest({
@@ -27,9 +27,13 @@ describe('Bounty hunter\'s quarry', function () {
                 // use bounty
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
                 context.player1.clickPrompt(prompt);
-                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine.title, context.infernoFour.title, context.sabineWren.title, 'Take nothing']);
-                expect(context.player1).toHaveDisabledPromptButtons([context.waylay, context.protector.title]);
-                context.player1.clickPrompt(context.battlefieldMarine.title);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.battlefieldMarine, context.infernoFour, context.sabineWren],
+                    invalid: [context.waylay, context.protector]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
 
                 // unit should be free
@@ -51,9 +55,13 @@ describe('Bounty hunter\'s quarry', function () {
                 // use bounty
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
                 context.player1.clickPrompt(prompt);
-                expect(context.player1).toHaveEnabledPromptButtons([context.sabineWren.title, context.infernoFour.title, context.superlaserTechnician.title, context.echoBaseDefender.title, context.swoopRacer.title, 'Take nothing']);
-                expect(context.player1).toHaveDisabledPromptButtons([context.devotion.title, context.waylay, context.protector.title, context.consularSecurityForce.title, context.resupply.title]);
-                context.player1.clickPrompt(context.sabineWren.title);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.sabineWren, context.infernoFour, context.superlaserTechnician, context.echoBaseDefender, context.swoopRacer],
+                    invalid: [context.devotion, context.waylay, context.protector, context.consularSecurityForce, context.resupply]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                context.player1.clickCardInDisplayCardPrompt(context.sabineWren);
                 expect(context.sabineWren).toBeInZone('groundArena');
                 expect(context.infernoFour).toBeInBottomOfDeck(context.player1, 9);
                 expect(context.protector).toBeInBottomOfDeck(context.player1, 9);

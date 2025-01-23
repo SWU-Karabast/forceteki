@@ -1,4 +1,5 @@
-import { CardType, CardTypeFilter, ZoneName, ZoneFilter, MoveZoneDestination, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
+import type { CardTypeFilter, ZoneFilter, MoveZoneDestination } from '../Constants';
+import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {

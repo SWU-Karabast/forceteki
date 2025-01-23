@@ -1,7 +1,8 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 import { Duration, EventName } from '../core/Constants';
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import { IPlayerLastingEffectProperties, PlayerLastingEffectSystem } from './PlayerLastingEffectSystem';
+import type { IPlayerLastingEffectProperties } from './PlayerLastingEffectSystem';
+import { PlayerLastingEffectSystem } from './PlayerLastingEffectSystem';
 
 export type IPlayerPhaseLastingEffectProperties = Omit<IPlayerLastingEffectProperties, 'duration'>;
 

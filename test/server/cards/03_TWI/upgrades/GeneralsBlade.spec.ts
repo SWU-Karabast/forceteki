@@ -15,6 +15,7 @@ describe('General\'s Blade', function () {
 
             // trigger general's blade ability
             context.player1.clickCard(context.obiwanKenobi);
+            context.player1.clickCard(context.p2Base);
             context.player2.passAction();
 
             // play an event with normal cost
@@ -47,6 +48,7 @@ describe('General\'s Blade', function () {
 
             // trigger general's blade ability
             context.player1.clickCard(context.obiwanKenobi);
+            context.player1.clickCard(context.p2Base);
             context.player2.passAction();
 
             context.moveToNextActionPhase();

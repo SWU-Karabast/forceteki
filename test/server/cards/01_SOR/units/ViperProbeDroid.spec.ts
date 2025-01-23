@@ -19,7 +19,7 @@ describe('Viper Probe Droid', function() {
 
                 context.player1.clickCard(context.viperProbeDroid);
                 expect(context.viperProbeDroid.zoneName).toBe('groundArena');
-                expect(context.getChatLogs(1)).toContain('Viper Probe Droid sees Battlefield Marine, Pyke Sentinel, and Wampa');
+                expect(context.getChatLogs(1)).toContain('Viper Probe Droid sees Wampa, Battlefield Marine, and Pyke Sentinel');
                 expect(context.player2).toBeActivePlayer();
             });
 

@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { Card } from '../../../core/card/Card';
+import type { Card } from '../../../core/card/Card';
 import { EventCard } from '../../../core/card/EventCard';
 import { TargetMode, WildcardRelativePlayer, ZoneName } from '../../../core/Constants';
 

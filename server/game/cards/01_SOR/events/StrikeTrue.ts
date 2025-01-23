@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, WildcardCardType, WildcardZoneName, Trait } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class StrikeTrue extends EventCard {
     protected override getImplementationId () {

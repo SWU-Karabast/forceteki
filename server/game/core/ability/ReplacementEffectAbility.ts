@@ -1,7 +1,7 @@
 import { AbilityType } from '../Constants';
-import { IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
-import { Card } from '../card/Card';
-import Game from '../Game';
+import type { IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { Card } from '../card/Card';
+import type Game from '../Game';
 import TriggeredAbility from './TriggeredAbility';
 import { ReplacementEffectSystem } from '../../gameSystems/ReplacementEffectSystem';
 

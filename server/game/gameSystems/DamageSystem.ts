@@ -4,12 +4,13 @@ import { AbilityRestriction, CardType, DamageType, EventName, GameStateChangeReq
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import { Attack } from '../core/attack/Attack';
-import { DamageSourceType, IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
-import { UnitCard } from '../core/card/CardTypes';
+import type { Attack } from '../core/attack/Attack';
+import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
+import { DamageSourceType } from '../IDamageOrDefeatSource';
+import type { UnitCard } from '../core/card/CardTypes';
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
-    type?: DamageType;
+    type: DamageType;
 }
 
 export interface ICombatDamageProperties extends IDamagePropertiesBase {
@@ -18,11 +19,14 @@ export interface ICombatDamageProperties extends IDamagePropertiesBase {
 
     /** The attack that is the source of the damage */
     sourceAttack: Attack;
+
+    /** The source of the damage, if different from the attacker / defender card (e.g. Maul1 unit ability) */
+    source?: Card;
 }
 
 /** Used for when an ability is directly dealing damage to a target (most common case for card implementations) */
 export interface IAbilityDamageProperties extends IDamagePropertiesBase {
-    type?: DamageType.Ability;    // this is optional so it can be the default property type
+    type: DamageType.Ability;
     amount: number | ((card: UnitCard) => number);
 
     /** The source of the damage, if different from the card that triggered the ability */
@@ -164,7 +168,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         let damageDealtBy: UnitCard;
 
-        if (event.isOverwhelmDamage) {
+        if (properties.source) {
+            Contract.assertTrue(properties.source.isUnit());
+            damageDealtBy = properties.source;
+        } else if (event.isOverwhelmDamage) {
             damageDealtBy = properties.sourceAttack.attacker;
         } else {
             switch (card) {

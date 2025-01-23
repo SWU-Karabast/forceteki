@@ -32,6 +32,7 @@ describe('Luminara Unduli, Soft Spoken Master', function() {
             context.player2.passAction();
 
             context.player1.clickCard(context.luminaraUnduli);
+            context.player1.clickCard(context.p2Base);
             expect(context.player2).toBeActivePlayer();
             // should have grit
             expect(context.p2Base.damage).toBe(8);
@@ -43,6 +44,7 @@ describe('Luminara Unduli, Soft Spoken Master', function() {
             context.player2.clickCard(context.wampa);
 
             context.player1.clickCard(context.luminaraUnduli);
+            context.player1.clickCard(context.p2Base);
             expect(context.player2).toBeActivePlayer();
             expect(context.p2Base.damage).toBe(4);
         });

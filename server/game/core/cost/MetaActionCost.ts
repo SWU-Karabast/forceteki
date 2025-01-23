@@ -5,7 +5,7 @@ import type { GameSystem } from '../gameSystem/GameSystem';
 import type { ISelectCardProperties } from '../../gameSystems/SelectCardSystem';
 import { randomItem } from '../utils/Helpers';
 import { GameSystemCost } from './GameSystemCost';
-import { GameEvent } from '../event/GameEvent';
+import type { GameEvent } from '../event/GameEvent';
 
 export class MetaActionCost<TContext extends AbilityContext = AbilityContext> extends GameSystemCost<TContext> implements ICost<TContext> {
     public constructor(
@@ -29,7 +29,8 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (properties.checkTarget && context.choosingPlayerOverride) {
             context.costs[properties.innerSystem.name] = randomItem(
-                properties.selector.getAllLegalTargets(context, context.player)
+                properties.selector.getAllLegalTargets(context, context.player),
+                context.game.randomGenerator
             );
             context.costs[properties.innerSystem.name + 'StateWhenChosen'] =
                 context.costs[properties.innerSystem.name].createSnapshot();

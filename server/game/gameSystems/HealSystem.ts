@@ -3,7 +3,7 @@ import type { Card } from '../core/card/Card';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import { UnitCard } from '../core/card/CardTypes';
+import type { UnitCard } from '../core/card/CardTypes';
 
 export interface IHealProperties extends ICardTargetSystemProperties {
     amount: number | ((card: UnitCard) => number);

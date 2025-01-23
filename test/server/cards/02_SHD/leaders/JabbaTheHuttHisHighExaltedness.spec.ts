@@ -1,7 +1,7 @@
 describe('Jabba the Hutt, His High Exaltedness', function () {
     integration(function (contextRef) {
         describe('Jabba the Hutt\'s leader undeployed ability', function () {
-            const bountyPrompt = 'Bounty: The next unit you play this phase costs 1 resource less';
+            const bountyPrompt = 'Collect Bounty: The next unit you play this phase costs 1 resource less';
 
             beforeEach(function () {
                 contextRef.setupTest({
@@ -131,7 +131,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
 
         describe('Jabba the Hutt\'s leader deployed ability', function () {
             const abilityPrompt = 'Choose a unit. For this phase, it gains: "Bounty — The next unit you play this phase costs 2 resources less."';
-            const bountyPrompt = 'Bounty: The next unit you play this phase costs 2 resources less';
+            const bountyPrompt = 'Collect Bounty: The next unit you play this phase costs 2 resources less';
 
             beforeEach(function () {
                 contextRef.setupTest({

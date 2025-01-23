@@ -1,13 +1,12 @@
-import { InPlayCard } from '../card/baseClasses/InPlayCard';
-import { Card } from '../card/Card';
-import { ZoneName, WildcardCardType, WildcardZoneName } from '../Constants';
-import Game from '../Game';
-import Player from '../Player';
-import * as Contract from '../utils/Contract';
-import { ConcreteArenaZone } from './ConcreteArenaZone';
-import { ConcreteOrMetaArenaZone, IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
-import { GroundArenaZone } from './GroundArenaZone';
-import { SpaceArenaZone } from './SpaceArenaZone';
+import type { InPlayCard } from '../card/baseClasses/InPlayCard';
+import type { ZoneName } from '../Constants';
+import { WildcardZoneName } from '../Constants';
+import type Game from '../Game';
+import type { ConcreteArenaZone } from './ConcreteArenaZone';
+import type { IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
+import { ConcreteOrMetaArenaZone } from './ConcreteOrMetaArenaZone';
+import type { GroundArenaZone } from './GroundArenaZone';
+import type { SpaceArenaZone } from './SpaceArenaZone';
 
 export interface IAllArenasZoneCardFilterProperties extends IArenaZoneCardFilterProperties {
     arena?: ZoneName.SpaceArena | ZoneName.GroundArena | WildcardZoneName.AnyArena;

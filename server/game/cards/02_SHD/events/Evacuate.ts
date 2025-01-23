@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class Evacuate extends EventCard {
     protected override getImplementationId() {

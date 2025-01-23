@@ -1,18 +1,21 @@
 import type { Card } from './card/Card';
-import { IDistributeAmongTargetsPromptData } from './gameSteps/PromptInterfaces';
+import type { PromptType } from './Constants';
+import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData } from './gameSteps/PromptInterfaces';
 import type Player from './Player';
 
 export interface IPlayerPromptStateProperties {
-    buttons?: { text: string; arg?: string; command?: string; card?: Card }[];
+    buttons?: IButton[];
     menuTitle: string;
     promptUuid: string;
     promptTitle?: string;
+    promptType?: PromptType;
 
-    controls?: { type: string; source: any; targets: any }[];
     selectCard?: boolean;
     selectOrder?: boolean;
     distributeAmongTargets?: IDistributeAmongTargetsPromptData;
     dropdownListOptions?: string[];
+    displayCards?: IDisplayCard[];
+    perCardButtons?: IButton[];
 }
 
 export class PlayerPromptState {
@@ -22,65 +25,64 @@ export class PlayerPromptState {
     public menuTitle = '';
     public promptTitle = '';
     public promptUuid = '';
+    public promptType = '';
     public buttons = [];
-    public controls = [];
-    public dropdownListOptions = [];
+    public dropdownListOptions: string[] = [];
+    public displayCards: IDisplayCard[] = [];
+    public perCardButtons: IButton[] = [];
 
-    private selectableCards: Card[] = [];
-    private selectedCards?: Card[] = [];
+    private _selectableCards: Card[] = [];
+    private _selectedCards?: Card[] = [];
+
+    public get selectableCards() {
+        return this._selectableCards;
+    }
+
+    public get selectedCards() {
+        return this._selectedCards;
+    }
 
     public constructor(public player: Player) {}
 
     public setSelectedCards(cards: Card[]) {
-        this.selectedCards = cards;
+        this._selectedCards = cards;
     }
 
     public clearSelectedCards() {
-        this.selectedCards = [];
+        this._selectedCards = [];
     }
 
     public setSelectableCards(cards: Card[]) {
-        this.selectableCards = cards;
+        this._selectableCards = cards;
     }
 
     public clearSelectableCards() {
-        this.selectableCards = [];
+        this._selectableCards = [];
     }
 
     public setPrompt(prompt: IPlayerPromptStateProperties) {
         this.promptTitle = prompt.promptTitle;
+        this.promptType = prompt.promptType;
         this.selectCard = prompt.selectCard ?? false;
         this.selectOrder = prompt.selectOrder ?? false;
         this.menuTitle = prompt.menuTitle ?? '';
-        this.controls = prompt.controls ?? [];
         this.distributeAmongTargets = prompt.distributeAmongTargets;
         this.dropdownListOptions = prompt.dropdownListOptions ?? [];
         this.promptUuid = prompt.promptUuid;
-        this.buttons = !prompt.buttons
-            ? []
-            : prompt.buttons.map((button) => {
-                if (button.card) {
-                    const { card, ...properties } = button;
-                    return Object.assign(
-                        { text: card.name, arg: card.uuid, card: card.getShortSummary() },
-                        properties
-                    );
-                }
-
-                return button;
-            });
+        this.buttons = prompt.buttons ?? [];
+        this.displayCards = prompt.displayCards ?? [];
+        this.perCardButtons = prompt.perCardButtons ?? [];
     }
 
     public cancelPrompt() {
         this.selectCard = false;
         this.menuTitle = '';
         this.buttons = [];
-        this.controls = [];
     }
 
     public getCardSelectionState(card: Card) {
-        const selectable = this.selectableCards.includes(card);
-        const index = this.selectedCards?.indexOf(card) ?? -1;
+        const selectable = this._selectableCards.includes(card);
+        const index = this._selectedCards?.indexOf(card) ?? -1;
         const result = {
             selected: index !== -1,
             selectable: selectable,
@@ -103,8 +105,10 @@ export class PlayerPromptState {
             menuTitle: this.menuTitle,
             promptTitle: this.promptTitle,
             buttons: this.buttons,
-            controls: this.controls,
-            promptUuid: this.promptUuid
+            promptUuid: this.promptUuid,
+            promptType: this.promptType,
+            displayCards: this.displayCards,
+            perCardButtons: this.perCardButtons
         };
     }
 }

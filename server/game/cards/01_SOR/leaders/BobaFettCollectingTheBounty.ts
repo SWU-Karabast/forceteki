@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 
 export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
     private cardsLeftPlayThisPhaseWatcher: CardsLeftPlayThisPhaseWatcher;
@@ -50,7 +50,7 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {
-                    const opponentHasUnitsThatLeftPlayThisPhase = this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlayControlledByPlayer({ controller: context.source.controller.opponent, filter: (entry) => entry.card.isUnit() });
+                    const opponentHasUnitsThatLeftPlayThisPhase = this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ controller: context.source.controller.opponent, filter: (entry) => entry.card.isUnit() });
                     const playerHasResourcesToReady = context.source.controller.resources.some((resource) => resource.exhausted);
                     return opponentHasUnitsThatLeftPlayThisPhase && playerHasResourcesToReady;
                 },

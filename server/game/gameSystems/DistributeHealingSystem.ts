@@ -1,8 +1,10 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { Card } from '../core/card/Card';
 import { MetaEventName } from '../core/Constants';
+import type { DistributePromptType } from '../core/gameSteps/PromptInterfaces';
 import { StatefulPromptType } from '../core/gameSteps/PromptInterfaces';
-import { DistributeAmongTargetsSystem, IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
+import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
+import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
 import { HealSystem } from './HealSystem';
 
 export type IDistributeHealingSystemProperties<TContext extends AbilityContext = AbilityContext> = IDistributeAmongTargetsSystemProperties<TContext>;
@@ -15,7 +17,7 @@ export class DistributeHealingSystem<TContext extends AbilityContext = AbilityCo
     protected override readonly eventName = MetaEventName.DistributeHealing;
     public override readonly name = 'distributeHealing';
 
-    public override promptType = StatefulPromptType.DistributeHealing;
+    public override promptType: DistributePromptType = StatefulPromptType.DistributeHealing;
 
     protected override generateEffectSystem(target: Card = null, amount = 1): HealSystem {
         return new HealSystem({ target, amount });
@@ -24,5 +26,9 @@ export class DistributeHealingSystem<TContext extends AbilityContext = AbilityCo
     // most "distribute healing" abilities do not require all healing to be dealt
     protected override canDistributeLessDefault(): boolean {
         return true;
+    }
+
+    protected override getDistributedAmountFromEvent(event: any): number {
+        return event.damageRemoved;
     }
 }

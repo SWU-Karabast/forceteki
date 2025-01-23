@@ -1,6 +1,6 @@
 import { ZoneName } from '../Constants';
-import Game from '../Game';
-import Player from '../Player';
+import type Game from '../Game';
+import type Player from '../Player';
 import { ConcreteArenaZone } from './ConcreteArenaZone';
 
 export class GroundArenaZone extends ConcreteArenaZone {

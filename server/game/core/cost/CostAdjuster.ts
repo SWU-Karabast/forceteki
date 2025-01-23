@@ -1,7 +1,10 @@
+import type { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 import type { AbilityContext } from '../ability/AbilityContext';
-import { PerGameAbilityLimit, type IAbilityLimit } from '../ability/AbilityLimit';
+import type { IAbilityLimit } from '../ability/AbilityLimit';
+import { PerGameAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
-import { Aspect, CardTypeFilter, PlayType, WildcardCardType } from '../Constants';
+import type { Aspect, CardTypeFilter, PlayType } from '../Constants';
+import { WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 import * as Contract from '../../core/utils/Contract';
@@ -77,7 +80,7 @@ export class CostAdjuster {
 
     public constructor(
         private game: Game,
-        private source: Card,
+        protected source: Card,
         properties: ICostAdjusterProperties
     ) {
         this.costAdjustType = properties.costAdjustType;
@@ -104,6 +107,10 @@ export class CostAdjuster {
         if (this.limit) {
             this.limit.registerEvents(game);
         }
+    }
+
+    public isExploit(): this is ExploitPlayCardResourceCost {
+        return false;
     }
 
     public canAdjust(playingType: PlayType, card: Card, attachTarget?: Card, ignoredAspects?: Aspect): boolean {

@@ -1,8 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { GameSystem, type IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { Card } from '../core/card/Card';
-import { GameEvent } from '../core/event/GameEvent';
+import type { Card } from '../core/card/Card';
+import type { GameEvent } from '../core/event/GameEvent';
 import { MetaEventName } from '../core/Constants';
+import type { GameObject } from '../core/GameObject';
 
 export interface IExecuteHandlerSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     handler: (context: TContext) => void;
@@ -46,7 +47,7 @@ export class ExecuteHandlerSystem<TContext extends AbilityContext = AbilityConte
     }
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
-    protected override isTargetTypeValid(target: any): boolean {
+    protected override isTargetTypeValid(target: GameObject): boolean {
         return false;
     }
 }

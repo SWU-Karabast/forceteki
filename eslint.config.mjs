@@ -3,7 +3,9 @@ import globals from "globals";
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import stylistic from '@stylistic/eslint-plugin';
-import importPlugin from 'eslint-plugin-import';
+import eslintPluginImportX from 'eslint-plugin-import-x';
+import tsParser from '@typescript-eslint/parser';
+import unusedImports from "eslint-plugin-unused-imports";
 
 export default tseslint.config(
     {
@@ -13,14 +15,16 @@ export default tseslint.config(
         files: ["**/*.js", "**/*.ts"],
         ...jasmine.configs.recommended,
         ...eslint.configs.recommended,
-        ...importPlugin.flatConfigs.recommended,
+        ...eslintPluginImportX.flatConfigs.recommended,
+        ...eslintPluginImportX.flatConfigs.typescript,
         extends: [
             stylistic.configs['all-flat']
         ],
         plugins: {
             jasmine,
             '@stylistic': stylistic,
-            'import': importPlugin,
+            "unused-imports": unusedImports,
+            'import-x': eslintPluginImportX
         },
 
         languageOptions: {
@@ -41,7 +45,7 @@ export default tseslint.config(
             "jasmine/prefer-toHaveBeenCalledWith": 0,
             "jasmine/new-line-between-declarations": 2,
 
-            "import/newline-after-import": ["error"],
+            "import-x/newline-after-import": ["error"],
 
             "@stylistic/spaced-comment": ["error", "always"],
             "@stylistic/function-call-spacing": ["error", "never"],
@@ -94,6 +98,21 @@ export default tseslint.config(
             "no-useless-concat": ["warn"],
             "no-useless-constructor": ["warn"],
             "array-bracket-spacing": ["error", "never"],
+
+            // uncomment for checking import cycles (too slow to leave on all the time)
+            // "import-x/no-cycle": ["error"],
+
+            "no-unused-vars": "off", // or "@typescript-eslint/no-unused-vars": "off",
+            "unused-imports/no-unused-imports": "error",
+            "unused-imports/no-unused-vars": [
+                "warn",
+                {
+                    "vars": "all",
+                    "varsIgnorePattern": "^_",
+                    "args": "after-used",
+                    "argsIgnorePattern": "^_",
+                },
+            ]
         },
     },
     {
@@ -103,6 +122,14 @@ export default tseslint.config(
             ...tseslint.configs.strict,
             ...tseslint.configs.stylistic,
         ],
+        // uncomment for checking import cycles (too slow to leave on all the time)
+        // languageOptions: {
+        //     parser: tsParser,
+        //     sourceType: 'module',
+        //     parserOptions: {
+        //       projectService: true
+        //     }
+        // },
         rules: {
             "@typescript-eslint/no-unused-vars": ["error", {
                 "vars": "local",
@@ -120,7 +147,12 @@ export default tseslint.config(
             "@typescript-eslint/prefer-namespace-keyword": "off",
             "@typescript-eslint/explicit-member-accessibility": "error",
             "@typescript-eslint/no-namespace": "off",
-            "@stylistic/type-annotation-spacing": ["error"]
+            "@stylistic/type-annotation-spacing": ["error"],
+            "@typescript-eslint/consistent-type-imports": "error",
+
+            // uncomment for checking import cycles (too slow to leave on all the time)
+            // "import-x/no-cycle": ["error"],
+            // "@typescript-eslint/consistent-type-exports": "error",
         }
     },
     {
@@ -137,7 +169,7 @@ export default tseslint.config(
             "jasmine/prefer-toHaveBeenCalledWith": 0,
             "jasmine/new-line-between-declarations": 2,
 
-            "import/newline-after-import": ["error"],
+            "import-x/newline-after-import": ["error"],
 
             "@stylistic/spaced-comment": ["error", "always"],
             "@stylistic/function-call-spacing": ["error", "never"],

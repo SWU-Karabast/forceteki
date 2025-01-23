@@ -1,16 +1,17 @@
-import { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, RelativePlayer } from '../core/Constants';
-import { GameEvent } from '../core/event/GameEvent';
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { RelativePlayer } from '../core/Constants';
+import { EventName } from '../core/Constants';
+import type { GameEvent } from '../core/event/GameEvent';
+import type { GameObject } from '../core/GameObject';
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
-import { OngoingEffect } from '../core/ongoingEffect/OngoingEffect';
-import Player from '../core/Player';
+import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
+import type Player from '../core/Player';
 
-export interface IPlayerLastingEffectProperties extends ILastingEffectPropertiesBase {
+export type IPlayerLastingEffectProperties = ILastingEffectPropertiesBase & {
 
     /** Default is `RelativePlayer.Self` */
     targetPlayer?: RelativePlayer | Player;
-}
+};
 
 export class PlayerLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IPlayerLastingEffectProperties> {
     public override readonly name: string = 'applyPlayerLastingEffect';
@@ -50,7 +51,7 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
     }
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
-    protected override isTargetTypeValid(target: any): boolean {
+    protected override isTargetTypeValid(target: GameObject): boolean {
         return false;
     }
 }

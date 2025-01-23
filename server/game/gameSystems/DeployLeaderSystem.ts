@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { Card } from '../core/card/Card';
+import type { Card } from '../core/card/Card';
 import { CardType, EventName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
