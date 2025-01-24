@@ -19,12 +19,8 @@ export default class TripleDarkRaid extends EventCard {
                 cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle),
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 5 }
-                    }),
-                    AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => (context.targets[0].isUnit()),
-                        onTrue: AbilityHelper.immediateEffects.ready(),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
+                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 5 },
+                        entersReady: true
                     }),
                     AbilityHelper.immediateEffects.delayedCardEffect({
                         title: 'Return this to its owner\'s hand',
