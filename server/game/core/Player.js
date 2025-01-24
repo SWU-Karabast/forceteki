@@ -908,7 +908,7 @@ class Player extends GameObject {
     }
 
     get drawDeck() {
-        return this.deckZone.cards;
+        return this.deckZone.deck;
     }
 
     /**
@@ -1028,7 +1028,11 @@ class Player extends GameObject {
     }
 
     getSummaryForZone(zone, activePlayer) {
-        return this.getCardsInZone(zone).map((card) => {
+        const zoneCards = zone === ZoneName.Deck
+            ? this.drawDeck
+            : this.getCardsInZone(zone);
+
+        return zoneCards.map((card) => {
             return card.getSummary(activePlayer);
         });
     }

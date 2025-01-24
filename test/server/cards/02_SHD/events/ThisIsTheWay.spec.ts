@@ -39,7 +39,7 @@ describe('This is the Way', function () {
                 expect(context.player1).toHaveEnabledPromptButton('Done');
 
                 context.player1.clickPrompt('Done');
-                expect(context.getChatLogs(2)).toContain('player1 takes Sabine Wren and Devotion');
+                expect(context.getChatLogs(2)).toContain('player1 takes Devotion and Sabine Wren');
                 expect(context.sabineWren).toBeInZone('hand');
                 expect(context.devotion).toBeInZone('hand');
 
