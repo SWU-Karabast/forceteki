@@ -57,7 +57,8 @@ describe('Ephant Mon, Hea of Security', function () {
             context.player1.clickCard(context.ephantMon);
             context.player1.clickCard(context.p2Base);
 
-            // enemy selection is skipped because there isn't any unit to capture green squadron awing
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            context.player1.clickCard(context.wampa);
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ephantMon]);
             context.player1.clickCard(context.battlefieldMarine);
 

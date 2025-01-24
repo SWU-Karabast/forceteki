@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import { UnitCard } from '../../../core/card/CardTypes';
 
 export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
     protected override getImplementationId() {

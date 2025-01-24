@@ -1,8 +1,7 @@
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
-import { Card } from '../../../core/card/Card';
+import type { Card } from '../../../core/card/Card';
 import AbilityHelper from '../../../AbilityHelper';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class GeneralsBlade extends UpgradeCard {
     protected override getImplementationId() {
