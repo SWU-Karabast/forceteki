@@ -5,7 +5,6 @@ import type { GameObject } from '../core/GameObject';
 import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as Contract from '../core/utils/Contract';
-import { SimultaneousGameSystem } from './SimultaneousSystem';
 
 export interface IReplacementEffectSystemProperties<TContext extends TriggeredAbilityContext> extends IGameSystemProperties {
     effect?: string;
@@ -32,21 +31,12 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         if (replacementImmediateEffect) {
             const eventWindow = event.context.event.window;
             const events = [];
-            if (replacementImmediateEffect instanceof SimultaneousGameSystem) {
-                replacementImmediateEffect.generatePropertiesFromContext(event.context).gameSystems.forEach((sys) => {
-                    sys.queueGenerateEventGameSteps(
-                        events,
-                        event.context,
-                        Object.assign({ replacementEffect: true }, additionalProperties)
-                    );
-                });
-            } else {
-                replacementImmediateEffect.queueGenerateEventGameSteps(
-                    events,
-                    event.context,
-                    Object.assign({ replacementEffect: true }, additionalProperties)
-                );
-            }
+
+            replacementImmediateEffect.queueGenerateEventGameSteps(
+                events,
+                event.context,
+                Object.assign({ replacementEffect: true }, additionalProperties)
+            );
 
             Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
 
