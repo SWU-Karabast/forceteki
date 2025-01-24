@@ -805,6 +805,7 @@ export class Card extends OngoingEffectSource {
         if (this._zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this._zone.hiddenForPlayers === RelativePlayer.Opponent)) {
             const state = {
                 controller: this.controller.getShortSummary(),
+                owner: this.owner.getShortSummary(),
                 // menu: isActivePlayer ? this.getMenu() : undefined,
                 facedown: true,
                 zone: this.zoneName,
@@ -818,6 +819,8 @@ export class Card extends OngoingEffectSource {
             id: this.cardData.id,
             setId: this.setId,
             controlled: this.owner !== this.controller,
+            controller: this.controller.getShortSummary(),
+            owner: this.owner.getShortSummary(),
             aspects: this.aspects,
             // facedown: this.isFacedown(),
             zone: this.zoneName,
