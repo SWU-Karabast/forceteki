@@ -81,7 +81,7 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         }
 
         for (const gameSystem of properties.gameSystems) {
-            // If it's a replacement effect, just add them to events and lest the ReplacementEffectSystem handle them
+            // If it's a replacement effect, just add them to events and let the ReplacementEffectSystem handle them
             if (properties['replacementEffect'] === true) {
                 gameSystem.queueGenerateEventGameSteps(
                     events,
