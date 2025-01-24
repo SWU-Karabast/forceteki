@@ -1,4 +1,3 @@
-import { forEach } from 'underscore';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { AbilityType, GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -40,7 +39,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
                         event.context,
                         Object.assign({ replacementEffect: true }, additionalProperties)
                     );
-                })
+                });
             } else {
                 replacementImmediateEffect.queueGenerateEventGameSteps(
                     events,
@@ -48,21 +47,18 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
                     Object.assign({ replacementEffect: true }, additionalProperties)
                 );
             }
-            
 
             Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
 
             // TODO: refactor this to allow for "partial" replacement effects like Boba Fett's Armor or damage on draw from empty deck
-            events.forEach(replacementEvent => {
+            events.forEach((replacementEvent) => {
                 event.context.game.queueSimpleStep(() => {
                     event.context.event.setReplacementEvent(replacementEvent);
                     eventWindow.addEvent(replacementEvent);
                     triggerWindow.addReplacementEffectEvent(replacementEvent);
                 }, 'replacementEffect: replace window event');
-            })
-            
+            });
         }
-
         event.context.cancel();
     }
 

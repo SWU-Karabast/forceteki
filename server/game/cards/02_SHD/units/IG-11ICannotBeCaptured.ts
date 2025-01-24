@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName, WildcardCardType, RelativePlayer } from '../../../core/Constants';
+import { ZoneName } from '../../../core/Constants';
 
 export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -24,7 +24,7 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
                         return {
                             amount: 3,
                             target: context.game.getOtherPlayer(context.source._controller).getUnitsInPlay(ZoneName.GroundArena)
-                        }
+                        };
                     })
                 ], true)
             },
@@ -36,8 +36,8 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
             title: 'Deal 3 damage to a damaged ground unit',
             optional: true,
             targetResolver: {
-                cardCondition: (card) => card.isUnit() && card.damage >= 1 && card.zoneName == ZoneName.GroundArena,
-                immediateEffect: AbilityHelper.immediateEffects.damage({amount: 3 })
+                cardCondition: (card) => card.isUnit() && card.damage >= 1 && card.zoneName === ZoneName.GroundArena,
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 })
             }
         });
     }
