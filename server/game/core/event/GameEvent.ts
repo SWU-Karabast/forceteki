@@ -134,7 +134,6 @@ export class GameEvent {
     // TODO: refactor this to allow for "partial" replacement effects like Boba Fett's Armor
     public setReplacementEvent(replacementEvent: any) {
         Contract.assertNotNullLike(replacementEvent, `Attempting to set null replacementEvent for ${this.name}`);
-        Contract.assertIsNullLike(this.replacementEvent, `Attempting to set replacementEvent ${replacementEvent.name} for ${this.name} but it already has a value: ${this.replacementEvent?.name}`);
 
         this.replacementEvent = replacementEvent;
         this.resolutionStatus = EventResolutionStatus.REPLACED;

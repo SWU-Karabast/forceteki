@@ -1,3 +1,4 @@
+import { forEach } from 'underscore';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { AbilityType, GameStateChangeRequired, MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -5,6 +6,7 @@ import type { GameObject } from '../core/GameObject';
 import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import * as Contract from '../core/utils/Contract';
+import { SimultaneousGameSystem } from './SimultaneousSystem';
 
 export interface IReplacementEffectSystemProperties<TContext extends TriggeredAbilityContext> extends IGameSystemProperties {
     effect?: string;
@@ -31,25 +33,34 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         if (replacementImmediateEffect) {
             const eventWindow = event.context.event.window;
             const events = [];
-            replacementImmediateEffect.queueGenerateEventGameSteps(
-                events,
-                event.context,
-                Object.assign({ replacementEffect: true }, additionalProperties)
-            );
+            if (replacementImmediateEffect instanceof SimultaneousGameSystem) {
+                replacementImmediateEffect.generatePropertiesFromContext(event.context).gameSystems.forEach((sys) => {
+                    sys.queueGenerateEventGameSteps(
+                        events,
+                        event.context,
+                        Object.assign({ replacementEffect: true }, additionalProperties)
+                    );
+                })
+            } else {
+                replacementImmediateEffect.queueGenerateEventGameSteps(
+                    events,
+                    event.context,
+                    Object.assign({ replacementEffect: true }, additionalProperties)
+                );
+            }
+            
 
             Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
-            if (events.length > 1) {
-                throw new Error(`Multiple replacement events is not yet supported (replacement effect ${replacementImmediateEffect} for ${event.name} generated ${events.length} events)`);
-            }
-
-            const replacementEvent = events[0];
 
             // TODO: refactor this to allow for "partial" replacement effects like Boba Fett's Armor or damage on draw from empty deck
-            event.context.game.queueSimpleStep(() => {
-                event.context.event.setReplacementEvent(replacementEvent);
-                eventWindow.addEvent(replacementEvent);
-                triggerWindow.addReplacementEffectEvent(replacementEvent);
-            }, 'replacementEffect: replace window event');
+            events.forEach(replacementEvent => {
+                event.context.game.queueSimpleStep(() => {
+                    event.context.event.setReplacementEvent(replacementEvent);
+                    eventWindow.addEvent(replacementEvent);
+                    triggerWindow.addReplacementEffectEvent(replacementEvent);
+                }, 'replacementEffect: replace window event');
+            })
+            
         }
 
         event.context.cancel();
