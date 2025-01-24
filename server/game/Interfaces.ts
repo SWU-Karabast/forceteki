@@ -86,6 +86,11 @@ export interface IAbilityProps<TContext extends AbilityContext> {
      */
     optional?: boolean;
 
+    /**
+     * If optional is true, indicates which player will make the choice to resolve the optional ability (defaults to RelativePlayer.Self)
+     */
+    playerChoosingOptional?: RelativePlayer;
+
     /** Indicates which player controls this ability (e.g. for Bounty abilities, it is the opponent) */
     abilityController?: RelativePlayer;
 

@@ -1,6 +1,6 @@
 const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
 const { SimpleStep } = require('./SimpleStep.js');
-const { ZoneName, Stage, CardType, EventName, AbilityType } = require('../Constants.js');
+const { ZoneName, Stage, CardType, EventName, AbilityType, RelativePlayer } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
 const { EventWindow } = require('../event/EventWindow.js');
@@ -32,6 +32,9 @@ class AbilityResolver extends BaseStepWithPipeline {
             buttonText: this.context.ability.isAttackAction() ? 'Pass attack' : 'Pass ability',
             arg: 'passAbility',
             hasBeenShown: false,
+            playerChoosing: (this.context.ability.playerChoosingOptional ?? RelativePlayer.Self) === RelativePlayer.Self
+                ? this.context.player
+                : this.context.player.opponent,
             handler: () => {
                 this.cancelled = true;
                 this.resolutionComplete = true;
@@ -202,7 +205,7 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
             this.passAbilityHandler.hasBeenShown = true;
-            this.game.promptWithHandlerMenu(this.context.player, {
+            this.game.promptWithHandlerMenu(this.passAbilityHandler.playerChoosing, {
                 activePromptTitle: `Trigger the ability '${this.context.ability.title}' or pass`,
                 choices: [this.context.ability.title, 'Pass'],
                 handlers: [

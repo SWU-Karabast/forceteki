@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import { RelativePlayer } from '../../../core/Constants';
 
 export default class PoliticalPressure extends EventCard {
     protected override getImplementationId() {
@@ -13,6 +14,7 @@ export default class PoliticalPressure extends EventCard {
         this.setEventAbility({
             title: 'Discard a random card from your hand',
             optional: true,
+            playerChoosingOptional: RelativePlayer.Opponent,
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                 amount: 1,
                 random: true,

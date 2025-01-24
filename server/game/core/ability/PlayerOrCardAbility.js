@@ -49,6 +49,9 @@ class PlayerOrCardAbility {
         this.canResolveWithoutLegalTargets = false;
         this.abilityController = properties.abilityController ?? RelativePlayer.Self;
 
+        Contract.assertFalse(!this.optional && properties.playerChoosingOptional, 'Do not set playerChoosingOptional for non-optional abilities');
+        this.playerChoosingOptional = properties.playerChoosingOptional ?? RelativePlayer.Self;
+
         this.game = game;
         this.card = card;
         this.properties = properties;

@@ -20,7 +20,7 @@ export abstract class CardAbility extends CardAbilityStep {
         this.limit.ability = this;
 
         this.title = properties.title;
-        this.printedAbility = properties.printedAbility !== false;
+        this.printedAbility = properties.printedAbility ?? true;
         this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.gainAbilitySource = properties.gainAbilitySource;

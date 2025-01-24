@@ -33,8 +33,8 @@ describe('Political Pressure', function() {
 
                 // Opponent decides to create Battle Droids tokens
                 context.player1.clickCard(context.politicalPressure);
-                expect(context.player2).toHaveEnabledPromptButtons(['Discard a random card from your hand', 'Opponent creates 2 Battle Droid Tokens']);
-                context.player2.clickPrompt('Opponent creates 2 Battle Droid Tokens');
+                expect(context.player2).toHavePassAbilityPrompt('Discard a random card from your hand');
+                context.player2.clickPrompt('Pass');
                 const battleDroids = context.player1.findCardsByName('battle-droid');
                 expect(battleDroids.length).toBe(2);
                 expect(battleDroids).toAllBeInZone('groundArena');
