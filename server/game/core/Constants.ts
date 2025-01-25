@@ -227,6 +227,7 @@ export enum EventName {
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLookAtCard = 'onLookAtCard',
+    OnLookMoveDeckCards = 'onLookMoveDeckCards',
     OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
     OnPhaseCreated = 'onPhaseCreated',
