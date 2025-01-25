@@ -53,7 +53,7 @@ export class GameServer {
 
 
         const corsOptions = {
-            origin: ['http://localhost:3000', 'https://main.d1evalct238xbm.amplifyapp.com', 'https://karabast.net'],
+            origin: ['http://localhost:3000', 'https://main.d1evalct238xbm.amplifyapp.com', 'https://beta.karabast.net'],
             methods: ['GET', 'POST'],
             credentials: true, // Allow cookies or authorization headers
         };
@@ -69,7 +69,7 @@ export class GameServer {
             perMessageDeflate: false,
             path: '/ws',
             cors: {
-                origin: ['http://localhost:3000', 'https://main.d1evalct238xbm.amplifyapp.com', 'https://karabast.net'],
+                origin: ['http://localhost:3000', 'https://main.d1evalct238xbm.amplifyapp.com', 'https://beta.karabast.net'],
                 methods: ['GET', 'POST']
             }
         });
