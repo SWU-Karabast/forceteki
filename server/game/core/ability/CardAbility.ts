@@ -7,7 +7,6 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
 
 export abstract class CardAbility extends CardAbilityStep {
-    public readonly abilityController: RelativePlayer;
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;
     public readonly zoneFilter: ZoneFilter | ZoneFilter[];
@@ -21,11 +20,10 @@ export abstract class CardAbility extends CardAbilityStep {
         this.limit.ability = this;
 
         this.title = properties.title;
-        this.printedAbility = properties.printedAbility !== false;
+        this.printedAbility = properties.printedAbility ?? true;
         this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.gainAbilitySource = properties.gainAbilitySource;
-        this.abilityController = properties.abilityController ?? RelativePlayer.Self;
 
         // if an ability name wasn't provided, assume this ability was created for some one-off purpose and not attached to the card
         this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
