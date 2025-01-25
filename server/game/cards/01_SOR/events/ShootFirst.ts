@@ -22,5 +22,3 @@ export default class ShootFirst extends EventCard {
         });
     }
 }
-
-ShootFirst.implemented = true;

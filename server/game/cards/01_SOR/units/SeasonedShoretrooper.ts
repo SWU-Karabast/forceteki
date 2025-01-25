@@ -18,5 +18,3 @@ export default class SeasonedShoretrooper extends NonLeaderUnitCard {
         });
     }
 }
-
-SeasonedShoretrooper.implemented = true;

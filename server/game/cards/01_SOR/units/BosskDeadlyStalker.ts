@@ -24,5 +24,3 @@ export default class BosskDeadlyStalker extends NonLeaderUnitCard {
         });
     }
 }
-
-BosskDeadlyStalker.implemented = true;

@@ -27,5 +27,3 @@ export default class FightersForFreedom extends NonLeaderUnitCard {
         });
     }
 }
-
-FightersForFreedom.implemented = true;

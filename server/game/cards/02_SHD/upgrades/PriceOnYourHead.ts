@@ -20,5 +20,3 @@ export default class PriceOnYourHead extends UpgradeCard {
         });
     }
 }
-
-PriceOnYourHead.implemented = true;

@@ -23,5 +23,3 @@ export default class CovertStrength extends EventCard {
         });
     }
 }
-
-CovertStrength.implemented = true;

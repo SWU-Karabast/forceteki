@@ -50,5 +50,3 @@ export default class OmegaPartOfTheSquad extends NonLeaderUnitCard {
         );
     }
 }
-
-OmegaPartOfTheSquad.implemented = true;

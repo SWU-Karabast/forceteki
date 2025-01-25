@@ -38,5 +38,3 @@ export default class KyloRenRashAndDeadly extends LeaderUnitCard {
         });
     }
 }
-
-KyloRenRashAndDeadly.implemented = true;

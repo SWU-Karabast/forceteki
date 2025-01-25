@@ -29,5 +29,3 @@ export default class SoullessOneCustomizedForGrievous extends NonLeaderUnitCard 
         });
     }
 }
-
-SoullessOneCustomizedForGrievous.implemented = true;

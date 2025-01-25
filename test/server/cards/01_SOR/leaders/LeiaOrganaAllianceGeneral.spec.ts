@@ -60,7 +60,7 @@ describe('Leia Organa, Alliance General', function() {
                 expect(context.player1).toBeActivePlayer();
                 expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.fleetLieutenant, context.allianceXwing]);
                 expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.leiaOrgana.exhausted).toBe(true);

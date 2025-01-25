@@ -33,5 +33,3 @@ export default class UWingReinforcement extends EventCard {
         return costSum;
     }
 }
-
-UWingReinforcement.implemented = true;

@@ -37,5 +37,3 @@ export default class SneakAttack extends EventCard {
         });
     }
 }
-
-SneakAttack.implemented = true;

@@ -48,5 +48,3 @@ export default class UnlimitedPower extends EventCard {
         });
     }
 }
-
-UnlimitedPower.implemented = true;

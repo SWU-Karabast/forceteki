@@ -18,5 +18,3 @@ export default class HuntingNexu extends NonLeaderUnitCard {
         });
     }
 }
-
-HuntingNexu.implemented = true;

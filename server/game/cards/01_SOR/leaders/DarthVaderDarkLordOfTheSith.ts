@@ -61,5 +61,3 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
         );
     }
 }
-
-DarthVaderDarkLordOfTheSith.implemented = true;

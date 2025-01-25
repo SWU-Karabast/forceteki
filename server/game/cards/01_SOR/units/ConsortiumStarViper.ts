@@ -18,5 +18,3 @@ export default class ConsortiumStarViper extends NonLeaderUnitCard {
         });
     }
 }
-
-ConsortiumStarViper.implemented = true;

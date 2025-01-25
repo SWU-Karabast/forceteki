@@ -42,5 +42,3 @@ export default class BoldResistance extends EventCard {
         return true;
     }
 }
-
-BoldResistance.implemented = true;

@@ -19,5 +19,3 @@ export default class NoBargain extends EventCard {
         });
     }
 }
-
-NoBargain.implemented = true;

@@ -40,5 +40,3 @@ export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
         });
     }
 }
-
-HeraSyndullaSpectreTwo.implemented = true;

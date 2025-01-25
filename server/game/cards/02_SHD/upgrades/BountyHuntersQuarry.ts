@@ -30,5 +30,3 @@ export default class BountyHuntersQuarry extends UpgradeCard {
         });
     }
 }
-
-BountyHuntersQuarry.implemented = true;

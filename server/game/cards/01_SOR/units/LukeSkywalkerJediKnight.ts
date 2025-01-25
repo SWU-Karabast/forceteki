@@ -36,5 +36,3 @@ export default class LukeSkywalkerJediKnight extends NonLeaderUnitCard {
         });
     }
 }
-
-LukeSkywalkerJediKnight.implemented = true;

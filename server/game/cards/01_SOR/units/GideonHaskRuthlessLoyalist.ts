@@ -23,5 +23,3 @@ export default class GideonHaskRuthlessLoyalist extends NonLeaderUnitCard {
         });
     }
 }
-
-GideonHaskRuthlessLoyalist.implemented = true;

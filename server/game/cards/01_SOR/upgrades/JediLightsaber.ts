@@ -31,5 +31,3 @@ export default class JediLightsaber extends UpgradeCard {
         });
     }
 }
-
-JediLightsaber.implemented = true;
