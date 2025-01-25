@@ -18,5 +18,3 @@ export default class _41stEliteCorps extends NonLeaderUnitCard {
         });
     }
 }
-
-_41stEliteCorps.implemented = true;

@@ -16,5 +16,3 @@ export default class CaptainRexLeadByExample extends NonLeaderUnitCard {
         });
     }
 }
-
-CaptainRexLeadByExample.implemented = true;

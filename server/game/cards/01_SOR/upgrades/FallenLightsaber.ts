@@ -23,5 +23,3 @@ export default class FallenLightsaber extends UpgradeCard {
         });
     }
 }
-
-FallenLightsaber.implemented = true;

@@ -23,5 +23,3 @@ export default class AurraSingCrackshotSniper extends NonLeaderUnitCard {
         });
     }
 }
-
-AurraSingCrackshotSniper.implemented = true;

@@ -21,5 +21,3 @@ export default class HeavyPersuaderTank extends NonLeaderUnitCard {
         });
     }
 }
-
-HeavyPersuaderTank.implemented = true;

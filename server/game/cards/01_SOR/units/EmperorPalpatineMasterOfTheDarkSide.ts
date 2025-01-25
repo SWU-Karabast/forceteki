@@ -22,5 +22,3 @@ export default class EmperorPalpatineMasterOfTheDarkSide extends NonLeaderUnitCa
         });
     }
 }
-
-EmperorPalpatineMasterOfTheDarkSide.implemented = true;

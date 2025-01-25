@@ -18,5 +18,3 @@ export default class DroidCommando extends NonLeaderUnitCard {
         });
     }
 }
-
-DroidCommando.implemented = true;

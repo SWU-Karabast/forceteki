@@ -65,5 +65,3 @@ class PlayBamboozleAction extends PlayEventAction {
         );
     }
 }
-
-Bamboozle.implemented = true;

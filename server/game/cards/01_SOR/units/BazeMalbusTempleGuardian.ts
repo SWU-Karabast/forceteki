@@ -18,5 +18,3 @@ export default class BazeMalbusTempleGuardian extends NonLeaderUnitCard {
         });
     }
 }
-
-BazeMalbusTempleGuardian.implemented = true;

@@ -31,5 +31,3 @@ export default class UnmaskingTheConspirancy extends EventCard {
         });
     }
 }
-
-UnmaskingTheConspirancy.implemented = true;

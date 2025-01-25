@@ -42,5 +42,3 @@ export default class PrisonerOfWar extends EventCard {
         });
     }
 }
-
-PrisonerOfWar.implemented = true;
