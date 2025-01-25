@@ -831,6 +831,7 @@ export class Card extends OngoingEffectSource {
             cost: this.cardData.cost,
             power: this.cardData.power,
             hp: this.cardData.hp,
+            implemented: this.implemented,
             // popupMenuText: this.popupMenuText,
             // showPopup: this.showPopup,
             // tokens: this.tokens,
