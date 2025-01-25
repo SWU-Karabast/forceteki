@@ -14,8 +14,13 @@ export default class PoliticalPressure extends EventCard {
         this.setEventAbility({
             title: 'Discard a random card from your hand',
             optional: true,
-            abilityController: RelativePlayer.Opponent,
-            immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand({ amount: 1, random: true }),
+            playerChoosingOptional: RelativePlayer.Opponent,
+            optionalButtonTextOverride: 'Opponent creates 2 Battle Droid Tokens',
+            immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
+                amount: 1,
+                random: true,
+                target: context.player.opponent
+            })),
             ifYouDoNot: {
                 title: 'Opponent creates 2 Battle Droid Tokens',
                 immediateEffect: AbilityHelper.immediateEffects.createBattleDroid({ amount: 2 })

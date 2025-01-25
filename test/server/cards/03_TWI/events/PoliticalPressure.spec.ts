@@ -22,7 +22,8 @@ describe('Political Pressure', function() {
                 // Opponent discards a card no Battle Droids tokens are created
                 context.player1.clickCard(context.politicalPressure);
 
-                expect(context.player2).toHavePassAbilityPrompt('Discard a random card from your hand');
+                expect(context.player2).toHaveEnabledPromptButtons(['Discard a random card from your hand', 'Opponent creates 2 Battle Droid Tokens']);
+                context.player2.clickPrompt('Discard a random card from your hand');
                 expect(context.player2.getCardsInZone('discard').length).toBe(1);
                 expect(context.player1.getCardsInZone('groundArena').length).toBe(0); // No Battle Droids tokens are created
                 expect(context.player2.hand.length).toBe(2);
@@ -54,11 +55,11 @@ describe('Political Pressure', function() {
                 // Opponent choose to discard a card with empty hand and no Battle Droids tokens are created
                 context.player1.clickCard(context.politicalPressure);
 
+                // TODO: this probably shouldn't show a prompt at all since the discard effect won't fire, likely our resolution checks need some additional work around the optional: true case
                 expect(context.player2).toHaveEnabledPromptButtons(['Discard a random card from your hand', 'Opponent creates 2 Battle Droid Tokens']);
                 context.player2.clickPrompt('Discard a random card from your hand');
                 expect(context.player2.getCardsInZone('discard').length).toBe(0);
-                expect(context.player1.getCardsInZone('groundArena').length).toBe(0); // No Battle Droids tokens are created
-                expect(context.player2.hand.length).toBe(0);
+                expect(context.player1.getCardsInZone('groundArena').length).toBe(2); // Battle Droids tokens are created
             });
         });
     });
