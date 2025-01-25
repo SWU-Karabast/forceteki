@@ -34,5 +34,3 @@ export default class MagnaguardWingLeader extends NonLeaderUnitCard {
         });
     }
 }
-
-MagnaguardWingLeader.implemented = true;

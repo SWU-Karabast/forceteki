@@ -51,5 +51,3 @@ export default class AttackPatternDelta extends EventCard {
         });
     }
 }
-
-AttackPatternDelta.implemented = true;

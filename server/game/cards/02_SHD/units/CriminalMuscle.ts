@@ -22,5 +22,3 @@ export default class CriminalMuscle extends NonLeaderUnitCard {
         });
     }
 }
-
-CriminalMuscle.implemented = true;

@@ -31,5 +31,3 @@ export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
         });
     }
 }
-
-HomeOneAllianceFlagship.implemented = true;

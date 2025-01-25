@@ -31,5 +31,3 @@ export default class KashyyykDefender extends NonLeaderUnitCard {
         });
     }
 }
-
-KashyyykDefender.implemented = true;

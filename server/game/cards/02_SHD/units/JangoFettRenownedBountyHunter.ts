@@ -32,5 +32,3 @@ export default class JangoFettRenownedBountyHunter extends NonLeaderUnitCard {
         });
     }
 }
-
-JangoFettRenownedBountyHunter.implemented = true;

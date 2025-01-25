@@ -20,5 +20,3 @@ export default class GuerillaAttackPod extends NonLeaderUnitCard {
         });
     }
 }
-
-GuerillaAttackPod.implemented = true;

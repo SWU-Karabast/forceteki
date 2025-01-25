@@ -21,7 +21,7 @@ export class EventCard extends EventCardParent {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Event);
 
-        Contract.assertFalse(this.hasImplementationFile && !this._eventAbility, 'Event card\'s ability was not initialized');
+        Contract.assertFalse(this.implemented && !this._eventAbility, 'Event card\'s ability was not initialized');
 
         // currently the only constant abilities an event card can have are those that reduce cost, which are always active regardless of zone
         for (const constantAbility of this.constantAbilities) {
@@ -34,7 +34,7 @@ export class EventCard extends EventCardParent {
     }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
-        return new PlayEventAction(this, properties);
+        return new PlayEventAction(this.game, this, properties);
     }
 
     public override isTokenOrPlayable(): this is TokenOrPlayableCard {

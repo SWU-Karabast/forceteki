@@ -18,5 +18,3 @@ export default class FrontierATRT extends NonLeaderUnitCard {
         });
     }
 }
-
-FrontierATRT.implemented = true;

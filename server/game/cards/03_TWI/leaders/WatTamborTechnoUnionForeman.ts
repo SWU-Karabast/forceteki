@@ -53,5 +53,3 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
         });
     }
 }
-
-WatTamborTechnoUnionForeman.implemented = true;

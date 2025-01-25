@@ -18,5 +18,3 @@ export default class ProtectorOfTheThrone extends NonLeaderUnitCard {
         });
     }
 }
-
-ProtectorOfTheThrone.implemented = true;

@@ -33,5 +33,3 @@ export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
         });
     }
 }
-
-FettsFiresprayPursuingTheBounty.implemented = true;

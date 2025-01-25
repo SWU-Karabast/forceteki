@@ -15,5 +15,3 @@ export default class RepublicDefenseCarrier extends NonLeaderUnitCard {
         });
     }
 }
-
-RepublicDefenseCarrier.implemented = true;

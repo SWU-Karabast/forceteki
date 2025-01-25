@@ -48,5 +48,3 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
         });
     }
 }
-
-MaulShadowCollectiveVisionary.implemented = true;

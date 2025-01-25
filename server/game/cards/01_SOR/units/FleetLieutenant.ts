@@ -24,5 +24,3 @@ export default class FleetLieutenant extends NonLeaderUnitCard {
         });
     }
 }
-
-FleetLieutenant.implemented = true;

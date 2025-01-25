@@ -32,5 +32,3 @@ export default class TarffulKashyyykChieftain extends NonLeaderUnitCard {
         });
     }
 }
-
-TarffulKashyyykChieftain.implemented = true;
