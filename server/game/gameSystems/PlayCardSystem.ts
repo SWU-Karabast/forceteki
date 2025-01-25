@@ -59,6 +59,8 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
     private resolvePlayCardAbility(ability: PlayCardAction, event: any) {
         const newContext = ability.createContext(event.player);
+
+        // The event player is taking over control of the card here as they are playing it
         if (event.player !== event.card.controller) {
             event.card.setNewController(event.player);
         }
