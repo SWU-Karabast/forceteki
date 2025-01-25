@@ -52,6 +52,50 @@ class AbilityResolver extends BaseStepWithPipeline {
         ]);
     }
 
+    checkAbility() {
+        if (this.cancelled) {
+            return;
+        }
+
+        this.context.stage = Stage.PreTarget;
+
+        if (this.context.ability.meetsRequirements(this.context, [], true) !== '') {
+            this.cancelled = true;
+            this.resolutionComplete = true;
+            return;
+        }
+
+        // if the opponent is choosing whether or not to pass, show that prompt at this stage before any targeting / costs happen
+        if (this.passAbilityHandler?.playerChoosing !== this.context.player) {
+            this.checkForPass();
+        }
+    }
+
+    resolveEarlyTargets() {
+        if (this.cancelled) {
+            return;
+        }
+
+        if (!this.context.ability.cannotTargetFirst) {
+            // if the opponent is the one choosing whether to pass or not, we don't include the pass handler in the target resolver
+            const passAbilityHandler = this.passAbilityHandler?.playerChoosing === this.context.player ? this.passAbilityHandler : null;
+
+            this.targetResults = this.context.ability.resolveTargets(this.context, passAbilityHandler);
+        }
+    }
+
+    checkForCancelOrPass() {
+        if (this.cancelled) {
+            return;
+        }
+
+        this.checkTargetResultCancelState();
+
+        if (!this.cancelled && this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
+            this.checkForPass();
+        }
+    }
+
     // TODO: figure out our story for snapshots
     // createSnapshot() {
     //     if([CardType.Unit, CardType.Base, CardType.Leader, CardType.Upgrade].includes(this.context.source.getType())) {
@@ -118,48 +162,12 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.game.queueSimpleStep(() => this.executeHandler(), 'executeHandler');
     }
 
-    checkAbility() {
-        if (this.cancelled) {
-            return;
-        }
-
-        this.context.stage = Stage.PreTarget;
-
-        if (this.context.ability.meetsRequirements(this.context, [], true) !== '') {
-            this.cancelled = true;
-            this.resolutionComplete = true;
-        }
-    }
-
-    resolveEarlyTargets() {
-        if (this.cancelled) {
-            return;
-        }
-
-        if (!this.context.ability.cannotTargetFirst) {
-            this.targetResults = this.context.ability.resolveTargets(this.context, this.passAbilityHandler);
-        }
-    }
-
     checkForCancel() {
         if (this.cancelled) {
             return;
         }
 
         this.checkTargetResultCancelState();
-    }
-
-    checkForCancelOrPass() {
-        if (this.cancelled) {
-            return;
-        }
-
-        this.checkTargetResultCancelState();
-
-        if (!this.cancelled && this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
-            this.game.queueSimpleStep(() => this.checkForPass(), 'checkForPass');
-            return;
-        }
     }
 
     checkTargetResultCancelState() {
@@ -256,10 +264,10 @@ class AbilityResolver extends BaseStepWithPipeline {
             this.cancelled = true;
         } else if (this.targetResults.delayTargeting) {
             // Targeting was delayed due to an opponent needing to choose targets (which shouldn't happen until costs have been paid), so continue
-            this.targetResults = ability.resolveRemainingTargets(this.context, this.targetResults.delayTargeting, this.passAbilityHandler);
+            this.targetResults = ability.resolveRemainingTargets(this.context, this.targetResults.delayTargeting, null);
         } else if (this.targetResults.payCostsFirst || !ability.checkAllTargets(this.context)) {
             // Targeting was stopped by the player choosing to pay costs first, or one of the chosen targets is no longer legal. Retarget from scratch
-            this.targetResults = ability.resolveTargets(this.context, this.passAbilityHandler);
+            this.targetResults = ability.resolveTargets(this.context, null);
         }
     }
 
