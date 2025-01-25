@@ -21,5 +21,3 @@ export default class Takedown extends EventCard {
         });
     }
 }
-
-Takedown.implemented = true;

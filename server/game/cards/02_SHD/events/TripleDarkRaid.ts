@@ -34,5 +34,3 @@ export default class TripleDarkRaid extends EventCard {
         });
     }
 }
-
-TripleDarkRaid.implemented = true;

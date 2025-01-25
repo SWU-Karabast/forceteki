@@ -29,5 +29,3 @@ export default class ToroCalicanAmbitiousUpstart extends NonLeaderUnitCard {
         });
     }
 }
-
-ToroCalicanAmbitiousUpstart.implemented = true;

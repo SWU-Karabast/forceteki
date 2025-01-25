@@ -45,5 +45,3 @@ export default class PoeDameronQuickToImprovise extends NonLeaderUnitCard {
         });
     }
 }
-
-PoeDameronQuickToImprovise.implemented = true;

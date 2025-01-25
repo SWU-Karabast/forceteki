@@ -25,5 +25,3 @@ export default class TheChaosOfWar extends EventCard {
         });
     }
 }
-
-TheChaosOfWar.implemented = true;

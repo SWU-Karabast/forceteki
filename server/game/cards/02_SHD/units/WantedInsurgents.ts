@@ -20,5 +20,3 @@ export default class WantedInsurgents extends NonLeaderUnitCard {
         });
     }
 }
-
-WantedInsurgents.implemented = true;

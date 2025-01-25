@@ -19,5 +19,3 @@ export default class PetranakiArena extends BaseCard {
         });
     }
 }
-
-PetranakiArena.implemented = true;

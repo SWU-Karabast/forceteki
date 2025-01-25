@@ -18,5 +18,3 @@ export default class RelentlessRocketDroid extends NonLeaderUnitCard {
         });
     }
 }
-
-RelentlessRocketDroid.implemented = true;

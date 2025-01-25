@@ -24,5 +24,3 @@ export default class RogerRoger extends UpgradeCard {
         });
     }
 }
-
-RogerRoger.implemented = true;

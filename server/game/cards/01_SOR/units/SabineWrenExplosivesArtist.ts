@@ -27,5 +27,3 @@ export default class SabineWrenExplosivesArtist extends NonLeaderUnitCard {
         });
     }
 }
-
-SabineWrenExplosivesArtist.implemented = true;

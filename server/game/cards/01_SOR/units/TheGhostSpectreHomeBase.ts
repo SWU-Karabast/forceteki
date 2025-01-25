@@ -25,5 +25,3 @@ export default class TheGhostSpectreHomeBase extends NonLeaderUnitCard {
         });
     }
 }
-
-TheGhostSpectreHomeBase.implemented = true;

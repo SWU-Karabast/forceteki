@@ -25,5 +25,3 @@ export default class DengarTheDemolisher extends NonLeaderUnitCard {
         });
     }
 }
-
-DengarTheDemolisher.implemented = true;

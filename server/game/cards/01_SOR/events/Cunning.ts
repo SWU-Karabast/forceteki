@@ -41,5 +41,3 @@ export default class Cunning extends EventCard {
         });
     }
 }
-
-Cunning.implemented = true;

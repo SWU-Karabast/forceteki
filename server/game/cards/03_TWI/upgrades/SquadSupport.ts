@@ -26,5 +26,3 @@ export default class SquadSupport extends UpgradeCard {
         });
     }
 }
-
-SquadSupport.implemented = true;

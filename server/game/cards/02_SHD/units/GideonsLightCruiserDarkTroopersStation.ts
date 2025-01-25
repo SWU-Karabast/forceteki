@@ -31,5 +31,3 @@ export default class GideonsLightCruiserDarkTroopersStation extends NonLeaderUni
         });
     }
 }
-
-GideonsLightCruiserDarkTroopersStation.implemented = true;

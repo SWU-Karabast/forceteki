@@ -29,5 +29,3 @@ export default class TakeCaptive extends EventCard {
         });
     }
 }
-
-TakeCaptive.implemented = true;

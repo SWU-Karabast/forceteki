@@ -18,5 +18,3 @@ export default class SeparatistCommando extends NonLeaderUnitCard {
         });
     }
 }
-
-SeparatistCommando.implemented = true;

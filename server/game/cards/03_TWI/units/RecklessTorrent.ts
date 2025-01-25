@@ -37,5 +37,3 @@ export default class RecklessTorrent extends NonLeaderUnitCard {
         });
     }
 }
-
-RecklessTorrent.implemented = true;

@@ -29,5 +29,3 @@ export default class RoseTicoDedicatedToTheCause extends NonLeaderUnitCard {
         });
     }
 }
-
-RoseTicoDedicatedToTheCause.implemented = true;

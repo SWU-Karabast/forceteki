@@ -27,5 +27,3 @@ export default class VambraceFlamethrower extends UpgradeCard {
         });
     }
 }
-
-VambraceFlamethrower.implemented = true;
