@@ -88,6 +88,12 @@ export const isDeckMoveZone = (zoneName: MoveZoneDestination): boolean => {
     return zoneName === DeckZoneDestination.DeckBottom || zoneName === DeckZoneDestination.DeckTop;
 };
 
+export const isLeavingPlay = (prevZone: ZoneName, nextZone: MoveZoneDestination): boolean => {
+    const outOfPlayZones = [ZoneName.OutsideTheGame, ZoneName.Hand, ZoneName.Deck, ZoneName.Discard,
+        DeckZoneDestination.DeckBottom, DeckZoneDestination.DeckTop];
+    return !outOfPlayZones.includes(prevZone) && outOfPlayZones.includes(nextZone);
+}
+
 export const isUnit = (cardType: CardTypeFilter) => {
     switch (cardType) {
         case WildcardCardType.Unit:

@@ -475,6 +475,9 @@ export class Card extends OngoingEffectSource {
     public moveTo(targetZoneName: MoveZoneDestination, resetController = true) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
+        const prevZone = this.zoneName;
+        resetController = EnumHelpers.isLeavingPlay(prevZone, targetZoneName);
+
         // if we're moving to deck top / bottom, don't bother checking if we're already in the zone
         if (!([DeckZoneDestination.DeckBottom, DeckZoneDestination.DeckTop] as MoveZoneDestination[]).includes(targetZoneName)) {
             const originalZone = this._zone;
@@ -486,7 +489,6 @@ export class Card extends OngoingEffectSource {
             }
         }
 
-        const prevZone = this.zoneName;
         this.removeFromCurrentZone();
 
         if (resetController) {

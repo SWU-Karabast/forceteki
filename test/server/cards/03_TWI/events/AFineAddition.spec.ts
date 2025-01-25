@@ -6,14 +6,15 @@ describe('A Fine Addition', function () {
                 player1: {
                     hand: ['a-fine-addition', 'ahsokas-padawan-lightsaber'],
                     leader: 'darth-vader#dark-lord-of-the-sith',
-                    groundArena: ['battlefield-marine', 'death-star-stormtrooper'],
-                    discard: ['lukes-lightsaber'],
+                    groundArena: ['battlefield-marine', 'death-star-stormtrooper', 'snowspeeder'],
+                    discard: ['lukes-lightsaber', 'specforce-soldier'],
                     base: 'dagobah-swamp' // blue aspect for fine addition
                 },
                 player2: {
-                    hand: ['devotion'],
+                    hand: ['devotion', 'resilient'],
+                    leader: { card: 'finn#this-is-a-rescue', deployed: true },
                     groundArena: ['wampa', 'criminal-muscle'],
-                    discard: ['jedi-lightsaber']
+                    discard: ['jedi-lightsaber', 'open-fire']
                 }
             });
 
@@ -49,24 +50,31 @@ describe('A Fine Addition', function () {
 
             expect(context.criminalMuscle).toBeInZone('discard');
 
-            context.player2.passAction();
+            // Add an upgrade to wampa for Finn's ability later
+            context.player2.clickCard(context.resilient);
+            context.player2.clickCard(context.wampa);
 
             context.player1.clickCard(context.aFineAddition);
             expect(context.player1.exhaustedResourceCount).toBe(0);
 
             // Select upgrade from opponents discard
             expect(context.player1).toBeAbleToSelectExactly([context.jediLightsaber, context.lukesLightsaber, context.ahsokasPadawanLightsaber]);
-            expect(context.player1).not.toBeAbleToSelect(context.devotion);
             context.player1.clickCard(context.jediLightsaber);
 
             // Select attachment target
-            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa]);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa, context.finnThisIsARescue]);
             context.player1.clickCard(context.battlefieldMarine);
 
             expect(context.battlefieldMarine).toHaveExactUpgradeNames([context.jediLightsaber.internalName]);
             expect(context.player1.exhaustedResourceCount).toBe(3); // no aspect penalty applied
 
-            context.player2.passAction();
+            context.player2.clickCard(context.finnThisIsARescue);
+            context.player2.clickCard(context.p1Base);
+
+            expect(context.player2).toHavePrompt('Choose an upgrade');
+            expect(context.player2).toBeAbleToSelectExactly([context.resilient]);
+
+            context.player2.clickCard(context.resilient);
 
             // Restore for more testing
             context.aFineAddition.moveTo('hand');
@@ -75,11 +83,11 @@ describe('A Fine Addition', function () {
             expect(context.player1.exhaustedResourceCount).toBe(3);
 
             // Test player1's discard pile
-            expect(context.player1).toBeAbleToSelectExactly([context.lukesLightsaber, context.ahsokasPadawanLightsaber]);
+            expect(context.player1).toBeAbleToSelectExactly([context.lukesLightsaber, context.ahsokasPadawanLightsaber, context.resilient]);
             context.player1.clickCard(context.lukesLightsaber);
 
             // Select attachment target
-            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa]);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa, context.finnThisIsARescue]);
             context.player1.clickCard(context.battlefieldMarine);
 
             expect(context.battlefieldMarine).toHaveExactUpgradeNames([context.jediLightsaber.internalName, context.lukesLightsaber.internalName]);
@@ -94,11 +102,11 @@ describe('A Fine Addition', function () {
             expect(context.player1.exhaustedResourceCount).toBe(5);
 
             // Test player1's hand
-            expect(context.player1).toBeAbleToSelectExactly([context.ahsokasPadawanLightsaber]);
+            expect(context.player1).toBeAbleToSelectExactly([context.ahsokasPadawanLightsaber, context.resilient]);
             context.player1.clickCard(context.ahsokasPadawanLightsaber);
 
             // Select attachment target
-            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa]);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wampa, context.finnThisIsARescue]);
             context.player1.clickCard(context.battlefieldMarine);
 
             expect(context.battlefieldMarine).toHaveExactUpgradeNames([context.jediLightsaber.internalName, context.lukesLightsaber.internalName, context.ahsokasPadawanLightsaber.internalName]);

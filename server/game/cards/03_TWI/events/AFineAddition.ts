@@ -22,7 +22,7 @@ export default class AFineAddition extends EventCard {
     }
 
     protected wasEnemyUnitDefeatedThisPhaseForPlayer(player: Player): boolean {
-        return this.unitsDefeatedWatcher.getDefeatedUnitsControlledByPlayer(player).length >= 1;
+        return this.unitsDefeatedWatcher.someDefeatedUnitControlledByPlayer(player);
     }
 
     protected checkZoneAndOwnershipOfCard(card: Card, controllingPlayer: Player): boolean {
@@ -38,12 +38,10 @@ export default class AFineAddition extends EventCard {
                 zoneFilter: [ZoneName.Discard, ZoneName.Hand],
                 cardCondition: (card, context) => this.wasEnemyUnitDefeatedThisPhaseForPlayer(context.source.controller.opponent) && this.checkZoneAndOwnershipOfCard(card, context.source.controller),
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => {
-                        return context.target.zoneName === ZoneName.Discard;
-                    },
+                    condition: (context) => context.target.zoneName === ZoneName.Discard,
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                         adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
-                        canTargetOppponentZones: true
+                        canTargetOpponentZones: true
                     }),
                     onFalse: AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects }
