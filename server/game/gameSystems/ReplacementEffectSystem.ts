@@ -35,7 +35,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             replacementImmediateEffect.queueGenerateEventGameSteps(
                 events,
                 event.context,
-                Object.assign({ replacementEffect: true }, additionalProperties)
+                { ...additionalProperties, replacementEffect: true }
             );
 
             Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);

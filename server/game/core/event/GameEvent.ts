@@ -22,7 +22,7 @@ export class GameEvent {
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
     private _preResolutionEffect = null;
-    private replacementEvent: any = null;
+    private replacementEvents: any[] = [];
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
     private _window: EventWindow = null;
 
@@ -59,7 +59,7 @@ export class GameEvent {
             return false;
         }
 
-        return this.replacementEvent.isResolvedOrReplacementResolved;
+        return this.replacementEvents.every((event) => event.isResolvedOrReplacementResolved);
     }
 
     public get window(): EventWindow | null {
@@ -134,14 +134,16 @@ export class GameEvent {
     // TODO: refactor this to allow for "partial" replacement effects like Boba Fett's Armor
     public setReplacementEvent(replacementEvent: any) {
         Contract.assertNotNullLike(replacementEvent, `Attempting to set null replacementEvent for ${this.name}`);
+        Contract.assertNotNullLike(this.replacementEvents, 'GameEvent.replacementEvents can not be null');
 
-        this.replacementEvent = replacementEvent;
+        this.replacementEvents.push(replacementEvent);
         this.resolutionStatus = EventResolutionStatus.REPLACED;
     }
 
     public getResolutionEvent() {
-        if (this.replacementEvent) {
-            return this.replacementEvent.getResolutionEvent();
+        if (this.replacementEvents?.length > 0) {
+            // Currently if an event is replaced with multiple effects, they should all have the same root resolution event.
+            return this.replacementEvents[0].getResolutionEvent();
         }
         return this;
     }
