@@ -1,6 +1,6 @@
 import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
-import { AbilityType, GameStateChangeRequired, Stage } from '../Constants';
+import { AbilityType, GameStateChangeRequired, RelativePlayer, Stage } from '../Constants';
 import type { ITriggeredAbilityProps, WhenType } from '../../Interfaces';
 import type { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
@@ -93,6 +93,35 @@ export default class TriggeredAbility extends CardAbility {
                 window.addTriggeredAbilityToWindow(context);
             }
         }
+    }
+
+    public override meetsRequirements(context: TriggeredAbilityContext, ignoredRequirements: string[] = [], thisStepOnly: boolean = false): string {
+        let canPlayerTrigger: boolean;
+        let controller = context.source.controller;
+
+        // If the event's card is the source of the ability, use the last known controller of the card instead of the source's controller.
+        // This is because when resolving triggered abilities like "when defeated", the defeated card is in the discard pile already
+        // and it might have changed controller.
+        if (context.event.card === context.source && context.event.lastKnownInformation) {
+            controller = context.event.lastKnownInformation.controller;
+        }
+
+        switch (this.abilityController) {
+            case RelativePlayer.Self:
+                canPlayerTrigger = context.player === controller;
+                break;
+            case RelativePlayer.Opponent:
+                canPlayerTrigger = context.player === controller.opponent;
+                break;
+            default:
+                Contract.fail(`Unexpected value for relative player: ${this.abilityController}`);
+        }
+
+        if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
+            return 'player';
+        }
+
+        return super.meetsRequirements(context, [...ignoredRequirements, 'player'], thisStepOnly);
     }
 
     public override createContext(player = this.card.controller, event) {
