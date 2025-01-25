@@ -91,6 +91,11 @@ export interface IAbilityProps<TContext extends AbilityContext> {
      */
     playerChoosingOptional?: RelativePlayer;
 
+    /**
+     * Override the default 'Pass' button text
+     */
+    optionalButtonTextOverride?: string;
+
     /** Indicates which player controls this ability (e.g. for Bounty abilities, it is the opponent) */
     abilityController?: RelativePlayer;
 

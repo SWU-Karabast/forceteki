@@ -89,7 +89,7 @@ describe('The Mandalorian\'s Rifle', function () {
                 expect(context.atst).toBeCapturedBy(context.theMandalorian);
 
                 // pass mandalorian leader ability
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
                 expect(context.player2).toBeActivePlayer();
             });
         });

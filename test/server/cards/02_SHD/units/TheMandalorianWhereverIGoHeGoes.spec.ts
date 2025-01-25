@@ -39,7 +39,7 @@ describe('The Mandalorian, Wherever I Go He Goes', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.grogu, context.scoutBikePursuer]);
                 expect(context.player1).toHavePassAbilityButton();
 
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.grogu.damage).toBe(3);
                 expect(context.grogu.isUpgraded()).toBeFalse();

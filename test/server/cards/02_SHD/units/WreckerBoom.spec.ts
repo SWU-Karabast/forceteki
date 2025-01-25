@@ -50,7 +50,7 @@ describe('Wrecker, Boom!', function() {
 
                 // as we pass nothing happen
                 expect(context.player1.resources.length).toBe(6);
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
                 expect(context.player2).toBeActivePlayer();
             });
         });

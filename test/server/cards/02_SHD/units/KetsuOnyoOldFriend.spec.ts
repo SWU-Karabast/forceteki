@@ -34,7 +34,7 @@ describe('Ketsu Onyo, Old friend', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.groguIrresistible, context.pykeSentinel, context.chopperBase]);
                 context.player1.clickCard(context.chopperBase);
                 expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.heroicResolve, context.academyTraining]);
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 // CASE 2: Cannot defeat an upgrade after attacking a unit
                 reset();

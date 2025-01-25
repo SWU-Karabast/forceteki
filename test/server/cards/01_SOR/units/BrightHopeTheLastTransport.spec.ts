@@ -39,7 +39,7 @@ describe('Bright Hope, The Last Transport', function() {
                 expect(context.player1).toHavePassAbilityButton();
 
                 // pass and do not draw
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.player1.hand.length).toBe(0);
                 expect(context.battlefieldMarine.zoneName).toBe('groundArena');

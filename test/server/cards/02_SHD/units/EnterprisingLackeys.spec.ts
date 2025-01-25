@@ -54,7 +54,7 @@ describe('Enterprising Lackeys', function() {
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toHaveChooseNoTargetButton();
 
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 // as we pass nothing happen
                 expect(context.enterprisingLackeys).toBeInZone('discard');

@@ -21,7 +21,7 @@ describe('Imperial Interceptor', function() {
 
                 // Play Imperial Interceptor
                 context.player1.clickCard(context.imperialInterceptor);
-                expect(context.player1).toHaveEnabledPromptButtons(['Pass ability']);
+                expect(context.player1).toHaveEnabledPromptButtons(['Pass']);
                 expect(context.player1).toBeAbleToSelectExactly([context.systemPatrolCraft, context.gladiatorStarDestroyer, context.imperialInterceptor]);
 
                 // Select another target and apply damage
@@ -45,7 +45,7 @@ describe('Imperial Interceptor', function() {
                 context.player1.clickCard(context.imperialInterceptor);
 
                 // Pass the ability to damage another unit
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
                 expect(context.imperialInterceptor.damage).toEqual(0);
                 expect(context.gladiatorStarDestroyer.damage).toEqual(0);
                 expect(context.systemPatrolCraft.damage).toEqual(0);

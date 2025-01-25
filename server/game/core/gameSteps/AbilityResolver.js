@@ -28,8 +28,13 @@ class AbilityResolver extends BaseStepWithPipeline {
         // this is used when a triggered ability is marked optional to ensure that a "Pass" button
         // appears at the appropriate times during the prompt flow for that ability
         // TODO: add interface for this in Interfaces.ts when we convert to TS
+        if (this.context.ability.optionalButtonTextOverride) {
+            this.passButtonText = this.context.ability.optionalButtonTextOverride;
+        } else {
+            this.passButtonText = this.context.ability.isAttackAction() ? 'Pass attack' : 'Pass';
+        }
         this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
-            buttonText: this.context.ability.isAttackAction() ? 'Pass attack' : 'Pass ability',
+            buttonText: this.passButtonText,
             arg: 'passAbility',
             hasBeenShown: false,
             playerChoosing: (this.context.ability.playerChoosingOptional ?? RelativePlayer.Self) === RelativePlayer.Self
@@ -215,7 +220,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             this.passAbilityHandler.hasBeenShown = true;
             this.game.promptWithHandlerMenu(this.passAbilityHandler.playerChoosing, {
                 activePromptTitle: `Trigger the ability '${this.context.ability.title}' or pass`,
-                choices: [this.context.ability.title, 'Pass'],
+                choices: [this.context.ability.title, this.passAbilityHandler.buttonText],
                 handlers: [
                     () => {},
                     () => {

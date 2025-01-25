@@ -29,7 +29,7 @@ describe('Defeat timing', function() {
 
                 // vanguard on-defeat trigger happens next automatically
                 expect(context.player2).toBeAbleToSelectExactly([context.mazKanata, context.supremeLeaderSnoke]);
-                context.player2.clickPrompt('Pass ability');
+                context.player2.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
             });
@@ -64,7 +64,7 @@ describe('Defeat timing', function() {
                 expect(context.vanguardInfantry).toBeInZone('discard');
 
                 context.player2.clickPrompt('Give an Experience token to a unit');
-                context.player2.clickPrompt('Pass ability');
+                context.player2.clickPrompt('Pass');
 
                 // maz kanata on-play trigger happens next automatically
                 expect(context.mazKanata).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);

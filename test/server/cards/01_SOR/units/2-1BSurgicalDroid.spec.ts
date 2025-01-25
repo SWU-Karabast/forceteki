@@ -78,7 +78,7 @@ describe('2-1B Surgical Droid', function() {
                 context.player1.clickCard(context._21bSurgicalDroid);
                 context.player1.clickCard(context.p2Base);
 
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
                 expect(context._21bSurgicalDroid.exhausted).toBe(true);
                 expect(context.r2d2.damage).toBe(3);
             });

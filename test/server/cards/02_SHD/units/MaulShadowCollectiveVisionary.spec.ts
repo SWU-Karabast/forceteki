@@ -112,7 +112,7 @@ describe('Maul, Shadow Collective Visionary', function() {
 
                 // damage redirect prompt
                 expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany, context.cartelSpacer, context.greedo, context.krrsantan]);
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.maul.damage).toBe(4);
                 expect(context.luminaraUnduli.damage).toBe(7);

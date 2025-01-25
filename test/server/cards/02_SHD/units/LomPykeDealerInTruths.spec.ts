@@ -55,7 +55,7 @@ describe('Lom Pyke, Dealer in Truths', function() {
 
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.wampa]);
                 expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.cartelSpacer).toHaveExactUpgradeNames(['shield']);
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['shield']);

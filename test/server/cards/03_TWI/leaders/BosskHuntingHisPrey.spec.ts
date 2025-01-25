@@ -177,7 +177,7 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player2.clickCard(context.wantedInsurgents);
                 context.player2.clickCard(context.bossk);
                 expect(context.player1).toBeAbleToSelectExactly([context.bossk, context.trandoshanHunters]);
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
                 expect(context.player1).toBeActivePlayer();
 
                 resetPhase();

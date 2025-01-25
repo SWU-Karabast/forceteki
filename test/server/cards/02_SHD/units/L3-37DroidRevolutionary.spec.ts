@@ -56,7 +56,7 @@ describe('L3-37, Droid Revolutionary ability', function() {
                 context.player2.clickCard(context.l337DroidRevolutionary);
                 expect(context.player2).toBeAbleToSelectExactly([context.wingLeader]);
                 expect(context.player2).toHavePassAbilityButton();
-                context.player2.clickPrompt('Pass ability');
+                context.player2.clickPrompt('Pass');
 
                 expect(context.wingLeader).toBeCapturedBy(context.tielnFighter);
                 expect(context.player1).toBeActivePlayer();
