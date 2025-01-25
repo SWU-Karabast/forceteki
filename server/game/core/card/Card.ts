@@ -45,6 +45,7 @@ export class Card extends OngoingEffectSource {
     public readonly unique: boolean;
 
     protected override readonly id: string;
+    protected readonly implemented: boolean;
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
@@ -53,7 +54,6 @@ export class Card extends OngoingEffectSource {
     protected constantAbilities: IConstantAbility[] = [];
     protected _controller: Player;
     protected _facedown = true;
-    protected hasImplementationFile: boolean;   // this will be set by the ability setup methods
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
 
@@ -111,7 +111,12 @@ export class Card extends OngoingEffectSource {
         super(owner.game, cardData.title);
 
         this.validateCardData(cardData);
-        this.validateImplementationId(cardData);
+
+        const implementationId = this.getImplementationId();
+        this.implemented = implementationId !== null;
+        if (implementationId) {
+            this.validateImplementationId(implementationId, cardData);
+        }
 
         this.aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
         this.internalName = cardData.internalName;
@@ -220,14 +225,11 @@ export class Card extends OngoingEffectSource {
     /**
      * If this is a subclass implementation of a specific card, validate that it matches the provided card data
      */
-    private validateImplementationId(cardData: any): void {
-        const implementationId = this.getImplementationId();
-        if (implementationId) {
-            if (cardData.id !== implementationId.id || cardData.internalName !== implementationId.internalName) {
-                throw new Error(
-                    `Provided card data { ${cardData.id}, ${cardData.internalName} } does not match the data from the card class: { ${implementationId.id}, ${implementationId.internalName} }. Confirm that you are matching the card data to the right card implementation class.`
-                );
-            }
+    private validateImplementationId(implementationId: { internalName: string; id: string }, cardData: any): void {
+        if (cardData.id !== implementationId.id || cardData.internalName !== implementationId.internalName) {
+            throw new Error(
+                `Provided card data { ${cardData.id}, ${cardData.internalName} } does not match the data from the card class: { ${implementationId.id}, ${implementationId.internalName} }. Confirm that you are matching the card data to the right card implementation class.`
+            );
         }
     }
 
