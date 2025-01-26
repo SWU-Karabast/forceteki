@@ -95,8 +95,7 @@ export default class TriggeredAbility extends CardAbility {
         }
     }
 
-    public override meetsRequirements(context: TriggeredAbilityContext, ignoredRequirements: string[] = [], thisStepOnly: boolean = false): string {
-        let canPlayerTrigger: boolean;
+    public override controllerMeetsRequirements(context): boolean {
         let controller = context.source.controller;
 
         // If the event's card is the source of the ability, use the last known controller of the card instead of the source's controller.
@@ -108,20 +107,12 @@ export default class TriggeredAbility extends CardAbility {
 
         switch (this.abilityController) {
             case RelativePlayer.Self:
-                canPlayerTrigger = context.player === controller;
-                break;
+                return context.player === controller;
             case RelativePlayer.Opponent:
-                canPlayerTrigger = context.player === controller.opponent;
-                break;
+                return context.player === controller.opponent;
             default:
                 Contract.fail(`Unexpected value for relative player: ${this.abilityController}`);
         }
-
-        if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
-            return 'player';
-        }
-
-        return super.meetsRequirements(context, [...ignoredRequirements, 'player'], thisStepOnly);
     }
 
     public override createContext(player = this.card.controller, event) {

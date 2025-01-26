@@ -53,20 +53,19 @@ export abstract class CardAbility extends CardAbilityStep {
         Contract.fail(`Unknown card type for card: ${card.internalName}`);
     }
 
-    public override meetsRequirements(context, ignoredRequirements: string[] = [], thisStepOnly = false) {
-        let canPlayerTrigger: boolean;
+    public controllerMeetsRequirements(context) {
         switch (this.abilityController) {
             case RelativePlayer.Self:
-                canPlayerTrigger = context.player === context.source.controller;
-                break;
+                return context.player === context.source.controller;
             case RelativePlayer.Opponent:
-                canPlayerTrigger = context.player === context.source.controller.opponent;
-                break;
+                return context.player === context.source.controller.opponent;
             default:
                 Contract.fail(`Unexpected value for relative player: ${this.abilityController}`);
         }
+    }
 
-        if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
+    public override meetsRequirements(context, ignoredRequirements: string[] = [], thisStepOnly = false) {
+        if (!ignoredRequirements.includes('player') && !this.controllerMeetsRequirements(context)) {
             return 'player';
         }
 
