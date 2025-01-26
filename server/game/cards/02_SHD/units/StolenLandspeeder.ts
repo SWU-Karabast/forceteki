@@ -13,7 +13,7 @@ export default class StolenLandspeeder extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'If you played this unit from your hand, an opponent takes control of it',
+            title: 'An opponent takes control of it',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source && event.playType === PlayType.PlayFromHand
             },
