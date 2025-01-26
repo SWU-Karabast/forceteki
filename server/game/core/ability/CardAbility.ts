@@ -53,7 +53,7 @@ export abstract class CardAbility extends CardAbilityStep {
         Contract.fail(`Unknown card type for card: ${card.internalName}`);
     }
 
-    public controllerMeetsRequirements(context) {
+    protected controllerMeetsRequirements(context) {
         switch (this.abilityController) {
             case RelativePlayer.Self:
                 return context.player === context.source.controller;

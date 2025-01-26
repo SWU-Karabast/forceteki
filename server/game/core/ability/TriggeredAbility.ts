@@ -95,7 +95,7 @@ export default class TriggeredAbility extends CardAbility {
         }
     }
 
-    public override controllerMeetsRequirements(context): boolean {
+    protected override controllerMeetsRequirements(context): boolean {
         let controller = context.source.controller;
 
         // If the event's card is the source of the ability, use the last known controller of the card instead of the source's controller.
