@@ -140,14 +140,6 @@ export class GameEvent {
         this.resolutionStatus = EventResolutionStatus.REPLACED;
     }
 
-    public getResolutionEvent() {
-        if (this.replacementEvents?.length > 0) {
-            // Currently if an event is replaced with multiple effects, they should all have the same root resolution event.
-            return this.replacementEvents[0].getResolutionEvent();
-        }
-        return this;
-    }
-
     public setContingentEventsGenerator(generator: (event) => any[]) {
         Contract.assertIsNullLike(this.contingentEventsGenerator, 'Attempting to set contingentEventsGenerator but it already has a value');
 
