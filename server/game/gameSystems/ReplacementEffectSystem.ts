@@ -31,27 +31,24 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         if (replacementImmediateEffect) {
             const eventWindow = event.context.event.window;
             const events = [];
+
             replacementImmediateEffect.queueGenerateEventGameSteps(
                 events,
                 event.context,
-                Object.assign({ replacementEffect: true }, additionalProperties)
+                { ...additionalProperties, replacementEffect: true }
             );
 
             Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
-            if (events.length > 1) {
-                throw new Error(`Multiple replacement events is not yet supported (replacement effect ${replacementImmediateEffect} for ${event.name} generated ${events.length} events)`);
-            }
-
-            const replacementEvent = events[0];
 
             // TODO: refactor this to allow for "partial" replacement effects like Boba Fett's Armor or damage on draw from empty deck
-            event.context.game.queueSimpleStep(() => {
-                event.context.event.setReplacementEvent(replacementEvent);
-                eventWindow.addEvent(replacementEvent);
-                triggerWindow.addReplacementEffectEvent(replacementEvent);
-            }, 'replacementEffect: replace window event');
+            events.forEach((replacementEvent) => {
+                event.context.game.queueSimpleStep(() => {
+                    event.context.event.setReplacementEvent(replacementEvent);
+                    eventWindow.addEvent(replacementEvent);
+                    triggerWindow.addReplacementEffectEvent(replacementEvent);
+                }, 'replacementEffect: replace window event');
+            });
         }
-
         event.context.cancel();
     }
 

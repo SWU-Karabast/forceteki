@@ -49,7 +49,7 @@ export class Lobby {
         );
         this._id = uuid();
         this.gameChat = new GameChat();
-        this.connectionLink = lobbyGameType !== MatchType.Quick ? `http://localhost:3000/lobby?lobbyId=${this._id}` : null;
+        this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
         this.gameType = lobbyGameType;
     }
@@ -76,6 +76,12 @@ export class Lobby {
             gameType: this.gameType,
             rematchRequest: this.rematchRequest,
         };
+    }
+
+    private createLobbyLink(): string {
+        return process.env.NODE_ENV === 'development'
+            ? `http://localhost:3000/lobby?lobbyId=${this._id}`
+            : `https://beta.karabast.com/lobby?lobbyId=${this._id}`;
     }
 
     public createLobbyUser(user, deck = null): void {

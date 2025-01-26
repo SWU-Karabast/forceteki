@@ -171,5 +171,36 @@ describe('Defeat timing', function() {
                 expect(context.superlaserTechnician).toBeInZone('resource');
             });
         });
+
+        describe('When a unit not controlled by the owner is defeated,', function() {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['change-of-heart'],
+                        groundArena: ['wampa', 'super-battle-droid'],
+                    },
+                    player2: {
+                        groundArena: ['vanguard-infantry', 'battlefield-marine', 'patrolling-aat'],
+                    },
+                });
+            });
+
+            it('"when defeated" triggers should be resolved by the controller', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.vanguardInfantry);
+                expect(context.vanguardInfantry).toBeInZone('groundArena', context.player1);
+
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.vanguardInfantry);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toHaveExactUpgradeNames(['experience']);
+
+                expect(context.player1).toBeActivePlayer();
+            });
+        });
     });
 });
