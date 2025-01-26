@@ -34,7 +34,7 @@ describe('Stolen Landspeeder', function () {
             expect(context.stolenLandspeeder).toBeInZone('groundArena', context.player1);
             expect(context.stolenLandspeeder).toHaveExactUpgradeNames(['experience']);
 
-            // Player 2 kills Stolen Landspeeder and cannot collect the bounty
+            // Player 2 kills Stolen Landspeeder
             context.player2.clickCard(context.wampa);
             context.player2.clickCard(context.stolenLandspeeder);
 
