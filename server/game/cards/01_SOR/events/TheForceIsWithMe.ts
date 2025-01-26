@@ -28,5 +28,3 @@ export default class TheForceIsWithMe extends EventCard {
         });
     }
 }
-
-TheForceIsWithMe.implemented = true;

@@ -20,5 +20,3 @@ export default class OpenFire extends EventCard {
         });
     }
 }
-
-OpenFire.implemented = true;

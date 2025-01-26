@@ -26,5 +26,3 @@ export default class NoGoodToMeDead extends EventCard {
         });
     }
 }
-
-NoGoodToMeDead.implemented = true;

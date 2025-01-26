@@ -20,5 +20,3 @@ export default class WildRancor extends NonLeaderUnitCard {
         });
     }
 }
-
-WildRancor.implemented = true;

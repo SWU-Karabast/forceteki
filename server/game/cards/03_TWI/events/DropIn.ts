@@ -16,5 +16,3 @@ export default class DropIn extends EventCard {
         });
     }
 }
-
-DropIn.implemented = true;

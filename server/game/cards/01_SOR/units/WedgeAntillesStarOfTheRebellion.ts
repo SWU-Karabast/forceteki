@@ -23,5 +23,3 @@ export default class WedgeAntillesStarOfTheRebellion extends NonLeaderUnitCard {
         });
     }
 }
-
-WedgeAntillesStarOfTheRebellion.implemented = true;

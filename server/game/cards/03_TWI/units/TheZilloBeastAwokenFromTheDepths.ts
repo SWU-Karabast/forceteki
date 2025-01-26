@@ -28,5 +28,3 @@ export default class TheZilloBeastAwokenFromTheDepths extends NonLeaderUnitCard 
         });
     }
 }
-
-TheZilloBeastAwokenFromTheDepths.implemented = true;

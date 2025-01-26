@@ -21,5 +21,3 @@ export default class DesperateAttack extends EventCard {
         });
     }
 }
-
-DesperateAttack.implemented = true;

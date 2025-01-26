@@ -28,5 +28,3 @@ export default class FreelanceAssassin extends NonLeaderUnitCard {
         });
     }
 }
-
-FreelanceAssassin.implemented = true;

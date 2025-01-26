@@ -48,6 +48,4 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
     }
 }
 
-FennecShandHonoringTheDeal.implemented = true;
-
 

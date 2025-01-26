@@ -31,5 +31,3 @@ export default class AaylaSecuraMasterOfTheBlade extends NonLeaderUnitCard {
         });
     }
 }
-
-AaylaSecuraMasterOfTheBlade.implemented = true;

@@ -27,5 +27,3 @@ export default class RedemptionMedicalFrigate extends NonLeaderUnitCard {
         });
     }
 }
-
-RedemptionMedicalFrigate.implemented = true;
