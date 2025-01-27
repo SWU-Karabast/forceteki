@@ -56,9 +56,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                         leader: 'han-solo#audacious-smuggler',
                         base: 'chopper-base',
                         hand: ['millennium-falcon#piece-of-junk', 'wampa'],
-                        resources: [
-                            'atst', 'atst'
-                        ]
+                        resources: 2
                     }
                 });
             });
