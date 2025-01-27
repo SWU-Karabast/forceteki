@@ -252,7 +252,9 @@ export class Card extends OngoingEffectSource {
 
         const abilityLines = abilityText.split('\n');
 
-        const keywords = Object.values(KeywordName);
+        // bounty and coordinate keywords always require explicit implementation so we omit them from here
+        const keywords = Object.values(KeywordName)
+            .filter((keyword) => keyword !== KeywordName.Bounty && keyword !== KeywordName.Coordinate);
 
         for (const abilityLine of abilityLines) {
             if (abilityLine.trim().length === 0) {
