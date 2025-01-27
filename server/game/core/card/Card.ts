@@ -4,7 +4,8 @@ import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
-import type { KeywordName, MoveZoneDestination } from '../Constants';
+import type { MoveZoneDestination } from '../Constants';
+import { KeywordName } from '../Constants';
 import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { AbilityContext } from '../ability/AbilityContext';
@@ -45,7 +46,8 @@ export class Card extends OngoingEffectSource {
     public readonly unique: boolean;
 
     protected override readonly id: string;
-    protected readonly implemented: boolean;
+    protected readonly hasNonKeywordAbilityText: boolean;
+    protected readonly hasImplementationFile: boolean;
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
@@ -113,10 +115,12 @@ export class Card extends OngoingEffectSource {
         this.validateCardData(cardData);
 
         const implementationId = this.getImplementationId();
-        this.implemented = implementationId !== null;
+        this.hasImplementationFile = implementationId !== null;
         if (implementationId) {
             this.validateImplementationId(implementationId, cardData);
         }
+
+        this.hasNonKeywordAbilityText = this.isLeader() || this.checkHasNonKeywordAbilityText(cardData.text);
 
         this.aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
         this.internalName = cardData.internalName;
@@ -239,6 +243,34 @@ export class Card extends OngoingEffectSource {
      */
     protected getImplementationId(): null | { internalName: string; id: string } {
         return null;
+    }
+
+    private checkHasNonKeywordAbilityText(abilityText?: string) {
+        if (abilityText == null) {
+            return false;
+        }
+
+        const abilityLines = abilityText.split('\n');
+
+        // bounty and coordinate keywords always require explicit implementation so we omit them from here
+        const keywords = Object.values(KeywordName)
+            .filter((keyword) => keyword !== KeywordName.Bounty && keyword !== KeywordName.Coordinate);
+
+        for (const abilityLine of abilityLines) {
+            if (abilityLine.trim().length === 0) {
+                continue;
+            }
+
+            const lowerCaseAbilityLine = abilityLine.toLowerCase();
+
+            if (keywords.some((keyword) => lowerCaseAbilityLine.startsWith(keyword))) {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     protected unpackConstructorArgs(...args: any[]): [Player, any] {
@@ -831,7 +863,7 @@ export class Card extends OngoingEffectSource {
             cost: this.cardData.cost,
             power: this.cardData.power,
             hp: this.cardData.hp,
-            implemented: this.implemented,
+            implemented: !this.hasNonKeywordAbilityText || this.hasImplementationFile,  // we consider a card "implemented" if it doesn't require any implementation
             // popupMenuText: this.popupMenuText,
             // showPopup: this.showPopup,
             // tokens: this.tokens,
