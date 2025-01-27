@@ -36,7 +36,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         return super.continue();
     }
 
-    public highlightSelectableCards() {
+    protected override highlightSelectableCards() {
         this.game.getPlayers().forEach((player) => {
             // cards are only selectable until we've selected as many as allowed
             if (!this.selectableCards[player.name] && !this.completionCondition(player)) {
@@ -124,11 +124,6 @@ export class ResourcePrompt extends AllPlayerPrompt {
 
     public override complete() {
         this.game.getPlayers().forEach((player) => this.resourceSelectedCards(player));
-
-        for (const player of this.game.getPlayers()) {
-            player.clearSelectedCards();
-            player.clearSelectableCards();
-        }
 
         return super.complete();
     }
