@@ -24,17 +24,7 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
                         readyResource: true
                     })
                 }),
-                AbilityHelper.immediateEffects.delayedPlayerEffect({
-                    title: 'Defeat a resource you control',
-                    when: {
-                        onPhaseStarted: (context) => context.phase === PhaseName.Action, // Should we make some sort of short-hand/easier way for this?
-                    },
-                    immediateEffect: AbilityHelper.immediateEffects.selectCard({
-                        controller: RelativePlayer.Self,
-                        zoneFilter: ZoneName.Resource,
-                        innerSystem: AbilityHelper.immediateEffects.defeat()
-                    })
-                })
+                this.buildHanDelayedEffect()
             ])
         });
     }
@@ -47,22 +37,12 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
                     target: context.player.getTopCardOfDeck(),
                     readyResource: true
                 })),
-                AbilityHelper.immediateEffects.delayedPlayerEffect({
-                    title: 'Defeat a resource you control',
-                    when: {
-                        onPhaseStarted: (context) => context.phase === PhaseName.Action, // Should we make some sort of short-hand/easier way for this?
-                    },
-                    immediateEffect: AbilityHelper.immediateEffects.selectCard({
-                        controller: RelativePlayer.Self,
-                        zoneFilter: ZoneName.Resource,
-                        innerSystem: AbilityHelper.immediateEffects.defeat()
-                    })
-                })
+                this.buildHanDelayedEffect()
             ])
         });
     }
 
-    private buildHanResourceDefeat(): GameSystem<TriggeredAbilityContext<this>> {
+    private buildHanDelayedEffect(): GameSystem<TriggeredAbilityContext<this>> {
         return AbilityHelper.immediateEffects.delayedPlayerEffect({
             title: 'Defeat a resource you control',
             when: {
@@ -71,6 +51,8 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.selectCard({
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
+                optional: false,
+                activePromptTitle: 'Defeat a resource you control',
                 innerSystem: AbilityHelper.immediateEffects.defeat()
             })
         });
