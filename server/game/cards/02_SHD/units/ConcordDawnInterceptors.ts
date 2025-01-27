@@ -17,5 +17,3 @@ export default class ConcordDawnInterceptors extends NonLeaderUnitCard {
         });
     }
 }
-
-ConcordDawnInterceptors.implemented = true;

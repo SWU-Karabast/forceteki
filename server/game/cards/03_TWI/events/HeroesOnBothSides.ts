@@ -46,5 +46,3 @@ export default class HeroesOnBothSides extends EventCard {
         });
     }
 }
-
-HeroesOnBothSides.implemented = true;

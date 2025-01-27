@@ -31,5 +31,3 @@ export default class PrivateManufacturing extends EventCard {
         });
     }
 }
-
-PrivateManufacturing.implemented = true;

@@ -40,5 +40,3 @@ export default class HondoOhnakaThatsGoodBusiness extends LeaderUnitCard {
         });
     }
 }
-
-HondoOhnakaThatsGoodBusiness.implemented = true;

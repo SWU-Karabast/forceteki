@@ -23,5 +23,3 @@ export default class LowAltitudeGunship extends NonLeaderUnitCard {
         });
     }
 }
-
-LowAltitudeGunship.implemented = true;

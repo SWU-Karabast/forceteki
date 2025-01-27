@@ -25,5 +25,3 @@ export default class TobiasBeckettITrustNoOne extends NonLeaderUnitCard {
         });
     }
 }
-
-TobiasBeckettITrustNoOne.implemented = true;

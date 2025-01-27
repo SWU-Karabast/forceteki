@@ -21,5 +21,3 @@ export default class Recruit extends EventCard {
     }
 }
 
-Recruit.implemented = true;
-

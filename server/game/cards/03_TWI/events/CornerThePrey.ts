@@ -22,5 +22,3 @@ export default class CornerThePrey extends EventCard {
         });
     }
 }
-
-CornerThePrey.implemented = true;

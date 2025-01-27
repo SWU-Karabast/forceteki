@@ -22,5 +22,3 @@ export default class Wanted extends UpgradeCard {
         });
     }
 }
-
-Wanted.implemented = true;

@@ -85,5 +85,3 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         });
     }
 }
-
-JabbaTheHuttHisHighExaltedness.implemented = true;

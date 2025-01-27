@@ -35,5 +35,3 @@ export default class LookTheOtherWay extends EventCard {
         });
     }
 }
-
-LookTheOtherWay.implemented = true;

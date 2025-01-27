@@ -35,5 +35,3 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
         });
     }
 }
-
-KrrsantanMuscleForHire.implemented = true;

@@ -22,5 +22,3 @@ export default class BreakingIn extends EventCard {
         });
     }
 }
-
-BreakingIn.implemented = true;

@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
-import https from 'https';
 import express from 'express';
 import cors from 'cors';
 import type { Socket as IOSocket, DefaultEventsMap } from 'socket.io';
@@ -43,34 +42,18 @@ interface QueuedPlayer {
 export class GameServer {
     private lobbies = new Map<string, Lobby>();
     private userLobbyMap = new Map<string, string>();
-    private protocol = 'https';
-    private host = env.gameNodeHost;
     private queue: QueuedPlayer[] = [];
     private io: IOServer;
-    private titleCardData: any;
-    private shortCardData: any;
+
 
     public constructor() {
         const app = express();
         app.use(express.json());
-        let privateKey: undefined | string;
-        let certificate: undefined | string;
-
-        try {
-            // privateKey = fs.readFileSync(env.gameNodeKeyPath).toString();
-            // certificate = fs.readFileSync(env.gameNodeCertPath).toString();
-        } catch (e) {
-            this.protocol = 'http';
-        }
-
-        const server =
-            !privateKey || !certificate
-                ? http.createServer(app)
-                : https.createServer({ key: privateKey, cert: certificate });
+        const server = http.createServer(app);
 
 
         const corsOptions = {
-            origin: ['http://localhost:3000', 'https://your-production-domain.com'],
+            origin: ['http://localhost:3000', 'https://beta.karabast.net'],
             methods: ['GET', 'POST'],
             credentials: true, // Allow cookies or authorization headers
         };
@@ -80,14 +63,13 @@ export class GameServer {
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
 
-        const corsOrigin = process.env.NODE_ENV === 'production'
-            ? 'https://tbd.com'
-            : 'http://localhost:3000';
 
+        // Setup socket server
         this.io = new IOServer(server, {
             perMessageDeflate: false,
+            path: '/ws',
             cors: {
-                origin: corsOrigin,
+                origin: ['http://localhost:3000', 'https://beta.karabast.net'],
                 methods: ['GET', 'POST']
             }
         });
@@ -254,11 +236,6 @@ export class GameServer {
     //     // }
     //     next();
     // }
-
-    public onCardData(cardData) {
-        this.titleCardData = cardData.titleCardData;
-        this.shortCardData = cardData.shortCardData;
-    }
 
     public onConnection(ioSocket) {
         const user = JSON.parse(ioSocket.handshake.query.user);
