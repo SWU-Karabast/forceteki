@@ -5,10 +5,17 @@ import * as Contract from '../../utils/Contract';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Helpers from '../../utils/Helpers';
 import type { IButton } from '../PromptInterfaces';
+import type Game from '../../Game';
 
 export abstract class UiPrompt extends BaseStep {
     public completed = false;
     public uuid = uuid();
+
+    public constructor(game: Game) {
+        super(game);
+
+        this.clearPrompts();
+    }
 
     public abstract activePrompt(player: Player): IPlayerPromptStateProperties;
 
@@ -52,6 +59,14 @@ export abstract class UiPrompt extends BaseStep {
                 player.setPrompt(this.waitingPrompt());
                 player.resetClock();
             }
+        }
+
+        this.highlightSelectableCards();
+    }
+
+    protected highlightSelectableCards() {
+        for (const player of this.game.getPlayers()) {
+            player.setSelectableCards([]);
         }
     }
 
