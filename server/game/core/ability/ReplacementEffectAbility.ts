@@ -4,6 +4,7 @@ import type { Card } from '../card/Card';
 import type Game from '../Game';
 import TriggeredAbility from './TriggeredAbility';
 import { ReplacementEffectSystem } from '../../gameSystems/ReplacementEffectSystem';
+import type { GameEvent } from '../event/GameEvent';
 
 export default class ReplacementEffectAbility extends TriggeredAbility {
     public constructor(game: Game, card: Card, properties: IReplacementEffectAbilityProps) {
@@ -12,5 +13,9 @@ export default class ReplacementEffectAbility extends TriggeredAbility {
             Object.assign(otherProps, { immediateEffect: new ReplacementEffectSystem(cancelProps) });
 
         super(game, card, triggeredAbilityProps, AbilityType.ReplacementEffect);
+    }
+
+    protected override invalidEventInTriggeredFor(event: GameEvent): boolean {
+        return this.eventsTriggeredFor && this.eventsTriggeredFor.some((triggeredEvent) => triggeredEvent.hasReplacmentEvent(event));
     }
 }

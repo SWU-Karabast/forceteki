@@ -22,7 +22,7 @@ export class GameEvent {
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
     private _preResolutionEffect = null;
-    private replacementEvents: any[] = [];
+    private replacementEvents: GameEvent[] = [];
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
     private _window: EventWindow = null;
 
@@ -138,6 +138,10 @@ export class GameEvent {
 
         this.replacementEvents.push(replacementEvent);
         this.resolutionStatus = EventResolutionStatus.REPLACED;
+    }
+
+    public hasReplacmentEvent(event: GameEvent): boolean {
+        return this.replacementEvents.includes(event);
     }
 
     public setContingentEventsGenerator(generator: (event) => any[]) {
