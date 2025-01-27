@@ -71,13 +71,16 @@ export class ResourcePrompt extends AllPlayerPrompt {
         Contract.assertNotNullLike(card);
 
         if (
-            !this.activeCondition(player) || !player.handZone.hasCard(card) ||
-            this.selectedCards[player.name].length === this.nCardsToResource
+            !this.activeCondition(player) || !player.handZone.hasCard(card)
         ) {
             return false;
         }
 
         if (!this.selectedCards[player.name].includes(card)) {
+            if (this.selectedCards[player.name].length === this.nCardsToResource) {
+                return false;
+            }
+
             this.selectedCards[player.name].push(card);
         } else {
             this.selectedCards[player.name] = this.selectedCards[player.name].filter((c) => c !== card);
