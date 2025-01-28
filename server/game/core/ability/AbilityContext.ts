@@ -7,12 +7,14 @@ import type { GameSystem } from '../gameSystem/GameSystem';
 import type Player from '../Player';
 import type { Card } from '../card/Card';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
+import type { IOngoingEffectProps } from '../../Interfaces';
 
 export interface IAbilityContextProperties {
     game: Game;
     source?: any;
     player?: Player;
     ability?: PlayerOrCardAbility;
+    ongoingEffect?: IOngoingEffectProps;
     costs?: any;
     costAspects?: Aspect[];
     targets?: any;
@@ -33,7 +35,8 @@ export class AbilityContext<TSource extends Card = Card> {
     public game: Game;
     public source: TSource;
     public player: Player;
-    public ability: PlayerOrCardAbility;
+    public ability?: PlayerOrCardAbility;
+    public ongoingEffect?: IOngoingEffectProps;
     public costs: any;
     public costAspects: Aspect[];
     public targets: any;
@@ -53,9 +56,10 @@ export class AbilityContext<TSource extends Card = Card> {
         this.game = properties.game;
         this.source = properties.source || new OngoingEffectSource(this.game);
         this.player = properties.player;
-        this.ability = properties.ability || null;
+        this.ability = properties.ability;
         this.costs = properties.costs || {};
         this.costAspects = properties.costAspects || [];
+        this.ongoingEffect = properties.ongoingEffect;
         this.targets = properties.targets || {};
         this.selects = properties.selects || {};
         this.stage = properties.stage || Stage.Effect;
@@ -93,6 +97,7 @@ export class AbilityContext<TSource extends Card = Card> {
             source: this.source,
             player: this.player,
             ability: this.ability,
+            ongoingEffect: this.ongoingEffect,
             costs: Object.assign({}, this.costs),
             costAspects: this.costAspects,
             targets: Object.assign({}, this.targets),
