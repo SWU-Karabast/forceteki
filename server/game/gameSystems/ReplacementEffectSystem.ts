@@ -40,13 +40,27 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
 
             Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
 
-            // TODO: refactor this to allow for "partial" replacement effects like Boba Fett's Armor or damage on draw from empty deck
             events.forEach((replacementEvent) => {
                 event.context.game.queueSimpleStep(() => {
                     event.context.event.setReplacementEvent(replacementEvent);
                     eventWindow.addEvent(replacementEvent);
                     triggerWindow.addReplacementEffectEvent(replacementEvent);
                 }, 'replacementEffect: replace window event');
+                // Check if the replacement effect only partial resolved the event (ie Boba's Armor not preventing all damage)
+                // This implies that there is still more of the effect that can be replaced.
+                if (triggerWindow.unresolved && triggerWindow.unresolved.size > 0 &&
+                  replacementEvent?.context?.ability?.properties?.isPartial &&
+                  replacementEvent.context.ability.properties.isPartial(replacementEvent.context)) {
+                    // Find any other unresolved triggers that have the same source event, are the same type of ability,
+                    // and has the target as what was just used for replacement.
+                    const unresolvedWithSameTrigger = [...triggerWindow.unresolved.values()]
+                        .flatMap((list) => list)
+                        .filter((context) => replacementEvent.context.ability.abilityIdentifier !== context.ability.abilityIdentifier &&
+                          context.event.name === replacementEvent.name &&
+                          context.event.context.target === replacementEvent.context.event.context.target);
+                    // If we find any such a triggers, change the trigger's event from the original event to this replacement event.
+                    unresolvedWithSameTrigger.forEach((trigger) => trigger.event = replacementEvent);
+                }
             });
         }
         event.context.cancel();

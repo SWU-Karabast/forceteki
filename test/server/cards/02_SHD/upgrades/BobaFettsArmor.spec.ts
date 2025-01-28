@@ -62,5 +62,59 @@ describe('Boba Fett\'s Armor', function () {
             expect(context.bobaFettDisintegrator.damage).toBe(1);
             expect(context.bobaFettDaimyo.damage).toBe(1);
         });
+
+        it('Boba Fett\'s Armor prevents 2 damage with shield', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    groundArena: ['battlefield-marine', 'sabine-wren#explosives-artist'],
+                },
+                player2: {
+                    groundArena: [{ card: 'boba-fett#disintegrator', upgrades: ['boba-fetts-armor', 'shield'] }, 'consular-security-force'],
+                    hand: ['moment-of-peace']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // CASE 1: Shield doesn't trigger if damage less than 2 and armor resolved first
+            context.player1.clickCard(context.sabineWren);
+            context.player1.clickCard(context.bobaFettDisintegrator);
+            context.player1.clickCard(context.bobaFettDisintegrator);
+            // Prompt from Sabine ping
+            expect(context.player2).toHaveExactPromptButtons([
+                'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
+                'Defeat shield to prevent attached unit from taking damage'
+            ]);
+            context.player2.clickPrompt('If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage');
+            expect(context.bobaFettDisintegrator.damage).toBe(0);
+            expect(context.bobaFettDisintegrator).toHaveExactUpgradeNames(['boba-fetts-armor', 'shield']);
+
+            // CASE 2: Shield triggers if damage less than 2 and shield resolved first
+            // Prompt from Sabine combat
+            expect(context.player2).toHaveExactPromptButtons([
+                'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
+                'Defeat shield to prevent attached unit from taking damage'
+            ]);
+            context.player2.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+            expect(context.bobaFettDisintegrator.damage).toBe(0);
+            expect(context.bobaFettDisintegrator).toHaveExactUpgradeNames(['boba-fetts-armor']);
+
+            // Reset shield onto Boba
+            context.player2.clickCard(context.momentOfPeace);
+            context.player2.clickCard(context.bobaFettDisintegrator);
+            expect(context.bobaFettDisintegrator).toHaveExactUpgradeNames(['boba-fetts-armor', 'shield']);
+
+            // CASE 3: Shield triggers if damage greater than 2
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.bobaFettDisintegrator);
+            expect(context.player2).toHaveExactPromptButtons([
+                'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
+                'Defeat shield to prevent attached unit from taking damage'
+            ]);
+            context.player2.clickPrompt('If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage');
+            expect(context.bobaFettDisintegrator.damage).toBe(0);
+            expect(context.bobaFettDisintegrator).toHaveExactUpgradeNames(['boba-fetts-armor']);
+        });
     });
 });

@@ -16,6 +16,6 @@ export default class ReplacementEffectAbility extends TriggeredAbility {
     }
 
     protected override invalidEventInTriggeredFor(event: GameEvent): boolean {
-        return this.eventsTriggeredFor && this.eventsTriggeredFor.some((triggeredEvent) => triggeredEvent.hasReplacmentEvent(event));
+        return super.invalidEventInTriggeredFor(event) || (this.eventsTriggeredFor && this.eventsTriggeredFor.some((triggeredEvent) => triggeredEvent.hasReplacementEvent(event)));
     }
 }

@@ -23,13 +23,12 @@ export default class BobaFettsArmor extends UpgradeCard {
                 replacementImmediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                     target: context.source.parentCard,
                     amount: () => (Math.max(context.event.amount - 2, 0)),
-                    source: context.event.damageSource.damageDealtBy
+                    source: context.event.damageSource.damageDealtBy,
                 }))
             },
             effect: 'Boba Fett\s armor prevents 2 damage to {1}',
             effectArgs: (context) => [context.source.parentCard],
+            isPartial: (context) => ((context.event.amount - 2) > 0)
         });
     }
 }
-
-BobaFettsArmor.implemented = true;

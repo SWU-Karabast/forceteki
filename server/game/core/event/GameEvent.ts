@@ -140,7 +140,7 @@ export class GameEvent {
         this.resolutionStatus = EventResolutionStatus.REPLACED;
     }
 
-    public hasReplacmentEvent(event: GameEvent): boolean {
+    public hasReplacementEvent(event: GameEvent): boolean {
         return this.replacementEvents.includes(event);
     }
 
