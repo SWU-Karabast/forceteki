@@ -12,7 +12,6 @@ describe('Lurking TIE Phantom', function() {
                     groundArena: ['battlefield-marine'],
                     spaceArena: ['lurking-tie-phantom'],
                     hand: ['open-fire', 'rivals-fall', 'devastator#inescapable', 'count-dooku#darth-tyranus'],
-
                 }
             });
 
