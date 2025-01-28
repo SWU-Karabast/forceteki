@@ -4,9 +4,11 @@ describe('Lurking TIE Phantom', function() {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    groundArena: ['cassian-andor#rebellions-are-built-on-hope'],
+                    groundArena: ['cassian-andor#rebellions-are-built-on-hope', 'fifth-brother#fear-hunter'],
                     spaceArena: ['punishing-one#dengars-jumpmaster'],
-                    hand: ['relentless-pursuit', 'daring-raid', 'imperial-interceptor', 'takedown', 'make-an-opening', 'devastating-gunship'],
+                    hand: ['relentless-pursuit', 'daring-raid', 'imperial-interceptor', 'takedown', 'make-an-opening',
+                        'devastating-gunship', 'power-of-the-dark-side', 'mercenary-gunship', 'overwhelming-barrage', 'force-lightning'],
+                    leader: { card: 'cad-bane#he-who-needs-no-introduction', deployed: false },
                 },
                 player2: {
                     groundArena: ['battlefield-marine'],
@@ -19,7 +21,7 @@ describe('Lurking TIE Phantom', function() {
 
             // Case 1: Cannot be captured by enemeny effects
             context.player1.clickCard(context.relentlessPursuit);
-            expect(context.player1).toBeAbleToSelectExactly([context.cassianAndor, context.punishingOne]);
+            expect(context.player1).toBeAbleToSelectExactly([context.cassianAndor, context.punishingOne, context.fifthBrother]);
             context.player1.clickCard(context.cassianAndor);
             expect(context.player1).toBeAbleToSelectExactly([context.lurkingTiePhantom, context.battlefieldMarine]);
             context.player1.clickCard(context.lurkingTiePhantom);
@@ -107,6 +109,43 @@ describe('Lurking TIE Phantom', function() {
             context.player2.clickPrompt('Defeat a unit with 4 or less remaining HP');
             context.player2.clickCard(context.lurkingTiePhantom);
             expect(context.lurkingTiePhantom).toBeInZone('discard');
+
+            context.player2.moveCard(context.lurkingTiePhantom, 'spaceArena');
+            context.player1.setResourceCount(14);
+
+            // Case 12: Can not be defeated opponent event even if you pick
+            context.player1.clickCard(context.powerOfTheDarkSide);
+            expect(context.player2).toBeAbleToSelectExactly([context.lurkingTiePhantom, context.battlefieldMarine, context.countDooku, context.devastator]);
+            context.player2.clickCard(context.lurkingTiePhantom);
+            expect(context.lurkingTiePhantom).toBeInZone('spaceArena');
+
+            context.player2.passAction();
+
+            // Case 13: Can not be damaged by opponent ability even if you pick
+            context.player1.clickCard(context.mercenaryGunship);
+            context.player1.clickPrompt('Exhaust this leader');
+            expect(context.player2).toBeAbleToSelectExactly([context.lurkingTiePhantom, context.battlefieldMarine, context.countDooku, context.devastator]);
+            context.player2.clickCard(context.lurkingTiePhantom);
+            expect(context.lurkingTiePhantom).toBeInZone('spaceArena');
+            expect(context.lurkingTiePhantom.damage).toBe(0);
+
+            context.player2.passAction();
+            context.player1.setResourceCount(14);
+
+            // Case 14: Can not be damaged by opponent's overwhelming barrage
+            context.player1.clickCard(context.overwhelmingBarrage);
+            context.player1.clickCard(context.cassianAndor);
+            context.player1.setDistributeDamagePromptState(new Map([
+                [context.lurkingTiePhantom, 5]
+            ]));
+            expect(context.lurkingTiePhantom).toBeInZone('spaceArena');
+            expect(context.lurkingTiePhantom.damage).toBe(0);
+
+            context.player2.passAction();
+            context.player1.setResourceCount(14);
+
+            // Case 15: Can be damaged by opponent's force lightning
+            // TODO Force Lightning currently not implemented
         });
     });
 });
