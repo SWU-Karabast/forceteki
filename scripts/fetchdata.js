@@ -31,6 +31,15 @@ function populateMissingData(attributes, id) {
             attributes.upgradeHp = 0;
             attributes.upgradePower = 0;
             break;
+        case '8777351722': // Anakin Skywalker - What It Takes To Win
+            attributes.keywords = {
+                data: [{
+                    attributes: {
+                        name: 'Overwhelm'
+                    }
+                }]
+            };
+            break;
     }
 }
 
