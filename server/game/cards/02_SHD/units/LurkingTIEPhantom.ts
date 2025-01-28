@@ -1,5 +1,7 @@
-import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import AbilityHelper from '../../../AbilityHelper';
+import { AbilityRestriction } from '../../../core/Constants';
+import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 
 export default class LurkingTIEPhantom extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -10,17 +12,28 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
-        this.addReplacementEffectAbility({
+        this.addConstantAbility({
             title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
-            when: {
-                onCardCaptured: (event, context) => event.card === context.source && event.context.source.controller !== context.source.controller,
-                onDamageDealt: (event, context) => event.card === context.source && event.context.source.controller !== context.source.controller &&
-                  !(event.context.ability instanceof InitiateAttackAction),
-                onCardDefeated: (event, context) => event.card === context.source && event.defeatSource && !event.defeatSource.attack &&
-                  event.defeatSource.card?.controller !== context.source.controller
-            }
+            ongoingEffect: AbilityHelper.ongoingEffects.cardCannot({
+                cannot: AbilityRestriction.ReceiveDamage,
+                restrictedActionCondition: (context) => !(context.ability instanceof InitiateAttackAction) && context.ability.card.controller !== this.controller,
+            })
+        });
+
+        this.addConstantAbility({
+            title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
+            ongoingEffect: AbilityHelper.ongoingEffects.cardCannot({
+                cannot: AbilityRestriction.BeCaptured,
+                restrictedActionCondition: (context) => context.ability.card.controller !== this.controller,
+            })
+        });
+
+        this.addConstantAbility({
+            title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
+            ongoingEffect: AbilityHelper.ongoingEffects.cardCannot({
+                cannot: AbilityRestriction.BeDefeated,
+                restrictedActionCondition: (context) => context.ability.card.controller !== this.controller,
+            })
         });
     }
 }
-
-LurkingTIEPhantom.implemented = true;

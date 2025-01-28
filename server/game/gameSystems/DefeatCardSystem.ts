@@ -3,7 +3,7 @@ import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { Card } from '../core/card/Card';
 import type { UnitCard } from '../core/card/CardTypes';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
-import { EventName, WildcardCardType, ZoneName } from '../core/Constants';
+import { AbilityRestriction, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type Player from '../core/Player';
 import * as Contract from '../core/utils/Contract';
@@ -70,8 +70,12 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         return ['defeat {0}', [properties.target]];
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
+            return false;
+        }
+        const properties = this.generatePropertiesFromContext(context);
+        if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.BeDefeated, context)) {
             return false;
         }
         return super.canAffect(card, context);

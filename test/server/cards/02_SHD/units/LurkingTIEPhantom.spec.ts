@@ -9,6 +9,7 @@ describe('Lurking TIE Phantom', function() {
                     hand: ['relentless-pursuit', 'daring-raid', 'imperial-interceptor', 'takedown', 'make-an-opening', 'devastating-gunship'],
                 },
                 player2: {
+                    groundArena: ['battlefield-marine'],
                     spaceArena: ['lurking-tie-phantom'],
                     hand: ['open-fire', 'rivals-fall', 'devastator#inescapable', 'count-dooku#darth-tyranus'],
 
@@ -21,7 +22,7 @@ describe('Lurking TIE Phantom', function() {
             context.player1.clickCard(context.relentlessPursuit);
             expect(context.player1).toBeAbleToSelectExactly([context.cassianAndor, context.punishingOne]);
             context.player1.clickCard(context.cassianAndor);
-            expect(context.player1).toBeAbleToSelectExactly([context.lurkingTiePhantom]);
+            expect(context.player1).toBeAbleToSelectExactly([context.lurkingTiePhantom, context.battlefieldMarine]);
             context.player1.clickCard(context.lurkingTiePhantom);
             expect(context.lurkingTiePhantom).toBeInZone('spaceArena');
 
@@ -58,9 +59,11 @@ describe('Lurking TIE Phantom', function() {
 
             context.player2.passAction();
             context.player1.setResourceCount(12);
+            context.setDamage(context.battlefieldMarine, 1);
 
             // Case 6: Cannot be defeated by opponent's unit that says defeat
             context.player1.clickCard(context.devastatingGunship);
+            expect(context.player1).toBeAbleToSelectExactly([context.lurkingTiePhantom, context.battlefieldMarine]);
             context.player1.clickCard(context.lurkingTiePhantom);
             expect(context.lurkingTiePhantom).toBeInZone('spaceArena');
 
