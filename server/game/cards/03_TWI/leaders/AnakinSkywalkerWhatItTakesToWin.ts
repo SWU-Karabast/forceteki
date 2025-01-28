@@ -37,5 +37,3 @@ export default class AnakinSkywalkerWhatItTakesToWin extends LeaderUnitCard {
         });
     }
 }
-
-AnakinSkywalkerWhatItTakesToWin.implemented = true;
