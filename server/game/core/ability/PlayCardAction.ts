@@ -22,7 +22,7 @@ export interface IPlayCardActionPropertiesBase {
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
     exploitValue?: number;
-    canTargetOpponentZones?: boolean;
+    canPlayFromAnyZone?: boolean;
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
@@ -45,7 +45,7 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly exploitValue?: number;
     public readonly playType: PlayType;
     public readonly usesExploit: boolean;
-    public readonly canTargetOpponentZones: boolean;
+    public readonly canPlayFromAnyZone: boolean;
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
@@ -91,7 +91,7 @@ export abstract class PlayCardAction extends PlayerAction {
         this.usesExploit = usesExploit;
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
-        this.canTargetOpponentZones = !!properties.canTargetOpponentZones;
+        this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
     }
 
     private static getTitle(title: string, playType: PlayType, withExploit: boolean = false, appendToTitle: boolean = true): string {
@@ -124,12 +124,11 @@ export abstract class PlayCardAction extends PlayerAction {
         ) {
             return 'phase';
         }
-        if (!ignoredRequirements.includes('zone')) {
-            const isInPlayableZone: boolean = context.player.isCardInPlayableZone(context.source, this.playType);
-            const isInOpponentPlayableZone: boolean = this.canTargetOpponentZones && context.player.opponent.isCardInPlayableZone(context.source, this.playType);
-            if (!isInPlayableZone && !isInOpponentPlayableZone) {
-                return 'zone';
-            }
+        if (
+            !ignoredRequirements.includes('zone') && !this.canPlayFromAnyZone &&
+            !context.player.isCardInPlayableZone(context.source, this.playType)
+        ) {
+            return 'zone';
         }
         if (
             !ignoredRequirements.includes('cannotTrigger') &&

@@ -19,7 +19,7 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     playType?: PlayType;
     adjustCost?: ICostAdjusterProperties;
     nested?: boolean;
-    canTargetOpponentZones?: boolean;
+    canPlayFromAnyZone?: boolean;
     // TODO: implement a "nested" property that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
 }
 
@@ -37,7 +37,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         entersReady: false,
         playType: PlayType.PlayFromHand,
         nested: false,
-        canTargetOpponentZones: false,
+        canPlayFromAnyZone: false,
     };
 
     public eventHandler(event, additionalProperties): void {
@@ -128,7 +128,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
             triggerHandlingMode: properties.nested ? TriggerHandlingMode.ResolvesTriggers : TriggerHandlingMode.PassesTriggersToParentWindow,
             costAdjusters,
             entersReady: properties.entersReady,
-            canTargetOpponentZones: properties.canTargetOpponentZones
+            canPlayFromAnyZone: properties.canPlayFromAnyZone
         };
     }
 }
