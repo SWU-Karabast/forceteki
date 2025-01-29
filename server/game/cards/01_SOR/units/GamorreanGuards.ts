@@ -19,5 +19,3 @@ export default class GamorreanGuards extends NonLeaderUnitCard {
         });
     }
 }
-
-GamorreanGuards.implemented = true;

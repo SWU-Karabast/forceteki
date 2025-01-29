@@ -18,5 +18,3 @@ export default class EscortSkiff extends NonLeaderUnitCard {
         });
     }
 }
-
-EscortSkiff.implemented = true;

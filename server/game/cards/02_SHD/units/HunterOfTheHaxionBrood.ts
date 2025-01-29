@@ -18,5 +18,3 @@ export default class HunterOfTheHaxionBrood extends NonLeaderUnitCard {
         });
     }
 }
-
-HunterOfTheHaxionBrood.implemented = true;

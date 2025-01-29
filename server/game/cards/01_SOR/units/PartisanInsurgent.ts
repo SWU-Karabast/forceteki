@@ -18,5 +18,3 @@ export default class PartisanInsurgent extends NonLeaderUnitCard {
         });
     }
 }
-
-PartisanInsurgent.implemented = true;

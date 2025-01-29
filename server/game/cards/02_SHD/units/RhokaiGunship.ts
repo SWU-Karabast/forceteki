@@ -18,5 +18,3 @@ export default class RhokaiGunship extends NonLeaderUnitCard {
         });
     }
 }
-
-RhokaiGunship.implemented = true;

@@ -32,5 +32,3 @@ export default class BazineNetalSpyForTheFirstOrder extends NonLeaderUnitCard {
         });
     }
 }
-
-BazineNetalSpyForTheFirstOrder.implemented = true;

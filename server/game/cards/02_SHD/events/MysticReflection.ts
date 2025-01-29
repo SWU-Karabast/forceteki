@@ -29,5 +29,3 @@ export default class MysticReflection extends EventCard {
         });
     }
 }
-
-MysticReflection.implemented = true;

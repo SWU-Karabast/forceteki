@@ -34,5 +34,3 @@ export default class ItBindsAllThings extends EventCard {
         });
     }
 }
-
-ItBindsAllThings.implemented = true;

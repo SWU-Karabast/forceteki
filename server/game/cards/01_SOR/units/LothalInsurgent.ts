@@ -41,5 +41,3 @@ export default class LothalInsurgent extends NonLeaderUnitCard {
         });
     }
 }
-
-LothalInsurgent.implemented = true;

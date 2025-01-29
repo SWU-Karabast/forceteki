@@ -64,5 +64,3 @@ class FirstLightSmuggleAction extends PlayUnitAction {
         );
     }
 }
-
-FirstLightHeadquartersOfTheCrimsonDawn.implemented = true;
