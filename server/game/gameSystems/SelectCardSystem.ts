@@ -205,7 +205,12 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         }
 
         const controller = typeof properties.controller === 'function' ? properties.controller(context) : properties.controller;
-        return properties.canChooseNoCards || (CardTargetResolver.allZonesAreHidden(properties.zoneFilter, controller) && properties.selector.hasAnyCardFilter);
+        const hasAnyCardFilter = this.hasAnyCardFilter(properties);
+        return properties.canChooseNoCards || (CardTargetResolver.allZonesAreHidden(properties.zoneFilter, controller) && hasAnyCardFilter);
+    }
+
+    private hasAnyCardFilter(properties): boolean {
+        return properties.cardTypeFilter || this.properties.cardCondition;
     }
 
     private getContextCopy(card: Card, context: TContext): TContext {
