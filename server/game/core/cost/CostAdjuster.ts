@@ -1,12 +1,13 @@
+import type { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
-import type { PlayType, Aspect, CardTypeFilter } from '../Constants';
+import type { Aspect, CardTypeFilter, PlayType } from '../Constants';
 import { WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 import * as Contract from '../../core/utils/Contract';
-import type { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
+import { cardTypeMatches } from '../utils/EnumHelpers';
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -120,7 +121,7 @@ export class CostAdjuster {
             return false;
         }
         const context = this.game.getFrameworkContext(card.controller);
-        return this.checkMatch(card) && this.checkAttachTargetCondition(context, attachTarget);
+        return cardTypeMatches(card.type, this.cardTypeFilter) && this.checkMatch(card) && this.checkAttachTargetCondition(context, attachTarget);
     }
 
     public getAmount(card: Card, player: Player): number {
