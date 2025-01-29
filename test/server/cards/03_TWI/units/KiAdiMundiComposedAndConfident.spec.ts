@@ -5,26 +5,27 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        groundArena: ['kiadimundi#composed-and-confident', '41st-elite-corps', 'specforce-soldier'],
-                        deck: ['battlefield-marine', 'freelance-assassin']
+                        groundArena: ['41st-elite-corps', 'specforce-soldier'],
+                        hand: ['kiadimundi#composed-and-confident', 'waylay'],
+                        deck: ['battlefield-marine', 'freelance-assassin', 'kashyyyk-defender', 'consular-security-force']
                     },
                     player2: {
-                        hand: ['confiscate', 'atst', 'blood-sport', 'death-star-stormtrooper', 'tieln-fighter']
+                        hand: ['confiscate', 'atst', 'blood-sport', 'death-star-stormtrooper', 'tieln-fighter', 'wampa']
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Coordinate is active
+                // Playing Ki Adi Mundi from hand after first card played
                 context.player1.passAction();
-                context.player2.clickCard(context.confiscate); // Play first card
-                context.player1.passAction();
-                context.player2.clickCard(context.atst); // Play second card
+                context.player2.clickCard(context.confiscate); // Opponent Play first card
+                context.player1.clickCard(context.kiadimundi); // Ki Adi Mundi enters in play and enable Coordinate
+                context.player2.clickCard(context.atst); // Opponent plays second card, ability triggers
 
                 expect(context.player1).toHavePassAbilityPrompt('Draw 2 cards');
                 context.player1.clickPrompt('Draw 2 cards');
 
-                expect(context.player1.handSize).toBe(2);
+                expect(context.player1.handSize).toBe(3);
                 expect(context.battlefieldMarine).toBeInZone('hand');
                 expect(context.freelanceAssassin).toBeInZone('hand');
 
@@ -46,35 +47,20 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
 
                 context.player2.clickCard(context.deathStarStormtrooper); // Opponent plays third card, nothing should happend
                 expect(context.player1).toBeActivePlayer();
-            });
 
-            it('should trigger when unit is played after first card and Coordinate is active while playing second card', function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        hand: ['kiadimundi#composed-and-confident'],
-                        groundArena: ['clone-heavy-gunner', '41st-elite-corps'],
-                        deck: ['battlefield-marine', 'freelance-assassin']
-                    },
-                    player2: {
-                        hand: ['confiscate', 'atst']
-                    }
-                });
+                // Waylayed unit played twice should trigger Ki Adi Mundi's ability
+                context.moveToNextActionPhase();
 
-                const { context } = contextRef;
-
-                // Coordinate is active
                 context.player1.passAction();
-                context.player2.clickCard(context.confiscate); // Opponent Play first card
-                context.player1.clickCard(context.kiadimundi); // Ki Adi Mundi enters in play and activates Coordinate
-                context.player2.clickCard(context.atst); // Opponent plays second card, ability triggers
+                context.player2.clickCard(context.wampa);
+                context.player1.clickCard(context.waylay);
+                context.player1.clickCard(context.wampa);
+                context.player2.clickCard(context.wampa);
 
                 expect(context.player1).toHavePassAbilityPrompt('Draw 2 cards');
                 context.player1.clickPrompt('Draw 2 cards');
-
-                expect(context.player1.handSize).toBe(2);
-                expect(context.battlefieldMarine).toBeInZone('hand');
-                expect(context.freelanceAssassin).toBeInZone('hand');
+                expect(context.consularSecurityForce).toBeInZone('hand');
+                expect(context.kashyyykDefender).toBeInZone('hand');
             });
         });
     });
