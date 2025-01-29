@@ -36,7 +36,7 @@ describe('Bazin Netal, Spy For The First Order', function() {
                 expect(context.waylay).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('hand');
 
-                // Reset
+                // Reset state
                 reset();
 
                 // Player looks at the opponent's hand and decides not to discard a card from it
