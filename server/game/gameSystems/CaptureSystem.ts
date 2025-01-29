@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { GameStateChangeRequired, ZoneName, WildcardCardType, EventName } from '../core/Constants';
+import { GameStateChangeRequired, ZoneName, WildcardCardType, EventName, AbilityRestriction } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { UnitCard } from '../core/card/CardTypes';
 import * as Contract from '../core/utils/Contract';
@@ -25,6 +25,11 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
 
     public override canAffect(card: Card, context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!card.isUnit() || !card.isInPlay()) {
+            return false;
+        }
+
+        const properties = this.generatePropertiesFromContext(context);
+        if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.BeCaptured, context)) {
             return false;
         }
 
