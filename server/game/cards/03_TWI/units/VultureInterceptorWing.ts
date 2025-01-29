@@ -23,5 +23,3 @@ export default class VultureInterceptorWing extends NonLeaderUnitCard {
         });
     }
 }
-
-VultureInterceptorWing.implemented = true;

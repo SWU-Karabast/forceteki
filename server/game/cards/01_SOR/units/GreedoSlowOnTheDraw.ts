@@ -32,5 +32,3 @@ export default class GreedoSlowOnTheDraw extends NonLeaderUnitCard {
         });
     }
 }
-
-GreedoSlowOnTheDraw.implemented = true;

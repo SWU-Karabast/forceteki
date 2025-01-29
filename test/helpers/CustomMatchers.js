@@ -166,13 +166,13 @@ var customMatchers = {
                 var result = {};
 
                 result.pass = buttons.some(
-                    (button) => !button.disabled && util.equals(button.text, 'Pass ability', customEqualityMatchers)
+                    (button) => !button.disabled && util.equals(button.text, 'Pass', customEqualityMatchers)
                 );
 
                 if (result.pass) {
-                    result.message = `Expected ${actual.name} not to have enabled prompt button 'Pass ability' but it did.`;
+                    result.message = `Expected ${actual.name} not to have enabled prompt button 'Pass' but it did.`;
                 } else {
-                    result.message = `Expected ${actual.name} to have enabled prompt button 'Pass ability' `;
+                    result.message = `Expected ${actual.name} to have enabled prompt button 'Pass' `;
 
                     if (buttons.length > 0) {
                         var buttonText = buttons.map(

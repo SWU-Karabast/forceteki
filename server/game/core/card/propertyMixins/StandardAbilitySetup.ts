@@ -8,7 +8,6 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor>(Bas
         public constructor(...args: any[]) {
             super(...args);
 
-            this.hasImplementationFile = true;
             this.setupCardAbilities(this);
 
             // if an implementation file is provided, enforce that all keywords requiring explicit setup have been set up
@@ -25,8 +24,7 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor>(Bas
         /**
          * Create card abilities by calling subsequent methods with appropriate properties
          */
-        protected setupCardAbilities(sourceCard: this) {
-            this.hasImplementationFile = false;
-        }
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        protected setupCardAbilities(sourceCard: this) { }
     };
 }

@@ -34,5 +34,3 @@ export default class TheEmperorsLegion extends EventCard {
         });
     }
 }
-
-TheEmperorsLegion.implemented = true;

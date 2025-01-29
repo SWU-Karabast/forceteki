@@ -33,5 +33,3 @@ export default class OverwhelmingBarrage extends EventCard {
         });
     }
 }
-
-OverwhelmingBarrage.implemented = true;

@@ -24,5 +24,3 @@ export default class ClanSaxonGauntlet extends NonLeaderUnitCard {
         });
     }
 }
-
-ClanSaxonGauntlet.implemented = true;

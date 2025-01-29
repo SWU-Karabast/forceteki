@@ -16,5 +16,3 @@ export default class TheInvasionofChristophsis extends EventCard {
         });
     }
 }
-
-TheInvasionofChristophsis.implemented = true;

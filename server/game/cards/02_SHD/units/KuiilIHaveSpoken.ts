@@ -36,5 +36,3 @@ export default class KuiilIHaveSpoken extends NonLeaderUnitCard {
         return baseAspects.some((aspect) => discardedCardAspects.includes(aspect));
     }
 }
-
-KuiilIHaveSpoken.implemented = true;

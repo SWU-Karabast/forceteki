@@ -24,5 +24,3 @@ export default class MiningGuildTieFighter extends NonLeaderUnitCard {
         });
     }
 }
-
-MiningGuildTieFighter.implemented = true;

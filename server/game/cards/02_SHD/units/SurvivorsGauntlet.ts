@@ -39,5 +39,3 @@ export default class SurvivorsGauntlet extends NonLeaderUnitCard {
         });
     }
 }
-
-SurvivorsGauntlet.implemented = true;

@@ -39,5 +39,3 @@ export default class Shield extends TokenUpgradeCard {
         });
     }
 }
-
-Shield.implemented = true;

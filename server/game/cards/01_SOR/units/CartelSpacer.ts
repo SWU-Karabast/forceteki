@@ -25,5 +25,3 @@ export default class CartelSpacer extends NonLeaderUnitCard {
         });
     }
 }
-
-CartelSpacer.implemented = true;

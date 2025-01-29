@@ -5,7 +5,6 @@ class GameOverPrompt extends AllPlayerPrompt {
         super(game);
         this.winner = winner;
         this.clickedButton = {};
-        game.getPlayers().forEach((player) => player.clearSelectableCards());
     }
 
     /** @override */
