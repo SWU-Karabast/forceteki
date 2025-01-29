@@ -824,7 +824,7 @@ class Game extends EventEmitter {
 
         for (let player of this.getPlayers()) {
             player.initialise();
-            // if (this.gameMode !== GameMode.Skirmish && !player.stronghold) {
+            // if (this.gameMode !== SwuGameFormat.Skirmish && !player.stronghold) {
             //     playerWithNoStronghold = player;
             // }
         }
@@ -836,7 +836,7 @@ class Game extends EventEmitter {
             []
         );
 
-        // if (this.gameMode !== GameMode.Skirmish) {
+        // if (this.gameMode !== SwuGameFormat.Skirmish) {
         //     if (playerWithNoStronghold) {
         //         this.queueSimpleStep(() => {
         //             this.addMessage(

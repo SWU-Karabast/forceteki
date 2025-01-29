@@ -318,7 +318,6 @@ export class Lobby {
         this.tokens = cardData;
     }
 
-    // example method to demonstrate the use of the test game setup utility
     public startTestGame(filename: string): void {
         const testDirPath = path.resolve(__dirname, '../../test');
         const testJSONPath = path.resolve(__dirname, `../../test/gameSetups/${filename}`);

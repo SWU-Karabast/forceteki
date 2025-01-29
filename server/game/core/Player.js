@@ -527,13 +527,13 @@ class Player extends GameObject {
     //  */
     // deckRanOutOfCards(deck) {
     //     let discardPile = this.getCardPile(deck + ' discard pile');
-    //     let action = GameSystems.loseHonor({ amount: this.game.gameMode === GameMode.Skirmish ? 3 : 5 });
+    //     let action = GameSystems.loseHonor({ amount: this.game.gameMode === SwuGameFormat.Skirmish ? 3 : 5 });
     //     if (action.canAffect(this, this.game.getFrameworkContext())) {
     //         this.game.addMessage(
     //             '{0}'s {1} deck has run out of cards, so they lose {2} honor',
     //             this,
     //             deck,
-    //             this.game.gameMode === GameMode.Skirmish ? 3 : 5
+    //             this.game.gameMode === SwuGameFormat.Skirmish ? 3 : 5
     //         );
     //     } else {
     //         this.game.addMessage('{0}'s {1} deck has run out of cards', this, deck);

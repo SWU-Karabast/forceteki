@@ -1,5 +1,5 @@
 const Contract = require('../../server/game/core/utils/Contract');
-const { GameMode } = require('../../server/GameMode.js');
+const { SwuGameFormat } = require('../../server/SwuGameFormat.js');
 const Util = require('./Util.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
@@ -87,7 +87,7 @@ function setupGameState(context, options = {}) {
     validatePlayerOptions(options.player1, 'player1', options.phase);
     validatePlayerOptions(options.player2, 'player2', options.phase);
 
-    context.game.gameMode = GameMode.Premier;
+    context.game.gameMode = SwuGameFormat.Premier;
 
     if (options.player1.hasInitiative) {
         context.game.initiativePlayer = context.player1Object;
