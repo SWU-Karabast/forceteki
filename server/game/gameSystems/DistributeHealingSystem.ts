@@ -29,6 +29,6 @@ export class DistributeHealingSystem<TContext extends AbilityContext = AbilityCo
     }
 
     protected override getDistributedAmountFromEvent(event: any): number {
-        return event.damageRemoved || 0;
+        return event.damageRemoved;
     }
 }

@@ -42,5 +42,6 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.healAmount = typeof amount === 'function' ? (amount as (Event) => number)(card) : amount;
+        event.damageRemoved = 0; // initialize damageRemoved in case the event is cancelled
     }
 }
