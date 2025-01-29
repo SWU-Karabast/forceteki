@@ -183,7 +183,7 @@ export class GameServer {
     }
 
     private getTestSetupGames() {
-        const testGamesDirPath = path.resolve(__dirname, '../../test/gameSetups');
+        const testGamesDirPath = path.resolve(__dirname, '../../../test/gameSetups');
         if (!fs.existsSync(testGamesDirPath)) {
             return [];
         }
