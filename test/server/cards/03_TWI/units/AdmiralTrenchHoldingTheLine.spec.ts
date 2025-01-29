@@ -4,14 +4,10 @@ describe('Admiral Trench, Holding the Line', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    base: 'spice-mines',
-                    leader: 'qira#i-alone-survived',
                     hand: ['superlaser-blast', 'pillage'],
                     groundArena: ['wampa'],
                 },
                 player2: {
-                    base: 'lair-of-grievous',
-                    leader: 'darth-vader#dark-lord-of-the-sith',
                     hand: ['admiral-trench#holding-the-line', 'the-emperors-legion', 'death-star-stormtrooper'],
                     groundArena: ['first-legion-snowtrooper', 'maul#shadow-collective-visionary', { card: 'fifth-brother#fear-hunter', upgrades: ['fallen-lightsaber'] }],
                     spaceArena: ['imperial-interceptor'],
