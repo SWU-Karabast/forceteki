@@ -40,6 +40,7 @@ describe('Political Pressure', function() {
                 expect(battleDroids).toAllBeInZone('groundArena');
                 expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
                 expect(context.player2.getArenaCards().length).toBe(0);
+                expect(context.player2.hand.length).toBe(2);
             });
 
             it('should be skipped as Opponent does not have any cards in hand', function () {
