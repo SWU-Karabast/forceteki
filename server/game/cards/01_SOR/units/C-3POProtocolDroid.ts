@@ -45,5 +45,3 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
         });
     }
 }
-
-C3POProtocolDroid.implemented = true;

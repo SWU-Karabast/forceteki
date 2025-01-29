@@ -23,9 +23,9 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
     public override setContext(context) {
         Contract.assertNotNullLike(context.source);
 
-        if (context.ability?.abilityIdentifier) {
-            this.abilityIdentifier = `gained_from_${context.ability.abilityIdentifier}`;
-        } else if (context.ability?.isLastingEffect) {
+        if (context.ongoingEffect?.abilityIdentifier) {
+            this.abilityIdentifier = `gained_from_${context.ongoingEffect.abilityIdentifier}`;
+        } else if (context.ongoingEffect?.isLastingEffect) {
             // TODO: currently all gained ability identifiers are the same, find a way to make these unique in case a card gains two
             this.abilityIdentifier = 'gained_from_lasting_effect';
         } else if (!this.abilityIdentifier) {

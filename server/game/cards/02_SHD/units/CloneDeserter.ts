@@ -16,5 +16,3 @@ export default class CloneDeserter extends NonLeaderUnitCard {
         });
     }
 }
-
-CloneDeserter.implemented = true;

@@ -21,5 +21,3 @@ export default class TieAdvanced extends NonLeaderUnitCard {
         });
     }
 }
-
-TieAdvanced.implemented = true;

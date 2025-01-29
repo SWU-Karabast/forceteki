@@ -40,5 +40,3 @@ export default class HeroicSacrifice extends EventCard {
         });
     }
 }
-
-HeroicSacrifice.implemented = true;

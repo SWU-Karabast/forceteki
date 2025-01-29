@@ -37,5 +37,3 @@ export default class ChancellorPalpatineWartimeChancellor extends NonLeaderUnitC
         });
     }
 }
-
-ChancellorPalpatineWartimeChancellor.implemented = true;

@@ -26,5 +26,3 @@ export default class TheMarauderShuttlingTheBadBatch extends NonLeaderUnitCard {
         });
     }
 }
-
-TheMarauderShuttlingTheBadBatch.implemented = true;

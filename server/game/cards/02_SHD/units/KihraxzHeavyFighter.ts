@@ -30,5 +30,3 @@ export default class KihraxzHeavyFighter extends NonLeaderUnitCard {
         });
     }
 }
-
-KihraxzHeavyFighter.implemented = true;

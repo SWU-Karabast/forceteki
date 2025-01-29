@@ -27,5 +27,3 @@ export default class BrightHopeTheLastTransport extends NonLeaderUnitCard {
         });
     }
 }
-
-BrightHopeTheLastTransport.implemented = true;

@@ -24,5 +24,3 @@ export default class WolffeSuspiciousVeteran extends NonLeaderUnitCard {
         });
     }
 }
-
-WolffeSuspiciousVeteran.implemented = true;

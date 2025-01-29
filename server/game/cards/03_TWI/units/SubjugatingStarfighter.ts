@@ -19,5 +19,3 @@ export default class SubjugatingStarfighter extends NonLeaderUnitCard {
         });
     }
 }
-
-SubjugatingStarfighter.implemented = true;

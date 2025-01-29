@@ -2,9 +2,9 @@ import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
 import type { Aspect } from '../Constants';
-import { EffectName, EventName, KeywordName, PhaseName, PlayType, Stage } from '../Constants';
+import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
-import { AbilityContext } from './AbilityContext';
+import type { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import type { CostAdjuster } from '../cost/CostAdjuster';
@@ -13,6 +13,8 @@ import * as Contract from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';
+import type Game from '../Game';
+import type Player from '../Player';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -49,7 +51,7 @@ export abstract class PlayCardAction extends PlayerAction {
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
-    public constructor(card: Card, properties: IPlayCardActionProperties) {
+    public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
         Contract.assertTrue(card.hasCost());
 
         const usesExploit = !!properties.exploitValue;
@@ -79,6 +81,7 @@ export abstract class PlayCardAction extends PlayerAction {
             : new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
 
         super(
+            game,
             card,
             PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit, appendSmuggleToTitle),
             propertiesWithDefaults.additionalCosts.concat(playCost),
@@ -142,15 +145,11 @@ export abstract class PlayCardAction extends PlayerAction {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
-    public override createContext(player = this.card.controller) {
-        return new AbilityContext({
-            ability: this,
-            game: this.card.game,
-            player: player,
-            source: this.card,
-            stage: Stage.PreTarget,
+    public override getContextProperties(player: Player, event: any) {
+        return {
+            ...super.getContextProperties(player, event),
             costAspects: this.card.aspects
-        });
+        };
     }
 
     public override isPlayCardAbility(): this is PlayCardAction {

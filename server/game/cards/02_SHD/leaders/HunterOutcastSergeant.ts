@@ -46,5 +46,3 @@ export default class HunterOutcastSergeant extends LeaderUnitCard {
         };
     }
 }
-
-HunterOutcastSergeant.implemented = true;
