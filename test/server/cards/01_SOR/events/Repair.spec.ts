@@ -39,6 +39,17 @@ describe('Repair', function() {
                 expect(context.p1Base.damage).toBe(0);
             });
 
+            it('no prompt if there is not any unit or base with damage', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.repair);
+                expect(context.player2).toBeActivePlayer();
+                expect(context.repair).toBeInZone('discard');
+                expect(context.p1Base.damage).toBe(0);
+
+                // no unit or base with damage, no prompt happens
+            });
+
             it('will heal a target with 1 or 2 damage to full', function () {
                 const { context } = contextRef;
 
