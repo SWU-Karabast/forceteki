@@ -18,7 +18,7 @@ describe('Nala Se, Clone Engineer', function () {
                 });
             });
 
-            it('should ignore aspect penalties on Clones', function () {
+            it('should ignore aspect penalties on friendly Clones', function () {
                 const { context } = contextRef;
                 const p1ReadyResources = context.player1.readyResourceCount;
                 const p2ReadyResources = context.player2.readyResourceCount;
@@ -51,7 +51,7 @@ describe('Nala Se, Clone Engineer', function () {
                 });
             });
 
-            it('should ignore aspect penalties on Clones and heal 2 damage when a clone is defeated', function () {
+            it('should ignore aspect penalties on friendly Clones and heal 2 damage when a friendly clone is defeated', function () {
                 const { context } = contextRef;
                 const readyResources = context.player1.readyResourceCount;
 
