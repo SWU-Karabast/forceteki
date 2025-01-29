@@ -14,26 +14,20 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
-            ongoingEffect: AbilityHelper.ongoingEffects.cardCannot({
-                cannot: AbilityRestriction.ReceiveDamage,
-                restrictedActionCondition: (context) => !(context.ability instanceof InitiateAttackAction) && context.ability.card.controller !== this.controller,
-            })
-        });
-
-        this.addConstantAbility({
-            title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
-            ongoingEffect: AbilityHelper.ongoingEffects.cardCannot({
-                cannot: AbilityRestriction.BeCaptured,
-                restrictedActionCondition: (context) => context.ability.card.controller !== this.controller,
-            })
-        });
-
-        this.addConstantAbility({
-            title: 'This unit can\'t be captured, damaged, or defeated by enemy card abilities',
-            ongoingEffect: AbilityHelper.ongoingEffects.cardCannot({
-                cannot: AbilityRestriction.BeDefeated,
-                restrictedActionCondition: (context) => context.ability.card.controller !== this.controller,
-            })
+            ongoingEffect: [
+                AbilityHelper.ongoingEffects.cardCannot({
+                    cannot: AbilityRestriction.ReceiveDamage,
+                    restrictedActionCondition: (context) => !(context.ability instanceof InitiateAttackAction) && context.ability.card.controller !== this.controller,
+                }),
+                AbilityHelper.ongoingEffects.cardCannot({
+                    cannot: AbilityRestriction.BeCaptured,
+                    restrictedActionCondition: (context) => context.ability.card.controller !== this.controller,
+                }),
+                AbilityHelper.ongoingEffects.cardCannot({
+                    cannot: AbilityRestriction.BeDefeated,
+                    restrictedActionCondition: (context) => context.ability.card.controller !== this.controller,
+                })
+            ]
         });
     }
 }
