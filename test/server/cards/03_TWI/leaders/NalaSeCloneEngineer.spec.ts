@@ -10,6 +10,9 @@ describe('Nala Se, Clone Engineer', function () {
                         hand: ['batch-brothers'],
                     },
                     player2: {
+                        leader: 'director-krennic#aspiring-to-authority',
+                        base: 'kestro-city',
+                        hand: ['clone-deserter'],
                         groundArena: ['battlefield-marine'],
                     }
                 });
@@ -17,11 +20,16 @@ describe('Nala Se, Clone Engineer', function () {
 
             it('should ignore aspect penalties on Clones', function () {
                 const { context } = contextRef;
-                const readyResources = context.player1.readyResourceCount;
+                const p1ReadyResources = context.player1.readyResourceCount;
+                const p2ReadyResources = context.player2.readyResourceCount;
 
                 // Should cost 3 despite a double aspect penalty
                 context.player1.clickCard(context.batchBrothers);
-                expect(context.player1.readyResourceCount).toBe(readyResources - 3);
+                expect(context.player1.readyResourceCount).toBe(p1ReadyResources - 3);
+
+                // Opponent's Clone should cost 5 (1 + two aspect penalties)
+                context.player2.clickCard(context.cloneDeserter);
+                expect(context.player2.readyResourceCount).toBe(p2ReadyResources - 5);
             });
         });
 
@@ -32,11 +40,12 @@ describe('Nala Se, Clone Engineer', function () {
                     player1: {
                         leader: { card: 'nala-se#clone-engineer', deployed: true },
                         groundArena: ['pyke-sentinel'],
-                        base: { card: 'echo-base', damage: 6 },
-                        hand: ['batch-brothers'],
+                        base: { card: 'kestro-city', damage: 6 },
+                        hand: ['coruscant-guard', 'sly-moore#secretive-advisor'],
                     },
                     player2: {
-                        hand: ['vanquish', 'takedown']
+                        groundArena: ['clone-trooper'],
+                        hand: ['vanquish', 'takedown', 'daring-raid']
                     }
                 });
             });
@@ -45,12 +54,13 @@ describe('Nala Se, Clone Engineer', function () {
                 const { context } = contextRef;
                 const readyResources = context.player1.readyResourceCount;
 
-                // Should cost 3 despite a double aspect penalty
-                context.player1.clickCard(context.batchBrothers);
-                expect(context.player1.readyResourceCount).toBe(readyResources - 3);
+                // Should cost 2 despite an aspect penalty
+                context.player1.clickCard(context.coruscantGuard);
+                context.player1.clickPrompt('Pass');
+                expect(context.player1.readyResourceCount).toBe(readyResources - 2);
 
                 context.player2.clickCard(context.vanquish);
-                context.player2.clickCard(context.batchBrothers);
+                context.player2.clickCard(context.coruscantGuard);
 
                 expect(context.p1Base.damage).toBe(4);
 
@@ -59,6 +69,16 @@ describe('Nala Se, Clone Engineer', function () {
                 context.player2.clickCard(context.takedown);
                 context.player2.clickCard(context.pykeSentinel);
                 expect(context.p1Base.damage).toBe(4);
+
+                // Should cost 5, then take control of Clone Trooper
+                context.player1.clickCard(context.slyMoore);
+                expect(context.player1.readyResourceCount).toBe(readyResources - 7);
+                context.player1.clickCard(context.cloneTrooper);
+
+                // P2 kills the stolen Clone Trooper and P1 should heal
+                context.player2.clickCard(context.daringRaid);
+                context.player2.clickCard(context.cloneTrooper);
+                expect(context.p1Base.damage).toBe(2);
             });
         });
     });

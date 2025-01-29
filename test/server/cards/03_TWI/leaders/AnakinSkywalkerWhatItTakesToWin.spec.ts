@@ -69,7 +69,7 @@ describe('Anakin Skywalker, What It Takes To Win', function () {
                     phase: 'action',
                     player1: {
                         leader: { card: 'anakin-skywalker#what-it-takes-to-win', deployed: true },
-                        base: { card: 'dagobah-swamp', damage: 20 },
+                        base: { card: 'dagobah-swamp', damage: 19 },
                         groundArena: ['wampa', 'moisture-farmer'],
                         resources: 5
                     },
@@ -80,8 +80,16 @@ describe('Anakin Skywalker, What It Takes To Win', function () {
 
                 const { context } = contextRef;
 
-                // Anakin should have +4 attack for 20 damage
+                // Anakin should have +3 attack for 19 damage
+                expect(context.anakinSkywalker.getPower()).toBe(7);
+
+                // Have Village Protectors attack, putting P1Base to 21 damage, which should buff Anakin's attack by 1
+                context.player1.passAction();
+                context.player2.clickCard(context.villageProtectors);
+                context.player2.clickCard(context.p1Base);
                 expect(context.anakinSkywalker.getPower()).toBe(8);
+
+                // Now attack with Anakin
                 context.player1.clickCard(context.anakinSkywalker);
                 context.player1.clickCard(context.villageProtectors);
                 expect(context.anakinSkywalker.damage).toBe(2);
