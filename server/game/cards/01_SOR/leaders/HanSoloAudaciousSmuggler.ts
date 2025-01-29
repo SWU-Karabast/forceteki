@@ -51,7 +51,6 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.selectCard({
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
-                optional: false,
                 activePromptTitle: 'Defeat a resource you control',
                 innerSystem: AbilityHelper.immediateEffects.defeat()
             })

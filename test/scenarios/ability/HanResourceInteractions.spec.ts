@@ -1,4 +1,4 @@
-describe('Han Solo, Audacious Smuggler', function() {
+describe('Han Solo Resource Interaction Scenarios', function() {
     integration(function(contextRef) {
         describe('Han Solo\'s interaction with DJ\'s resource steal ability', function() {
             beforeEach(function() {
