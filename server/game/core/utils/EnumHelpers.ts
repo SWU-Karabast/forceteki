@@ -90,7 +90,7 @@ export const isDeckMoveZone = (zoneName: MoveZoneDestination): boolean => {
 
 export const isLeavingPlay = (prevZone: ZoneName, nextZone: MoveZoneDestination): boolean => {
     const outOfPlayZones = [ZoneName.OutsideTheGame, ZoneName.Hand, ZoneName.Deck, ZoneName.Discard,
-        DeckZoneDestination.DeckBottom,  DeckZoneDestination.DeckTop];
+        DeckZoneDestination.DeckBottom, DeckZoneDestination.DeckTop];
     return !outOfPlayZones.includes(prevZone) && outOfPlayZones.includes(nextZone);
 };
 
