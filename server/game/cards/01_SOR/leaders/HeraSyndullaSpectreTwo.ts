@@ -15,7 +15,6 @@ export default class HeraSyndullaSpectreTwo extends LeaderUnitCard {
             title: 'Ignore the aspect penalty on Spectre cards you play',
             targetController: RelativePlayer.Self,
             ongoingEffect: AbilityHelper.ongoingEffects.ignoreAllAspectPenalties({
-                limit: AbilityHelper.limit.unlimited(),
                 cardTypeFilter: WildcardCardType.Playable,
                 match: (card) => card.hasSomeTrait(Trait.Spectre)
             })

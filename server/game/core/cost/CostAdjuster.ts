@@ -1,7 +1,6 @@
 import type { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
-import { PerGameAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter, PlayType } from '../Constants';
 import { WildcardCardType } from '../Constants';
@@ -103,7 +102,7 @@ export class CostAdjuster {
             properties.playingTypes &&
             (Array.isArray(properties.playingTypes) ? properties.playingTypes : [properties.playingTypes]);
 
-        this.limit = properties.limit || new PerGameAbilityLimit(1);
+        this.limit = properties.limit;
         if (this.limit) {
             this.limit.registerEvents(game);
         }

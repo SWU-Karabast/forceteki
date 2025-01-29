@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, WildcardCardType } from '../../../core/Constants';
 
@@ -17,6 +18,7 @@ export default class BenduTheOneInTheMiddle extends NonLeaderUnitCard {
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Playable,
                     match: (card) => !card.hasSomeAspect(Aspect.Heroism) && !card.hasSomeAspect(Aspect.Villainy),
+                    limit: AbilityLimit.perGame(1),
                     amount: 2
                 })
             })

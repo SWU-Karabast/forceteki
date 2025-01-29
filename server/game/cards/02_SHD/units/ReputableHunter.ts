@@ -1,4 +1,3 @@
-import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
 
@@ -13,7 +12,6 @@ export default class ReputableHunter extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addDecreaseCostAbility({
             title: 'While an enemy unit has a Bounty, this unit costs 1 less to play',
-            limit: AbilityHelper.limit.unlimited(),
             condition: (context) => context.source.controller.opponent.isKeywordInPlay(KeywordName.Bounty),
             amount: 1
         });
