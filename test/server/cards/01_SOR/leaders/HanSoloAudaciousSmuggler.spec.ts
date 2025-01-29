@@ -8,7 +8,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                         leader: 'han-solo#audacious-smuggler',
                         hand: ['pyke-sentinel', 'wampa'],
                         deck: ['liberated-slaves'],
-                        resources: 5,
+                        resources: ['cunning', 'aggression', 'vigilance', 'command', 'atst'],
                     },
                     player2: {
                         groundArena: ['moisture-farmer'],
@@ -31,6 +31,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player1.clickPrompt('Done');
 
                 expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.aggression, context.vigilance, context.command, context.atst]);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('discard', context.player1);
                 expect(context.player1.readyResourceCount).toBe(5);
