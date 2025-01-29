@@ -20,5 +20,3 @@ export default class IndependentSenator extends NonLeaderUnitCard {
         });
     }
 }
-
-IndependentSenator.implemented = true;

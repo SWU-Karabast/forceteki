@@ -41,5 +41,3 @@ export default class JabbasRancorPateesa extends NonLeaderUnitCard {
         });
     }
 }
-
-JabbasRancorPateesa.implemented = true;

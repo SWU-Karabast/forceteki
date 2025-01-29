@@ -46,5 +46,3 @@ export default class BosskHuntingHisPrey extends LeaderUnitCard {
         });
     }
 }
-
-BosskHuntingHisPrey.implemented = true;

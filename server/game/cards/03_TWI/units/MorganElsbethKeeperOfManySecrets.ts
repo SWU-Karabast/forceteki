@@ -27,5 +27,3 @@ export default class MorganElsbethKeeperOfManySecrets extends NonLeaderUnitCard 
         });
     }
 }
-
-MorganElsbethKeeperOfManySecrets.implemented = true;

@@ -21,5 +21,3 @@ export default class TrandoshanHunters extends NonLeaderUnitCard {
         });
     }
 }
-
-TrandoshanHunters.implemented = true;

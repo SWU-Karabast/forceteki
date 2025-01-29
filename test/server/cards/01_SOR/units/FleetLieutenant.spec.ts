@@ -57,7 +57,7 @@ describe('Fleet Lieutenant', function() {
                 context.player1.clickCard(context.fleetLieutenant);
                 expect(context.fleetLieutenant).toBeInZone('groundArena');
 
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
                 expect(context.player2).toBeActivePlayer();
             });
 

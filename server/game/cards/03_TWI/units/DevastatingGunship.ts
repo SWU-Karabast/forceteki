@@ -21,5 +21,3 @@ export default class DevastatingGunship extends NonLeaderUnitCard {
         });
     }
 }
-
-DevastatingGunship.implemented = true;

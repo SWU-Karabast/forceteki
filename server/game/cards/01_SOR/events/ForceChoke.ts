@@ -30,5 +30,3 @@ export default class ForceChoke extends EventCard {
         });
     }
 }
-
-ForceChoke.implemented = true;

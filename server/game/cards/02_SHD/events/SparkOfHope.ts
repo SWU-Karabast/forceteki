@@ -32,5 +32,3 @@ export default class SparkOfHope extends EventCard {
         });
     }
 }
-
-SparkOfHope.implemented = true;

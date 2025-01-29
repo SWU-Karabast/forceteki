@@ -19,5 +19,3 @@ export default class SenatorialCorvette extends NonLeaderUnitCard {
         });
     }
 }
-
-SenatorialCorvette.implemented = true;

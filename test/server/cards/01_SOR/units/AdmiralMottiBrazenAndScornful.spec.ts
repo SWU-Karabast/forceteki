@@ -56,7 +56,7 @@ describe('Admiral Motti', function() {
                     context.cellBlockGuard
                 ]);
 
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
             });

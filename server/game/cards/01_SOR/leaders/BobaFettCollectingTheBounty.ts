@@ -61,5 +61,3 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
         });
     }
 }
-
-BobaFettCollectingTheBounty.implemented = true;

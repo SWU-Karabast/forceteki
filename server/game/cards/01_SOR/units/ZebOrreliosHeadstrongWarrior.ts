@@ -38,5 +38,3 @@ export default class ZebOrreliosHeadstrongWarrior extends NonLeaderUnitCard {
         });
     }
 }
-
-ZebOrreliosHeadstrongWarrior.implemented = true;

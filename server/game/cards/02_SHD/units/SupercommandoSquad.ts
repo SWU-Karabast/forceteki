@@ -18,5 +18,3 @@ export default class SupercommandoSquad extends NonLeaderUnitCard {
         });
     }
 }
-
-SupercommandoSquad.implemented = true;

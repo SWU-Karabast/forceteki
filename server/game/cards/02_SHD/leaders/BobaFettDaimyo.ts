@@ -41,5 +41,3 @@ export default class BobaFettDaimyo extends LeaderUnitCard {
         });
     }
 }
-
-BobaFettDaimyo.implemented = true;

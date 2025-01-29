@@ -24,5 +24,3 @@ export default class DoctorPershing extends NonLeaderUnitCard {
         });
     }
 }
-
-DoctorPershing.implemented = true;
