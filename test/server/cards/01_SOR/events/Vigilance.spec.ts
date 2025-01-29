@@ -132,7 +132,7 @@ describe('Vigilance', function() {
 
                     // heal 0 damage from base
                     context.player1.clickPrompt('Heal 5 damage from a base.');
-                    context.player1.clickCard(context.p1Base);
+                    // both base are not damaged, no base selectable
                     expect(context.p1Base.damage).toEqual(0);
                     expect(context.player2).toBeActivePlayer();
                 });
