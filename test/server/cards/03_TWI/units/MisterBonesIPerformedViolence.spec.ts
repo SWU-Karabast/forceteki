@@ -29,7 +29,8 @@ describe('Mister Bones, I Performed Violence', function () {
                     groundArena: ['mister-bones#i-performed-violence']
                 },
                 player2: {
-                    groundArena: ['battlefield-marine', 'consular-security-force']
+                    groundArena: ['battlefield-marine', 'consular-security-force'],
+                    spaceArena: ['green-squadron-awing']
                 }
             });
 
