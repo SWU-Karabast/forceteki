@@ -44,6 +44,7 @@ describe('Nala Se, Clone Engineer', function () {
                         hand: ['coruscant-guard', 'sly-moore#secretive-advisor'],
                     },
                     player2: {
+                        base: { card: 'echo-base', damage: 5 },
                         groundArena: ['clone-trooper'],
                         hand: ['vanquish', 'takedown', 'daring-raid']
                     }
@@ -59,6 +60,7 @@ describe('Nala Se, Clone Engineer', function () {
                 context.player1.clickPrompt('Pass');
                 expect(context.player1.readyResourceCount).toBe(readyResources - 2);
 
+                // Heal 2 after Clone dies
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.coruscantGuard);
 
@@ -70,15 +72,27 @@ describe('Nala Se, Clone Engineer', function () {
                 context.player2.clickCard(context.pykeSentinel);
                 expect(context.p1Base.damage).toBe(4);
 
+                context.player1.passAction();
+
+                // P2 Clone dying should not heal P2Base
+                context.player2.clickCard(context.daringRaid);
+                context.player2.clickCard(context.cloneTrooper);
+                expect(context.p2Base.damage).toBe(5);
+            });
+
+            it('should heal off of a stolen clone', function () {
+                const { context } = contextRef;
+                const readyResources = context.player1.readyResourceCount;
+
                 // Should cost 5, then take control of Clone Trooper
                 context.player1.clickCard(context.slyMoore);
-                expect(context.player1.readyResourceCount).toBe(readyResources - 7);
+                expect(context.player1.readyResourceCount).toBe(readyResources - 5);
                 context.player1.clickCard(context.cloneTrooper);
 
                 // P2 kills the stolen Clone Trooper and P1 should heal
                 context.player2.clickCard(context.daringRaid);
                 context.player2.clickCard(context.cloneTrooper);
-                expect(context.p1Base.damage).toBe(2);
+                expect(context.p1Base.damage).toBe(4);
             });
         });
     });
