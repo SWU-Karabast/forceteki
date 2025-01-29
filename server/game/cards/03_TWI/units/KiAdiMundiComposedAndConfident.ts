@@ -25,22 +25,19 @@ export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 2 }),
             when: {
-                onCardPlayed: (event) => this.isSecondCardPlayedByOpponentThisPhase(event.card)
+                onCardPlayed: (event) => this.isSecondCardPlayedByOpponentThisPhase(event)
             }
         });
     }
 
-    private isSecondCardPlayedByOpponentThisPhase(card) {
-        if (card.controller !== this.controller) {
-            const cardsPlayedByOpponent = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
-                playedCardEntry.playedBy === this.controller.opponent && playedCardEntry.card !== card);
-            let amountCardsPlayedByOpponent = cardsPlayedByOpponent.length;
-            if (!cardsPlayedByOpponent.find((c) => c.title === card.title && c.subtitle === card.subtitle)) {
-                amountCardsPlayedByOpponent += 1;
-            }
-            return amountCardsPlayedByOpponent === 2;
+    private isSecondCardPlayedByOpponentThisPhase(event) {
+        if (event.card.controller === this.controller) {
+            return false;
         }
-        return false;
+        const cardsPlayedByOpponent = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
+            playedCardEntry.playedBy === this.controller.opponent && playedCardEntry.playEvent !== event);
+        const amountCardsPlayedByOpponent = cardsPlayedByOpponent.length + 1;
+        return amountCardsPlayedByOpponent === 2;
     }
 }
 
