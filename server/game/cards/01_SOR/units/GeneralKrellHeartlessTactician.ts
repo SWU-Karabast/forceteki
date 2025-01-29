@@ -25,5 +25,3 @@ export default class GeneralKrellHeartlessTactician extends NonLeaderUnitCard {
         });
     }
 }
-
-GeneralKrellHeartlessTactician.implemented = true;

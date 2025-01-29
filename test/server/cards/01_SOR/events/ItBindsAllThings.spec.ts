@@ -30,7 +30,7 @@ describe('It Binds All Things', function() {
                 ]));
 
                 // select target for damage since yoda is a force user.
-                expect(context.player1).toHaveEnabledPromptButton('Pass ability');
+                expect(context.player1).toHaveEnabledPromptButton('Pass');
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter, context.hanSolo, context.yoda, context.leiaOrgana]);
                 context.player1.clickCard(context.atst);
 

@@ -27,5 +27,3 @@ export default class LukesLightsaber extends UpgradeCard {
         });
     }
 }
-
-LukesLightsaber.implemented = true;

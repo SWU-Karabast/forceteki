@@ -30,5 +30,3 @@ export default class GrenadeStrike extends EventCard {
         });
     }
 }
-
-GrenadeStrike.implemented = true;

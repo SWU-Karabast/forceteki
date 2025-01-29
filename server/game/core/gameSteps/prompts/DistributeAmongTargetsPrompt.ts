@@ -30,8 +30,6 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             properties.waitingPromptTitle = 'Waiting for opponent to choose targets for ' + properties.source.name;
         }
 
-        game.getPlayers().forEach((player) => player.clearSelectableCards());
-
         switch (this.properties.type) {
             case StatefulPromptType.DistributeDamage:
                 this.distributeType = 'damage';
@@ -75,14 +73,9 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         };
     }
 
-    public override continue() {
-        if (!this.isComplete()) {
-            this.player.setSelectableCards(this.properties.legalTargets);
-        } else {
-            this.complete();
-        }
-
-        return super.continue();
+    protected override highlightSelectableCards(): void {
+        this.player.setSelectableCards(this.properties.legalTargets);
+        this.player.opponent.setSelectableCards([]);
     }
 
     public override activeCondition(player) {

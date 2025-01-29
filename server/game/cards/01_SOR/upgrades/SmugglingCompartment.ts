@@ -23,5 +23,3 @@ export default class SmugglingCompartment extends UpgradeCard {
         });
     }
 }
-
-SmugglingCompartment.implemented = true;

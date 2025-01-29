@@ -24,5 +24,3 @@ export default class AgentKallusSeekingTheRebels extends NonLeaderUnitCard {
         });
     }
 }
-
-AgentKallusSeekingTheRebels.implemented = true;

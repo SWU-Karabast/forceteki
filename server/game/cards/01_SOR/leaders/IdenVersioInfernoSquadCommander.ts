@@ -43,5 +43,3 @@ export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
         });
     }
 }
-
-IdenVersioInfernoSquadCommander.implemented = true;

@@ -25,5 +25,3 @@ export default class SawGerreraExtremist extends NonLeaderUnitCard {
         });
     }
 }
-
-SawGerreraExtremist.implemented = true;

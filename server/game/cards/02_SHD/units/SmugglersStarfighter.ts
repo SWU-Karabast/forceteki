@@ -27,5 +27,3 @@ export default class SmugglersStarfighter extends NonLeaderUnitCard {
         });
     }
 }
-
-SmugglersStarfighter.implemented = true;

@@ -24,5 +24,3 @@ export default class ProvidenceDestroyer extends NonLeaderUnitCard {
         });
     }
 }
-
-ProvidenceDestroyer.implemented = true;

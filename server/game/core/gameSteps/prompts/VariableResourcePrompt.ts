@@ -43,8 +43,6 @@ export class VariableResourcePrompt extends ResourcePrompt {
             this.resourceSelectedCards(player);
 
             this.playersDone[player.name] = true;
-            player.clearSelectedCards();
-            player.clearSelectableCards();
             return true;
         }
         return false;

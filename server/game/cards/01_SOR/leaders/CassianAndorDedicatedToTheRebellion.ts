@@ -50,5 +50,3 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
     }
 }
 
-
-CassionAndorDedicatedToTheRebellion.implemented = true;

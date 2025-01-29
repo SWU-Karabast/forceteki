@@ -24,5 +24,3 @@ export default class SawGerreraResistanceIsNotTerrorism extends NonLeaderUnitCar
         });
     }
 }
-
-SawGerreraResistanceIsNotTerrorism.implemented = true;

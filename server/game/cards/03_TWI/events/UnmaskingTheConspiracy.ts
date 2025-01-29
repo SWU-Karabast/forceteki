@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { WildcardCardType } from '../../../core/Constants';
 
 export default class UnmaskingTheConspirancy extends EventCard {
     protected override getImplementationId() {
@@ -14,7 +13,6 @@ export default class UnmaskingTheConspirancy extends EventCard {
         this.setEventAbility({
             title: 'Discard a card from your hand',
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
-                cardTypeFilter: WildcardCardType.Any,
                 target: context.source.controller,
                 amount: 1
             })),
@@ -33,5 +31,3 @@ export default class UnmaskingTheConspirancy extends EventCard {
         });
     }
 }
-
-UnmaskingTheConspirancy.implemented = true;

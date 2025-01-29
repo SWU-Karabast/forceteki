@@ -22,5 +22,3 @@ export default class PrincipledOutlaw extends NonLeaderUnitCard {
         });
     }
 }
-
-PrincipledOutlaw.implemented = true;
