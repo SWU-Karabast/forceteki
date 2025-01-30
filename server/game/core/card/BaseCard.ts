@@ -4,15 +4,18 @@ import { CardType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import { WithDamage } from './propertyMixins/Damage';
 import { ActionAbility } from '../ability/ActionAbility';
-import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { EpicActionLimit } from '../ability/AbilityLimit';
+// import type TriggeredAbility from '../ability/TriggeredAbility';
+import type { InPlayCard } from './baseClasses/InPlayCard';
 
 const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
 
 /** A Base card (as in, the card you put in your base zone) */
 export class BaseCard extends BaseCardParent {
     private _epicActionAbility: ActionAbility;
+    // private triggeredAbilities: TriggeredAbility[] = [];
 
     public get epicActionSpent() {
         return this._epicActionAbility.limit.isAtMax(this.owner);
@@ -42,6 +45,10 @@ export class BaseCard extends BaseCardParent {
         return super.getActionAbilities();
     }
 
+    public override canRegisterTriggeredAbilities(): this is InPlayCard {
+        return true;
+    }
+
     // TODO TYPE REFACTOR: this method is duplicated
     protected addConstantAbility(properties: IConstantAbilityProps<this>): void {
         const ability = this.createConstantAbility(properties);
@@ -57,5 +64,14 @@ export class BaseCard extends BaseCardParent {
         });
 
         this._epicActionAbility = new ActionAbility(this.game, this, propertiesWithLimit);
+    }
+
+    protected addTriggeredAbility(properties: ITriggeredAbilityProps<this>): void {
+        if (!this.triggeredAbilities) {
+            this.triggeredAbilities = [];
+        }
+        const ability = this.createTriggeredAbility(properties);
+        this.triggeredAbilities.push(ability);
+        ability.registerEvents();
     }
 }

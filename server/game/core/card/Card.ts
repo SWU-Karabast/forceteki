@@ -1,4 +1,4 @@
-import type { IActionAbilityProps, IConstantAbilityProps, Zone } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, Zone, ITriggeredAbilityProps } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
@@ -25,6 +25,7 @@ import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployabl
 import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
+import TriggeredAbility from '../ability/TriggeredAbility';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -59,6 +60,8 @@ export class Card extends OngoingEffectSource {
 
     private nextAbilityIdx = 0;
     private _zone: Zone;
+    protected movedFromZone?: ZoneName = null;
+    protected triggeredAbilities: TriggeredAbility[] = [];
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
@@ -262,6 +265,10 @@ export class Card extends OngoingEffectSource {
         };
     }
 
+    protected createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
+        return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
+    }
+
     protected buildGeneralAbilityProps(abilityTypeDescriptor: string) {
         return {
             cardName: this.title,
@@ -357,14 +364,6 @@ export class Card extends OngoingEffectSource {
      * The returned type set is equivalent to {@link CardWithTriggeredAbilities}.
      */
     public canRegisterTriggeredAbilities(): this is InPlayCard {
-        return false;
-    }
-
-    /**
-     * Returns true if the card is a type that can legally have constant abilities.
-     * The returned type set is equivalent to {@link CardWithConstantAbilities}.
-     */
-    public canRegisterConstantAbilities(): this is InPlayCard {
         return false;
     }
 
@@ -593,8 +592,59 @@ export class Card extends OngoingEffectSource {
      * Updates the card's abilities for its current zone after being moved.
      * Called from {@link Game.resolveGameState} after event resolution.
      */
+
+    public resolveAbilitiesForNewZone() {
+        // TODO: do we need to consider a case where a card is moved from one arena to another,
+        // where we maybe wouldn't reset events / effects / limits?
+        this.updateTriggeredAbilityEvents(this.movedFromZone, this.zoneName);
+        this.updateConstantAbilityEffects(this.movedFromZone, this.zoneName);
+        this.updateKeywordAbilityEffects(this.movedFromZone, this.zoneName);
+
+        this.movedFromZone = null;
+    }
+
+    private updateTriggeredAbilityEvents(from: ZoneName, to: ZoneName, reset: boolean = true) {
+        if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
+            this.resetLimits();
+        }
+
+        for (const triggeredAbility of this.triggeredAbilities) {
+            if (EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && !EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
+                triggeredAbility.registerEvents();
+            } else if (!EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
+                triggeredAbility.unregisterEvents();
+            }
+        }
+    }
+
+    private updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
+        if (!EnumHelpers.isArena(to) || from === ZoneName.Discard || from === ZoneName.Capture) {
+            this.removeLastingEffects();
+        }
+
+        for (const constantAbility of this.constantAbilities) {
+            if (constantAbility.sourceZoneFilter === WildcardZoneName.Any) {
+                continue;
+            }
+            if (
+                !EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
+                EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
+            ) {
+                constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
+            } else if (
+                EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
+                !EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
+            ) {
+                this.removeEffectFromEngine(constantAbility.registeredEffects);
+                constantAbility.registeredEffects = [];
+            }
+        }
+    }
+
+    /** Register / un-register the effects for any abilities from keywords */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public resolveAbilitiesForNewZone() {}
+    protected updateKeywordAbilityEffects(from: ZoneName, to: ZoneName) { }
+
 
     /**
      * Deals with the engine effects of entering a new zone, making sure all statuses are set with legal values.
