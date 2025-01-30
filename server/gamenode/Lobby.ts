@@ -79,7 +79,7 @@ export class Lobby {
     }
 
     private createLobbyLink(): string {
-        return process.env.NODE_ENV === 'development'
+        return process.env.ENVIRONMENT === 'development'
             ? `http://localhost:3000/lobby?lobbyId=${this._id}`
             : `https://beta.karabast.net/lobby?lobbyId=${this._id}`;
     }
@@ -121,7 +121,7 @@ export class Lobby {
 
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
-        // maybe we need to be using socket.data
+
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
