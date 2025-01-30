@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class MoffGideonFormidableCommander extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -37,7 +37,8 @@ export default class MoffGideonFormidableCommander extends LeaderUnitCard {
 
         this.addConstantAbility({
             title: 'Each friendly unit that costs 3 or less gains Overwhelm while attacking an enemy unit',
-            matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isAttacking() && card.controller === context.source.controller && card.cost <= 3 && card.activeAttack?.target?.isUnit(),
+            targetZoneFilter: WildcardZoneName.AnyArena,
+            matchTarget: (card, context) => card.isUnit() && card.isAttacking() && card.controller === context.source.controller && card.cost <= 3 && card.activeAttack?.target?.isUnit(),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm),
         });
     }
