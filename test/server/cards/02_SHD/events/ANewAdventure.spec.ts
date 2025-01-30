@@ -8,7 +8,8 @@ describe('A New Adventure', function() {
                         hand: ['a-new-adventure'],
                         groundArena: ['salacious-crumb#obnoxious-pet', 'atat-suppressor'],
                         spaceArena: ['cartel-spacer'],
-                        base: { card: 'echo-base', damage: 2 }
+                        leader: 'asajj-ventress#unparalleled-adversary',
+                        base: { card: 'jedha-city', damage: 2 }
                     },
                     player2: {
                         groundArena: ['wampa'],
@@ -45,7 +46,7 @@ describe('A New Adventure', function() {
 
                 context.player1.clickPrompt('Play Salacious Crumb for free');
                 expect(context.salaciousCrumb).toBeInZone('groundArena');
-                expect(context.player1.exhaustedResourceCount).toBe(6); // just the cost of A New Adventure (with aspect penalties)
+                expect(context.player1.exhaustedResourceCount).toBe(2); // just the cost of A New Adventure
                 expect(context.p1Base.damage).toBe(1);   // from Crumb ability
             });
         });
@@ -57,7 +58,8 @@ describe('A New Adventure', function() {
                     hand: ['a-new-adventure'],
                     groundArena: ['atat-suppressor'],
                     spaceArena: ['cartel-spacer'],
-                    base: { card: 'echo-base', damage: 2 }
+                    leader: 'asajj-ventress#unparalleled-adversary',
+                    base: { card: 'jedha-city', damage: 2 }
                 },
                 player2: {
                     groundArena: ['wampa', { card: 'salacious-crumb#obnoxious-pet', owner: 'player1' }],
@@ -79,7 +81,7 @@ describe('A New Adventure', function() {
 
             context.player1.clickPrompt('Play Salacious Crumb for free');
             expect(context.salaciousCrumb).toBeInZone('groundArena');
-            expect(context.player1.exhaustedResourceCount).toBe(6); // just the cost of A New Adventure (with aspect penalties)
+            expect(context.player1.exhaustedResourceCount).toBe(2); // just the cost of A New Adventure
             expect(context.p1Base.damage).toBe(1);   // from Crumb ability
         });
     });

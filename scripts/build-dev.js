@@ -18,6 +18,5 @@ runCommand('tsc');
 
 runCommand('cpy ./test/json/ ./build/');
 runCommand('cpy ./test/helpers/ ./build/');
-runCommand('cpy ./test/gameSetups/ ./build/');
 
 console.log('Build-dev process completed.');
