@@ -21,5 +21,3 @@ export default class Commission extends EventCard {
         });
     }
 }
-
-Commission.implemented = true;

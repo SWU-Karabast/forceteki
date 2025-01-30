@@ -220,7 +220,9 @@ class PlayerInteractionWrapper {
                 card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
             }
 
-            if (card.isUnit() && card.defaultArena !== arenaName) {
+            if (!card.isUnit()) {
+                throw new TestSetupError(`Attempting to add non-unit card ${card.internalName} to ${arenaName}`);
+            } else if (card.defaultArena !== arenaName) {
                 throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
             }
 
@@ -293,7 +295,9 @@ class PlayerInteractionWrapper {
     }
 
     setDeck(newContents = [], prevZones = ['any']) {
-        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        this.player.deckZone.cards.forEach(
+            (card) => this.moveCard(card, 'outsideTheGame')
+        );
         newContents.reverse().forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
             this.moveCard(card, 'deck');
@@ -553,47 +557,33 @@ class PlayerInteractionWrapper {
         // this.checkUnserializableGameState();
     }
 
-    clickPromptButtonIndex(index) {
+    clickDisplayCardPromptButton(cardUuid, arg) {
         var currentPrompt = this.player.currentPrompt();
 
-        if (currentPrompt.buttons.length <= index) {
-            throw new TestSetupError(
-                `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
-            );
-        }
-
-        var promptButton = currentPrompt.buttons[index];
-
-        if (!promptButton || promptButton.disabled) {
-            throw new TestSetupError(
-                `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
-            );
-        }
-
-        this.game.menuButton(this.player.name, promptButton.arg, promptButton.uuid, promptButton.method);
+        this.game.perCardMenuButton(this.player.name, arg, cardUuid, currentPrompt.promptUuid);
         this.game.continue();
-        // this.checkUnserializableGameState();
     }
 
-    chooseCardInPrompt(cardName, controlName) {
+    clickCardInDisplayCardPrompt(card, allowClickUnselectable = false) {
+        Util.checkNullCard(card);
+
         var currentPrompt = this.player.currentPrompt();
 
-        let promptControl = currentPrompt.controls.find(
-            (control) => control.name.toLowerCase() === controlName.toLowerCase()
+        var clickingCard = currentPrompt.displayCards.find(
+            (cardEntry) => cardEntry.cardUuid === card.uuid
         );
 
-        if (!promptControl) {
+        if (!clickingCard || (!allowClickUnselectable && (clickingCard.selectionState === 'unselectable' || clickingCard.selectionState === 'invalid'))) {
             throw new TestSetupError(
-                `Couldn't click card '${cardName}' for ${this.player.name
-                } - unable to find control '${controlName}'. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
+                `Couldn't click on '${card.internalName}' in card display prompt for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
-        this.game.menuButton(this.player.name, cardName, promptControl.uuid, promptControl.method);
+        this.game.menuButton(this.player.name, card.uuid, currentPrompt.promptUuid, 'menuButton');
         this.game.continue();
+
         // this.checkUnserializableGameState();
+        return card;
     }
 
     // click any N of the selectable cards available
@@ -617,7 +607,7 @@ class PlayerInteractionWrapper {
     }
 
     clickCard(card, zone = 'any', side = 'self', expectChange = true) {
-        Util.checkNullCard(card, this.testContext);
+        Util.checkNullCard(card);
 
         if (typeof card === 'string') {
             card = this.findCardByName(card, zone, side);

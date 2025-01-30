@@ -25,5 +25,3 @@ export default class MakeAnOpening extends EventCard {
         });
     }
 }
-
-MakeAnOpening.implemented = true;

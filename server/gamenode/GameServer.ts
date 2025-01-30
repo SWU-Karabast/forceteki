@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
-import https from 'https';
 import express from 'express';
 import cors from 'cors';
-import socketio from 'socket.io';
+import type { Socket as IOSocket, DefaultEventsMap } from 'socket.io';
+import { Server as IOServer } from 'socket.io';
 import { v4 as uuid } from 'uuid';
 
 import { logger } from '../logger';
@@ -23,45 +23,37 @@ interface User {
 }
 
 /**
+ * Represents additional Socket types we can leverage these later.
+ */
+
+interface SocketData {
+    manualDisconnect?: boolean;
+}
+
+/**
  * Represents a player waiting in the queue.
  */
 interface QueuedPlayer {
     deck: Deck;
-    socket?: socketio.Socket;
+    socket?: Socket;
     user: User;
 }
 
 export class GameServer {
     private lobbies = new Map<string, Lobby>();
     private userLobbyMap = new Map<string, string>();
-    private protocol = 'https';
-    private host = env.gameNodeHost;
     private queue: QueuedPlayer[] = [];
-    private io: socketio.Server;
-    private titleCardData: any;
-    private shortCardData: any;
+    private io: IOServer;
+
 
     public constructor() {
         const app = express();
         app.use(express.json());
-        let privateKey: undefined | string;
-        let certificate: undefined | string;
-
-        try {
-            // privateKey = fs.readFileSync(env.gameNodeKeyPath).toString();
-            // certificate = fs.readFileSync(env.gameNodeCertPath).toString();
-        } catch (e) {
-            this.protocol = 'http';
-        }
-
-        const server =
-            !privateKey || !certificate
-                ? http.createServer(app)
-                : https.createServer({ key: privateKey, cert: certificate });
+        const server = http.createServer(app);
 
 
         const corsOptions = {
-            origin: ['http://localhost:3000', 'https://your-production-domain.com'],
+            origin: ['http://localhost:3000', 'https://beta.karabast.net'],
             methods: ['GET', 'POST'],
             credentials: true, // Allow cookies or authorization headers
         };
@@ -71,19 +63,24 @@ export class GameServer {
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
 
-        const corsOrigin = process.env.NODE_ENV === 'production'
-            ? 'https://tbd.com'
-            : 'http://localhost:3000';
 
-        this.io = new socketio.Server(server, {
+        // Setup socket server
+        this.io = new IOServer(server, {
             perMessageDeflate: false,
+            path: '/ws',
             cors: {
-                origin: corsOrigin,
+                origin: ['http://localhost:3000', 'https://beta.karabast.net'],
                 methods: ['GET', 'POST']
             }
         });
-
-        this.io.on('connection', (socket) => this.onConnection(socket));
+        // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
+        this.io.on('connection', (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
+            this.onConnection(socket);
+            socket.on('manualDisconnect', () => {
+                socket.data.manualDisconnect = true;
+                socket.disconnect();
+            });
+        });
     }
 
     private setupAppRoutes(app: express.Application) {
@@ -124,7 +121,7 @@ export class GameServer {
         });
         app.post('/api/enter-queue', (req, res) => {
             const { user, deck } = req.body;
-            const success = this.enterQueue(user, deck, null);
+            const success = this.enterQueue(user, deck);
             if (!success) {
                 return res.status(400).json({ success: false, message: 'Failed to enter queue' });
             }
@@ -186,7 +183,7 @@ export class GameServer {
     }
 
     private getTestSetupGames() {
-        const testGamesDirPath = path.resolve(__dirname, '../../test/gameSetups');
+        const testGamesDirPath = path.resolve(__dirname, '../../../test/gameSetups');
         if (!fs.existsSync(testGamesDirPath)) {
             return [];
         }
@@ -240,11 +237,6 @@ export class GameServer {
     //     next();
     // }
 
-    public onCardData(cardData) {
-        this.titleCardData = cardData.titleCardData;
-        this.shortCardData = cardData.shortCardData;
-    }
-
     public onConnection(ioSocket) {
         const user = JSON.parse(ioSocket.handshake.query.user);
         const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
@@ -275,7 +267,7 @@ export class GameServer {
             lobby.addLobbyUser(user, socket);
 
             socket.send('connectedUser', user.id);
-            socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
+            socket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
             return;
         }
 
@@ -301,7 +293,7 @@ export class GameServer {
                 lobby.addLobbyUser(newUser, socket);
                 this.userLobbyMap.set(newUser.id, lobby.id);
                 socket.send('connectedUser', newUser.id);
-                socket.on('disconnect', (_, reason) => this.onSocketDisconnected(user.id, reason));
+                socket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
                 return;
             }
 
@@ -309,15 +301,13 @@ export class GameServer {
             this.userLobbyMap.set(user.id, lobby.id);
             return;
         }
-        // if they are not in the lobby they could be in a queue
+        // 3. if they are not in the lobby they could be in a queue
         const queuedPlayer = this.queue.find((p) => p.user.id === user.id);
         if (queuedPlayer) {
-            queuedPlayer.socket = ioSocket;
+            queuedPlayer.socket = new Socket(ioSocket);
 
             // handle queue-specific events and add lobby disconnect
-            ioSocket.on('disconnect', (reason) => {
-                this.onSocketDisconnected(user.id, reason);
-            });
+            ioSocket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
 
             this.matchmakeQueuePlayers();
             return;
@@ -325,13 +315,14 @@ export class GameServer {
 
         // A user should not get here
         ioSocket.disconnect();
-        throw new Error(`Error state when connecting to lobby/game ${ioSocket.request.user.username} disconnecting`);
+        // this can happen when someone tries to reconnect to the game but are out of the mapping TODO make a notification for the player
+        logger.info(`Error state when connecting to lobby/game ${user.id} disconnecting`);
     }
 
     /**
-     * Put a user into the queue array.
+     * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(user: any, deck: any, socket: socketio.Socket | null): boolean {
+    private enterQueue(user: any, deck: any): boolean {
         // Quick check: if they're already in a lobby, no queue
         if (this.userLobbyMap.has(user.id)) {
             logger.info(`User ${user.id} already in a lobby, ignoring queue request.`);
@@ -342,11 +333,10 @@ export class GameServer {
             logger.info(`User ${user.id} is already in queue, rejoining`);
             this.removeFromQueue(user.id);
         }
-
         this.queue.push({
             user,
             deck,
-            socket
+            socket: null
         });
         return true;
     }
@@ -372,15 +362,17 @@ export class GameServer {
             lobby.createLobbyUser(p2.user, p2.deck);
 
             // Attach their sockets to the lobby (if they exist)
-            const socket1 = p1.socket ? new Socket(p1.socket) : null;
-            const socket2 = p2.socket ? new Socket(p2.socket) : null;
+            const socket1 = p1.socket ? p1.socket : null;
+            const socket2 = p2.socket ? p2.socket : null;
             if (socket1) {
                 lobby.addLobbyUser(p1.user, socket1);
-                socket1.on('disconnect', (_, reason) => this.onSocketDisconnected(p1.user.id, reason));
+                socket1.on('disconnect', () => this.onSocketDisconnected(socket1.socket, p1.user.id));
+                socket1.registerEvent('requeue', () => this.requeueUser(socket1, p1.user, p1.deck));
             }
             if (socket2) {
                 lobby.addLobbyUser(p2.user, socket2);
-                socket2.on('disconnect', (_, reason) => this.onSocketDisconnected(p2.user.id, reason));
+                socket2.on('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.id));
+                socket2.registerEvent('requeue', () => this.requeueUser(socket2, p2.user, p2.deck));
             }
 
             // Save user => lobby mapping
@@ -388,8 +380,10 @@ export class GameServer {
             this.userLobbyMap.set(p2.user.id, lobby.id);
 
             // If needed, set tokens async
+            lobby.setLobbyOwner(p1.user.id);
             lobby.setTokens();
             lobby.setPlayableCardTitles();
+            // this needs to be here since we only send start game via the LobbyOwner.
             lobby.sendLobbyState();
             logger.info(`Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
         }
@@ -402,38 +396,70 @@ export class GameServer {
         this.queue = this.queue.filter((q) => q.user.id !== userId);
     }
 
-    public onSocketDisconnected(id: string, reason: string) {
+    /**
+     * requeues the user and removes him from the previous lobby. If the lobby is empty, it cleans it up.
+     */
+    private requeueUser(socket: Socket, user: User, deck: any): void {
+        if (this.userLobbyMap.has(user.id)) {
+            const lobbyId = this.userLobbyMap.get(user.id);
+            const lobby = this.lobbies.get(lobbyId);
+            this.userLobbyMap.delete(user.id);
+            lobby.removeUser(user.id);
+            // check if lobby is empty
+            if (lobby.isEmpty()) {
+                // cleanup process
+                lobby.cleanLobby();
+                this.lobbies.delete(lobbyId);
+            }
+        }
+        // add user to queue
+        this.queue.push({
+            user,
+            deck,
+            socket: socket
+        });
+
+        // perform matchmaking
+        this.matchmakeQueuePlayers();
+    }
+
+    public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {
         if (!this.userLobbyMap.has(id)) {
             this.removeFromQueue(id);
             return;
         }
         const lobbyId = this.userLobbyMap.get(id);
         const lobby = this.lobbies.get(lobbyId);
-        if (reason === 'client namespace disconnect') {
+
+
+        const wasManualDisconnect = !!socket?.data?.manualDisconnect;
+        if (wasManualDisconnect) {
             this.userLobbyMap.delete(id);
             lobby.removeUser(id);
-        } else if (reason === 'ping timeout' || reason === 'transport close') {
-            lobby.setUserDisconnected(id);
-            setTimeout(() => {
-                // Check if the user is still disconnected after the timer
-                if (lobby.getUserState(id) === 'disconnected') {
-                    this.userLobbyMap.delete(id);
-                    lobby.removeUser(id);
-                    // Check if lobby is empty
-                    if (lobby.isEmpty()) {
-                        // Start the cleanup process
-                        lobby.cleanLobby();
-                        this.lobbies.delete(lobbyId);
-                    }
-                }
-            }, 30000);
-        }
 
-        // check if lobby is empty
-        if (lobby.isEmpty()) {
-            // cleanup process
-            lobby.cleanLobby();
-            this.lobbies.delete(lobbyId);
+            // check if lobby is empty
+            if (lobby.isEmpty()) {
+                // cleanup process
+                lobby.cleanLobby();
+                this.lobbies.delete(lobbyId);
+            }
+            return;
         }
+        // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
+        //  without triggering onSocketDisconnect
+        lobby.setUserDisconnected(id);
+        setTimeout(() => {
+            // Check if the user is still disconnected after the timer
+            if (lobby.getUserState(id) === 'disconnected') {
+                this.userLobbyMap.delete(id);
+                lobby.removeUser(id);
+                // Check if lobby is empty
+                if (lobby.isEmpty()) {
+                    // Start the cleanup process
+                    lobby.cleanLobby();
+                    this.lobbies.delete(lobbyId);
+                }
+            }
+        }, 20000);
     }
 }

@@ -3,10 +3,19 @@ import type Player from '../../Player';
 import { BaseStep } from '../BaseStep';
 import * as Contract from '../../utils/Contract';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
+import * as Helpers from '../../utils/Helpers';
+import type { IButton } from '../PromptInterfaces';
+import type Game from '../../Game';
 
 export abstract class UiPrompt extends BaseStep {
     public completed = false;
     public uuid = uuid();
+
+    public constructor(game: Game) {
+        super(game);
+
+        this.clearPrompts();
+    }
 
     public abstract activePrompt(player: Player): IPlayerPromptStateProperties;
 
@@ -44,12 +53,20 @@ export abstract class UiPrompt extends BaseStep {
     public setPrompt(): void {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
-                player.setPrompt(this.addDefaultCommandToButtons(this.activePrompt(player)));
+                player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
                 player.startClock();
             } else {
                 player.setPrompt(this.waitingPrompt());
                 player.resetClock();
             }
+        }
+
+        this.highlightSelectableCards();
+    }
+
+    protected highlightSelectableCards() {
+        for (const player of this.game.getPlayers()) {
+            player.setSelectableCards([]);
         }
     }
 
@@ -63,23 +80,22 @@ export abstract class UiPrompt extends BaseStep {
         Contract.assertEqual(uuid, this.uuid);
     }
 
-    private addDefaultCommandToButtons(original?: IPlayerPromptStateProperties) {
+    private addButtonDefaultsToPrompt(original?: IPlayerPromptStateProperties) {
         Contract.assertNotNullLike(original);
 
         const newPrompt = { ...original };
-        if (newPrompt.buttons) {
-            for (const button of newPrompt.buttons) {
-                button.command = button.command || 'menuButton';
-                (button as any).uuid = this.uuid;
-            }
-        }
 
-        if (newPrompt.controls) {
-            for (const controls of newPrompt.controls) {
-                (controls as any).uuid = this.uuid;
-            }
-        }
+        this.addDefaultsToButtons(newPrompt.buttons);
+        this.addDefaultsToButtons(newPrompt.perCardButtons);
+
         return newPrompt;
+    }
+
+    private addDefaultsToButtons(buttons?: IButton[]) {
+        for (const button of Helpers.asArray(buttons)) {
+            button.command = button.command || 'menuButton';
+            (button as any).uuid = this.uuid;
+        }
     }
 
     private clearPrompts(): void {

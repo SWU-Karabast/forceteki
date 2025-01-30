@@ -22,5 +22,3 @@ export default class VambraceGrappleshot extends UpgradeCard {
         });
     }
 }
-
-VambraceGrappleshot.implemented = true;

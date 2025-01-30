@@ -16,5 +16,3 @@ export default class KintanIntimidator extends NonLeaderUnitCard {
         });
     }
 }
-
-KintanIntimidator.implemented = true;

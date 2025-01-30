@@ -32,5 +32,3 @@ export default class SwoopDown extends EventCard {
         });
     }
 }
-
-SwoopDown.implemented = true;

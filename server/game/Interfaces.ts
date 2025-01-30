@@ -86,6 +86,16 @@ export interface IAbilityProps<TContext extends AbilityContext> {
      */
     optional?: boolean;
 
+    /**
+     * If optional is true, indicates which player will make the choice to resolve the optional ability (defaults to RelativePlayer.Self)
+     */
+    playerChoosingOptional?: RelativePlayer;
+
+    /**
+     * Override the default 'Pass' button text
+     */
+    optionalButtonTextOverride?: string;
+
     /** Indicates which player controls this ability (e.g. for Bounty abilities, it is the opponent) */
     abilityController?: RelativePlayer;
 
@@ -151,6 +161,8 @@ export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPr
     immediateEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => IThenAbilityPropsWithSystems<TriggeredAbilityContext>) | IThenAbilityPropsWithSystems<TriggeredAbilityContext>;
+    ifYouDo?: ((context?: TriggeredAbilityContext) => IAbilityPropsWithSystems<TriggeredAbilityContext>) | IAbilityPropsWithSystems<TriggeredAbilityContext>;
+    ifYouDoNot?: ((context?: TriggeredAbilityContext) => IAbilityPropsWithSystems<TriggeredAbilityContext>) | IAbilityPropsWithSystems<TriggeredAbilityContext>;
 };
 
 /** Interface definition for setEventAbility */
@@ -214,11 +226,20 @@ export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbi
     thenCondition?: (context?: TContext) => boolean;
 };
 
+export interface IClientUIProperties {
+    lastPlayedCard?: ISetId;
+}
+
+export interface ISetId {
+    set: string;
+    number: number;
+}
+
 // ********************************************** INTERNAL TYPES **********************************************
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
 > {
-    replaceWith: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
+    replaceWith?: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
 }
 
 type ITriggeredAbilityWhenProps<TSource extends Card> = ITriggeredAbilityBaseProps<TSource> & {

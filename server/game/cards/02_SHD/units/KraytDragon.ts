@@ -27,5 +27,3 @@ export default class KraytDragon extends NonLeaderUnitCard {
         });
     }
 }
-
-KraytDragon.implemented = true;

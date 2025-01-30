@@ -152,7 +152,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
             }
 
-            this.attackAction = new InitiateAttackAction(this);
+            this.attackAction = new InitiateAttackAction(this.game, this);
         }
 
         // ****************************************** PROPERTY HELPERS ******************************************
@@ -551,7 +551,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.checkDefeated(DefeatSourceType.FrameworkEffect);
         }
 
-        private checkDefeated(source: IDamageSource | DefeatSourceType.FrameworkEffect) {
+        protected checkDefeated(source: IDamageSource | DefeatSourceType.FrameworkEffect) {
+            // if this card can't be defeated by damage (e.g. Chirrut), skip the check
+            if (this.hasOngoingEffect(EffectName.CannotBeDefeatedByDamage)) {
+                return;
+            }
+
             if (this.damage >= this.getHp() && !this._pendingDefeat) {
                 // add defeat event to window
                 this.game.addSubwindowEvents(

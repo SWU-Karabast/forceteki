@@ -65,6 +65,7 @@ export enum EffectName {
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
+    CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
     CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
     CostAdjuster = 'costAdjuster',
@@ -403,6 +404,8 @@ export enum AbilityRestriction {
     Ready = 'ready',
     ReceiveDamage = 'receiveDamage',
     TriggerAbilities = 'triggerAbilities',
+    BeCaptured = 'beCaptured',
+    BeDefeated = 'beDefeated',
 }
 
 export enum StateWatcherName {
@@ -446,4 +449,6 @@ export enum PromptType {
     Initiative = 'initiative',
     Resource = 'resource',
     ActionWindow = 'actionWindow',
+    DisplayCards = 'displayCards',
+    DistributeAmongTargets = 'distributeAmongTargets',
 }

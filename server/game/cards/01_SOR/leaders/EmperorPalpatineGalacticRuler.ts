@@ -66,5 +66,3 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
         });
     }
 }
-
-EmperorPalpatineGalacticRuler.implemented = true;

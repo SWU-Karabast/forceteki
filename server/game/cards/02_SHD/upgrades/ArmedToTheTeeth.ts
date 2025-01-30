@@ -25,5 +25,3 @@ export default class ArmedToTheTeeth extends UpgradeCard {
         });
     }
 }
-
-ArmedToTheTeeth.implemented = true;

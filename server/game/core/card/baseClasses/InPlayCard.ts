@@ -345,11 +345,12 @@ export class InPlayCard extends PlayableOrDeployableCard {
         const chooseDuplicateToDefeatPromptProperties = {
             activePromptTitle: `Choose which copy of ${unitDisplayName} to defeat`,
             waitingPromptTitle: `Waiting for opponent to choose which copy of ${unitDisplayName} to defeat`,
+            source: 'Unique rule',
             zoneFilter: WildcardZoneName.AnyArena,
             controller: RelativePlayer.Self,
             cardCondition: (card: InPlayCard) =>
                 card.unique && card.title === this.title && card.subtitle === this.subtitle && !card.pendingDefeat,
-            onSelect: (player, card) => this.resolveUniqueDefeat(card)
+            onSelect: (card) => this.resolveUniqueDefeat(card)
         };
         this.game.promptForSelect(this.controller, chooseDuplicateToDefeatPromptProperties);
     }

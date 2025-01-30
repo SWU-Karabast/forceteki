@@ -21,5 +21,3 @@ export default class DelMeekoProvidingOverwatch extends NonLeaderUnitCard {
         });
     }
 }
-
-DelMeekoProvidingOverwatch.implemented = true;

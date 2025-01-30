@@ -20,5 +20,3 @@ export default class DisruptiveBurst extends EventCard {
         });
     }
 }
-
-DisruptiveBurst.implemented = true;

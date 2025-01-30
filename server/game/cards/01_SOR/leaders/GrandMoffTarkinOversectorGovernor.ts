@@ -34,5 +34,3 @@ export default class GrandMoffTarkinOversectorGovernor extends LeaderUnitCard {
         });
     }
 }
-
-GrandMoffTarkinOversectorGovernor.implemented = true;

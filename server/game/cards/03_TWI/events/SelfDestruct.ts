@@ -28,5 +28,3 @@ export default class SelfDestruct extends EventCard {
         });
     }
 }
-
-SelfDestruct.implemented = true;

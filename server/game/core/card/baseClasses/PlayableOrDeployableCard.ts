@@ -131,7 +131,10 @@ export class PlayableOrDeployableCard extends Card {
     protected buildCheapestSmuggleAction(propertyOverrides: IPlayCardActionOverrides = null) {
         Contract.assertTrue(this.hasSomeKeyword(KeywordName.Smuggle));
 
-        const smuggleKeywords = this.getKeywordsWithCostValues(KeywordName.Smuggle);
+        // find all Smuggle keywords, filtering out any with additional ability costs as those will be implemented manually (e.g. First Light)
+        const smuggleKeywords = this.getKeywordsWithCostValues(KeywordName.Smuggle)
+            .filter((keyword) => !keyword.additionalSmuggleCosts);
+
         const smuggleActions = smuggleKeywords.map((smuggleKeyword) => {
             const smuggleActionProps: ISmuggleCardActionProperties = {
                 ...propertyOverrides,

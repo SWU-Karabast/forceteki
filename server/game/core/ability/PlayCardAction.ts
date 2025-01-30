@@ -2,9 +2,9 @@ import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
 import type { Aspect } from '../Constants';
-import { EffectName, EventName, KeywordName, PhaseName, PlayType, Stage } from '../Constants';
+import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
-import { AbilityContext } from './AbilityContext';
+import type { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import type { CostAdjuster } from '../cost/CostAdjuster';
@@ -13,6 +13,8 @@ import * as Contract from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';
+import type Game from '../Game';
+import type Player from '../Player';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -32,6 +34,7 @@ export interface ISmuggleCardActionProperties extends IPlayCardActionPropertiesB
     playType: PlayType.Smuggle;
     smuggleResourceCost: number;
     smuggleAspects: Aspect[];
+    appendSmuggleToTitle?: boolean;
 }
 
 export type IPlayCardActionProperties = IStandardPlayActionProperties | ISmuggleCardActionProperties;
@@ -46,7 +49,7 @@ export abstract class PlayCardAction extends PlayerAction {
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
-    public constructor(card: Card, properties: IPlayCardActionProperties) {
+    public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
         Contract.assertTrue(card.hasCost());
 
         const usesExploit = !!properties.exploitValue;
@@ -61,9 +64,11 @@ export abstract class PlayCardAction extends PlayerAction {
 
         let cost: number;
         let aspects: Aspect[];
+        let appendSmuggleToTitle: boolean = null;
         if (properties.playType === PlayType.Smuggle) {
             cost = properties.smuggleResourceCost;
             aspects = properties.smuggleAspects;
+            appendSmuggleToTitle = properties.appendSmuggleToTitle;
         } else {
             cost = card.cost;
             aspects = card.aspects;
@@ -74,8 +79,9 @@ export abstract class PlayCardAction extends PlayerAction {
             : new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
 
         super(
+            game,
             card,
-            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit),
+            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit, appendSmuggleToTitle),
             propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
@@ -88,12 +94,12 @@ export abstract class PlayCardAction extends PlayerAction {
         this.createdWithProperties = { ...properties };
     }
 
-    private static getTitle(title: string, playType: PlayType, withExploit: boolean = false): string {
+    private static getTitle(title: string, playType: PlayType, withExploit: boolean = false, appendToTitle: boolean = true): string {
         let updatedTitle = title;
 
         switch (playType) {
             case PlayType.Smuggle:
-                updatedTitle += ' with Smuggle';
+                updatedTitle += appendToTitle ? ' with Smuggle' : '';
                 break;
             case PlayType.PlayFromHand:
             case PlayType.PlayFromOutOfPlay:
@@ -136,15 +142,11 @@ export abstract class PlayCardAction extends PlayerAction {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
-    public override createContext(player = this.card.controller) {
-        return new AbilityContext({
-            ability: this,
-            game: this.card.game,
-            player: player,
-            source: this.card,
-            stage: Stage.PreTarget,
+    public override getContextProperties(player: Player, event: any) {
+        return {
+            ...super.getContextProperties(player, event),
             costAspects: this.card.aspects
-        });
+        };
     }
 
     public override isPlayCardAbility(): this is PlayCardAction {
@@ -177,6 +179,13 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     protected generateOnPlayEvent(context: PlayCardContext, additionalProps: any = {}) {
+        const handler = () => {
+            this.logPlayCardEvent(context);
+            if (additionalProps.handler) {
+                additionalProps.handler();
+            }
+        };
+
         return new GameEvent(EventName.OnCardPlayed, context, {
             player: context.player,
             card: context.source,
@@ -186,7 +195,14 @@ export abstract class PlayCardAction extends PlayerAction {
             onPlayCardSource: context.onPlayCardSource,
             playType: context.playType,
             costs: context.costs,
-            ...additionalProps
+            ...additionalProps,
+            handler
         });
+    }
+
+    private logPlayCardEvent(context: any): void {
+        if (context.playType === PlayType.PlayFromHand) {
+            context.game.clientUIProperties.lastPlayedCard = context.source.cardData.setId;
+        }
     }
 }
