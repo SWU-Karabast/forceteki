@@ -37,7 +37,7 @@ export default class NalaSeCloneEngineer extends LeaderUnitCard {
                 when: { onCardDefeated: (event, context) => event.card === context.source },
                 immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
                     amount: 2,
-                    target: context.source.controller.base
+                    target: context.player.base
                 }))
             })
         });
