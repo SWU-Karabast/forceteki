@@ -42,6 +42,28 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
         this.newReplacementEvents = true;
     }
 
+    public override addTriggeredAbilityToWindow(context: TriggeredAbilityContext) {
+        // We have to do extra checks if the event that triggered this event has been replaced.
+        // The goal is to prevent infinite replacement if a replacement effect's replacment triggers itself.
+        if (context.event?.context?.event?.isReplaced) {
+            const replaced = context.event.context.event.replacementEvents.find((e) => e === context.event);
+            // If the current event is the same as what replaced the previous event, then this is potentially an infinite replacement.
+            if (replaced) {
+                // If the ability that triggered the replacement fully replaced the event (ie all damage was prevented),
+                // then it shouldn't need to be replaced again.
+                if (replaced.context.ability?.properties?.isPartial && !replaced.context.ability?.properties?.isPartial(replaced.context)) {
+                    return;
+                }
+                // If it was only a partial replacement, then there are potentially other replacement abilities that could replace the rest.
+                // Just skip adding the replacement ability that did the partial replacement.
+                if (context.event.context.ability === context.ability) {
+                    return;
+                }
+            }
+        }
+        super.addTriggeredAbilityToWindow(context);
+    }
+
     protected override cleanUpTriggers(): void {
         super.cleanUpTriggers();
 

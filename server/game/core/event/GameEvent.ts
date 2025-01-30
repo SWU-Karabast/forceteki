@@ -140,10 +140,6 @@ export class GameEvent {
         this.resolutionStatus = EventResolutionStatus.REPLACED;
     }
 
-    public hasReplacementEvent(event: GameEvent): boolean {
-        return this.replacementEvents.includes(event);
-    }
-
     public setContingentEventsGenerator(generator: (event) => any[]) {
         Contract.assertIsNullLike(this.contingentEventsGenerator, 'Attempting to set contingentEventsGenerator but it already has a value');
 

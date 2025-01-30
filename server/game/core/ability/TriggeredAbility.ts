@@ -87,7 +87,7 @@ export default class TriggeredAbility extends CardAbility {
                 this.card.getTriggeredAbilities().includes(this) &&
                 this.isTriggeredByEvent(event, context) &&
                 this.meetsRequirements(context) === '' &&
-                !this.invalidEventInTriggeredFor(event)
+                !this.eventsTriggeredFor.includes(event)
             ) {
                 this.eventsTriggeredFor.push(event);
                 window.addTriggeredAbilityToWindow(context);
@@ -166,10 +166,6 @@ export default class TriggeredAbility extends CardAbility {
             });
             this.eventRegistrations = null;
         }
-    }
-
-    protected invalidEventInTriggeredFor(event) {
-        return this.eventsTriggeredFor.includes(event);
     }
 
     private isTriggeredByEvent(event, context) {

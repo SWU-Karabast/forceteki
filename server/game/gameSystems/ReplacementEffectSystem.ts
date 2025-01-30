@@ -46,21 +46,6 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
                     eventWindow.addEvent(replacementEvent);
                     triggerWindow.addReplacementEffectEvent(replacementEvent);
                 }, 'replacementEffect: replace window event');
-                // Check if the replacement effect only partial resolved the event (ie Boba's Armor not preventing all damage)
-                // This implies that there is still more of the effect that can be replaced.
-                if (triggerWindow.unresolved && triggerWindow.unresolved.size > 0 &&
-                  replacementEvent?.context?.ability?.properties?.isPartial &&
-                  replacementEvent.context.ability.properties.isPartial(replacementEvent.context)) {
-                    // Find any other unresolved triggers that have the same source event, are the same type of ability,
-                    // and has the target as what was just used for replacement.
-                    const unresolvedWithSameTriggers = [...triggerWindow.unresolved.values()]
-                        .flatMap((list) => list)
-                        .filter((context) => replacementEvent.context.ability.abilityIdentifier !== context.ability.abilityIdentifier &&
-                          context.event.name === replacementEvent.name &&
-                          context.event.context.target === replacementEvent.context.event.context.target);
-                    // If we find any such a triggers, change the trigger's event from the original event to this replacement event.
-                    unresolvedWithSameTriggers.forEach((trigger) => trigger.event = replacementEvent);
-                }
             });
         }
         event.context.cancel();
