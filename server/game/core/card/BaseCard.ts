@@ -7,7 +7,7 @@ import { ActionAbility } from '../ability/ActionAbility';
 import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { EpicActionLimit } from '../ability/AbilityLimit';
-// import type TriggeredAbility from '../ability/TriggeredAbility';
+import type TriggeredAbility from '../ability/TriggeredAbility';
 import type { InPlayCard } from './baseClasses/InPlayCard';
 
 const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
@@ -15,7 +15,6 @@ const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
 /** A Base card (as in, the card you put in your base zone) */
 export class BaseCard extends BaseCardParent {
     private _epicActionAbility: ActionAbility;
-    // private triggeredAbilities: TriggeredAbility[] = [];
 
     public get epicActionSpent() {
         return this._epicActionAbility.limit.isAtMax(this.owner);
@@ -45,7 +44,7 @@ export class BaseCard extends BaseCardParent {
         return super.getActionAbilities();
     }
 
-    public override canRegisterTriggeredAbilities(): this is InPlayCard {
+    public override canRegisterTriggeredAbilities(): this is InPlayCard | BaseCard {
         return true;
     }
 
@@ -73,5 +72,9 @@ export class BaseCard extends BaseCardParent {
         const ability = this.createTriggeredAbility(properties);
         this.triggeredAbilities.push(ability);
         ability.registerEvents();
+    }
+
+    public getTriggeredAbilities(): TriggeredAbility[] {
+        return this.triggeredAbilities;
     }
 }

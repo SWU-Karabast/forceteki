@@ -363,7 +363,7 @@ export class Card extends OngoingEffectSource {
      * Returns true if the card is a type that can legally have triggered abilities.
      * The returned type set is equivalent to {@link CardWithTriggeredAbilities}.
      */
-    public canRegisterTriggeredAbilities(): this is InPlayCard {
+    public canRegisterTriggeredAbilities(): this is InPlayCard | BaseCard {
         return false;
     }
 

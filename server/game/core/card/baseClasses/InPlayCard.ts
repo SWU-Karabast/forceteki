@@ -9,6 +9,7 @@ import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import type { Card } from '../Card';
+import type { BaseCard } from '../BaseCard';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
@@ -108,7 +109,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
 
-    public override canRegisterTriggeredAbilities(): this is InPlayCard {
+    public override canRegisterTriggeredAbilities(): this is InPlayCard | BaseCard {
         return true;
     }
 
