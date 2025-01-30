@@ -153,5 +153,56 @@ describe('Darth Vader, Commanding the First Legion', function () {
             context.player1.clickCard(context.salaciousCrumb);
             expect(context.salaciousCrumb).toHaveExactUpgradeNames(['experience']);
         });
+
+        it('Darth Vader\'s ability and another search card ability should show right cards', function() {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    leader: 'hondo-ohnaka#thats-good-business',
+                    hand: ['darth-vader#commanding-the-first-legion'],
+                    deck: [
+                        'inferno-four#unforgetting',
+                        'vanguard-infantry',
+                        'scout-bike-pursuer',
+                        'hunting-nexu',
+                        'tieln-fighter',
+                        'daring-raid',
+                        'protector',
+                        'isb-agent',
+                        'death-star-stormtrooper',
+                        'superlaser-technician',
+                        'atst',
+                        'wampa',
+                        'consular-security-force',
+                    ],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthVader);
+            context.player1.clickPrompt('Ambush');
+            expect(context.player1).toHavePrompt('Choose any units with combined cost 3 or less to play for free');
+
+            // play inferno four
+            context.player1.clickCardInDisplayCardPrompt(context.infernoFour);
+            context.player1.clickPrompt('Play cards in selection order');
+
+            // should show the next 2 cards
+            expect(context.player1).toHaveExactDisplayPromptCards([context.atst, context.wampa]);
+            expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
+            context.player1.clickDisplayCardPromptButton(context.atst.uuid, 'top');
+            context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'bottom');
+
+            // atst should be on the top of deck
+            expect(context.player1.deck[0]).toBe(context.atst);
+
+            // wampa should be the last card of deck
+            expect(context.wampa).toBeInBottomOfDeck(context.player1, 1);
+
+            // another cards shown by vader's ability should be before wampa
+            expect([context.scoutBikePursuer, context.superlaserTechnician, context.vanguardInfantry, context.huntingNexu, context.daringRaid, context.protector, context.tielnFighter, context.isbAgent, context.deathStarStormtrooper])
+                .toAllBeInBottomOfDeck(context.player1, 10);
+        });
     });
 });
