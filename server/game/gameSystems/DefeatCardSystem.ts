@@ -1,9 +1,8 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { Card } from '../core/card/Card';
 import type { UnitCard } from '../core/card/CardTypes';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
-import { EventName, WildcardCardType, ZoneName } from '../core/Constants';
+import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type Player from '../core/Player';
 import * as Contract from '../core/utils/Contract';
@@ -25,7 +24,7 @@ export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
 
 /** Records the "last known information" of a card before it left the arena, in case ability text needs to refer back to it. See SWU 8.12. */
 export interface ILastKnownInformation {
-    card: InPlayCard;
+    card: Card;
     controller: Player;
     arena: ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Resource;
     power?: number;
@@ -39,7 +38,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     public override readonly name = 'defeat';
     public override readonly eventName = EventName.OnCardDefeated;
     public override readonly costDescription = 'defeating {0}';
-    protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
     protected override readonly defaultProperties: IDefeatCardProperties = {
         defeatSource: DefeatSourceType.Ability
@@ -70,8 +69,12 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         return ['defeat {0}', [properties.target]];
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
+            return false;
+        }
+        const properties = this.generatePropertiesFromContext(context);
+        if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.BeDefeated, context)) {
             return false;
         }
         return super.canAffect(card, context);
@@ -129,7 +132,6 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
     }
 
     private buildLastKnownInformation(card: Card): ILastKnownInformation {
-        Contract.assertTrue(card.canBeInPlay());
         Contract.assertTrue(
             card.zoneName === ZoneName.GroundArena ||
             card.zoneName === ZoneName.SpaceArena ||
@@ -143,6 +145,8 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
                 arena: card.zoneName
             };
         }
+        Contract.assertTrue(card.canBeInPlay());
+
 
         if (card.isUnit()) {
             return {
