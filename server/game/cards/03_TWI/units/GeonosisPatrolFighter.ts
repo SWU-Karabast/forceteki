@@ -12,6 +12,7 @@ export default class GeonosisPatrolFighter extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'Return a non-leader unit that costs 3 or less to its owner\'s hand',
+            optional: true,
             targetResolver: {
                 cardCondition: (card) => card.isNonLeaderUnit() && card.cost <= 3,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand(),

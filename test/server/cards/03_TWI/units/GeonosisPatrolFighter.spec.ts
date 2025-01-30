@@ -25,6 +25,7 @@ describe('Geonosis Patrol Fighter', function() {
             context.player1.clickCard(context.geonosisPatrolFighter);
             context.player1.clickPrompt('Play Geonosis Patrol Fighter');
 
+            expect(context.player1).toHavePassAbilityButton();
             expect(context.player1).toBeAbleToSelectExactly([context.cloneHeavyGunner, context.restoredArc170, context.captainTyphoProtectingTheSenator, context.separatistCommando]);
             context.player1.clickCard(context.cloneHeavyGunner);
             expect(context.cloneHeavyGunner).toBeInZone('hand');
@@ -34,6 +35,7 @@ describe('Geonosis Patrol Fighter', function() {
             context.player2.clickCard(context.geonosisPatrolFighter);
             context.player1.clickCard(context.geonosisPatrolFighter);
             context.player1.clickPrompt('Play Geonosis Patrol Fighter');
+            expect(context.player1).toHavePassAbilityButton();
             expect(context.player1).toBeAbleToSelectExactly([context.restoredArc170, context.captainTyphoProtectingTheSenator, context.separatistCommando]);
 
             context.player1.clickCard(context.captainTyphoProtectingTheSenator);
@@ -49,9 +51,11 @@ describe('Geonosis Patrol Fighter', function() {
             context.player1.clickCard(context.separatistCommando);
             context.player1.clickPrompt('Done');
 
+            // Validating ability is optional
+            expect(context.player1).toHavePassAbilityButton();
             expect(context.player1).toBeAbleToSelectExactly([context.restoredArc170]);
-            context.player1.clickCard(context.restoredArc170);
-            expect(context.restoredArc170).toBeInZone('hand');
+            context.player1.clickPrompt('Pass');
+            expect(context.restoredArc170).toBeInZone('spaceArena');
         });
     });
 });
