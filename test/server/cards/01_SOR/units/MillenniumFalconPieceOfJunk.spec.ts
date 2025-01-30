@@ -7,9 +7,6 @@ describe('Millennium Falcon, Piece of Junk', function () {
                     player1: {
                         hand: ['millennium-falcon#piece-of-junk'],
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
@@ -26,6 +23,7 @@ describe('Millennium Falcon, Piece of Junk', function () {
 
                 // attack with falcon
                 context.player1.clickCard(context.millenniumFalcon);
+                context.player1.clickCard(context.p2Base);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(3);
 
@@ -46,6 +44,7 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
                 context.player1.clickCard(context.millenniumFalcon);
+                context.player1.clickCard(context.p2Base);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(6);
 

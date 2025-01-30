@@ -321,7 +321,7 @@ export class Lobby {
     // example method to demonstrate the use of the test game setup utility
     public startTestGame(filename: string): void {
         const testDirPath = path.resolve(__dirname, '../../test');
-        const testJSONPath = path.resolve(__dirname, `../../test/gameSetups/${filename}`);
+        const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
         if (!fs.existsSync(testDirPath) || !fs.existsSync(testJSONPath)) {
             return null;
         }
