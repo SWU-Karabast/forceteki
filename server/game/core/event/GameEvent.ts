@@ -22,7 +22,7 @@ export class GameEvent {
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
     private _preResolutionEffect = null;
-    private replacementEvents: GameEvent[] = [];
+    private replacementEvents: any[] = [];
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
     private _window: EventWindow = null;
 
