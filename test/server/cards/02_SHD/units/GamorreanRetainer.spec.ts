@@ -5,6 +5,7 @@ describe('Gamorrean Retainer', function () {
                 phase: 'action',
                 player1: {
                     groundArena: ['wampa', 'scout-bike-pursuer'],
+                    spaceArena: ['republic-arc170']
                 },
                 player2: {
                     hand: ['battlefield-marine'],
