@@ -48,14 +48,16 @@ describe('San Hill, Chairman of the Banking Clan', function () {
                 // San Hill should not ready and resources since no friendly units were defeated this phase
                 context.moveToNextActionPhase();
 
-                expect(context.player1.readyResourceCount).toBe(10);
-                expect(context.player1.exhaustedResourceCount).toBe(0);
+                context.player1.exhaustResources(3);
+
+                expect(context.player1.readyResourceCount).toBe(7);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
 
                 context.player1.clickCard(context.sanHillChairmanOfTheBankingClan);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1.readyResourceCount).toBe(10);
-                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.player1.readyResourceCount).toBe(7);
+                expect(context.player1.exhaustedResourceCount).toBe(3);
             });
         });
     });
