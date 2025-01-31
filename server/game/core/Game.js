@@ -191,6 +191,7 @@ class Game extends EventEmitter {
 
         let player = this.playersAndSpectators[playerId];
         Contract.assertFalse(this.isSpectator(player), `Player ${player.name} is a spectator`);
+        Contract.assertNotNullLike(player, `Player with id ${playerId} not found`);
 
         return player;
     }
