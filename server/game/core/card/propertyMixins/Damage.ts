@@ -21,12 +21,12 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
 
         public setActiveAttack(attack: Attack) {
             Contract.assertNotNullLike(attack);
-            this.assertPropertyEnabledBoolean(this.attackEnabled, 'activeAttack');
+            this.assertPropertyEnabledForZoneBoolean(this.attackEnabled, 'activeAttack');
             this._activeAttack = attack;
         }
 
         public unsetActiveAttack() {
-            this.assertPropertyEnabledBoolean(this.attackEnabled, 'activeAttack');
+            this.assertPropertyEnabledForZoneBoolean(this.attackEnabled, 'activeAttack');
             if (this._activeAttack !== null) {
                 this._activeAttack = null;
             }
@@ -37,22 +37,22 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         }
 
         public get activeAttack() {
-            this.assertPropertyEnabledBoolean(this.attackEnabled, 'activeAttack');
+            this.assertPropertyEnabledForZoneBoolean(this.attackEnabled, 'activeAttack');
             return this._activeAttack;
         }
 
         public get damage(): number {
-            this.assertPropertyEnabled(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this._damage, 'damage');
             return this._damage;
         }
 
         protected set damage(value: number) {
-            this.assertPropertyEnabled(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this._damage, 'damage');
             this._damage = value;
         }
 
         public get remainingHp(): number {
-            this.assertPropertyEnabled(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this._damage, 'damage');
             return Math.max(0, this.getHp() - this.damage);
         }
 
@@ -70,7 +70,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             // damage source is only needed for tracking cause of defeat on units but we should enforce that it's provided consistently
             Contract.assertNotNullLike(source);
 
-            this.assertPropertyEnabled(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this._damage, 'damage');
 
             if (amount === 0) {
                 return 0;
@@ -89,7 +89,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         /** @returns The amount of damage actually removed */
         public removeDamage(amount: number): number {
             Contract.assertNonNegative(amount);
-            this.assertPropertyEnabled(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this._damage, 'damage');
 
             if (amount === 0 || this.damage === 0) {
                 return 0;
