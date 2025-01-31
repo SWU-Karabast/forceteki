@@ -108,7 +108,6 @@ describe('General Grievous, Trophy Collector', function () {
 
             expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing]);
             context.player1.clickCard(context.greenSquadronAwing);
-            // context.player1.clickPrompt('Done');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.greenSquadronAwing).toBeInZone('discard');

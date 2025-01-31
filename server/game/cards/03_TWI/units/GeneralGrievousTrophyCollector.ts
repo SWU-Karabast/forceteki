@@ -23,12 +23,12 @@ export default class GeneralGrievousTrophyCollector extends NonLeaderUnitCard {
         this.addOnAttackAbility({
             title: 'Defeat 4 enemy units',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.isUnit() && context.source.upgrades.filter((upgrade) => upgrade.hasSomeTrait(Trait.Lightsaber)).length >= 4,
+                condition: (context) => context.source.upgrades.filter((upgrade) => upgrade.hasSomeTrait(Trait.Lightsaber)).length >= 4,
                 onTrue: AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Opponent,
                     mode: TargetMode.ExactlyVariable,
-                    numCardsFunc: (context) => Math.min(4, context.source.controller.opponent.getUnitsInPlay().length),
+                    numCardsFunc: (context) => Math.min(4, context.player.opponent.getUnitsInPlay().length),
                     innerSystem: AbilityHelper.immediateEffects.defeat()
                 }),
                 onFalse: AbilityHelper.immediateEffects.noAction()

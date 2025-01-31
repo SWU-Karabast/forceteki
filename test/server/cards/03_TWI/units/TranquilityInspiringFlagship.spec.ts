@@ -10,6 +10,9 @@ describe('Tranquility, Inspiring Flagship', function() {
                     leader: 'chewbacca#walking-carpet',
                     resources: 30
                 },
+                player2: {
+                    discard: ['republic-arc170']
+                }
             });
 
             const { context } = contextRef;
