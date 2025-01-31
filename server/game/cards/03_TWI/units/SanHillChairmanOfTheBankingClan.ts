@@ -21,8 +21,8 @@ export default class SanHillChairmanOfTheBankingClan extends NonLeaderUnitCard {
         this.addOnAttackAbility({
             title: 'For each friendly unit that was defeated this phase, ready a friendly resource.',
             immediateEffect: AbilityHelper.immediateEffects.readyResources((context) => ({
-                target: context.source.controller,
-                amount: this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.source.controller).length
+                target: context.player,
+                amount: this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.player).length
             }))
         });
     }

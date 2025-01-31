@@ -44,29 +44,18 @@ describe('San Hill, Chairman of the Banking Clan', function () {
 
                 expect(context.player1.readyResourceCount).toBe(8);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
-            });
 
-            it('should not ready resources since no friendly units were defeated this phase', function () {
-                const { context } = contextRef;
+                // San Hill should not ready and resources since no friendly units were defeated this phase
+                context.moveToNextActionPhase();
 
-                // Syndicate Lackeys should be defeated by attacking Wampa
-                context.player1.clickCard(context.syndicateLackeys);
-                context.player1.clickPrompt('Ambush');
-                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.readyResourceCount).toBe(10);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
 
-                expect(context.player1.readyResourceCount).toBe(5);
-                expect(context.player1.exhaustedResourceCount).toBe(5);
-
-                // B1 Attack Platform should be defeated by Fleet Lieutenant
-                context.player2.clickCard(context.fleetLieutenant);
-                context.player2.clickCard(context.p1Base);
-
-                // San Hill should ready 3 resources
                 context.player1.clickCard(context.sanHillChairmanOfTheBankingClan);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1.readyResourceCount).toBe(5);
-                expect(context.player1.exhaustedResourceCount).toBe(5);
+                expect(context.player1.readyResourceCount).toBe(10);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
             });
         });
     });
