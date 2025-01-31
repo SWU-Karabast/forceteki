@@ -2,7 +2,7 @@ import type { AbilityContext } from './core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityContext';
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
-import type { CardTypeFilter, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from './core/Constants';
+import type { CardTypeFilter, GameStateChangeRequired, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from './core/Constants';
 import type { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
@@ -76,7 +76,7 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
     hideIfNoLegalTargets?: boolean;
     immediateEffect?: GameSystem<TContext>;
     dependsOn?: string;
-    mustChangeGameState?: boolean;
+    mustChangeGameState?: GameStateChangeRequired;
 }
 
 // TODO: add functionality to PlayerTargetResolver to autodetect any invalid target players.

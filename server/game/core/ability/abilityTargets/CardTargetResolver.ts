@@ -58,7 +58,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             }
             return (this.immediateEffect || !this.dependentTarget || this.dependentTarget.properties.optional || this.dependentTarget.hasLegalTarget(contextCopy)) &&
               (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
-              (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, this.properties.mustChangeGameState));
+              (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, {}, this.properties.mustChangeGameState));
         };
         return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
     }

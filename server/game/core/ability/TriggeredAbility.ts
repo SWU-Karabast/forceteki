@@ -71,7 +71,11 @@ export default class TriggeredAbility extends CardAbility {
         }
         this.collectiveTrigger = !!properties.collectiveTrigger;
 
-        this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
+        this.mustChangeGameState = this.getMustChangeGameState();
+    }
+
+    private getMustChangeGameState(): GameStateChangeRequired {
+        return !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
             ? GameStateChangeRequired.MustFullyResolve
             : GameStateChangeRequired.MustFullyOrPartiallyResolve;
     }
@@ -128,7 +132,7 @@ export default class TriggeredAbility extends CardAbility {
     }
 
     public override buildTargetResolver(name: string, properties: ITriggeredAbilityTargetResolver) {
-        const propsMustChangeGameState = { mustChangeGameState: this.mustChangeGameState, ...properties };
+        const propsMustChangeGameState = { mustChangeGameState: this.getMustChangeGameState(), ...properties };
 
         return super.buildTargetResolver(name, propsMustChangeGameState);
     }
