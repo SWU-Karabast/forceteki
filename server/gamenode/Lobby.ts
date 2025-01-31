@@ -397,7 +397,7 @@ export class Lobby {
 
         this.runAndCatchErrors(this.game, () => {
             this.game.stopNonChessClocks();
-            this.game[command](socket.user.username, ...args);
+            this.game[command](socket.user.id, ...args);
 
             this.game.continue();
 
