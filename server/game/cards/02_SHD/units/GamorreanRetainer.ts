@@ -13,7 +13,7 @@ export default class GamorreanRetainer extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addConstantAbility({
             title: 'While you control another Command unit, this unit gains Sentinel',
-            condition: (context) => context.source.controller.isAspectInPlay(Aspect.Command, context.source),
+            condition: (context) => context.player.isAspectInPlay(Aspect.Command, context.source),
             matchTarget: (card, context) => card === context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
