@@ -3,6 +3,8 @@ const { SwuGameFormat } = require('../../server/SwuGameFormat.js');
 const Util = require('./Util.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
+const { LocalFolderCardDataGetter } = require('../../server/utils/cardData/LocalFolderCardDataGetter');
+const fs = require('fs');
 
 const ProxiedGameFlowWrapperMethods = [
     'advancePhases',
@@ -21,7 +23,12 @@ const ProxiedGameFlowWrapperMethods = [
     'startGame'
 ];
 
-const deckBuilder = new DeckBuilder();
+const directory = 'test/json';
+if (!fs.existsSync(directory)) {
+    throw new TestSetupError(`Json card definitions folder ${directory} not found, please run 'npm run get-cards'`);
+}
+
+const deckBuilder = new DeckBuilder(new LocalFolderCardDataGetter(directory));
 
 /**
  * @param {SwuSetupTestOptions} setupTestOptions

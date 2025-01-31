@@ -12,28 +12,14 @@ const defaultResourceCount = 20;
 const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
 
 class DeckBuilder {
-    constructor() {
-        this.cards = this.loadCards('test/json/Card');
-    }
+    /** @param {import('../../server/utils/cardData/CardDataGetter.js').CardDataGetter} cardDataGetter */
+    constructor(cardDataGetter) {
+        this.cards = {};
 
-    loadCards(directory) {
-        var cards = {};
-
-        if (!fs.existsSync(directory)) {
-            throw new TestSetupError(`Json card definitions folder ${directory} not found, please run 'npm run get-cards'`);
+        for (const cardId of cardDataGetter.cardIds) {
+            const card = cardDataGetter.get(cardId);
+            this.cards[card.internalName] = card;
         }
-
-        var jsonCards = fs.readdirSync(directory).filter((file) => file.endsWith('.json'));
-        jsonCards.forEach((cardPath) => {
-            var card = require(path.join('../json/Card', cardPath))[0];
-            cards[card.id] = card;
-        });
-
-        if (cards.length === 0) {
-            throw new TestSetupError(`No json card definitions found in ${directory}, please run 'npm run get-cards'`);
-        }
-
-        return cards;
     }
 
     getOwnedCards(playerNumber, playerOptions, oppOptions, arena = 'anyArena') {

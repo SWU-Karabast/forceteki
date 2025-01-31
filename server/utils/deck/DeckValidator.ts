@@ -37,7 +37,7 @@ export class DeckValidator {
         this.cardData = new Map<string, ICardCheckData>();
 
         for (const cardId of cardDataGetter.cardIds) {
-            const cardData = cardDataGetter.getCardDataJson(cardId);
+            const cardData = cardDataGetter.get(cardId);
 
             const cardCheckData: ICardCheckData = {
                 titleAndSubtitle: `${cardData.title}${cardData.subtitle ? `, ${cardData.subtitle}` : ''}`,
