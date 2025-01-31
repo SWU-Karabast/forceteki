@@ -186,9 +186,17 @@ describe('Darth Vader, Commanding the First Legion', function () {
 
             // play inferno four
             context.player1.clickCardInDisplayCardPrompt(context.infernoFour);
+            context.player1.clickCardInDisplayCardPrompt(context.tielnFighter);
             context.player1.clickPrompt('Play cards in selection order');
 
-            // should show the next 2 cards
+            // tie-ln fighter is not in deck (his zone is still 'deck' while he is not played but you can not draw it)
+            expect(context.player1.deck).not.toContain(context.tielnFighter);
+
+            // another cards revealed by Vader is in bottom of deck
+            expect([context.scoutBikePursuer, context.superlaserTechnician, context.vanguardInfantry, context.huntingNexu, context.daringRaid, context.protector, context.isbAgent, context.deathStarStormtrooper])
+                .toAllBeInBottomOfDeck(context.player1, 8);
+
+            // inferno four's ability should show the next 2 cards
             expect(context.player1).toHaveExactDisplayPromptCards([context.atst, context.wampa]);
             expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
             context.player1.clickDisplayCardPromptButton(context.atst.uuid, 'top');
@@ -196,13 +204,10 @@ describe('Darth Vader, Commanding the First Legion', function () {
 
             // atst should be on the top of deck
             expect(context.player1.deck[0]).toBe(context.atst);
+            expect(context.player1.deck[1]).toBe(context.consularSecurityForce);
 
             // wampa should be the last card of deck
             expect(context.wampa).toBeInBottomOfDeck(context.player1, 1);
-
-            // another cards shown by vader's ability should be before wampa
-            expect([context.scoutBikePursuer, context.superlaserTechnician, context.vanguardInfantry, context.huntingNexu, context.daringRaid, context.protector, context.tielnFighter, context.isbAgent, context.deathStarStormtrooper])
-                .toAllBeInBottomOfDeck(context.player1, 10);
         });
     });
 });
