@@ -34,6 +34,8 @@ const dataGetter = new LocalFolderCardDataGetter(directory);
 const deckBuilder = new DeckBuilder(dataGetter);
 
 DeckValidator.create(dataGetter).then((deckValidator) => {
+    const unimplementedCards = deckValidator.getUnimplementedCards();
+    console.log(JSON.stringify(unimplementedCards));
     const testDeck = require('./testdeck.json');
     const result = deckValidator.validateDeck(testDeck);
     return;

@@ -67,6 +67,20 @@ export class DeckValidator {
         }
     }
 
+    public getUnimplementedCards(): { set: string; titleAndSubtitle: string }[] {
+        const unimplementedCards: { set: string; titleAndSubtitle: string }[] = [];
+
+        for (const [cardId, cardData] of this.cardData) {
+            if (!cardData.implemented) {
+                unimplementedCards.push({ set: cardData.set, titleAndSubtitle: cardData.titleAndSubtitle });
+            }
+        }
+
+        unimplementedCards.sort((a, b) => a.set.localeCompare(b.set) || a.titleAndSubtitle.localeCompare(b.titleAndSubtitle));
+
+        return unimplementedCards;
+    }
+
     // TODO: account for new base that modifies this
     public getMinimumSideboardedDeckSize(_deck: ISwuDbDecklist): number {
         return 50;
