@@ -106,7 +106,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
-
+        
         // short-circuits to pass targeting if damage amount is set at 0 either directly or via a resolved source event
         if (
             'amount' in properties && properties.amount === 0 ||

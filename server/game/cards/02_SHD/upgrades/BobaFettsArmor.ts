@@ -22,7 +22,7 @@ export default class BobaFettsArmor extends UpgradeCard {
             replaceWith: {
                 replacementImmediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                     target: context.source.parentCard,
-                    amount: () => (Math.max(context.event.amount - 2, 0)),
+                    amount: Math.max(context.event.amount - 2, 0),
                     source: context.event.damageSource.damageDealtBy,
                 }))
             },

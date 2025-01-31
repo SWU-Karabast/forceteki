@@ -51,20 +51,21 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
             if (replaced) {
                 // If the ability that triggered the replacement fully replaced the event (ie all damage was prevented),
                 // then it shouldn't need to be replaced again.
-                if (replaced.context.ability?.properties?.isPartial && !replaced.context.ability?.properties?.isPartial(replaced.context)) {
-                    return;
-                }
+                // if (replaced.context.ability?.properties?.isPartial && !replaced.context.ability?.properties?.isPartial(replaced.context)) {
+                //     return;
+                // }
                 // If it was only a partial replacement, then there are potentially other replacement abilities that could replace the rest.
                 // Just skip adding the replacement ability that did the partial replacement.
-                if (context.event.context.ability === context.ability) {
-                    return;
-                }
+                // if (context.event.context.ability === context.ability) {
+                //     return;
+                // }
             }
         }
         super.addTriggeredAbilityToWindow(context);
     }
 
     protected override cleanUpTriggers(): void {
+        this.triggeringEvents.filter((event) => !event.isReplaced && !event.isResolved).forEach((event) => event.checkCondition());
         super.cleanUpTriggers();
 
         this.consolidateShieldTriggers();
