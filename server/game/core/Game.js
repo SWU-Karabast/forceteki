@@ -729,7 +729,7 @@ class Game extends EventEmitter {
      * @returns {Boolean} this indicates to the server whether the received input is legal or not
      */
     perCardMenuButton(playerId, arg, cardUuid, uuid, method) {
-        var player = this.getPlayerByName(playerId);
+        var player = this.getPlayerById(playerId);
 
         // check to see if the current step in the pipeline is waiting for input
         return this.pipeline.handlePerCardMenuCommand(player, arg, cardUuid, uuid, method);

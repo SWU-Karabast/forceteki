@@ -29,7 +29,7 @@ class GameFlowWrapper {
         this.game = new Game(details, { router });
         this.game.started = true;
 
-        this.player1Id= player1Info.id;
+        this.player1Id = player1Info.id;
         this.player2Id = player2Info.id;
 
         this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerById(this.player1Id), this);
