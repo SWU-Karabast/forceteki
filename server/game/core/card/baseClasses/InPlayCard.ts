@@ -1,6 +1,6 @@
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
-import TriggeredAbility from '../../ability/TriggeredAbility';
-import { ZoneName } from '../../Constants';
+import type TriggeredAbility from '../../ability/TriggeredAbility';
+import type { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
@@ -9,6 +9,7 @@ import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import type { Card } from '../Card';
+import type { BaseCard } from '../BaseCard';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
@@ -29,9 +30,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
     protected _disableOngoingEffectsForDefeat?: boolean = null;
     protected _mostRecentInPlayId = -1;
     protected _pendingDefeat?: boolean = null;
-    protected triggeredAbilities: TriggeredAbility[] = [];
+    // protected triggeredAbilities: TriggeredAbility[] = [];
 
-    private movedFromZone?: ZoneName = null;
 
     /**
      * If true, then this card's ongoing effects are disabled in preparation for it to be defeated (usually due to unique rule).
@@ -108,11 +108,8 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return this.triggeredAbilities;
     }
 
-    public override canRegisterConstantAbilities(): this is InPlayCard {
-        return true;
-    }
 
-    public override canRegisterTriggeredAbilities(): this is InPlayCard {
+    public override canRegisterTriggeredAbilities(): this is InPlayCard | BaseCard {
         return true;
     }
 
@@ -152,10 +149,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
     public createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
         return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
-    }
-
-    public createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
-        return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
@@ -292,15 +285,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this.removeGainedTriggeredAbility(removeAbilityUuid);
     }
 
-    public override resolveAbilitiesForNewZone() {
-        // TODO: do we need to consider a case where a card is moved from one arena to another,
-        // where we maybe wouldn't reset events / effects / limits?
-        this.updateTriggeredAbilityEvents(this.movedFromZone, this.zoneName);
-        this.updateConstantAbilityEffects(this.movedFromZone, this.zoneName);
-        this.updateKeywordAbilityEffects(this.movedFromZone, this.zoneName);
-
-        this.movedFromZone = null;
-    }
 
     public override registerMove(movedFromZone: ZoneName): void {
         super.registerMove(movedFromZone);
@@ -323,52 +307,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
         }
     }
 
-    /** Register / un-register the event triggers for any triggered abilities */
-    private updateTriggeredAbilityEvents(from: ZoneName, to: ZoneName, reset: boolean = true) {
-        if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
-            this.resetLimits();
-        }
-
-        for (const triggeredAbility of this.triggeredAbilities) {
-            if (EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && !EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
-                triggeredAbility.registerEvents();
-            } else if (!EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
-                triggeredAbility.unregisterEvents();
-            }
-        }
-    }
-
-    /** Register / un-register the effect registrations for any constant abilities */
-    private updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
-        // removing any lasting effects from ourself -- any time we move into non arena zones
-        // TODO: we need to change this logic to just be not (Arena->Arena), but that breaks Ambush
-        if (!EnumHelpers.isArena(to) || from === ZoneName.Discard || from === ZoneName.Capture) {
-            this.removeLastingEffects();
-        }
-
-        // check to register / unregister any effects that we are the source of
-        for (const constantAbility of this.constantAbilities) {
-            if (constantAbility.sourceZoneFilter === WildcardZoneName.Any) {
-                continue;
-            }
-            if (
-                !EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
-                EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
-            ) {
-                constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
-            } else if (
-                EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
-                !EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
-            ) {
-                this.removeEffectFromEngine(constantAbility.registeredEffects);
-                constantAbility.registeredEffects = [];
-            }
-        }
-    }
-
-    /** Register / un-register the effects for any abilities from keywords */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected updateKeywordAbilityEffects(from: ZoneName, to: ZoneName) { }
 
     protected override resetLimits() {
         super.resetLimits();
