@@ -15,10 +15,15 @@ export abstract class CardDataGetter {
         }
     }
 
-    protected abstract getInternal(id: string): ICardDataJson;
+    protected abstract getCardInternal(id: string): Promise<ICardDataJson>;
+    public abstract getSetCodeMap(): Promise<Map<string, string>>;
 
-    public get(id: string): ICardDataJson {
+    public async getCard(id: string): Promise<ICardDataJson> {
+        this.assertCardId(id);
+        return await this.getCardInternal(id);
+    }
+
+    protected assertCardId(id: string) {
         Contract.assertTrue(this.cardMap.has(id), `Card ${id} not found in card map`);
-        return this.getInternal(id);
     }
 }

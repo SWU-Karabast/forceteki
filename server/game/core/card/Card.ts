@@ -120,7 +120,7 @@ export class Card extends OngoingEffectSource {
             this.validateImplementationId(implementationId, cardData);
         }
 
-        this.hasNonKeywordAbilityText = this.isLeader() || this.checkHasNonKeywordAbilityText(cardData.text);
+        this.hasNonKeywordAbilityText = this.isLeader() || Card.checkHasNonKeywordAbilityText(cardData.text);
 
         this.aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
         this.internalName = cardData.internalName;
@@ -245,7 +245,7 @@ export class Card extends OngoingEffectSource {
         return null;
     }
 
-    private checkHasNonKeywordAbilityText(abilityText?: string) {
+    public static checkHasNonKeywordAbilityText(abilityText?: string) {
         if (abilityText == null) {
             return false;
         }

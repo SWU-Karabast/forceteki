@@ -17,7 +17,7 @@ class DeckBuilder {
         this.cards = {};
 
         for (const cardId of cardDataGetter.cardIds) {
-            const card = cardDataGetter.get(cardId);
+            const card = cardDataGetter.getCardSynchronous(cardId);
             this.cards[card.internalName] = card;
         }
     }

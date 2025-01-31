@@ -5,6 +5,7 @@ import type { CardType } from '../../game/core/Constants';
 import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
 import { DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbDecklist } from './DeckInterfaces';
 import { SwuGameFormat } from '../../SwuGameFormat';
+import type { ICardDataJson } from '../cardData/CardDataInterfaces';
 
 enum SwuSet {
     SOR = 'sor',
@@ -31,29 +32,38 @@ export class DeckValidator {
     private readonly cardData: Map<string, ICardCheckData>;
     private readonly setCodeToId: Map<string, string>;
 
-    public constructor(cardDataGetter: CardDataGetter) {
+    public static async create(cardDataGetter: CardDataGetter): Promise<DeckValidator> {
+        const allCardsData: ICardDataJson[] = [];
+        for (const cardId of cardDataGetter.cardIds) {
+            allCardsData.push(await cardDataGetter.getCard(cardId));
+        }
+
+        return new DeckValidator(allCardsData, await cardDataGetter.getSetCodeMap());
+    }
+
+    private constructor(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>) {
         const implementedCardIds = new Set(cards.keys());
 
         this.cardData = new Map<string, ICardCheckData>();
+        this.setCodeToId = setCodeToId;
 
-        for (const cardId of cardDataGetter.cardIds) {
-            const cardData = cardDataGetter.get(cardId);
-
+        for (const cardData of allCardsData) {
             const cardCheckData: ICardCheckData = {
                 titleAndSubtitle: `${cardData.title}${cardData.subtitle ? `, ${cardData.subtitle}` : ''}`,
                 type: Card.buildTypeFromPrinted(cardData.types),
                 set: EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0],
                 banned: bannedCards.has(cardData.id),
-                implemented: implementedCardIds.has(cardData.id)
+                implemented: !Card.checkHasNonKeywordAbilityText(cardData.text) || implementedCardIds.has(cardData.id)
             };
 
             this.cardData.set(cardData.id, cardCheckData);
 
-            // add leading zeros to set id number
-            let setId = '000' + cardData.id;
-            setId = setId.substring(setId.length - 3);
+            // TODO: logic to populate the set id map directly from card data. blocked until we add support for reprints in the card data directly.
+            // // add leading zeros to set id number
+            // let setId = '000' + cardData.setId.number;
+            // setId = setId.substring(setId.length - 3);
 
-            this.setCodeToId.set(`${cardData.setId.set.toUpperCase()}_${cardData.setId.number}`, setId);
+            // this.setCodeToId.set(`${cardData.setId.set.toUpperCase()}_${setId}`, cardData.id);
         }
     }
 

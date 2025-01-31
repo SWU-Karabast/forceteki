@@ -5,6 +5,7 @@ const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const { LocalFolderCardDataGetter } = require('../../server/utils/cardData/LocalFolderCardDataGetter');
 const fs = require('fs');
+const { DeckValidator } = require('../../server/utils/deck/DeckValidator');
 
 const ProxiedGameFlowWrapperMethods = [
     'advancePhases',
@@ -28,7 +29,15 @@ if (!fs.existsSync(directory)) {
     throw new TestSetupError(`Json card definitions folder ${directory} not found, please run 'npm run get-cards'`);
 }
 
-const deckBuilder = new DeckBuilder(new LocalFolderCardDataGetter(directory));
+const dataGetter = new LocalFolderCardDataGetter(directory);
+
+const deckBuilder = new DeckBuilder(dataGetter);
+
+DeckValidator.create(dataGetter).then((deckValidator) => {
+    const testDeck = require('./testdeck.json');
+    const result = deckValidator.validateDeck(testDeck);
+    return;
+});
 
 /**
  * @param {SwuSetupTestOptions} setupTestOptions

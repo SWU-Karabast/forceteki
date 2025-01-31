@@ -1,9 +1,9 @@
-import { CardDataGetter } from './CardDataGetter';
 import path from 'path';
 import fs from 'fs';
 import * as Contract from '../../game/core/utils/Contract';
+import { SynchronousCardDataGetter } from './SynchronousCardDataGetter';
 
-export class LocalFolderCardDataGetter extends CardDataGetter {
+export class LocalFolderCardDataGetter extends SynchronousCardDataGetter {
     // private readonly setCodeToId: Map<string, string>;
     private readonly folderRoot: string;
 
@@ -23,7 +23,7 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         // }
     }
 
-    protected override getInternal(id: string) {
+    protected override getCardSynchronousInternal(id: string) {
         const cardMapEntry = this.cardMap.get(id);
         Contract.assertNotNullLike(cardMapEntry, `Data for card id ${id} not found in card map`);
 
@@ -31,5 +31,12 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         Contract.assertTrue(fs.existsSync(filePath), `Card data file ${filePath} does not exist`);
 
         return JSON.parse(fs.readFileSync(filePath, 'utf8'))[0];
+    }
+
+    public override getSetCodeMapSynchronous() {
+        const filePath = path.join(this.folderRoot, '_setCodeMap.json');
+        Contract.assertTrue(fs.existsSync(filePath), `Set code map file ${filePath} does not exist`);
+
+        return new Map(Object.entries(JSON.parse(fs.readFileSync(filePath, 'utf8')))) as Map<string, string>;
     }
 }

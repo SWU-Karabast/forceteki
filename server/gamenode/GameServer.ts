@@ -45,12 +45,10 @@ export class GameServer {
     private queue: QueuedPlayer[] = [];
     private io: IOServer;
 
-
     public constructor() {
         const app = express();
         app.use(express.json());
         const server = http.createServer(app);
-
 
         const corsOptions = {
             origin: ['http://localhost:3000', 'https://beta.karabast.net'],
@@ -63,7 +61,6 @@ export class GameServer {
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
 
-
         // Setup socket server
         this.io = new IOServer(server, {
             perMessageDeflate: false,
@@ -73,6 +70,7 @@ export class GameServer {
                 methods: ['GET', 'POST']
             }
         });
+
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
         this.io.on('connection', (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
             this.onConnection(socket);
