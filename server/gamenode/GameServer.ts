@@ -149,6 +149,9 @@ export class GameServer {
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
     private createLobby(user: User | string, deck: Deck, isPrivate: boolean) {
+        if (!user) {
+            throw new Error('User must be provided to create a lobby');
+        }
         if (!isPrivate && typeof user === 'string') {
             throw new Error('User must be provided for public lobbies');
         }
