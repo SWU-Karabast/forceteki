@@ -742,15 +742,15 @@ export class Card extends OngoingEffectSource {
         return true;
     }
 
-    protected assertPropertyEnabled(propertyVal: any, propertyName: string) {
-        Contract.assertNotNullLike(propertyVal, this.buildPropertyDisabledStr(propertyName));
+    protected assertPropertyEnabledForZone(propertyVal: any, propertyName: string) {
+        Contract.assertNotNullLike(propertyVal, this.buildPropertyDisabledForZoneStr(propertyName));
     }
 
-    protected assertPropertyEnabledBoolean(enabled: boolean, propertyName: string) {
-        Contract.assertTrue(enabled, this.buildPropertyDisabledStr(propertyName));
+    protected assertPropertyEnabledForZoneBoolean(enabled: boolean, propertyName: string) {
+        Contract.assertTrue(enabled, this.buildPropertyDisabledForZoneStr(propertyName));
     }
 
-    private buildPropertyDisabledStr(propertyName: string) {
+    private buildPropertyDisabledForZoneStr(propertyName: string) {
         return `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in zone '${this.zoneName}' where the property does not apply`;
     }
 
@@ -881,7 +881,7 @@ export class Card extends OngoingEffectSource {
     * This is the infomation for each card that is sent to the client.
     */
 
-    public getSummary(activePlayer) {
+    public getSummary(activePlayer: Player): any {
         const isActivePlayer = activePlayer === this.controller;
         const selectionState = activePlayer.getCardSelectionState(this);
 
