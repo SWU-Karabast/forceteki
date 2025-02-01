@@ -29,11 +29,11 @@ class GameFlowWrapper {
         this.game = new Game(details, { router });
         this.game.started = true;
 
-        this.player1Name = player1Info.username;
-        this.player2Name = player2Info.username;
+        this.player1Id = player1Info.id;
+        this.player2Id = player2Info.id;
 
-        this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName(this.player1Name), this);
-        this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerByName(this.player2Name), this);
+        this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerById(this.player1Id), this);
+        this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerById(this.player2Id), this);
         // this.player1.player.timerSettings.events = false;
         // this.player2.player.timerSettings.events = false;
         this.allPlayers = [this.player1, this.player2];

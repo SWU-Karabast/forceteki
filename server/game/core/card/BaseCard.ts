@@ -82,7 +82,7 @@ export class BaseCard extends BaseCardParent {
     }
 
     private epicActionSpentInternal(): boolean {
-        return this._epicActionAbility.limit.isAtMax(this.owner);
+        return this._epicActionAbility ? this._epicActionAbility.limit.isAtMax(this.owner) : false;
     }
 
     public override getSummary(activePlayer: Player) {
