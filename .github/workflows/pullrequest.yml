@@ -31,7 +31,7 @@ jobs:
 
         - name: Get card data json version
           id: vars
-          run: echo "version=$(cat ../../card-data-version.txt)" >> $GITHUB_OUTPUT
+          run: echo "version=$(cat ${GITHUB_WORKSPACE}/card-data-version.txt)" >> $GITHUB_OUTPUT
         - name: Test output
           run: echo ${{ steps.vars.outputs.version }}
         # - name: cache card data json files
