@@ -93,7 +93,7 @@ export interface IDisplayCardPromptPropertiesBase extends IPromptPropertiesBase 
 }
 
 export interface IDisplayCardsBasicPromptProperties extends IDisplayCardPromptPropertiesBase {
-    cardTextByUuid?: Map<string, string>;
+    displayTextByCardUuid?: Map<string, string>;
 }
 
 export interface IDisplayCardsWithButtonsPromptProperties extends IDisplayCardPromptPropertiesBase {

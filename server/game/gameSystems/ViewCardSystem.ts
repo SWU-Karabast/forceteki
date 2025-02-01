@@ -16,6 +16,9 @@ export interface IViewCardProperties extends ICardTargetSystemProperties {
 
     /** Temporary parameter while we are migrating everything to the new display prompt */
     useDisplayPrompt?: boolean;
+
+    /** If we want to display text under any cards, map their uuid(s) to the title text here */
+    displayTextByCardUuid?: Map<string, string>;
 }
 
 export enum ViewCardMode {
@@ -37,6 +40,14 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         const context = event.context;
         if (event.sendChatMessage) {
             context.game.addMessage(this.getMessage(event.message, context), ...event.messageArgs);
+        }
+
+        if (event.useDisplayPrompt) {
+            context.game.promptDisplayCardsBasic(context.player, {
+                displayCards: event.cards,
+                source: context.source,
+                displayTextByCardUuid: event.displayTextByCardUuid
+            });
         }
     }
 
@@ -66,6 +77,8 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         event.sendChatMessage = !properties.useDisplayPrompt || properties.viewType === ViewCardMode.Reveal;
         event.message = properties.message;
         event.messageArgs = this.getMessageArgs(event, context, additionalProperties);
+        event.useDisplayPrompt = properties.useDisplayPrompt;
+        event.displayTextByCardUuid = properties.displayTextByCardUuid;
     }
 
     public getMessage(message, context: TContext): string {

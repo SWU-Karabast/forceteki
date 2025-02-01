@@ -14,9 +14,8 @@ export default class ViperProbeDroid extends NonLeaderUnitCard {
             title: 'Look at an opponent\'s hand.',
             immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
                 target: context.player.opponent.hand,
+                useDisplayPrompt: true
             }))
         });
     }
 }
-
-ViperProbeDroid.implemented = true;

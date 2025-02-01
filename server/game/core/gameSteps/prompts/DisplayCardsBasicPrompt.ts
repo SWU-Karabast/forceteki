@@ -9,7 +9,7 @@ import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasicPromptProperties> {
     private readonly doneButton: IButton;
-    private readonly cardTextByUuid: Map<string, string>;
+    private readonly displayTextByCardUuid: Map<string, string>;
 
     private displayCards: Card[];
 
@@ -21,15 +21,15 @@ export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasi
         this.displayCards = properties.displayCards;
         this.doneButton = { text: 'Done', arg: 'done' };
 
-        if (properties.cardTextByUuid) {
-            const mapKeys = Array.from(properties.cardTextByUuid.keys());
+        if (properties.displayTextByCardUuid) {
+            const mapKeys = Array.from(properties.displayTextByCardUuid.keys());
             const cardUuids = this.displayCards.map((card) => card.uuid);
             Contract.assertTrue(
                 Util.stringArraysEqual(mapKeys, cardUuids),
                 `Provided card display text map does not match passed display card uuids\n\tMap keys:${mapKeys.join(', ')}\n\tCard uuids:${cardUuids.join(', ')}`
             );
 
-            this.cardTextByUuid = properties.cardTextByUuid;
+            this.displayTextByCardUuid = properties.displayTextByCardUuid;
         }
     }
 
@@ -49,7 +49,7 @@ export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasi
             setId: card.setId,
             internalName: card.internalName,
             selectionState: DisplayCardSelectionState.Invalid,
-            displayText: this.cardTextByUuid?.get(card.uuid),
+            displayText: this.displayTextByCardUuid?.get(card.uuid),
         }));
     }
 
