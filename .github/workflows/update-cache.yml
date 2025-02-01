@@ -22,7 +22,7 @@ jobs:
         - name: check that card data json version file exists
           uses: andstor/file-existence-action@v3
           with:
-            files: "${GITHUB_WORKSPACE}/card-data-version.txt"
+            files: "${{ github.workspace }}/card-data-version.txt"
             fail: true
         - name: get card data json cache version
           id: card-data-version
