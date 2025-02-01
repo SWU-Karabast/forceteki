@@ -20,7 +20,7 @@ describe('R2D2 - Ignoring Protocol', function() {
 
                 // Case 1 on play move top card to bottom
                 context.player1.clickCard(context.r2d2);
-                expect(context.player1).toHaveExactDisplayPromptCards([context.foundling]);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.foundling]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.foundling.uuid, 'bottom');
 
@@ -38,7 +38,7 @@ describe('R2D2 - Ignoring Protocol', function() {
                 // Case 2 on attack move to top
                 context.player1.clickCard(context.r2d2);
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player1).toHaveExactDisplayPromptCards([context.pykeSentinel]);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.pykeSentinel]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.pykeSentinel.uuid, 'top');
 

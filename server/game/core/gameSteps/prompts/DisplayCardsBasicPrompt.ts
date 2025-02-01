@@ -1,6 +1,7 @@
 import * as Util from '../../../../Util';
 import type { Card } from '../../card/Card';
 import type Game from '../../Game';
+import type { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import type { IDisplayCard, IDisplayCardsBasicPromptProperties } from '../PromptInterfaces';
@@ -31,6 +32,14 @@ export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasi
 
             this.displayTextByCardUuid = properties.displayTextByCardUuid;
         }
+    }
+
+    protected override getDefaultWaitingPromptTitle(source: OngoingEffectSource) {
+        return `Waiting for opponent to finish viewing cards for ${source.name} ability`;
+    }
+
+    protected override getDefaultActivePromptTitle(source: OngoingEffectSource) {
+        return `View cards for ${source.name} ability`;
     }
 
     protected override defaultProperties() {

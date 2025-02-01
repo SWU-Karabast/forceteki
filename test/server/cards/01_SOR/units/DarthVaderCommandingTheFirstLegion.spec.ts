@@ -197,7 +197,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
                 .toAllBeInBottomOfDeck(context.player1, 8);
 
             // inferno four's ability should show the next 2 cards
-            expect(context.player1).toHaveExactDisplayPromptCards([context.atst, context.wampa]);
+            expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.atst, context.wampa]);
             expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
             context.player1.clickDisplayCardPromptButton(context.atst.uuid, 'top');
             context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'bottom');

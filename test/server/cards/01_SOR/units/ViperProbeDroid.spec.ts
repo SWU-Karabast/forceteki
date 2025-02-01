@@ -20,7 +20,7 @@ describe('Viper Probe Droid', function() {
                 context.player1.clickCard(context.viperProbeDroid);
                 expect(context.viperProbeDroid.zoneName).toBe('groundArena');
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.wampa, context.battlefieldMarine, context.pykeSentinel]);
-                expect(context.getChatLogs(1)[0]).not.toContain('Wampa');  // confirm that there is no chat message for the cards
+                expect(context.getChatLogs(1)[0]).not.toContain(context.wampa.title);  // confirm that there is no chat message for the cards
                 context.player1.clickPrompt('Done');
                 expect(context.player2).toBeActivePlayer();
             });

@@ -1,27 +1,23 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import { RelativePlayer } from '../core/Constants';
 import { EventName, ZoneName } from '../core/Constants';
-import { GameSystem } from '../core/gameSystem/GameSystem';
+import type Player from '../core/Player';
 import type { IViewCardProperties } from './ViewCardSystem';
-import { ViewCardMode, ViewCardSystem } from './ViewCardSystem';
+import { ViewCardSystem } from './ViewCardSystem';
 
-export type IRevealProperties = Omit<IViewCardProperties, 'viewType'>;
+export interface IRevealProperties extends IViewCardProperties {
+    promptedPlayer?: RelativePlayer;
+}
 
-export class RevealSystem<TContext extends AbilityContext = AbilityContext> extends ViewCardSystem<TContext> {
+export class RevealSystem<TContext extends AbilityContext = AbilityContext> extends ViewCardSystem<TContext, IRevealProperties> {
     public override readonly name = 'reveal';
     public override readonly eventName = EventName.OnCardRevealed;
     public override readonly costDescription = 'revealing {0}';
 
-    protected override readonly defaultProperties: IViewCardProperties = {
-        message: '{0} reveals {1} due to {2}',
-        viewType: ViewCardMode.Reveal
+    protected override readonly defaultProperties: IRevealProperties = {
+        promptedPlayer: RelativePlayer.Self
     };
-
-    // constructor needs to do some extra work to ensure that the passed props object ends up as valid for the parent class
-    public constructor(propertiesOrPropertyFactory: IRevealProperties | ((context?: AbilityContext) => IRevealProperties)) {
-        const propsWithViewType = GameSystem.appendToPropertiesOrPropertyFactory<IViewCardProperties, 'viewType'>(propertiesOrPropertyFactory, { viewType: ViewCardMode.Reveal });
-        super(propsWithViewType);
-    }
 
     public override checkEventCondition(event): boolean {
         for (const card of event.cards) {
@@ -48,6 +44,29 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
             event.context.source
         ];
         return messageArgs;
+    }
+
+    protected override getChatMessage(properties: IViewCardProperties): string | null {
+        return '{0} reveals {1} due to {2}';
+    }
+
+    protected override getPromptedPlayer(properties: IRevealProperties, context: TContext): Player {
+        if (!properties.useDisplayPrompt) {
+            return null;
+        }
+
+        if (!properties.promptedPlayer) {
+            return context.player;
+        }
+
+        switch (properties.promptedPlayer) {
+            case RelativePlayer.Opponent:
+                return context.player.opponent;
+            case RelativePlayer.Self:
+                return context.player;
+            default:
+                throw new Error(`Unknown promptedPlayer value: ${properties.promptedPlayer}`);
+        }
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
