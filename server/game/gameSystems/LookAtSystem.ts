@@ -12,7 +12,6 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
     public override readonly effectDescription = 'look at a card';
 
     protected override defaultProperties: IViewCardProperties = {
-        sendChatMessage: true,
         message: '{0} sees {1}',
         viewType: ViewCardMode.LookAt
     };

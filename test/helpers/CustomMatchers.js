@@ -1,7 +1,6 @@
-/* global describe, beforeEach, jasmine */
+/* global beforeEach, jasmine */
 
-const exp = require('constants');
-const Contract = require('../../server/game/core/utils/Contract.js');
+const { stringArraysEqual } = require('../../server/Util.js');
 const TestSetupError = require('./TestSetupError.js');
 const Util = require('./Util.js');
 
@@ -10,7 +9,6 @@ var customMatchers = {
         return {
             compare: function (actual, expected) {
                 var result = {};
-                var currentPrompt = actual.currentPrompt();
                 result.pass = actual.hasPrompt(expected);
 
                 if (result.pass) {
@@ -745,7 +743,7 @@ var customMatchers = {
 
                 const expectedUpgradeNames = [...upgradeNames];
 
-                result.pass = Util.stringArraysEqual(actualUpgradeNames, expectedUpgradeNames);
+                result.pass = stringArraysEqual(actualUpgradeNames, expectedUpgradeNames);
 
                 if (result.pass) {
                     result.message = `Expected ${card.internalName} not to have this exact set of upgrades but it does: ${expectedUpgradeNames.join(', ')}`;
@@ -771,7 +769,7 @@ var customMatchers = {
 
                 const expectedButtons = [...buttons];
 
-                result.pass = Util.stringArraysEqual(actualButtons, expectedButtons);
+                result.pass = stringArraysEqual(actualButtons, expectedButtons);
 
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have this exact set of buttons but it does: ${expectedButtons.join(', ')}`;
@@ -796,7 +794,7 @@ var customMatchers = {
 
                 const actualOptions = player.currentPrompt().dropdownListOptions;
 
-                result.pass = Util.stringArraysEqual(actualOptions, expectedOptions);
+                result.pass = stringArraysEqual(actualOptions, expectedOptions);
 
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have this exact list of options but it does: '${Util.formatDropdownListOptions(expectedOptions)}'`;
@@ -944,7 +942,7 @@ var customMatchers = {
 
                 const actualButtonsInPrompt = player.currentPrompt().perCardButtons.map((button) => button.text);
 
-                result.pass = Util.stringArraysEqual(actualButtonsInPrompt, expectedButtonsInPrompt);
+                result.pass = stringArraysEqual(actualButtonsInPrompt, expectedButtonsInPrompt);
 
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have this exact set of "per card" buttons but it did: ${expectedButtonsInPrompt.join(', ')}`;

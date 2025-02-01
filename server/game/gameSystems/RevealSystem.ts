@@ -13,7 +13,6 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
     public override readonly costDescription = 'revealing {0}';
 
     protected override readonly defaultProperties: IViewCardProperties = {
-        sendChatMessage: true,
         message: '{0} reveals {1} due to {2}',
         viewType: ViewCardMode.Reveal
     };

@@ -8,12 +8,14 @@ import * as Helpers from '../core/utils/Helpers';
 // TODO: Need some future work to fully implement Thrawn
 export interface IViewCardProperties extends ICardTargetSystemProperties {
     viewType: ViewCardMode;
-    sendChatMessage?: boolean;
     message?: string | ((context) => string);
     messageArgs?: (cards: any) => any[];
 
     /** The player who is viewing or revealing the card. */
     player?: Player;
+
+    /** Temporary parameter while we are migrating everything to the new display prompt */
+    useDisplayPrompt?: boolean;
 }
 
 export enum ViewCardMode {
@@ -26,12 +28,15 @@ export enum ViewCardMode {
 }
 
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IViewCardProperties> {
-    public override eventHandler(event, additionalProperties = {}): void {
+    protected override defaultProperties: IViewCardProperties = {
+        useDisplayPrompt: false,
+        viewType: null
+    };
+
+    public override eventHandler(event, _additionalProperties = {}): void {
         const context = event.context;
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (properties.sendChatMessage) {
-            const messageArgs = this.getMessageArgs(event, context, additionalProperties);
-            context.game.addMessage(this.getMessage(properties.message, context), ...messageArgs);
+        if (event.sendChatMessage) {
+            context.game.addMessage(this.getMessage(event.message, context), ...event.messageArgs);
         }
     }
 
@@ -58,6 +63,9 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         }
 
         event.cards = cards;
+        event.sendChatMessage = !properties.useDisplayPrompt || properties.viewType === ViewCardMode.Reveal;
+        event.message = properties.message;
+        event.messageArgs = this.getMessageArgs(event, context, additionalProperties);
     }
 
     public getMessage(message, context: TContext): string {

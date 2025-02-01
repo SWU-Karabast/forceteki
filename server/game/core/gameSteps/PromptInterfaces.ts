@@ -88,11 +88,15 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
 }
 
 export interface IDisplayCardPromptPropertiesBase extends IPromptPropertiesBase {
+    displayCards: Card[];
     source: string | OngoingEffectSource;
 }
 
+export interface IDisplayCardsBasicPromptProperties extends IDisplayCardPromptPropertiesBase {
+    cardTextByUuid?: Map<string, string>;
+}
+
 export interface IDisplayCardsWithButtonsPromptProperties extends IDisplayCardPromptPropertiesBase {
-    displayCards: Card[];
     onCardButton: (card: Card, arg: string) => boolean;
     perCardButtons: IButton[];
 }
@@ -103,7 +107,6 @@ export interface ISelectableCard {
 }
 
 export interface IDisplayCardsSelectProperties extends IDisplayCardPromptPropertiesBase {
-    displayCards: Card[];
     selectedCardsHandler: (cards: Card[]) => void;
     validCardCondition: (card: Card) => boolean;
     canChooseNothing?: boolean;
