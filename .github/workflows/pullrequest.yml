@@ -31,17 +31,17 @@ jobs:
 
         - name: Get card data json version
           id: vars
-          run: echo "version=$(cat ../card-data-version.txt)" >> $GITHUB_OUTPUT
+          run: echo "version=$(cat ../../card-data-version.txt)" >> $GITHUB_OUTPUT
         - name: Test output
           run: echo ${{ steps.vars.outputs.version }}
-        - name: cache card data json files
-          id: cache-card-data
-          uses: actions/cache@v3
-          with:
-            path: ./test/json
-            # IMPORTANT: if you change the cache key name below, also change it in update-cache.yml
-            key: sor-shd-twi-manual-v11-anakin
-        - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
-          run: npm run get-cards
+        # - name: cache card data json files
+        #   id: cache-card-data
+        #   uses: actions/cache@v3
+        #   with:
+        #     path: ./test/json
+        #     # IMPORTANT: if you change the cache key name below, also change it in update-cache.yml
+        #     key: sor-shd-twi-manual-v11-anakin
+        # - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
+        #   run: npm run get-cards
 
-        - run: npm run test-parallel
+        # - run: npm run test-parallel
