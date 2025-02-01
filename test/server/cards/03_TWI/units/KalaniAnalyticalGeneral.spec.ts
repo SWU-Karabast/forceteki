@@ -6,6 +6,7 @@ describe('Kalani Analytical General ability\'s', function() {
                 player1: {
                     hand: ['yoda#old-master'],
                     groundArena: ['kalani#analytical-general', 'specforce-soldier', 'battlefield-marine'],
+                    spaceArena: ['alliance-xwing'],
                     hasInitiative: true,
                 },
                 player2: {
@@ -18,16 +19,26 @@ describe('Kalani Analytical General ability\'s', function() {
             // We have initiative, so we can select 2 units to give +2/+2
             context.player1.clickCard(context.kalani);
             context.player1.clickCard(context.p2Base);
-            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.specforceSoldier, context.ploKoon]);
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.battlefieldMarine,
+                context.specforceSoldier,
+                context.ploKoon,
+                context.allianceXwing
+            ]);
             expect(context.player1).toHaveChooseNoTargetButton();
             context.player1.clickCard(context.specforceSoldier);
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickCardNonChecking(context.ploKoon);
+            context.player1.clickCardNonChecking(context.allianceXwing);
             context.player1.clickPrompt('Done');
             expect(context.specforceSoldier.getHp()).toBe(4);
             expect(context.specforceSoldier.getPower()).toBe(4);
             expect(context.battlefieldMarine.getHp()).toBe(5);
             expect(context.battlefieldMarine.getPower()).toBe(5);
+            expect(context.ploKoon.getHp()).toBe(6);
+            expect(context.ploKoon.getPower()).toBe(3);
+            expect(context.allianceXwing.getHp()).toBe(3);
+            expect(context.allianceXwing.getPower()).toBe(2);
             expect(context.kalani.getHp()).toBe(7);
             expect(context.kalani.getPower()).toBe(5);
 
@@ -51,16 +62,26 @@ describe('Kalani Analytical General ability\'s', function() {
             // 2nd kalani's attack without initiative, should be able to select only 1 unit
             context.player1.clickCard(context.kalani);
             context.player1.clickCard(context.p2Base);
-            expect(context.player1).toBeAbleToSelectExactly([context.specforceSoldier, context.ploKoon, context.yoda]);
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.specforceSoldier,
+                context.ploKoon,
+                context.yoda,
+                context.allianceXwing
+            ]);
             context.player1.clickCard(context.ploKoon);
             context.player1.clickCardNonChecking(context.specforceSoldier);
             context.player1.clickCardNonChecking(context.yoda);
+            context.player1.clickCardNonChecking(context.allianceXwing);
             context.player1.clickPrompt('Done');
             expect(context.ploKoon.getHp()).toBe(8);
             expect(context.ploKoon.getPower()).toBe(5);
             expect(context.ploKoon.damage).toBe(5);
             expect(context.specforceSoldier.getHp()).toBe(2);
             expect(context.specforceSoldier.getPower()).toBe(2);
+            expect(context.yoda.getHp()).toBe(4);
+            expect(context.yoda.getPower()).toBe(2);
+            expect(context.allianceXwing.getHp()).toBe(3);
+            expect(context.allianceXwing.getPower()).toBe(2);
 
             context.player2.clickCard(context.ploKoon);
             context.player2.clickCard(context.specforceSoldier);
@@ -74,11 +95,16 @@ describe('Kalani Analytical General ability\'s', function() {
             // 3rd kalani's attack we can select no unit
             context.player1.clickCard(context.kalani);
             context.player1.clickCard(context.p2Base);
-            expect(context.player1).toBeAbleToSelectExactly([context.yoda]);
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.yoda,
+                context.allianceXwing
+            ]);
             expect(context.player1).toHaveChooseNoTargetButton();
             context.player1.clickPrompt('Done');
             expect(context.yoda.getHp()).toBe(4);
             expect(context.yoda.getPower()).toBe(2);
+            expect(context.allianceXwing.getHp()).toBe(3);
+            expect(context.allianceXwing.getPower()).toBe(2);
         });
     });
 });
