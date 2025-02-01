@@ -43,12 +43,12 @@ export class PlayableOrDeployableCard extends Card {
     private _exhausted?: boolean = null;
 
     public get exhausted(): boolean {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         return this._exhausted;
     }
 
     public set exhausted(val: boolean) {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         this._exhausted = val;
     }
 
@@ -155,12 +155,12 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     public exhaust() {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         this._exhausted = true;
     }
 
     public ready() {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         this._exhausted = false;
     }
 

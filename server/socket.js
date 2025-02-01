@@ -8,7 +8,7 @@ class Socket extends EventEmitter {
         super();
 
         this.socket = socket;
-        this.user = socket.request.user;
+        this.user = socket.data.user;
 
         socket.on('error', this.onError.bind(this));
         socket.on('authenticate', this.onAuthenticate.bind(this));
