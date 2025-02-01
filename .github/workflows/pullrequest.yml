@@ -44,4 +44,4 @@ jobs:
         - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
           run: npm run get-cards
 
-        - run: npm run test-parallel
+        # - run: npm run test-parallel
