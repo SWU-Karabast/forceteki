@@ -26,8 +26,8 @@ export default class UnnaturalLife extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,
-                cardCondition: (card, context) => card.isUnit() && this.unitsDefeatedThisPhaseWatcher.wasDefeatedThisPhase(card),
-                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
+                cardCondition: (card) => card.isUnit() && this.unitsDefeatedThisPhaseWatcher.wasDefeatedThisPhase(card),
+                immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     entersReady: true,
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 2 }
                 }),
