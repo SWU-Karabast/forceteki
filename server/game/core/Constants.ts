@@ -404,6 +404,8 @@ export enum AbilityRestriction {
     Ready = 'ready',
     ReceiveDamage = 'receiveDamage',
     TriggerAbilities = 'triggerAbilities',
+    BeCaptured = 'beCaptured',
+    BeDefeated = 'beDefeated',
 }
 
 export enum StateWatcherName {

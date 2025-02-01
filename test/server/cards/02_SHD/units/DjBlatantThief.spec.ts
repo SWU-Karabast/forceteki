@@ -134,6 +134,5 @@ describe('DJ, Blatant Thief', function() {
 
         // TODO: test with Endless Legions to confirm that DJ doesn't take control of the card back after it's played
         // TODO: test with Endless Legions to confirm that the DJ ability doesn't trigger if he is played
-        // TODO: once Han1 is implemented, set up a test scenario with Tech + DJ + Han1
     });
 });
