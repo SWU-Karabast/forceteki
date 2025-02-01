@@ -29,11 +29,9 @@ jobs:
             cache: 'npm'
         - run: npm install
 
-        - name: Get card data json cache version
+        - name: get card data json cache version
           id: card-data-version
           run: echo "version=$(cat ${GITHUB_WORKSPACE}/card-data-version.txt)" >> $GITHUB_OUTPUT
-        - name: Test output
-          run: echo ${{ steps.card-data-version.outputs.version }}
         - name: cache card data json files
           id: cache-card-data
           uses: actions/cache@v3
@@ -43,4 +41,4 @@ jobs:
         - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
           run: npm run get-cards
 
-        # - run: npm run test-parallel
+        - run: npm run test-parallel
