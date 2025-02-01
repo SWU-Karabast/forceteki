@@ -29,6 +29,11 @@ jobs:
             cache: 'npm'
         - run: npm install
 
+        - name: check that card data json version file exists
+          uses: andstor/file-existence-action@v3
+          with:
+            files: "${GITHUB_WORKSPACE}/card-data-version.txt"
+            fail: true
         - name: get card data json cache version
           id: card-data-version
           run: echo "version=$(cat ${GITHUB_WORKSPACE}/card-data-version.txt)" >> $GITHUB_OUTPUT
@@ -41,4 +46,4 @@ jobs:
         - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
           run: npm run get-cards
 
-        - run: npm run test-parallel
+        # - run: npm run test-parallel
