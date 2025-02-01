@@ -13,8 +13,6 @@ export interface IReplacementEffectSystemProperties<TContext extends TriggeredAb
     replacementImmediateEffect?: GameSystem<TContext>;
 }
 
-// UP NEXT: convert this into a subclass of TriggeredAbilitySystem as TriggeredReplacementEffectSystem
-
 export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends GameSystem<TContext, IReplacementEffectSystemProperties<TContext>> {
     protected override readonly eventName = MetaEventName.ReplacementEffect;
 
@@ -87,7 +85,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         event.replacementImmediateEffect = replacementImmediateEffect;
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties = {}, _mustChangeGameState): boolean {
         Contract.assertNotNullLike(context.event);
 
         if (!context.event.canResolve) {
@@ -97,7 +95,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(context);
 
         return (
-            (!replacementGameAction || replacementGameAction.hasLegalTarget(context, additionalProperties))
+            (!replacementGameAction || replacementGameAction.hasLegalTarget(context, additionalProperties, GameStateChangeRequired.None))
         );
     }
 

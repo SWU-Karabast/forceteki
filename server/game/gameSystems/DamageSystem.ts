@@ -106,14 +106,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
-
-        // short-circuits to pass targeting if damage amount is set at 0 either directly or via a resolved source event
-        if (
-            'amount' in properties && properties.amount === 0 ||
-            'sourceEventForExcessDamage' in properties && properties.sourceEventForExcessDamage.availableExcessDamage === 0
-        ) {
-            return false;
-        }
         if (
             properties.type === DamageType.Overwhelm && 'contingentSourceEvent' in properties &&
             properties.contingentSourceEvent.availableExcessDamage === 0
@@ -124,9 +116,32 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         if (!EnumHelpers.isAttackableZone(card.zoneName)) {
             return false;
         }
-        if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {
-            return false;
+
+        // check cases where a game state change is required
+        if (properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) {
+            if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {
+                return false;
+            }
+
+            if ('amount' in properties) {
+                if (typeof properties.amount === 'function') {
+                    Contract.assertTrue(card.isUnit());
+
+                    if (properties.amount(card) === 0) {
+                        return false;
+                    }
+                }
+
+                if (properties.amount === 0) {
+                    return false;
+                }
+            }
+
+            if ('sourceEventForExcessDamage' in properties && properties.sourceEventForExcessDamage.availableExcessDamage === 0) {
+                return false;
+            }
         }
+
         return super.canAffect(card, context);
     }
 
