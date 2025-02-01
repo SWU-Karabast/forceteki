@@ -80,7 +80,7 @@ describe('Smuggle keyword', function() {
 
                 expect(context.player1.readyResourceCount).toBe(18); // Sanity check before we Smuggle
                 context.player1.clickCard(context.chewbacca); // This card has a 9+RedHero cost, so it should cost us 11 here
-                context.player1.passAction();
+                context.player1.passAction(); // Passing Chewbacca's when Played ability
                 expect(context.chewbacca).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(11);
                 expect(context.player1.readyResourceCount).toBe(7);

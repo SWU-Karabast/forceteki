@@ -4,8 +4,7 @@ describe('Chewbacca Pykesbane', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    groundArena: ['knight-of-the-republic', { card: 'luminara-unduli#softspoken-master', damage: 5 }],
-
+                    groundArena: ['knight-of-the-republic', { card: 'luminara-unduli#softspoken-master', damage: 5 }, { card: 'the-zillo-beast#awoken-from-the-depths', damage: 4 }],
                     hand: ['chewbacca#pykesbane']
                 },
                 player2: {
