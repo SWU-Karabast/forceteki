@@ -29,18 +29,17 @@ jobs:
             cache: 'npm'
         - run: npm install
 
-        - name: Get card data json version
-          id: vars
+        - name: Get card data json cache version
+          id: card-data-version
           run: echo "version=$(cat ${GITHUB_WORKSPACE}/card-data-version.txt)" >> $GITHUB_OUTPUT
         - name: Test output
-          run: echo ${{ steps.vars.outputs.version }}
+          run: echo ${{ steps.card-data-version.outputs.version }}
         - name: cache card data json files
           id: cache-card-data
           uses: actions/cache@v3
           with:
             path: ./test/json
-            # IMPORTANT: if you change the cache key name below, also change it in update-cache.yml
-            key: ${{ steps.vars.outputs.version }}
+            key: ${{ steps.card-data-version.outputs.version }}
         - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
           run: npm run get-cards
 
