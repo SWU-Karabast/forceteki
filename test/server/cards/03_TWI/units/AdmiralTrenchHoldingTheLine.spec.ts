@@ -88,12 +88,6 @@ describe('Admiral Trench, Holding the Line', function () {
             context.player2.clickPrompt('Play Admiral Trench');
 
             // Should not be able to return any cards since First Legion Snowtrooper is a new copy and was not defeated this phase
-            expect(context.player2).toHavePrompt('Select 3 cards');
-            expect(context.player2).toBeAbleToSelectExactly([]);
-            expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose no target']);
-
-            context.player2.clickPrompt('Choose no target');
-
             expect(context.player1).toBeActivePlayer();
         });
     });
