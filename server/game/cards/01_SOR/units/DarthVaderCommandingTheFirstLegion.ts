@@ -5,6 +5,8 @@ import type { Card } from '../../../core/card/Card';
 import * as Contract from '../../../core/utils/Contract';
 
 export default class DarthVaderCommandingTheFirstLegion extends NonLeaderUnitCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '8506660490',
