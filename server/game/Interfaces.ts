@@ -32,9 +32,7 @@ import type { CaptureZone } from './core/zone/CaptureZone';
 
 /** Interface definition for addTriggeredAbility */
 export type ITriggeredAbilityProps<TSource extends Card = Card> = ITriggeredAbilityWhenProps<TSource> | ITriggeredAbilityAggregateWhenProps<TSource>;
-export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IReplacementEffectAbilityWhenProps<TSource> | IReplacementEffectAbilityAggregateWhenProps<TSource> & {
-    isPartial?: (context?: TriggeredAbilityContext) => boolean | boolean;
-};
+export type IReplacementEffectAbilityProps<TSource extends Card = Card> = IReplacementEffectAbilityWhenProps<TSource> | IReplacementEffectAbilityAggregateWhenProps<TSource>;
 
 /** Interface definition for addActionAbility */
 export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'optional'> & {
