@@ -21,7 +21,10 @@ export default class LieutenantChildsenDeathStarPrisonWarden extends NonLeaderUn
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 cardCondition: (card) => card.hasSomeAspect(Aspect.Vigilance),
-                immediateEffect: AbilityHelper.immediateEffects.reveal(),
+                immediateEffect: AbilityHelper.immediateEffects.reveal({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                }),
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: 'For each card revealed this way, give an Experience token to this unit',
@@ -32,5 +35,3 @@ export default class LieutenantChildsenDeathStarPrisonWarden extends NonLeaderUn
         });
     }
 }
-
-LieutenantChildsenDeathStarPrisonWarden.implemented = true;
