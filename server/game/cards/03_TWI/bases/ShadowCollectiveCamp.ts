@@ -1,23 +1,21 @@
 import { BaseCard } from '../../../core/card/BaseCard';
 import AbilityHelper from '../../../AbilityHelper';
 
-export default class DroidManufactory extends BaseCard {
+export default class ShadowCollectiveCamp extends BaseCard {
     protected override getImplementationId () {
         return {
-            id: '8589863038',
-            internalName: 'droid-manufactory',
+            id: '6854189262',
+            internalName: 'shadow-collective-camp',
         };
     }
 
     public override setupCardAbilities () {
         this.addTriggeredAbility({
-            title: 'Create 2 Battle Droid tokens.',
+            title: 'Draw a card.',
             when: {
                 onLeaderDeployed: (event, context) => event.card.controller === context.source.controller
             },
-            immediateEffect: AbilityHelper.immediateEffects.createBattleDroid({ amount: 2 }),
+            immediateEffect: AbilityHelper.immediateEffects.draw()
         });
     }
 }
-
-DroidManufactory.implemented = true;
