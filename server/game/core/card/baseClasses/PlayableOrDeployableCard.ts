@@ -192,6 +192,7 @@ export class PlayableOrDeployableCard extends Card {
         return keywordValueTotal > 0 ? keywordValueTotal : null;
     }
 
+
     /**
      * The passed player takes control of this card. If `moveTo` is provided, the card will be moved to that zone under the
      * player's control. If not, it will move to the same zone type it currently occupies but under the new controller.
@@ -222,7 +223,7 @@ export class PlayableOrDeployableCard extends Card {
             // register this transition with the engine so it can do uniqueness check if needed
             this.registerMove(this.zone.name);
         } else {
-            this.moveTo(moveDestination, false);
+            this.moveTo(moveDestination);
         }
 
         // update the context of all constant abilities so they are aware of the new controller

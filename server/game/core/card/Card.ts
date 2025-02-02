@@ -502,12 +502,12 @@ export class Card extends OngoingEffectSource {
      * Moves a card to a new zone, optionally resetting the card's controller back to its owner.
      *
      * @param targetZoneName Zone to move to
-     * @param resetController If true (default behavior), sets `card.controller = card.owner` on move. Set to
-     * false for a hypothetical situation where a controlled opponent unit is being moved between zones and
-     * needs to not change hands back to the owner.
      */
-    public moveTo(targetZoneName: MoveZoneDestination, resetController = true) {
+    public moveTo(targetZoneName: MoveZoneDestination) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
+
+        const prevZone = this.zoneName;
+        const resetController = EnumHelpers.zoneMoveRequiresControllerReset(prevZone, targetZoneName);
 
         // if we're moving to deck top / bottom, don't bother checking if we're already in the zone
         if (!([DeckZoneDestination.DeckBottom, DeckZoneDestination.DeckTop] as MoveZoneDestination[]).includes(targetZoneName)) {
@@ -520,7 +520,6 @@ export class Card extends OngoingEffectSource {
             }
         }
 
-        const prevZone = this.zoneName;
         this.removeFromCurrentZone();
 
         if (resetController) {
