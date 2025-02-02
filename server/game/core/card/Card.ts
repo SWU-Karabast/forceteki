@@ -692,7 +692,7 @@ export class Card extends OngoingEffectSource {
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentZone(prevZone?: ZoneName) {
-        this.hiddenForOpponent = EnumHelpers.isHidden(this.zoneName, RelativePlayer.Self);
+        this.hiddenForOpponent = EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self);
 
         switch (this.zoneName) {
             case ZoneName.SpaceArena:

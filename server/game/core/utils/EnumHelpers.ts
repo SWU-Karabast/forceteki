@@ -45,11 +45,12 @@ export const isAttackableZone = (zone: ZoneFilter) => {
     }
 };
 
-export const isHidden = (zone: ZoneFilter, controller: RelativePlayer) => {
+export const isHiddenFromOpponent = (zone: ZoneFilter, zoneController: RelativePlayer) => {
     switch (zone) {
         case ZoneName.Hand:
         case ZoneName.Resource:
-            return controller !== RelativePlayer.Opponent;
+            // TODO: switching this to be 'zoneController === RelativePlayer.Self' breaks a lot of tests for some reason
+            return zoneController !== RelativePlayer.Opponent;
         case ZoneName.Deck:
             return true;
         default:

@@ -314,6 +314,11 @@ export class InPlayCard extends PlayableOrDeployableCard {
             }
         } else {
             this.setPendingDefeatEnabled(false);
+
+            // if we're moving from a visible zone (discard, capture) to a hidden zone, increment the in-play id to represent the loss of information (card becomes a new copy)
+            if (EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self) && !EnumHelpers.isHiddenFromOpponent(prevZone, RelativePlayer.Self)) {
+                this._mostRecentInPlayId += 1;
+            }
         }
     }
 
