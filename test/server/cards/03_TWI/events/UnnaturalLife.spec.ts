@@ -24,6 +24,7 @@ describe('Unnatural Life', function() {
 
                 context.player1.clickCard(context.fleetLieutenant);
                 context.player1.clickCard(context.zuckuss);
+                expect(context.fleetLieutenant).toBeInZone('discard');
                 expect(context.zuckuss).toBeInZone('discard');
 
                 context.player2.clickCard(context.unnaturalLife);
@@ -36,8 +37,11 @@ describe('Unnatural Life', function() {
                 expect(context.player2.readyResourceCount).toBe(1);
 
                 // Check that Zuckuss is defeated at the beginning of the regroup phase
-                context.moveToNextActionPhase();
+                context.moveToRegroupPhase();
                 expect(context.zuckuss).toBeInZone('discard');
+
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
 
                 // Make sure the player can't play Zuckuss again
                 context.player1.setHand([context.unnaturalLife]);
