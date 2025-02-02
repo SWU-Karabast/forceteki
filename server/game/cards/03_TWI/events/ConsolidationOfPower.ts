@@ -15,8 +15,9 @@ export default class ConsolidationOfPower extends EventCard {
         this.setEventAbility({
             title: 'Choose any number of friendly units. You may play a unit from your hand if its cost is less than or equal to the combined power of the chosen units for free. Then, defeat the chosen units.',
             targetResolver: {
-                activePromptTitle: 'Give each chosen unit +2/+2 for this phase.',
-                mode: TargetMode.Unlimited,
+                mode: TargetMode.UpToVariable,
+                canChooseNoCards: true,
+                numCardsFunc: (context) => context.source.controller.getUnitsInPlay().length,
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: WildcardZoneName.AnyArena,
                 controller: RelativePlayer.Self,
@@ -25,8 +26,10 @@ export default class ConsolidationOfPower extends EventCard {
                 title: 'You may play a unit from your hand if its cost is less than or equal to the combined power of the chosen units for free.',
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
+                    optional: true,
                     mode: TargetMode.Single,
                     controller: RelativePlayer.Self,
+                    cardCondition: (_, context) => context.target.cost <= firstThenContext.target.reduce((sum, card) => sum + card.getPower(), 0),
                     zoneFilter: ZoneName.Hand,
                     immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.Free },
@@ -34,12 +37,9 @@ export default class ConsolidationOfPower extends EventCard {
                 },
                 then: (secondThenContext) => ({
                     title: 'Then, defeat the chosen units.',
-                    targetResolver: {
-                        cardTypeFilter: WildcardCardType.Unit,
-                        cardCondition: (card) => firstThenContext.target !== card && secondThenContext.target !== card,
-                        controller: RelativePlayer.Self,
-                        immediateEffect: this.buildModifyStatsForPhaseImmediateEffect(1),
-                    },
+                    immediateEffect: AbilityHelper.immediateEffects.defeat({
+                        target: firstThenContext.target,
+                    })
                 })
             })
         });
