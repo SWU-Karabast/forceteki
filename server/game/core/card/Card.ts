@@ -49,6 +49,7 @@ export class Card extends OngoingEffectSource {
     protected override readonly id: string;
     protected readonly hasNonKeywordAbilityText: boolean;
     protected readonly hasImplementationFile: boolean;
+    protected readonly overrideNotImplemented: boolean = false;
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
@@ -692,7 +693,7 @@ export class Card extends OngoingEffectSource {
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentZone(prevZone?: ZoneName) {
-        this.hiddenForOpponent = EnumHelpers.isHidden(this.zoneName, RelativePlayer.Self);
+        this.hiddenForOpponent = EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self);
 
         switch (this.zoneName) {
             case ZoneName.SpaceArena:
@@ -913,7 +914,7 @@ export class Card extends OngoingEffectSource {
             cost: this.cardData.cost,
             power: this.cardData.power,
             hp: this.cardData.hp,
-            implemented: !this.hasNonKeywordAbilityText || this.hasImplementationFile,  // we consider a card "implemented" if it doesn't require any implementation
+            implemented: !this.overrideNotImplemented && (!this.hasNonKeywordAbilityText || this.hasImplementationFile),  // we consider a card "implemented" if it doesn't require any implementation
             // popupMenuText: this.popupMenuText,
             // showPopup: this.showPopup,
             // tokens: this.tokens,
