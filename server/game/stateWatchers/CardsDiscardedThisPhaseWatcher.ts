@@ -7,8 +7,8 @@ import type { Card } from '../core/card/Card';
 import * as Contract from '../core/utils/Contract';
 
 export interface DiscardedCardEntry {
-    player: Player;
     card: Card;
+    discardedFromPlayer: Player;
     discardedFromZone: ZoneName;
     discardedPlayId: number;
 }
@@ -38,8 +38,8 @@ export class CardsDiscardedThisPhaseWatcher extends StateWatcher<DiscardedCardEn
                 Contract.assertTrue(event.card != null);
                 Contract.assertTrue(event.discardedFromZone != null);
                 return currentState.concat({
-                    player: event.card.controller,
                     card: event.card,
+                    discardedFromPlayer: event.card.controller,
                     discardedFromZone: event.discardedFromZone,
                     discardedPlayId: event.card.mostRecentInPlayId,
                 });

@@ -22,7 +22,7 @@ export default class KylosTieSilencerRuthlesslyEfficient extends NonLeaderUnitCa
         this.addActionAbility({
             title: 'Play Kylo\'s TIE Silencer from your discard pile',
             condition: (context) => this.cardsDiscardedThisPhaseWatcher.getCurrentValue().some((entry) =>
-                entry.player === context.source.controller &&
+                entry.discardedFromPlayer === context.source.controller &&
                 entry.card === context.source &&
                 entry.discardedPlayId === context.source.mostRecentInPlayId &&
                 [ZoneName.Hand, ZoneName.Deck].includes(entry.discardedFromZone)
