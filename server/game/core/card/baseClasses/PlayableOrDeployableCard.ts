@@ -192,9 +192,6 @@ export class PlayableOrDeployableCard extends Card {
         return keywordValueTotal > 0 ? keywordValueTotal : null;
     }
 
-    public setNewController(newController: Player) {
-        this._controller = newController;
-    }
 
     /**
      * The passed player takes control of this card. If `moveTo` is provided, the card will be moved to that zone under the

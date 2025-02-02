@@ -89,13 +89,9 @@ export const isDeckMoveZone = (zoneName: MoveZoneDestination): boolean => {
     return zoneName === DeckZoneDestination.DeckBottom || zoneName === DeckZoneDestination.DeckTop;
 };
 
-export const isInPlayZone = (zoneName: ZoneName): boolean => {
-    return isArena(zoneName) || zoneName === ZoneName.Resource; // ZoneName.Base handled as a special case
-};
-
-export const isLeavingPlay = (prevZone: ZoneName, nextZone: MoveZoneDestination): boolean => {
+export const zoneMoveRequiresControllerReset = (prevZone: ZoneName, nextZone: MoveZoneDestination): boolean => {
     const nextZoneName = asConcreteZone(nextZone);
-    return isInPlayZone(prevZone) && !isInPlayZone(nextZoneName);
+    return (isArena(prevZone) || prevZone === ZoneName.Resource) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
 };
 
 export const isUnit = (cardType: CardTypeFilter) => {
