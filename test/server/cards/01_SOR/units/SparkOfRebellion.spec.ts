@@ -51,5 +51,3 @@ describe('Spark Of Rebellion', function () {
         });
     });
 });
-
-

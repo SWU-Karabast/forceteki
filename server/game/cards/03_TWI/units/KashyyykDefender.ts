@@ -3,6 +3,8 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class KashyyykDefender extends NonLeaderUnitCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '8552292852',

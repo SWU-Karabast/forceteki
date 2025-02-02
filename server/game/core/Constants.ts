@@ -410,6 +410,7 @@ export enum AbilityRestriction {
 
 export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
+    CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
     CardsDrawnThisPhase = 'cardsDrawnThisPhase',
     CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
@@ -424,7 +425,6 @@ export enum StateWatcherName {
     // - entered play: Boba unit
     // - attacked base: Ephant Mon, Rule with Respect
     // - attacked with unit type: Medal Ceremony, Bo-Katan leader, Asajj Ventress
-    // - discarded: Kylo's TIE Silencer
 }
 
 /** For "canAffect" and target eligibility checks, indicates whether game state must be changed by the effect in order for the check to pass */

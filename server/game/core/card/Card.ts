@@ -49,6 +49,7 @@ export class Card extends OngoingEffectSource {
     protected override readonly id: string;
     protected readonly hasNonKeywordAbilityText: boolean;
     protected readonly hasImplementationFile: boolean;
+    protected readonly overrideNotImplemented: boolean = false;
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
@@ -501,12 +502,12 @@ export class Card extends OngoingEffectSource {
      * Moves a card to a new zone, optionally resetting the card's controller back to its owner.
      *
      * @param targetZoneName Zone to move to
-     * @param resetController If true (default behavior), sets `card.controller = card.owner` on move. Set to
-     * false for a hypothetical situation where a controlled opponent unit is being moved between zones and
-     * needs to not change hands back to the owner.
      */
-    public moveTo(targetZoneName: MoveZoneDestination, resetController = true) {
+    public moveTo(targetZoneName: MoveZoneDestination) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
+
+        const prevZone = this.zoneName;
+        const resetController = EnumHelpers.zoneMoveRequiresControllerReset(prevZone, targetZoneName);
 
         // if we're moving to deck top / bottom, don't bother checking if we're already in the zone
         if (!([DeckZoneDestination.DeckBottom, DeckZoneDestination.DeckTop] as MoveZoneDestination[]).includes(targetZoneName)) {
@@ -519,7 +520,6 @@ export class Card extends OngoingEffectSource {
             }
         }
 
-        const prevZone = this.zoneName;
         this.removeFromCurrentZone();
 
         if (resetController) {
@@ -692,7 +692,7 @@ export class Card extends OngoingEffectSource {
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentZone(prevZone?: ZoneName) {
-        this.hiddenForOpponent = EnumHelpers.isHidden(this.zoneName, RelativePlayer.Self);
+        this.hiddenForOpponent = EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self);
 
         switch (this.zoneName) {
             case ZoneName.SpaceArena:
@@ -913,7 +913,7 @@ export class Card extends OngoingEffectSource {
             cost: this.cardData.cost,
             power: this.cardData.power,
             hp: this.cardData.hp,
-            implemented: !this.hasNonKeywordAbilityText || this.hasImplementationFile,  // we consider a card "implemented" if it doesn't require any implementation
+            implemented: !this.overrideNotImplemented && (!this.hasNonKeywordAbilityText || this.hasImplementationFile),  // we consider a card "implemented" if it doesn't require any implementation
             // popupMenuText: this.popupMenuText,
             // showPopup: this.showPopup,
             // tokens: this.tokens,
