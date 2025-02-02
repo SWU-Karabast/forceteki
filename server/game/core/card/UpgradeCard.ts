@@ -73,7 +73,7 @@ export class UpgradeCard extends UpgradeCardParent {
         super.moveTo(targetZoneName);
     }
 
-    public attachTo(newParentCard: UnitCard) {
+    public attachTo(newParentCard: UnitCard, newController?: Player) {
         Contract.assertTrue(newParentCard.isUnit());
 
         // this assert needed for type narrowing or else the moveTo fails
@@ -83,7 +83,12 @@ export class UpgradeCard extends UpgradeCardParent {
             this.unattach();
         }
 
-        this.moveTo(newParentCard.zoneName);
+        if (newController && newController !== this.controller) {
+            this.takeControl(newController, newParentCard.zoneName);
+        } else {
+            this.moveTo(newParentCard.zoneName);
+        }
+
         newParentCard.attachUpgrade(this);
         this._parentCard = newParentCard;
     }

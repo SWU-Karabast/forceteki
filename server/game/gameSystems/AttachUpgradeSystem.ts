@@ -3,6 +3,7 @@ import type { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
 import type { CardTypeFilter } from '../core/Constants';
+import { RelativePlayer } from '../core/Constants';
 import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -10,20 +11,13 @@ import * as Contract from '../core/utils/Contract';
 
 export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
     upgrade?: UpgradeCard;
-    // TODO TAKE CONTROL: use these as-is?
-    takeControl?: boolean;
-    giveControl?: boolean;
-    controlSwitchOptional?: boolean;
+    newController?: RelativePlayer;
 }
 
 export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IAttachUpgradeProperties> {
     public override readonly name = 'attach';
     public override readonly eventName = EventName.OnUpgradeAttached;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
-    protected override readonly defaultProperties: IAttachUpgradeProperties = {
-        takeControl: false,
-        giveControl: false,
-    };
 
     public override eventHandler(event, additionalProperties = {}): void {
         const upgradeCard = (event.upgradeCard as Card);
@@ -32,35 +26,14 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         Contract.assertTrue(upgradeCard.isUpgrade());
         Contract.assertTrue(parentCard.isUnit());
 
-        const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
         event.originalZone = upgradeCard.zoneName;
 
         // attachTo manages all of the unattach and move zone logic
-        upgradeCard.attachTo(parentCard);
-
-        // TODO: add a system for taking control of upgrades
-        // if (properties.takeControl) {
-        //     upgradeCard.controller = event.context.player;
-        //     upgradeCard.updateConstantAbilityContexts();
-        // } else if (properties.giveControl) {
-        //     upgradeCard.controller = event.context.player.opponent;
-        //     upgradeCard.updateConstantAbilityContexts();
-        // }
+        upgradeCard.attachTo(parentCard, event.newController);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        if (properties.takeControl) {
-            return [
-                'take control of and attach {2}\'s {1} to {0}',
-                [properties.target, properties.upgrade, properties.upgrade.parentCard]
-            ];
-        } else if (properties.giveControl) {
-            return [
-                'give control of and attach {2}\'s {1} to {0}',
-                [properties.target, properties.upgrade, properties.upgrade.parentCard]
-            ];
-        }
         return ['attach {1} to {0}', [properties.target, properties.upgrade]];
     }
 
@@ -76,17 +49,8 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         if (!card.isUnit()) {
             return false;
         }
+
         if (!properties.upgrade.canAttach(card, this.getFinalController(properties, context))) {
-            return false;
-        } else if (
-            properties.takeControl &&
-            properties.upgrade.controller === context.player
-        ) {
-            return false;
-        } else if (
-            properties.giveControl &&
-            properties.upgrade.controller !== context.player
-        ) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;
@@ -103,9 +67,12 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
-        const { upgrade } = this.generatePropertiesFromContext(context, additionalProperties);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const upgrade = properties.upgrade;
+
         event.parentCard = card;
         event.upgradeCard = upgrade;
+        event.newController = this.getFinalController(properties, context);
         event.setContingentEventsGenerator(() => {
             const contingentEvents = [];
 
@@ -114,6 +81,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
                     EventName.OnUpgradeUnattached,
                     context,
                     {
+                        card,
                         upgradeCard: upgrade,
                         parentCard: upgrade.parentCard,
                     }
@@ -124,13 +92,18 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         });
     }
 
-    private getFinalController(properties, context) {
-        if (properties.takeControl) {
-            return context.player;
-        } else if (properties.giveControl) {
-            return context.player.opponent;
+    private getFinalController(properties: IAttachUpgradeProperties, context: TContext) {
+        if (!properties.newController) {
+            return properties.upgrade.controller;
         }
 
-        return properties.upgrade.controller;
+        switch (properties.newController) {
+            case RelativePlayer.Self:
+                return context.player;
+            case RelativePlayer.Opponent:
+                return context.player.opponent;
+            default:
+                Contract.fail(`Unknown value of RelativePlayer: ${properties.newController}`);
+        }
     }
 }
