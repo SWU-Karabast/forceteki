@@ -4,6 +4,8 @@ import { EventCard } from '../../../core/card/EventCard';
 import * as Contract from '../../../core/utils/Contract';
 
 export default class UWingReinforcement extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId () {
         return {
             id: '8968669390',

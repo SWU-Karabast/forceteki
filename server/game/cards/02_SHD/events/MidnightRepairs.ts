@@ -3,6 +3,8 @@ import { EventCard } from '../../../core/card/EventCard';
 import { WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class MidnightRepairs extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId () {
         return {
             id: '8818201543',

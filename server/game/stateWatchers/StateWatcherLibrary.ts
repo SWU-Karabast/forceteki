@@ -7,9 +7,11 @@ import { UnitsDefeatedThisPhaseWatcher } from './UnitsDefeatedThisPhaseWatcher';
 import { CardsEnteredPlayThisPhaseWatcher } from './CardsEnteredPlayThisPhaseWatcher';
 import { DamageDealtThisPhaseWatcher } from './DamageDealtThisPhaseWatcher';
 import { CardsDrawnThisPhaseWatcher } from './CardsDrawnThisPhaseWatcher';
+import { CardsDiscardedThisPhaseWatcher } from './CardsDiscardedThisPhaseWatcher';
 
 export = {
     attacksThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new AttacksThisPhaseWatcher(registrar, card),
+    cardsDiscardedThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new CardsDiscardedThisPhaseWatcher(registrar, card),
     cardsDrawnThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new CardsDrawnThisPhaseWatcher(registrar, card),
     cardsLeftPlayThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new CardsLeftPlayThisPhaseWatcher(registrar, card),
     cardsPlayedThisPhase: (registrar: StateWatcherRegistrar, card: Card) => new CardsPlayedThisPhaseWatcher(registrar, card),

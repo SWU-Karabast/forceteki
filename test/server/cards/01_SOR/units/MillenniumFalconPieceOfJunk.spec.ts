@@ -1,19 +1,14 @@
 describe('Millennium Falcon, Piece of Junk', function () {
     integration(function (contextRef) {
         describe('Millennium Falcon\'s ability', function () {
-            beforeEach(function () {
+            it('should enter ready and on regroup phase should have to pay 1 resource or return unit in hand', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['millennium-falcon#piece-of-junk'],
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
-            });
 
-            it('should enter ready and on regroup phase should have to pay 1 resource or return unit in hand', function () {
                 const { context } = contextRef;
 
                 // play millennium falcon, should be ready
@@ -26,6 +21,7 @@ describe('Millennium Falcon, Piece of Junk', function () {
 
                 // attack with falcon
                 context.player1.clickCard(context.millenniumFalcon);
+                context.player1.clickCard(context.p2Base);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(3);
 
@@ -46,6 +42,7 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
                 context.player1.clickCard(context.millenniumFalcon);
+                context.player1.clickCard(context.p2Base);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(6);
 
@@ -65,7 +62,61 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 expect(context.millenniumFalcon).toBeInZone('hand');
             });
 
-            // TODO CHECK IF ENTERS READY WHEN PLAYED FROM RESOURCES OR DISCARD OR RESCUED FROM CAPTURE
+            it('should enter play ready if rescued from capture', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['millennium-falcon#piece-of-junk'],
+                        hand: ['vanquish']
+                    },
+                    player2: {
+                        spaceArena: ['cartel-spacer'],
+                        hand: ['take-captive'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // capture Falcon with RR
+                context.player2.clickCard(context.takeCaptive);
+                context.player2.clickCard(context.cartelSpacer);
+                context.player2.clickCard(context.millenniumFalcon);
+
+                // defeat RR to rescue Falcon
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.cartelSpacer);
+
+                // Falcon comes back into play ready
+                expect(context.millenniumFalcon.exhausted).toBeFalse();
+            });
+
+            it('should enter ready if played from discard', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['millennium-falcon#piece-of-junk'],
+                        hand: ['palpatines-return']
+                    },
+                    player2: {
+                        hand: ['vanquish'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // defeat Falcon
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.millenniumFalcon);
+
+                // play Falcon with Palpatine's Return
+                context.player1.clickCard(context.palpatinesReturn);
+                context.player1.clickCard(context.millenniumFalcon);
+
+                // Falcon comes back into play ready
+                expect(context.millenniumFalcon.exhausted).toBeFalse();
+            });
         });
     });
 });

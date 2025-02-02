@@ -43,10 +43,9 @@ describe('Grievous Reassembly', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grievousReassembly);
-                expect(context.player1).toBeAbleToSelectExactly([context.fifthBrother]);
+                // no unit to heal
 
                 // Validates Battle Droid token creation
-                context.player1.clickCard(context.fifthBrother);
                 const battleDroids = context.player1.findCardsByName('battle-droid');
                 expect(battleDroids.length).toBe(1);
                 expect(battleDroids).toAllBeInZone('groundArena');
