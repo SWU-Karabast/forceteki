@@ -10,7 +10,8 @@ export enum DisplayCardSelectionState {
     Selectable = 'selectable',
     Selected = 'selected',
     Unselectable = 'unselectable',
-    Invalid = 'invalid'
+    Invalid = 'invalid',
+    ViewOnly = 'viewOnly'
 }
 
 export interface IButton {

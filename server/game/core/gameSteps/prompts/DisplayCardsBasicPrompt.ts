@@ -57,7 +57,7 @@ export class DisplayCardsBasicPrompt extends DisplayCardPrompt<IDisplayCardsBasi
             cardUuid: card.uuid,
             setId: card.setId,
             internalName: card.internalName,
-            selectionState: DisplayCardSelectionState.Invalid,
+            selectionState: DisplayCardSelectionState.ViewOnly,
             displayText: this.displayTextByCardUuid?.get(card.uuid),
         }));
     }

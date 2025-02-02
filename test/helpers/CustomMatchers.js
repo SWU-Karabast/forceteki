@@ -814,23 +814,23 @@ var customMatchers = {
             compare: function (player, expectedCardsInPromptRaw) {
                 const expectedCardsInPromptObject = { selectable: Helpers.asArray(expectedCardsInPromptRaw) };
 
-                return processExpectedCardsInPrompt(player, expectedCardsInPromptObject);
+                return processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject);
             }
         };
     },
     toHaveExactViewableDisplayPromptCards: function() {
         return {
             compare: function (player, expectedCardsInPromptRaw) {
-                const expectedCardsInPromptObject = { invalid: Helpers.asArray(expectedCardsInPromptRaw) };
+                const expectedCardsInPromptObject = { viewOnly: Helpers.asArray(expectedCardsInPromptRaw) };
 
-                return processExpectedCardsInPrompt(player, expectedCardsInPromptObject);
+                return processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject);
             }
         };
     },
     toHaveExactDisplayPromptCards: function() {
         return {
             compare: function (player, expectedCardsInPromptRaw) {
-                return processExpectedCardsInPrompt(player, expectedCardsInPromptRaw);
+                return processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptRaw);
             }
         };
     },
@@ -875,7 +875,7 @@ function checkConsistentZoneState(card, result) {
     return true;
 }
 
-function processExpectedCardsInPrompt(player, expectedCardsInPromptObject) {
+function processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject) {
     let result = {};
 
     if (Array.isArray(expectedCardsInPromptObject)) {
