@@ -129,7 +129,7 @@ export abstract class OngoingEffect {
             return false;
         }
 
-        return !this.source.facedown;
+        return true;
     }
 
     public resolveEffectTargets(stateChanged) {
