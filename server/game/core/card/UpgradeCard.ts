@@ -66,14 +66,14 @@ export class UpgradeCard extends UpgradeCardParent {
         return true;
     }
 
-    public override moveTo(targetZoneName: MoveZoneDestination, resetController?: boolean) {
+    public override moveTo(targetZoneName: MoveZoneDestination) {
         Contract.assertFalse(this._parentCard && targetZoneName !== this._parentCard.zoneName,
             `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
 
-        super.moveTo(targetZoneName, resetController);
+        super.moveTo(targetZoneName);
     }
 
-    public attachTo(newParentCard: UnitCard) {
+    public attachTo(newParentCard: UnitCard, newController?: Player) {
         Contract.assertTrue(newParentCard.isUnit());
 
         // this assert needed for type narrowing or else the moveTo fails
@@ -83,7 +83,12 @@ export class UpgradeCard extends UpgradeCardParent {
             this.unattach();
         }
 
-        this.moveTo(newParentCard.zoneName);
+        if (newController && newController !== this.controller) {
+            this.takeControl(newController, newParentCard.zoneName);
+        } else {
+            this.moveTo(newParentCard.zoneName);
+        }
+
         newParentCard.attachUpgrade(this);
         this._parentCard = newParentCard;
     }

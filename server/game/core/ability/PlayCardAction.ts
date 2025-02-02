@@ -24,6 +24,7 @@ export interface IPlayCardActionPropertiesBase {
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
     exploitValue?: number;
+    canPlayFromAnyZone?: boolean;
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
@@ -46,6 +47,7 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly exploitValue?: number;
     public readonly playType: PlayType;
     public readonly usesExploit: boolean;
+    public readonly canPlayFromAnyZone: boolean;
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
@@ -92,6 +94,7 @@ export abstract class PlayCardAction extends PlayerAction {
         this.usesExploit = usesExploit;
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
+        this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
     }
 
     private static getTitle(title: string, playType: PlayType, withExploit: boolean = false, appendToTitle: boolean = true): string {
@@ -125,7 +128,7 @@ export abstract class PlayCardAction extends PlayerAction {
             return 'phase';
         }
         if (
-            !ignoredRequirements.includes('zone') &&
+            !ignoredRequirements.includes('zone') && !this.canPlayFromAnyZone &&
             !context.player.isCardInPlayableZone(context.source, this.playType)
         ) {
             return 'zone';

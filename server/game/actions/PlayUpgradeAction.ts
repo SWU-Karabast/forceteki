@@ -3,7 +3,7 @@ import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
-import { AbilityRestriction, PlayType } from '../core/Constants';
+import { AbilityRestriction, PlayType, RelativePlayer } from '../core/Constants';
 import type Game from '../core/Game';
 import * as Contract from '../core/utils/Contract';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
@@ -28,8 +28,8 @@ export class PlayUpgradeAction extends PlayCardAction {
         const events = [
             new AttachUpgradeSystem({
                 upgrade: context.source,
-                takeControl: context.source.controller !== context.player,
-                target: context.target
+                target: context.target,
+                newController: RelativePlayer.Self
             }).generateEvent(context),
             this.generateOnPlayEvent(context)
         ];

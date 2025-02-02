@@ -316,7 +316,7 @@ class PlayerOrCardAbility {
     }
 
     isTriggeredAbility() {
-        return this.type === AbilityType.Triggered;
+        return this.type === AbilityType.Triggered || this.type === AbilityType.ReplacementEffect;
     }
 
     // TODO: refactor the other methods to also be type predicates

@@ -3,6 +3,8 @@ import { EventCard } from '../../../core/card/EventCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class RelentlessPursuit extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '5778949819',

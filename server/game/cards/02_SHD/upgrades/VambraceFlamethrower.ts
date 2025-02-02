@@ -4,6 +4,8 @@ import { ZoneName, RelativePlayer, Trait, WildcardCardType } from '../../../core
 import type { Card } from '../../../core/card/Card';
 
 export default class VambraceFlamethrower extends UpgradeCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '6471336466',
