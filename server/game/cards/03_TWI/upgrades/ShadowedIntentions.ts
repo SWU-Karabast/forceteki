@@ -16,15 +16,15 @@ export default class ShadowedIntentions extends UpgradeCard {
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.BeCaptured,
-                    restrictedActionCondition: (context) => context.ability.card.controller !== this.controller,
+                    restrictedActionCondition: (context) => context.ability.controller() !== this.controller,
                 }),
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.BeDefeated,
-                    restrictedActionCondition: (context) => context.ability.card.controller !== this.controller,
+                    restrictedActionCondition: (context) => context.ability.controller() !== this.controller,
                 }),
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.ReturnToHand,
-                    restrictedActionCondition: (context) => context.ability.card.controller !== this.controller,
+                    restrictedActionCondition: (context) => context.ability.controller() !== this.controller,
                 }),
             ]
         });

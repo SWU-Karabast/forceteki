@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { CardType, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class StrategicAcumen extends UpgradeCard {
@@ -16,7 +16,7 @@ export default class StrategicAcumen extends UpgradeCard {
             title: 'Play a unit from your hand. It costs 1 less',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                cardTypeFilter: CardType.BasicUnit,
+                cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({

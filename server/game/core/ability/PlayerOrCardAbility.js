@@ -346,6 +346,10 @@ class PlayerOrCardAbility {
     isAttackAction() {
         return false;
     }
+
+    controller() {
+        return this.abilityController === RelativePlayer.Self ? this.card.controller : this.card.controller.opponent;
+    }
 }
 
 module.exports = PlayerOrCardAbility;
