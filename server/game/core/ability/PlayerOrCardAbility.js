@@ -10,6 +10,7 @@ const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTar
 const { TriggerHandlingMode } = require('../event/EventWindow.js');
 const Helpers = require('../utils/Helpers.js');
 const { AbilityContext } = require('./AbilityContext.js');
+const Player = require('../Player.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -345,6 +346,12 @@ class PlayerOrCardAbility {
     /** @returns {this is import('../../actions/InitiateAttackAction.js').InitiateAttackAction} */
     isAttackAction() {
         return false;
+    }
+
+    /** Return the controller of ability, can be different from card's controller (with bounty for exemple)
+     * @returns {Player} */
+    get controller() {
+        return this.abilityController === RelativePlayer.Self ? this.card.controller : this.card.controller.opponent;
     }
 }
 
