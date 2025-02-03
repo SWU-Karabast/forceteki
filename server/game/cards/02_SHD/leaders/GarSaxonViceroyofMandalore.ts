@@ -14,7 +14,7 @@ export default class GarSaxonViceroyofMandalore extends LeaderUnitCard {
         this.addConstantAbility({
             title: 'Each friendly upgraded unit gets +1/+0',
             targetController: RelativePlayer.Self,
-            matchTarget: (card) => card.isUnit() && card?.upgrades?.length > 0,
+            matchTarget: (card) => card.isUnit() && card.isUpgraded(),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
         });
     }
@@ -23,7 +23,7 @@ export default class GarSaxonViceroyofMandalore extends LeaderUnitCard {
         this.addConstantAbility({
             title: 'Each friendly upgraded unit gets +1/+0 and gains "When Defeated: You may return an upgrade that was attached to this unit to its owner\'s hand."',
             targetController: RelativePlayer.Self,
-            matchTarget: (card) => card.isUnit() && card?.upgrades?.length > 0,
+            matchTarget: (card) => card.isUnit() && card.isUpgraded(),
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 }),
                 AbilityHelper.ongoingEffects.gainAbility({
