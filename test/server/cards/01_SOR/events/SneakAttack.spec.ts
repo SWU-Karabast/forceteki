@@ -73,6 +73,46 @@ describe('Sneak Attack', function() {
                 expect(context.sabineWren).toBeInZone('discard');
             });
 
+            it('should trigger "when played" and "when defeated" abilities at the correct timing point', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['sneak-attack', 'ruthless-raider'],
+                        base: 'administrators-tower',
+                        leader: 'darth-vader#dark-lord-of-the-sith',
+                        resources: 5
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sneakAttack);
+                expect(context.player1).toBeAbleToSelectExactly([context.ruthlessRaider]);
+                context.player1.clickCard(context.ruthlessRaider);
+
+                // "when played" ability triggers
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.wampa.damage).toBe(2);
+
+                // move to end of action phase
+                context.player2.passAction();
+                context.player1.passAction();
+
+                // Checking When Defeated
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                expect(context.ruthlessRaider).toBeInZone('discard');
+                context.player1.clickCard(context.wampa);
+                expect(context.p2Base.damage).toBe(4);
+                expect(context.wampa.damage).toBe(4);
+
+                expect(context.game.currentPhase).toBe('regroup');
+            });
+
             // TODO: Fix this test cf https://github.com/SWU-Karabast/forceteki/pull/389#discussion_r1898603793
             // it('should not defeat Sabine if she is waylay back in hand and played back the same phase', function () {
             //     contextRef.setupTest({

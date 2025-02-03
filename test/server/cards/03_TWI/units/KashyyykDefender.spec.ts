@@ -1,4 +1,3 @@
-
 describe('Kashyyyk Defender', function() {
     integration(function(contextRef) {
         it('Should allow to heal up to 2 damage on a unit and damage itself for the same value healed', function () {

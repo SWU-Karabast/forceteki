@@ -55,8 +55,8 @@ describe('Han Solo Resource Interaction Scenarios', function() {
                     player1: {
                         leader: 'han-solo#audacious-smuggler',
                         base: 'chopper-base',
-                        hand: ['millennium-falcon#piece-of-junk', 'wampa'],
-                        resources: 2
+                        hand: ['millennium-falcon#piece-of-junk', 'wampa', 'atst'],
+                        resources: ['snowspeeder', 'frontier-trader']
                     }
                 });
             });
@@ -79,18 +79,22 @@ describe('Han Solo Resource Interaction Scenarios', function() {
 
                 context.player2.claimInitiative();
                 context.player1.passAction();
-                context.player2.clickPrompt('Done');
+
+                // player1 resources AT-ST prior to Han trigger
+                context.player1.clickCard(context.atst);
                 context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
 
                 // Han pays for Falcon with Wampa and then defeats it
                 expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
                 context.player1.clickPrompt('Pay 1 resource');
-                expect(context.player1.readyResourceCount).toBe(2);
+                expect(context.player1.readyResourceCount).toBe(3);
 
                 expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.snowspeeder, context.frontierTrader]);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('discard', context.player1);
-                expect(context.player1.readyResourceCount).toBe(2);
+                expect(context.player1.readyResourceCount).toBe(3);
             });
         });
     });

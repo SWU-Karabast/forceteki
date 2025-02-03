@@ -3,6 +3,8 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName, RelativePlayer, CardType, WildcardCardType } from '../../../core/Constants';
 
 export default class ISBAgent extends NonLeaderUnitCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '5154172446',

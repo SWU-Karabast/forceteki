@@ -186,4 +186,11 @@ export class GameEvent {
             handler();
         }
     }
+
+    public findEventInReplacements(): GameEvent | undefined {
+        if (this._context?.event?.isReplaced && this._context.event?.replacementEvents) {
+            return this._context.event.replacementEvents.find((e: any) => e === this);
+        }
+        return undefined;
+    }
 }
