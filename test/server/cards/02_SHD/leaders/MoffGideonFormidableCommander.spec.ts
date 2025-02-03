@@ -23,6 +23,7 @@ describe('Moff Gideon, Formidable Commander', function() {
                 context.player1.clickCard(context.droidCommando);
                 context.player1.clickCard(context.duchesssChampion);
                 expect(context.duchesssChampion.damage).toBe(5); // 4 Base power + 1 from Moff Gideon's ability
+                expect(context.moffGideon.exhausted).toBe(true);
 
                 context.moveToNextActionPhase();
 
@@ -32,6 +33,7 @@ describe('Moff Gideon, Formidable Commander', function() {
                 context.player1.clickCard(context.tielnFighter);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(2); // No buff from Moff Gideon's ability
+                expect(context.moffGideon.exhausted).toBe(true);
             });
         });
 
@@ -50,11 +52,8 @@ describe('Moff Gideon, Formidable Commander', function() {
 
                 const { context } = contextRef;
 
-                expect(context.deathStarStormtrooper.getPower()).toBe(4); // (3 Base + 1 Buff)
-                expect(context.superBattleDroid.getPower()).toBe(5); // (4 Base + 1 Buff)
-                expect(context.zuckuss.getPower()).toBe(6); // Does not get buff from Moff Gideon's ability as it cost more than 3
-                expect(context.specforceSoldier.getPower()).toBe(2); // Opponent's unit does not get buff from Moff Gideon's ability
-                expect(context.battlefieldMarine.getPower()).toBe(3);
+                expect(context.deathStarStormtrooper.getPower()).toBe(3); // Buffs only apply when attacking
+                expect(context.superBattleDroid.getPower()).toBe(4);
 
                 context.player1.clickCard(context.deathStarStormtrooper);
                 context.player1.clickCard(context.specforceSoldier);
@@ -63,12 +62,12 @@ describe('Moff Gideon, Formidable Commander', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.zuckuss);
                 context.player1.clickCard(context.generalVeers);
-                expect(context.p2Base.damage).toBe(2); // Zuckuss does not get Overwhelm
+                expect(context.p2Base.damage).toBe(2); // Zuckuss does not get Overwhelm nor buff from Moff Gideon's ability
 
                 context.player2.clickCard(context.battlefieldMarine);
                 context.player2.clickCard(context.greedo);
                 context.player1.clickPrompt('Pass');
-                expect(context.p1Base.damage).toBe(0); // Enemy unit does not get Overwhelm from Moff Gideon's ability
+                expect(context.p1Base.damage).toBe(0); // Enemy unit does not get Overwhelm nor buff from Moff Gideon's ability
             });
         });
     });

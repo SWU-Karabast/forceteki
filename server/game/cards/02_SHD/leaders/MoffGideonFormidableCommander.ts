@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { KeywordName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { KeywordName, WildcardZoneName } from '../../../core/Constants';
 
 export default class MoffGideonFormidableCommander extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -15,8 +15,6 @@ export default class MoffGideonFormidableCommander extends LeaderUnitCard {
             title: 'Attack with a unit that costs 3 or less. If it\'s attacking a unit, it gets +1/+0 for this attack',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                controller: RelativePlayer.Self,
-                cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.isUnit() && card.cost <= 3,
                 immediateEffect: AbilityHelper.immediateEffects.attack({
                     attackerLastingEffects: {
@@ -30,16 +28,10 @@ export default class MoffGideonFormidableCommander extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addConstantAbility({
-            title: 'Each friendly unit that costs 3 or less gets +1/+0',
-            matchTarget: (card, context) => card.isUnit() && card.controller === context.source.controller && card.cost <= 3,
-            ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 }),
-        });
-
-        this.addConstantAbility({
-            title: 'Each friendly unit that costs 3 or less gains Overwhelm while attacking an enemy unit',
+            title: 'Each friendly unit that costs 3 or less gets +1/+0 and gains Overwhelm while attacking an enemy unit',
             targetZoneFilter: WildcardZoneName.AnyArena,
             matchTarget: (card, context) => card.isUnit() && card.isAttacking() && card.controller === context.source.controller && card.cost <= 3 && card.activeAttack?.target?.isUnit(),
-            ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm),
+            ongoingEffect: [AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm), AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })],
         });
     }
 }
