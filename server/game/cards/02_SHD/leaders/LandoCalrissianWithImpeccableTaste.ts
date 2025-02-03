@@ -1,11 +1,11 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { AbilityContext } from '../../../core/ability/AbilityContext';
-import { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, PlayType, RelativePlayer, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import { IThenAbilityPropsWithSystems } from '../../../Interfaces';
-import { ICardTargetResolver } from '../../../TargetInterfaces';
+import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
+import type { ICardTargetResolver } from '../../../TargetInterfaces';
 
 export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
     protected override getImplementationId() {
