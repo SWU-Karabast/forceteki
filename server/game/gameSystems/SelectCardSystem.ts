@@ -25,6 +25,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     selector?: BaseCardSelector;
     mode?: TargetMode;
     numCards?: number;
+    numCardsFunc?: (context: TContext) => number;
     canChooseNoCards?: boolean;
     innerSystemProperties?: (card: Card) => any;
     cancelHandler?: () => void;

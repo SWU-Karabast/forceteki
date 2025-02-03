@@ -20,7 +20,7 @@ describe('Inferno Four - Unforgetting', function() {
 
                 // Case 1 on play move the first top card to top and second card to bottom.
                 context.player1.clickCard(context.infernoFour);
-                expect(context.player1).toHaveExactDisplayPromptCards([context.foundling, context.pykeSentinel]);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.foundling, context.pykeSentinel]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.pykeSentinel.uuid, 'top');
                 expect(context.player1.deck).toEqual(preSwapDeck);
@@ -42,7 +42,7 @@ describe('Inferno Four - Unforgetting', function() {
                 // Case 2 on defeat move both cards to the top of the deck
                 context.player2.clickCard(context.tieAdvanced);
                 context.player2.clickCard(context.infernoFour);
-                expect(context.player1).toHaveExactDisplayPromptCards([context.pykeSentinel, context.atst]);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.pykeSentinel, context.atst]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
                 context.player1.clickDisplayCardPromptButton(context.pykeSentinel.uuid, 'top');
                 expect(context.player1.deck).toEqual(preSwapDeck);

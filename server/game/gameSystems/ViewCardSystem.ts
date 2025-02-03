@@ -7,33 +7,39 @@ import * as Helpers from '../core/utils/Helpers';
 
 // TODO: Need some future work to fully implement Thrawn
 export interface IViewCardProperties extends ICardTargetSystemProperties {
-    viewType: ViewCardMode;
-    sendChatMessage?: boolean;
     message?: string | ((context) => string);
     messageArgs?: (cards: any) => any[];
 
     /** The player who is viewing or revealing the card. */
     player?: Player;
+
+    /** Temporary parameter while we are migrating everything to the new display prompt */
+    useDisplayPrompt?: boolean;
+
+    /** If we want to display text under any cards, map their uuid(s) to the title text here */
+    displayTextByCardUuid?: Map<string, string>;
 }
 
-export enum ViewCardMode {
+export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IViewCardProperties = IViewCardProperties> extends CardTargetSystem<TContext, TProperties> {
+    protected override defaultProperties: IViewCardProperties = {
+        useDisplayPrompt: false
+    };
 
-    /** A player looks at card(s) */
-    LookAt = 'lookAt',
-
-    /** A player reveals card(s) to all players */
-    Reveal = 'reveal'
-}
-
-export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IViewCardProperties> {
-    public override eventHandler(event, additionalProperties = {}): void {
+    public override eventHandler(event, _additionalProperties = {}): void {
         const context = event.context;
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (properties.sendChatMessage) {
-            const messageArgs = this.getMessageArgs(event, context, additionalProperties);
-            context.game.addMessage(this.getMessage(properties.message, context), ...messageArgs);
+        context.game.addMessage(this.getMessage(event.message, context), ...event.messageArgs);
+
+        if (event.useDisplayPrompt) {
+            context.game.promptDisplayCardsBasic(event.promptedPlayer, {
+                displayCards: event.cards,
+                source: context.source,
+                displayTextByCardUuid: event.displayTextByCardUuid
+            });
         }
     }
+
+    protected abstract getChatMessage(properties: IViewCardProperties): string | null;
+    protected abstract getPromptedPlayer(properties: IViewCardProperties, context: TContext): Player;
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
@@ -58,6 +64,11 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         }
 
         event.cards = cards;
+        event.promptedPlayer = this.getPromptedPlayer(properties, context);
+        event.message = this.getChatMessage(properties);
+        event.messageArgs = this.getMessageArgs(event, context, additionalProperties);
+        event.useDisplayPrompt = properties.useDisplayPrompt;
+        event.displayTextByCardUuid = properties.displayTextByCardUuid;
     }
 
     public getMessage(message, context: TContext): string {
