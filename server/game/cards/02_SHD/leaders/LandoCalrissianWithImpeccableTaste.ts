@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { KeywordName, PlayType, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { PlayType, RelativePlayer, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 import type { ICardTargetResolver } from '../../../TargetInterfaces';
@@ -17,7 +17,6 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
 
     private buildSmuggleCardAbility(): ICardTargetResolver<TriggeredAbilityContext<this>> {
         return {
-            cardCondition: (card) => card.hasSomeKeyword(KeywordName.Smuggle),
             controller: RelativePlayer.Self,
             zoneFilter: ZoneName.Resource,
             immediateEffect: AbilityHelper.immediateEffects.playCard({
@@ -30,13 +29,13 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
     private buildDefeatResourceAbility(): IThenAbilityPropsWithSystems<AbilityContext> {
         return {
             title: 'Defeat a resource you own and control',
-            immediateEffect: AbilityHelper.immediateEffects.selectCard({
+            targetResolver: {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
                 cardCondition: (card) => card.owner === this.controller,
                 activePromptTitle: 'Defeat a resource you own and control',
-                innerSystem: AbilityHelper.immediateEffects.defeat()
-            })
+                immediateEffect: AbilityHelper.immediateEffects.defeat()
+            }
         };
     }
 
