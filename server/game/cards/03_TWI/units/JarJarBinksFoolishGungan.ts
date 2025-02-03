@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import * as Helpers from '../../../core/utils/Helpers';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardZoneName } from '../../../core/Constants';
 
@@ -18,10 +19,9 @@ export default class JarJarBinksFoolishGungan extends NonLeaderUnitCard {
     }
 
     private chooseRandomTarget(context) {
-        const controllerTargets = context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena);
-        const opponentTargets = context.source.controller.opponent.getUnitsInPlay(WildcardZoneName.AnyArena);
-        const allTargets = [...controllerTargets, ...opponentTargets, context.source.controller.opponent.base, context.source.controller.base];
-        const selectedTarget = allTargets[Math.floor(Math.random() * allTargets.length)];
-        return selectedTarget;
+        const controllerUnits = context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena);
+        const opponentUnits = context.source.controller.opponent.getUnitsInPlay(WildcardZoneName.AnyArena);
+        const allTargets = [...controllerUnits, ...opponentUnits, context.source.controller.opponent.base, context.source.controller.base]; // All units and bases
+        return Helpers.randomItem(allTargets, context.game.randomGenerator);
     }
 }

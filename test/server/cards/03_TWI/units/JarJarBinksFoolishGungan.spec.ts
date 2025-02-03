@@ -15,21 +15,23 @@ describe('Jar Jar Binks, Foolish Gungan', function () {
 
             const { context } = contextRef;
 
+            context.game.setRandomSeed('35624');
+
             context.player1.clickCard(context.jarJarBinks);
             context.player1.clickCard(context.p2Base);
 
-            const conditions = [
-                context.p1Base.damage === 2,
-                context.p2Base.damage === 4, // 2 from Jar Jar Binks base power + 2 from Jar Jar's ability
-                context.jarJarBinks.damage === 2,
-                context.republicArc170.damage === 2,
-                context.restoredArc170.damage === 2,
-                context.wampa.damage === 2,
-                context.atst.damage === 2
-            ];
+            context.moveToNextActionPhase();
+            context.player1.clickCard(context.jarJarBinks);
+            context.player1.clickCard(context.p2Base);
 
-            const assertionsCount = conditions.filter(Boolean).length;
-            expect(assertionsCount).toBe(1);
+            context.moveToNextActionPhase();
+            context.player1.clickCard(context.jarJarBinks);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.p1Base.damage).toBe(2); // Jar Jar's ability deals damage to a base
+            expect(context.p2Base.damage).toBe(6); // Jar Jar's attacks
+            expect(context.jarJarBinks.damage).toBe(2); // Jar Jar's ability deals damage to a friendly unit
+            expect(context.atst.damage).toBe(2); // Jar Jar's ability deals damage to an enemy unit
         });
     });
 });
