@@ -33,9 +33,13 @@ describe('Lando Calrissian With Impeccable Taste', function () {
                 player1: {
                     leader: { card: 'lando-calrissian#with-impeccable-taste', deployed: true },
                     hand: ['pyke-sentinel', 'wampa'],
-                    resources: ['zorii-bliss#valiant-smuggler', 'aggression', 'spark-of-rebellion', 'protector', 'hotshot-dl44-blaster'],
+                    resources: ['zorii-bliss#valiant-smuggler', 'aggression', 'spark-of-rebellion', 'protector', 'dj#blatant-thief'],
                     deck: ['liberated-slaves'],
-                    groundArena: ['boba-fett#disintegrator']
+                    groundArena: ['boba-fett#disintegrator'],
+                    base: 'administrators-tower'
+                },
+                player2: {
+                    resources: ['resupply'],
                 }
             });
 
@@ -43,11 +47,11 @@ describe('Lando Calrissian With Impeccable Taste', function () {
 
             context.player1.clickCard(context.landoCalrissian);
             context.player1.clickPrompt('Play a card using Smuggle. It costs 2 less. Defeat a resource you own and control. Use this ability only once each round');
-            expect(context.player1).toBeAbleToSelectExactly([context.zoriiBliss, context.hotshotDl44Blaster]);
-            context.player1.clickCard(context.zoriiBliss);
+            expect(context.player1).toBeAbleToSelectExactly([context.zoriiBliss, context.dj]);
+            context.player1.clickCard(context.dj);
             expect(context.liberatedSlaves).toBeInZone('resource');
             expect(context.player1).toHavePrompt('Defeat a resource you own and control');
-            expect(context.player1).toBeAbleToSelectExactly([context.aggression, context.protector, context.sparkOfRebellion, context.hotshotDl44Blaster, context.liberatedSlaves]);
+            expect(context.player1).toBeAbleToSelectExactly([context.aggression, context.protector, context.sparkOfRebellion, context.zoriiBliss, context.liberatedSlaves]);
             context.player1.clickCard(context.liberatedSlaves);
             expect(context.player1.readyResourceCount).toBe(1);
         });
