@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsLeftPlayThisPhaseWatcher } from '../../../stateWatchers/CardsLeftPlayThisPhaseWatcher';
 
@@ -25,24 +25,25 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ filter: (entry) => entry.card.isUnit() }),
                 onFalse: AbilityHelper.immediateEffects.noAction(),
-                onTrue: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.draw({ amount: 1 }),
-                    AbilityHelper.immediateEffects.selectCard({
-                        activePromptTitle: 'Select a card to put on the top or bottom of your deck',
-                        cardTypeFilter: WildcardCardType.Any,
-                        controller: RelativePlayer.Self,
-                        zoneFilter: ZoneName.Hand,
-                        optional: false,
-                        innerSystem: AbilityHelper.immediateEffects.chooseModalEffects({
-                            amountOfChoices: 1,
-                            choices: () => ({
-                                ['Top']: AbilityHelper.immediateEffects.moveToTopOfDeck({}),
-                                ['Bottom']: AbilityHelper.immediateEffects.moveToBottomOfDeck({}),
-                            })
+                onTrue: AbilityHelper.immediateEffects.draw({ amount: 1 })
+            }),
+            then: {
+                title: 'Select a card from your hand to put on the top or bottom of your deck',
+                thenCondition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ filter: (entry) => entry.card.isUnit() }),
+                targetResolver: {
+                    activePromptTitle: 'Select a card to put on the top or bottom of your deck',
+                    controller: RelativePlayer.Self,
+                    zoneFilter: ZoneName.Hand,
+                    canChooseNoCards: false,
+                    immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects((context) => ({
+                        amountOfChoices: 1,
+                        choices: () => ({
+                            ['Top']: AbilityHelper.immediateEffects.moveToTopOfDeck({ target: context.target }),
+                            ['Bottom']: AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.target }),
                         })
-                    })
-                ])
-            })
+                    }))
+                }
+            }
         });
     }
 
@@ -53,16 +54,18 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },
-            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck({ amount: 1 }),
-            ifYouDo: (ifYouDoContext) => ({
-                title: 'Defeat a non-leader unit that costs equal to or less than the discarded card',
-                targetResolver: {
+            immediateEffect: AbilityHelper.immediateEffects.sequential((context) => ([
+                AbilityHelper.immediateEffects.discardFromDeck({ amount: 1, target: context.source.controller }),
+                AbilityHelper.immediateEffects.selectCard((selectContext) => ({
+                    title: 'Defeat a non-leader unit that costs equal to or less than the discarded card',
                     controller: RelativePlayer.Opponent,
+                    zoneFilter: WildcardZoneName.AnyArena,
+                    // TODO: if I move the card type check to the cardCondition, i get 'Cannot read properties of undefined (reading 'cardCondition')' - ask Veld about this
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                    condition: (card) => card.cost <= ifYouDoContext.events[0].card.printedCost,
-                    immediateEffect: AbilityHelper.immediateEffects.defeat()
-                }
-            })
+                    cardCondition: (card) => card.hasCost() && card.cost <= selectContext.events[0].card.printedCost,
+                    innerSystem: AbilityHelper.immediateEffects.defeat()
+                }))
+            ]))
         });
     }
 }
