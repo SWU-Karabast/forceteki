@@ -27,7 +27,6 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
-                condition: (context) => context.source.damage > 0,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                     amount: context.source.damage
                 }))

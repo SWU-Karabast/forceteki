@@ -7,6 +7,8 @@ import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 import * as Contract from '../../../core/utils/Contract';
 
 export default class DontGetCocky extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '2202839291',

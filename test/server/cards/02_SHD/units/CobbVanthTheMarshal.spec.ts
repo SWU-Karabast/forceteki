@@ -76,7 +76,7 @@ describe('Cobb Vanth, The Marshal', function() {
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.cobbVanth);
-                expect(context.player1).toHaveExactDisplayPromptCards([context.battlefieldMarine]);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine]);
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
@@ -108,7 +108,7 @@ describe('Cobb Vanth, The Marshal', function() {
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.cobbVanth);
-                expect(context.player1).toHaveExactDisplayPromptCards([context.battlefieldMarine]);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine]);
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
@@ -160,7 +160,7 @@ describe('Cobb Vanth, The Marshal', function() {
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.cobbVanth);
-                expect(context.player1).toHaveExactDisplayPromptCards([context.battlefieldMarine]);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine]);
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);

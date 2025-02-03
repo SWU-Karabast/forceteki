@@ -1,7 +1,7 @@
-/* global describe, beforeEach, jasmine */
+/* global beforeEach, jasmine */
 
-const exp = require('constants');
-const Contract = require('../../server/game/core/utils/Contract.js');
+const Helpers = require('../../server/game/core/utils/Helpers.js');
+const { stringArraysEqual } = require('../../server/Util.js');
 const TestSetupError = require('./TestSetupError.js');
 const Util = require('./Util.js');
 
@@ -10,7 +10,6 @@ var customMatchers = {
         return {
             compare: function (actual, expected) {
                 var result = {};
-                var currentPrompt = actual.currentPrompt();
                 result.pass = actual.hasPrompt(expected);
 
                 if (result.pass) {
@@ -745,7 +744,7 @@ var customMatchers = {
 
                 const expectedUpgradeNames = [...upgradeNames];
 
-                result.pass = Util.stringArraysEqual(actualUpgradeNames, expectedUpgradeNames);
+                result.pass = stringArraysEqual(actualUpgradeNames, expectedUpgradeNames);
 
                 if (result.pass) {
                     result.message = `Expected ${card.internalName} not to have this exact set of upgrades but it does: ${expectedUpgradeNames.join(', ')}`;
@@ -771,7 +770,7 @@ var customMatchers = {
 
                 const expectedButtons = [...buttons];
 
-                result.pass = Util.stringArraysEqual(actualButtons, expectedButtons);
+                result.pass = stringArraysEqual(actualButtons, expectedButtons);
 
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have this exact set of buttons but it does: ${expectedButtons.join(', ')}`;
@@ -796,7 +795,7 @@ var customMatchers = {
 
                 const actualOptions = player.currentPrompt().dropdownListOptions;
 
-                result.pass = Util.stringArraysEqual(actualOptions, expectedOptions);
+                result.pass = stringArraysEqual(actualOptions, expectedOptions);
 
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have this exact list of options but it does: '${Util.formatDropdownListOptions(expectedOptions)}'`;
@@ -810,126 +809,28 @@ var customMatchers = {
             }
         };
     },
+    toHaveExactSelectableDisplayPromptCards: function() {
+        return {
+            compare: function (player, expectedCardsInPromptRaw) {
+                const expectedCardsInPromptObject = { selectable: Helpers.asArray(expectedCardsInPromptRaw) };
+
+                return processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject);
+            }
+        };
+    },
+    toHaveExactViewableDisplayPromptCards: function() {
+        return {
+            compare: function (player, expectedCardsInPromptRaw) {
+                const expectedCardsInPromptObject = { viewOnly: Helpers.asArray(expectedCardsInPromptRaw) };
+
+                return processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject);
+            }
+        };
+    },
     toHaveExactDisplayPromptCards: function() {
         return {
             compare: function (player, expectedCardsInPromptRaw) {
-                let result = {};
-
-                // if we're just passed in an array, then all cards should be selectable
-                let expectedCardsInPromptObject;
-                if (Array.isArray(expectedCardsInPromptRaw)) {
-                    expectedCardsInPromptObject = { selectable: expectedCardsInPromptRaw };
-                } else {
-                    expectedCardsInPromptObject = expectedCardsInPromptRaw;
-                }
-
-                // build selection ordering for expected selected cards (if any)
-                let expectedSelectionOrderByUuid = null;
-                if (expectedCardsInPromptObject.usesSelectionOrder) {
-                    if (!expectedCardsInPromptObject.selected) {
-                        throw new TestSetupError('\'usesSelectionOrder\' is set to true in the expectation but \'selected\' is not defined');
-                    }
-
-                    expectedSelectionOrderByUuid = new Map();
-                    for (let i = 0; i < expectedCardsInPromptObject.selected.length; i++) {
-                        const selectedCard = expectedCardsInPromptObject.selected[i];
-                        expectedSelectionOrderByUuid.set(selectedCard.uuid, i + 1);
-                    }
-                }
-
-                const expectedSelectionStateByUuid = new Map();
-                const expectedCardsInPrompt = [];
-
-                for (const [selectionState, cards] of Object.entries(expectedCardsInPromptObject).filter(([key]) => key !== 'usesSelectionOrder')) {
-                    Util.checkNullCard(cards, `Card list for '${selectionState}' contains one more null elements`);
-
-                    for (const card of cards) {
-                        expectedCardsInPrompt.push(card);
-                        expectedSelectionStateByUuid.set(card.uuid, selectionState);
-                    }
-                }
-
-                const actualCardsInPrompt = player.currentPrompt().displayCards;
-
-                // check selection ordering for actual card prompt
-                let actualUsesSelectionOrder = false;
-                for (const card of actualCardsInPrompt) {
-                    if (card.selectionOrder != null) {
-                        actualUsesSelectionOrder = true;
-                        if (card.selectionState !== 'selected') {
-                            throw new TestSetupError(`Card ${card.internalName} has a selectionOrder of ${card.selectionOrder} but is in selection state ${card.selectionState}`);
-                        }
-                    }
-                }
-
-                const actualCardsUuids = new Set(actualCardsInPrompt.map((displayEntry) => displayEntry.cardUuid));
-                const expectedCardsUuids = new Set(expectedCardsInPrompt.map((card) => card.uuid));
-
-                let expectedAndFound = actualCardsInPrompt.filter((displayEntry) => expectedCardsUuids.has(displayEntry.cardUuid));
-                let foundAndNotExpected = actualCardsInPrompt.filter((displayEntry) => !expectedCardsUuids.has(displayEntry.cardUuid));
-                let expectedAndNotFound = expectedCardsInPrompt.filter((card) => !actualCardsUuids.has(card.uuid));
-
-                let message = '';
-                result.pass = foundAndNotExpected.length === 0 && expectedAndNotFound.length === 0;
-
-                // check that selection orders match, if provided (but don't bother if the selection state is already known to be wrong)
-                const incorrectSelectionOrderCards = [];
-                if (result.pass) {
-                    if ((expectedSelectionOrderByUuid != null) !== actualUsesSelectionOrder) {
-                        result.pass = false;
-                        message += `Expected ${player.name}${expectedSelectionOrderByUuid ? '' : ' not'} to have selection ordering for its prompt but it did${actualUsesSelectionOrder ? '' : ' not'}\n`;
-                    } else if (actualUsesSelectionOrder) {
-                        for (const foundCard of expectedAndFound.filter((displayEntry) => displayEntry.selectionState === 'selected')) {
-                            const expectedOrder = expectedSelectionOrderByUuid.get(foundCard.cardUuid);
-                            if (expectedOrder !== foundCard.selectionOrder) {
-                                incorrectSelectionOrderCards.push({ internalName: foundCard.internalName, expectedOrder, actualOrder: foundCard.selectionOrder });
-                            }
-                        }
-                    }
-                }
-
-                // collect any cards with incorrect selection state for printing error messages
-                const incorrectSelectionStateCards = [];
-                for (const foundCard of expectedAndFound) {
-                    const expectedState = expectedSelectionStateByUuid.get(foundCard.cardUuid);
-                    if (expectedState !== foundCard.selectionState) {
-                        incorrectSelectionStateCards.push({ internalName: foundCard.internalName, expectedState, actualState: foundCard.selectionState });
-                    }
-                }
-
-                // generate error messages for any cards with incorrect selection state
-                if (incorrectSelectionStateCards.length > 0 || incorrectSelectionOrderCards.length > 0) {
-                    result.pass = false;
-                    message += `Found cards with incorrect selection state in prompt for ${player.name}:\n`;
-
-                    if (incorrectSelectionStateCards.length > 0) {
-                        message += incorrectSelectionStateCards.map((card) => `\t${card.internalName} - expected: [${card.expectedState}], actual: [${card.actualState}]`).join('\n');
-                        message += '\n';
-                    }
-                    if (incorrectSelectionOrderCards.length > 0) {
-                        message += incorrectSelectionOrderCards.map((card) => `\t${card.internalName} - expected: [selected, selectionOrder: ${card.expectedOrder}], actual: [selected, selectionOrder: ${card.actualOrder}]`).join('\n');
-                        message += '\n';
-                    }
-                }
-
-                if (result.pass) {
-                    message += `Expected ${player.name} not to have exactly these cards in the card display prompt but they did: ${Util.cardNamesToString(expectedAndFound)}`;
-                } else {
-                    if (expectedAndNotFound.length > 0) {
-                        message += `Expected the following cards to be in the card display prompt for ${player.name} but they were not: ${Util.cardNamesToString(expectedAndNotFound)}`;
-                    }
-                    if (foundAndNotExpected.length > 0) {
-                        if (message.length > 0) {
-                            message += '\n';
-                        }
-                        message += `Expected the following cards not to be in the card display prompt for ${player.name} but they were: ${Util.cardNamesToString(foundAndNotExpected)}`;
-                    }
-                }
-
-                message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
-                result.message = message;
-
-                return result;
+                return processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptRaw);
             }
         };
     },
@@ -944,7 +845,7 @@ var customMatchers = {
 
                 const actualButtonsInPrompt = player.currentPrompt().perCardButtons.map((button) => button.text);
 
-                result.pass = Util.stringArraysEqual(actualButtonsInPrompt, expectedButtonsInPrompt);
+                result.pass = stringArraysEqual(actualButtonsInPrompt, expectedButtonsInPrompt);
 
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to have this exact set of "per card" buttons but it did: ${expectedButtonsInPrompt.join(', ')}`;
@@ -972,6 +873,122 @@ function checkConsistentZoneState(card, result) {
     }
 
     return true;
+}
+
+function processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject) {
+    let result = {};
+
+    if (Array.isArray(expectedCardsInPromptObject)) {
+        throw new TestSetupError('Incorrectly formatted display cards expectation object');
+    }
+
+    // build selection ordering for expected selected cards (if any)
+    let expectedSelectionOrderByUuid = null;
+    if (expectedCardsInPromptObject.usesSelectionOrder) {
+        if (!expectedCardsInPromptObject.selected) {
+            throw new TestSetupError('\'usesSelectionOrder\' is set to true in the expectation but \'selected\' is not defined');
+        }
+
+        expectedSelectionOrderByUuid = new Map();
+        for (let i = 0; i < expectedCardsInPromptObject.selected.length; i++) {
+            const selectedCard = expectedCardsInPromptObject.selected[i];
+            expectedSelectionOrderByUuid.set(selectedCard.uuid, i + 1);
+        }
+    }
+
+    const expectedSelectionStateByUuid = new Map();
+    const expectedCardsInPrompt = [];
+
+    for (const [selectionState, cards] of Object.entries(expectedCardsInPromptObject).filter(([key]) => key !== 'usesSelectionOrder')) {
+        Util.checkNullCard(cards, `Card list for '${selectionState}' contains one more null elements`);
+
+        for (const card of cards) {
+            expectedCardsInPrompt.push(card);
+            expectedSelectionStateByUuid.set(card.uuid, selectionState);
+        }
+    }
+
+    const actualCardsInPrompt = player.currentPrompt().displayCards;
+
+    // check selection ordering for actual card prompt
+    let actualUsesSelectionOrder = false;
+    for (const card of actualCardsInPrompt) {
+        if (card.selectionOrder != null) {
+            actualUsesSelectionOrder = true;
+            if (card.selectionState !== 'selected') {
+                throw new TestSetupError(`Card ${card.internalName} has a selectionOrder of ${card.selectionOrder} but is in selection state ${card.selectionState}`);
+            }
+        }
+    }
+
+    const actualCardsUuids = new Set(actualCardsInPrompt.map((displayEntry) => displayEntry.cardUuid));
+    const expectedCardsUuids = new Set(expectedCardsInPrompt.map((card) => card.uuid));
+
+    let expectedAndFound = actualCardsInPrompt.filter((displayEntry) => expectedCardsUuids.has(displayEntry.cardUuid));
+    let foundAndNotExpected = actualCardsInPrompt.filter((displayEntry) => !expectedCardsUuids.has(displayEntry.cardUuid));
+    let expectedAndNotFound = expectedCardsInPrompt.filter((card) => !actualCardsUuids.has(card.uuid));
+
+    let message = '';
+    result.pass = foundAndNotExpected.length === 0 && expectedAndNotFound.length === 0;
+
+    // check that selection orders match, if provided (but don't bother if the selection state is already known to be wrong)
+    const incorrectSelectionOrderCards = [];
+    if (result.pass) {
+        if ((expectedSelectionOrderByUuid != null) !== actualUsesSelectionOrder) {
+            result.pass = false;
+            message += `Expected ${player.name}${expectedSelectionOrderByUuid ? '' : ' not'} to have selection ordering for its prompt but it did${actualUsesSelectionOrder ? '' : ' not'}\n`;
+        } else if (actualUsesSelectionOrder) {
+            for (const foundCard of expectedAndFound.filter((displayEntry) => displayEntry.selectionState === 'selected')) {
+                const expectedOrder = expectedSelectionOrderByUuid.get(foundCard.cardUuid);
+                if (expectedOrder !== foundCard.selectionOrder) {
+                    incorrectSelectionOrderCards.push({ internalName: foundCard.internalName, expectedOrder, actualOrder: foundCard.selectionOrder });
+                }
+            }
+        }
+    }
+
+    // collect any cards with incorrect selection state for printing error messages
+    const incorrectSelectionStateCards = [];
+    for (const foundCard of expectedAndFound) {
+        const expectedState = expectedSelectionStateByUuid.get(foundCard.cardUuid);
+        if (expectedState !== foundCard.selectionState) {
+            incorrectSelectionStateCards.push({ internalName: foundCard.internalName, expectedState, actualState: foundCard.selectionState });
+        }
+    }
+
+    // generate error messages for any cards with incorrect selection state
+    if (incorrectSelectionStateCards.length > 0 || incorrectSelectionOrderCards.length > 0) {
+        result.pass = false;
+        message += `Found cards with incorrect selection state in prompt for ${player.name}:\n`;
+
+        if (incorrectSelectionStateCards.length > 0) {
+            message += incorrectSelectionStateCards.map((card) => `\t${card.internalName} - expected: [${card.expectedState}], actual: [${card.actualState}]`).join('\n');
+            message += '\n';
+        }
+        if (incorrectSelectionOrderCards.length > 0) {
+            message += incorrectSelectionOrderCards.map((card) => `\t${card.internalName} - expected: [selected, selectionOrder: ${card.expectedOrder}], actual: [selected, selectionOrder: ${card.actualOrder}]`).join('\n');
+            message += '\n';
+        }
+    }
+
+    if (result.pass) {
+        message += `Expected ${player.name} not to have exactly these cards in the card display prompt but they did: ${Util.cardNamesToString(expectedAndFound)}`;
+    } else {
+        if (expectedAndNotFound.length > 0) {
+            message += `Expected the following cards to be in the card display prompt for ${player.name} but they were not: ${Util.cardNamesToString(expectedAndNotFound)}`;
+        }
+        if (foundAndNotExpected.length > 0) {
+            if (message.length > 0) {
+                message += '\n';
+            }
+            message += `Expected the following cards not to be in the card display prompt for ${player.name} but they were: ${Util.cardNamesToString(foundAndNotExpected)}`;
+        }
+    }
+
+    message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
+    result.message = message;
+
+    return result;
 }
 
 beforeEach(function () {

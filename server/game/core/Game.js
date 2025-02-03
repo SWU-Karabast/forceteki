@@ -39,6 +39,7 @@ const EnumHelpers = require('./utils/EnumHelpers.js');
 const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
 const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
 const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayCardsForSelectionPrompt.js');
+const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -668,6 +669,16 @@ class Game extends EventEmitter {
         Contract.assertNotNullLike(player);
 
         this.queueStep(new DisplayCardsForSelectionPrompt(this, player, properties));
+    }
+
+    /**
+     *  @param {Player} player
+     *  @param {import('./gameSteps/PromptInterfaces.js').IDisplayCardsBasicPromptProperties} properties
+     */
+    promptDisplayCardsBasic(player, properties) {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new DisplayCardsBasicPrompt(this, player, properties));
     }
 
     /**
