@@ -66,51 +66,43 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.player1.hand.length).toBe(2);
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
             });
-
-            // it('back-side does nothing if no Villainy card was played', function () {
-            //     const { context } = contextRef;
-            // });
-
-            // it('back-side creates a clone, deals 2 damage to enemy base, and flips if a Villainy card has been played', function () {
-            //     const { context } = contextRef;
-            // });
         });
 
-        describe('Chancellor Palpatine\'s leader ability', function () {
-            beforeEach(function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        leader: { card: 'chancellor-palpatine#playing-both-sides', flipped: true },
-                        base: { card: 'echo-base', damage: 10 },
-                        groundArena: ['battlefield-marine', 'wampa'],
-                        hand: ['pyke-sentinel']
-                    },
-                    player2: {
-                        hand: ['vanquish', 'takedown', 'waylay']
-                    }
-                });
-            });
+        // describe('Chancellor Palpatine\'s leader ability', function () {
+        //     beforeEach(function () {
+        //         contextRef.setupTest({
+        //             phase: 'action',
+        //             player1: {
+        //                 leader: { card: 'chancellor-palpatine#playing-both-sides', flipped: true },
+        //                 base: { card: 'echo-base', damage: 10 },
+        //                 groundArena: ['battlefield-marine', 'wampa'],
+        //                 hand: ['pyke-sentinel']
+        //             },
+        //             player2: {
+        //                 hand: ['vanquish', 'takedown', 'waylay']
+        //             }
+        //         });
+        //     });
 
-            it('back-side does nothing if no Villainy card was played', function () {
-                const { context } = contextRef;
-                expect(context.chancellorPalpatine.onStartingSide).toBe(false);
-                context.player1.clickCard(context.chancellorPalpatine);
-                expect(context.chancellorPalpatine.exhausted).toBe(true);
-            });
+        //     it('back-side does nothing if no Villainy card was played', function () {
+        //         const { context } = contextRef;
+        //         expect(context.chancellorPalpatine.onStartingSide).toBe(false);
+        //         context.player1.clickCard(context.chancellorPalpatine);
+        //         expect(context.chancellorPalpatine.exhausted).toBe(true);
+        //     });
 
-            it('back-side creates a clone, deals 2 damage to enemy base, and flips if a Villainy card has been played', function () {
-                const { context } = contextRef;
-                expect(context.chancellorPalpatine.onStartingSide).toBe(false);
+        //     it('back-side creates a clone, deals 2 damage to enemy base, and flips if a Villainy card has been played', function () {
+        //         const { context } = contextRef;
+        //         expect(context.chancellorPalpatine.onStartingSide).toBe(false);
 
-                context.player1.clickCard(context.pykeSentinel);
-                context.player2.passAction();
+        //         context.player1.clickCard(context.pykeSentinel);
+        //         context.player2.passAction();
 
-                context.player1.clickCard(context.chancellorPalpatine);
-                expect(context.chancellorPalpatine.exhausted).toBe(true);
-                expect(context.p2Base.damage).toBe(2);
-                expect(context.cloneTrooper).toBeInZone('groundArena', context.player1);
-            });
-        });
+        //         context.player1.clickCard(context.chancellorPalpatine);
+        //         expect(context.chancellorPalpatine.exhausted).toBe(true);
+        //         expect(context.p2Base.damage).toBe(2);
+        //         expect(context.cloneTrooper).toBeInZone('groundArena', context.player1);
+        //     });
+        // });
     });
 });

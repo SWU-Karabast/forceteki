@@ -17,6 +17,7 @@ const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 
 export class LeaderUnitCard extends LeaderUnitCardParent {
     protected _deployed = false;
+    protected setupLeaderUnitSide;
     private readonly epicActionAbility: ActionAbility;
 
     public get deployed() {

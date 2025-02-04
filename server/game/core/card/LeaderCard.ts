@@ -5,13 +5,10 @@ import type { ZoneName } from '../Constants';
 import { CardType } from '../Constants';
 
 export class LeaderCard extends InPlayCard {
-    protected setupLeaderUnitSide;
-
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Leader);
 
-        this.setupLeaderUnitSide = false;
         this.setupLeaderSideAbilities(this);
     }
 

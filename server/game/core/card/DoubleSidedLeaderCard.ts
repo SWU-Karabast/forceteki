@@ -1,9 +1,7 @@
 import type Player from '../Player';
 import { LeaderCard } from './LeaderCard';
-import type { ZoneFilter } from '../Constants';
 import { CardType, ZoneName } from '../Constants';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
-import * as Helpers from '../utils/Helpers';
 
 export class DoubleSidedLeaderCard extends LeaderCard {
     protected _onStartingSide = false;
@@ -14,6 +12,7 @@ export class DoubleSidedLeaderCard extends LeaderCard {
 
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
+        // this.setupLeaderBackSideAbilities(this);
     }
 
     public override get type(): CardType {
@@ -44,41 +43,27 @@ export class DoubleSidedLeaderCard extends LeaderCard {
     }
 
     protected override addActionAbility(properties: IActionAbilityProps<this>) {
-        properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
+        properties.zoneFilter = ZoneName.Base;
         return super.addActionAbility(properties);
     }
 
     protected override addConstantAbility(properties: IConstantAbilityProps<this>) {
-        properties.sourceZoneFilter = this.getAbilityZonesForSide(properties.sourceZoneFilter);
+        properties.sourceZoneFilter = ZoneName.Base;
         return super.addConstantAbility(properties);
     }
 
     protected override addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>) {
-        properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
+        properties.zoneFilter = ZoneName.Base;
         return super.addReplacementEffectAbility(properties);
     }
 
     protected override addTriggeredAbility(properties: ITriggeredAbilityProps<this>) {
-        properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
+        properties.zoneFilter = ZoneName.Base;
         return super.addTriggeredAbility(properties);
     }
 
-    /** Generates the right zoneFilter property depending on which leader side we're setting up */
-    private getAbilityZonesForSide(propertyZone: ZoneFilter | ZoneFilter[]) {
-        const abilityZone = ZoneName.Base;
-
-        return propertyZone
-            ? Helpers.asArray(propertyZone).concat([abilityZone])
-            : abilityZone;
-    }
-
     protected override initializeForCurrentZone(prevZone?: ZoneName): void {
+        this.exhausted = false;
         super.initializeForCurrentZone(prevZone);
-    }
-
-    public override getSummary(activePlayer: Player) {
-        return {
-            ...super.getSummary(activePlayer)
-        };
     }
 }
