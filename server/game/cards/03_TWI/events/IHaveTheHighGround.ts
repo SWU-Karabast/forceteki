@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import { forThisAttackCardEffect } from '../../../gameSystems/GameSystemLibrary';
+import { AbilityType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class IHaveTheHighGround extends EventCard {
     protected override getImplementationId() {
@@ -18,10 +17,13 @@ export default class IHaveTheHighGround extends EventCard {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    effect: forThisAttackCardEffect((context) => ({
-                        target: context.source,
-                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 }),
-                    })),
+                    effect: AbilityHelper.ongoingEffects.gainAbility({
+                        title: 'Each enemy unit gets -4/-0 while attacking',
+                        type: AbilityType.Constant,
+                        targetController: RelativePlayer.Opponent,
+                        matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isAttacking() && card.activeAttack.target === context.source,
+                        ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 })
+                    })
                 })
             }
         });

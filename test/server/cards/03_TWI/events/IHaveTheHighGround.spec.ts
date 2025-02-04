@@ -18,8 +18,17 @@ describe('I Have The High Ground', function () {
             context.player1.clickCard(context.battlefieldMarine);
             context.player2.clickCard(context.wampa);
             context.player2.clickCard(context.battlefieldMarine);
-            expect(context.battlefieldMarine).toBeInZone('ground-arena');
+            expect(context.battlefieldMarine).toBeInZone('groundArena');
+            expect(context.battlefieldMarine.damage).toBe(0);
             expect(context.wampa.damage).toBe(3);
+
+            context.setDamage(context.wampa,0);
+            context.moveToNextActionPhase();
+
+            context.player1.passAction();
+            context.player2.clickCard(context.wampa);
+            context.player2.clickCard(context.battlefieldMarine);
+            expect(context.battlefieldMarine).toBeInZone('discard');
         });
     });
 });
