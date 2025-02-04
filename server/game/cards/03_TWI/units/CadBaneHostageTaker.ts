@@ -25,6 +25,7 @@ export default class CadBaneHostageTaker extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.capture()
             }
         });
+
         this.addOnAttackAbility({
             title: 'Rescue a card you own captured by Cad Bane and the opponent draws 2 cards',
             optional: true,
