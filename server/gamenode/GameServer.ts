@@ -39,17 +39,16 @@ interface QueuedPlayer {
 }
 
 export class GameServer {
-    private lobbies = new Map<string, Lobby>();
-    private userLobbyMap = new Map<string, string>();
-    private queue: QueuedPlayer[] = [];
-    private io: IOServer;
+    private readonly lobbies = new Map<string, Lobby>();
+    private readonly userLobbyMap = new Map<string, string>();
+    private readonly io: IOServer;
 
+    private queue: QueuedPlayer[] = [];
 
     public constructor() {
         const app = express();
         app.use(express.json());
         const server = http.createServer(app);
-
 
         const corsOptions = {
             origin: ['http://localhost:3000', 'https://beta.karabast.net'],
