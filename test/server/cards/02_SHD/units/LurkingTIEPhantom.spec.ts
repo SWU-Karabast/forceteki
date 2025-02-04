@@ -147,5 +147,34 @@ describe('Lurking TIE Phantom', function() {
             // Case 15: Can be damaged by opponent's force lightning
             // TODO Force Lightning currently not implemented
         });
+
+        it('Lurking TIE Phantom should be immune to friendly Val\'s bounty', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa'],
+                },
+                player2: {
+                    groundArena: ['val#loyal-to-the-end'],
+                    spaceArena: ['lurking-tie-phantom'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // kill val
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.val);
+
+            // opponent give 2 experiences
+            context.player1.clickPrompt('Opponent');
+            context.player2.clickCard(context.lurkingTiePhantom);
+
+            // collect bounty and try to deal 3 damage to Val
+            context.player1.clickCard(context.lurkingTiePhantom);
+
+            expect(context.lurkingTiePhantom.damage).toBe(0);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

@@ -14,13 +14,7 @@ const defaultGameSettings = {
                 id: 'exe66',
                 settings: {
                     optionSettings: {
-                        markCardsUnselectable: true,
-                        cancelOwnAbilities: false,
-                        orderForcedAbilities: false,
-                        confirmOneClick: false,
-                        disableCardStats: false,
-                        showStatusInSidebar: false,
-                        sortHandByName: false
+                        autoSingleTarget: true,
                     }
                 }
             },
@@ -970,13 +964,7 @@ const defaultGameSettings = {
                 id: 'th3w4y',
                 settings: {
                     optionSettings: {
-                        markCardsUnselectable: true,
-                        cancelOwnAbilities: false,
-                        orderForcedAbilities: false,
-                        confirmOneClick: false,
-                        disableCardStats: false,
-                        showStatusInSidebar: false,
-                        sortHandByName: false
+                        autoSingleTarget: true,
                     }
                 }
             },

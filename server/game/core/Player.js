@@ -83,9 +83,6 @@ class Player extends GameObject {
         this.optionSettings = user.settings.optionSettings;
         this.resetTimerAtEndOfRound = false;
 
-        // TODO: this should be a user setting at some point
-        this.autoSingleTarget = true;
-
         this.promptState = new PlayerPromptState(this);
     }
 
@@ -95,6 +92,10 @@ class Player extends GameObject {
      */
     isPlayer() {
         return true;
+    }
+
+    get autoSingleTarget() {
+        return this.optionSettings.autoSingleTarget;
     }
 
     startClock() {

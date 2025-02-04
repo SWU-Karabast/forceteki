@@ -17,15 +17,15 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.ReceiveDamage,
-                    restrictedActionCondition: (context) => !(context.ability instanceof InitiateAttackAction) && context.ability.card.controller !== this.controller,
+                    restrictedActionCondition: (context) => !(context.ability instanceof InitiateAttackAction) && context.ability.controller !== this.controller,
                 }),
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.BeCaptured,
-                    restrictedActionCondition: (context) => context.ability.card.controller !== this.controller,
+                    restrictedActionCondition: (context) => context.ability.controller !== this.controller,
                 }),
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.BeDefeated,
-                    restrictedActionCondition: (context) => context.ability.card.controller !== this.controller,
+                    restrictedActionCondition: (context) => context.ability.controller !== this.controller,
                 })
             ]
         });
