@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MoveZoneDestination } from '../core/Constants';
+import { AbilityRestriction } from '../core/Constants';
 import {
     CardType,
     DeckZoneDestination,
@@ -106,7 +107,8 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
+        const { destination } = properties;
 
         if (card.isToken()) {
             Contract.assertTrue(destination !== ZoneName.Base, `${destination} is not a valid zone for a token card`);
@@ -124,6 +126,10 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
                 [ZoneName.Discard, ZoneName.Resource].includes(card.zoneName) || EnumHelpers.isArena(card.zoneName),
                 `Cannot use MoveCardSystem to return a card to hand from ${card.zoneName}`
             );
+
+            if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.ReturnToHand, context)) {
+                return false;
+            }
         }
 
         // Call the super implementation
