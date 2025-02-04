@@ -276,7 +276,7 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     private canAnyAbilitiesResolve(triggeredAbilities: TriggeredAbilityContext[]) {
-        return triggeredAbilities.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext, true));
+        return triggeredAbilities?.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext, true));
     }
 
     public abstract override toString(): string;

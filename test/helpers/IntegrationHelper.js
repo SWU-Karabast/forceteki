@@ -3,7 +3,7 @@
 
 const Contract = require('../../server/game/core/utils/Contract.js');
 const TestSetupError = require('./TestSetupError.js');
-const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual, stringArraysEqual } = require('./Util.js');
+const { formatPrompt } = require('./Util.js');
 
 require('./ObjectFormatters.js');
 
@@ -58,8 +58,8 @@ global.integration = function (definitions) {
 
             const gameFlowWrapper = new GameFlowWrapper(
                 gameRouter,
-                { id: '111', username: 'player1' },
-                { id: '222', username: 'player2' }
+                { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
+                { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } }
             );
 
             const newContext = {};
