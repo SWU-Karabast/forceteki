@@ -166,6 +166,15 @@ class Game extends EventEmitter {
     }
 
     /**
+     * Get all currently captured cards in the game
+     * @returns {Array}
+     */
+    getAllCapturedCards() {
+        return this.findAnyCardsInPlay((card) => card.isUnit())
+            .flatMap((card) => card.capturedUnits);
+    }
+
+    /**
      * Get all players (not spectators) in the game
      * @returns {Player[]}
      */
@@ -233,6 +242,7 @@ class Game extends EventEmitter {
 
         return otherPlayer;
     }
+
 
     registerGlobalRulesListeners() {
         UnitPropertiesCard.registerRulesListeners(this);
