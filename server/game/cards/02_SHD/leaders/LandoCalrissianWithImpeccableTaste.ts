@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { PlayType, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { KeywordName, PlayType, RelativePlayer, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 import type { ICardTargetResolver } from '../../../TargetInterfaces';
@@ -19,6 +19,7 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
         return {
             controller: RelativePlayer.Self,
             zoneFilter: ZoneName.Resource,
+            cardCondition: (card) => card.hasSomeKeyword(KeywordName.Smuggle), // This helps prevent a prompt error
             immediateEffect: AbilityHelper.immediateEffects.playCard({
                 playType: PlayType.Smuggle,
                 adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 2 }
