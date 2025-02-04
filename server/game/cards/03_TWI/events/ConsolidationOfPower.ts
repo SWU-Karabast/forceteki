@@ -14,32 +14,31 @@ export default class ConsolidationOfPower extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Choose any number of friendly units. You may play a unit from your hand if its cost is less than or equal to the combined power of the chosen units for free. Then, defeat the chosen units.',
-            targetResolver: {
-                mode: TargetMode.UpToVariable,
-                canChooseNoCards: true,
-                numCardsFunc: (context) => context.source.controller.getUnitsInPlay().length,
-                cardTypeFilter: WildcardCardType.Unit,
-                zoneFilter: WildcardZoneName.AnyArena,
-                controller: RelativePlayer.Self,
-            },
-            then: (firstThenContext) => ({
-                title: 'You may play a unit from your hand if its cost is less than or equal to the combined power of the chosen units for free.',
-                targetResolver: {
+            optional: true,
+            targetResolvers: {
+                friendlyUnits: {
+                    mode: TargetMode.Unlimited,
                     cardTypeFilter: WildcardCardType.Unit,
+                    zoneFilter: WildcardZoneName.AnyArena,
+                    controller: RelativePlayer.Self,
+                },
+                playUnit: {
                     optional: true,
+                    dependsOn: 'friendlyUnits',
+                    cardTypeFilter: WildcardCardType.Unit,
                     mode: TargetMode.Single,
                     controller: RelativePlayer.Self,
-                    cardCondition: (_, context) => context.target.cost <= firstThenContext.target.reduce((sum, card) => sum + card.getPower(), 0),
+                    cardCondition: (_card, context) => context.targets.playUnit.cost <= context.targets.friendlyUnits.reduce((sum, card) => sum + card.getPower(), 0),
                     zoneFilter: ZoneName.Hand,
                     immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.Free },
-                    }),
-                },
-                then: (secondThenContext) => ({
-                    title: 'Then, defeat the chosen units.',
-                    immediateEffect: AbilityHelper.immediateEffects.defeat({
-                        target: firstThenContext.target,
                     })
+                }
+            },
+            then: (thenContext) => ({
+                title: 'Defeat the chosen units.',
+                immediateEffect: AbilityHelper.immediateEffects.defeat({
+                    target: thenContext.targets.friendlyUnits,
                 })
             })
         });
