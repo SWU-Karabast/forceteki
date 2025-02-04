@@ -73,8 +73,8 @@ export class GameServer {
             }
         });
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
-        this.io.on('connection', (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
-            this.onConnection(socket);
+        this.io.on('connection', async (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
+            await this.onConnection(socket);
             socket.on('manualDisconnect', () => {
                 socket.data.manualDisconnect = true;
                 socket.disconnect();
@@ -83,8 +83,8 @@ export class GameServer {
     }
 
     private setupAppRoutes(app: express.Application) {
-        app.post('/api/create-lobby', (req, res) => {
-            this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
+        app.post('/api/create-lobby', async (req, res) => {
+            await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
             return res.status(200).json({ success: true });
         });
         app.get('/api/available-lobbies', (_, res) => {
@@ -113,9 +113,9 @@ export class GameServer {
             const testSetupFilenames = this.getTestSetupGames();
             return res.json(testSetupFilenames);
         });
-        app.post('/api/start-test-game', (req, res) => {
+        app.post('/api/start-test-game', async (req, res) => {
             const { filename } = req.body;
-            this.startTestGame(filename);
+            await this.startTestGame(filename);
             return res.status(200).json({ success: true });
         });
         app.post('/api/enter-queue', (req, res) => {
@@ -148,7 +148,7 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(user: User | string, deck: Deck, isPrivate: boolean) {
+    private async createLobby(user: User | string, deck: Deck, isPrivate: boolean) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -167,11 +167,10 @@ export class GameServer {
         lobby.setLobbyOwner(user.id);
         this.userLobbyMap.set(user.id, lobby.id);
 
-        lobby.setTokens();
-        lobby.setPlayableCardTitles();
+        await Promise.all([lobby.setTokens(), lobby.setPlayableCardTitles()]);
     }
 
-    private startTestGame(filename: string) {
+    private async startTestGame(filename: string) {
         const lobby = new Lobby(MatchType.Custom);
         this.lobbies.set(lobby.id, lobby);
         const order66 = { id: 'exe66', username: 'Order66' };
@@ -180,7 +179,7 @@ export class GameServer {
         lobby.createLobbyUser(theWay);
         this.userLobbyMap.set(order66.id, lobby.id);
         this.userLobbyMap.set(theWay.id, lobby.id);
-        lobby.startTestGame(filename);
+        await lobby.startTestGame(filename);
     }
 
     private getTestSetupGames() {
@@ -238,7 +237,7 @@ export class GameServer {
     //     next();
     // }
 
-    public onConnection(ioSocket) {
+    public async onConnection(ioSocket) {
         const user = JSON.parse(ioSocket.handshake.query.user);
         const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
 
@@ -311,7 +310,7 @@ export class GameServer {
             // handle queue-specific events and add lobby disconnect
             ioSocket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
 
-            this.matchmakeQueuePlayers();
+            await this.matchmakeQueuePlayers();
             return;
         }
 
@@ -346,7 +345,7 @@ export class GameServer {
     /**
      * Matchmake two users in a queue
      */
-    private matchmakeQueuePlayers() {
+    private async matchmakeQueuePlayers() {
         // Simple approach: if at least 2 in queue, pair them up
         while (this.queue.length >= 2) {
             const p1 = this.queue.shift();
@@ -383,8 +382,7 @@ export class GameServer {
 
             // If needed, set tokens async
             lobby.setLobbyOwner(p1.user.id);
-            lobby.setTokens();
-            lobby.setPlayableCardTitles();
+            await Promise.all([lobby.setTokens(), lobby.setPlayableCardTitles()]);
             // this needs to be here since we only send start game via the LobbyOwner.
             lobby.sendLobbyState();
             logger.info(`Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
@@ -401,7 +399,7 @@ export class GameServer {
     /**
      * requeues the user and removes him from the previous lobby. If the lobby is empty, it cleans it up.
      */
-    private requeueUser(socket: Socket, user: User, deck: any): void {
+    private async requeueUser(socket: Socket, user: User, deck: any) {
         if (this.userLobbyMap.has(user.id)) {
             const lobbyId = this.userLobbyMap.get(user.id);
             const lobby = this.lobbies.get(lobbyId);
@@ -422,7 +420,7 @@ export class GameServer {
         });
 
         // perform matchmaking
-        this.matchmakeQueuePlayers();
+        await this.matchmakeQueuePlayers();
     }
 
     public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {

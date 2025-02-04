@@ -3,7 +3,7 @@ const childProcess = require('child_process');
 
 const envPath = '.env';
 
-async function createEnvFile() {
+function createEnvFile() {
     const defaultEnvFields = {
         GAME_NODE_HOST: 'localhost',
         GAME_NODE_NAME: 'test1',

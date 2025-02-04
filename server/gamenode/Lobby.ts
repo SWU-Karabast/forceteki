@@ -319,7 +319,7 @@ export class Lobby {
     }
 
     // example method to demonstrate the use of the test game setup utility
-    public startTestGame(filename: string): void {
+    public async startTestGame(filename: string) {
         const testDirPath = path.resolve(__dirname, '../../test');
         const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
         if (!fs.existsSync(testDirPath) || !fs.existsSync(testJSONPath)) {
@@ -329,8 +329,7 @@ export class Lobby {
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
 
         const gameSetupPath = path.resolve(__dirname, '../../test/helpers/GameStateSetup.js');
-        this.setTokens();
-        this.setPlayableCardTitles();
+        await Promise.all([this.setTokens(), this.setPlayableCardTitles()]);
         // TODO to address this a refactor and change router to lobby
         // eslint-disable-next-line
         const router = this;
