@@ -341,6 +341,14 @@ export class Card extends OngoingEffectSource {
         return this.type === CardType.Base;
     }
 
+    public isDeployableLeader(): this is LeaderUnitCard {
+        return false;
+    }
+
+    public isDoubleSidedLeader(): this is LeaderCard {
+        return false;
+    }
+
     public isLeader(): this is LeaderCard {
         return this.type === CardType.Leader || this.type === CardType.LeaderUnit;
     }

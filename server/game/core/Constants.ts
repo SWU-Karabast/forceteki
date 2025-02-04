@@ -157,6 +157,7 @@ export enum CardType {
     Event = 'event',
     Leader = 'leader',
     LeaderUnit = 'leaderUnit',
+    DoubleSidedLeader = 'doubleSidedLeader',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
 }
@@ -226,6 +227,7 @@ export enum EventName {
     onExploitUnits = 'onExploitUnits',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
+    OnLeaderFlipped = 'onLeaderFlipped',
     OnLookAtCard = 'onLookAtCard',
     OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',

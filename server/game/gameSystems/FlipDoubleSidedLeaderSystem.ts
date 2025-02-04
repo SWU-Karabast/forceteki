@@ -6,17 +6,18 @@ import * as Contract from '../core/utils/Contract';
 import { GameEvent } from '../core/event/GameEvent';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IDeployLeaderProperties extends ICardTargetSystemProperties {}
+export interface IFlipDoubleSidedLeaderProperties extends ICardTargetSystemProperties {}
 
-export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDeployLeaderProperties> {
-    public override readonly name = 'deploy leader';
-    public override readonly eventName = EventName.OnLeaderDeployed;
+export class FlipDoubleSidedLeaderSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IFlipDoubleSidedLeaderProperties> {
+    public override readonly name = 'flip double-sided leader';
+    public override readonly eventName = EventName.OnLeaderFlipped;
     public override readonly effectDescription = 'deploy {0}';
 
-    protected override readonly targetTypeFilter = [CardType.Leader];
+    protected override readonly targetTypeFilter = [CardType.DoubleSidedLeader];
 
     public eventHandler(event): void {
-        Contract.assertTrue(event.card.isDeployableLeader());
+        Contract.assertTrue(event.card.isDoubleSidedLeader());
+        Contract.assertFalse(event.card.isDeployableLeader());
         event.card.deploy();
     }
 
@@ -26,7 +27,7 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
-        if (!card.isLeader() || card.isLeaderUnit() && card.deployed) {
+        if (!card.isDoubleSidedLeader()) {
             return false;
         }
         return super.canAffect(card, context);
@@ -34,13 +35,19 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {
         super.updateEvent(event, card, context, additionalProperties);
+
+        // TODO: is more needed here? such as below?
+        // context.game.createEventAndOpenWindow(
+        //     EventName.OnLeaderFlipped,
+        //     context
+        // );
         event.setContingentEventsGenerator(() => {
-            const entersPlayEvent = new GameEvent(EventName.OnUnitEntersPlay, context, {
+            const leaderFlippedEvent = new GameEvent(EventName.OnLeaderFlipped, context, {
                 player: context.player,
                 card
             });
 
-            return [entersPlayEvent];
+            return [leaderFlippedEvent];
         });
     }
 }

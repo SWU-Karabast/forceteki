@@ -43,6 +43,11 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     }
 
     /** Get the list of the specified player's units that were defeated */
+    public someUnitDefeatedThisPhase(filter: (entry: DefeatedUnitEntry) => boolean): boolean {
+        return this.getCurrentValue().filter(filter).length > 0;
+    }
+
+    /** Get the list of the specified player's units that were defeated */
     public getDefeatedUnitsControlledByPlayerNew(controller: Player): InPlayUnit[] {
         return this.getCurrentValue()
             .filter((entry) => entry.controlledBy === controller)

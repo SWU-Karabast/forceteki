@@ -128,6 +128,10 @@ class PlayerInteractionWrapper {
                 throw new TestSetupError('Leader should not have upgrades when not deployed');
             }
 
+            if (leaderOptions.flipped) {
+                leaderCard.flipLeader();
+            }
+
             leaderCard.exhausted = leaderOptions.exhausted || false;
         }
 
