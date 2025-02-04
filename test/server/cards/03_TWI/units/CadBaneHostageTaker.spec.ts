@@ -68,5 +68,22 @@ describe('Cad Bane, Hostage Taker', function() {
             expect(context.wampa).toBeInZone('groundArena', context.player2);
             expect(context.player1.handSize).toBe(2);
         });
+
+        it('Cad Bane\'s ability should do nothing when it has no captured units', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    groundArena: ['cad-bane#hostage-taker']
+                },
+            });
+
+            const { context } = contextRef;
+
+            // Player 1 attacks with Cad Bane
+            context.player1.clickCard(context.cadBane);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
