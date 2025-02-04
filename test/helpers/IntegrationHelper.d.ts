@@ -1,3 +1,5 @@
+type Card = import('../../server/game/core/card/Card').Card;
+type DeckBuilder = import('./DeckBuilder').DeckBuilder;
 type CardWithDamageProperty = import('../../server/game/core/card/CardTypes').CardWithDamageProperty;
 type BaseCard = import('../../server/game/core/card/BaseCard').BaseCard;
 type LeaderCard = import('../../server/game/core/card/LeaderCard').LeaderCard;
@@ -11,6 +13,11 @@ declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void)
 interface SwuTestContextRef {
     context: SwuTestContext;
     setupTest: (options?: SwuSetupTestOptions) => void;
+    buildImportAllCardsTools: () => {
+        deckBuilder: DeckBuilder;
+        implementedCardsCtors: Map<string, new (owner: Player, cardData: any) => Card>;
+        unimplementedCardCtor: new (owner: Player, cardData: any) => Card;
+    };
 }
 
 interface SwuTestContext {
@@ -110,9 +117,9 @@ declare namespace jasmine {
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
-        toHaveExactDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: Card[] | ICardDisplaySelectionState): boolean;
-        toHaveExactSelectableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: Card[]): boolean;
-        toHaveExactViewableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: Card[]): boolean;
-        toHaveExactDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: Card[]): boolean;
+        toHaveExactDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedPromptState: ICardDisplaySelectionState): boolean;
+        toHaveExactSelectableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: Card[]): boolean;
+        toHaveExactViewableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: Card[]): boolean;
+        toHaveExactDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
     }
 }

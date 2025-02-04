@@ -31,6 +31,7 @@ describe('Now There are Two of Them', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player1).toBeAbleToSelectExactly([context.toroCalican, context.cadBane, context.syndicateLackeys]);
                 context.player1.clickCard(context.cadBane);
+                context.player1.clickPrompt('Done');
                 expect(context.cadBane).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(5);
             });

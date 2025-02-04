@@ -282,6 +282,8 @@ class DeckBuilder {
         return {
             battleDroid: this.getCard('battle-droid'),
             cloneTrooper: this.getCard('clone-trooper'),
+            tieFighter: this.getCard('tie-fighter'),
+            xwing: this.getCard('xwing'),
             experience: this.getCard('experience'),
             shield: this.getCard('shield'),
         };
