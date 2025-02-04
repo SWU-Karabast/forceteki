@@ -70,7 +70,6 @@ function attachTestInfoToObj(toObj, gameFlowWrapper, player1Name, player2Name) {
 
 /**
  * @param {SwuTestContext} context
- * @param {DeckBuilder} deckBuilder
  * @param {SwuSetupTestOptions} options
  */
 function setupGameState(context, options = {}) {

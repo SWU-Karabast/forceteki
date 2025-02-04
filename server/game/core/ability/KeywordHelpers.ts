@@ -72,6 +72,7 @@ export const isNumericType: Record<KeywordName, boolean> = {
     [KeywordName.Exploit]: true,
     [KeywordName.Grit]: false,
     [KeywordName.Overwhelm]: false,
+    [KeywordName.Piloting]: false,
     [KeywordName.Raid]: true,
     [KeywordName.Restore]: true,
     [KeywordName.Saboteur]: false,
@@ -176,6 +177,8 @@ function getRegexForKeyword(keyword: KeywordName) {
             return /(?:^|(?:\n))Grit/g;
         case KeywordName.Overwhelm:
             return /(?:^|(?:\n))Overwhelm/g;
+        case KeywordName.Piloting:
+            return /(?:^|(?:\n))Piloting/g;
         case KeywordName.Raid:
             return /(?:^|(?:\n))Raid ([\d]+)/g;
         case KeywordName.Restore:
