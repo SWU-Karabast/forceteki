@@ -299,6 +299,8 @@ export enum KeywordName {
     Overwhelm = 'overwhelm',
     Raid = 'raid',
     Restore = 'restore',
+    /** @deprecated not implemented yet */
+    Piloting = 'piloting',
     Saboteur = 'saboteur',
     Sentinel = 'sentinel',
     Shielded = 'shielded',
@@ -347,6 +349,7 @@ export enum Trait {
     NewRepublic = 'new republic',
     Night = 'night',
     Official = 'official',
+    Pilot = 'pilot',
     Plan = 'plan',
     Rebel = 'rebel',
     Republic = 'republic',

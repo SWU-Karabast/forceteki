@@ -10,6 +10,9 @@ require('./ObjectFormatters.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const Util = require('./Util.js');
 const GameStateSetup = require('./GameStateSetup.js');
+const DeckBuilder = require('./DeckBuilder.js');
+const { cards } = require('../../server/game/cards/Index.js');
+const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 
 const ProxiedGameFlowWrapperMethods = [
     'advancePhases',
@@ -74,6 +77,13 @@ global.integration = function (definitions) {
             };
 
             this.setupTest = newContext.setupTest = setupGameStateWrapper;
+
+            // used only for the "import all cards" test
+            contextRef.buildImportAllCardsTools = () => ({
+                deckBuilder: new DeckBuilder(),
+                implementedCardsCtors: cards,
+                unimplementedCardCtor: CardHelpers.createUnimplementedCard
+            });
         });
 
         afterEach(function() {
