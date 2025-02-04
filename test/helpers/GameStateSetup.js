@@ -99,8 +99,8 @@ function setupGameState(context, options = {}) {
     const player2OwnedCards = deckBuilder.getOwnedCards(2, options.player2, options.player1);
 
     const autoSingleTarget = !!options.autoSingleTarget;
-    context.player1Object.autoSingleTarget = autoSingleTarget;
-    context.player2Object.autoSingleTarget = autoSingleTarget;
+    context.player1Object.user.settings.optionSettings.autoSingleTarget = autoSingleTarget;
+    context.player2Object.user.settings.optionSettings.autoSingleTarget = autoSingleTarget;
 
     // pass decklists to players. they are initialized into real card objects in the startGame() call
     const [deck1, namedCards1, resources1, drawDeck1] = deckBuilder.customDeck(1, player1OwnedCards, options.phase);
