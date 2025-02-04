@@ -21,7 +21,7 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.',
-            cost: [AbilityHelper.costs.exhaustSelf()],
+            cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ filter: (entry) => entry.card.isUnit() }),
                 onFalse: AbilityHelper.immediateEffects.noAction(),
@@ -34,7 +34,6 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
                     activePromptTitle: 'Select a card to put on the top or bottom of your deck',
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
-                    canChooseNoCards: false,
                     immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects((context) => ({
                         amountOfChoices: 1,
                         choices: () => ({
@@ -54,18 +53,17 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },
-            immediateEffect: AbilityHelper.immediateEffects.sequential((context) => ([
-                AbilityHelper.immediateEffects.discardFromDeck({ amount: 1, target: context.source.controller }),
-                AbilityHelper.immediateEffects.selectCard((selectContext) => ({
-                    title: 'Defeat a non-leader unit that costs equal to or less than the discarded card',
+            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({ amount: 1, target: context.source.controller })),
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'Defeat an enemy non-leader unit that costs equal to or less than the discarded card',
+                targetResolver: {
                     controller: RelativePlayer.Opponent,
                     zoneFilter: WildcardZoneName.AnyArena,
-                    // TODO: if I move the card type check to the cardCondition, i get 'Cannot read properties of undefined (reading 'cardCondition')' - ask Veld about this
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                    cardCondition: (card) => card.hasCost() && card.cost <= selectContext.events[0].card.printedCost,
-                    innerSystem: AbilityHelper.immediateEffects.defeat()
-                }))
-            ]))
+                    cardCondition: (card) => card.cost <= ifYouDoContext.events[0].card.printedCost,
+                    immediateEffect: AbilityHelper.immediateEffects.defeat()
+                }
+            })
         });
     }
 }
