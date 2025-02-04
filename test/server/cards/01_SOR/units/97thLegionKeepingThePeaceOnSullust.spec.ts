@@ -58,7 +58,6 @@ describe('97th Legion Keeping the Peace on Sullust', function() {
                 // select a resource to defeat by wreckers ability
                 expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.devotion);
 
                 // select a ground unit to deal 5 damage, 97th legion should be in discard pile already

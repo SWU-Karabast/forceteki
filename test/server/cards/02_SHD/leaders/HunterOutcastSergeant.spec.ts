@@ -26,7 +26,7 @@ describe('Hunter, Outcast Sergeant', function () {
 
                 // only cards which share a name with friendly unique unit
                 expect(context.player1).toBeAbleToSelectExactly([resourceFalcon, resourceEcho]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNoTargetButton();
 
                 context.player1.clickCard(resourceFalcon);
 
@@ -66,7 +66,7 @@ describe('Hunter, Outcast Sergeant', function () {
 
                 // only cards which share a name with friendly unique unit
                 expect(context.player1).toBeAbleToSelectExactly([resourceFalcon, resourceEcho]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNoTargetButton();
 
                 context.player1.clickCard(resourceFalcon);
 
