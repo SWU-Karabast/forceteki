@@ -184,7 +184,9 @@ export enum TokenUpgradeName {
 
 export enum TokenUnitName {
     BattleDroid = 'battleDroid',
-    CloneTrooper = 'cloneTrooper'
+    CloneTrooper = 'cloneTrooper',
+    XWing = 'xwing',
+    TIEFighter = 'tieFighter',
 }
 
 export type TokenName = TokenUpgradeName | TokenUnitName;
