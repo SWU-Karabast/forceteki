@@ -1,8 +1,10 @@
 const Contract = require('../../server/game/core/utils/Contract');
-const { GameMode } = require('../../server/GameMode.js');
+const { SwuGameFormat } = require('../../server/SwuGameFormat.js');
 const Util = require('./Util.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
+const { LocalFolderCardDataGetter } = require('../../server/utils/cardData/LocalFolderCardDataGetter');
+const fs = require('fs');
 
 const ProxiedGameFlowWrapperMethods = [
     'advancePhases',
@@ -21,7 +23,13 @@ const ProxiedGameFlowWrapperMethods = [
     'startGame'
 ];
 
-const deckBuilder = new DeckBuilder();
+const directory = 'test/json';
+if (!fs.existsSync(directory)) {
+    throw new TestSetupError(`Json card definitions folder ${directory} not found, please run 'npm run get-cards'`);
+}
+
+const dataGetter = new LocalFolderCardDataGetter(directory);
+const deckBuilder = new DeckBuilder(dataGetter);
 
 /**
  * @param {SwuSetupTestOptions} setupTestOptions
@@ -87,7 +95,7 @@ function setupGameState(context, options = {}) {
     validatePlayerOptions(options.player1, 'player1', options.phase);
     validatePlayerOptions(options.player2, 'player2', options.phase);
 
-    context.game.gameMode = GameMode.Premier;
+    context.game.gameMode = SwuGameFormat.Premier;
 
     if (options.player1.hasInitiative) {
         context.game.initiativePlayer = context.player1Object;
@@ -98,11 +106,9 @@ function setupGameState(context, options = {}) {
     const player1OwnedCards = deckBuilder.getOwnedCards(1, options.player1, options.player2);
     const player2OwnedCards = deckBuilder.getOwnedCards(2, options.player2, options.player1);
 
-    if (options.hasOwnProperty('autoSingleTarget')) {
-        const autoSingleTarget = !!options.autoSingleTarget; // Ensures a boolean value
-        context.player1Object.user.settings.optionSettings.autoSingleTarget = autoSingleTarget;
-        context.player2Object.user.settings.optionSettings.autoSingleTarget = autoSingleTarget;
-    }
+    const autoSingleTarget = !!options.autoSingleTarget;
+    context.player1Object.autoSingleTarget = autoSingleTarget;
+    context.player2Object.autoSingleTarget = autoSingleTarget;
 
     // pass decklists to players. they are initialized into real card objects in the startGame() call
     const [deck1, namedCards1, resources1, drawDeck1] = deckBuilder.customDeck(1, player1OwnedCards, options.phase);
