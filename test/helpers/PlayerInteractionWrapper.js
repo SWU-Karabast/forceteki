@@ -17,15 +17,10 @@ class PlayerInteractionWrapper {
         this.game = game;
         this.player = player;
         this.testContext = testContext;
-
-        player.noTimer = true;
-        player.user = {
-            settings: {}
-        };
     }
 
     get name() {
-        return this.player.name;
+        return this.player.user.username;
     }
 
     /**

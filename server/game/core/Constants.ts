@@ -408,6 +408,7 @@ export enum AbilityRestriction {
     TriggerAbilities = 'triggerAbilities',
     BeCaptured = 'beCaptured',
     BeDefeated = 'beDefeated',
+    ReturnToHand = 'returnToHand',
 }
 
 export enum StateWatcherName {
