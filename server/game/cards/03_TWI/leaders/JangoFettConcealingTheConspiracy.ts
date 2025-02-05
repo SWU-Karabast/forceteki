@@ -39,12 +39,13 @@ export default class JangoFettConcealingTheConspiracy extends LeaderUnitCard {
             when: {
                 onDamageDealt: (event, context) => this.isEnemyUnitDamagedByFriendlyUnit(event, context)
             },
-            immediateEffect: AbilityHelper.immediateEffects.exhaust()
+            immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => {
+                return { target: context.event.card };
+            })
         });
     }
 
     private isEnemyUnitDamagedByFriendlyUnit(event, context): boolean {
-        // Enemy Unit received damage
         if (event.card.isUnit() && event.card.controller !== context.source.controller) {
             console.log('----------------------');
             console.log(`[Damage Recieved] ${event.card.title}`);
@@ -67,6 +68,7 @@ export default class JangoFettConcealingTheConspiracy extends LeaderUnitCard {
                 return true;
             }
         }
+
         return false;
     }
 }
