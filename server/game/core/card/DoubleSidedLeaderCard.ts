@@ -1,10 +1,11 @@
 import type Player from '../Player';
 import { LeaderCard } from './LeaderCard';
-import { CardType, ZoneName } from '../Constants';
+import { ZoneName } from '../Constants';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 
 export class DoubleSidedLeaderCard extends LeaderCard {
-    protected _onStartingSide = false;
+    protected _onStartingSide = true;
+    protected setupLeaderBackSide = false;
 
     public get onStartingSide() {
         return this._onStartingSide;
@@ -12,11 +13,9 @@ export class DoubleSidedLeaderCard extends LeaderCard {
 
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-        // this.setupLeaderBackSideAbilities(this);
-    }
 
-    public override get type(): CardType {
-        return CardType.DoubleSidedLeader;
+        this.setupLeaderBackSide = true;
+        this.setupLeaderBackSideAbilities(this);
     }
 
     public override isDoubleSidedLeader(): this is DoubleSidedLeaderCard {
@@ -44,11 +43,17 @@ export class DoubleSidedLeaderCard extends LeaderCard {
 
     protected override addActionAbility(properties: IActionAbilityProps<this>) {
         properties.zoneFilter = ZoneName.Base;
+        if (this.setupLeaderBackSide) {
+            properties.condition = () => this.onStartingSide === false;
+        } else {
+            properties.condition = () => this.onStartingSide === true;
+        }
         return super.addActionAbility(properties);
     }
 
     protected override addConstantAbility(properties: IConstantAbilityProps<this>) {
         properties.sourceZoneFilter = ZoneName.Base;
+        properties.condition = () => !this.onStartingSide;
         return super.addConstantAbility(properties);
     }
 

@@ -43,23 +43,23 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
         });
     }
 
-    // protected override setupLeaderBackSideAbilities() {
-    //     this.addActionAbility({
-    //         title: 'If you played a Villainy card this phase, create a Clone Trooper, deal 2 damage to each enemy base, and then flip this leader.',
-    //         cost: AbilityHelper.costs.exhaustSelf(),
-    //         immediateEffect: AbilityHelper.immediateEffects.conditional({
-    //             condition: (context) => this.villainyCardPlayedThisPhase(context),
-    //             onFalse: AbilityHelper.immediateEffects.noAction(),
-    //             onTrue: AbilityHelper.immediateEffects.sequential((context) => (
-    //                 [
-    //                     AbilityHelper.immediateEffects.createCloneTrooper(),
-    //                     AbilityHelper.immediateEffects.damage({ target: context.player.opponent.base, amount: 2 }),
-    //                     AbilityHelper.immediateEffects.flipDoubleSidedLeader({ target: context.source })
-    //                 ]
-    //             ))
-    //         })
-    //     });
-    // }
+    protected override setupLeaderBackSideAbilities() {
+        this.addActionAbility({
+            title: 'If you played a Villainy card this phase, create a Clone Trooper, deal 2 damage to each enemy base, and then flip this leader.',
+            cost: AbilityHelper.costs.exhaustSelf(),
+            immediateEffect: AbilityHelper.immediateEffects.conditional({
+                condition: (context) => this.villainyCardPlayedThisPhase(context),
+                onFalse: AbilityHelper.immediateEffects.noAction(),
+                onTrue: AbilityHelper.immediateEffects.sequential((context) => (
+                    [
+                        AbilityHelper.immediateEffects.createCloneTrooper(),
+                        AbilityHelper.immediateEffects.damage({ target: context.player.opponent.base, amount: 2 }),
+                        AbilityHelper.immediateEffects.flipDoubleSidedLeader({ target: context.source })
+                    ]
+                ))
+            })
+        });
+    }
 
     private friendlyHeroismCardDefeatedThisPhase(context): boolean {
         return this.unitsDefeatedThisPhaseWatcher.someUnitDefeatedThisPhase((defeatedUnitEntry) =>

@@ -13,12 +13,12 @@ export class FlipDoubleSidedLeaderSystem<TContext extends AbilityContext = Abili
     public override readonly eventName = EventName.OnLeaderFlipped;
     public override readonly effectDescription = 'deploy {0}';
 
-    protected override readonly targetTypeFilter = [CardType.DoubleSidedLeader];
+    protected override readonly targetTypeFilter = [CardType.Leader];
 
     public eventHandler(event): void {
         Contract.assertTrue(event.card.isDoubleSidedLeader());
         Contract.assertFalse(event.card.isDeployableLeader());
-        event.card.deploy();
+        event.card.flipLeader();
     }
 
     public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
