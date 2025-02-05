@@ -1,6 +1,6 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena } from '../../Constants';
-import { CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
+import { AbilityRestriction, CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -186,6 +186,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Returns true if so.
          */
         public effectsPreventAttack(target: Card) {
+            if (this.hasRestriction(AbilityRestriction.Attack)) {
+                return true;
+            }
             if (this.hasOngoingEffect(EffectName.CannotAttackBase) && target.isBase()) {
                 return true;
             }
