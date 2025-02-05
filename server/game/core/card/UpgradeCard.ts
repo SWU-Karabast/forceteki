@@ -56,9 +56,8 @@ export class UpgradeCard extends UpgradeCardParent {
 
     /** The card that this card is underneath */
     public get parentCard(): UnitCard {
-        if (!this.isInPlay()) {
-            return null;
-        }
+        Contract.assertNotNullLike(this._parentCard);
+        Contract.assertTrue(this.isInPlay());
         return this._parentCard;
     }
 
