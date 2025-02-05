@@ -1,5 +1,6 @@
 import type Player from '../Player';
 import { LeaderCard } from './LeaderCard';
+import type { Aspect } from '../Constants';
 import { ZoneName } from '../Constants';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 
@@ -7,15 +8,23 @@ export class DoubleSidedLeaderCard extends LeaderCard {
     protected _onStartingSide = true;
     protected setupLeaderBackSide = false;
 
-    public get onStartingSide() {
-        return this._onStartingSide;
-    }
-
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
         this.setupLeaderBackSide = true;
         this.setupLeaderBackSideAbilities(this);
+    }
+
+    public get onStartingSide() {
+        return this._onStartingSide;
+    }
+
+    public override get aspects(): Aspect[] {
+        return this.onStartingSide ? this._aspects : this._backSideAspects;
+    }
+
+    public override get title(): string {
+        return this.onStartingSide ? this._title : this._backSideTitle;
     }
 
     public override isDoubleSidedLeader(): this is DoubleSidedLeaderCard {

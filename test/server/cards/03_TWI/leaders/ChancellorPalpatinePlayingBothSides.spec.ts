@@ -162,6 +162,52 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 // Check that no Droids were not created
                 expect(context.player1.findCardsByName('battle-droid').length).toBe(0);
             });
+
+            it('has proper aspects on Heroism side', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: 'chancellor-palpatine#playing-both-sides',
+                        base: { card: 'echo-base' },
+                        hand: ['battlefield-marine', 'superlaser-technician']
+                    }
+                });
+
+                const { context } = contextRef;
+                const readyResources = context.player1.readyResourceCount;
+
+                // Battlefield Marine should cost 2 (no penalties)
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.readyResourceCount).toBe(readyResources - 2);
+
+                // Superlaser Technician should cost 5 (+2 for Villainy penalty)
+                context.player2.passAction();
+                context.player1.clickCard(context.superlaserTechnician);
+                expect(context.player1.readyResourceCount).toBe(readyResources - 7);
+            });
+
+            it('has proper aspects on Villainy side', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'chancellor-palpatine#playing-both-sides', flipped: true },
+                        base: { card: 'echo-base' },
+                        hand: ['battlefield-marine', 'superlaser-technician']
+                    }
+                });
+
+                const { context } = contextRef;
+                const readyResources = context.player1.readyResourceCount;
+
+                // Battlefield Marine should cost 4 (+2 for Heroism penalty)
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1.readyResourceCount).toBe(readyResources - 4);
+
+                // Superlaser Technician should cost 3 (no penalties)
+                context.player2.passAction();
+                context.player1.clickCard(context.superlaserTechnician);
+                expect(context.player1.readyResourceCount).toBe(readyResources - 7);
+            });
         });
 
         describe('Chancellor Palpatine\'s leader ability', function () {
@@ -180,9 +226,11 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 });
             });
 
-            it('back-side does nothing if no Villainy card was played', function () {
+            it('back-side has proper title and does nothing if no Villainy card was played', function () {
                 const { context } = contextRef;
+
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
+                expect(context.chancellorPalpatine.title).toBe('Darth Sidious');
                 context.player1.clickCard(context.chancellorPalpatine);
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
             });

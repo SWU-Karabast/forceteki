@@ -18,6 +18,7 @@ import type { EventCard } from './EventCard';
 import type { TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard, CardWithCost } from './CardTypes';
 import type { UpgradeCard } from './UpgradeCard';
 import type { BaseCard } from './BaseCard';
+import type { DoubleSidedLeaderCard } from './DoubleSidedLeaderCard';
 import type { LeaderCard } from './LeaderCard';
 import type { LeaderUnitCard } from './LeaderUnitCard';
 import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
@@ -41,9 +42,11 @@ export type CardConstructor = new (...args: any[]) => Card;
 export class Card extends OngoingEffectSource {
     public static implemented = false;
     protected _aspects: Aspect[] = [];
+    protected _backSideAspects?: Aspect[];
     protected _internalName: string;
     protected _subtitle?: string;
     protected _title: string;
+    protected _backSideTitle?: string;
     protected _unique: boolean;
 
     protected override readonly id: string;
@@ -72,6 +75,10 @@ export class Card extends OngoingEffectSource {
         return this._aspects;
     }
 
+    public get backSideAspects(): Aspect[] {
+        return this._backSideAspects;
+    }
+
     public get internalName(): string {
         return this._internalName;
     }
@@ -82,6 +89,10 @@ export class Card extends OngoingEffectSource {
 
     public get title(): string {
         return this._title;
+    }
+
+    public get backSideTitle(): string {
+        return this._backSideTitle;
     }
 
     public get unique(): boolean {
@@ -147,9 +158,11 @@ export class Card extends OngoingEffectSource {
         this.hasNonKeywordAbilityText = this.isLeader() || this.checkHasNonKeywordAbilityText(cardData.text);
 
         this._aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
+        this._backSideAspects = cardData.backSideAspects;
         this._internalName = cardData.internalName;
         this._subtitle = cardData.subtitle;
         this._title = cardData.title;
+        this._backSideTitle = cardData.backSideTitle;
         this._unique = cardData.unique;
 
         this._controller = owner;
@@ -365,7 +378,7 @@ export class Card extends OngoingEffectSource {
         return false;
     }
 
-    public isDoubleSidedLeader(): this is LeaderCard {
+    public isDoubleSidedLeader(): this is DoubleSidedLeaderCard {
         return false;
     }
 
