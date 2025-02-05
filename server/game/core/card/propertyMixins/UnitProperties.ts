@@ -661,7 +661,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
             return {
                 ...super.getSummary(activePlayer),
-                parentCardId: this.getCaptor() ? this.getCaptor().uuid : null,
+                parentCardId: this.getCaptor()?.uuid,
             };
         }
     };

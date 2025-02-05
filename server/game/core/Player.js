@@ -267,7 +267,7 @@ class Player extends GameObject {
             case ZoneName.GroundArena:
                 return this.game.groundArena.getCards({ controller: this });
             case ZoneName.Capture:
-                return this.game.getAllCapturedCards();
+                return this.game.getAllCapturedCards(this);
             default:
                 Contract.fail(`Unknown zone: ${zoneName}`);
         }

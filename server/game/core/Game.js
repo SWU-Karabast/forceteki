@@ -166,11 +166,12 @@ class Game extends EventEmitter {
     }
 
     /**
-     * Get all currently captured cards in the game
+     * Get all players currently captured cards
+     * @param {Player} player
      * @returns {Array}
      */
-    getAllCapturedCards() {
-        return this.findAnyCardsInPlay((card) => card.isUnit())
+    getAllCapturedCards(player) {
+        return this.findAnyCardsInPlay((card) => card.isUnit() && card.owner === player)
             .flatMap((card) => card.capturedUnits);
     }
 
