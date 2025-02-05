@@ -174,6 +174,8 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 });
 
                 const { context } = contextRef;
+
+                expect(context.chancellorPalpatine.title).toBe('Chancellor Palpatine');
                 const readyResources = context.player1.readyResourceCount;
 
                 // Battlefield Marine should cost 2 (no penalties)
@@ -186,7 +188,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.player1.readyResourceCount).toBe(readyResources - 7);
             });
 
-            it('has proper aspects on Villainy side', function () {
+            it('has proper title and aspects on Villainy side', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -197,6 +199,8 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 });
 
                 const { context } = contextRef;
+
+                expect(context.chancellorPalpatine.title).toBe('Darth Sidious');
                 const readyResources = context.player1.readyResourceCount;
 
                 // Battlefield Marine should cost 4 (+2 for Heroism penalty)
@@ -226,11 +230,10 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 });
             });
 
-            it('back-side has proper title and does nothing if no Villainy card was played', function () {
+            it('back-side does nothing if no Villainy card was played', function () {
                 const { context } = contextRef;
 
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
-                expect(context.chancellorPalpatine.title).toBe('Darth Sidious');
                 context.player1.clickCard(context.chancellorPalpatine);
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
             });
