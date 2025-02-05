@@ -59,6 +59,8 @@ import type { IExhaustResourcesProperties } from './ExhaustResourcesSystem';
 import { ExhaustResourcesSystem } from './ExhaustResourcesSystem';
 import type { IExhaustSystemProperties } from './ExhaustSystem';
 import { ExhaustSystem } from './ExhaustSystem';
+import type { IFlipDoubleSidedLeaderProperties } from './FlipDoubleSidedLeaderSystem';
+import { FlipDoubleSidedLeaderSystem } from './FlipDoubleSidedLeaderSystem';
 import type { IGiveExperienceProperties } from './GiveExperienceSystem';
 import { GiveExperienceSystem } from './GiveExperienceSystem';
 import type { IGiveShieldProperties } from './GiveShieldSystem';
@@ -114,8 +116,6 @@ import type { ICreateXWingProperties } from './CreateXWingSystem';
 import { CreateXWingSystem } from './CreateXWingSystem';
 import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
 import { CreateTieFighterSystem } from './CreateTieFighterSystem';
-import type { IFlipDoubleSidedLeaderProperties } from './FlipDoubleSidedLeaderSystem';
-import { FlipDoubleSidedLeaderSystem } from './FlipDoubleSidedLeaderSystem';
 
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
