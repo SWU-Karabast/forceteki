@@ -1,6 +1,9 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { EventName, WildcardCardType } from '../core/Constants';
+import { LeaderUnitCard } from '../core/card/LeaderUnitCard';
+import { NonLeaderUnitCard } from '../core/card/NonLeaderUnitCard';
+import { EventName, PhaseName, WildcardCardType } from '../core/Constants';
+import { Phase } from '../core/gameSteps/phases/Phase';
 import { type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
@@ -49,8 +52,15 @@ export class FrameworkDefeatCardSystem<TContext extends AbilityContext = Ability
             case DefeatSourceType.UniqueRule:
                 return { type: DefeatSourceType.UniqueRule, player: card.controller };
             case DefeatSourceType.FrameworkEffect:
-                // TODO: this is a workaround until we get comp rules 3.0
-                return null;
+                let responsiblePlayer = null;
+                if (card?.isUnit && card.isUnit()) {
+                    responsiblePlayer = card.lastPlayerToModifyHp;
+                }
+                if (responsiblePlayer === null && context.game.currentPhase === PhaseName.Action) {
+                    responsiblePlayer = context.game.actionPhaseActivePlayer;
+                }
+                return { type: DefeatSourceType.FrameworkEffect, player: responsiblePlayer };
+                
             default:
                 Contract.fail(`Unexpected value for framework defeat source: ${defeatSourceType}`);
         }

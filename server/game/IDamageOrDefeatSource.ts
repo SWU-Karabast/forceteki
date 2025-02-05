@@ -8,7 +8,7 @@ import type Player from './core/Player';
 
 // ********************************************** EXPORTED TYPES **********************************************
 export type IDamageSource = IDamagedOrDefeatedByAttack | IDamagedOrDefeatedByAbility;
-export type IDefeatSource = IDamagedOrDefeatedByAttack | IDamagedOrDefeatedByAbility | IDefeatedByUniqueRule;
+export type IDefeatSource = IDamagedOrDefeatedByAttack | IDamagedOrDefeatedByAbility | IDefeatedByUniqueRule | IDefeatedByFramework;
 
 export enum DamageSourceType {
     Ability = 'ability',
@@ -38,6 +38,10 @@ export interface IDamagedOrDefeatedByAbility extends IDamageOrDefeatSourceBase {
 
 export interface IDefeatedByUniqueRule extends IDamageOrDefeatSourceBase {
     type: DefeatSourceType.UniqueRule;
+}
+
+export interface IDefeatedByFramework extends IDamageOrDefeatSourceBase {
+    type: DefeatSourceType.FrameworkEffect;
 }
 
 // ********************************************** INTERNAL TYPES **********************************************

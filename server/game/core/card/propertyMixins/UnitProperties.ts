@@ -1,5 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import type { Arena } from '../../Constants';
+import type { Arena, MoveZoneDestination } from '../../Constants';
 import { CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
@@ -92,6 +92,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenPlayedKeywordAbilities?: TriggeredAbility[] = null;
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
+        private _lastPlayerToModifyHp?: Player;
 
         public get capturedUnits() {
             this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
@@ -628,6 +629,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public unattachUpgrade(upgrade) {
             this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             this._upgrades = this._upgrades.filter((card) => card.uuid !== upgrade.uuid);
+            if (upgrade.printedHp !== 0) {
+                this._lastPlayerToModifyHp = upgrade.owner;
+            }
         }
 
         /**
@@ -639,6 +643,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             Contract.assertTrue(this.zone.hasCard(upgrade));
 
             this._upgrades.push(upgrade);
+
+            if (upgrade.printedHp !== 0) {
+                this._lastPlayerToModifyHp = upgrade.owner;
+            }
         }
 
         public override getSummary(activePlayer: Player) {
@@ -660,6 +668,28 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 };
             }
             return super.getSummary(activePlayer);
+        }
+
+        public override addOngoingEffect(ongoingEffect: IOngoingCardEffect): void {
+            if (ongoingEffect.type === EffectName.ModifyStats) {
+                this._lastPlayerToModifyHp = ongoingEffect.context.source.controller;
+            }
+            super.addOngoingEffect(ongoingEffect);
+        }
+
+        public get lastPlayerToModifyHp() {
+            if (this.isInPlay()) {
+                return this._lastPlayerToModifyHp;
+            }
+            return null;
+            
+        }
+
+        public override moveTo(targetZoneName: MoveZoneDestination): void {
+            if (targetZoneName === ZoneName.GroundArena || targetZoneName === ZoneName.SpaceArena) {
+                this._lastPlayerToModifyHp = null;
+            }
+            super.moveTo(targetZoneName);
         }
     };
 }

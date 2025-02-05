@@ -85,6 +85,15 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         this.addDefeatSourceToEvent(event, card, context);
     }
 
+    /**
+        B.If the above does not apply, and a unit is defeated by an ability controlled by a player, that player 
+            is considered to have defeated that unit.
+        C.If the above does not apply, and a unit is defeated during the regroup phase or when a lasting effect expires, 
+            no player is considered to have defeated that unit.
+        D.If the above does not apply, and a unit is defeated by having 0 remaining HP, the most recent player whose 
+            ability or effect changed the remaining HP of that unit is considered to have defeated that unit.
+        E.If the above does not apply, the active player is considered to have defeated that unit.
+     */
     /** Generates metadata indicating what the source of the defeat is for relevant effects such as "when [X] attacks and defeats..." */
     private addDefeatSourceToEvent(event: any, card: Card, context: TContext) {
         // if this defeat is caused by damage, just use the same source as the damage event
@@ -99,13 +108,18 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
             event.isDefeatedByAttackerDamage =
                 eventDefeatSource.type === DamageSourceType.Attack &&
                 eventDefeatSource.damageDealtBy === eventDefeatSource.attack.attacker;
+                // Correctly determine player responsible for defeat as outlined in "1.18 Determining Responsibility"
+            if (eventDefeatSource?.type === DamageSourceType.Attack) {
+                // If a unit is defeated because of damage dealt by a unit a player controls, that player is considered to have defeated that unit
+                eventDefeatSource.player = eventDefeatSource.damageDealtBy.controller;
+            }
         } else {
             eventDefeatSource = this.buildDefeatSourceForType(defeatSource, event, context);
         }
 
         event.defeatSource = eventDefeatSource;
     }
-
+    /** When do we hit this version */
     protected buildDefeatSourceForType(defeatSourceType: DefeatSourceType, event: any, context: TContext): IDefeatSource | null {
         Contract.assertEqual(defeatSourceType, DefeatSourceType.Ability);
 
