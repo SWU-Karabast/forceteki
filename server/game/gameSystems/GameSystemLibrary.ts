@@ -110,6 +110,10 @@ import { TakeControlOfResourceSystem } from './TakeControlOfResourceSystem';
 import type { ITakeControlOfUnitProperties } from './TakeControlOfUnitSystem';
 import { TakeControlOfUnitSystem } from './TakeControlOfUnitSystem';
 import { WhenSourceLeavesPlayDelayedEffectSystem, type IWhenSourceLeavesPlayDelayedEffectProperties } from './WhileSourceInPlayDelayedEffectSystem';
+import type { ICreateXWingProperties } from './CreateXWingSystem';
+import { CreateXWingSystem } from './CreateXWingSystem';
+import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
+import { CreateTieFighterSystem } from './CreateTieFighterSystem';
 import type { IFlipDoubleSidedLeaderProperties } from './FlipDoubleSidedLeaderSystem';
 import { FlipDoubleSidedLeaderSystem } from './FlipDoubleSidedLeaderSystem';
 
@@ -153,6 +157,12 @@ export function createBattleDroid<TContext extends AbilityContext = AbilityConte
 }
 export function createCloneTrooper<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateCloneTrooperProperties, TContext> = {}) {
     return new CreateCloneTrooperSystem<TContext>(propertyFactory);
+}
+export function createXWing<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateXWingProperties, TContext> = {}) {
+    return new CreateXWingSystem<TContext>(propertyFactory);
+}
+export function createTieFighter<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTieFighterProperties, TContext> = {}) {
+    return new CreateTieFighterSystem<TContext>(propertyFactory);
 }
 export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IAbilityDamageProperties, 'type'>, TContext>) {
     return new DamageSystem<TContext, IDamageProperties>(
