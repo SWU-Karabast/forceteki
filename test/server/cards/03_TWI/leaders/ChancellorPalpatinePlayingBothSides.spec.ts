@@ -1,23 +1,20 @@
 describe('Chancellor Palpatine, Playing Both Sides', function () {
     integration(function (contextRef) {
         describe('Chancellor Palpatine\'s leader ability', function () {
-            beforeEach(function () {
+            it('can flip back and forth', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         leader: 'chancellor-palpatine#playing-both-sides',
                         base: { card: 'echo-base', damage: 10 },
-                        groundArena: ['battlefield-marine', 'wampa'],
-                        hand: ['pyke-sentinel'],
-                        deck: 20
+                        groundArena: ['battlefield-marine'],
+                        hand: ['pyke-sentinel']
                     },
                     player2: {
-                        hand: ['vanquish', 'takedown', 'waylay']
+                        hand: ['vanquish', 'takedown']
                     }
                 });
-            });
 
-            it('can flip back and forth', function () {
                 const { context } = contextRef;
 
                 // Enable and trigger Heroism flip
@@ -61,16 +58,28 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
             });
 
             it('only exhausts and no other abilities trigger if no friendly Heroism unit has died', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: 'chancellor-palpatine#playing-both-sides',
+                        base: { card: 'echo-base', damage: 10 },
+                        groundArena: ['battlefield-marine', 'wampa']
+                    },
+                    player2: {
+                        hand: ['takedown', 'waylay']
+                    }
+                });
+
                 const { context } = contextRef;
 
                 // Ensure no effect besides exhaustion
                 context.player1.clickCard(context.chancellorPalpatine);
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(10);
-                expect(context.player1.hand.length).toBe(1);
+                expect(context.player1.hand.length).toBe(0);
 
                 context.moveToNextActionPhase();
-                expect(context.player1.hand.length).toBe(3);
+                expect(context.player1.hand.length).toBe(2);
                 context.player1.passAction();
 
                 // Ensure that a friendly Heroism card returning to hand doesn't trigger the ability
@@ -83,7 +92,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.p1Base.damage).toBe(10);
 
                 context.moveToNextActionPhase();
-                expect(context.player1.hand.length).toBe(6);
+                expect(context.player1.hand.length).toBe(5);
                 context.player1.passAction();
 
                 // Ensure that a friendly non-Heroism card being defeated doesn't trigger the ability
@@ -94,10 +103,22 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 context.player1.clickCard(context.chancellorPalpatine);
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(10);
-                expect(context.player1.hand.length).toBe(6);
+                expect(context.player1.hand.length).toBe(5);
             });
 
             it('draws, heals, and flips if a friendly Heroism unit has died', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: 'chancellor-palpatine#playing-both-sides',
+                        base: { card: 'echo-base', damage: 10 },
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        hand: ['takedown']
+                    }
+                });
+
                 const { context } = contextRef;
 
                 context.player1.passAction();
@@ -108,8 +129,38 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 context.player1.clickCard(context.chancellorPalpatine);
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(8);
-                expect(context.player1.hand.length).toBe(2);
+                expect(context.player1.hand.length).toBe(1);
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
+            });
+
+            it('does not trigger a base with a \'When you deploy your leader\' ability', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        leader: 'chancellor-palpatine#playing-both-sides',
+                        base: { card: 'droid-manufactory', damage: 10 },
+                        groundArena: ['battlefield-marine']
+                    },
+                    player2: {
+                        hand: ['takedown']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                // Check that Palpatine healed, drew, and flipped
+                context.player1.clickCard(context.chancellorPalpatine);
+                expect(context.chancellorPalpatine.exhausted).toBe(true);
+                expect(context.p1Base.damage).toBe(8);
+                expect(context.player1.hand.length).toBe(1);
+                expect(context.chancellorPalpatine.onStartingSide).toBe(false);
+
+                // Check that no Droids were created
+                expect(context.player1.findCardsByName('battle-droid').length).toBe(0);
             });
         });
 
