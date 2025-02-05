@@ -9,7 +9,8 @@ function createEnvFile() {
         GAME_NODE_NAME: 'test1',
         GAME_NODE_SOCKET_IO_PORT: '9500',
         ENVIRONMENT: 'development',
-        SECRET: 'verysecret'
+        SECRET: 'verysecret',
+        FORCE_REMOTE_CARD_DATA: 'false',
     };
     return fs.writeFile(
         envPath,

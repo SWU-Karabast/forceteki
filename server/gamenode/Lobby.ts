@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
+import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
 
 interface LobbyUser {
     id: string;
@@ -33,16 +34,19 @@ export class Lobby {
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
     private readonly gameChat: GameChat;
+    private readonly cardDataGetter: CardDataGetter;
+    private readonly testGameBuilder?: any;
+    private readonly tokenCardsData: ITokenCardsData;
+    private readonly playableCardTitles: string[];
+
     private game: Game;
-    // switch partic
     private users: LobbyUser[] = [];
     private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private lobbyOwnerId: string;
-    private playableCardTitles: string[];
     private gameType: MatchType;
     private rematchRequest?: RematchRequest = null;
 
-    public constructor(lobbyGameType: MatchType) {
+    public constructor(lobbyGameType: MatchType, cardDataGetter: CardDataGetter, tokenCardsData: ITokenCardsData, playableCardTitles: string[], testGameBuilder?: any) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
             `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
@@ -52,6 +56,10 @@ export class Lobby {
         this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
         this.gameType = lobbyGameType;
+        this.cardDataGetter = cardDataGetter;
+        this.testGameBuilder = testGameBuilder;
+        this.playableCardTitles = playableCardTitles;
+        this.tokenCardsData = tokenCardsData;
     }
 
     public get id(): string {
@@ -276,65 +284,19 @@ export class Lobby {
         this.users = [];
     }
 
-    private async fetchPlayableCardTitles(): Promise<string[]> {
-        try {
-            const response = await fetch('https://karabast-assets.s3.amazonaws.com/data/_playableCardTitles.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            return data as string[];
-        } catch (error) {
-            console.error('Error fetching _playableCardTitles.json', error);
-            throw error;
-        }
-    }
-
-    private async fetchCard(cardName: string): Promise<any> {
-        try {
-            const response = await fetch(`https://karabast-assets.s3.amazonaws.com/data/cards/${encodeURIComponent(cardName)}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error(`Error fetching card: ${cardName}`, error);
-            throw error;
-        }
-    }
-
-    public async setPlayableCardTitles(): Promise<void> {
-        this.playableCardTitles = await this.fetchPlayableCardTitles();
-    }
-
-    public async setTokens(): Promise<void> {
-        const cardData = {
-            battleDroid: (await this.fetchCard('battle-droid.json'))[0],
-            cloneTrooper: (await this.fetchCard('clone-trooper.json'))[0],
-            experience: (await this.fetchCard('experience.json'))[0],
-            shield: (await this.fetchCard('shield.json'))[0],
-        };
-        this.tokens = cardData;
-    }
-
-    // example method to demonstrate the use of the test game setup utility
-    public async startTestGame(filename: string) {
-        const testDirPath = path.resolve(__dirname, '../../test');
+    public startTestGame(filename: string) {
         const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
-        if (!fs.existsSync(testDirPath) || !fs.existsSync(testJSONPath)) {
-            return null;
-        }
+        Contract.assertTrue(!fs.existsSync(testJSONPath), `Test game setup file ${filename} doesn't exist`);
 
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
 
-        const gameSetupPath = path.resolve(__dirname, '../../test/helpers/GameStateSetup.js');
-        await Promise.all([this.setTokens(), this.setPlayableCardTitles()]);
+        Contract.assertNotNullLike(this.testGameBuilder, `Attempting to start a test game from file ${filename} but local test tools were not found`);
+
         // TODO to address this a refactor and change router to lobby
         // eslint-disable-next-line
         const router = this;
-        // eslint-disable-next-line
-        const game: Game = require(gameSetupPath).setUpTestGame(
+
+        const game: Game = this.testGameBuilder.setUpTestGame(
             setupData,
             router,
             { id: 'exe66', username: 'Order66' },
