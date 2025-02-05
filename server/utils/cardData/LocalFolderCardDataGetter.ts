@@ -36,4 +36,8 @@ export class LocalFolderCardDataGetter extends SynchronousCardDataGetter {
 
         return JSON.parse(fs.readFileSync(filePath, 'utf8')) as string[];
     }
+
+    protected override getRelativePathFromInternalName(internalName: string) {
+        return `Card/${internalName}.json`;
+    }
 }

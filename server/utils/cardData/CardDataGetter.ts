@@ -32,6 +32,7 @@ export abstract class CardDataGetter {
     protected abstract getCardInternal(relativePath: string): Promise<ICardDataJson>;
     public abstract getSetCodeMap(): Promise<Map<string, string>>;
     public abstract getPlayableCardTitles(): Promise<string[]>;
+    protected abstract getRelativePathFromInternalName(internalName: string);
 
     public async getCard(id: string): Promise<ICardDataJson> {
         const relativePath = this.getRelativePathFromInternalName(this.getInternalName(id));
@@ -52,10 +53,6 @@ export abstract class CardDataGetter {
             [TokenUpgradeName.Experience]: await this.getCardByName('experience'),
             [TokenUpgradeName.Shield]: await this.getCardByName('shield'),
         };
-    }
-
-    protected getRelativePathFromInternalName(internalName: string) {
-        return `Card/${internalName}.json`;
     }
 
     protected checkInternalName(internalName: string) {

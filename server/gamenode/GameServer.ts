@@ -15,7 +15,6 @@ import type { Deck } from '../game/Deck';
 import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
 import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
-import type { LocalFolderCardDataGetter } from '../utils/cardData/LocalFolderCardDataGetter';
 
 /**
  * Represents a user object
@@ -44,22 +43,28 @@ interface QueuedPlayer {
 
 export class GameServer {
     public static async create(): Promise<GameServer> {
-        if (process.env.ENVIRONMENT === 'development' && process.env.FORCE_REMOTE_CARD_DATA !== 'true') {
-            const testGameBuilder = this.getTestGameBuilder();
-            const cardDataGetter: LocalFolderCardDataGetter = testGameBuilder.cardDataGetter;
-            return Promise.resolve(
-                new GameServer(cardDataGetter,
-                    await cardDataGetter.getTokenCardsData(),
-                    await cardDataGetter.getPlayableCardTitles(),
-                    testGameBuilder)
-            );
+        let cardDataGetter: CardDataGetter;
+        let testGameBuilder: any = null;
+
+        if (process.env.ENVIRONMENT === 'development') {
+            testGameBuilder = this.getTestGameBuilder();
+
+            cardDataGetter = process.env.FORCE_REMOTE_CARD_DATA === 'true'
+                ? await GameServer.buildRemoteCardDataGetter()
+                : testGameBuilder.cardDataGetter;
+        } else {
+            cardDataGetter = await GameServer.buildRemoteCardDataGetter();
         }
 
+        return new GameServer(cardDataGetter,
+            await cardDataGetter.getTokenCardsData(),
+            await cardDataGetter.getPlayableCardTitles(),
+            testGameBuilder);
+    }
+
+    private static buildRemoteCardDataGetter(): Promise<RemoteCardDataGetter> {
         // TODO: move this url to a config
-        return RemoteCardDataGetter.create('https://karabast-assets.s3.amazonaws.com/data/')
-            .then(async (cardDataGetter) => new GameServer(cardDataGetter,
-                await cardDataGetter.getTokenCardsData(),
-                await cardDataGetter.getPlayableCardTitles()));
+        return RemoteCardDataGetter.create('https://karabast-assets.s3.amazonaws.com/data/');
     }
 
     private static getTestGameBuilder() {

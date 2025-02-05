@@ -10,7 +10,8 @@ function createEnvFile() {
         GAME_NODE_SOCKET_IO_PORT: '9500',
         ENVIRONMENT: 'development',
         SECRET: 'verysecret',
-        FORCE_REMOTE_CARD_DATA: 'false',
+        // set this to "true" to force the local client to pull card data jsons from AWS instead of local folder
+        FORCE_REMOTE_CARD_DATA: 'true',
     };
     return fs.writeFile(
         envPath,
