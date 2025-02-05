@@ -20,8 +20,9 @@ describe('Banshee, Crippling Command', function() {
             context.player1.clickCard(context.banshee);
             context.player1.clickCard(context.p2Base);
 
-            // Assert ability
+            // Assert ability Deal damage to a unit equal to the amount of damage on this unit
             expect(context.player1).toHavePassAbilityButton();
+            expect(context.player1).toHavePrompt('Choose a unit');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.restoredArc170, context.banshee]);
             context.player1.clickCard(context.atst);
 

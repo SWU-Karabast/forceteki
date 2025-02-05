@@ -16,7 +16,7 @@ export default class ItsATrap extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.controller.getUnitsInPlay(ZoneName.SpaceArena).length < context.player.opponent.getUnitsInPlay(ZoneName.SpaceArena).length,
                 onTrue: AbilityHelper.immediateEffects.ready((context) => {
-                    return { target: context.source.controller.getUnitsInPlay(ZoneName.SpaceArena) };
+                    return { target: context.player.getUnitsInPlay(ZoneName.SpaceArena) };
                 }),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
