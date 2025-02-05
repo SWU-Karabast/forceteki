@@ -15,6 +15,7 @@ class DeckBuilder {
     /** @param {import('../../server/utils/cardData/CardDataGetter.js').CardDataGetter} cardDataGetter */
     constructor(cardDataGetter) {
         this.cards = {};
+        this.tokenData = cardDataGetter.getTokenCardsDataSynchronous();
 
         for (const cardId of cardDataGetter.cardIds) {
             const card = cardDataGetter.getCardSynchronous(cardId);
@@ -275,17 +276,6 @@ class DeckBuilder {
             leader: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('leader')),
             base: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('base')),
             deckCards: this.filterPropertiesToArray(cardCounts, (count) => !count.card.types.includes('leader') && !count.card.types.includes('base'))
-        };
-    }
-
-    getTokenData() {
-        return {
-            battleDroid: this.getCard('battle-droid'),
-            cloneTrooper: this.getCard('clone-trooper'),
-            tieFighter: this.getCard('tie-fighter'),
-            xwing: this.getCard('xwing'),
-            experience: this.getCard('experience'),
-            shield: this.getCard('shield'),
         };
     }
 

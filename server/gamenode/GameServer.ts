@@ -70,7 +70,7 @@ export class GameServer {
         Contract.assertTrue(fs.existsSync(gameStateBuilderPath), `Test tools file not found at ${gameStateBuilderPath}`);
 
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const gameStateBuilderClass = require(gameStateBuilderPath).GameStateBuilder;
+        const gameStateBuilderClass = require(gameStateBuilderPath);
         return new gameStateBuilderClass();
     }
 

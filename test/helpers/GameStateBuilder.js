@@ -49,8 +49,8 @@ class GameStateBuilder {
         );
 
         const testContext = {};
-        attachTestInfoToObj(testContext, gameFlowWrapper, player1Info.username, player2Info.username);
-        setupGameState(testContext, setupTestOptions);
+        this.attachTestInfoToObj(testContext, gameFlowWrapper, player1Info.username, player2Info.username);
+        this.setupGameState(testContext, setupTestOptions);
 
         return gameFlowWrapper.game;
     }
@@ -122,7 +122,7 @@ class GameStateBuilder {
         context.player2.selectDeck(deck2);
 
         // pass the data for token cards to the game so it can generate them
-        context.game.initialiseTokens(this.deckBuilder.getTokenData());
+        context.game.initialiseTokens(this.deckBuilder.tokenData);
 
         // each player object will convert the card names to real cards on start
         context.startGame();

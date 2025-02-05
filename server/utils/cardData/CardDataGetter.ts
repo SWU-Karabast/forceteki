@@ -1,13 +1,11 @@
+import type { TokenName } from '../../game/core/Constants';
 import { TokenUnitName, TokenUpgradeName } from '../../game/core/Constants';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ICardDataJson, ICardMap, ICardMapEntry, ICardMapJson } from './CardDataInterfaces';
 
-export interface ITokenCardsData {
-    [TokenUnitName.BattleDroid]: ICardDataJson;
-    [TokenUnitName.CloneTrooper]: ICardDataJson;
-    [TokenUpgradeName.Experience]: ICardDataJson;
-    [TokenUpgradeName.Shield]: ICardDataJson;
-}
+export type ITokenCardsData = {
+    [TokenNameValue in TokenName]: ICardDataJson;
+};
 
 export abstract class CardDataGetter {
     public readonly cardMap: ICardMap;
@@ -49,6 +47,8 @@ export abstract class CardDataGetter {
         return {
             [TokenUnitName.BattleDroid]: await this.getCardByName('battle-droid'),
             [TokenUnitName.CloneTrooper]: await this.getCardByName('clone-trooper'),
+            [TokenUnitName.TIEFighter]: await this.getCardByName('tie-fighter'),
+            [TokenUnitName.XWing]: await this.getCardByName('xwing'),
             [TokenUpgradeName.Experience]: await this.getCardByName('experience'),
             [TokenUpgradeName.Shield]: await this.getCardByName('shield'),
         };

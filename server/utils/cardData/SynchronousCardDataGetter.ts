@@ -1,3 +1,5 @@
+import { TokenUnitName, TokenUpgradeName } from '../../game/core/Constants';
+import type { ITokenCardsData } from './CardDataGetter';
 import { CardDataGetter } from './CardDataGetter';
 import type { ICardDataJson } from './CardDataInterfaces';
 
@@ -30,6 +32,17 @@ export abstract class SynchronousCardDataGetter extends CardDataGetter {
     }
 
     protected override getCardInternal(relativePath: string): Promise<ICardDataJson> {
-        return Promise.resolve(this.getCardSynchronous(relativePath));
+        return Promise.resolve(this.getCardSynchronousInternal(relativePath));
+    }
+
+    public getTokenCardsDataSynchronous(): ITokenCardsData {
+        return {
+            [TokenUnitName.BattleDroid]: this.getCardByNameSynchronous('battle-droid'),
+            [TokenUnitName.CloneTrooper]: this.getCardByNameSynchronous('clone-trooper'),
+            [TokenUnitName.TIEFighter]: this.getCardByNameSynchronous('tie-fighter'),
+            [TokenUnitName.XWing]: this.getCardByNameSynchronous('xwing'),
+            [TokenUpgradeName.Experience]: this.getCardByNameSynchronous('experience'),
+            [TokenUpgradeName.Shield]: this.getCardByNameSynchronous('shield'),
+        };
     }
 }

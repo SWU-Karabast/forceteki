@@ -286,7 +286,7 @@ export class Lobby {
 
     public startTestGame(filename: string) {
         const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
-        Contract.assertTrue(!fs.existsSync(testJSONPath), `Test game setup file ${filename} doesn't exist`);
+        Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
 
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
 
