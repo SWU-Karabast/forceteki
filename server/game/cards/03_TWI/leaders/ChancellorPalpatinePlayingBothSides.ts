@@ -5,13 +5,6 @@ import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatc
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
-/**
- * Chancellor Palpatine / Double-Sided Leader TODO:
- * - Refactor LeaderCard class structure into two branches (one for deployable and one for double-sided leaders)
- * - Update basic card properties to use getters (such as card name and card type i.e. unit vs. upgrade for pilots)
- * - Generic leader flow that will eventually help support Pilots
- * - Handle back-side name/aspect differences
- */
 export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLeaderCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
