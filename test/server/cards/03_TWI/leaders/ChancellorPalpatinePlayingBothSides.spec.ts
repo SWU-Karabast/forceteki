@@ -133,7 +133,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
             });
 
-            it('does not trigger a base with a \'When you deploy your leader\' ability', function () {
+            it('does not trigger a base with a \'When you deploy a leader\' ability', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -159,7 +159,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
 
-                // Check that no Droids were created
+                // Check that no Droids were not created
                 expect(context.player1.findCardsByName('battle-droid').length).toBe(0);
             });
         });
