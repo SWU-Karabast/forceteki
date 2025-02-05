@@ -656,7 +656,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     ...super.getSummary(activePlayer),
                     power: this.getPower(),
                     hp: this.getHp(),
-                    sentinel: hasSentinel,
+                    sentinel: hasSentinel
                 };
             }
             return {
