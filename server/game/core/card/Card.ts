@@ -40,11 +40,11 @@ export type CardConstructor = new (...args: any[]) => Card;
  */
 export class Card extends OngoingEffectSource {
     public static implemented = false;
-    public readonly aspects: Aspect[] = [];
-    public readonly internalName: string;
-    public readonly subtitle?: string;
-    public readonly title: string;
-    public readonly unique: boolean;
+    protected _aspects: Aspect[] = [];
+    protected _internalName: string;
+    protected _subtitle?: string;
+    protected _title: string;
+    protected _unique: boolean;
 
     protected override readonly id: string;
     protected readonly hasNonKeywordAbilityText: boolean;
@@ -68,6 +68,26 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
+    public get aspects(): Aspect[] {
+        return this._aspects;
+    }
+
+    public get internalName(): string {
+        return this._internalName;
+    }
+
+    public get subtitle(): string {
+        return this._subtitle;
+    }
+
+    public get title(): string {
+        return this._title;
+    }
+
+    public get unique(): boolean {
+        return this._unique;
+    }
+
     public get controller(): Player {
         return this._controller;
     }
@@ -126,11 +146,11 @@ export class Card extends OngoingEffectSource {
 
         this.hasNonKeywordAbilityText = this.isLeader() || this.checkHasNonKeywordAbilityText(cardData.text);
 
-        this.aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
-        this.internalName = cardData.internalName;
-        this.subtitle = cardData.subtitle;
-        this.title = cardData.title;
-        this.unique = cardData.unique;
+        this._aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
+        this._internalName = cardData.internalName;
+        this._subtitle = cardData.subtitle;
+        this._title = cardData.title;
+        this._unique = cardData.unique;
 
         this._controller = owner;
         this.id = cardData.id;
