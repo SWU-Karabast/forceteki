@@ -46,26 +46,18 @@ export default class JangoFettConcealingTheConspiracy extends LeaderUnitCard {
     }
 
     private isEnemyUnitDamagedByFriendlyUnit(event, context): boolean {
-        if (event.card.isUnit() && event.card.controller !== context.source.controller) {
-            console.log('----------------------');
-            console.log(`[Damage Recieved] ${event.card.title}`);
+        // If an enemy unit received the damage
+        if (event.card.isUnit() && event.card.controller !== context.player) {
+            switch (event.damageSource.type) {
+                case DamageSourceType.Ability:
+                    // If the damage was dealt by a friendly unit via an ability
+                    return event.damageSource.card.isUnit() &&
+                      event.damageSource.player === context.source.controller;
 
-            if (
-                event.damageSource.type === DamageSourceType.Ability &&
-                event.damageSource.card.isUnit() &&
-                event.damageSource.player === context.source.controller
-            ) {
-                console.log(`[Ability Damage Source] ${event.damageSource.card.title}`);
-                return true;
-            }
-
-            if (
-                event.damageSource.type === DamageSourceType.Attack &&
-                event.damageSource.damageDealtBy.isUnit() &&
-                event.damageSource.damageDealtBy.controller === context.source.controller
-            ) {
-                console.log(`[Attack Damage Source] ${event.damageSource.damageDealtBy.title}`);
-                return true;
+                case DamageSourceType.Attack:
+                    // If the damage was dealt by a friendly unit via combat
+                    return event.damageSource.damageDealtBy.isUnit() &&
+                      event.damageSource.damageDealtBy.controller === context.player;
             }
         }
 

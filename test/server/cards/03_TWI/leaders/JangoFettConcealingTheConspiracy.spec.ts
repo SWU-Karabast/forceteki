@@ -11,6 +11,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                             'overwhelming-barrage',
                             'sneak-attack',
                             'ruthless-raider',
+                            'change-of-heart',
                         ],
                         groundArena: [
                             'crafty-smuggler',
@@ -24,7 +25,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                             'battlefield-marine',
                             'mandalorian-warrior',
                             'fleet-lieutenant',
-                            'volunteer-soldier'
+                            'volunteer-soldier',
+                            'consular-security-force',
                         ],
                     },
                 });
@@ -124,7 +126,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                     [context.fleetLieutenant, 1],
                 ]));
 
-                // Choose resolution order (is there a way to know which instant corresponds to which damaged unit?)
+                // Choose resolution order
+                // TODO: Determine which trigger corresponds to which damaged unit: https://github.com/SWU-Karabast/forceteki/issues/540
                 context.player1.clickPrompt('Exhaust this leader');
 
                 // Pass for Fleet Lieutenant
@@ -161,6 +164,26 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 // Use Jango's ability to exhaust Mandalorian Warrior
                 context.player1.clickPrompt('Exhaust this leader');
                 expect(context.mandalorianWarrior.exhausted).toBeTrue();
+
+                // CASE 7: Trigger Jango's ability when a stolen unit attacks
+
+                context.nextPhase();
+                reset();
+
+                // Play Change of Heart to steal Mandalorian Warrior
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.mandalorianWarrior);
+
+                context.player2.passAction();
+
+                // Attack with Mandalorian Warrior
+                context.player1.clickCard(context.mandalorianWarrior);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // Use Jango's ability to exhaust Consular Security Force
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Exhaust this leader');
+                expect(context.consularSecurityForce.exhausted).toBeTrue();
             });
 
             it('should not trigger for specific scenarios', function() {
@@ -175,7 +198,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                         ],
                         groundArena: [
                             'grogu#irresistible',
-                            'darth-vader#commanding-the-first-legion'
+                            'darth-vader#commanding-the-first-legion',
+                            'doctor-pershing#experimenting-with-life',
                         ],
                         leader: 'jango-fett#concealing-the-conspiracy',
                     },
@@ -191,7 +215,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 const { context } = contextRef;
 
-                // CASE 7: Damage dealt by an event does not trigger Jango's ability
+                // CASE 8: Damage dealt by an event does not trigger Jango's ability
 
                 context.player1.clickCard(context.openFire);
                 context.player1.clickCard(context.atst);
@@ -199,7 +223,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
                 expect(context.atst.damage).toBe(4);
 
-                // CASE 8: Damage dealt by an upgrade does not trigger Jango's ability
+                // CASE 9: Damage dealt by an upgrade does not trigger Jango's ability
 
                 context.moveToNextActionPhase();
 
@@ -210,7 +234,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
                 expect(context.liberatedSlaves.damage).toBe(4);
 
-                // CASE 9: Attacks that deal 0 damage do not trigger Jango's ability
+                // CASE 10: Attacks that deal 0 damage do not trigger Jango's ability
 
                 context.moveToNextActionPhase();
 
@@ -221,7 +245,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
                 expect(context.consularSecurityForce.damage).toBe(0);
 
-                // CASE 10: Jango should still be exhausted and unable to trigger his ability when the phase ends
+                // CASE 11: Jango should still be exhausted and unable to trigger his ability when the phase ends
 
                 context.moveToNextActionPhase();
 
@@ -246,6 +270,23 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 // Jango is still exhausted and his ability is unavailable
                 expect(context.jangoFett.exhausted).toBeTrue();
                 expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+
+                // CASE 12: A friendly unit dealing damage to another friendly unit does not trigger Jango's ability
+
+                context.nextPhase();
+                context.grogu.damage = 0;
+
+                // Use Pershing's ability
+                context.player1.clickCard(context.doctorPershing);
+                context.player1.clickPrompt('Draw a card');
+
+                // Deal damage to grogu
+                context.player1.clickCard(context.grogu);
+
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.jangoFett.exhausted).toBeFalse();
+                expect(context.grogu.exhausted).toBeFalse();
+                expect(context.grogu.damage).toBe(1);
             });
         });
 
@@ -258,6 +299,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                             'elite-p38-starfighter',
                             'overwhelming-barrage',
                             'strike-true',
+                            'change-of-heart',
                         ],
                         groundArena: [
                             'crafty-smuggler',
@@ -271,7 +313,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                             'battlefield-marine',
                             'mandalorian-warrior',
                             'fleet-lieutenant',
-                            'volunteer-soldier'
+                            'volunteer-soldier',
+                            'consular-security-force',
                         ],
                     },
                 });
@@ -406,6 +449,26 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.fleetLieutenant.exhausted).toBeTrue();
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
                 expect(context.volunteerSoldier.exhausted).toBeTrue();
+
+                // CASE 6: Trigger Jango's ability when a stolen unit attacks
+
+                context.moveToNextActionPhase();
+                reset();
+
+                // Play Change of Heart to steal Mandalorian Warrior
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.mandalorianWarrior);
+
+                context.player2.passAction();
+
+                // Attack with Mandalorian Warrior
+                context.player1.clickCard(context.mandalorianWarrior);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // Use Jango's ability to exhaust Consular Security Force
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+                expect(context.consularSecurityForce.exhausted).toBeTrue();
             });
         });
 
@@ -420,9 +483,10 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                         ],
                         groundArena: [
                             'grogu#irresistible',
-                            'darth-vader#commanding-the-first-legion'
+                            'darth-vader#commanding-the-first-legion',
+                            'doctor-pershing#experimenting-with-life',
                         ],
-                        leader: 'jango-fett#concealing-the-conspiracy',
+                        leader: { card: 'jango-fett#concealing-the-conspiracy', deployed: true },
                     },
                     player2: {
                         groundArena: [
@@ -435,7 +499,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 const { context } = contextRef;
 
-                // CASE 6: Damage dealt by an event does not trigger Jango's ability
+                // CASE 7: Damage dealt by an event does not trigger Jango's ability
 
                 context.player1.clickCard(context.openFire);
                 context.player1.clickCard(context.atst);
@@ -443,7 +507,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.player1).not.toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
                 expect(context.atst.damage).toBe(4);
 
-                // CASE 7: Damage dealt by an upgrade does not trigger Jango's ability
+                // CASE 8: Damage dealt by an upgrade does not trigger Jango's ability
 
                 context.moveToNextActionPhase();
 
@@ -454,7 +518,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.player1).not.toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
                 expect(context.liberatedSlaves.damage).toBe(4);
 
-                // CASE 8: Attacks that deal 0 damage do not trigger Jango's ability
+                // CASE 9: Attacks that deal 0 damage do not trigger Jango's ability
 
                 context.moveToNextActionPhase();
 
@@ -462,8 +526,24 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 context.player1.clickPrompt('Attack');
                 context.player1.clickCard(context.consularSecurityForce);
 
-                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
                 expect(context.consularSecurityForce.damage).toBe(0);
+
+                // CASE 10: A friendly unit dealing damage to another friendly unit does not trigger Jango's ability
+
+                context.moveToNextActionPhase();
+                context.grogu.damage = 0;
+
+                // Use Pershing's ability
+                context.player1.clickCard(context.doctorPershing);
+                context.player1.clickPrompt('Draw a card');
+
+                // Deal damage to grogu
+                context.player1.clickCard(context.grogu);
+
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
+                expect(context.grogu.exhausted).toBeFalse();
+                expect(context.grogu.damage).toBe(1);
             });
         });
     });
