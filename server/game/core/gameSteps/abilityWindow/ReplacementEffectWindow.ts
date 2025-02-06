@@ -42,6 +42,14 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
         this.newReplacementEvents = true;
     }
 
+    public override addTriggeredAbilityToWindow(context: TriggeredAbilityContext) {
+        const replacement = context.event.findEventInReplacements();
+        if (replacement && replacement.context.ability === context.ability) {
+            return;
+        }
+        super.addTriggeredAbilityToWindow(context);
+    }
+
     protected override cleanUpTriggers(): void {
         super.cleanUpTriggers();
 

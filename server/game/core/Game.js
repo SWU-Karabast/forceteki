@@ -37,6 +37,9 @@ const { SpaceArenaZone } = require('./zone/SpaceArenaZone.js');
 const { AllArenasZone } = require('./zone/AllArenasZone.js');
 const EnumHelpers = require('./utils/EnumHelpers.js');
 const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
+const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
+const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayCardsForSelectionPrompt.js');
+const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
@@ -163,6 +166,16 @@ class Game extends EventEmitter {
     }
 
     /**
+     * Get all players currently captured cards
+     * @param {Player} player
+     * @returns {Array}
+     */
+    getAllCapturedCards(player) {
+        return this.findAnyCardsInPlay((card) => card.isUnit() && card.owner === player)
+            .flatMap((card) => card.capturedUnits);
+    }
+
+    /**
      * Get all players (not spectators) in the game
      * @returns {Player[]}
      */
@@ -189,6 +202,7 @@ class Game extends EventEmitter {
 
         let player = this.playersAndSpectators[playerId];
         Contract.assertFalse(this.isSpectator(player), `Player ${player.name} is a spectator`);
+        Contract.assertNotNullLike(player, `Player with id ${playerId} not found`);
 
         return player;
     }
@@ -229,6 +243,7 @@ class Game extends EventEmitter {
 
         return otherPlayer;
     }
+
 
     registerGlobalRulesListeners() {
         UnitPropertiesCard.registerRulesListeners(this);
@@ -391,11 +406,11 @@ class Game extends EventEmitter {
     // TODO: parameter contract checks for this flow
     /**
      * This function is called from the client whenever a card is clicked
-     * @param {String} sourcePlayer - name of the clicking player
+     * @param {String} sourcePlayerId - id of the clicking player
      * @param {String} cardId - uuid of the card clicked
      */
-    cardClicked(sourcePlayer, cardId) {
-        var player = this.getPlayerByName(sourcePlayer);
+    cardClicked(sourcePlayerId, cardId) {
+        var player = this.getPlayerById(sourcePlayerId);
 
         if (!player) {
             return;
@@ -498,30 +513,38 @@ class Game extends EventEmitter {
             return;
         }
 
+        /**
+         * TODO we currently set the winner here as to send the winner via gameState.
+         * TODO this will likely change when we decide on how the popup will look like seperately
+         * TODO from the preference popup
+         */
         if (Array.isArray(winner)) {
+            this.winner = winner.map((w) => w.name);
             this.addMessage('The game ends in a draw');
         } else {
+            this.winner = [winner.name];
             this.addMessage('{0} has won the game', winner);
         }
-        this.winner = winner;
-
-
         this.finishedAt = new Date();
         this.gameEndReason = reason;
-
-        this.router.gameWon(this, reason, winner);
-
-        this.queueStep(new GameOverPrompt(this, winner));
+        // this.router.gameWon(this, reason, winner);
+        // TODO Tests failed since this.router doesn't exist for them we use an if statement to unblock.
+        // TODO maybe later on we could have a check here if the environment test?
+        if (typeof this.router.sendGameState === 'function') {
+            this.router.sendGameState(this); // call the function if it exists
+        } else {
+            this.queueStep(new GameOverPrompt(this, winner));
+        }
     }
 
     /**
      * Changes a Player variable and displays a message in chat
-     * @param {String} playerName
+     * @param {String} playerId
      * @param {String} stat
      * @param {Number} value
      */
-    changeStat(playerName, stat, value) {
-        var player = this.getPlayerByName(playerName);
+    changeStat(playerId, stat, value) {
+        var player = this.getPlayerById(playerId);
         if (!player) {
             return;
         }
@@ -574,10 +597,10 @@ class Game extends EventEmitter {
 
     /**
      * This is called by the client when a player clicks 'Concede'
-     * @param {String} playerName
+     * @param {String} playerId
      */
-    concede(playerName) {
-        var player = this.getPlayerByName(playerName);
+    concede(playerId) {
+        var player = this.getPlayerByName(playerId);
 
         if (!player) {
             return;
@@ -602,11 +625,11 @@ class Game extends EventEmitter {
     /**
      * Called when a player clicks Shuffle Deck on the conflict deck menu in
      * the client
-     * @param {String} playerName
+     * @param {String} playerId
      * @param {AbilityContext} context
      */
-    shuffleDeck(playerName, context = null) {
-        let player = this.getPlayerByName(playerName);
+    shuffleDeck(playerId, context = null) {
+        let player = this.getPlayerById(playerId);
         if (player) {
             player.shuffleDeck(context);
         }
@@ -637,6 +660,36 @@ class Game extends EventEmitter {
         } else {
             this.queueStep(new HandlerMenuPrompt(this, player, properties));
         }
+    }
+
+    /**
+     *  @param {Player} player
+     *  @param {import('./gameSteps/PromptInterfaces.js').IDisplayCardsWithButtonsPromptProperties} properties
+     */
+    promptDisplayCardsWithButtons(player, properties) {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new DisplayCardsWithButtonsPrompt(this, player, properties));
+    }
+
+    /**
+     *  @param {Player} player
+     *  @param {import('./gameSteps/PromptInterfaces.js').IDisplayCardsSelectProperties} properties
+     */
+    promptDisplayCardsForSelection(player, properties) {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new DisplayCardsForSelectionPrompt(this, player, properties));
+    }
+
+    /**
+     *  @param {Player} player
+     *  @param {import('./gameSteps/PromptInterfaces.js').IDisplayCardsBasicPromptProperties} properties
+     */
+    promptDisplayCardsBasic(player, properties) {
+        Contract.assertNotNullLike(player);
+
+        this.queueStep(new DisplayCardsBasicPrompt(this, player, properties));
     }
 
     /**
@@ -676,17 +729,33 @@ class Game extends EventEmitter {
     /**
      * This function is called by the client whenever a player clicks a button
      * in a prompt
-     * @param {String} playerName
+     * @param {String} playerId
      * @param {String} arg - arg property of the button clicked
      * @param {String} uuid - unique identifier of the prompt clicked
      * @param {String} method - method property of the button clicked
      * @returns {Boolean} this indicates to the server whether the received input is legal or not
      */
-    menuButton(playerName, arg, uuid, method) {
-        var player = this.getPlayerByName(playerName);
+    menuButton(playerId, arg, uuid, method) {
+        var player = this.getPlayerById(playerId);
 
         // check to see if the current step in the pipeline is waiting for input
         return this.pipeline.handleMenuCommand(player, arg, uuid, method);
+    }
+
+    /**
+     * This function is called by the client whenever a player clicks a "per card" button
+     * in a prompt (e.g. Inferno Four prompt). See {@link DisplayCardsWithButtonsPrompt}.
+     * @param {String} playerId
+     * @param {String} arg - arg property of the button clicked
+     * @param {String} uuid - unique identifier of the prompt clicked
+     * @param {String} method - method property of the button clicked
+     * @returns {Boolean} this indicates to the server whether the received input is legal or not
+     */
+    perCardMenuButton(playerId, arg, cardUuid, uuid, method) {
+        var player = this.getPlayerById(playerId);
+
+        // check to see if the current step in the pipeline is waiting for input
+        return this.pipeline.handlePerCardMenuCommand(player, arg, cardUuid, uuid, method);
     }
 
     /**
@@ -696,8 +765,8 @@ class Game extends EventEmitter {
      * @param {import('./gameSteps/PromptInterfaces.js').IDistributeAmongTargetsPromptResults} result
      * @param {String} uuid - unique identifier of the prompt clicked
      */
-    statefulPromptResults(playerName, result, uuid) {
-        var player = this.getPlayerByName(playerName);
+    statefulPromptResults(playerId, result, uuid) {
+        var player = this.getPlayerById(playerId);
 
         // check to see if the current step in the pipeline is waiting for input
         return this.pipeline.handleStatefulPromptResults(player, result, uuid);
@@ -706,13 +775,13 @@ class Game extends EventEmitter {
     /**
      * This function is called by the client when a player clicks an action window
      * toggle in the settings menu
-     * @param {String} playerName
+     * @param {String} playerId
      * @param {String} windowName - the name of the action window being toggled
      * @param {Boolean} toggle - the new setting of the toggle
      * @returns {undefined}
      */
-    togglePromptedActionWindow(playerName, windowName, toggle) {
-        var player = this.getPlayerByName(playerName);
+    togglePromptedActionWindow(playerId, windowName, toggle) {
+        var player = this.getPlayerById(playerId);
         if (!player) {
             return;
         }
@@ -723,13 +792,13 @@ class Game extends EventEmitter {
     /**
      * This function is called by the client when a player clicks an timer setting
      * toggle in the settings menu
-     * @param {String} playerName
+     * @param {String} playerId
      * @param {String} settingName - the name of the setting being toggled
      * @param {Boolean} toggle - the new setting of the toggle
      * @returns {undefined}
      */
-    toggleTimerSetting(playerName, settingName, toggle) {
-        var player = this.getPlayerByName(playerName);
+    toggleTimerSetting(playerId, settingName, toggle) {
+        var player = this.getPlayerByName(playerId);
         if (!player) {
             return;
         }
@@ -745,8 +814,8 @@ class Game extends EventEmitter {
      * @param {Boolean} toggle - the new setting of the toggle
      * @returns {undefined}
      */
-    toggleOptionSetting(playerName, settingName, toggle) {
-        var player = this.getPlayerByName(playerName);
+    toggleOptionSetting(playerId, settingName, toggle) {
+        var player = this.getPlayerById(playerId);
         if (!player) {
             return;
         }
@@ -1363,7 +1432,7 @@ class Game extends EventEmitter {
                 }),
                 started: this.started,
                 gameMode: this.gameMode,
-                // winner: this.winner ? this.winner.user.name : undefined
+                winner: this.winner ? this.winner : undefined, // TODO comment once we clarify how to display endgame screen
             };
         }
         return {};

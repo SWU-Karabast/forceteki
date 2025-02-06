@@ -28,6 +28,27 @@ export function httpRequest(url: string): Promise<string> {
     });
 }
 
+export function stringArraysEqual(ara1: string[], ara2: string[]): boolean {
+    if ((ara1 == null || ara2 == null) && (ara1 !== ara2)) {
+        return false;
+    }
+
+    if (ara1.length !== ara2.length) {
+        return false;
+    }
+
+    ara1.sort();
+    ara2.sort();
+
+    for (let i = 0; i < ara1.length; i++) {
+        if (ara1[i] !== ara2[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 export function wrapAsync(fn: any): any {
     return function (req, res, next) {
         fn(req, res, next).catch(next);

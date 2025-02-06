@@ -19,5 +19,3 @@ export default class PauCity extends BaseCard {
         });
     }
 }
-
-PauCity.implemented = true;

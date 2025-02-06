@@ -1,12 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
-import https from 'https';
 import express from 'express';
 import cors from 'cors';
 import type { Socket as IOSocket, DefaultEventsMap } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
-import { v4 as uuid } from 'uuid';
 
 import { logger } from '../logger';
 
@@ -14,6 +12,9 @@ import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
 import * as env from '../env';
 import type { Deck } from '../game/Deck';
+import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
+import * as Contract from '../game/core/utils/Contract';
+import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 
 /**
  * Represents a user object
@@ -41,71 +42,101 @@ interface QueuedPlayer {
 }
 
 export class GameServer {
-    private lobbies = new Map<string, Lobby>();
-    private userLobbyMap = new Map<string, string>();
-    private protocol = 'https';
-    private host = env.gameNodeHost;
-    private queue: QueuedPlayer[] = [];
-    private io: IOServer;
-    private titleCardData: any;
-    private shortCardData: any;
+    public static async create(): Promise<GameServer> {
+        let cardDataGetter: CardDataGetter;
+        let testGameBuilder: any = null;
 
-    public constructor() {
-        const app = express();
-        app.use(express.json());
-        let privateKey: undefined | string;
-        let certificate: undefined | string;
+        if (process.env.ENVIRONMENT === 'development') {
+            testGameBuilder = this.getTestGameBuilder();
 
-        try {
-            // privateKey = fs.readFileSync(env.gameNodeKeyPath).toString();
-            // certificate = fs.readFileSync(env.gameNodeCertPath).toString();
-        } catch (e) {
-            this.protocol = 'http';
+            cardDataGetter = process.env.FORCE_REMOTE_CARD_DATA === 'true'
+                ? await GameServer.buildRemoteCardDataGetter()
+                : testGameBuilder.cardDataGetter;
+        } else {
+            cardDataGetter = await GameServer.buildRemoteCardDataGetter();
         }
 
-        const server =
-            !privateKey || !certificate
-                ? http.createServer(app)
-                : https.createServer({ key: privateKey, cert: certificate });
+        return new GameServer(cardDataGetter,
+            await cardDataGetter.getTokenCardsData(),
+            await cardDataGetter.getPlayableCardTitles(),
+            testGameBuilder);
+    }
 
+    private static buildRemoteCardDataGetter(): Promise<RemoteCardDataGetter> {
+        // TODO: move this url to a config
+        return RemoteCardDataGetter.create('https://karabast-assets.s3.amazonaws.com/data/');
+    }
+
+    private static getTestGameBuilder() {
+        const testDirPath = path.resolve(__dirname, '../../test');
+        const gameStateBuilderPath = path.resolve(__dirname, '../../test/helpers/GameStateBuilder.js');
+
+        Contract.assertTrue(fs.existsSync(testDirPath), `Test data directory not found at ${testDirPath}, please run 'npm run get-cards'`);
+        Contract.assertTrue(fs.existsSync(gameStateBuilderPath), `Test tools file not found at ${gameStateBuilderPath}`);
+
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const gameStateBuilderClass = require(gameStateBuilderPath);
+        return new gameStateBuilderClass();
+    }
+
+    private readonly lobbies = new Map<string, Lobby>();
+    private readonly userLobbyMap = new Map<string, string>();
+    private readonly io: IOServer;
+    private readonly cardDataGetter: CardDataGetter;
+    private readonly testGameBuilder?: any;
+    private readonly tokenCardsData: ITokenCardsData;
+    private readonly playableCardTitles: string[];
+
+    private queue: QueuedPlayer[] = [];
+
+    private constructor(cardDataGetter: CardDataGetter, tokenCardsData: ITokenCardsData, playableCardTitles: string[], testGameBuilder?: any) {
+        const app = express();
+        app.use(express.json());
+        const server = http.createServer(app);
 
         const corsOptions = {
-            origin: ['http://localhost:3000', 'https://your-production-domain.com'],
+            origin: ['http://localhost:3000', 'https://beta.karabast.net'],
             methods: ['GET', 'POST'],
             credentials: true, // Allow cookies or authorization headers
         };
         app.use(cors(corsOptions));
+
         this.setupAppRoutes(app);
 
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
 
-        const corsOrigin = process.env.NODE_ENV === 'production'
-            ? 'https://tbd.com'
-            : 'http://localhost:3000';
-
+        // Setup socket server
         this.io = new IOServer(server, {
             perMessageDeflate: false,
+            path: '/ws',
             cors: {
-                origin: corsOrigin,
+                origin: ['http://localhost:3000', 'https://beta.karabast.net'],
                 methods: ['GET', 'POST']
             }
         });
+
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
-        this.io.on('connection', (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
-            this.onConnection(socket);
+        this.io.on('connection', async (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
+            await this.onConnection(socket);
             socket.on('manualDisconnect', () => {
                 socket.data.manualDisconnect = true;
                 socket.disconnect();
             });
         });
+
+        this.cardDataGetter = cardDataGetter;
+        this.testGameBuilder = testGameBuilder;
+        this.tokenCardsData = tokenCardsData;
+        this.playableCardTitles = playableCardTitles;
     }
 
     private setupAppRoutes(app: express.Application) {
-        app.post('/api/create-lobby', (req, res) => {
-            const newUserId = this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
-            return res.status(200).json({ success: true, newUserId: newUserId });
+        app.post('/api/create-lobby', async (req, res) => {
+            await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
+            return res.status(200).json({ success: true });
         });
+
         app.get('/api/available-lobbies', (_, res) => {
             const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, _]) => ({
                 id,
@@ -113,6 +144,7 @@ export class GameServer {
             }));
             return res.json(availableLobbies);
         });
+
         app.post('/api/join-lobby', (req, res) => {
             const { lobbyId, user } = req.body;
 
@@ -128,15 +160,18 @@ export class GameServer {
             this.userLobbyMap.set(user.id, lobby.id);
             return res.status(200).json({ success: true });
         });
+
         app.get('/api/test-game-setups', (_, res) => {
             const testSetupFilenames = this.getTestSetupGames();
             return res.json(testSetupFilenames);
         });
-        app.post('/api/start-test-game', (req, res) => {
+
+        app.post('/api/start-test-game', async (req, res) => {
             const { filename } = req.body;
-            this.startTestGame(filename);
+            await this.startTestGame(filename);
             return res.status(200).json({ success: true });
         });
+
         app.post('/api/enter-queue', (req, res) => {
             const { user, deck } = req.body;
             const success = this.enterQueue(user, deck);
@@ -145,6 +180,7 @@ export class GameServer {
             }
             return res.status(200).json({ success: true });
         });
+
         app.get('/api/health', (_, res) => {
             return res.status(200).json({ success: true });
         });
@@ -162,34 +198,39 @@ export class GameServer {
      * Creates a new lobby for the given user. If no user is provided and
      * the lobby is private, a default user is created.
      *
-     * @param {User | null} user - The user creating the lobby. If null is passed in for a private lobby, a default user is created.
+     * @param {User | string} user - The user creating the lobby. If string(id) is passed in for a private lobby, a default user is created with that id.
      * @param {Deck} deck - The deck used by this user.
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(user: User | null, deck: Deck, isPrivate: boolean) {
-        if (!isPrivate && !user) {
+    private createLobby(user: User | string, deck: Deck, isPrivate: boolean) {
+        if (!user) {
+            throw new Error('User must be provided to create a lobby');
+        }
+        if (!isPrivate && typeof user === 'string') {
             throw new Error('User must be provided for public lobbies');
         }
 
-        const lobby = new Lobby(isPrivate ? MatchType.Private : MatchType.Custom);
+        const lobby = new Lobby(
+            isPrivate ? MatchType.Private : MatchType.Custom,
+            this.cardDataGetter,
+            this.tokenCardsData,
+            this.playableCardTitles,
+            this.testGameBuilder
+        );
         this.lobbies.set(lobby.id, lobby);
-        // set default user if no user is supplied for private lobbies
-        if (!user) {
-            user = { id: uuid(), username: 'Player1' };
+        // set default user if anonymous user is supplied for private lobbies
+        if (typeof user === 'string') {
+            user = { id: user, username: 'Player1' };
         }
 
         lobby.createLobbyUser(user, deck);
         lobby.setLobbyOwner(user.id);
         this.userLobbyMap.set(user.id, lobby.id);
-
-        lobby.setTokens();
-        lobby.setPlayableCardTitles();
-        return user.id;
     }
 
-    private startTestGame(filename: string) {
-        const lobby = new Lobby(MatchType.Custom);
+    private async startTestGame(filename: string) {
+        const lobby = new Lobby(MatchType.Custom, this.cardDataGetter, this.tokenCardsData, this.playableCardTitles, this.testGameBuilder);
         this.lobbies.set(lobby.id, lobby);
         const order66 = { id: 'exe66', username: 'Order66' };
         const theWay = { id: 'th3w4y', username: 'ThisIsTheWay' };
@@ -197,11 +238,11 @@ export class GameServer {
         lobby.createLobbyUser(theWay);
         this.userLobbyMap.set(order66.id, lobby.id);
         this.userLobbyMap.set(theWay.id, lobby.id);
-        lobby.startTestGame(filename);
+        await lobby.startTestGame(filename);
     }
 
     private getTestSetupGames() {
-        const testGamesDirPath = path.resolve(__dirname, '../../test/gameSetups');
+        const testGamesDirPath = path.resolve(__dirname, '../../../test/gameSetups');
         if (!fs.existsSync(testGamesDirPath)) {
             return [];
         }
@@ -255,20 +296,15 @@ export class GameServer {
     //     next();
     // }
 
-    public onCardData(cardData) {
-        this.titleCardData = cardData.titleCardData;
-        this.shortCardData = cardData.shortCardData;
-    }
-
-    public onConnection(ioSocket) {
+    public async onConnection(ioSocket) {
         const user = JSON.parse(ioSocket.handshake.query.user);
         const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
 
         if (user) {
-            ioSocket.request.user = user;
+            ioSocket.data.user = user;
         }
 
-        if (!ioSocket.request.user) {
+        if (!ioSocket.data.user) {
             logger.info('socket connected with no user, disconnecting');
             ioSocket.disconnect();
             return;
@@ -280,7 +316,7 @@ export class GameServer {
             const lobby = this.lobbies.get(lobbyId);
 
             if (!lobby) {
-                logger.info('No lobby for', ioSocket.request.user.username, 'disconnecting');
+                logger.info('No lobby for', ioSocket.data.user.username, 'disconnecting');
                 ioSocket.disconnect();
                 return;
             }
@@ -298,7 +334,7 @@ export class GameServer {
         if (requestedLobby.lobbyId) {
             const lobby = this.lobbies.get(requestedLobby.lobbyId);
             if (!lobby) {
-                logger.info('No lobby with this link for', ioSocket.request.user.username, 'disconnecting');
+                logger.info('No lobby with this link for', ioSocket.data.user.username, 'disconnecting');
                 ioSocket.disconnect();
                 return;
             }
@@ -311,11 +347,12 @@ export class GameServer {
             }
 
             const socket = new Socket(ioSocket);
+
+            // anonymous user joining existing game
             if (!user.username) {
                 const newUser = { username: 'Player2', id: user.id };
                 lobby.addLobbyUser(newUser, socket);
                 this.userLobbyMap.set(newUser.id, lobby.id);
-                socket.send('connectedUser', newUser.id);
                 socket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
                 return;
             }
@@ -332,7 +369,7 @@ export class GameServer {
             // handle queue-specific events and add lobby disconnect
             ioSocket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
 
-            this.matchmakeQueuePlayers();
+            await this.matchmakeQueuePlayers();
             return;
         }
 
@@ -377,7 +414,7 @@ export class GameServer {
             }
 
             // Create a new Lobby
-            const lobby = new Lobby(MatchType.Quick);
+            const lobby = new Lobby(MatchType.Quick, this.cardDataGetter, this.tokenCardsData, this.playableCardTitles, this.testGameBuilder);
             this.lobbies.set(lobby.id, lobby);
 
             // Create the 2 lobby users
@@ -390,10 +427,12 @@ export class GameServer {
             if (socket1) {
                 lobby.addLobbyUser(p1.user, socket1);
                 socket1.on('disconnect', () => this.onSocketDisconnected(socket1.socket, p1.user.id));
+                socket1.registerEvent('requeue', () => this.requeueUser(socket1, p1.user, p1.deck));
             }
             if (socket2) {
                 lobby.addLobbyUser(p2.user, socket2);
                 socket2.on('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.id));
+                socket2.registerEvent('requeue', () => this.requeueUser(socket2, p2.user, p2.deck));
             }
 
             // Save user => lobby mapping
@@ -402,10 +441,7 @@ export class GameServer {
 
             // If needed, set tokens async
             lobby.setLobbyOwner(p1.user.id);
-            lobby.setTokens();
-            lobby.setPlayableCardTitles();
             // this needs to be here since we only send start game via the LobbyOwner.
-            lobby.setLobbyOwner(p1.user.id);
             lobby.sendLobbyState();
             logger.info(`Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
         }
@@ -416,6 +452,33 @@ export class GameServer {
      */
     private removeFromQueue(userId: string): void {
         this.queue = this.queue.filter((q) => q.user.id !== userId);
+    }
+
+    /**
+     * requeues the user and removes him from the previous lobby. If the lobby is empty, it cleans it up.
+     */
+    private async requeueUser(socket: Socket, user: User, deck: any) {
+        if (this.userLobbyMap.has(user.id)) {
+            const lobbyId = this.userLobbyMap.get(user.id);
+            const lobby = this.lobbies.get(lobbyId);
+            this.userLobbyMap.delete(user.id);
+            lobby.removeUser(user.id);
+            // check if lobby is empty
+            if (lobby.isEmpty()) {
+                // cleanup process
+                lobby.cleanLobby();
+                this.lobbies.delete(lobbyId);
+            }
+        }
+        // add user to queue
+        this.queue.push({
+            user,
+            deck,
+            socket: socket
+        });
+
+        // perform matchmaking
+        await this.matchmakeQueuePlayers();
     }
 
     public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {

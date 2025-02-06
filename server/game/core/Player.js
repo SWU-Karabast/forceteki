@@ -83,9 +83,6 @@ class Player extends GameObject {
         this.optionSettings = user.settings.optionSettings;
         this.resetTimerAtEndOfRound = false;
 
-        // TODO: this should be a user setting at some point
-        this.autoSingleTarget = true;
-
         this.promptState = new PlayerPromptState(this);
     }
 
@@ -95,6 +92,10 @@ class Player extends GameObject {
      */
     isPlayer() {
         return true;
+    }
+
+    get autoSingleTarget() {
+        return this.optionSettings.autoSingleTarget;
     }
 
     startClock() {
@@ -265,6 +266,8 @@ class Player extends GameObject {
                 return this.game.spaceArena.getCards({ controller: this });
             case ZoneName.GroundArena:
                 return this.game.groundArena.getCards({ controller: this });
+            case ZoneName.Capture:
+                return this.game.getAllCapturedCards(this);
             default:
                 Contract.fail(`Unknown zone: ${zoneName}`);
         }
@@ -906,7 +909,7 @@ class Player extends GameObject {
     }
 
     get drawDeck() {
-        return this.deckZone.cards;
+        return this.deckZone.deck;
     }
 
     /**
@@ -1026,7 +1029,11 @@ class Player extends GameObject {
     }
 
     getSummaryForZone(zone, activePlayer) {
-        return this.getCardsInZone(zone).map((card) => {
+        const zoneCards = zone === ZoneName.Deck
+            ? this.drawDeck
+            : this.getCardsInZone(zone);
+
+        return zoneCards.map((card) => {
             return card.getSummary(activePlayer);
         });
     }
@@ -1106,6 +1113,7 @@ class Player extends GameObject {
             cardPiles: {
                 hand: this.getSummaryForZone(ZoneName.Hand, activePlayer),
                 outsideTheGame: this.getSummaryForZone(ZoneName.OutsideTheGame, activePlayer),
+                capturedZone: this.getSummaryForZone(ZoneName.Capture, activePlayer),
                 resources: this.getSummaryForZone(ZoneName.Resource, activePlayer),
                 groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer),
                 spaceArena: this.getSummaryForZone(ZoneName.SpaceArena, activePlayer),

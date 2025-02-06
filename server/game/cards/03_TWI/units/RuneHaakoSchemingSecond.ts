@@ -35,5 +35,3 @@ export default class RuneHaakoSchemingSecond extends NonLeaderUnitCard {
         });
     }
 }
-
-RuneHaakoSchemingSecond.implemented = true;

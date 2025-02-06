@@ -3,6 +3,8 @@ import { EventCard } from '../../../core/card/EventCard';
 import { Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class ItBindsAllThings extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId () {
         return {
             id: '0867878280',
@@ -24,15 +26,13 @@ export default class ItBindsAllThings extends EventCard {
                 title: 'If you control a Force unit, you may deal that much damage to another unit.',
                 optional: true,
                 thenCondition: () => thenContext.source.controller.isTraitInPlay(Trait.Force) &&
-                  thenContext.events[0].damageRemoved > 0,
+                  thenContext.events[0].totalDistributed > 0,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => card !== thenContext.events[0].card,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: thenContext.events[0].damageRemoved }),
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: thenContext.events[0].totalDistributed }),
                 }
             })
         });
     }
 }
-
-ItBindsAllThings.implemented = true;

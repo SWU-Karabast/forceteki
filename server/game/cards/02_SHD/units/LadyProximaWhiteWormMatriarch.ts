@@ -27,5 +27,3 @@ export default class LadyProximaWhiteWormMatriarch extends NonLeaderUnitCard {
         });
     }
 }
-
-LadyProximaWhiteWormMatriarch.implemented = true;

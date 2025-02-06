@@ -2,9 +2,9 @@ import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
 import type { Aspect } from '../Constants';
-import { EffectName, EventName, KeywordName, PhaseName, PlayType, Stage } from '../Constants';
+import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
-import { AbilityContext } from './AbilityContext';
+import type { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import type { CostAdjuster } from '../cost/CostAdjuster';
@@ -13,6 +13,8 @@ import * as Contract from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';
 import { ExploitCostAdjuster } from '../../abilities/keyword/ExploitCostAdjuster';
+import type Game from '../Game';
+import type Player from '../Player';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -22,6 +24,7 @@ export interface IPlayCardActionPropertiesBase {
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
     exploitValue?: number;
+    canPlayFromAnyZone?: boolean;
 }
 
 interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
@@ -43,10 +46,11 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly costAdjusters: CostAdjuster[];
     public readonly exploitValue?: number;
     public readonly playType: PlayType;
+    public readonly canPlayFromAnyZone: boolean;
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
-    public constructor(card: Card, properties: IPlayCardActionProperties) {
+    public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
         Contract.assertTrue(card.hasCost());
 
         let propertiesWithDefaults = {
@@ -85,6 +89,7 @@ export abstract class PlayCardAction extends PlayerAction {
         const playCost = new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
 
         super(
+            game,
             card,
             PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit, appendSmuggleToTitle),
             propertiesWithDefaults.additionalCosts.concat(playCost),
@@ -96,6 +101,7 @@ export abstract class PlayCardAction extends PlayerAction {
         this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
+        this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
     }
 
     public hasAvailableExploit(context: AbilityContext) {
@@ -146,7 +152,7 @@ export abstract class PlayCardAction extends PlayerAction {
             return 'phase';
         }
         if (
-            !ignoredRequirements.includes('zone') &&
+            !ignoredRequirements.includes('zone') && !this.canPlayFromAnyZone &&
             !context.player.isCardInPlayableZone(context.source, this.playType)
         ) {
             return 'zone';
@@ -163,15 +169,11 @@ export abstract class PlayCardAction extends PlayerAction {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
-    public override createContext(player = this.card.controller) {
-        return new AbilityContext({
-            ability: this,
-            game: this.card.game,
-            player: player,
-            source: this.card,
-            stage: Stage.PreTarget,
+    public override getContextProperties(player: Player, event: any) {
+        return {
+            ...super.getContextProperties(player, event),
             costAspects: this.card.aspects
-        });
+        };
     }
 
     public override isPlayCardAbility(): this is PlayCardAction {

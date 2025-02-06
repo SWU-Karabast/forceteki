@@ -24,5 +24,3 @@ export default class JedhaAgitator extends NonLeaderUnitCard {
         });
     }
 }
-
-JedhaAgitator.implemented = true;

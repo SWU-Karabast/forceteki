@@ -25,6 +25,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     selector?: BaseCardSelector;
     mode?: TargetMode;
     numCards?: number;
+    numCardsFunc?: (context: TContext) => number;
     canChooseNoCards?: boolean;
     innerSystemProperties?: (card: Card) => any;
     cancelHandler?: () => void;
@@ -69,10 +70,11 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         properties.innerSystem.setDefaultTargetFn(() => properties.target);
         if (!properties.selector) {
             const cardCondition = (card, context) =>
+                properties.cardCondition(card, context) &&
                 properties.innerSystem.allTargetsLegal(
                     context,
                     Object.assign({}, additionalProperties, properties.innerSystemProperties(card))
-                ) && properties.cardCondition(card, context);
+                );
             properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition }));
         }
 
@@ -195,12 +197,21 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             return true;
         }
 
+        if (properties.isCost === true) {
+            return false;
+        }
+
         if (properties.mode === TargetMode.Exactly || properties.mode === TargetMode.ExactlyVariable || properties.mode === TargetMode.Single) {
             return false;
         }
 
         const controller = typeof properties.controller === 'function' ? properties.controller(context) : properties.controller;
-        return properties.canChooseNoCards || (CardTargetResolver.allZonesAreHidden(properties.zoneFilter, controller) && properties.selector.hasAnyCardFilter);
+        const hasAnyCardFilter = this.hasAnyCardFilter(properties);
+        return properties.canChooseNoCards || (CardTargetResolver.allZonesAreHidden(properties.zoneFilter, controller) && hasAnyCardFilter);
+    }
+
+    private hasAnyCardFilter(properties): boolean {
+        return properties.cardTypeFilter || this.properties.cardCondition;
     }
 
     private getContextCopy(card: Card, context: TContext): TContext {

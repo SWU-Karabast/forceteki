@@ -192,6 +192,7 @@ class ActionWindow extends UiPrompt {
         super.complete();
     }
 
+    /** @override */
     highlightSelectableCards() {
         const allPossibleCards = this.game.findAnyCardsInPlay().concat(
             this.activePlayer.discardZone.cards,
@@ -208,6 +209,7 @@ class ActionWindow extends UiPrompt {
         }
 
         this.activePlayer.setSelectableCards(cardsWithLegalActions);
+        this.activePlayer.opponent.setSelectableCards([]);
     }
 
     // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.

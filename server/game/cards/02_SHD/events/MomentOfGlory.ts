@@ -22,5 +22,3 @@ export default class MomentOfGlory extends EventCard {
         });
     }
 }
-
-MomentOfGlory.implemented = true;

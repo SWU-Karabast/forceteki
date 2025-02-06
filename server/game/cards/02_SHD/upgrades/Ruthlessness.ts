@@ -25,5 +25,3 @@ export default class Ruthlessness extends UpgradeCard {
         });
     }
 }
-
-Ruthlessness.implemented = true;

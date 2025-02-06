@@ -4,6 +4,8 @@ import { KeywordName, RelativePlayer, WildcardCardType, WildcardZoneName } from 
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '0622803599',
@@ -85,5 +87,3 @@ export default class JabbaTheHuttHisHighExaltedness extends LeaderUnitCard {
         });
     }
 }
-
-JabbaTheHuttHisHighExaltedness.implemented = true;

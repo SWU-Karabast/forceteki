@@ -25,7 +25,7 @@ describe('Wrecker, Boom!', function() {
                 // select a resource to defeat
                 expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.devotion);
 
                 // select a ground unit to deal 5 damage
@@ -46,11 +46,11 @@ describe('Wrecker, Boom!', function() {
                 // select a resource to defeat
                 expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNoTargetButton();
 
                 // as we pass nothing happen
                 expect(context.player1.resources.length).toBe(6);
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
                 expect(context.player2).toBeActivePlayer();
             });
         });

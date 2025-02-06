@@ -22,5 +22,3 @@ export default class BailOrganaRebelCouncilor extends NonLeaderUnitCard {
         });
     }
 }
-
-BailOrganaRebelCouncilor.implemented = true;

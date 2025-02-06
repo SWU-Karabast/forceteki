@@ -5,6 +5,8 @@ import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatc
 import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class RuleWithRespect extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;
 
     protected override getImplementationId() {
@@ -37,5 +39,3 @@ export default class RuleWithRespect extends EventCard {
         });
     }
 }
-
-RuleWithRespect.implemented = true;

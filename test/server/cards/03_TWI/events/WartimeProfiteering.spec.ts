@@ -33,9 +33,10 @@ describe('Wartime Profiteering', function () {
 
                 // show 2 cards and select 1
                 context.player1.clickCard(context.wartimeProfiteering);
-                expect(context.player1).toHaveEnabledPromptButtons([context.atst.title, context.yoda.title, 'Take nothing']);
-                context.player1.clickPrompt(context.yoda.title);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.atst, context.yoda]);
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
+                context.player1.clickCardInDisplayCardPrompt(context.yoda);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.yoda).toBeInZone('hand');
                 expect(context.atst).toBeInBottomOfDeck(context.player1, 1);

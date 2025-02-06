@@ -8,6 +8,13 @@ const mkdirp = require('mkdirp');
 const path = require('path');
 const cliProgress = require('cli-progress');
 
+// ############################################################################
+// #################                 IMPORTANT              ###################
+// ############################################################################
+// if you are updating this script in a way that will change the card data,
+// you must also update card-data-version.txt with a new version number
+// so that the pipeline and other devs will know to update the card data
+
 const pathToJSON = path.join(__dirname, '../test/json/');
 
 axiosRetry(axios, {
@@ -31,6 +38,15 @@ function populateMissingData(attributes, id) {
             attributes.upgradeHp = 0;
             attributes.upgradePower = 0;
             break;
+        case '8777351722': // Anakin Skywalker - What It Takes To Win
+            attributes.keywords = {
+                data: [{
+                    attributes: {
+                        name: 'Overwhelm'
+                    }
+                }]
+            };
+            break;
     }
 }
 
@@ -50,7 +66,7 @@ function filterValues(card) {
     }
 
     // filtering out C24 for now since we do not handle variants
-    if (card.attributes.expansion.data.attributes.code === 'C24' || card.attributes.expansion.data.attributes.code === 'JTL') {
+    if (card.attributes.expansion.data.attributes.code === 'C24') {
         return null;
     }
 
@@ -124,7 +140,7 @@ function getUniqueCards(cards) {
     const seenNames = [];
     var duplicatesWithSetCode = {};
     const uniqueCardsMap = new Map();
-    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3]]);
+    const setNumber = new Map([['SOR', 1], ['SHD', 2], ['TWI', 3], ['JTL', 4]]);
 
     for (const card of cards) {
         // creates a map of set code + card number to card id. removes reprints when done since we don't need that in the card data
@@ -198,7 +214,7 @@ async function main() {
     const fileWriteProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}' });
     fileWriteProgressBar.start(uniqueCards.length, 0);
 
-    await Promise.all(uniqueCards.map(async (card) => {
+    await Promise.all(uniqueCards.map((card) => {
         fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify([card], null, 2));
         fileWriteProgressBar.increment();
     }));
@@ -213,13 +229,9 @@ async function main() {
     fs.writeFile(path.join(pathToJSON, '_cardMap.json'), JSON.stringify(cardMap, null, 2));
     fs.writeFile(path.join(pathToJSON, '_playableCardTitles.json'), JSON.stringify(playableCardTitles, null, 2));
     fs.writeFile(path.join(pathToJSON, '_setCodeMap.json'), JSON.stringify(setCodeMap, null, 2));
+    fs.copyFile(path.join(__dirname, '../card-data-version.txt'), path.join(pathToJSON, 'card-data-version.txt'));
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }
 
-// TODO: some downloads can fail due to request issues, either improve the retry settings or add
-// some check on number of downloaded cards so we can have an error message
-
-// TODO: upload the set of card jsons as a github artifact so we're not relying on downloading
-// from the SWU site
 main();

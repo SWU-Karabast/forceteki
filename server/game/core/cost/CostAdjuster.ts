@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
-import type { PlayType, Aspect, CardTypeFilter } from '../Constants';
+import type { Aspect, CardTypeFilter, PlayType } from '../Constants';
 import { WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
@@ -9,6 +9,7 @@ import * as Contract from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/ExploitCostAdjuster';
 import type { ICostResult } from './ICost';
 import type { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
+import * as EnumHelpers from '../utils/EnumHelpers';
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -121,7 +122,10 @@ export class CostAdjuster {
         } else if (this.ignoredAspects && this.ignoredAspects !== ignoredAspects) {
             return false;
         }
-        return this.checkMatch(card) && this.checkAttachTargetCondition(context, attachTarget);
+
+        return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) &&
+          this.checkMatch(card) &&
+          this.checkAttachTargetCondition(context, attachTarget);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

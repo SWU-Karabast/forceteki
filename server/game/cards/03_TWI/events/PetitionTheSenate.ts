@@ -21,5 +21,3 @@ export default class PetitionTheSenate extends EventCard {
         });
     }
 }
-
-PetitionTheSenate.implemented = true;

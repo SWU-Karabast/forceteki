@@ -22,7 +22,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     private static choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
 
     public static allZonesAreHidden(zoneFilter: ZoneFilter | ZoneFilter[], controller: RelativePlayer): boolean {
-        return zoneFilter && zoneFilter.length > 0 && Helpers.asArray(zoneFilter).every((zone) => EnumHelpers.isHidden(zone, controller));
+        if (!zoneFilter) {
+            return false;
+        }
+        const zoneArray = Helpers.asArray(zoneFilter);
+        return zoneArray.length > 0 && zoneArray.every((zone) => EnumHelpers.isHiddenFromOpponent(zone, controller));
     }
 
     public constructor(name: string, properties: ICardTargetResolver<AbilityContext>, ability: PlayerOrCardAbility = null) {
@@ -93,7 +97,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         let choosingFromHidden = false;
         const choosingPlayer = typeof this.properties.choosingPlayer === 'function' ? this.properties.choosingPlayer(context) : this.properties.choosingPlayer;
         const zones = new Set<ZoneName>(legalTargets.map((card) => card.zoneName));
-        if (CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)) {
+        if ((!!this.properties.cardTypeFilter || !!this.properties.cardCondition) && CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)) {
             this.properties.optional = true;
             this.selector.optional = true;
             this.selector.appendToDefaultTitle = CardTargetResolver.choosingFromHiddenPrompt;

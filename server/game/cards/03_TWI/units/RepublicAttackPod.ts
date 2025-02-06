@@ -17,5 +17,3 @@ export default class RepublicAttackPod extends NonLeaderUnitCard {
         });
     }
 }
-
-RepublicAttackPod.implemented = true;

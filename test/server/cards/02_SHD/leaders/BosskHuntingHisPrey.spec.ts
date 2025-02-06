@@ -177,7 +177,7 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player2.clickCard(context.wantedInsurgents);
                 context.player2.clickCard(context.bossk);
                 expect(context.player1).toBeAbleToSelectExactly([context.bossk, context.trandoshanHunters]);
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
                 expect(context.player1).toBeActivePlayer();
 
                 resetPhase();
@@ -393,10 +393,13 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player1.clickCard(context.cloneTrooper);
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
                 context.player1.clickPrompt(prompt);
-                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine.title, context.snowtrooperLieutenant.title, context.sabineWren.title, 'Take nothing']);
-                expect(context.player1).toHaveDisabledPromptButtons([context.waylay, context.protector.title]);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.battlefieldMarine, context.snowtrooperLieutenant, context.sabineWren],
+                    invalid: [context.waylay, context.protector]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.battlefieldMarine.title);
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(0);
                 expect([context.sabineWren, context.waylay, context.snowtrooperLieutenant, context.protector]).toAllBeInBottomOfDeck(context.player1, 4);
@@ -404,10 +407,13 @@ describe('Bossk, Hunting his Prey', function () {
                 // second Bounty trigger, play a unit that has a "when played" which triggers an attack
                 expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
                 context.player1.clickPrompt('Collect the Bounty again');
-                expect(context.player1).toHaveEnabledPromptButtons([context.infernoFour.title, context.sabineWren.title, context.snowtrooperLieutenant.title, 'Take nothing']);
-                expect(context.player1).toHaveDisabledPromptButtons([context.waylay, context.protector.title]);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.infernoFour, context.sabineWren, context.snowtrooperLieutenant],
+                    invalid: [context.waylay, context.protector]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.snowtrooperLieutenant.title);
+                context.player1.clickCardInDisplayCardPrompt(context.snowtrooperLieutenant);
                 expect(context.snowtrooperLieutenant).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(0);
 
@@ -433,10 +439,13 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player1.clickCard(context.cloneTrooper);
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
                 context.player1.clickPrompt(prompt);
-                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine.title, context.snowtrooperLieutenant.title, context.sabineWren.title, 'Take nothing']);
-                expect(context.player1).toHaveDisabledPromptButtons([context.waylay, context.protector.title]);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.battlefieldMarine, context.snowtrooperLieutenant, context.sabineWren],
+                    invalid: [context.waylay, context.protector]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.snowtrooperLieutenant.title);
+                context.player1.clickCardInDisplayCardPrompt(context.snowtrooperLieutenant);
                 expect(context.snowtrooperLieutenant).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(0);
 

@@ -5,6 +5,8 @@ import type { Card } from '../../../core/card/Card';
 import type Player from '../../../core/Player';
 
 export default class LegalAuthority extends UpgradeCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '8877249477',
@@ -29,5 +31,3 @@ export default class LegalAuthority extends UpgradeCard {
         });
     }
 }
-
-LegalAuthority.implemented = true;

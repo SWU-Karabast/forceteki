@@ -19,5 +19,3 @@ export default class GeneralDodonnaMassassiGroupCommander extends NonLeaderUnitC
         });
     }
 }
-
-GeneralDodonnaMassassiGroupCommander.implemented = true;

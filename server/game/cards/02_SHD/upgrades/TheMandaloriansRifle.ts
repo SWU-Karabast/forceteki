@@ -5,6 +5,8 @@ import type { Card } from '../../../core/card/Card';
 import type Player from '../../../core/Player';
 
 export default class TheMandaloriansRifle extends UpgradeCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '0754286363',
@@ -33,5 +35,3 @@ export default class TheMandaloriansRifle extends UpgradeCard {
         });
     }
 }
-
-TheMandaloriansRifle.implemented = true;

@@ -38,5 +38,3 @@ export default class Aggression extends EventCard {
         });
     }
 }
-
-Aggression.implemented = true;

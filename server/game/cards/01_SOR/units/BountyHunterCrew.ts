@@ -22,5 +22,3 @@ export default class BountyHunterCrew extends NonLeaderUnitCard {
         });
     }
 }
-
-BountyHunterCrew.implemented = true;

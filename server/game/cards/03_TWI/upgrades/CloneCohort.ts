@@ -22,5 +22,3 @@ export default class CloneCohort extends UpgradeCard {
         });
     }
 }
-
-CloneCohort.implemented = true;

@@ -94,17 +94,17 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
 
         public get capturedUnits() {
-            this.assertPropertyEnabled(this._captureZone, 'capturedUnits');
+            this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
             return this._captureZone.cards;
         }
 
         public get captureZone() {
-            this.assertPropertyEnabled(this._captureZone, 'captureZone');
+            this.assertPropertyEnabledForZone(this._captureZone, 'captureZone');
             return this._captureZone;
         }
 
         public get upgrades(): UpgradeCard[] {
-            this.assertPropertyEnabled(this._upgrades, 'upgrades');
+            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             return this._upgrades;
         }
 
@@ -152,7 +152,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
             }
 
-            this.attackAction = new InitiateAttackAction(this);
+            this.attackAction = new InitiateAttackAction(this.game, this);
         }
 
         // ****************************************** PROPERTY HELPERS ******************************************
@@ -626,7 +626,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * @param {UpgradeCard} upgrade
          */
         public unattachUpgrade(upgrade) {
-            this.assertPropertyEnabled(this._upgrades, 'upgrades');
+            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             this._upgrades = this._upgrades.filter((card) => card.uuid !== upgrade.uuid);
         }
 
@@ -634,7 +634,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Add the passed card to this card's upgrade list. Upgrade must already be moved to the correct arena.
          */
         public attachUpgrade(upgrade) {
-            this.assertPropertyEnabled(this._upgrades, 'upgrades');
+            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             Contract.assertEqual(upgrade.zoneName, this.zoneName);
             Contract.assertTrue(this.zone.hasCard(upgrade));
 
@@ -659,7 +659,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     sentinel: hasSentinel
                 };
             }
-            return super.getSummary(activePlayer);
+            return {
+                ...super.getSummary(activePlayer),
+                parentCardId: this.getCaptor()?.uuid,
+            };
         }
     };
 }

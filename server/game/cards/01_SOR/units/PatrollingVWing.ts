@@ -16,5 +16,3 @@ export default class PatrollingVWing extends NonLeaderUnitCard {
         });
     }
 }
-
-PatrollingVWing.implemented = true;

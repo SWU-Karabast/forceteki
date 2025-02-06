@@ -3,6 +3,8 @@ import { EventCard } from '../../../core/card/EventCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class YoureMyOnlyHope extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '3509161777',
