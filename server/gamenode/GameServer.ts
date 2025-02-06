@@ -127,6 +127,8 @@ export class GameServer {
 
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
+        this.tokenCardsData = tokenCardsData;
+        this.playableCardTitles = playableCardTitles;
     }
 
     private setupAppRoutes(app: express.Application) {

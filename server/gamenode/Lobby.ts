@@ -34,14 +34,13 @@ export class Lobby {
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
     private readonly gameChat: GameChat;
-    private readonly cardDataGetter: CardDataGetter;
+    private readonly cardDataGetter: CardDataGetter; // TODO: currently not used but will be once we migrate card loading logic out of the FE
     private readonly testGameBuilder?: any;
     private readonly tokenCardsData: ITokenCardsData;
     private readonly playableCardTitles: string[];
 
     private game: Game;
     private users: LobbyUser[] = [];
-    private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private lobbyOwnerId: string;
     private gameType: MatchType;
     private rematchRequest?: RematchRequest = null;
@@ -326,7 +325,7 @@ export class Lobby {
             }
         });
 
-        game.initialiseTokens(this.tokens);
+        game.initialiseTokens(this.tokenCardsData);
         game.initialise();
 
         this.sendGameState(game);

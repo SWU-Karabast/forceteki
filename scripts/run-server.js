@@ -11,7 +11,7 @@ function createEnvFile() {
         ENVIRONMENT: 'development',
         SECRET: 'verysecret',
         // set this to "true" to force the local client to pull card data jsons from AWS instead of local folder
-        FORCE_REMOTE_CARD_DATA: 'true',
+        FORCE_REMOTE_CARD_DATA: 'false',
     };
     return fs.writeFile(
         envPath,
