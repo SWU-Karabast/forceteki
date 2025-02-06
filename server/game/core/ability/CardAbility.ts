@@ -1,5 +1,5 @@
 import type { ZoneFilter } from '../Constants';
-import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName } from '../Constants';
+import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as Contract from '../utils/Contract';
 import CardAbilityStep from './CardAbilityStep';
 import * as AbilityLimit from './AbilityLimit';
@@ -54,13 +54,15 @@ export abstract class CardAbility extends CardAbilityStep {
     }
 
     protected controllerMeetsRequirements(context) {
-        switch (this.abilityController) {
+        switch (this.abilityActivator) {
+            case WildcardRelativePlayer.Any:
+                return true;
             case RelativePlayer.Self:
                 return context.player === context.source.controller;
             case RelativePlayer.Opponent:
                 return context.player === context.source.controller.opponent;
             default:
-                Contract.fail(`Unexpected value for relative player: ${this.abilityController}`);
+                Contract.fail(`Unexpected value for relative player: ${this.abilityActivator}`);
         }
     }
 

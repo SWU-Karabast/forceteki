@@ -217,7 +217,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.addTriggeredAbility(triggeredProperties);
         }
 
-        protected addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<this>, 'abilityController'>): void {
+        protected addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<this>, 'abilityActivator'>): void {
             const bountyKeywords = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Bounty);
             const bountyKeywordsWithoutImpl = bountyKeywords.filter((keyword) => !keyword.isFullyImplemented);
 

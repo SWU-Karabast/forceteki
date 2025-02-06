@@ -48,7 +48,7 @@ class PlayerOrCardAbility {
         this.immediateEffect = properties.immediateEffect;
         this.uuid = uuidv4();
         this.canResolveWithoutLegalTargets = false;
-        this.abilityController = properties.abilityController ?? RelativePlayer.Self;
+        this.abilityActivator = properties.abilityActivator ?? RelativePlayer.Self;
 
         Contract.assertFalse(
             !this.optional && (properties.playerChoosingOptional || properties.optionalButtonTextOverride),
@@ -351,7 +351,7 @@ class PlayerOrCardAbility {
     /** Return the controller of ability, can be different from card's controller (with bounty for exemple)
      * @returns {Player} */
     get controller() {
-        return this.abilityController === RelativePlayer.Self ? this.card.controller : this.card.controller.opponent;
+        return this.abilityActivator === RelativePlayer.Self ? this.card.controller : this.card.controller.opponent;
     }
 }
 

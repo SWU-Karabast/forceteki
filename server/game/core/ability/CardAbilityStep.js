@@ -144,9 +144,9 @@ class CardAbilityStep extends PlayerOrCardAbility {
     getSubAbilityStepContext(context, resolvedAbilityEvents = []) {
         if (this.properties.then) {
             const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
-            const abilityController = this.getAbilityController(then, context);
+            const abilityActivator = this.getAbilityActivator(then, context);
             if (!then.thenCondition || then.thenCondition(context)) {
-                return this.buildSubAbilityStepContext(then, abilityController);
+                return this.buildSubAbilityStepContext(then, abilityActivator);
             }
 
             return null;
@@ -179,13 +179,13 @@ class CardAbilityStep extends PlayerOrCardAbility {
         }
 
         const concreteIfAbility = this.getConcreteSubAbilityStepProperties(ifAbility, context);
-        const abilityController = this.getAbilityController(concreteIfAbility, context);
+        const abilityActivator = this.getAbilityActivator(concreteIfAbility, context);
 
         // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
         const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
 
         return conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve
-            ? this.buildSubAbilityStepContext(concreteIfAbility, abilityController)
+            ? this.buildSubAbilityStepContext(concreteIfAbility, abilityActivator)
             : null;
     }
 
@@ -196,17 +196,17 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return { ...properties, triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
     }
 
-    buildSubAbilityStepContext(subAbilityStepProps, abilityController) {
-        return this.buildSubAbilityStep(subAbilityStepProps).createContext(abilityController);
+    buildSubAbilityStepContext(subAbilityStepProps, abilityActivator) {
+        return this.buildSubAbilityStep(subAbilityStepProps).createContext(abilityActivator);
     }
 
     buildSubAbilityStep(subAbilityStepProps) {
         return new CardAbilityStep(this.game, this.card, subAbilityStepProps, this.type);
     }
 
-    getAbilityController(subAbilityStep, context) {
-        if (subAbilityStep.abilityController) {
-            return subAbilityStep.abilityController === RelativePlayer.Self ? context.player : context.player.opponent;
+    getAbilityActivator(subAbilityStep, context) {
+        if (subAbilityStep.abilityActivator) {
+            return subAbilityStep.abilityActivator === RelativePlayer.Self ? context.player : context.player.opponent;
         }
 
         return context.player;
