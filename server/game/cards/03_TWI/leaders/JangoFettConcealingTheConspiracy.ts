@@ -62,7 +62,7 @@ export default class JangoFettConcealingTheConspiracy extends LeaderUnitCard {
             if (
                 event.damageSource.type === DamageSourceType.Attack &&
                 event.damageSource.damageDealtBy.isUnit() &&
-                event.damageSource.player === context.source.controller
+                event.damageSource.damageDealtBy.controller === context.source.controller
             ) {
                 console.log(`[Attack Damage Source] ${event.damageSource.damageDealtBy.title}`);
                 return true;
