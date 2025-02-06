@@ -1,6 +1,6 @@
 describe('Regional Governor', function () {
     integration(function (contextRef) {
-        it('should give an Experience to all damaged friendly unit', function () {
+        it('Regional Governor\'s ability should name a card and opponent can\'t play named cards', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
