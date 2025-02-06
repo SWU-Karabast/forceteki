@@ -5,7 +5,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['droideka-security', 'generals-guardian', 'pyke-sentinel'],
+                        hand: ['droideka-security', 'generals-guardian', 'pyke-sentinel', 'dwarf-spider-droid'],
                         groundArena: ['battle-droid', 'atst', 'snowspeeder'],
                         spaceArena: ['cartel-spacer'],
                         leader: 'count-dooku#face-of-the-confederacy',
@@ -18,8 +18,9 @@ describe('Count Dooku, Face of the Confederacy', function () {
             it('should play a Separatist card from hand that does not already have Exploit and give it Exploit 1', function () {
                 const { context } = contextRef;
 
+                // CASE 1: play a Separatist card from hand that does not already have Exploit and give it Exploit 1
                 context.player1.clickCard(context.countDooku);
-                expect(context.player1).toBeAbleToSelectExactly([context.droidekaSecurity, context.generalsGuardian]);
+                expect(context.player1).toBeAbleToSelectExactly([context.droidekaSecurity, context.generalsGuardian, context.dwarfSpiderDroid]);
                 context.player1.clickCard(context.generalsGuardian);
                 expect(context.player1).toHaveExactPromptButtons(['Play General\'s Guardian', 'Play General\'s Guardian using Exploit']);
 
@@ -39,22 +40,21 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 expect(context.atst).toBeInZone('groundArena');
                 expect(context.generalsGuardian).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(2);
-            });
 
-            it('should play a Separatist card from hand that has Exploit and give it an additional Exploit 1', function () {
-                const { context } = contextRef;
+                context.moveToNextActionPhase();
 
+                // CASE 2: play a Separatist card from hand that has Exploit already and give it an additional Exploit 1
                 context.player1.clickCard(context.countDooku);
-                expect(context.player1).toBeAbleToSelectExactly([context.droidekaSecurity, context.generalsGuardian]);
+                expect(context.player1).toBeAbleToSelectExactly([context.droidekaSecurity, context.dwarfSpiderDroid]);
                 context.player1.clickCard(context.droidekaSecurity);
                 expect(context.player1).toHaveExactPromptButtons(['Play Droideka Security', 'Play Droideka Security using Exploit']);
 
                 context.player1.clickPrompt('Play Droideka Security using Exploit');
-                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.atst, context.snowspeeder, context.cartelSpacer]);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.snowspeeder, context.cartelSpacer, context.generalsGuardian]);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
                 // Exploit selection
-                context.player1.clickCard(context.battleDroid);
+                context.player1.clickCard(context.generalsGuardian);
                 expect(context.player1).toHaveEnabledPromptButton('Done');
                 context.player1.clickCard(context.snowspeeder);
                 context.player1.clickCard(context.cartelSpacer);
@@ -63,38 +63,36 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 context.player1.clickPrompt('Done');
 
                 // confirm Exploit results
-                expect(context.battleDroid).toBeInZone('outsideTheGame');
                 expect(context.snowspeeder).toBeInZone('discard');
                 expect(context.cartelSpacer).toBeInZone('discard');
                 expect(context.atst).toBeInZone('groundArena');
                 expect(context.droidekaSecurity).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(0);
-            });
 
-            it('should play a Separatist card from hand that does not already have Exploit and give it Exploit 1 as the required play option if there are not enough resources for standard play', function () {
-                const { context } = contextRef;
+                context.moveToNextActionPhase();
 
+                // CASE 3: should play a Separatist card from hand that does not already have Exploit and give it Exploit 1 as the required play option if there are not enough resources for standard play
                 context.player1.exhaustResources(4);
 
                 context.player1.clickCard(context.countDooku);
-                expect(context.player1).toBeAbleToSelectExactly([context.droidekaSecurity, context.generalsGuardian]);
-                context.player1.clickCard(context.generalsGuardian);
+                expect(context.player1).toBeAbleToSelectExactly([context.dwarfSpiderDroid]);
+                context.player1.clickCard(context.dwarfSpiderDroid);
 
                 // go directly to Exploit selection since there are too few resources for standard play
-                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.atst, context.snowspeeder, context.cartelSpacer]);
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.droidekaSecurity]);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
                 // Exploit selection
-                context.player1.clickCard(context.battleDroid);
+                context.player1.clickCard(context.droidekaSecurity);
                 expect(context.player1).toHaveEnabledPromptButton('Done');
                 // extra click on AT-ST to confirm that the Exploit limit is 1
                 context.player1.clickCardNonChecking(context.atst);
                 context.player1.clickPrompt('Done');
 
                 // confirm Exploit results
-                expect(context.battleDroid).toBeInZone('outsideTheGame');
+                expect(context.droidekaSecurity).toBeInZone('discard');
                 expect(context.atst).toBeInZone('groundArena');
-                expect(context.generalsGuardian).toBeInZone('groundArena');
+                expect(context.dwarfSpiderDroid).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(6);
             });
         });
