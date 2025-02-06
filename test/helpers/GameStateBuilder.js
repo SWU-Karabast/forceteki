@@ -190,8 +190,7 @@ class GameStateBuilder {
             context.cardPropertyNames.push(card.propertyName);
         });
 
-        context.game.resolveGameState(true);
-        // Util.refreshGameState(context.game);
+        Util.refreshGameState(context.game);
 
         this.attachAbbreviatedContextInfo(context, context);
     }

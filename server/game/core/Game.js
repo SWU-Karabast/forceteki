@@ -76,6 +76,7 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
         this.randomGenerator = seedrandom();
+        this.currentOpenPrompt = null;
 
         /** @type {import('../Interfaces').IClientUIProperties} */
         this.clientUIProperties = {};
