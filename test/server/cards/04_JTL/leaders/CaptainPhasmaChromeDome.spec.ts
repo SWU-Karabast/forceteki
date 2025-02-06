@@ -6,11 +6,12 @@ describe('Captain Phasma, Chrome Dome', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['kylo-ren#killing-the-past', 'kylos-tie-silencer#ruthlessly-efficient'],
+                        hand: ['kylos-tie-silencer#ruthlessly-efficient'],
                         groundArena: ['supreme-leader-snoke#shadow-ruler'],
                         leader: 'captain-phasma#chrome-dome'
                     },
                     player2: {
+                        hand: ['kylo-ren#killing-the-past'],
                         spaceArena: ['alliance-xwing'],
                         groundArena: ['wampa']
                     }
@@ -18,7 +19,11 @@ describe('Captain Phasma, Chrome Dome', function() {
 
                 const { context } = contextRef;
 
-                // No First Order card played but 1 in play; ability should not trigger
+                // Opponent plays the first First Order card
+                context.player1.passAction();
+                context.player2.clickCard(context.kyloRen);
+
+                // No First Order card played by controller but 1 in play and 1 played by the opponent; ability should not trigger
                 context.player1.clickCard(context.captainPhasma);
                 context.player1.clickPrompt('Deal 1 damage to a base');
 
@@ -76,6 +81,7 @@ describe('Captain Phasma, Chrome Dome', function() {
 
                 // Damage to a base (not optional)
                 expect(context.player1).toHavePrompt('Choose a base');
+                expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player2).toBeActivePlayer();
