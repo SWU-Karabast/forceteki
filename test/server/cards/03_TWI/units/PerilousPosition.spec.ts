@@ -15,5 +15,21 @@ describe('Confederate Courier\'s ability', function () {
             context.player1.clickCard(context.outspokenRepresentative);
             expect(context.outspokenRepresentative.exhausted).toBeTrue();
         });
+
+        it('should defeat unit when played', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['perilous-position'],
+                    groundArena: ['crafty-smuggler']
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.perilousPosition);
+            expect(context.player1).toBeAbleToSelectExactly([context.craftySmuggler]);
+            context.player1.clickCard(context.craftySmuggler);
+            expect(context.craftySmuggler).toBeInZone('discard');
+        });
     });
 });
