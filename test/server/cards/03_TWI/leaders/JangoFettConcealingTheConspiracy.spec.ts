@@ -257,6 +257,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                         hand: [
                             'elite-p38-starfighter',
                             'overwhelming-barrage',
+                            'strike-true',
                         ],
                         groundArena: [
                             'crafty-smuggler',
@@ -285,7 +286,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                     context.jangoFett.damage = 0;
                 };
 
-                // CASE 8: Trigger Jango's ability from combat damage
+                // CASE 1: Trigger Jango's ability from combat damage
 
                 context.player1.clickCard(context.craftySmuggler);
                 context.player1.clickCard(context.mandalorianWarrior);
@@ -296,7 +297,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 expect(context.mandalorianWarrior.exhausted).toBeTrue();
 
-                // CASE 8: Trigger Jango's ability from unit card ability
+                // CASE 2: Trigger Jango's ability from unit card ability
 
                 context.moveToNextActionPhase();
                 reset();
@@ -310,7 +311,21 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
 
-                // CASE 9: Trigger Jango's ability from event card ability (distributed damage)
+                // CASE 3: Trigger Jango's ability from event card ability (direct damage)
+
+                context.moveToNextActionPhase();
+                reset();
+
+                context.player1.clickCard(context.strikeTrue);
+                context.player1.clickCard(context.battleDroid);
+                context.player1.clickCard(context.fleetLieutenant);
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+
+                expect(context.fleetLieutenant.exhausted).toBeTrue();
+
+                // CASE 4: Trigger Jango's ability from event card ability (distributed damage)
 
                 context.moveToNextActionPhase();
                 reset();
@@ -359,7 +374,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 context.player1.clickPrompt('Exhaust the damaged enemy unit');
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
 
-                // CASE 10: Trigger Jango's ability from an upgrade's granted ability
+                // CASE 5: Trigger Jango's ability from an upgrade's granted ability
 
                 context.moveToNextActionPhase();
                 reset();
@@ -420,7 +435,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 const { context } = contextRef;
 
-                // CASE 11: Damage dealt by an event does not trigger Jango's ability
+                // CASE 6: Damage dealt by an event does not trigger Jango's ability
 
                 context.player1.clickCard(context.openFire);
                 context.player1.clickCard(context.atst);
@@ -428,7 +443,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.player1).not.toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
                 expect(context.atst.damage).toBe(4);
 
-                // CASE 12: Damage dealt by an upgrade does not trigger Jango's ability
+                // CASE 7: Damage dealt by an upgrade does not trigger Jango's ability
 
                 context.moveToNextActionPhase();
 
@@ -439,7 +454,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.player1).not.toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
                 expect(context.liberatedSlaves.damage).toBe(4);
 
-                // CASE 13: Attacks that deal 0 damage do not trigger Jango's ability
+                // CASE 8: Attacks that deal 0 damage do not trigger Jango's ability
 
                 context.moveToNextActionPhase();
 
