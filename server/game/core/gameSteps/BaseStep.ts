@@ -15,7 +15,7 @@ export abstract class BaseStep implements IStep {
     public abstract continue(): boolean;
 
     public onCardClicked(player: Player, card: Card): boolean {
-        Contract.fail(`Attempting to trigger onCardClicked prompt command for player '${player.name}' and card '${card.internalName} but it is not supported by the current step'`);
+        Contract.fail(`Attempting to trigger onCardClicked prompt command for player '${player.name}' and card '${card.internalName}' but it is not supported by the current step'`);
     }
 
     public onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
