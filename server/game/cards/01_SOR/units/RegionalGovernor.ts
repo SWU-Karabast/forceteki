@@ -23,7 +23,7 @@ export default class RegionalGovernor extends NonLeaderUnitCard {
                     duration: Duration.WhileSourceInPlay,
                     targetController: context.player.opponent,
                     effect: AbilityHelper.ongoingEffects.playerCannot({
-                        type: AbilityRestriction.Play,
+                        cannot: AbilityRestriction.Play,
                         restrictedActionCondition: (context) => context.ability.card.title === thenContext.select,
                     })
                 }))

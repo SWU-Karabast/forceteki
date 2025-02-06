@@ -27,6 +27,7 @@ describe('Regional Governor', function () {
             expect(context.player2).toBeActivePlayer();
 
             // player 2 cannot play any falcon
+            expect(context.player2).toBeAbleToSelectNoneOf([falcon3, falcon4]);
             expect(falcon4).not.toHaveAvailableActionWhenClickedBy(context.player2);
             expect(falcon3).not.toHaveAvailableActionWhenClickedBy(context.player2);
 
@@ -65,6 +66,8 @@ describe('Regional Governor', function () {
             // player 2 can play falcon
             context.player2.clickCard(falcon3);
             expect(falcon3).toBeInZone('spaceArena');
+
+            //TODO PILOTING
         });
     });
 });
