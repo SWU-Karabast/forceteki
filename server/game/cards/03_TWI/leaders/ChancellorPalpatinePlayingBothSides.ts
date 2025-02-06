@@ -30,7 +30,7 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
                 onTrue: AbilityHelper.immediateEffects.sequential((context) => ([
                     AbilityHelper.immediateEffects.draw(),
                     AbilityHelper.immediateEffects.heal({ target: context.player.base, amount: 2 }),
-                    AbilityHelper.immediateEffects.flipDoubleSidedLeader({ target: context.source })
+                    AbilityHelper.immediateEffects.flipDoubleSidedLeader()
                 ]))
             })
         });
@@ -47,7 +47,7 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
                     [
                         AbilityHelper.immediateEffects.createCloneTrooper(),
                         AbilityHelper.immediateEffects.damage({ target: context.player.opponent.base, amount: 2 }),
-                        AbilityHelper.immediateEffects.flipDoubleSidedLeader({ target: context.source })
+                        AbilityHelper.immediateEffects.flipDoubleSidedLeader()
                     ]
                 ))
             })

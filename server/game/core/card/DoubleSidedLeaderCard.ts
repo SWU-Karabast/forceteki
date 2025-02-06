@@ -38,7 +38,7 @@ export class DoubleSidedLeaderCard extends LeaderCard {
     protected setupLeaderBackSideAbilities(sourceCard: this) {
     }
 
-    protected flipLeader() {
+    public flipLeader() {
         this._onStartingSide = !this._onStartingSide;
     }
 

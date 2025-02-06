@@ -41,13 +41,13 @@ export type CardConstructor = new (...args: any[]) => Card;
  */
 export class Card extends OngoingEffectSource {
     public static implemented = false;
-    protected _aspects: Aspect[] = [];
-    protected _backSideAspects?: Aspect[];
-    protected _internalName: string;
-    protected _subtitle?: string;
-    protected _title: string;
-    protected _backSideTitle?: string;
-    protected _unique: boolean;
+    protected readonly _aspects: Aspect[] = [];
+    protected readonly _backSideAspects?: Aspect[];
+    protected readonly _backSideTitle?: string;
+    protected readonly _internalName: string;
+    protected readonly _subtitle?: string;
+    protected readonly _title: string;
+    protected readonly _unique: boolean;
 
     protected override readonly id: string;
     protected readonly hasNonKeywordAbilityText: boolean;
@@ -79,24 +79,8 @@ export class Card extends OngoingEffectSource {
         return this._backSideAspects;
     }
 
-    public get internalName(): string {
-        return this._internalName;
-    }
-
-    public get subtitle(): string {
-        return this._subtitle;
-    }
-
-    public get title(): string {
-        return this._title;
-    }
-
     public get backSideTitle(): string {
         return this._backSideTitle;
-    }
-
-    public get unique(): boolean {
-        return this._unique;
     }
 
     public get controller(): Player {
@@ -107,8 +91,24 @@ export class Card extends OngoingEffectSource {
         return this._facedown;
     }
 
+    public get internalName(): string {
+        return this._internalName;
+    }
+
     public get keywords(): KeywordInstance[] {
         return this.getKeywords();
+    }
+
+    public get subtitle(): string {
+        return this._subtitle;
+    }
+
+    public get title(): string {
+        return this._title;
+    }
+
+    public get unique(): boolean {
+        return this._unique;
     }
 
     /** @deprecated use title instead**/

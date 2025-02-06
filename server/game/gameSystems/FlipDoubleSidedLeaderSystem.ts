@@ -3,7 +3,6 @@ import type { Card } from '../core/card/Card';
 import { CardType, EventName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import { GameEvent } from '../core/event/GameEvent';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IFlipDoubleSidedLeaderProperties extends ICardTargetSystemProperties {}
@@ -16,8 +15,8 @@ export class FlipDoubleSidedLeaderSystem<TContext extends AbilityContext = Abili
     protected override readonly targetTypeFilter = [CardType.Leader];
 
     public eventHandler(event): void {
-        Contract.assertTrue(event.card.isDoubleSidedLeader());
-        Contract.assertFalse(event.card.isDeployableLeader());
+        Contract.assertTrue(event.card.isDoubleSidedLeader(), event.card.internalName);
+        Contract.assertFalse(event.card.isDeployableLeader(), event.card.internalName);
         event.card.flipLeader();
     }
 
@@ -31,23 +30,5 @@ export class FlipDoubleSidedLeaderSystem<TContext extends AbilityContext = Abili
             return false;
         }
         return super.canAffect(card, context);
-    }
-
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {
-        super.updateEvent(event, card, context, additionalProperties);
-
-        // TODO: is more needed here? such as below?
-        // context.game.createEventAndOpenWindow(
-        //     EventName.OnLeaderFlipped,
-        //     context
-        // );
-        event.setContingentEventsGenerator(() => {
-            const leaderFlippedEvent = new GameEvent(EventName.OnLeaderFlipped, context, {
-                player: context.player,
-                card
-            });
-
-            return [leaderFlippedEvent];
-        });
     }
 }

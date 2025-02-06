@@ -26,7 +26,7 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
-        if (!card.isLeader() || card.isLeaderUnit() && card.deployed) {
+        if (!card.isLeader() || card.isDeployableLeader() && card.deployed) {
             return false;
         }
         return super.canAffect(card, context);
