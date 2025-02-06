@@ -167,7 +167,11 @@ function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergePropert
         return Object.assign({}, { [newPropName]: newPropValue }) as TPropertySet;
     }
 
-    if (!propertySet.hasOwnProperty(newPropName)) {
+    if (newPropValue == null) {
+        return propertySet;
+    }
+
+    if (!propertySet.hasOwnProperty(newPropName) || propertySet[newPropName] == null) {
         return { ...propertySet, [newPropName]: newPropValue };
     }
 

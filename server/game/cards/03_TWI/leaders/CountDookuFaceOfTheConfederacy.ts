@@ -1,4 +1,6 @@
+import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
+import { RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
 
 export default class CountDookuFaceOfTheConfederacy extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -9,16 +11,18 @@ export default class CountDookuFaceOfTheConfederacy extends LeaderUnitCard {
     }
 
     protected override setupLeaderSideAbilities() {
-        // this.addActionAbility({
-        //     title: 'Play a Separatist card from your hand. It gains Exploit 1.',
-        //     cost: AbilityHelper.costs.exhaustSelf(),
-        //     targetResolver: {
-        //         controller: RelativePlayer.Self,
-        //         zoneFilter: ZoneName.Hand,
-        //         cardCondition: (card) => card.hasSomeTrait(Trait.Separatist),
-        //         immediateEffect: new DookuPlayCardSystem<AbilityContext<this>>(1)
-        //     }
-        // });
+        this.addActionAbility({
+            title: 'Play a Separatist card from your hand. It gains Exploit 1.',
+            cost: AbilityHelper.costs.exhaustSelf(),
+            targetResolver: {
+                controller: RelativePlayer.Self,
+                zoneFilter: ZoneName.Hand,
+                cardCondition: (card) => card.hasSomeTrait(Trait.Separatist),
+                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
+                    exploitValue: 1
+                })
+            }
+        });
     }
 
     protected override setupLeaderUnitSideAbilities() {
