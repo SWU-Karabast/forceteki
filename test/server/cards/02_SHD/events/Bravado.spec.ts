@@ -162,6 +162,28 @@ describe('Bravado', function () {
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.player1.exhaustedResourceCount).toBe(3);
             expect(context.battlefieldMarine.exhausted).toBe(false);
+
+            resetGameState();
+
+            // CASE 9: Killing an enemy unit by applying negative modifier with unit
+            context.battlefieldMarine.exhausted = true;
+            context.setDamage(context.rebelPathfinder, 1)
+            context.player1.clickCard(context.supremeLeaderSnoke);
+
+            context.player2.passAction();
+            context.player1.readyResources(10);
+
+            expect(context.battlefieldMarine.exhausted).toBe(true);
+            context.player1.clickCard(context.bravado);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.player1.exhaustedResourceCount).toBe(3);
+            expect(context.battlefieldMarine.exhausted).toBe(false);
+
+            // TODO Current cases not covered:
+            // 1. Bouncing a positive HP modifier resulting in unit being defeated.
+            // 2. Cost reduction if Bravado smuggled
+            // 3. Defeating HP modifying upgrade resulting in unit defeat.
+            // 4. Oppenent triggering current tests doesn't trigger Bravado.
         });
     });
 });
