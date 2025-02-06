@@ -87,7 +87,7 @@ export class PlayableOrDeployableCard extends Card {
             playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
         }
 
-        return playCardActions.flatMap((action) => action.getModes(action.createContext()));
+        return this.expandActionModes(playCardActions);
     }
 
     /**
@@ -102,7 +102,11 @@ export class PlayableOrDeployableCard extends Card {
             `Attempting to get "play from out of play" actions for card ${this.internalName} in invalid zone: ${this.zoneName}`
         );
 
-        return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+        return this.expandActionModes(this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides));
+    }
+
+    private expandActionModes(actions: PlayCardAction[]): PlayCardAction[] {
+        return actions.flatMap((action) => action.getModes(action.createContext()));
     }
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
