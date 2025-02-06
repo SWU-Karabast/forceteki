@@ -710,7 +710,7 @@ class Player extends GameObject {
 
         let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
-            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(2, card, aspect, additionalCostAdjusters);
+            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(2, context, aspect, additionalCostAdjusters);
         }
 
         let penalizedCost = cost + aspectPenaltiesTotal;

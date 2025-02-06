@@ -99,7 +99,7 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     public hasAvailableExploit(context: AbilityContext) {
-        return this.getCosts(context).some((cost) => cost.usesExploit(context));
+        return this.getCosts(context).some((cost) => cost.usesExploit && cost.usesExploit(context));
     }
 
     private static getTitle(title: string, playType: PlayType, withExploit: boolean = false, appendToTitle: boolean = true): string {
