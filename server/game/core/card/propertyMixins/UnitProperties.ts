@@ -685,7 +685,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return this._lastPlayerToModifyHp;
             }
             return null;
-            
         }
 
         public override moveTo(targetZoneName: MoveZoneDestination): void {

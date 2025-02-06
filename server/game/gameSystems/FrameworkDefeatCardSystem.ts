@@ -1,9 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { LeaderUnitCard } from '../core/card/LeaderUnitCard';
-import { NonLeaderUnitCard } from '../core/card/NonLeaderUnitCard';
 import { EventName, PhaseName, WildcardCardType } from '../core/Constants';
-import { Phase } from '../core/gameSteps/phases/Phase';
 import { type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
@@ -60,7 +57,7 @@ export class FrameworkDefeatCardSystem<TContext extends AbilityContext = Ability
                     responsiblePlayer = context.game.actionPhaseActivePlayer;
                 }
                 return { type: DefeatSourceType.FrameworkEffect, player: responsiblePlayer };
-                
+
             default:
                 Contract.fail(`Unexpected value for framework defeat source: ${defeatSourceType}`);
         }

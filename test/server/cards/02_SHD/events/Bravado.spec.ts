@@ -16,12 +16,12 @@ describe('Bravado', function () {
             const { context } = contextRef;
 
             const resetGameState = () => {
-                if (context.battlefieldMarine.zoneName == 'discard') {
-                    context.player1.moveCard(this.battlefieldMarine, 'groundArena');
+                if (context.battlefieldMarine.zoneName === 'discard') {
+                    context.player1.moveCard(context.battlefieldMarine, 'groundArena');
                 } else {
                     context.battlefieldMarine.removeDamage(3);
                 }
-                if (context.rebelPathfinder.zoneName == 'discard') {
+                if (context.rebelPathfinder.zoneName === 'discard') {
                     context.player2.moveCard(context.rebelPathfinder, 'groundArena');
                 } else {
                     context.rebelPathfinder.removeDamage(3);
@@ -57,7 +57,7 @@ describe('Bravado', function () {
             context.player1.clickCard(context.rebelPathfinder);
 
             context.player2.passAction();
-            
+
             resetBravado();
 
             expect(context.battlefieldMarine.exhausted).toBe(true);
@@ -150,7 +150,7 @@ describe('Bravado', function () {
 
             // CASE 8: Killing an enemy unit by applying negative modifier
             context.battlefieldMarine.exhausted = true;
-            context.setDamage(context.rebelPathfinder, 1)
+            context.setDamage(context.rebelPathfinder, 1);
             context.player1.clickCard(context.perilousPosition);
             context.player1.clickCard(context.rebelPathfinder);
 
@@ -167,7 +167,7 @@ describe('Bravado', function () {
 
             // CASE 9: Killing an enemy unit by applying negative modifier with unit
             context.battlefieldMarine.exhausted = true;
-            context.setDamage(context.rebelPathfinder, 1)
+            context.setDamage(context.rebelPathfinder, 1);
             context.player1.clickCard(context.supremeLeaderSnoke);
 
             context.player2.passAction();

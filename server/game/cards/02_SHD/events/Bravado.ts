@@ -1,11 +1,11 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
 export default class Bravado extends EventCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
-    
+
     protected override getImplementationId() {
         return {
             id: '7212445649',
