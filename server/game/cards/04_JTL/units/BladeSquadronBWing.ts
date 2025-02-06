@@ -3,18 +3,18 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 
 export default class BladeSquadronBWing extends NonLeaderUnitCard {
-    protected override getImplementationId () {
+    protected override getImplementationId() {
         return {
             id: '1965647391',
             internalName: 'blade-squadron-bwing',
         };
     }
 
-    public override setupCardAbilities () {
+    public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'If another player controls 3 or more exhausted units, give a Shield token to a unit',
+            title: 'Give a Shield token to a unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => this.getExhaustedUnits(context),
+                condition: (context) => this.opponentHasAtLeastThreeExhausted(context),
                 onTrue: AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
                     innerSystem: AbilityHelper.immediateEffects.giveShield()
@@ -24,7 +24,7 @@ export default class BladeSquadronBWing extends NonLeaderUnitCard {
         });
     }
 
-    private getExhaustedUnits (context) {
+    private opponentHasAtLeastThreeExhausted(context) {
         const exhaustedUnits = context.player.opponent.getUnitsInPlay().filter((card) => card.isUnit() && card.exhausted === true);
         return exhaustedUnits.length >= 3;
     }

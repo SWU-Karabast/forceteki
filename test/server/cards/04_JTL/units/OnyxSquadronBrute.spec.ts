@@ -5,7 +5,7 @@ describe('Onyx Squadron Brute', function() {
                 phase: 'action',
                 player1: {
                     spaceArena: ['onyx-squadron-brute'],
-                    base: { card: 'chopper-base', damage: 2 },
+                    base: { card: 'chopper-base', damage: 3 },
                 },
                 player2: {
                     hand: ['vanquish'],
@@ -15,7 +15,7 @@ describe('Onyx Squadron Brute', function() {
             const { context } = contextRef;
 
             // Assert the base is damaged
-            expect(context.p1Base.damage).toBe(2);
+            expect(context.p1Base.damage).toBe(3);
 
             // Trigger the defeat ability
             context.player1.passAction();
@@ -26,7 +26,7 @@ describe('Onyx Squadron Brute', function() {
             expect(context.player1).toHavePrompt('Choose a base');
             expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
             context.player1.clickCard(context.p1Base);
-            expect(context.p1Base.damage).toBe(0);
+            expect(context.p1Base.damage).toBe(1);
         });
     });
 });

@@ -27,7 +27,7 @@ describe('It\'s a Trap', function() {
             expect(context.imperialInterceptor.exhausted).toBe(true);
         });
 
-        it('It\'s a Trap\'s ability should ready all space units controlled the player', function() {
+        it('It\'s a Trap\'s ability Should not ready any space unit as the player has fewer units than the opponent', function() {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
