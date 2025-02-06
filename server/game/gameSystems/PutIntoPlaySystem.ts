@@ -36,7 +36,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             throw new Error(`Attempting to put ${event.card.internalName} into play for opponent, which is not implemented yet`);
         }
 
-        if (event.status === 'ready') {
+        if (event.entersReady) {
             event.card.ready();
         } else {
             event.card.exhaust();
@@ -74,7 +74,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
-        event.status = entersReady || context.source.hasOngoingEffect(EffectName.EntersPlayReady) ? 'ready' : event.status;
+        event.entersReady = entersReady || card.hasOngoingEffect(EffectName.EntersPlayReady);
     }
 
     private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {

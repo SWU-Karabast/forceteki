@@ -13,7 +13,7 @@ const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
 
 class DeckBuilder {
     constructor() {
-        this.cards = this.loadCards('test/json/Card');
+        this.cards = this.loadCards('test/json');
     }
 
     loadCards(directory) {
@@ -23,7 +23,23 @@ class DeckBuilder {
             throw new TestSetupError(`Json card definitions folder ${directory} not found, please run 'npm run get-cards'`);
         }
 
-        var jsonCards = fs.readdirSync(directory).filter((file) => file.endsWith('.json'));
+        const actualCardDataVersionPath = path.join(directory, 'card-data-version.txt');
+        if (!fs.existsSync(actualCardDataVersionPath)) {
+            throw new TestSetupError(`Card data version file ${actualCardDataVersionPath} not found, please run 'npm run get-cards'`);
+        }
+
+        const expectedCardDataVersionPath = path.join(__dirname, '../../../card-data-version.txt');
+        if (!fs.existsSync(expectedCardDataVersionPath)) {
+            throw new TestSetupError(`Repository file ${expectedCardDataVersionPath} not found`);
+        }
+
+        const actualCardDataVersion = fs.readFileSync(actualCardDataVersionPath, 'utf8');
+        const expectedCardDataVersion = fs.readFileSync(expectedCardDataVersionPath, 'utf8');
+        if (actualCardDataVersion !== expectedCardDataVersion) {
+            throw new TestSetupError(`Json card data version mismatch, expected '${expectedCardDataVersion}' but found '${actualCardDataVersion}' currently installed. Please run 'npm run get-cards'`);
+        }
+
+        var jsonCards = fs.readdirSync(path.join(directory, '/Card')).filter((file) => file.endsWith('.json'));
         jsonCards.forEach((cardPath) => {
             var card = require(path.join('../json/Card', cardPath))[0];
             cards[card.id] = card;
@@ -296,6 +312,8 @@ class DeckBuilder {
         return {
             battleDroid: this.getCard('battle-droid'),
             cloneTrooper: this.getCard('clone-trooper'),
+            tieFighter: this.getCard('tie-fighter'),
+            xwing: this.getCard('xwing'),
             experience: this.getCard('experience'),
             shield: this.getCard('shield'),
         };

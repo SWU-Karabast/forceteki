@@ -3,13 +3,16 @@
 
 const Contract = require('../../server/game/core/utils/Contract.js');
 const TestSetupError = require('./TestSetupError.js');
-const { checkNullCard, formatPrompt, getPlayerPromptState, promptStatesEqual, stringArraysEqual } = require('./Util.js');
+const { formatPrompt } = require('./Util.js');
 
 require('./ObjectFormatters.js');
 
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const Util = require('./Util.js');
 const GameStateSetup = require('./GameStateSetup.js');
+const DeckBuilder = require('./DeckBuilder.js');
+const { cards } = require('../../server/game/cards/Index.js');
+const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 
 const ProxiedGameFlowWrapperMethods = [
     'advancePhases',
@@ -58,8 +61,8 @@ global.integration = function (definitions) {
 
             const gameFlowWrapper = new GameFlowWrapper(
                 gameRouter,
-                { id: '111', username: 'player1' },
-                { id: '222', username: 'player2' }
+                { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
+                { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } }
             );
 
             const newContext = {};
@@ -74,6 +77,13 @@ global.integration = function (definitions) {
             };
 
             this.setupTest = newContext.setupTest = setupGameStateWrapper;
+
+            // used only for the "import all cards" test
+            contextRef.buildImportAllCardsTools = () => ({
+                deckBuilder: new DeckBuilder(),
+                implementedCardsCtors: cards,
+                unimplementedCardCtor: CardHelpers.createUnimplementedCard
+            });
         });
 
         afterEach(function() {

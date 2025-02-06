@@ -17,15 +17,10 @@ class PlayerInteractionWrapper {
         this.game = game;
         this.player = player;
         this.testContext = testContext;
-
-        player.noTimer = true;
-        player.user = {
-            settings: {}
-        };
     }
 
     get name() {
-        return this.player.name;
+        return this.player.user.username;
     }
 
     /**
@@ -514,7 +509,7 @@ class PlayerInteractionWrapper {
             );
         }
 
-        this.game.menuButton(this.player.name, promptButton.arg, promptButton.uuid, promptButton.method);
+        this.game.menuButton(this.player.id, promptButton.arg, promptButton.uuid, promptButton.method);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
@@ -527,7 +522,7 @@ class PlayerInteractionWrapper {
             );
         }
 
-        this.game.menuButton(this.player.name, text, currentPrompt.promptUuid);
+        this.game.menuButton(this.player.id, text, currentPrompt.promptUuid);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
@@ -552,7 +547,7 @@ class PlayerInteractionWrapper {
             type
         };
 
-        this.game.statefulPromptResults(this.player.name, promptResults, currentPrompt.promptUuid);
+        this.game.statefulPromptResults(this.player.id, promptResults, currentPrompt.promptUuid);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
@@ -560,7 +555,7 @@ class PlayerInteractionWrapper {
     clickDisplayCardPromptButton(cardUuid, arg) {
         var currentPrompt = this.player.currentPrompt();
 
-        this.game.perCardMenuButton(this.player.name, arg, cardUuid, currentPrompt.promptUuid);
+        this.game.perCardMenuButton(this.player.id, arg, cardUuid, currentPrompt.promptUuid);
         this.game.continue();
     }
 
@@ -579,7 +574,7 @@ class PlayerInteractionWrapper {
             );
         }
 
-        this.game.menuButton(this.player.name, card.uuid, currentPrompt.promptUuid, 'menuButton');
+        this.game.menuButton(this.player.id, card.uuid, currentPrompt.promptUuid, 'menuButton');
         this.game.continue();
 
         // this.checkUnserializableGameState();
@@ -596,7 +591,7 @@ class PlayerInteractionWrapper {
         }
 
         for (let i = 0; i < nCardsToChoose; i++) {
-            this.game.cardClicked(this.player.name, availableCards[i].uuid);
+            this.game.cardClicked(this.player.id, availableCards[i].uuid);
         }
 
         // this.checkUnserializableGameState();
@@ -618,7 +613,7 @@ class PlayerInteractionWrapper {
             beforeClick = Util.getPlayerPromptState(this.player);
         }
 
-        this.game.cardClicked(this.player.name, card.uuid);
+        this.game.cardClicked(this.player.id, card.uuid);
         this.game.continue();
 
         if (expectChange) {
@@ -643,7 +638,7 @@ class PlayerInteractionWrapper {
             throw new TestSetupError(`Card ${card.name} does not have a menu item '${menuText}'`);
         }
 
-        this.game.menuItemClick(this.player.name, card.uuid, items[0]);
+        this.game.menuItemClick(this.player.id, card.uuid, items[0]);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
@@ -657,7 +652,7 @@ class PlayerInteractionWrapper {
     }
 
     dragCard(card, targetZone) {
-        this.game.drop(this.player.name, card.uuid, card.zoneName, targetZone);
+        this.game.drop(this.player.id, card.uuid, card.zoneName, targetZone);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
@@ -778,7 +773,7 @@ class PlayerInteractionWrapper {
     }
 
     // checkUnserializableGameState() {
-    //     let state = this.game.getState(this.player.name);
+    //     let state = this.game.getState(this.player.id);
     //     let results = detectBinary(state);
     //     if (results.length !== 0) {
     //         throw new TestSetupError('Unable to serialize game state back to client:\n' + JSON.stringify(results));
