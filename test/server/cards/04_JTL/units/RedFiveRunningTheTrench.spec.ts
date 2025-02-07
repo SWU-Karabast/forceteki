@@ -28,8 +28,8 @@ describe('Red Five, Running The Trench', function() {
             // Attack with Red Five, Running The Trench but no unit is damaged so ability is not triggered
 
             // Reset board state
-            context.atst.damage = 0;
-            context.wampa.damage = 0;
+            context.setDamage(context.atst, 0);
+            context.setDamage(context.wampa, 0);
             context.moveToNextActionPhase();
 
             context.player1.clickCard(context.redFive);

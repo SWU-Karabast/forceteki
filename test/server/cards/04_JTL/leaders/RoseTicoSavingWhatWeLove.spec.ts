@@ -11,7 +11,8 @@ describe('Rose Tico, Saving What We Love', function() {
                         leader: 'rose-tico#saving-what-we-love'
                     },
                     player2: {
-                        groundArena: [{ card: 'atst', damage: 2 }, 'republic-tactical-officer'],
+                        hand: ['waylay'],
+                        groundArena: [{ card: 'atst', damage: 3 }, 'republic-tactical-officer'],
                     }
                 });
 
@@ -32,9 +33,26 @@ describe('Rose Tico, Saving What We Love', function() {
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.atst);
 
-                expect(context.atst.damage).toBe(0);
+                expect(context.atst.damage).toBe(1);
                 expect(context.allianceXwing.damage).toBe(2);
                 expect(context.roseTico.exhausted).toBe(true);
+
+                // Move to next action phase
+                context.moveToNextActionPhase();
+                context.player1.clickCard(context.lowAltitudeGunship); // Attack with a Vehicle unit
+                context.player1.clickCard(context.p2Base);
+
+                // Opponent waylays the Vehicle unit
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.lowAltitudeGunship);
+
+                context.player1.clickCard(context.lowAltitudeGunship);
+                context.player1.clickCard(context.republicTacticalOfficer); // Resolving Low Altitude Gunship's ability
+
+                context.player2.passAction();
+                context.player1.clickCard(context.roseTico);
+                context.player1.clickPrompt('Heal 2 damage from a Vehicle unit that attacked this phase');
+                expect(context.player2).toBeActivePlayer();
 
                 // Move to next action phase
                 context.moveToNextActionPhase();
@@ -53,7 +71,7 @@ describe('Rose Tico, Saving What We Love', function() {
                     phase: 'action',
                     player1: {
                         spaceArena: [{ card: 'alliance-xwing', damage: 2 }],
-                        groundArena: ['wampa', { card: 'low-altitude-gunship', damage: 2 }],
+                        groundArena: ['wampa', { card: 'low-altitude-gunship', damage: 3 }],
                         leader: { card: 'rose-tico#saving-what-we-love', deployed: true }
                     },
                     player2: {
@@ -72,25 +90,7 @@ describe('Rose Tico, Saving What We Love', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.lowAltitudeGunship, context.atst]); // Only the Vehicle units
                 context.player1.clickCard(context.lowAltitudeGunship);
 
-                expect(context.lowAltitudeGunship.damage).toBe(0);
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            it('should not be able to heal a Vehicle unit as there is not Vehicle units', function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        groundArena: ['wampa'],
-                        leader: { card: 'rose-tico#saving-what-we-love', deployed: true }
-                    }
-                });
-
-                const { context } = contextRef;
-
-                // No vehicle units in play
-                context.player1.clickCard(context.roseTico);
-                context.player1.clickCard(context.p2Base);
-
+                expect(context.lowAltitudeGunship.damage).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
         });
