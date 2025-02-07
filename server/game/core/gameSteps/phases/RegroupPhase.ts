@@ -1,4 +1,4 @@
-import { EventName, PhaseName } from '../../Constants';
+import { EventName, PhaseName, ZoneName } from '../../Constants';
 import type Game from '../../Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
@@ -38,7 +38,7 @@ export class RegroupPhase extends Phase {
             cardsToReady.push(...player.getUnitsInPlay() as CardWithExhaustProperty[]);
             cardsToReady.push(...player.resources);
 
-            if (!(player.leader.deployed)) {
+            if (player.leader.zoneName === ZoneName.Base) {
                 cardsToReady.push(player.leader);
             }
         }
