@@ -8,6 +8,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 export interface IExhaustOrReadyProperties extends ICardTargetSystemProperties {}
 
 export abstract class ExhaustOrReadySystem<TContext extends AbilityContext = AbilityContext, TProperties extends IExhaustOrReadyProperties = IExhaustOrReadyProperties> extends CardTargetSystem<TContext, TProperties> {
+    // TODO - do I add a WildcardCardType.Leader?
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Event, WildcardCardType.Upgrade, CardType.Leader];
 
     public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

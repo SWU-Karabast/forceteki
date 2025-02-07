@@ -9,8 +9,6 @@ import type { ZoneName } from '../../../core/Constants';
 import { EventName, RelativePlayer, TargetMode, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '9752523457',
