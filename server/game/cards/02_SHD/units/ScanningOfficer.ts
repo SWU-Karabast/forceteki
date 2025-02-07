@@ -14,6 +14,7 @@ export default class ScanningOfficer extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'Reveal up to 4 Vigilance cards from your hand',
             immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
+                // TODO: should Scanning Officer always choose readied resources?
                 target: context.player.opponent.getRandomResources(context, 3),
                 useDisplayPrompt: true,
                 promptedPlayer: RelativePlayer.Self
