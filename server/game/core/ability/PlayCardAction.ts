@@ -135,13 +135,19 @@ export abstract class PlayCardAction extends PlayerAction {
         return this.hasAvailableExploit(context);
     }
 
-    // UP NEXT: correctly build out the (at most) two actions, including handling a gained exploit
-
     // if we have Exploit available, return a play mode with and without triggering the Exploit
-    public override getSubModes(context: AbilityContext): PlayCardAction[] {
-        return this.hasAvailableExploit(context)
-            ? [this, this.clone({ exploitValue: null })]
-            : [this];
+    public override getSubModeContexts(context: AbilityContext): AbilityContext[] {
+        if (!this.hasAvailableExploit(context)) {
+            return [this.createContext(context.player)];
+        }
+
+        const exploitContext = this.createContext(context.player);
+        exploitContext.usesExploit = true;
+
+        const noExploitContext = this.createContext(context.player);
+        noExploitContext.usesExploit = false;
+
+        return [exploitContext, noExploitContext];
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

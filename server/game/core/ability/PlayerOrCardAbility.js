@@ -187,10 +187,10 @@ class PlayerOrCardAbility {
     /**
      * Get this card's available activation "sub-modes" (e.g. playing a card with or without Exploit triggering)
      * @param {AbilityContext} context
-     * @returns {PlayerOrCardAbility[]}
+     * @returns {AbilityContext[]}
      */
-    getSubModes(context) {
-        return [this];
+    getSubModeContexts(context) {
+        return [this.createContext(context.player)];
     }
 
     /**
