@@ -109,7 +109,6 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         event.defeatSource = eventDefeatSource;
     }
 
-    /** When do we hit this version */
     protected buildDefeatSourceForType(defeatSourceType: DefeatSourceType, event: any, context: TContext): IDefeatSource | null {
         Contract.assertEqual(defeatSourceType, DefeatSourceType.Ability);
 
