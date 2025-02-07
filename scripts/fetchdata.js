@@ -92,8 +92,8 @@ function filterValues(card) {
     }
 
     // hacky way to strip the object down to just the attributes we want
-    const filterAttributes = ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints }) =>
-        ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints });
+    const filterAttributes = ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints, upgradePower, upgradeHp }) =>
+        ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints, upgradePower, upgradeHp });
 
     let filteredObj = filterAttributes(card.attributes);
 
