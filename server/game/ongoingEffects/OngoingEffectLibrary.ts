@@ -19,6 +19,7 @@ import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterPrope
 import { CostAdjustType } from '../core/cost/CostAdjuster';
 import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
+import { playerCannot } from './PlayerCannot';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -76,6 +77,7 @@ export = {
     cannotAttackBase: () => OngoingEffectBuilder.card.static(EffectName.CannotAttackBase),
     dealsDamageBeforeDefender: () => OngoingEffectBuilder.card.static(EffectName.DealsDamageBeforeDefender),
     cardCannot,
+    playerCannot,
     // changeContributionFunction: (func) => OngoingEffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
     // changeType: (type) => OngoingEffectBuilder.card.static(EffectName.ChangeType, type),
     // characterProvidesAdditionalConflict: (type) =>
