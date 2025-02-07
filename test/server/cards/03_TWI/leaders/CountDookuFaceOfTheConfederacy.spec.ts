@@ -1,7 +1,8 @@
+
 describe('Count Dooku, Face of the Confederacy', function () {
     integration(function (contextRef) {
         describe('Count Dooku\'s leader undeployed ability', function () {
-            beforeEach(function () {
+            it('should play a Separatist card from hand that does not already have Exploit and give it Exploit 1', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -13,9 +14,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                         resources: 6
                     }
                 });
-            });
 
-            it('should play a Separatist card from hand that does not already have Exploit and give it Exploit 1', function () {
                 const { context } = contextRef;
 
                 // CASE 1: play a Separatist card from hand that does not already have Exploit and give it Exploit 1
@@ -118,61 +117,49 @@ describe('Count Dooku, Face of the Confederacy', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        // describe('Wat Tambor\'s leader deployed ability', function () {
-        //     beforeEach(function () {
-        //         contextRef.setupTest({
-        //             phase: 'action',
-        //             player1: {
-        //                 groundArena: ['battlefield-marine', 'guardian-of-the-whills'],
-        //                 spaceArena: ['green-squadron-awing'],
-        //                 leader: { card: 'wat-tambor#techno-union-foreman', deployed: true },
-        //             },
-        //             player2: {
-        //                 groundArena: ['admiral-yularen#advising-caution', 'alliance-dispatcher'],
-        //             },
+        describe('Count Dooku\'s leader deployed ability', function () {
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['droideka-security', 'generals-guardian', 'pyke-sentinel', 'dwarf-spider-droid'],
+                        groundArena: ['battle-droid', 'atst', 'snowspeeder'],
+                        spaceArena: ['cartel-spacer'],
+                        leader: { card: 'count-dooku#face-of-the-confederacy', deployed: true },
+                        base: 'capital-city',
+                        resources: 6
+                    }
+                });
+            });
 
-        //             // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-        //             autoSingleTarget: true
-        //         });
-        //     });
+            it('should give +2/+2 to a unit for the phase because a friendly unit was defeat this phase', function () {
+                const { context } = contextRef;
 
-        //     it('should give +2/+2 to a unit for the phase because a friendly unit was defeat this phase', function () {
-        //         const { context } = contextRef;
+                context.player1.clickCard(context.countDooku);
+                context.player1.clickCard(context.p2Base);
 
-        //         // no unit killed, on attack ability should not trigger
-        //         context.player1.clickCard(context.watTambor);
-        //         context.player1.clickCard(context.allianceDispatcher);
-        //         expect(context.player2).toBeActivePlayer();
-        //         context.watTambor.exhausted = false;
+                context.player2.passAction();
 
-        //         // yularen kill our guardian of the whills
-        //         context.player2.clickCard(context.admiralYularen);
-        //         context.player2.clickCard(context.guardianOfTheWhills);
+                context.player1.clickCard(context.dwarfSpiderDroid);
+                expect(context.player1).toHaveExactPromptButtons(['Play Dwarf Spider Droid', 'Play Dwarf Spider Droid using Exploit']);
 
-        //         // wat tambor should give +2/+2 to any unit
-        //         context.player1.clickCard(context.watTambor);
-        //         context.player1.clickCard(context.p2Base);
-        //         expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.admiralYularen]);
-        //         expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Play Dwarf Spider Droid using Exploit');
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.atst, context.snowspeeder, context.cartelSpacer]);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
 
-        //         // give +2/+2 to battlefield marine
-        //         context.player1.clickCard(context.battlefieldMarine);
-        //         expect(context.player2).toBeActivePlayer();
-        //         expect(context.battlefieldMarine.getPower()).toBe(5);
-        //         expect(context.battlefieldMarine.getHp()).toBe(5);
+                context.player1.clickCard(context.battleDroid);
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.snowspeeder);
+                context.player1.clickCardNonChecking(context.cartelSpacer);
+                context.player1.clickPrompt('Done');
 
-        //         // kill yularen (5 hp)
-        //         context.setDamage(context.admiralYularen, 0);
-        //         context.player2.passAction();
-        //         context.player1.clickCard(context.battlefieldMarine);
-        //         context.player1.clickCard(context.admiralYularen);
-        //         expect(context.admiralYularen).toBeInZone('discard');
-
-        //         // on next phase +2/+2 is gone
-        //         context.moveToNextActionPhase();
-        //         expect(context.battlefieldMarine.getPower()).toBe(3);
-        //         expect(context.battlefieldMarine.getHp()).toBe(3);
-        //     });
-        // });
+                // confirm Exploit results
+                expect(context.snowspeeder).toBeInZone('discard');
+                expect(context.cartelSpacer).toBeInZone('spaceArena');
+                expect(context.atst).toBeInZone('discard');
+                expect(context.battleDroid).toBeInZone('outsideTheGame');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+            });
+        });
     });
 });

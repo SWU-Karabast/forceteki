@@ -17,6 +17,7 @@ export interface IAbilityContextProperties {
     ongoingEffect?: IOngoingEffectProps;
     costs?: any;
     costAspects?: Aspect[];
+    usesExploit?: boolean;
     targets?: any;
     selects?: any;
     tokens?: any;
@@ -51,6 +52,7 @@ export class AbilityContext<TSource extends Card = Card> {
     public gameActionsResolutionChain: GameSystem[] = [];
     public playType?: PlayType;
     public cardStateWhenInitiated: any = null;
+    public usesExploit?: boolean;
 
     public constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
@@ -64,6 +66,7 @@ export class AbilityContext<TSource extends Card = Card> {
         this.selects = properties.selects || {};
         this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
+        this.usesExploit = properties.usesExploit;
         // const zone = this.player && this.player.playableZones.find(zone => zone.contains(this.source));
 
         this.playType = this.ability?.isPlayCardAbility()
@@ -97,6 +100,7 @@ export class AbilityContext<TSource extends Card = Card> {
             source: this.source,
             player: this.player,
             ability: this.ability,
+            usesExploit: this.usesExploit,
             ongoingEffect: this.ongoingEffect,
             costs: Object.assign({}, this.costs),
             costAspects: this.costAspects,

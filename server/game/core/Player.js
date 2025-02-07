@@ -640,13 +640,10 @@ class Player extends GameObject {
     /**
      * Adds the passed Cost Adjuster to this Player
      * @param source = OngoingEffectSource source of the adjuster
-     * @param {Object} properties
-     * @returns {CostAdjuster}
+     * @param {CostAdjuster} costAdjuster
      */
-    addCostAdjuster(source, properties) {
-        let adjuster = new CostAdjuster(this.game, source, properties);
-        this.costAdjusters.push(adjuster);
-        return adjuster;
+    addCostAdjuster(costAdjuster) {
+        this.costAdjusters.push(costAdjuster);
     }
 
     /**

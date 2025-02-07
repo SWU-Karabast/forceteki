@@ -7,6 +7,8 @@ import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
 import type { CardWithCost } from '../core/card/CardTypes';
 import type { CostAdjuster } from '../core/cost/CostAdjuster';
+import * as Helpers from '../core/utils/Helpers';
+import { ExploitCostAdjuster } from '../abilities/keyword/ExploitCostAdjuster';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -29,8 +31,6 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
         this.resources = resources ?? card.cost;
         this.aspects = aspects ?? card.aspects;
     }
-
-    // TODO THIS PR: remove if not needed
 
     public usesExploit(context: TContext): boolean {
         return this.getMatchingCostAdjusters(context).some((adjuster) => adjuster.isExploit());
@@ -78,7 +78,21 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     }
 
     public queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result?: ICostResult) {
-        for (const costAdjuster of this.getMatchingCostAdjusters(context)) {
+        const { trueAra: exploitAdjusters, falseAra: nonExploitAdjusters } =
+            Helpers.splitArray(this.getMatchingCostAdjusters(context), (adjuster) => adjuster.isExploit());
+
+        // if there are multiple Exploit adjusters, merge them into one before resolving
+        const costAdjusters = nonExploitAdjusters;
+        if (exploitAdjusters.length > 1) {
+            const totalExploitAmount =
+                (exploitAdjusters as ExploitCostAdjuster[]).reduce((acc, adjuster) => acc + adjuster.exploitKeywordAmount, 0);
+
+            costAdjusters.push(new ExploitCostAdjuster(context.game, this.card, { exploitKeywordAmount: totalExploitAmount }));
+        } else if (exploitAdjusters.length === 1) {
+            costAdjusters.push(exploitAdjusters[0]);
+        }
+
+        for (const costAdjuster of costAdjusters) {
             costAdjuster.queueGenerateEventGameSteps(events, context, this, result);
         }
 

@@ -106,7 +106,7 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     private expandActionModes(actions: PlayCardAction[]): PlayCardAction[] {
-        return actions.flatMap((action) => action.getModes(action.createContext()));
+        return actions.flatMap((action) => action.getSubModes(action.createContext()));
     }
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {

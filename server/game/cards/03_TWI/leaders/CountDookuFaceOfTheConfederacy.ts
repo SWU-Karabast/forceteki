@@ -26,64 +26,15 @@ export default class CountDookuFaceOfTheConfederacy extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities() {
-        // this.addOnAttackAbility({
-        //     title: 'If a friendly unit was defeated this phase, give a unit +2/+2 for this phase',
-        //     optional: true,
-        //     targetResolver: {
-        //         cardTypeFilter: WildcardCardType.Unit,
-        //         cardCondition: (card, context) => card !== context.source,
-        //         immediateEffect: this.getWatTamborEffect(),
-        //     }
-        // });
+        this.addOnAttackAbility({
+            title: 'The next Separatist card you play this phase gains Exploit 3',
+            immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
+                effect: AbilityHelper.ongoingEffects.addExploit({
+                    match: (card) => card.hasSomeTrait(Trait.Separatist),
+                    limit: AbilityHelper.limit.perGame(1),
+                    exploitKeywordAmount: 3
+                })
+            })
+        });
     }
 }
-
-// class DookuPlayCardSystem<TContext extends AbilityContext> extends PlayCardSystem<TContext> {
-//     private gainExploitAmount: number;
-
-//     public constructor(gainExploitAmount: number) {
-//         super({});
-
-//         this.gainExploitAmount = gainExploitAmount;
-//     }
-
-//     protected override clone(
-//         availableCardPlayActions: PlayCardAction[],
-//         card: Card,
-//         properties: IPlayCardProperties,
-//         context: TContext
-//     ) {
-//         Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken(), `Card ${card.internalName} is not a non-token playable`);
-
-//         const [exploitActions, nonExploitActions] =
-//             availableCardPlayActions.reduce(
-//                 (acc, val) => {
-//                     acc[val.usesExploit ? 0 : 1].push(val);
-//                     return acc;
-//                 },
-//                 [[], []]
-//             );
-
-//         Contract.assertTrue(exploitActions.length <= 1, `Found ${exploitActions.length} existing exploit actions for card ${card.internalName}`);
-
-//         // if there is not an existing exploit action, create one with exploit value 1
-//         // if there is one, add 1 to its exploit value
-//         let exploitAction: PlayCardAction;
-//         if (exploitActions.length === 0) {
-//             exploitAction = card.buildPlayCardAction({
-//                 playType: PlayType.PlayFromHand,
-//                 exploitValue: this.gainExploitAmount
-//             });
-//         } else {
-//             exploitAction = exploitActions[0].clone({
-//                 playType: PlayType.PlayFromHand,
-//                 exploitValue: exploitActions[0].exploitValue + this.gainExploitAmount
-//             });
-//         }
-
-//         return super.clonePlayActionsWithOverrides(nonExploitActions, card, properties, context)
-//             .concat(exploitAction);
-//     }
-// }
-
-CountDookuFaceOfTheConfederacy.implemented = true;

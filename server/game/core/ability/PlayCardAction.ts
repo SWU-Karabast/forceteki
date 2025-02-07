@@ -70,7 +70,7 @@ export abstract class PlayCardAction extends PlayerAction {
         const usesExploit = !!properties.exploitValue;
         if (usesExploit) {
             propertiesWithDefaults = Helpers.mergeArrayProperty(
-                propertiesWithDefaults, 'costAdjusters', [new ExploitCostAdjuster(card.game, card, properties.exploitValue)]
+                propertiesWithDefaults, 'costAdjusters', [new ExploitCostAdjuster(card.game, card, { exploitKeywordAmount: properties.exploitValue })]
             );
         }
 
@@ -138,7 +138,7 @@ export abstract class PlayCardAction extends PlayerAction {
     // UP NEXT: correctly build out the (at most) two actions, including handling a gained exploit
 
     // if we have Exploit available, return a play mode with and without triggering the Exploit
-    public override getModes(context: AbilityContext): PlayCardAction[] {
+    public override getSubModes(context: AbilityContext): PlayCardAction[] {
         return this.hasAvailableExploit(context)
             ? [this, this.clone({ exploitValue: null })]
             : [this];

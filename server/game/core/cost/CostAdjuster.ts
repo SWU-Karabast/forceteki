@@ -20,7 +20,7 @@ export enum CostAdjustType {
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
-interface ICostAdjusterPropertiesBase {
+export interface ICostAdjusterPropertiesBase {
 
     /** The type of cards that can be reduced */
     cardTypeFilter?: CardTypeFilter;
