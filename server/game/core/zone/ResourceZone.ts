@@ -39,10 +39,12 @@ export class ResourceZone extends SimpleZone<TokenOrPlayableCard> {
 
         let exhausted = 0;
 
-        for (let i = 0; i < exhaustCount; i++) {
-            if (this._cards[i].hasSomeKeyword(KeywordName.Smuggle)) {
-                this._cards[i].exhausted = true;
-                exhausted++;
+        if (prioritizeSmuggle) {
+            for (let i = 0; i < exhaustCount; i++) {
+                if (this._cards[i].hasSomeKeyword(KeywordName.Smuggle)) {
+                    this._cards[i].exhausted = true;
+                    exhausted++;
+                }
             }
         }
         for (let i = 0; i < exhaustCount; i++) {
