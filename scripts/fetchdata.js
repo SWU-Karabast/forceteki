@@ -242,7 +242,7 @@ async function main() {
     const fileWriteProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}' });
     fileWriteProgressBar.start(uniqueCards.length, 0);
 
-    await Promise.all(uniqueCards.map(async (card) => {
+    await Promise.all(uniqueCards.map((card) => {
         fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify([card], null, 2));
         fileWriteProgressBar.increment();
     }));
