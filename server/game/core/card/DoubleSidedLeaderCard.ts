@@ -50,6 +50,10 @@ export class DoubleSidedLeaderCard extends LeaderCard {
         this.resolveAbilitiesForNewZone();
     }
 
+    public override getSummary(activePlayer: Player): string {
+        return { ...super.getSummary(activePlayer), onStartingSide: this._onStartingSide };
+    }
+
     protected override addActionAbility(properties: IActionAbilityProps<this>) {
         properties.zoneFilter = ZoneName.Base;
         if (this.setupLeaderBackSide) {
