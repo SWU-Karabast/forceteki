@@ -662,7 +662,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     sentinel: hasSentinel
                 };
             }
-            return super.getSummary(activePlayer);
+            return {
+                ...super.getSummary(activePlayer),
+                parentCardId: this.getCaptor()?.uuid,
+            };
         }
     };
 }

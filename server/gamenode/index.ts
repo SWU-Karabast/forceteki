@@ -1,3 +1,8 @@
 import { GameServer } from './GameServer.js';
 
-const server = new GameServer();
+let server;
+GameServer.create()
+    .then((createdServer) => server = createdServer)
+    .catch((error) => {
+        throw error;
+    });
