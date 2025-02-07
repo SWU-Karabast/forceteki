@@ -97,7 +97,7 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     optionalButtonTextOverride?: string;
 
     /** Indicates which player can activate this ability (e.g. for Bounty abilities, it is the opponent) */
-    abilityActivator?: RelativePlayerFilter;
+    canBeTriggeredBy?: RelativePlayerFilter;
 
     /** If this is a gained ability, gives the source card that is giving the ability */
     gainAbilitySource?: Card;
@@ -310,7 +310,7 @@ interface IAmbushKeywordProperties extends IKeywordPropertiesBase {
 
 interface IBountyKeywordProperties<TSource extends UnitCard = UnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
     keyword: KeywordName.Bounty;
-    ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'abilityActivator'>;
+    ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>;
 }
 
 interface IGritKeywordProperties extends IKeywordPropertiesBase {

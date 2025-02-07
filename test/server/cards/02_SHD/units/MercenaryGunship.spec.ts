@@ -16,7 +16,10 @@ describe('Mercenary Gunship', function() {
                 const p1Resources = context.player1.readyResourceCount;
                 const p2Resources = context.player1.readyResourceCount;
 
+                // Check that both players can select it
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryGunship, context.player1.findCardByName('darth-vader#dark-lord-of-the-sith')]);
                 context.player1.passAction();
+                expect(context.player2).toBeAbleToSelectExactly([context.mercenaryGunship, context.player2.findCardByName('luke-skywalker#faithful-friend')]);
 
                 // Check that Player 2 can take control
                 context.player2.clickCard(context.mercenaryGunship);

@@ -79,7 +79,7 @@ export class KeywordWithCostValues extends KeywordInstance {
 }
 
 export class BountyKeywordInstance<TSource extends Card = Card> extends KeywordInstance {
-    private _abilityProps?: Omit<ITriggeredAbilityBaseProps<TSource>, 'abilityActivator'> = null;
+    private _abilityProps?: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'> = null;
 
     public get abilityProps() {
         if (this._abilityProps == null) {
@@ -98,12 +98,12 @@ export class BountyKeywordInstance<TSource extends Card = Card> extends KeywordI
     }
 
     /** @param abilityProps Optional, but if not provided must be provided via `abilityProps` */
-    public constructor(name: KeywordName, abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'abilityActivator'> = null) {
+    public constructor(name: KeywordName, abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'> = null) {
         super(name);
         this._abilityProps = abilityProps;
     }
 
-    public setAbilityProps(abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'abilityActivator'>) {
+    public setAbilityProps(abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>) {
         Contract.assertNotNullLike(abilityProps, `Attempting to set null ability definition for ${this.name}`);
         Contract.assertIsNullLike(this._abilityProps, `Attempting to set ability definition for ${this.name} but it already has a value`);
 

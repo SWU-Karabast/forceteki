@@ -105,13 +105,13 @@ export default class TriggeredAbility extends CardAbility {
             controller = context.event.lastKnownInformation.controller;
         }
 
-        switch (this.abilityActivator) {
+        switch (this.canBeTriggeredBy) {
             case RelativePlayer.Self:
                 return context.player === controller;
             case RelativePlayer.Opponent:
                 return context.player === controller.opponent;
             default:
-                Contract.fail(`Unexpected value for relative player: ${this.abilityActivator}`);
+                Contract.fail(`Unexpected value for relative player: ${this.canBeTriggeredBy}`);
         }
     }
 

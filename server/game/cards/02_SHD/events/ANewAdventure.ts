@@ -21,7 +21,7 @@ export default class ANewAdventure extends EventCard {
             then: (thenContext) => ({
                 title: `Play ${thenContext.target.title} for free`,
                 optional: true,
-                abilityActivator: thenContext.source.controller !== thenContext.target.controller ? RelativePlayer.Opponent : RelativePlayer.Self,
+                canBeTriggeredBy: thenContext.source.controller !== thenContext.target.controller ? RelativePlayer.Opponent : RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                     target: thenContext.target,
                     adjustCost: {

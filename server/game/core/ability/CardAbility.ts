@@ -54,7 +54,7 @@ export abstract class CardAbility extends CardAbilityStep {
     }
 
     protected controllerMeetsRequirements(context) {
-        switch (this.abilityActivator) {
+        switch (this.canBeTriggeredBy) {
             case WildcardRelativePlayer.Any:
                 return true;
             case RelativePlayer.Self:
@@ -62,7 +62,7 @@ export abstract class CardAbility extends CardAbilityStep {
             case RelativePlayer.Opponent:
                 return context.player === context.source.controller.opponent;
             default:
-                Contract.fail(`Unexpected value for relative player: ${this.abilityActivator}`);
+                Contract.fail(`Unexpected value for relative player: ${this.canBeTriggeredBy}`);
         }
     }
 
