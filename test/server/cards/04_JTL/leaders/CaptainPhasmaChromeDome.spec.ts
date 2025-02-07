@@ -25,7 +25,7 @@ describe('Captain Phasma, Chrome Dome', function() {
 
                 // No First Order card played by controller but 1 in play and 1 played by the opponent; ability should not trigger
                 context.player1.clickCard(context.captainPhasma);
-                context.player1.clickPrompt('Deal 1 damage to a base');
+                context.player1.clickPrompt('If you played a First Order card this phase, deal 1 damage to a base');
 
                 expect(context.captainPhasma.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(0);
@@ -39,7 +39,7 @@ describe('Captain Phasma, Chrome Dome', function() {
 
                 // Use ability with effect
                 context.player1.clickCard(context.captainPhasma);
-                context.player1.clickPrompt('Deal 1 damage to a base');
+                context.player1.clickPrompt('If you played a First Order card this phase, deal 1 damage to a base');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.p2Base);
