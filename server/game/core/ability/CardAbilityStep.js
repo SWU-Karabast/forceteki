@@ -1,6 +1,6 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage, AbilityType, RelativePlayer } = require('../Constants.js');
+const { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer } = require('../Constants.js');
 const AttackHelper = require('../attack/AttackHelpers.js');
 const Helpers = require('../utils/Helpers.js');
 const Contract = require('../utils/Contract.js');
@@ -205,6 +205,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     getCanBeTriggeredBy(subAbilityStep, context) {
+        Contract.assertFalse(subAbilityStep.canBeTriggeredBy === WildcardRelativePlayer.Any, 'Cannot use WildcardRelativePlayer.Any in a then/ifYouDo');
         if (subAbilityStep.canBeTriggeredBy) {
             return subAbilityStep.canBeTriggeredBy === RelativePlayer.Self ? context.player : context.player.opponent;
         }

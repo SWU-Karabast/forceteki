@@ -21,6 +21,7 @@ export default class ANewAdventure extends EventCard {
             then: (thenContext) => ({
                 title: `Play ${thenContext.target.title} for free`,
                 optional: true,
+                // TODO: Update this to use a GameSystem that lets the opponent play a card
                 canBeTriggeredBy: thenContext.source.controller !== thenContext.target.controller ? RelativePlayer.Opponent : RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                     target: thenContext.target,

@@ -97,6 +97,7 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     optionalButtonTextOverride?: string;
 
     /** Indicates which player can activate this ability (e.g. for Bounty abilities, it is the opponent) */
+    // TODO: Update this property's interaction with SubSteps (then/ifYouDo) and the card A New Adventure
     canBeTriggeredBy?: RelativePlayerFilter;
 
     /** If this is a gained ability, gives the source card that is giving the ability */
