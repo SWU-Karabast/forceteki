@@ -43,9 +43,9 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): IResourceCardProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
-        if (Array.isArray(properties.target)) {
-            Contract.assertTrue(properties.target.length <= 1, 'Resourcing more than 1 card is not yet supported');
-        }
+        // if (Array.isArray(properties.target)) {
+        //     Contract.assertTrue(properties.target.length <= 1, 'Resourcing more than 1 card is not yet supported');
+        // }
         return properties;
     }
 

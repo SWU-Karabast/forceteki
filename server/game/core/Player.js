@@ -995,6 +995,11 @@ class Player extends GameObject {
         }
     }
 
+    getRandomResources(context, amount) {
+        this.resourceZone.rearrangeResourceExhaustState(context);
+        return this.resourceZone.getCards().splice(0, amount);
+    }
+
     get selectableCards() {
         return this.promptState.selectableCards;
     }
