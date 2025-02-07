@@ -24,6 +24,7 @@ describe('Fenn Rau Protector of Concord Dawn\'s ability', function () {
                 context.academyTraining,
                 context.jediLightsaber,
             ]);
+            expect(context.player1).toHaveChooseNoTargetButton();
             context.player1.clickCard(context.jediLightsaber);
             context.player1.clickCardNonChecking(context.academyTraining);
             context.player1.clickPrompt('Done');
@@ -33,7 +34,6 @@ describe('Fenn Rau Protector of Concord Dawn\'s ability', function () {
                 context.consularSecurityForce,
                 context.tieAdvanced,
             ]);
-
             context.player1.clickCard(context.consularSecurityForce);
             expect(context.consularSecurityForce.getPower()).toBe(1);
             expect(context.consularSecurityForce.getHp()).toBe(5);
@@ -53,6 +53,25 @@ describe('Fenn Rau Protector of Concord Dawn\'s ability', function () {
             // -2/-2 stops at the end of the phase
             expect(context.consularSecurityForce.getPower()).toBe(3);
             expect(context.consularSecurityForce.getHp()).toBe(7);
+        });
+
+        it('should not bug if there is no enemy unit', function () {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['academy-training', 'jedi-lightsaber'],
+                    groundArena: ['specforce-soldier', 'fenn-rau#protector-of-concord-dawn'],
+                },
+                player2: {
+                    hand: ['waylay'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.academyTraining);
+            context.player1.clickCard(context.fennRau);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });
