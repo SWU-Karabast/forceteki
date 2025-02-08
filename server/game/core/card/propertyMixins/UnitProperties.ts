@@ -238,19 +238,18 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             bountyAbilityToAssign.setAbilityProps(properties);
         }
 
-        protected addCoordinateAbility(properties: IAbilityPropsWithType): void {
+        protected addCoordinateAbility(properties: IAbilityPropsWithType<this>): void {
             const coordinateKeywords = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Coordinate);
+            Contract.assertTrue(
+                coordinateKeywords.length > 0,
+                `Attempting to add a coordinate ability '${properties.title}' to ${this.internalName} but it has no printed instances of the Coordinate keyword`
+            );
+
             const coordinateKeywordsWithoutImpl = coordinateKeywords.filter((keyword) => !keyword.isFullyImplemented);
-
-            if (coordinateKeywordsWithoutImpl.length === 0) {
-                const coordinateKeywordsWithImpl = coordinateKeywords.filter((keyword) => keyword.isFullyImplemented);
-
-                if (coordinateKeywordsWithImpl.length > 0) {
-                    Contract.fail(`Attempting to add a coordinate ability '${properties.title}' to ${this.internalName} but all instances of the Coordinate keyword already have a definition`);
-                }
-
-                Contract.fail(`Attempting to add a coordinate ability '${properties.title}' to ${this.internalName} but it has no printed instances of the Coordinate keyword`);
-            }
+            Contract.assertTrue(
+                coordinateKeywordsWithoutImpl.length > 0,
+                `Attempting to add a coordinate ability '${properties.title}' to ${this.internalName} but all instances of the Coordinate keyword already have a definition`
+            );
 
             const coordinateAbilityToAssign = coordinateKeywordsWithoutImpl[0];
 
@@ -300,7 +299,22 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         /** Register / un-register the effects for any abilities from keywords */
         protected override updateKeywordAbilityEffects(from: ZoneName, to: ZoneName) {
-            if (!EnumHelpers.isArena(from) && EnumHelpers.isArena(to)) {
+            // Unregister all effects when moving a card from an arena to a non-arena zone
+            // or from a base to an arena
+            if ((EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) || (from === ZoneName.Base && EnumHelpers.isArena(to))) {
+                Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
+
+                for (const keywordAbility of this._whileInPlayKeywordAbilities) {
+                    this.removeEffectFromEngine(keywordAbility.registeredEffects);
+                    keywordAbility.registeredEffects = [];
+                }
+
+                this._whileInPlayKeywordAbilities = null;
+            }
+
+            // Register all effects when moving a card from a non-arena zone to an arena or a base,
+            // this is to support leaders with the Coordinate keyword
+            if (!EnumHelpers.isArena(from) && (EnumHelpers.isArena(to) || to === ZoneName.Base)) {
                 Contract.assertIsNullLike(
                     this._whileInPlayKeywordAbilities,
                     `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
@@ -322,15 +336,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
                     this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
                 }
-            } else if (EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
-                Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
-
-                for (const keywordAbility of this._whileInPlayKeywordAbilities) {
-                    this.removeEffectFromEngine(keywordAbility.registeredEffects);
-                    keywordAbility.registeredEffects = [];
-                }
-
-                this._whileInPlayKeywordAbilities = null;
             }
         }
 
