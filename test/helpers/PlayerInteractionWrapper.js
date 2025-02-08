@@ -332,7 +332,8 @@ class PlayerInteractionWrapper {
         });
         // Move cards to the resource area in reverse order
         // (helps with referring to cards by index)
-        newContents.reverse().forEach((name) => {
+        newContents.reverse().forEach((resource) => {
+            const name = typeof resource === 'string' ? resource : resource.card;
             var card = this.findCardByName(name, prevZones);
             this.moveCard(card, 'resource');
             card.exhausted = false;
