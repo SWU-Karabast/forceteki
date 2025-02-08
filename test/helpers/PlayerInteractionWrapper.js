@@ -17,15 +17,10 @@ class PlayerInteractionWrapper {
         this.game = game;
         this.player = player;
         this.testContext = testContext;
-
-        player.noTimer = true;
-        player.user = {
-            settings: {}
-        };
     }
 
     get name() {
-        return this.player.name;
+        return this.player.user.username;
     }
 
     /**
@@ -126,6 +121,10 @@ class PlayerInteractionWrapper {
             }
             if (leaderOptions.upgrades) {
                 throw new TestSetupError('Leader should not have upgrades when not deployed');
+            }
+
+            if (leaderOptions.flipped) {
+                leaderCard.flipLeader();
             }
 
             leaderCard.exhausted = leaderOptions.exhausted || false;
@@ -333,7 +332,8 @@ class PlayerInteractionWrapper {
         });
         // Move cards to the resource area in reverse order
         // (helps with referring to cards by index)
-        newContents.reverse().forEach((name) => {
+        newContents.reverse().forEach((resource) => {
+            const name = typeof resource === 'string' ? resource : resource.card;
             var card = this.findCardByName(name, prevZones);
             this.moveCard(card, 'resource');
             card.exhausted = false;

@@ -47,6 +47,27 @@ function populateMissingData(attributes, id) {
                 }]
             };
             break;
+        case '0026166404': // Chancellor Palpatine - Playing Both Sides
+            attributes.aspects = {
+                data: [{ attributes: {
+                    name: 'Cunning'
+                } },
+                { attributes: {
+                    name: 'Heroism'
+                } }
+                ]
+            };
+            attributes.backSideAspects = {
+                data: [{ attributes: {
+                    name: 'Cunning'
+                } },
+                { attributes: {
+                    name: 'Villainy'
+                } }
+                ]
+            };
+            attributes.backSideTitle = 'Darth Sidious';
+            break;
     }
 }
 
@@ -66,13 +87,13 @@ function filterValues(card) {
     }
 
     // filtering out C24 for now since we do not handle variants
-    if (card.attributes.expansion.data.attributes.code === 'C24' || card.attributes.expansion.data.attributes.code === 'JTL') {
+    if (card.attributes.expansion.data.attributes.code === 'C24') {
         return null;
     }
 
     // hacky way to strip the object down to just the attributes we want
-    const filterAttributes = ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints }) =>
-        ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints });
+    const filterAttributes = ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints }) =>
+        ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints });
 
     let filteredObj = filterAttributes(card.attributes);
 
@@ -92,6 +113,13 @@ function filterValues(card) {
     filteredObj.traits = getAttributeNames(card.attributes.traits);
     filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
     filteredObj.keywords = getAttributeNames(card.attributes.keywords);
+
+    if (card.attributes.backSideAspects) {
+        filteredObj.backSideAspects = getAttributeNames(card.attributes.backSideAspects);
+    }
+    if (card.attributes.backSideTitle) {
+        filteredObj.backSideTitle = card.attributes.backSideTitle;
+    }
 
     // if a card has multiple types it will be still in one string, like 'token upgrade'
     filteredObj.types = getAttributeNames(card.attributes.type).split(' ');
@@ -214,7 +242,7 @@ async function main() {
     const fileWriteProgressBar = new cliProgress.SingleBar({ format: '[{bar}] {percentage}% | ETA: {eta}s | {value}/{total}' });
     fileWriteProgressBar.start(uniqueCards.length, 0);
 
-    await Promise.all(uniqueCards.map(async (card) => {
+    await Promise.all(uniqueCards.map((card) => {
         fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify([card], null, 2));
         fileWriteProgressBar.increment();
     }));

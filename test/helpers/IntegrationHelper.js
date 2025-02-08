@@ -9,7 +9,10 @@ require('./ObjectFormatters.js');
 
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const Util = require('./Util.js');
-const GameStateSetup = require('./GameStateSetup.js');
+const GameStateBuilder = require('./GameStateBuilder.js');
+const DeckBuilder = require('./DeckBuilder.js');
+const { cards } = require('../../server/game/cards/Index.js');
+const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 
 const ProxiedGameFlowWrapperMethods = [
     'advancePhases',
@@ -40,6 +43,8 @@ if (!jasmine.getEnv().configuration().random) {
     });
 }
 
+const gameStateBuilder = new GameStateBuilder();
+
 global.integration = function (definitions) {
     describe('- integration -', function () {
         /**
@@ -58,22 +63,29 @@ global.integration = function (definitions) {
 
             const gameFlowWrapper = new GameFlowWrapper(
                 gameRouter,
-                { id: '111', username: 'player1' },
-                { id: '222', username: 'player2' }
+                { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
+                { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } }
             );
 
             const newContext = {};
             contextRef.context = newContext;
 
-            GameStateSetup.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
-            GameStateSetup.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
+            gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
+            gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
 
             const setupGameStateWrapper = (options) => {
-                GameStateSetup.setupGameState(newContext, options);
-                GameStateSetup.attachAbbreviatedContextInfo(newContext, contextRef);
+                gameStateBuilder.setupGameState(newContext, options);
+                gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
             };
 
             this.setupTest = newContext.setupTest = setupGameStateWrapper;
+
+            // used only for the "import all cards" test
+            contextRef.buildImportAllCardsTools = () => ({
+                deckBuilder: new DeckBuilder(),
+                implementedCardsCtors: cards,
+                unimplementedCardCtor: CardHelpers.createUnimplementedCard
+            });
         });
 
         afterEach(function() {
@@ -95,11 +107,6 @@ global.integration = function (definitions) {
             if (context.game.currentPhase !== 'action' || context.allowTestToEndWithOpenPrompt) {
                 return;
             }
-
-            const actionWindowMenuTitles = [
-                'Waiting for opponent to take an action or pass',
-                'Choose an action'
-            ];
 
             const playersWithUnresolvedPrompts = [context.player1, context.player2]
                 .filter((player) => player.currentPrompt().menuTitle !== 'Choose an action' && !player.currentPrompt().menuTitle.startsWith('Waiting for opponent'));

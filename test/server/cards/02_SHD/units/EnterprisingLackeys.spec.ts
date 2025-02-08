@@ -28,7 +28,7 @@ describe('Enterprising Lackeys', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
 
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNoTargetButton();
 
                 context.player1.clickCard(context.superlaserTechnician);
 
@@ -52,7 +52,7 @@ describe('Enterprising Lackeys', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
 
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNoTargetButton();
 
                 context.player1.clickPrompt('Pass');
 
