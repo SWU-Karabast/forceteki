@@ -37,9 +37,10 @@ export type ZoneFilter = ZoneName | WildcardZoneName;
 export type Arena = ZoneName.GroundArena | ZoneName.SpaceArena;
 
 export enum PlayType {
+    Piloting = 'piloting',
     PlayFromHand = 'playFromHand',
-    Smuggle = 'smuggle',
     PlayFromOutOfPlay = 'playFromOutOfPlay',
+    Smuggle = 'smuggle',
 }
 
 export enum StatType {

@@ -3,7 +3,7 @@ import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
-import type { IPlayCardActionProperties, IPlayCardActionPropertiesBase, ISmuggleCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
+import type { IPilotingCardActionProperties, IPlayCardActionProperties, IPlayCardActionPropertiesBase, ISmuggleCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
 import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
@@ -73,7 +73,11 @@ export class PlayableOrDeployableCard extends Card {
      */
     public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         if (this.zoneName === ZoneName.Hand) {
-            return this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
+            let playActions = this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
+            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                playActions = playActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+            }
+            return playActions;
         }
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
@@ -104,7 +108,11 @@ export class PlayableOrDeployableCard extends Card {
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         let defaultPlayAction: PlayCardAction = null;
-        if (playType === PlayType.Smuggle) {
+        if (playType === PlayType.Piloting) {
+            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                defaultPlayAction = this.buildCheapestPilotingAction(propertyOverrides);
+            }
+        } else if (playType === PlayType.Smuggle) {
             if (this.hasSomeKeyword(KeywordName.Smuggle)) {
                 defaultPlayAction = this.buildCheapestSmuggleAction(propertyOverrides);
             }
@@ -128,12 +136,34 @@ export class PlayableOrDeployableCard extends Card {
         return actions;
     }
 
+    // TODO: Simplify this if it turns out there are no alternative ways to gain a Piloting cost
+    protected buildCheapestPilotingAction(propertyOverrides: IPlayCardActionOverrides = null) {
+        Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+
+        // find all Piloting keywords, filtering out any with additional ability costs as those will be implemented manually
+        const pilotingKeywords = this.getKeywordsWithCostValues(KeywordName.Piloting)
+            .filter((keyword) => !keyword.additionalCosts);
+
+        const pilotingActions = pilotingKeywords.map((pilotingKeyword) => {
+            const pilotingActionProps: IPilotingCardActionProperties = {
+                ...propertyOverrides,
+                playType: PlayType.Piloting,
+                pilotingResourceCost: pilotingKeyword.cost,
+                pilotingAspects: pilotingKeyword.aspects
+            };
+
+            return this.buildPlayCardAction(pilotingActionProps);
+        });
+
+        return KeywordHelpers.getCheapestPlayAction(PlayType.Piloting, pilotingActions);
+    }
+
     protected buildCheapestSmuggleAction(propertyOverrides: IPlayCardActionOverrides = null) {
         Contract.assertTrue(this.hasSomeKeyword(KeywordName.Smuggle));
 
         // find all Smuggle keywords, filtering out any with additional ability costs as those will be implemented manually (e.g. First Light)
         const smuggleKeywords = this.getKeywordsWithCostValues(KeywordName.Smuggle)
-            .filter((keyword) => !keyword.additionalSmuggleCosts);
+            .filter((keyword) => !keyword.additionalCosts);
 
         const smuggleActions = smuggleKeywords.map((smuggleKeyword) => {
             const smuggleActionProps: ISmuggleCardActionProperties = {
@@ -146,7 +176,7 @@ export class PlayableOrDeployableCard extends Card {
             return this.buildPlayCardAction(smuggleActionProps);
         });
 
-        return KeywordHelpers.getCheapestSmuggle(smuggleActions);
+        return KeywordHelpers.getCheapestPlayAction(PlayType.Smuggle, smuggleActions);
     }
 
     // can't do abstract due to mixins

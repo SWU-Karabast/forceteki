@@ -1,5 +1,6 @@
 import type { IKeywordProperties } from '../../Interfaces';
-import { Aspect, KeywordName, PlayType } from '../Constants';
+import type { PlayType } from '../Constants';
+import { Aspect, KeywordName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { BountyKeywordInstance, KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
@@ -16,8 +17,13 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
             if (keywordValueOrNull != null) {
                 keywords.push(new KeywordWithNumericValue(keywordName, keywordValueOrNull));
             }
+        } else if (keywordName === KeywordName.Piloting) {
+            const pilotingValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Piloting, cardText, cardName);
+            if (pilotingValuesOrNull != null) {
+                keywords.push(pilotingValuesOrNull);
+            }
         } else if (keywordName === KeywordName.Smuggle) {
-            const smuggleValuesOrNull = parseSmuggleIfEnabled(cardText, cardName);
+            const smuggleValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Smuggle, cardText, cardName);
             if (smuggleValuesOrNull != null) {
                 keywords.push(smuggleValuesOrNull);
             }
@@ -136,8 +142,8 @@ function parseNumericKeywordValueIfEnabled(keyword: KeywordName, cardText: strin
  *
  * @returns null if the keyword is not enabled, or the numeric value if enabled
  */
-function parseSmuggleIfEnabled(cardText: string, cardName: string): KeywordWithCostValues {
-    const regex = getRegexForKeyword(KeywordName.Smuggle);
+function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: string, cardName: string): KeywordWithCostValues {
+    const regex = getRegexForKeyword(keyword);
     const matchIter = cardText.matchAll(regex);
 
     const match = matchIter.next();
@@ -146,16 +152,16 @@ function parseSmuggleIfEnabled(cardText: string, cardName: string): KeywordWithC
     }
 
     if (matchIter.next().done !== true) {
-        throw new Error(`Expected to match at most one instance of enabled keyword ${KeywordName.Smuggle} in card ${cardName}, but found multiple`);
+        throw new Error(`Expected to match at most one instance of enabled keyword ${keyword} in card ${cardName}, but found multiple`);
     }
 
-    const smuggleCost = Number(match.value[1]);
+    const cost = Number(match.value[1]);
     const aspectString = match.value[2];
-    const smuggleAspects = EnumHelpers.checkConvertToEnum(aspectString.toLowerCase().split(' '), Aspect);
-    const additionalSmuggleCosts = match.value[3] !== undefined;
+    const aspects = EnumHelpers.checkConvertToEnum(aspectString.toLowerCase().split(' '), Aspect);
+    const additionalCosts = match.value[3] !== undefined;
 
     // regex capture group will be keyword value with costs
-    return new KeywordWithCostValues(KeywordName.Smuggle, smuggleCost, smuggleAspects, additionalSmuggleCosts);
+    return new KeywordWithCostValues(keyword, cost, aspects, additionalCosts);
 }
 
 function getRegexForKeyword(keyword: KeywordName) {
@@ -196,27 +202,27 @@ function getRegexForKeyword(keyword: KeywordName) {
     }
 }
 
-export function getCheapestSmuggle<TAbility extends PlayCardAction>(smuggleActions: TAbility[]): PlayCardAction | null {
-    const nonSmuggleActions = smuggleActions.filter((action) => action.playType !== PlayType.Smuggle);
-    Contract.assertTrue(nonSmuggleActions.length === 0, 'Found at least one action that is not a Smuggle play action');
+export function getCheapestPlayAction<TAbility extends PlayCardAction>(playType: PlayType, actions: TAbility[]): PlayCardAction | null {
+    const nonMatchingActions = actions.filter((action) => action.playType !== playType);
+    Contract.assertTrue(nonMatchingActions.length === 0, `Found at least one action that is not a ${playType} play action`);
 
-    if (smuggleActions.length === 0) {
+    if (actions.length === 0) {
         return null;
     }
-    if (smuggleActions.length === 1) {
-        return smuggleActions[0];
+    if (actions.length === 1) {
+        return actions[0];
     }
 
-    let cheapestSmuggle = null;
+    let cheapestAction = null;
     let cheapestAmount = Infinity;
-    for (const smuggleAction of smuggleActions) {
-        Contract.assertTrue(smuggleAction.isPlayCardAbility());
-        const cost = smuggleAction.getAdjustedCost(smuggleAction.createContext());
+    for (const action of actions) {
+        Contract.assertTrue(action.isPlayCardAbility());
+        const cost = action.getAdjustedCost(action.createContext());
         if (cost < cheapestAmount) {
             cheapestAmount = cost;
-            cheapestSmuggle = smuggleAction;
+            cheapestAction = action;
         }
     }
 
-    return cheapestSmuggle;
+    return cheapestAction;
 }

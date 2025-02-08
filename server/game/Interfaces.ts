@@ -177,6 +177,7 @@ export type IKeywordProperties =
   | IBountyKeywordProperties
   | IGritKeywordProperties
   | IOverwhelmKeywordProperties
+  | IPilotingKeywordProperties
   | IRaidKeywordProperties
   | IRestoreKeywordProperties
   | ISaboteurKeywordProperties
@@ -319,6 +320,12 @@ interface IGritKeywordProperties extends IKeywordPropertiesBase {
 
 interface IOverwhelmKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Overwhelm;
+}
+
+interface IPilotingKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Piloting;
+    cost: number;
+    aspects: Aspect[];
 }
 
 interface IRaidKeywordProperties extends INumericKeywordProperties {

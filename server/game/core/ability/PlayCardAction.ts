@@ -31,6 +31,14 @@ interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
     playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay;
 }
 
+// TODO - can we refacor these two to be shared?
+export interface IPilotingCardActionProperties extends IPlayCardActionPropertiesBase {
+    playType: PlayType.Piloting;
+    pilotingResourceCost: number;
+    pilotingAspects: Aspect[];
+    appendPilotingToTitle?: boolean;
+}
+
 export interface ISmuggleCardActionProperties extends IPlayCardActionPropertiesBase {
     playType: PlayType.Smuggle;
     smuggleResourceCost: number;
@@ -38,7 +46,7 @@ export interface ISmuggleCardActionProperties extends IPlayCardActionPropertiesB
     appendSmuggleToTitle?: boolean;
 }
 
-export type IPlayCardActionProperties = IStandardPlayActionProperties | ISmuggleCardActionProperties;
+export type IPlayCardActionProperties = IStandardPlayActionProperties | IPilotingCardActionProperties | ISmuggleCardActionProperties;
 
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
@@ -66,11 +74,16 @@ export abstract class PlayCardAction extends PlayerAction {
 
         let cost: number;
         let aspects: Aspect[];
-        let appendSmuggleToTitle: boolean = null;
-        if (properties.playType === PlayType.Smuggle) {
+        let appendToTitle: boolean = null;
+        // TODO - is there some way to refactor this to be more generic?
+        if (properties.playType === PlayType.Piloting) {
+            cost = properties.pilotingResourceCost;
+            aspects = properties.pilotingAspects;
+            appendToTitle = properties.appendPilotingToTitle;
+        } else if (properties.playType === PlayType.Smuggle) {
             cost = properties.smuggleResourceCost;
             aspects = properties.smuggleAspects;
-            appendSmuggleToTitle = properties.appendSmuggleToTitle;
+            appendToTitle = properties.appendSmuggleToTitle;
         } else {
             cost = card.cost;
             aspects = card.aspects;
@@ -83,7 +96,7 @@ export abstract class PlayCardAction extends PlayerAction {
         super(
             game,
             card,
-            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit, appendSmuggleToTitle),
+            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit, appendToTitle),
             propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
@@ -101,6 +114,9 @@ export abstract class PlayCardAction extends PlayerAction {
         let updatedTitle = title;
 
         switch (playType) {
+            case PlayType.Piloting:
+                updatedTitle += appendToTitle ? ' with Piloting' : '';
+                break;
             case PlayType.Smuggle:
                 updatedTitle += appendToTitle ? ' with Smuggle' : '';
                 break;
@@ -138,6 +154,9 @@ export abstract class PlayCardAction extends PlayerAction {
             !context.source.canPlay(context, this.playType)
         ) {
             return 'cannotTrigger';
+        }
+        if (PlayType.Piloting === this.playType && !context.source.hasSomeKeyword(KeywordName.Piloting)) {
+            return 'pilotingKeyword';
         }
         if (PlayType.Smuggle === this.playType && !context.source.hasSomeKeyword(KeywordName.Smuggle)) {
             return 'smuggleKeyword';

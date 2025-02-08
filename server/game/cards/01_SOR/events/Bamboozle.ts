@@ -15,7 +15,7 @@ export default class Bamboozle extends EventCard {
     }
 
     protected override buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null) {
-        const bamboozleAction = playType === PlayType.Smuggle
+        const bamboozleAction = playType === PlayType.Smuggle || playType === PlayType.Piloting // This card can't be piloted - can we do something with an Omit here?
             ? []
             : [new PlayBamboozleAction(this, { playType })];
 
