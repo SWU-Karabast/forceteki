@@ -16,9 +16,15 @@ import type { ActionAbility } from '../ability/ActionAbility';
 const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
 
 export class LeaderUnitCard extends LeaderUnitCardParent {
+    protected _deployed = false;
+    protected setupLeaderUnitSide;
     private readonly epicActionAbility: ActionAbility;
 
-    public override get type() {
+    public get deployed() {
+        return this._deployed;
+    }
+
+    public override get type(): CardType {
         return this._deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
@@ -42,6 +48,10 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         return this._deployed;
     }
 
+    public override isDeployableLeader(): this is LeaderUnitCard {
+        return true;
+    }
+
     public override isLeaderUnit(): this is LeaderUnitCard {
         return this._deployed;
     }
@@ -55,7 +65,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     }
 
     /** Deploy the leader to the arena. Handles the move operation and state changes. */
-    public override deploy() {
+    public deploy() {
         Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
 
         this._deployed = true;

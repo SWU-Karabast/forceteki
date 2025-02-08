@@ -266,6 +266,8 @@ class Player extends GameObject {
                 return this.game.spaceArena.getCards({ controller: this });
             case ZoneName.GroundArena:
                 return this.game.groundArena.getCards({ controller: this });
+            case ZoneName.Capture:
+                return this.game.getAllCapturedCards(this);
             default:
                 Contract.fail(`Unknown zone: ${zoneName}`);
         }
@@ -993,6 +995,11 @@ class Player extends GameObject {
         }
     }
 
+    getRandomResources(context, amount) {
+        this.resourceZone.rearrangeResourceExhaustState(context);
+        return this.resourceZone.getCards().splice(0, amount);
+    }
+
     get selectableCards() {
         return this.promptState.selectableCards;
     }
@@ -1113,6 +1120,7 @@ class Player extends GameObject {
             cardPiles: {
                 hand: this.getSummaryForZone(ZoneName.Hand, activePlayer),
                 outsideTheGame: this.getSummaryForZone(ZoneName.OutsideTheGame, activePlayer),
+                capturedZone: this.getSummaryForZone(ZoneName.Capture, activePlayer),
                 resources: this.getSummaryForZone(ZoneName.Resource, activePlayer),
                 groundArena: this.getSummaryForZone(ZoneName.GroundArena, activePlayer),
                 spaceArena: this.getSummaryForZone(ZoneName.SpaceArena, activePlayer),
