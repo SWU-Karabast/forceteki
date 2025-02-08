@@ -14,10 +14,10 @@ export default class FennRauProtectorOfConcordDawn extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'You may play an upgrade from your hand. It costs 2 less',
+            optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
-                mode: TargetMode.UpTo,
-                numCards: 1,
+                mode: TargetMode.Single,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({

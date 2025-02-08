@@ -4,9 +4,9 @@ describe('Fenn Rau Protector of Concord Dawn\'s ability', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    hand: ['fenn-rau#protector-of-concord-dawn', 'academy-training', 'jedi-lightsaber'],
+                    hand: ['fenn-rau#protector-of-concord-dawn', 'academy-training', 'jedi-lightsaber', 'wampa'],
                     groundArena: ['specforce-soldier'],
-                    leader: { card: 'luke-skywalker#faithful-friend' },
+                    leader: 'luke-skywalker#faithful-friend',
                     base: 'echo-base',
                     resources: 9
                 },
@@ -26,8 +26,6 @@ describe('Fenn Rau Protector of Concord Dawn\'s ability', function () {
             ]);
             expect(context.player1).toHaveChooseNoTargetButton();
             context.player1.clickCard(context.jediLightsaber);
-            context.player1.clickCardNonChecking(context.academyTraining);
-            context.player1.clickPrompt('Done');
             context.player1.clickCard(context.fennRau);
             expect(context.player1.readyResourceCount).toBe(2);
             expect(context.player1).toBeAbleToSelectExactly([
