@@ -6,7 +6,8 @@ describe('Osi Sobeck, Warden of the Citadel', function () {
                 player1: {
                     hand: ['osi-sobeck#warden-of-the-citadel', 'palpatines-return'],
                     groundArena: ['battlefield-marine'],
-                    resources: 25
+                    resources: 25,
+                    leader: 'hondo-ohnaka#thats-good-business'
                 },
                 player2: {
                     groundArena: ['scout-bike-pursuer', 'wampa', 'atst', 'gor#grievouss-pet'],
