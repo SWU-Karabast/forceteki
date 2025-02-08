@@ -17,8 +17,7 @@ describe('Admiral Piett Commanding The Armada', function () {
 
                 // Select a capital ship 3 cost and play for 2
                 context.player1.clickCard(context.admiralPiett);
-                expect(context.player1).toBeAbleToSelectExactly([
-                    context.outlawCorona]); // Fighter not selectable as not a Capital ship
+                expect(context.player1).toBeAbleToSelectExactly([context.outlawCorona]); // Fighter not selectable as not a Capital ship
                 context.player1.clickCard(context.outlawCorona);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.outlawCorona).toBeInZone('spaceArena');
@@ -46,8 +45,6 @@ describe('Admiral Piett Commanding The Armada', function () {
                 const { context } = contextRef;
 
                 // Play a Capital ship for 2 resources less
-                context.player1.clickCard(context.admiralPiett);
-                context.player1.clickPrompt('Play a Capital Ship unit from your hand. It costs 2 resources less');
                 context.player1.clickCard(context.finalizer);
                 expect(context.player1.exhaustedResourceCount).toBe(9);
 
@@ -57,39 +54,13 @@ describe('Admiral Piett Commanding The Armada', function () {
 
                 // Exhaust Piett
                 context.player1.clickCard(context.admiralPiett);
-                context.player1.clickPrompt('Attack');
                 context.player1.clickCard(context.p2Base);
 
                 context.player2.passAction();
 
                 // Piett exhausted, still can use action
-                context.player1.clickCard(context.admiralPiett);
                 context.player1.clickCard(context.outlawCorona);
                 expect(context.player1.exhaustedResourceCount).toBe(10);
-            });
-        });
-
-        describe('Admiral Piett\'s deployed ability', function () {
-            beforeEach(function () {
-                contextRef.setupTest({
-                    phase: 'action',
-                    player1: {
-                        leader: { card: 'admiral-piett#commanding-the-armada', deployed: true },
-                    },
-                });
-            });
-
-            it('should not allow the player to play a Capital ship unit when no cards in hand', function () {
-                const { context } = contextRef;
-
-                // Check Piett have no action availble when hand has no cards to play
-                context.player1.clickCard(context.admiralPiett);
-                context.player1.clickCard(context.p2Base);
-                context.player2.passAction();
-                expect(context.admiralPiett.exhausted).toBeTrue();
-                expect(context.p2Base.damage).toBe(2);
-                expect(context.admiralPiett).not.toHaveAvailableActionWhenClickedBy(context.player1);
-                expect(context.player1).toBeActivePlayer();
             });
         });
     });

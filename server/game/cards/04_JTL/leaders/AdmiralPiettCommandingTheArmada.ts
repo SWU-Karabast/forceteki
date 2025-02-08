@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { CardType, RelativePlayer, ZoneName, Trait } from '../../../core/Constants';
+import { CardType, RelativePlayer, ZoneName, Trait, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
@@ -16,7 +16,7 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
             title: 'Play a Capital Ship unit from your hand. It costs 1 resource less',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
-                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.CapitalShip),
+                cardCondition: (card) => card.hasSomeTrait(Trait.CapitalShip),
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
@@ -28,16 +28,14 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
     }
 
     protected override setupLeaderUnitSideAbilities() {
-        this.addActionAbility({
+        this.addConstantAbility({
             title: 'Play a Capital Ship unit from your hand. It costs 2 resources less',
-            targetResolver: {
-                cardTypeFilter: CardType.BasicUnit,
-                zoneFilter: ZoneName.Hand,
-                controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 2 }
-                }),
-            }
+            targetController: RelativePlayer.Self,
+            ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
+                match: (card) => card.hasSomeTrait(Trait.CapitalShip),
+                cardTypeFilter: WildcardCardType.Unit,
+                amount: 2
+            })
         });
     }
 }
