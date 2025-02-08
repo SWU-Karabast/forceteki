@@ -29,7 +29,6 @@ export class PlayUnitAction extends PlayCardAction {
             context.source,
         );
 
-        // TODO TAKE CONTROL
         const playForOpponentEffect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
         const player = playForOpponentEffect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
 

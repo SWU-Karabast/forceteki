@@ -9,6 +9,7 @@ import {
 } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { Card } from '../core/card/Card';
+import * as Contract from '../core/utils/Contract';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
     controller?: RelativePlayer;
@@ -29,11 +30,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     };
 
     public eventHandler(event, additionalProperties = {}): void {
-        event.card.moveTo(event.card.defaultArena);
-
-        // TODO TAKE CONTROL
-        if (event.controller !== RelativePlayer.Self) {
-            throw new Error(`Attempting to put ${event.card.internalName} into play for opponent, which is not implemented yet`);
+        if (event.newController && event.newController !== event.card.controller) {
+            event.card.takeControl(event.newController, event.card.defaultArena);
+        } else {
+            event.card.moveTo(event.card.defaultArena);
         }
 
         if (event.entersReady) {
@@ -75,9 +75,21 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
         event.entersReady = entersReady || card.hasOngoingEffect(EffectName.EntersPlayReady);
+        event.newController = this.getFinalController(controller, context);
     }
 
     private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {
         return context.player || card.owner;
+    }
+
+    private getFinalController(controller: RelativePlayer, context: TContext) {
+        switch (controller) {
+            case RelativePlayer.Self:
+                return context.player;
+            case RelativePlayer.Opponent:
+                return context.player.opponent;
+            default:
+                Contract.fail(`Unknown value of RelativePlayer: ${controller}`);
+        }
     }
 }
