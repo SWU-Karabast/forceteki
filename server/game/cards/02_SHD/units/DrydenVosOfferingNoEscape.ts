@@ -11,7 +11,7 @@ export default class DrydenVos extends NonLeaderUnitCard {
         };
     }
 
-    private checkTargetIsGuarded(card, context) {
+    private checkIfTargetIsGuardedByControlledUnit(card, context) {
         return card.zoneName === ZoneName.Capture && card.zone.captor.controller === context.source.controller;
     }
 
@@ -20,7 +20,7 @@ export default class DrydenVos extends NonLeaderUnitCard {
             title: 'Choose a captured card guarded by a unit you control. You may play it for free under your control.',
             targetResolver: {
                 zoneFilter: [ZoneName.Capture],
-                cardCondition: (card, context) => this.checkTargetIsGuarded(card, context),
+                cardCondition: (card, context) => this.checkIfTargetIsGuardedByControlledUnit(card, context),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Free },
                     canPlayFromAnyZone: true
