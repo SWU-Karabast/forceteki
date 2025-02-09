@@ -98,8 +98,9 @@ export interface IDisplayCardsBasicPromptProperties extends IDisplayCardPromptPr
 }
 
 export interface IDisplayCardsWithButtonsPromptProperties extends IDisplayCardPromptPropertiesBase {
-    onCardButton: (card: Card, arg: string) => boolean;
+    onCardButton: (card: Card, arg: string) => void;
     perCardButtons: IButton[];
+    onComplete?: () => void;
 }
 
 export interface ISelectableCard {
