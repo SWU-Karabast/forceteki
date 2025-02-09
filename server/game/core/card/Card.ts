@@ -173,6 +173,15 @@ export class Card extends OngoingEffectSource {
         this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
             this.internalName);
+        if (this.printedType === CardType.Leader) {
+            this.printedKeywords.push(
+                ...KeywordHelpers.parseKeywords(
+                    cardData.keywords,
+                    cardData.text,
+                    this.internalName
+                )
+            );
+        }
 
         this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
     }

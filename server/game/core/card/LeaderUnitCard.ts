@@ -1,12 +1,12 @@
 import type Player from '../Player';
 import { LeaderCard } from './LeaderCard';
 import type { ZoneFilter } from '../Constants';
-import { CardType, ZoneName } from '../Constants';
+import { AbilityType, CardType, ZoneName } from '../Constants';
 import { WithCost } from './propertyMixins/Cost';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import type { UnitCard } from './CardTypes';
 import * as EnumHelpers from '../utils/EnumHelpers';
-import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, IAbilityPropsWithType } from '../../Interfaces';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
 import { EpicActionLimit } from '../ability/AbilityLimit';
@@ -92,6 +92,10 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         return super.addActionAbility(properties);
     }
 
+    protected override addCoordinateAbility(properties: IAbilityPropsWithType<this>): void {
+        return super.addCoordinateAbility(this.addZoneForSideToAbilityWithType(properties));
+    }
+
     protected override addConstantAbility(properties: IConstantAbilityProps<this>) {
         properties.sourceZoneFilter = this.getAbilityZonesForSide(properties.sourceZoneFilter);
         return super.addConstantAbility(properties);
@@ -108,6 +112,15 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     }
 
     /** Generates the right zoneFilter property depending on which leader side we're setting up */
+    private addZoneForSideToAbilityWithType<Properties extends IAbilityPropsWithType<this>>(properties: Properties) {
+        if (properties.type === AbilityType.Constant) {
+            properties.sourceZoneFilter = this.getAbilityZonesForSide(properties.sourceZoneFilter);
+        } else {
+            properties.zoneFilter = this.getAbilityZonesForSide(properties.zoneFilter);
+        }
+        return properties;
+    }
+
     private getAbilityZonesForSide(propertyZone: ZoneFilter | ZoneFilter[]) {
         const abilityZone = this.setupLeaderUnitSide ? this.defaultArena : ZoneName.Base;
 
