@@ -7,7 +7,7 @@ import type Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import type { ITriggeredAbilityBaseProps } from '../../Interfaces';
 
-export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'abilityController'> & {
+export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'canBeTriggeredBy'> & {
     bountySource?: UnitCard;
 };
 
@@ -24,7 +24,7 @@ export class BountyAbility extends TriggeredAbility {
     public constructor(
         game: Game,
         card: Card,
-        properties: Omit<ITriggeredAbilityBaseProps, 'abilityController'>,
+        properties: Omit<ITriggeredAbilityBaseProps, 'canBeTriggeredBy'>,
     ) {
         Contract.assertTrue(card.isUnit());
 
@@ -40,7 +40,7 @@ export class BountyAbility extends TriggeredAbility {
                 onCardDefeated: (event, context) => event.card === context.source,
                 onCardCaptured: (event, context) => event.card === context.source
             },
-            abilityController: RelativePlayer.Opponent,
+            canBeTriggeredBy: RelativePlayer.Opponent,
             zoneFilter: WildcardZoneName.AnyArena
         };
 
