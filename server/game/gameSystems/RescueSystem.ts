@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { GameStateChangeRequired, WildcardCardType, EventName, RelativePlayer } from '../core/Constants';
+import { GameStateChangeRequired, WildcardCardType, EventName } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 
