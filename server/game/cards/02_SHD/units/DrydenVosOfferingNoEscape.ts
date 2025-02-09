@@ -12,7 +12,7 @@ export default class DrydenVos extends NonLeaderUnitCard {
     }
 
     private checkIfTargetIsGuardedByControlledUnit(card, context) {
-        return card.zoneName === ZoneName.Capture && card.zone.captor.controller === context.source.controller;
+        return card.zoneName === ZoneName.Capture && card.zone.captor.controller === context.player;
     }
 
     public override setupCardAbilities() {
