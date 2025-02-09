@@ -312,9 +312,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 this._whileInPlayKeywordAbilities = null;
             }
 
-            // Register all effects when moving a card from a non-arena zone to an arena or a base,
+            // Register all effects when moving a card to a base or from a non-arena zone to an arena,
             // this is to support leaders with the Coordinate keyword
-            if (!EnumHelpers.isArena(from) && (EnumHelpers.isArena(to) || to === ZoneName.Base)) {
+            if ((!EnumHelpers.isArena(from) && EnumHelpers.isArena(to)) || to === ZoneName.Base) {
                 Contract.assertIsNullLike(
                     this._whileInPlayKeywordAbilities,
                     `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
