@@ -17,22 +17,18 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                 });
                 const { context } = contextRef;
 
-                // go to the next action phase
-                context.player1.passAction();
-                context.player2.passAction();
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                // thrawn ability reveal top deck of each player (happens at beginning of action phase)
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.rivalsFall, context.specforceSoldier]);
 
-                // thrawn ability reveal top deck of each player
-                expect(context.getChatLogs(2, true)).toEqual([
-                    'player1 uses Grand Admiral Thrawn to look at a card',
-                    'Grand Admiral Thrawn sees Rival\'s Fall and SpecForce Soldier'
-                ]);
+                // confirm that there is no chat message for the cards
+                expect(context.getChatLogs(1)[0]).not.toContain(context.rivalsFall.title);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.specforceSoldier.title);
+                context.player1.clickPrompt('Done');
 
                 context.player1.clickCard(context.grandAdmiralThrawn);
 
-                expect(context.player1).toHaveExactPromptButtons(['Reveal your top deck cards', 'Reveal opponent top deck cards']);
-                context.player1.clickPrompt('Reveal your top deck cards');
+                expect(context.player1).toHaveExactPromptButtons(['Reveal the top card of your deck', 'Reveal the top card of the opponent\'s deck']);
+                context.player1.clickPrompt('Reveal the top card of your deck');
 
                 expect(context.getChatLogs(1)).toContain('player1 reveals Rival\'s Fall due to Grand Admiral Thrawn');
 
@@ -62,23 +58,19 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                 });
                 const { context } = contextRef;
 
-                // go to the next action phase
-                context.player1.passAction();
-                context.player2.passAction();
-                context.player1.clickPrompt('Done');
-                context.player2.clickPrompt('Done');
+                // thrawn ability reveal top deck of each player (happens at beginning of action phase)
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.rivalsFall, context.specforceSoldier]);
 
-                // thrawn ability reveal top deck of each player
-                expect(context.getChatLogs(2, true)).toEqual([
-                    'player1 uses Grand Admiral Thrawn to look at a card',
-                    'Grand Admiral Thrawn sees Rival\'s Fall and SpecForce Soldier'
-                ]);
+                // confirm that there is no chat message for the cards
+                expect(context.getChatLogs(1)[0]).not.toContain(context.rivalsFall.title);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.specforceSoldier.title);
+                context.player1.clickPrompt('Done');
 
                 context.player1.clickCard(context.grandAdmiralThrawn);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHaveExactPromptButtons(['Reveal your top deck cards', 'Reveal opponent top deck cards']);
-                context.player1.clickPrompt('Reveal your top deck cards');
+                expect(context.player1).toHaveExactPromptButtons(['Reveal the top card of your deck', 'Reveal the top card of the opponent\'s deck']);
+                context.player1.clickPrompt('Reveal the top card of your deck');
 
                 // confirm optional ability
                 expect(context.player1).toHavePassAbilityPrompt('Reveal the top card of any player\'s deck');

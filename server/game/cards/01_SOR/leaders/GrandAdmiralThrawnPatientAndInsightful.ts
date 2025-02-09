@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { PhaseName, TargetMode, WildcardCardType } from '../../../core/Constants';
-import { UnitCard } from '../../../core/card/CardTypes';
+import type { UnitCard } from '../../../core/card/CardTypes';
 
 export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -20,19 +20,19 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
             targetResolver: {
                 mode: TargetMode.Select,
                 choices: {
-                    ['Reveal your top deck cards']: AbilityHelper.immediateEffects.reveal((context) => ({
+                    ['Reveal the top card of your deck']: AbilityHelper.immediateEffects.reveal((context) => ({
                         target: context.source.controller.getTopCardOfDeck(),
                     })),
-                    ['Reveal opponent top deck cards']: AbilityHelper.immediateEffects.reveal((context) => ({
+                    ['Reveal the top card of the opponent\'s deck']: AbilityHelper.immediateEffects.reveal((context) => ({
                         target: context.source.controller.opponent.getTopCardOfDeck(),
-                    })),
+                    }))
                 }
             },
-            then: (thenContext) => ({
+            ifYouDo: (ifYouDoContext) => ({
                 title: 'Exhaust a unit that costs the same as or less than the revealed card',
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card: UnitCard) => card.cost <= thenContext.events[0].card[0].cost,
+                    cardCondition: (card: UnitCard) => card.cost <= ifYouDoContext.events[0].card[0].cost,
                     immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 }
             })
@@ -48,20 +48,19 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
             targetResolver: {
                 mode: TargetMode.Select,
                 choices: {
-                    ['Reveal your top deck cards']: AbilityHelper.immediateEffects.reveal((context) => ({
+                    ['Reveal the top card of your deck']: AbilityHelper.immediateEffects.reveal((context) => ({
                         target: context.source.controller.getTopCardOfDeck(),
                     })),
-                    ['Reveal opponent top deck cards']: AbilityHelper.immediateEffects.reveal((context) => ({
+                    ['Reveal the top card of the opponent\'s deck']: AbilityHelper.immediateEffects.reveal((context) => ({
                         target: context.source.controller.opponent.getTopCardOfDeck(),
-                    })),
+                    }))
                 }
             },
-            then: (thenContext) => ({
+            ifYouDo: (ifYouDoContext) => ({
                 title: 'Exhaust a unit that costs the same as or less than the revealed card',
-                thenCondition: () => thenContext.events != null && thenContext.events[0].card != null && thenContext.events[0].card[0] != null,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card: UnitCard) => card.cost <= thenContext.events[0].card[0].cost,
+                    cardCondition: (card: UnitCard) => card.cost <= ifYouDoContext.events[0].card[0].cost,
                     immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 }
             })
@@ -74,11 +73,25 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
             when: {
                 onPhaseStarted: (event) => event.phase === PhaseName.Action
             },
-            immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
-                target: [context.source.controller.getTopCardOfDeck(), context.source.controller.opponent.getTopCardOfDeck()]
-            }))
+            immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => {
+                const ownTopCard = context.source.controller.getTopCardOfDeck();
+                const opponentTopCard = context.source.controller.opponent.getTopCardOfDeck();
+
+                const target = [];
+                const displayTextByCardUuid = new Map<string, string>();
+
+                this.checkAddTopCard(ownTopCard, 'Yourself', target, displayTextByCardUuid);
+                this.checkAddTopCard(opponentTopCard, 'Opponent', target, displayTextByCardUuid);
+
+                return { target, displayTextByCardUuid, useDisplayPrompt: true };
+            })
         });
     }
-}
 
-GrandAdmiralThrawnPatientAndInsightful.implemented = true;
+    private checkAddTopCard(card, title, targetsList, displayTextByCardUuid) {
+        if (card != null) {
+            targetsList.push(card);
+            displayTextByCardUuid.set(card.uuid, title);
+        }
+    }
+}
