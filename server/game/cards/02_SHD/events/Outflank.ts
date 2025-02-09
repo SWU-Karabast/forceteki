@@ -24,5 +24,3 @@ export default class Outflank extends EventCard {
         });
     }
 }
-
-Outflank.implemented = true;

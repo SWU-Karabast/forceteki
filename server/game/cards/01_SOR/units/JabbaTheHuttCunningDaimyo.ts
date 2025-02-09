@@ -30,5 +30,3 @@ export default class JabbaTheHuttCunningDaimyo extends NonLeaderUnitCard {
         });
     }
 }
-
-JabbaTheHuttCunningDaimyo.implemented = true;

@@ -33,7 +33,7 @@ describe('Wartime Profiteering', function () {
 
                 // show 2 cards and select 1
                 context.player1.clickCard(context.wartimeProfiteering);
-                expect(context.player1).toHaveExactDisplayPromptCards([context.atst, context.yoda]);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.atst, context.yoda]);
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickCardInDisplayCardPrompt(context.yoda);

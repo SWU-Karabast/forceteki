@@ -1,3 +1,4 @@
+const Util = require('../../server/Util.js');
 const TestSetupError = require('./TestSetupError.js');
 
 // card can be a single or an array
@@ -115,30 +116,9 @@ function promptStatesEqual(promptState1, promptState2) {
         return false;
     }
 
-    return stringArraysEqual(promptState1.selectedCards, promptState2.selectedCards) &&
-      stringArraysEqual(promptState1.selectableCards, promptState2.selectableCards) &&
-      stringArraysEqual(promptState1.dropdownListOptions, promptState2.dropdownListOptions);
-}
-
-function stringArraysEqual(ara1, ara2) {
-    if (ara1 == null || ara2 == null) {
-        throw new TestSetupError('Null array passed to stringArraysEqual');
-    }
-
-    if (ara1.length !== ara2.length) {
-        return false;
-    }
-
-    ara1.sort();
-    ara2.sort();
-
-    for (let i = 0; i < ara1.length; i++) {
-        if (ara1[i] !== ara2[i]) {
-            return false;
-        }
-    }
-
-    return true;
+    return Util.stringArraysEqual(promptState1.selectedCards, promptState2.selectedCards) &&
+      Util.stringArraysEqual(promptState1.selectableCards, promptState2.selectableCards) &&
+      Util.stringArraysEqual(promptState1.dropdownListOptions, promptState2.dropdownListOptions);
 }
 
 function formatDropdownListOptions(options) {
@@ -158,7 +138,6 @@ module.exports = {
     formatPrompt,
     getPlayerPromptState,
     promptStatesEqual,
-    stringArraysEqual,
     formatDropdownListOptions,
     formatBothPlayerPrompts,
     isTokenUnit,

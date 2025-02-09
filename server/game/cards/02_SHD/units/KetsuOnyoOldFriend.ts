@@ -28,5 +28,3 @@ export default class KetsuOnyoOldFriend extends NonLeaderUnitCard {
         });
     }
 }
-
-KetsuOnyoOldFriend.implemented = true;

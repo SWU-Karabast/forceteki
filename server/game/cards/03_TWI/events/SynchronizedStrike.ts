@@ -23,5 +23,3 @@ export default class SynchronizedStrike extends EventCard {
         });
     }
 }
-
-SynchronizedStrike.implemented = true;

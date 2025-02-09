@@ -1,6 +1,6 @@
 import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
-import { Stage, AbilityType, GameStateChangeRequired } from '../Constants';
+import { AbilityType, GameStateChangeRequired, RelativePlayer, Stage } from '../Constants';
 import type { ITriggeredAbilityProps, WhenType } from '../../Interfaces';
 import type { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
@@ -95,13 +95,30 @@ export default class TriggeredAbility extends CardAbility {
         }
     }
 
-    public override createContext(player = this.card.controller, event: GameEvent) {
+    protected override controllerMeetsRequirements(context): boolean {
+        let controller = context.source.controller;
+
+        // If the event's card is the source of the ability, use the last known controller of the card instead of the source's controller.
+        // This is because when resolving triggered abilities like "when defeated", the defeated card is in the discard pile already
+        // and it might have changed controller.
+        if (context.event.card === context.source && context.event.lastKnownInformation) {
+            controller = context.event.lastKnownInformation.controller;
+        }
+
+        switch (this.canBeTriggeredBy) {
+            case RelativePlayer.Self:
+                return context.player === controller;
+            case RelativePlayer.Opponent:
+                return context.player === controller.opponent;
+            default:
+                Contract.fail(`Unexpected value for relative player: ${this.canBeTriggeredBy}`);
+        }
+    }
+
+    public override createContext(player = this.card.controller, event) {
         return new TriggeredAbilityContext({
-            event: event,
-            game: this.game,
-            source: this.card,
-            player: player,
-            ability: this,
+            ...super.getContextProperties(player, event),
+            event,
             stage: Stage.Trigger
         });
     }

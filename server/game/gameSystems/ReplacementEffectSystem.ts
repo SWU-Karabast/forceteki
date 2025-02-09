@@ -13,8 +13,6 @@ export interface IReplacementEffectSystemProperties<TContext extends TriggeredAb
     replacementImmediateEffect?: GameSystem<TContext>;
 }
 
-// UP NEXT: convert this into a subclass of TriggeredAbilitySystem as TriggeredReplacementEffectSystem
-
 export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = TriggeredAbilityContext> extends GameSystem<TContext, IReplacementEffectSystemProperties<TContext>> {
     protected override readonly eventName = MetaEventName.ReplacementEffect;
 
@@ -31,27 +29,23 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         if (replacementImmediateEffect) {
             const eventWindow = event.context.event.window;
             const events = [];
+
             replacementImmediateEffect.queueGenerateEventGameSteps(
                 events,
                 event.context,
-                Object.assign({ replacementEffect: true }, additionalProperties)
+                { ...additionalProperties, replacementEffect: true }
             );
 
             Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
-            if (events.length > 1) {
-                throw new Error(`Multiple replacement events is not yet supported (replacement effect ${replacementImmediateEffect} for ${event.name} generated ${events.length} events)`);
-            }
 
-            const replacementEvent = events[0];
-
-            // TODO: refactor this to allow for "partial" replacement effects like Boba Fett's Armor or damage on draw from empty deck
-            event.context.game.queueSimpleStep(() => {
-                event.context.event.setReplacementEvent(replacementEvent);
-                eventWindow.addEvent(replacementEvent);
-                triggerWindow.addReplacementEffectEvent(replacementEvent);
-            }, 'replacementEffect: replace window event');
+            events.forEach((replacementEvent) => {
+                event.context.game.queueSimpleStep(() => {
+                    event.context.event.setReplacementEvent(replacementEvent);
+                    eventWindow.addEvent(replacementEvent);
+                    triggerWindow.addReplacementEffectEvent(replacementEvent);
+                }, 'replacementEffect: replace window event');
+            });
         }
-
         event.context.cancel();
     }
 
@@ -90,7 +84,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         event.replacementImmediateEffect = replacementImmediateEffect;
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties = {}, _mustChangeGameState): boolean {
         Contract.assertNotNullLike(context.event);
 
         if (!context.event.canResolve) {
@@ -100,15 +94,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(context);
 
         return (
-            (!replacementGameAction || replacementGameAction.hasLegalTarget(context, additionalProperties))
-        );
-    }
-
-    public override canAffect(target: any, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(context, additionalProperties);
-        return (
-            (!context.event.cannotBeCancelled && !replacementGameAction) ||
-            replacementGameAction.canAffect(target, context, additionalProperties, mustChangeGameState)
+            (!replacementGameAction || replacementGameAction.hasLegalTarget(context, additionalProperties, GameStateChangeRequired.None))
         );
     }
 

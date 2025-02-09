@@ -24,7 +24,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
     }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
-        return new PlayUnitAction(this, properties);
+        return new PlayUnitAction(this.game, this, properties);
     }
 
     public override isTokenOrPlayable(): this is TokenOrPlayableCard {

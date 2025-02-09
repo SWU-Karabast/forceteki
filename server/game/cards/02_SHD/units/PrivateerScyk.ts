@@ -19,5 +19,3 @@ export default class PrivateerScyk extends NonLeaderUnitCard {
         });
     }
 }
-
-PrivateerScyk.implemented = true;

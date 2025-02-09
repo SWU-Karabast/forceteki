@@ -21,5 +21,3 @@ export default class VanguardDroidBomber extends NonLeaderUnitCard {
         });
     }
 }
-
-VanguardDroidBomber.implemented = true;

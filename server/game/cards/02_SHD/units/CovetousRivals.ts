@@ -25,5 +25,3 @@ export default class CovetousRivals extends NonLeaderUnitCard {
         });
     }
 }
-
-CovetousRivals.implemented = true;

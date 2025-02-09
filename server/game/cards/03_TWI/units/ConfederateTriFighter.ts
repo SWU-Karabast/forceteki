@@ -20,5 +20,3 @@ export default class ConfederateTriFighter extends NonLeaderUnitCard {
         });
     }
 }
-
-ConfederateTriFighter.implemented = true;

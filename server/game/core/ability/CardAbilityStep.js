@@ -1,6 +1,6 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage, AbilityType, RelativePlayer } = require('../Constants.js');
+const { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer } = require('../Constants.js');
 const AttackHelper = require('../attack/AttackHelpers.js');
 const Helpers = require('../utils/Helpers.js');
 const Contract = require('../utils/Contract.js');
@@ -21,11 +21,8 @@ class CardAbilityStep extends PlayerOrCardAbility {
         if (properties.initiateAttack) {
             AttackHelper.addInitiateAttackProperties(properties);
         }
-        super(properties, type);
+        super(game, card, properties, type);
 
-        this.game = game;
-        this.card = card;
-        this.properties = properties;
         this.handler = properties.handler || this.executeGameActions;
         this.cannotTargetFirst = false;
     }
@@ -34,16 +31,6 @@ class CardAbilityStep extends PlayerOrCardAbility {
     executeHandler(context) {
         this.handler(context);
         this.game.queueSimpleStep(() => this.game.resolveGameState(), 'resolveState');
-    }
-
-    createContext(player = this.card.controller, event = null) {
-        return new AbilityContext({
-            ability: this,
-            game: this.game,
-            player: player,
-            source: this.card,
-            stage: Stage.PreTarget
-        });
     }
 
     /** @override */
@@ -157,9 +144,9 @@ class CardAbilityStep extends PlayerOrCardAbility {
     getSubAbilityStepContext(context, resolvedAbilityEvents = []) {
         if (this.properties.then) {
             const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
-            const abilityController = this.getAbilityController(then, context);
+            const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
             if (!then.thenCondition || then.thenCondition(context)) {
-                return this.buildSubAbilityStepContext(then, abilityController);
+                return this.buildSubAbilityStepContext(then, canBeTriggeredBy);
             }
 
             return null;
@@ -192,13 +179,13 @@ class CardAbilityStep extends PlayerOrCardAbility {
         }
 
         const concreteIfAbility = this.getConcreteSubAbilityStepProperties(ifAbility, context);
-        const abilityController = this.getAbilityController(concreteIfAbility, context);
+        const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
 
         // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
         const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
 
         return conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve
-            ? this.buildSubAbilityStepContext(concreteIfAbility, abilityController)
+            ? this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy)
             : null;
     }
 
@@ -209,17 +196,18 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return { ...properties, triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
     }
 
-    buildSubAbilityStepContext(subAbilityStepProps, abilityController) {
-        return this.buildSubAbilityStep(subAbilityStepProps).createContext(abilityController);
+    buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy) {
+        return this.buildSubAbilityStep(subAbilityStepProps).createContext(canBeTriggeredBy);
     }
 
     buildSubAbilityStep(subAbilityStepProps) {
         return new CardAbilityStep(this.game, this.card, subAbilityStepProps, this.type);
     }
 
-    getAbilityController(subAbilityStep, context) {
-        if (subAbilityStep.abilityController) {
-            return subAbilityStep.abilityController === RelativePlayer.Self ? context.player : context.player.opponent;
+    getCanBeTriggeredBy(subAbilityStep, context) {
+        Contract.assertFalse(subAbilityStep.canBeTriggeredBy === WildcardRelativePlayer.Any, 'Cannot use WildcardRelativePlayer.Any in a then/ifYouDo');
+        if (subAbilityStep.canBeTriggeredBy) {
+            return subAbilityStep.canBeTriggeredBy === RelativePlayer.Self ? context.player : context.player.opponent;
         }
 
         return context.player;

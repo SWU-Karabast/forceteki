@@ -44,5 +44,3 @@ export default class SabineWrenYouCanCountOnMe extends NonLeaderUnitCard {
         });
     }
 }
-
-SabineWrenYouCanCountOnMe.implemented = true;

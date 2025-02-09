@@ -4,6 +4,8 @@ import { TargetMode } from '../../../core/Constants';
 
 
 export default class ReinforcementWalker extends NonLeaderUnitCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '8691800148',
@@ -40,5 +42,3 @@ export default class ReinforcementWalker extends NonLeaderUnitCard {
         });
     }
 }
-
-ReinforcementWalker.implemented = true;

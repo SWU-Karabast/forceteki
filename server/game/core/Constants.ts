@@ -184,7 +184,9 @@ export enum TokenUpgradeName {
 
 export enum TokenUnitName {
     BattleDroid = 'battleDroid',
-    CloneTrooper = 'cloneTrooper'
+    CloneTrooper = 'cloneTrooper',
+    XWing = 'xwing',
+    TIEFighter = 'tieFighter',
 }
 
 export type TokenName = TokenUpgradeName | TokenUnitName;
@@ -226,6 +228,7 @@ export enum EventName {
     onExploitUnits = 'onExploitUnits',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
+    OnLeaderFlipped = 'onLeaderFlipped',
     OnLookAtCard = 'onLookAtCard',
     OnLookMoveDeckCardsTopOrBottom = 'onLookMoveDeckCardsTopOrBottom',
     OnPassActionPhasePriority = 'onPassActionPhasePriority',
@@ -297,6 +300,8 @@ export enum KeywordName {
     Overwhelm = 'overwhelm',
     Raid = 'raid',
     Restore = 'restore',
+    /** @deprecated not implemented yet */
+    Piloting = 'piloting',
     Saboteur = 'saboteur',
     Sentinel = 'sentinel',
     Shielded = 'shielded',
@@ -345,6 +350,7 @@ export enum Trait {
     NewRepublic = 'new republic',
     Night = 'night',
     Official = 'official',
+    Pilot = 'pilot',
     Plan = 'plan',
     Rebel = 'rebel',
     Republic = 'republic',
@@ -404,10 +410,14 @@ export enum AbilityRestriction {
     Ready = 'ready',
     ReceiveDamage = 'receiveDamage',
     TriggerAbilities = 'triggerAbilities',
+    BeCaptured = 'beCaptured',
+    BeDefeated = 'beDefeated',
+    ReturnToHand = 'returnToHand',
 }
 
 export enum StateWatcherName {
     AttacksThisPhase = 'attacksThisPhase',
+    CardsDiscardedThisPhase = 'cardsDiscardedThisPhase',
     CardsDrawnThisPhase = 'cardsDrawnThisPhase',
     CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
@@ -422,7 +432,6 @@ export enum StateWatcherName {
     // - entered play: Boba unit
     // - attacked base: Ephant Mon, Rule with Respect
     // - attacked with unit type: Medal Ceremony, Bo-Katan leader, Asajj Ventress
-    // - discarded: Kylo's TIE Silencer
 }
 
 /** For "canAffect" and target eligibility checks, indicates whether game state must be changed by the effect in order for the check to pass */

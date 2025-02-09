@@ -25,5 +25,3 @@ export default class CreativeThinking extends EventCard {
         });
     }
 }
-
-CreativeThinking.implemented = true;

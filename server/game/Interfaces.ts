@@ -86,8 +86,19 @@ export interface IAbilityProps<TContext extends AbilityContext> {
      */
     optional?: boolean;
 
-    /** Indicates which player controls this ability (e.g. for Bounty abilities, it is the opponent) */
-    abilityController?: RelativePlayer;
+    /**
+     * If optional is true, indicates which player will make the choice to resolve the optional ability (defaults to RelativePlayer.Self)
+     */
+    playerChoosingOptional?: RelativePlayer;
+
+    /**
+     * Override the default 'Pass' button text
+     */
+    optionalButtonTextOverride?: string;
+
+    /** Indicates which player can activate this ability (e.g. for Bounty abilities, it is the opponent) */
+    // TODO: Update this property's interaction with SubSteps (then/ifYouDo) and the card A New Adventure
+    canBeTriggeredBy?: RelativePlayerFilter;
 
     /** If this is a gained ability, gives the source card that is giving the ability */
     gainAbilitySource?: Card;
@@ -151,6 +162,8 @@ export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPr
     immediateEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
     handler?: (context: TriggeredAbilityContext) => void;
     then?: ((context?: TriggeredAbilityContext) => IThenAbilityPropsWithSystems<TriggeredAbilityContext>) | IThenAbilityPropsWithSystems<TriggeredAbilityContext>;
+    ifYouDo?: ((context?: TriggeredAbilityContext) => IAbilityPropsWithSystems<TriggeredAbilityContext>) | IAbilityPropsWithSystems<TriggeredAbilityContext>;
+    ifYouDoNot?: ((context?: TriggeredAbilityContext) => IAbilityPropsWithSystems<TriggeredAbilityContext>) | IAbilityPropsWithSystems<TriggeredAbilityContext>;
 };
 
 /** Interface definition for setEventAbility */
@@ -298,7 +311,7 @@ interface IAmbushKeywordProperties extends IKeywordPropertiesBase {
 
 interface IBountyKeywordProperties<TSource extends UnitCard = UnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
     keyword: KeywordName.Bounty;
-    ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'abilityController'>;
+    ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>;
 }
 
 interface IGritKeywordProperties extends IKeywordPropertiesBase {

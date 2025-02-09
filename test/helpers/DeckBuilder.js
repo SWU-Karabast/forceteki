@@ -12,28 +12,15 @@ const defaultResourceCount = 20;
 const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
 
 class DeckBuilder {
-    constructor() {
-        this.cards = this.loadCards('test/json/Card');
-    }
+    /** @param {import('../../server/utils/cardData/CardDataGetter.js').CardDataGetter} cardDataGetter */
+    constructor(cardDataGetter) {
+        this.cards = {};
+        this.tokenData = cardDataGetter.getTokenCardsDataSynchronous();
 
-    loadCards(directory) {
-        var cards = {};
-
-        if (!fs.existsSync(directory)) {
-            throw new TestSetupError(`Json card definitions folder ${directory} not found, please run 'npm run get-cards'`);
+        for (const cardId of cardDataGetter.cardIds) {
+            const card = cardDataGetter.getCardSynchronous(cardId);
+            this.cards[card.internalName] = card;
         }
-
-        var jsonCards = fs.readdirSync(directory).filter((file) => file.endsWith('.json'));
-        jsonCards.forEach((cardPath) => {
-            var card = require(path.join('../json/Card', cardPath))[0];
-            cards[card.id] = card;
-        });
-
-        if (cards.length === 0) {
-            throw new TestSetupError(`No json card definitions found in ${directory}, please run 'npm run get-cards'`);
-        }
-
-        return cards;
     }
 
     getOwnedCards(playerNumber, playerOptions, oppOptions, arena = 'anyArena') {
@@ -121,7 +108,7 @@ class DeckBuilder {
         }
         playerCards.deck = this.padCardListIfNeeded(playerCards.deck, defaultDeckSize);
 
-        allCards.push(...resources);
+        allCards.push(...this.getCardsForResources(resources));
         allCards.push(...playerCards.deck);
         playerCards.opponentAttachedUpgrades.forEach((card) => {
             allCards.push(card.card);
@@ -271,6 +258,19 @@ class DeckBuilder {
         return inPlayCards;
     }
 
+    getCardsForResources(resources) {
+        let resourceCards = [];
+        for (const card of resources) {
+            if (typeof card === 'string') {
+                resourceCards.push(card);
+            } else {
+                resourceCards.push(card.card);
+            }
+        }
+
+        return resourceCards;
+    }
+
     buildDeck(cardInternalNames, cards) {
         var cardCounts = {};
         cardInternalNames.forEach((internalName) => {
@@ -289,15 +289,6 @@ class DeckBuilder {
             leader: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('leader')),
             base: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('base')),
             deckCards: this.filterPropertiesToArray(cardCounts, (count) => !count.card.types.includes('leader') && !count.card.types.includes('base'))
-        };
-    }
-
-    getTokenData() {
-        return {
-            battleDroid: this.getCard('battle-droid'),
-            cloneTrooper: this.getCard('clone-trooper'),
-            experience: this.getCard('experience'),
-            shield: this.getCard('shield'),
         };
     }
 

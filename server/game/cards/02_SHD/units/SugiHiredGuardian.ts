@@ -18,5 +18,3 @@ export default class SugiHiredGuardian extends NonLeaderUnitCard {
         });
     }
 }
-
-SugiHiredGuardian.implemented = true;

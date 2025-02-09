@@ -8,6 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
+import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
 
 interface LobbyUser {
     id: string;
@@ -16,6 +17,7 @@ interface LobbyUser {
     ready: boolean;
     socket: Socket | null;
     deck: Deck | null;
+    swuDeck?: Deck | null;
 }
 export enum MatchType {
     Custom = 'Custom',
@@ -33,25 +35,31 @@ export class Lobby {
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
     private readonly gameChat: GameChat;
+    private readonly cardDataGetter: CardDataGetter; // TODO: currently not used but will be once we migrate card loading logic out of the FE
+    private readonly testGameBuilder?: any;
+    private readonly tokenCardsData: ITokenCardsData;
+    private readonly playableCardTitles: string[];
+
     private game: Game;
-    // switch partic
     private users: LobbyUser[] = [];
-    private tokens: { battleDroid: any; cloneTrooper: any; experience: any; shield: any };
     private lobbyOwnerId: string;
-    private playableCardTitles: string[];
     private gameType: MatchType;
     private rematchRequest?: RematchRequest = null;
 
-    public constructor(lobbyGameType: MatchType) {
+    public constructor(lobbyGameType: MatchType, cardDataGetter: CardDataGetter, tokenCardsData: ITokenCardsData, playableCardTitles: string[], testGameBuilder?: any) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
             `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
         );
         this._id = uuid();
         this.gameChat = new GameChat();
-        this.connectionLink = lobbyGameType !== MatchType.Quick ? `http://localhost:3000/lobby?lobbyId=${this._id}` : null;
+        this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
         this.gameType = lobbyGameType;
+        this.cardDataGetter = cardDataGetter;
+        this.testGameBuilder = testGameBuilder;
+        this.playableCardTitles = playableCardTitles;
+        this.tokenCardsData = tokenCardsData;
     }
 
     public get id(): string {
@@ -67,6 +75,7 @@ export class Lobby {
                 state: u.state,
                 ready: u.ready,
                 deck: u.deck?.data,
+                swuDeck: u.swuDeck,
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
@@ -78,7 +87,13 @@ export class Lobby {
         };
     }
 
-    public createLobbyUser(user, deck = null): void {
+    private createLobbyLink(): string {
+        return process.env.ENVIRONMENT === 'development'
+            ? `http://localhost:3000/lobby?lobbyId=${this._id}`
+            : `https://beta.karabast.net/lobby?lobbyId=${this._id}`;
+    }
+
+    public createLobbyUser(user, deck = null, swuDeck = null): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         const newDeck = deck ? new Deck(deck) : this.useDefaultDeck(user);
         if (existingUser) {
@@ -92,6 +107,7 @@ export class Lobby {
             ready: false,
             socket: null,
             deck: newDeck,
+            swuDeck: swuDeck
         }));
     }
 
@@ -115,7 +131,7 @@ export class Lobby {
 
         socket.registerEvent('game', (socket, command, ...args) => this.onGameMessage(socket, command, ...args));
         socket.registerEvent('lobby', (socket, command, ...args) => this.onLobbyMessage(socket, command, ...args));
-        // maybe we need to be using socket.data
+
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
@@ -184,6 +200,8 @@ export class Lobby {
     private changeDeck(socket: Socket, ...args) {
         const activeUser = this.users.find((u) => u.id === socket.user.id);
         Contract.assertTrue(args[0] !== null);
+        Contract.assertTrue(args[1] !== null);
+        activeUser.swuDeck = new Deck(args[1]);
         activeUser.deck = new Deck(args[0]);
     }
 
@@ -270,66 +288,19 @@ export class Lobby {
         this.users = [];
     }
 
-    private async fetchPlayableCardTitles(): Promise<string[]> {
-        try {
-            const response = await fetch('https://karabast-assets.s3.amazonaws.com/data/_playableCardTitles.json');
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            return data as string[];
-        } catch (error) {
-            console.error('Error fetching _playableCardTitles.json', error);
-            throw error;
-        }
-    }
-
-    private async fetchCard(cardName: string): Promise<any> {
-        try {
-            const response = await fetch(`https://karabast-assets.s3.amazonaws.com/data/cards/${encodeURIComponent(cardName)}`);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error(`Error fetching card: ${cardName}`, error);
-            throw error;
-        }
-    }
-
-    public async setPlayableCardTitles(): Promise<void> {
-        this.playableCardTitles = await this.fetchPlayableCardTitles();
-    }
-
-    public async setTokens(): Promise<void> {
-        const cardData = {
-            battleDroid: (await this.fetchCard('battle-droid.json'))[0],
-            cloneTrooper: (await this.fetchCard('clone-trooper.json'))[0],
-            experience: (await this.fetchCard('experience.json'))[0],
-            shield: (await this.fetchCard('shield.json'))[0],
-        };
-        this.tokens = cardData;
-    }
-
-    // example method to demonstrate the use of the test game setup utility
-    public startTestGame(filename: string): void {
-        const testDirPath = path.resolve(__dirname, '../../test');
-        const testJSONPath = path.resolve(__dirname, `../../test/gameSetups/${filename}`);
-        if (!fs.existsSync(testDirPath) || !fs.existsSync(testJSONPath)) {
-            return null;
-        }
+    public startTestGame(filename: string) {
+        const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
+        Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
 
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
 
-        const gameSetupPath = path.resolve(__dirname, '../../test/helpers/GameStateSetup.js');
-        this.setTokens();
-        this.setPlayableCardTitles();
+        Contract.assertNotNullLike(this.testGameBuilder, `Attempting to start a test game from file ${filename} but local test tools were not found`);
+
         // TODO to address this a refactor and change router to lobby
         // eslint-disable-next-line
         const router = this;
-        // eslint-disable-next-line
-        const game: Game = require(gameSetupPath).setUpTestGame(
+
+        const game: Game = this.testGameBuilder.setUpTestGame(
             setupData,
             router,
             { id: 'exe66', username: 'Order66' },
@@ -359,7 +330,7 @@ export class Lobby {
             }
         });
 
-        game.initialiseTokens(this.tokens);
+        game.initialiseTokens(this.tokenCardsData);
         game.initialise();
 
         this.sendGameState(game);
@@ -391,7 +362,7 @@ export class Lobby {
 
         this.runAndCatchErrors(this.game, () => {
             this.game.stopNonChessClocks();
-            this.game[command](socket.user.username, ...args);
+            this.game[command](socket.user.id, ...args);
 
             this.game.continue();
 

@@ -16,5 +16,3 @@ export default class StrategicAnalysis extends EventCard {
         });
     }
 }
-
-StrategicAnalysis.implemented = true;

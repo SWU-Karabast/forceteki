@@ -1,6 +1,5 @@
 import type { IOngoingEffectProps, WhenType } from '../../Interfaces';
 import type { AbilityContext } from '../ability/AbilityContext';
-import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type { Card } from '../card/Card';
 import type { ZoneFilter } from '../Constants';
 import { Duration, WildcardZoneName, EffectName } from '../Constants';
@@ -46,8 +45,7 @@ export abstract class OngoingEffect {
     public condition: (context?: AbilityContext) => boolean;
     public sourceZoneFilter: ZoneFilter | ZoneFilter[];
     public impl: OngoingEffectImpl<any>;
-    // ISSUE: refreshContext sets ability to IOngoingEffectProps, but the listed type for context is PlayerOrCardAbility. Why is there a mismatch? Are we just overriding it in the context of OngoingEffects and everywhere else it acts as PlayerOrCardAbility?
-    public ability?: IOngoingEffectProps;
+    public ongoingEffect?: IOngoingEffectProps;
     public targets: (Player | Card)[];
     public context: AbilityContext;
 
@@ -65,7 +63,7 @@ export abstract class OngoingEffect {
         this.condition = properties.condition || (() => true);
         this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
         this.impl = effectImpl;
-        this.ability = properties;
+        this.ongoingEffect = properties;
         this.targets = [];
         this.refreshContext();
 
@@ -78,7 +76,7 @@ export abstract class OngoingEffect {
         this.context.source = this.source;
         // The process of creating the OngoingEffect tacks on additional properties that are ability related,
         //  so this is *probably* fine, but definitely a sign it needs a refactor at some point.
-        this.context.ability = this.ability as PlayerOrCardAbility;
+        this.context.ongoingEffect = this.ongoingEffect;
         this.impl.setContext(this.context);
     }
 
@@ -131,7 +129,7 @@ export abstract class OngoingEffect {
             return false;
         }
 
-        return !this.source.facedown;
+        return true;
     }
 
     public resolveEffectTargets(stateChanged) {
@@ -140,10 +138,8 @@ export abstract class OngoingEffect {
             this.cancel();
             return stateChanged;
         } else if (typeof this.matchTarget === 'function') {
-            // HACK: type narrowing is not retained in filter call, so we cache it here as a workaround.
-            const matchTarget = this.matchTarget;
             // Get any targets which are no longer valid
-            const invalidTargets = this.targets.filter((target) => !matchTarget(target, this.context) || !this.isValidTarget(target));
+            const invalidTargets = this.targets.filter((target) => !this.isValidTarget(target));
             // Remove invalid targets
             this.removeTargets(invalidTargets);
             stateChanged = stateChanged || invalidTargets.length > 0;

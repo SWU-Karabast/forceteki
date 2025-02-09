@@ -5,20 +5,10 @@ import type { ZoneName } from '../Constants';
 import { CardType } from '../Constants';
 
 export class LeaderCard extends InPlayCard {
-    protected _deployed = false;
-
-    protected setupLeaderUnitSide;
-
-    public get deployed() {
-        return this._deployed;
-    }
-
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Leader);
 
-        this.hasImplementationFile = true;
-        this.setupLeaderUnitSide = false;
         this.setupLeaderSideAbilities(this);
     }
 
@@ -26,16 +16,11 @@ export class LeaderCard extends InPlayCard {
         return true;
     }
 
-    // this is overriden in the LeaderUnit derived class
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public deploy() {}
-
     /**
      * Create card abilities for the leader (non-unit) side by calling subsequent methods with appropriate properties
      */
-    protected setupLeaderSideAbilities(sourceCard: this) {
-        this.hasImplementationFile = false;
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected setupLeaderSideAbilities(sourceCard: this) { }
 
     // TODO TYPE REFACTOR: separate out the Leader types from the playable types
     public override getPlayCardActions() {

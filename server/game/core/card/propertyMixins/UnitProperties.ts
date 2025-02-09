@@ -94,17 +94,17 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
 
         public get capturedUnits() {
-            this.assertPropertyEnabled(this._captureZone, 'capturedUnits');
+            this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
             return this._captureZone.cards;
         }
 
         public get captureZone() {
-            this.assertPropertyEnabled(this._captureZone, 'captureZone');
+            this.assertPropertyEnabledForZone(this._captureZone, 'captureZone');
             return this._captureZone;
         }
 
         public get upgrades(): UpgradeCard[] {
-            this.assertPropertyEnabled(this._upgrades, 'upgrades');
+            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             return this._upgrades;
         }
 
@@ -152,7 +152,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
             }
 
-            this.attackAction = new InitiateAttackAction(this);
+            this.attackAction = new InitiateAttackAction(this.game, this);
         }
 
         // ****************************************** PROPERTY HELPERS ******************************************
@@ -217,7 +217,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.addTriggeredAbility(triggeredProperties);
         }
 
-        protected addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<this>, 'abilityController'>): void {
+        protected addBountyAbility(properties: Omit<ITriggeredAbilityBaseProps<this>, 'canBeTriggeredBy'>): void {
             const bountyKeywords = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Bounty);
             const bountyKeywordsWithoutImpl = bountyKeywords.filter((keyword) => !keyword.isFullyImplemented);
 
@@ -238,19 +238,18 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             bountyAbilityToAssign.setAbilityProps(properties);
         }
 
-        protected addCoordinateAbility(properties: IAbilityPropsWithType): void {
+        protected addCoordinateAbility(properties: IAbilityPropsWithType<this>): void {
             const coordinateKeywords = this.printedKeywords.filter((keyword) => keyword.name === KeywordName.Coordinate);
+            Contract.assertTrue(
+                coordinateKeywords.length > 0,
+                `Attempting to add a coordinate ability '${properties.title}' to ${this.internalName} but it has no printed instances of the Coordinate keyword`
+            );
+
             const coordinateKeywordsWithoutImpl = coordinateKeywords.filter((keyword) => !keyword.isFullyImplemented);
-
-            if (coordinateKeywordsWithoutImpl.length === 0) {
-                const coordinateKeywordsWithImpl = coordinateKeywords.filter((keyword) => keyword.isFullyImplemented);
-
-                if (coordinateKeywordsWithImpl.length > 0) {
-                    Contract.fail(`Attempting to add a coordinate ability '${properties.title}' to ${this.internalName} but all instances of the Coordinate keyword already have a definition`);
-                }
-
-                Contract.fail(`Attempting to add a coordinate ability '${properties.title}' to ${this.internalName} but it has no printed instances of the Coordinate keyword`);
-            }
+            Contract.assertTrue(
+                coordinateKeywordsWithoutImpl.length > 0,
+                `Attempting to add a coordinate ability '${properties.title}' to ${this.internalName} but all instances of the Coordinate keyword already have a definition`
+            );
 
             const coordinateAbilityToAssign = coordinateKeywordsWithoutImpl[0];
 
@@ -300,7 +299,22 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         /** Register / un-register the effects for any abilities from keywords */
         protected override updateKeywordAbilityEffects(from: ZoneName, to: ZoneName) {
-            if (!EnumHelpers.isArena(from) && EnumHelpers.isArena(to)) {
+            // Unregister all effects when moving a card from an arena to a non-arena zone
+            // or from a base to an arena
+            if ((EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) || (from === ZoneName.Base && EnumHelpers.isArena(to))) {
+                Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
+
+                for (const keywordAbility of this._whileInPlayKeywordAbilities) {
+                    this.removeEffectFromEngine(keywordAbility.registeredEffects);
+                    keywordAbility.registeredEffects = [];
+                }
+
+                this._whileInPlayKeywordAbilities = null;
+            }
+
+            // Register all effects when moving a card to a base or from a non-arena zone to an arena,
+            // this is to support leaders with the Coordinate keyword
+            if ((!EnumHelpers.isArena(from) && EnumHelpers.isArena(to)) || to === ZoneName.Base) {
                 Contract.assertIsNullLike(
                     this._whileInPlayKeywordAbilities,
                     `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
@@ -322,15 +336,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
                     this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
                 }
-            } else if (EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
-                Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
-
-                for (const keywordAbility of this._whileInPlayKeywordAbilities) {
-                    this.removeEffectFromEngine(keywordAbility.registeredEffects);
-                    keywordAbility.registeredEffects = [];
-                }
-
-                this._whileInPlayKeywordAbilities = null;
             }
         }
 
@@ -626,7 +631,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * @param {UpgradeCard} upgrade
          */
         public unattachUpgrade(upgrade) {
-            this.assertPropertyEnabled(this._upgrades, 'upgrades');
+            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             this._upgrades = this._upgrades.filter((card) => card.uuid !== upgrade.uuid);
         }
 
@@ -634,7 +639,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Add the passed card to this card's upgrade list. Upgrade must already be moved to the correct arena.
          */
         public attachUpgrade(upgrade) {
-            this.assertPropertyEnabled(this._upgrades, 'upgrades');
+            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             Contract.assertEqual(upgrade.zoneName, this.zoneName);
             Contract.assertTrue(this.zone.hasCard(upgrade));
 
@@ -659,7 +664,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     sentinel: hasSentinel
                 };
             }
-            return super.getSummary(activePlayer);
+            return {
+                ...super.getSummary(activePlayer),
+                parentCardId: this.getCaptor()?.uuid,
+            };
         }
     };
 }

@@ -32,5 +32,3 @@ export default class VanguardAce extends NonLeaderUnitCard {
         });
     }
 }
-
-VanguardAce.implemented = true;

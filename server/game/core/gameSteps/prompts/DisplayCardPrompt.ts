@@ -3,7 +3,8 @@ import type Game from '../../Game';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type Player from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
-import type { IDisplayCard, IDisplayCardPromptPropertiesBase } from '../PromptInterfaces';
+import * as Contract from '../../utils/Contract';
+import { DisplayCardSelectionState, type IDisplayCard, type IDisplayCardPromptPropertiesBase } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 
 export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPropertiesBase> extends UiPrompt {
@@ -22,10 +23,10 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
         }
 
         if (!properties.waitingPromptTitle) {
-            properties.waitingPromptTitle = `Waiting for opponent to use ${properties.source.name}`;
+            properties.waitingPromptTitle = this.getDefaultWaitingPromptTitle(properties.source);
         }
         if (!properties.activePromptTitle) {
-            properties.activePromptTitle = `Choose cards for ${properties.source.name} ability`;
+            properties.activePromptTitle = this.getDefaultActivePromptTitle(properties.source);
         }
 
         this.source = properties.source;
@@ -38,16 +39,32 @@ export abstract class DisplayCardPrompt<TProperties extends IDisplayCardPromptPr
     protected abstract defaultProperties(): Partial<TProperties>;
     protected abstract getDisplayCards(): IDisplayCard[];
 
+    protected getDefaultWaitingPromptTitle(source: OngoingEffectSource) {
+        return `Waiting for opponent to use ${source.name}`;
+    }
+
+    protected getDefaultActivePromptTitle(source: OngoingEffectSource) {
+        return `Choose cards for ${source.name} ability`;
+    }
+
     public override activeCondition(player) {
         return player === this.choosingPlayer;
     }
 
     public override activePrompt() {
+        const displayCards = this.getDisplayCards();
+
+        const displayCardStates = new Set(displayCards.map((card) => card.selectionState));
+        Contract.assertFalse(
+            displayCardStates.has(DisplayCardSelectionState.ViewOnly) && displayCardStates.size > 1,
+            `Display prompt cannot "ViewOnly" and other selection states together. States found: ${Array.from(displayCardStates).join(', ')}`
+        );
+
         return {
             menuTitle: this.properties.activePromptTitle,
             promptTitle: this.promptTitle,
             promptUuid: this.uuid,
-            displayCards: this.getDisplayCards(),
+            displayCards,
             ...this.activePromptInternal(),
             promptType: PromptType.DisplayCards
         };

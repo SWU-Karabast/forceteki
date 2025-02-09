@@ -29,5 +29,3 @@ export default class ZoriiBlissValiantSmuggler extends NonLeaderUnitCard {
         });
     }
 }
-
-ZoriiBlissValiantSmuggler.implemented = true;

@@ -18,5 +18,3 @@ export default class CloneHeavyGunner extends NonLeaderUnitCard {
         });
     }
 }
-
-CloneHeavyGunner.implemented = true;

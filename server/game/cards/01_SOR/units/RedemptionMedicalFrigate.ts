@@ -3,6 +3,8 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class RedemptionMedicalFrigate extends NonLeaderUnitCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '3896582249',
@@ -27,5 +29,3 @@ export default class RedemptionMedicalFrigate extends NonLeaderUnitCard {
         });
     }
 }
-
-RedemptionMedicalFrigate.implemented = true;

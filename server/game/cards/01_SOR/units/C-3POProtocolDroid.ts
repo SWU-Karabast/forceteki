@@ -4,6 +4,8 @@ import { TargetMode } from '../../../core/Constants';
 
 
 export default class C3POProtocolDroid extends NonLeaderUnitCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '8009713136',
@@ -45,5 +47,3 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
         });
     }
 }
-
-C3POProtocolDroid.implemented = true;

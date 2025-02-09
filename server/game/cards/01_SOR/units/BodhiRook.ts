@@ -2,6 +2,8 @@ import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class BodhiRook extends NonLeaderUnitCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '7257556541',
@@ -26,5 +28,3 @@ export default class BodhiRook extends NonLeaderUnitCard {
         });
     }
 }
-
-BodhiRook.implemented = true;

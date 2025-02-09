@@ -24,5 +24,3 @@ export default class PrivateerCrew extends NonLeaderUnitCard {
         });
     }
 }
-
-PrivateerCrew.implemented = true;
