@@ -59,6 +59,8 @@ import type { IExhaustResourcesProperties } from './ExhaustResourcesSystem';
 import { ExhaustResourcesSystem } from './ExhaustResourcesSystem';
 import type { IExhaustSystemProperties } from './ExhaustSystem';
 import { ExhaustSystem } from './ExhaustSystem';
+import type { IFlipDoubleSidedLeaderProperties } from './FlipDoubleSidedLeaderSystem';
+import { FlipDoubleSidedLeaderSystem } from './FlipDoubleSidedLeaderSystem';
 import type { IGiveExperienceProperties } from './GiveExperienceSystem';
 import { GiveExperienceSystem } from './GiveExperienceSystem';
 import type { IGiveShieldProperties } from './GiveShieldSystem';
@@ -213,6 +215,9 @@ export function excessDamage<TContext extends AbilityContext = AbilityContext>(p
 // }
 export function exhaust<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustSystemProperties, TContext> = {}) {
     return new ExhaustSystem<TContext>(propertyFactory);
+}
+export function flipDoubleSidedLeader<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IFlipDoubleSidedLeaderProperties, TContext> = {}) {
+    return new FlipDoubleSidedLeaderSystem<TContext>(propertyFactory);
 }
 export function forThisPhaseCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardPhaseLastingEffectProperties, TContext>) {
     return new CardPhaseLastingEffectSystem<TContext>(propertyFactory);

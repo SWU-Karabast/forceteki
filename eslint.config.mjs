@@ -86,6 +86,7 @@ export default tseslint.config(
                 "allowClassEnd": true,
             }],
 
+            "require-await": ["error"],
             "global-strict": 0,
             "brace-style": ["error", "1tbs"],
             "no-sparse-arrays": ["warn"],
@@ -149,6 +150,10 @@ export default tseslint.config(
             "@typescript-eslint/no-namespace": "off",
             "@stylistic/type-annotation-spacing": ["error"],
             "@typescript-eslint/consistent-type-imports": "error",
+
+            // uncomment for checking correct async method calls (too slow to leave on all the time)
+            // "@typescript-eslint/no-floating-promises": ["error"],
+            // "@typescript-eslint/no-misused-promises": ["error"],
 
             // uncomment for checking import cycles (too slow to leave on all the time)
             // "import-x/no-cycle": ["error"],
