@@ -29,13 +29,11 @@ export class PlayUnitAction extends PlayCardAction {
             context.source,
         );
 
-        const playForOpponentEffect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
-        const player = playForOpponentEffect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
 
         const events = [
             new PutIntoPlaySystem({
                 target: context.source,
-                controller: player,
+                controller: RelativePlayer.Self,
                 entersReady: this.entersReady
             }).generateEvent(context),
             this.generateOnPlayEvent(context)
