@@ -4,9 +4,17 @@ import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetS
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type Player from '../core/Player';
 import * as Helpers from '../core/utils/Helpers';
+import type { IChoicesInterface } from '../TargetInterfaces';
 
-// TODO: Need some future work to fully implement Thrawn
-export interface IViewCardProperties extends ICardTargetSystemProperties {
+export enum ViewCardInteractMode {
+    ViewOnly = 'viewOnly',
+    SelectSingle = 'selectSingle',
+    PerCardButtons = 'perCardButtons'
+}
+
+interface IViewCardPropertiesBase extends ICardTargetSystemProperties {
+    interactMode: ViewCardInteractMode;
+
     message?: string | ((context) => string);
     messageArgs?: (cards: any) => any[];
 
@@ -20,8 +28,24 @@ export interface IViewCardProperties extends ICardTargetSystemProperties {
     displayTextByCardUuid?: Map<string, string>;
 }
 
+export interface IViewCardOnlyProperties extends IViewCardPropertiesBase {
+    interactMode: ViewCardInteractMode.ViewOnly;
+}
+
+export interface IViewCardAndSelectSingleProperties extends IViewCardPropertiesBase {
+    interactMode: ViewCardInteractMode.SelectSingle;
+}
+
+export interface IViewCardWithPerCardButtonsProperties extends IViewCardPropertiesBase {
+    interactMode: ViewCardInteractMode.PerCardButtons;
+    perCardButtons: IChoicesInterface;
+}
+
+export type IViewCardProperties = IViewCardOnlyProperties | IViewCardAndSelectSingleProperties | IViewCardWithPerCardButtonsProperties;
+
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IViewCardProperties = IViewCardProperties> extends CardTargetSystem<TContext, TProperties> {
     protected override defaultProperties: IViewCardProperties = {
+        interactMode: ViewCardInteractMode.ViewOnly,
         useDisplayPrompt: false
     };
 

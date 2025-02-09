@@ -2,10 +2,10 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName } from '../core/Constants';
 import type Player from '../core/Player';
 import type { IViewCardProperties } from './ViewCardSystem';
-import { ViewCardSystem } from './ViewCardSystem';
+import { ViewCardInteractMode, ViewCardSystem } from './ViewCardSystem';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface ILookAtProperties extends IViewCardProperties {}
+
+export type ILookAtProperties = IViewCardProperties;
 
 export class LookAtSystem<TContext extends AbilityContext = AbilityContext> extends ViewCardSystem<TContext, ILookAtProperties> {
     public override readonly name = 'lookAt';
@@ -13,7 +13,9 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
     public override readonly effectDescription = 'look at a card';
 
     protected override defaultProperties: IViewCardProperties = {
+        interactMode: ViewCardInteractMode.ViewOnly,
         message: '{0} sees {1}',
+        useDisplayPrompt: false
     };
 
     public override getMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {

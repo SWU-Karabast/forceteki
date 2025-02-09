@@ -116,6 +116,7 @@ import type { ICreateXWingProperties } from './CreateXWingSystem';
 import { CreateXWingSystem } from './CreateXWingSystem';
 import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
 import { CreateTieFighterSystem } from './CreateTieFighterSystem';
+import { ViewCardInteractMode } from './ViewCardSystem';
 
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
@@ -234,8 +235,13 @@ export function giveShield<TContext extends AbilityContext = AbilityContext>(pro
 export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);
 }
-export function lookAt<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookAtProperties, TContext> = {}) {
-    return new LookAtSystem<TContext>(propertyFactory);
+export function lookAt<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<ILookAtProperties, 'interactMode'>, TContext> = {}) {
+    return new LookAtSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<ILookAtProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.ViewOnly }
+        )
+    );
 }
 
 export function lookMoveDeckCardsTopOrBottom<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookMoveDeckCardsTopOrBottomProperties, TContext>) {
@@ -362,8 +368,13 @@ export function returnToHand<TContext extends AbilityContext = AbilityContext>(p
 /**
  * default chatMessage = false
  */
-export function reveal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IRevealProperties, TContext> = {}) {
-    return new RevealSystem<TContext>(propertyFactory);
+export function reveal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IRevealProperties, 'interactMode'>, TContext> = {}) {
+    return new RevealSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IRevealProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.ViewOnly }
+        )
+    );
 }
 // export function sacrifice(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}) {
 //     return new DiscardFromPlayAction(propertyFactory, true);

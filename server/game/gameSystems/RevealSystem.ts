@@ -4,11 +4,11 @@ import { RelativePlayer } from '../core/Constants';
 import { EventName, ZoneName } from '../core/Constants';
 import type Player from '../core/Player';
 import type { IViewCardProperties } from './ViewCardSystem';
-import { ViewCardSystem } from './ViewCardSystem';
+import { ViewCardInteractMode, ViewCardSystem } from './ViewCardSystem';
 
-export interface IRevealProperties extends IViewCardProperties {
+export type IRevealProperties = IViewCardProperties & {
     promptedPlayer?: RelativePlayer;
-}
+};
 
 export class RevealSystem<TContext extends AbilityContext = AbilityContext> extends ViewCardSystem<TContext, IRevealProperties> {
     public override readonly name = 'reveal';
@@ -16,7 +16,9 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
     public override readonly costDescription = 'revealing {0}';
 
     protected override readonly defaultProperties: IRevealProperties = {
-        promptedPlayer: RelativePlayer.Self
+        interactMode: ViewCardInteractMode.ViewOnly,
+        promptedPlayer: RelativePlayer.Self,
+        useDisplayPrompt: false
     };
 
     public override checkEventCondition(event): boolean {
