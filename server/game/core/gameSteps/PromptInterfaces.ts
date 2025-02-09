@@ -109,7 +109,7 @@ export interface ISelectableCard {
 
 export interface IDisplayCardsSelectProperties extends IDisplayCardPromptPropertiesBase {
     selectedCardsHandler: (cards: Card[]) => void;
-    validCardCondition: (card: Card) => boolean;
+    validCardCondition?: (card: Card) => boolean;
     canChooseNothing?: boolean;
     maxCards?: number;
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[]) => boolean;
