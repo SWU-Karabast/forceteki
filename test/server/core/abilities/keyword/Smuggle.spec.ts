@@ -86,6 +86,16 @@ describe('Smuggle keyword', function() {
                 expect(context.player1.readyResourceCount).toBe(7);
             });
 
+            it('can be Smuggled even if the deck is empty', function () {
+                const { context } = contextRef;
+
+                context.player1.setDeck([]);
+
+                context.player1.clickCard(context.collectionsStarhopper);
+                expect(context.collectionsStarhopper).toBeInZone('spaceArena');
+                expect(context.player1.resources.length).toBe(17);
+            });
+
             // TODO: add test confirming if a ready resource is smuggled, its status is swapped with an exhausted resource before moving
         });
     });
