@@ -11,19 +11,17 @@ export default class BlackSquadronScoutWing extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'You may attack with this unit. It gets +1/+0 for this attack.',
+            title: 'Attack with this unit. It gets +1/+0 for this attack.',
             when: {
-                onCardPlayed: (event, context) => event.card.controller === context.player && event.card.isUpgrade()
+                onCardPlayed: (event, context) => event.card.controller === context.player &&
+                  event.card.isUpgrade() &&
+                  event.attachTarget === context.source
             },
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source === context.event.card.parentCard,
-                onTrue: AbilityHelper.immediateEffects.attack({
-                    attackerLastingEffects: {
-                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
-                    }
-                }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
+            immediateEffect: AbilityHelper.immediateEffects.attack({
+                attackerLastingEffects: {
+                    effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
+                }
             })
         });
     }
