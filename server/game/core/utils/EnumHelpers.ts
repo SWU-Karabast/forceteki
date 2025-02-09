@@ -1,5 +1,6 @@
 import type { CardTypeFilter, ZoneFilter, MoveZoneDestination } from '../Constants';
 import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
+import type Player from '../Player';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
 export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
@@ -196,3 +197,13 @@ export const getCardTypesForFilter = (cardTypeFilter: CardTypeFilter): CardType[
             return [cardTypeFilter];
     }
 };
+
+export const asConcretePlayer = (contextPlayer: Player, player: Player | RelativePlayer): Player => {
+    if (player === RelativePlayer.Self) {
+        return contextPlayer;
+    } else if (player === RelativePlayer.Opponent) {
+        return contextPlayer.opponent;
+    }
+    return player;
+};
+

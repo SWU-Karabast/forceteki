@@ -9,10 +9,11 @@ import {
 } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { Card } from '../core/card/Card';
-import * as Contract from '../core/utils/Contract';
+import type Player from '../core/Player';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
-    controller?: RelativePlayer;
+    controller?: Player | RelativePlayer;
     overrideZone?: ZoneName;
     entersReady?: boolean;
 }
@@ -82,14 +83,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         return context.player || card.owner;
     }
 
-    private getFinalController(controller: RelativePlayer, context: TContext) {
-        switch (controller) {
-            case RelativePlayer.Self:
-                return context.player;
-            case RelativePlayer.Opponent:
-                return context.player.opponent;
-            default:
-                Contract.fail(`Unknown value of RelativePlayer: ${controller}`);
-        }
+    private getFinalController(controller: Player | RelativePlayer, context: TContext) {
+        return EnumHelpers.asConcretePlayer(context.player, controller);
     }
 }

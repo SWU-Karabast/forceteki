@@ -49,16 +49,13 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
             }
         }
 
-        // determine the controller of the generated token(s)
-        const newController = player === context.player ? RelativePlayer.Self : RelativePlayer.Opponent;
-
         // add contingent events for putting the generated unit token(s) into play
         event.setContingentEventsGenerator((event) => {
             const events = [];
 
             for (const token of event.generatedTokens) {
                 const putIntoPlayEvent = new PutIntoPlaySystem({
-                    controller: newController,
+                    controller: player,
                     target: token,
                     entersReady: event.entersReady
                 }).generateEvent(event.context);

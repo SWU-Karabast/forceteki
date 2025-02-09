@@ -33,7 +33,7 @@ export class PlayUnitAction extends PlayCardAction {
         const events = [
             new PutIntoPlaySystem({
                 target: context.source,
-                controller: RelativePlayer.Self,
+                controller: context.player,
                 entersReady: this.entersReady
             }).generateEvent(context),
             this.generateOnPlayEvent(context)

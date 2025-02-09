@@ -35,10 +35,7 @@ export class RescueSystem<TContext extends AbilityContext = AbilityContext, TPro
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
         super.updateEvent(event, card, context, additionalProperties);
 
-        // The card is being rescued, so it's controller should reset to the owner, but in relative terms to the player.  Null player is assumed to be self
-        const newController = (event.player == null) ? RelativePlayer.Self : event.player === card.owner ? RelativePlayer.Self : RelativePlayer.Opponent;
-
         // add contingent event for putting the rescued unit back into play
-        event.setContingentEventsGenerator((event) => [new PutIntoPlaySystem({ target: card, controller: newController }).generateEvent(event.context)]);
+        event.setContingentEventsGenerator((event) => [new PutIntoPlaySystem({ target: card, controller: card.owner }).generateEvent(event.context)]);
     }
 }
