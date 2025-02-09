@@ -96,7 +96,16 @@ describe('Smuggle keyword', function() {
                 expect(context.player1.resources.length).toBe(17);
             });
 
-            // TODO: add test confirming if a ready resource is smuggled, its status is swapped with an exhausted resource before moving
+            it('and the card is readied, will swap its state with an exhausted card before playing if possible', function () {
+                const { context } = contextRef;
+
+                context.covertStrength.exhausted = true;
+
+                context.player1.clickCard(context.collectionsStarhopper);
+                expect(context.collectionsStarhopper).toBeInZone('spaceArena');
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+                expect(context.player1.readyResourceCount).toBe(14);
+            });
         });
     });
 });
