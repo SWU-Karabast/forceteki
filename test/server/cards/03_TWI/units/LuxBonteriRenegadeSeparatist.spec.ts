@@ -4,9 +4,9 @@ describe('Lux Bonteri, Renegade Separatist', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    hand: ['droideka-security', 'scout-bike-pursuer', 'palpatines-return'],
+                    hand: ['droideka-security', 'scout-bike-pursuer', 'palpatines-return', 'krayt-dragon', 'clone'],
                     groundArena: ['battlefield-marine', { card: 'huyang#enduring-instructor', upgrades: ['generals-blade'] }],
-                    resources: 6,
+                    resources: 45,
                     base: 'echo-base',
                     leader: 'iden-versio#inferno-squad-commander'
                 },
@@ -27,6 +27,7 @@ describe('Lux Bonteri, Renegade Separatist', function () {
             context.player2.passAction();
 
             context.player1.clickCard(context.droidekaSecurity);
+            context.player1.clickPrompt('Play Droideka Security using Exploit');
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickPrompt('Done');
 
@@ -51,7 +52,6 @@ describe('Lux Bonteri, Renegade Separatist', function () {
             expect(context.player2).toHaveExactPromptButtons(['Exhaust', 'Ready']);
             context.player2.clickPrompt('Exhaust');
 
-            context.player1.setResourceCount(10);
             context.player2.passAction();
 
             context.player1.clickCard(context.palpatinesReturn);
@@ -61,6 +61,25 @@ describe('Lux Bonteri, Renegade Separatist', function () {
             context.player2.clickCard(context.droidekaSecurity);
             expect(context.player2).toHaveExactPromptButtons(['Exhaust', 'Ready']);
             context.player2.clickPrompt('Exhaust');
+
+            // TODO CLONE
+
+            // context.player2.passAction();
+            // context.player1.clickCard(context.kraytDragon);
+            //
+            // // play clone and copy krayt dragon, you pay 7 for an 9 cost card, lux ability should trigger
+            // context.player2.passAction();
+            // context.player1.clickCard(context.clone);
+            // context.player1.clickCard(context.kraytDragon);
+            //
+            // const dragons = context.player2.findCardsByName('krayt-dragon');
+            //
+            // expect(context.player2).toBeAbleToSelectExactly([context.luxBonteri, context.droidekaSecurity, context.scoutBikePursuer, context.huyang, context.battlefieldMarine, ...dragons]);
+            // context.player2.clickCard(context.droidekaSecurity);
+            // expect(context.player2).toHaveExactPromptButtons(['Exhaust', 'Ready']);
+            // context.player2.clickPrompt('Exhaust');
+
+            // TODO PILOTING
         });
     });
 });

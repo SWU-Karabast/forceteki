@@ -14,21 +14,20 @@ export default class LuxBonteriRenegadeSeparatist extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Ready or exhaust a unit',
             when: {
-                onCardPlayed: (event, context) => event.card.controller === context.source.controller.opponent,
+                onCardPlayed: (event, context) =>
+                    // the card is not written like this, but we want to avoid multiple trigger when player use card like Palpatine's Return
+                    event.card.controller === context.source.controller.opponent &&
+                    event.costs.resources < event.card.cost,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.event.costs.resources < context.event.card.cost,
-                    onTrue: AbilityHelper.immediateEffects.chooseModalEffects((context) => ({
-                        amountOfChoices: 1,
-                        choices: () => ({
-                            ['Ready']: AbilityHelper.immediateEffects.ready({ target: context.target }),
-                            ['Exhaust']: AbilityHelper.immediateEffects.exhaust({ target: context.target })
-                        })
-                    })),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
-                })
+                immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects((context) => ({
+                    amountOfChoices: 1,
+                    choices: () => ({
+                        ['Ready']: AbilityHelper.immediateEffects.ready({ target: context.target }),
+                        ['Exhaust']: AbilityHelper.immediateEffects.exhaust({ target: context.target })
+                    })
+                })),
             }
         });
     }
