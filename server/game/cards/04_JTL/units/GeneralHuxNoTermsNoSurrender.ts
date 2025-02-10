@@ -29,7 +29,7 @@ export default class GeneralHuxNoTermsNoSurrender extends NonLeaderUnitCard {
             title: 'Draw a card',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => this.cardsPlayedThisPhaseWatcher.someCardPlayed((entry) => entry.playedBy === context.player),
+                condition: (context) => this.cardsPlayedThisPhaseWatcher.someCardPlayed((entry) => entry.playedBy === context.player && entry.card.hasSomeTrait(Trait.FirstOrder)),
                 onTrue: AbilityHelper.immediateEffects.draw(),
                 onFalse: AbilityHelper.immediateEffects.noAction(),
             })
