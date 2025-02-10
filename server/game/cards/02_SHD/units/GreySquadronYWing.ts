@@ -12,14 +12,20 @@ export default class GreySquadronYWing extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addOnAttackAbility({
-            title: 'Deal 2 damage to an opponent\s base or unit they control (they choose which)',
+            title: 'An opponent chooses a unit or base they control. You may deal 2 damage to it',
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 choosingPlayer: RelativePlayer.Opponent,
                 cardTypeFilter: [WildcardCardType.Unit, CardType.Base],
-                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
             },
-            optional: true,
+            then: (context) => ({
+                title: `Deal 2 damage to ${context.target.title}`,
+                optional: true,
+                immediateEffect: AbilityHelper.immediateEffects.damage({
+                    target: context.target,
+                    amount: 2,
+                }),
+            })
         });
     }
 }
