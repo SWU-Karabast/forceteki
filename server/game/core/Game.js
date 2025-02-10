@@ -515,7 +515,7 @@ class Game extends EventEmitter {
 
         /**
          * TODO we currently set the winner here as to send the winner via gameState.
-         * TODO this will likely change when we decide on how the popup will look like seperately
+         * TODO this will likely change when we decide on how the popup will look like separately
          * TODO from the preference popup
          */
         if (Array.isArray(winner)) {
