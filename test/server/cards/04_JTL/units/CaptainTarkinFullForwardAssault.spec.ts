@@ -1,6 +1,6 @@
 describe('Captain Tarkin, Full Forward Assault', function() {
     integration(function(contextRef) {
-        it('Blade Squadron B-Wing\'s ability should give shield to a unit if the opponent has at least 3 exhausted units', function () {
+        it('Captain Tarkin\'s ability should give Overwhelm and +1/+0 to friendly vehicle unit', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
@@ -20,6 +20,7 @@ describe('Captain Tarkin, Full Forward Assault', function() {
             context.player1.clickCard(context.lurkingTiePhantom);
 
             expect(context.p2Base.damage).toBe(2);
+            expect(context.greenSquadronAwing.damage).toBe(2);
 
             context.player2.passAction();
 
