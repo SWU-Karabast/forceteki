@@ -12,7 +12,7 @@ export default class FinnOnTheRun extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'For this phase, if damage would be dealt to that unit, prevent 1 of that damage.',
+            title: 'For this phase, if damage would be dealt to that unit, prevent 1 of that damage',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
             },
@@ -21,7 +21,7 @@ export default class FinnOnTheRun extends NonLeaderUnitCard {
                 cardCondition: (card) => card.unique,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.gainAbility({
-                        title: 'For this phase, if damage would be dealt to that unit, prevent 1 of that damage.',
+                        title: 'For this phase, if damage would be dealt to that unit, prevent 1 of that damage',
                         type: AbilityType.ReplacementEffect,
                         when: {
                             onDamageDealt: (event, context) => event.card === context.source
