@@ -35,6 +35,12 @@ describe('No Disintegrations', function() {
             context.player1.clickCard(context.noDisintegrations);
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.battlefieldMarine.damage).toBe(3);
+
+            context.player2.passAction();
+            context.player1.moveCard(context.noDisintegrations, 'hand');
+            context.player1.clickCard(context.noDisintegrations);
+            context.player1.clickCard(context.wampa);
+            expect(context.wampa.damage).toBe(4);
         });
     });
 });

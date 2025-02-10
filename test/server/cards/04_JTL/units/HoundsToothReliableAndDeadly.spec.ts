@@ -4,16 +4,20 @@ describe('Hound\'s Tooth, Reliable and Deadly', function() {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
+                    hand: ['take-captive'],
                     spaceArena: ['hounds-tooth#reliable-and-deadly'],
                 },
                 player2: {
-                    hand: ['strafing-gunship', 'republic-arc170', 'headhunter-squadron']
+                    hand: ['strafing-gunship', 'republic-arc170', 'headhunter-squadron'],
+                    spaceArena: ['green-squadron-awing']
                 }
             });
 
             const { context } = contextRef;
 
-            context.player1.passAction();
+            context.player1.clickCard(context.takeCaptive);
+            context.player1.clickCard(context.houndsTooth);
+            context.player1.clickCard(context.greenSquadronAwing);
 
             // play headhunter squadron
             context.player2.clickCard(context.headhunterSquadron);
@@ -47,6 +51,14 @@ describe('Hound\'s Tooth, Reliable and Deadly', function() {
             context.player1.clickCard(context.strafingGunship);
             expect(context.houndsTooth.damage).toBe(0);
             expect(context.strafingGunship).toBeInZone('discard');
+
+            context.houndsTooth.exhausted = false;
+            context.player2.passAction();
+
+            // attack a unit which was rescue this phase, hound's tooth should not deal damage before defender
+            context.player1.clickCard(context.houndsTooth);
+            context.player1.clickCard(context.greenSquadronAwing);
+            expect(context.houndsTooth.damage).toBe(1);
         });
     });
 });
