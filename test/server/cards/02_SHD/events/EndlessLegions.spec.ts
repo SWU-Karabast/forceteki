@@ -26,7 +26,7 @@ describe('Endless Legions', function() {
                     ]
                 },
                 player2: {
-                    groundArena: ['wampa', 'gor#grievouss-pet'],
+                    groundArena: ['battle-droid-legion', 'gor#grievouss-pet'],
                     spaceArena: ['tie-advanced'],
                 },
             });
@@ -95,9 +95,12 @@ describe('Endless Legions', function() {
             context.player1.clickCard(context.wrecker);
             context.player1.clickPrompt('Defeat a friendly resource. If you do, deal 5 damage to a ground unit');
 
-            // Player 1 defeats Relentless to deal 5 damage to Wampa
+            // Player 1 defeats Relentless to deal 5 damage to Battle Droid Legion
             context.player1.clickCard(context.relentless);
-            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.battleDroidLegion);
+
+            const battleDroids = context.player2.findCardsByName('battle-droid');
+            expect(battleDroids.length).toBe(3);
 
             // Player 1 triggers Wrecker's ambush
             context.player1.clickPrompt('Ambush');
