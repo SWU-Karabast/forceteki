@@ -133,11 +133,20 @@ describe('Finn, On the Run', function () {
             context.player1.clickCard(context.maul);
 
             context.player2.passAction();
+            context.player2.moveCard(context.battlefieldMarine, 'groundArena')
 
             // maul attack battlefield marine, should take 2 damage (3-1) and redirect it to an underworld unit
             context.player1.clickCard(context.maul);
             context.player1.clickCard(context.battlefieldMarine);
+            expect(context.player1).toBeAbleToSelectExactly([context.chewbacca, context.syndicateLackeys]);
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.syndicateLackeys);
+            expect(context.player1).toHaveExactPromptButtons([
+                'For this phase, if damage would be dealt to that unit, prevent 1 of that damage',
+                'Redirect combat damage to another Underworld unit',
+            ]);
+            // context.player1.clickPrompt('For this phase, if damage would be dealt to that unit, prevent 1 of that damage');
+            context.player1.clickPrompt('Redirect combat damage to another Underworld unit');
 
             expect(context.syndicateLackeys.damage).toBe(2);
         });
