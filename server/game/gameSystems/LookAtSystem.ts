@@ -15,7 +15,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
     protected override defaultProperties: IViewCardProperties = {
         interactMode: ViewCardInteractMode.ViewOnly,
         message: '{0} sees {1}',
-        useDisplayPrompt: false
+        useDisplayPrompt: null
     };
 
     public override getMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {
@@ -26,15 +26,11 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         return messageArgs;
     }
 
-    protected override getChatMessage(properties: IViewCardProperties): string {
-        return properties.useDisplayPrompt ? '{0} looks at a card' : '{0} sees {1}';
+    protected override getChatMessage(useDisplayPrompt: boolean): string {
+        return useDisplayPrompt ? '{0} looks at a card' : '{0} sees {1}';
     }
 
     protected override getPromptedPlayer(properties: ILookAtProperties, context: TContext): Player {
-        if (!properties.useDisplayPrompt) {
-            return null;
-        }
-
         return context.player;
     }
 

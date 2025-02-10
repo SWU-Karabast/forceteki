@@ -116,6 +116,7 @@ import type { ICreateXWingProperties } from './CreateXWingSystem';
 import { CreateXWingSystem } from './CreateXWingSystem';
 import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
 import { CreateTieFighterSystem } from './CreateTieFighterSystem';
+import type { IViewCardWithPerCardButtonsProperties } from './ViewCardSystem';
 import { ViewCardInteractMode } from './ViewCardSystem';
 
 
@@ -243,7 +244,14 @@ export function lookAt<TContext extends AbilityContext = AbilityContext>(propert
         )
     );
 }
-
+export function lookAtAndChooseOption<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewCardWithPerCardButtonsProperties, 'interactMode'>, TContext>) {
+    return new LookAtSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IViewCardWithPerCardButtonsProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.PerCardButtons }
+        )
+    );
+}
 export function lookMoveDeckCardsTopOrBottom<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookMoveDeckCardsTopOrBottomProperties, TContext>) {
     return new LookMoveDeckCardsTopOrBottomSystem<TContext>(propertyFactory);
 }

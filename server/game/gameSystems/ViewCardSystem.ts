@@ -54,11 +54,6 @@ export interface IViewCardWithPerCardButtonsProperties extends IViewCardProperti
 export type IViewCardProperties = IViewCardOnlyProperties | IViewCardAndSelectSingleProperties | IViewCardWithPerCardButtonsProperties;
 
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IViewCardProperties = IViewCardProperties> extends CardTargetSystem<TContext, TProperties> {
-    protected override defaultProperties: IViewCardProperties = {
-        interactMode: ViewCardInteractMode.ViewOnly,
-        useDisplayPrompt: false
-    };
-
     public override eventHandler(event, _additionalProperties = {}): void {
         const context = event.context;
         context.game.addMessage(this.getMessage(event.message, context), ...event.messageArgs);
@@ -68,7 +63,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         }
     }
 
-    protected abstract getChatMessage(properties: IViewCardProperties): string | null;
+    protected abstract getChatMessage(useDisplayPrompt: boolean): string;
     protected abstract getPromptedPlayer(properties: IViewCardProperties, context: TContext): Player;
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
@@ -93,21 +88,21 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
             cards = [cards];
         }
 
-        Contract.assertFalse(!properties.useDisplayPrompt && properties.interactMode !== ViewCardInteractMode.ViewOnly, 'Cannot disable display prompt for non-basic view card prompts');
+        const useDisplayPrompt = properties.useDisplayPrompt != null
+            ? properties.useDisplayPrompt
+            : properties.interactMode !== ViewCardInteractMode.ViewOnly;
+
+        Contract.assertFalse(!useDisplayPrompt && properties.interactMode !== ViewCardInteractMode.ViewOnly, 'Cannot disable display prompt for non-basic view card prompts');
 
         event.cards = cards;
-        event.message = this.getChatMessage(properties);
+        event.message = this.getChatMessage(useDisplayPrompt);
         event.messageArgs = this.getMessageArgs(event, context, additionalProperties);
         event.displayTextByCardUuid = properties.displayTextByCardUuid;
-        event.promptHandler = this.buildPromptHandler(cards, properties, context);
+        event.promptHandler = useDisplayPrompt ? this.buildPromptHandler(cards, properties, context) : null;
     }
 
-    private buildPromptHandler(cards: Card[], properties: IViewCardProperties, context: TContext): (() => void) | null {
+    private buildPromptHandler(cards: Card[], properties: IViewCardProperties, context: TContext): () => void {
         const promptedPlayer = this.getPromptedPlayer(properties, context);
-
-        if (!properties.useDisplayPrompt) {
-            return null;
-        }
 
         switch (properties.interactMode) {
             case ViewCardInteractMode.ViewOnly:
