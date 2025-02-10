@@ -72,7 +72,6 @@ export enum EffectName {
     DelayedEffect = 'delayedEffect',
     DoesNotReady = 'doesNotReady',
     DealsDamageBeforeDefender = 'dealsDamageBeforeDefender',
-    EntersPlayForOpponent = 'entersPlayForOpponent',
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
