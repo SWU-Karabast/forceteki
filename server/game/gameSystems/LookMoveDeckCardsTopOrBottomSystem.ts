@@ -9,6 +9,7 @@ import * as Contract from '../core/utils/Contract';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type Player from '../core/Player';
+import { ViewCardInteractMode } from './ViewCardSystem';
 
 export interface ILookMoveDeckCardsTopOrBottomProperties extends IPlayerTargetSystemProperties {
     amount: number;
@@ -28,7 +29,9 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
 
         if (deckLength === 1) {
             const lookAtEvent = new LookAtSystem({
-                target: player.drawDeck[0]
+                target: player.drawDeck[0],
+                interactMode: ViewCardInteractMode.ViewOnly,
+                useDisplayPrompt: true
             }).generateEvent(context);
             events.push(lookAtEvent);
         } else {

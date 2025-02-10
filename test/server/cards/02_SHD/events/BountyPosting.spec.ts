@@ -27,7 +27,7 @@ describe('Bounty Posting', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(context.topTarget);
                 expect(context.topTarget).toBeInZone('hand', context.player1);
-                expect(context.player1).toHavePassAbilityPrompt('Play that upgrade (paying its cost).');
+                expect(context.player1).toHavePassAbilityPrompt('Play that upgrade (paying its cost)');
 
                 expect(context.getChatLogs(4)).toEqual([
                     'player1 plays Bounty Posting to search their deck',
@@ -36,7 +36,7 @@ describe('Bounty Posting', function() {
                     'player1 is shuffling their deck'
                 ]);
 
-                context.player1.clickPrompt('Play that upgrade (paying its cost).');
+                context.player1.clickPrompt('Play that upgrade (paying its cost)');
                 context.player1.clickCard(context.cloneTrooper);
                 expect(context.cloneTrooper).toHaveExactUpgradeNames(['top-target']);
                 expect(preShuffleDeck).not.toEqual(context.player1.deck);
