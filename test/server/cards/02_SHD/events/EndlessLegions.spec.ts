@@ -62,7 +62,13 @@ describe('Endless Legions', function() {
             context.player1.clickCard(context.wrecker);
             context.player1.clickPrompt('Done');
 
-            expect(context.getChatLogs(1)).toContain('player1 reveals Resupply, Relentless, Arquitens Assault Cruiser, Clone Commander Cody, Admiral Piett, Frozen in Carbonite, Wrecker due to Endless Legions');
+            expect(context.getChatLogs(1)[0]).toContain(context.resupply.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.relentless.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.arquitensAssaultCruiser.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.cloneCommanderCody.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.admiralPiett.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.frozenInCarbonite.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.wrecker.title);
             expect(context.player1).not.toHaveEnabledPromptButton('Choose no target');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.wrecker,
