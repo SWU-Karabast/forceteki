@@ -98,8 +98,9 @@ export interface IDisplayCardsBasicPromptProperties extends IDisplayCardPromptPr
 }
 
 export interface IDisplayCardsWithButtonsPromptProperties extends IDisplayCardPromptPropertiesBase {
-    onCardButton: (card: Card, arg: string) => boolean;
+    onCardButton: (card: Card, arg: string) => void;
     perCardButtons: IButton[];
+    onComplete?: () => void;
 }
 
 export interface ISelectableCard {
@@ -109,7 +110,7 @@ export interface ISelectableCard {
 
 export interface IDisplayCardsSelectProperties extends IDisplayCardPromptPropertiesBase {
     selectedCardsHandler: (cards: Card[]) => void;
-    validCardCondition: (card: Card) => boolean;
+    validCardCondition?: (card: Card) => boolean;
     canChooseNothing?: boolean;
     maxCards?: number;
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[]) => boolean;

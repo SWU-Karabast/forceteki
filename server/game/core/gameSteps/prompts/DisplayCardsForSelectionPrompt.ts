@@ -26,10 +26,12 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
         this.selectedCardsHandler = properties.selectedCardsHandler;
         this.multiSelectCardCondition = properties.multiSelectCondition || (() => true);
 
+        const validCardCondition = properties.validCardCondition || (() => true);
+
         this.displayCards = properties.displayCards.map((card) => ({
             card,
             // if a card doesn't meet the multi-select condition even when nothing else is selected, we can safely consider it invalid
-            selectionState: properties.validCardCondition(card) && this.multiSelectCardCondition(card, [])
+            selectionState: validCardCondition(card) && this.multiSelectCardCondition(card, [])
                 ? DisplayCardSelectionState.Selectable
                 : DisplayCardSelectionState.Invalid,
         }));
