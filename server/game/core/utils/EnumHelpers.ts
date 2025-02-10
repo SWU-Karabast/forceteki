@@ -198,7 +198,7 @@ export const getCardTypesForFilter = (cardTypeFilter: CardTypeFilter): CardType[
     }
 };
 
-export const asConcretePlayer = (contextPlayer: Player, player: Player | RelativePlayer): Player => {
+export const asConcretePlayer = (player: Player | RelativePlayer, contextPlayer: Player): Player => {
     if (player === RelativePlayer.Self) {
         return contextPlayer;
     } else if (player === RelativePlayer.Opponent) {

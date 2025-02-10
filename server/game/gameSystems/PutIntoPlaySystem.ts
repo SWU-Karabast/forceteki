@@ -76,14 +76,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
         event.entersReady = entersReady || card.hasOngoingEffect(EffectName.EntersPlayReady);
-        event.newController = this.getFinalController(controller, context);
+        event.newController = EnumHelpers.asConcretePlayer(controller, context.player);
     }
 
     private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {
         return context.player || card.owner;
-    }
-
-    private getFinalController(controller: Player | RelativePlayer, context: TContext) {
-        return EnumHelpers.asConcretePlayer(context.player, controller);
     }
 }
