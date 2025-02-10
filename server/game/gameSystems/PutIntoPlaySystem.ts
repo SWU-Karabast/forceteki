@@ -3,6 +3,7 @@ import {
     AbilityRestriction, EffectName,
     EventName,
     KeywordName,
+    PlayType,
     RelativePlayer,
     WildcardCardType,
     ZoneName
@@ -56,7 +57,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             return false;
         } else if (!card.canBeInPlay() || card.isInPlay()) {
             return false;
-        } else if (card.zoneName === ZoneName.Resource && !card.hasSomeKeyword(KeywordName.Smuggle)) {
+        } else if (card.zoneName === ZoneName.Resource && !card.hasSomeKeyword(KeywordName.Smuggle) && !(context.playType === PlayType.Smuggle || context.playType === PlayType.PlayFromOutOfPlay)) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;

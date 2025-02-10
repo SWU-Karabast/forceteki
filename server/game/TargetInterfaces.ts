@@ -92,6 +92,7 @@ interface ICardTargetResolverBase<TContext extends AbilityContext> extends ITarg
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     zoneFilter?: ZoneFilter | ZoneFilter[];
     cardCondition?: (card: Card, context?: TContext) => boolean;
+    choosingFromHiddenOverride?: boolean;
 }
 
 interface ICardExactlyUpToTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
