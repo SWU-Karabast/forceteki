@@ -36,7 +36,7 @@ export default class EndlessLegions extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
-                ignoreHiddenZoneRule: false,
+                ignoreHiddenZoneRule: true,
                 cardCondition: (card: Card) => Helpers.asArray(revealedCardsContext.target).includes(card) && !playedCards.includes(card),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Free },
