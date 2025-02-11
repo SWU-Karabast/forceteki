@@ -4,8 +4,6 @@ import { TargetMode } from '../../../core/Constants';
 
 
 export default class ChimaeraFlagshipOfTheSeventhFleet extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '7728042035',
