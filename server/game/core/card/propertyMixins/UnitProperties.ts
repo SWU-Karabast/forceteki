@@ -686,10 +686,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public get lastPlayerToModifyHp() {
-            if (this.isInPlay()) {
-                return this._lastPlayerToModifyHp;
-            }
-            return null;
+            Contract.assertTrue(this.isInPlay());
+            return this._lastPlayerToModifyHp;
         }
 
         public override moveTo(targetZoneName: MoveZoneDestination): void {
