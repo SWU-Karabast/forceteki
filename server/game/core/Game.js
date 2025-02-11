@@ -1269,6 +1269,8 @@ class Game extends EventEmitter {
         for (const [tokenName, cardData] of Object.entries(tokenCardsData)) {
             const tokenConstructor = cards.get(cardData.id);
 
+            Contract.assertNotNullLike(tokenConstructor, `Token card data for ${tokenName} contained unknown id '${cardData.id}'`);
+
             this.tokenFactories[tokenName] = (player) => new tokenConstructor(player, cardData);
         }
     }
