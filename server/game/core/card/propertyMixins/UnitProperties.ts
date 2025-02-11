@@ -689,12 +689,5 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             Contract.assertTrue(this.isInPlay());
             return this._lastPlayerToModifyHp;
         }
-
-        public override moveTo(targetZoneName: MoveZoneDestination): void {
-            if (targetZoneName === ZoneName.GroundArena || targetZoneName === ZoneName.SpaceArena) {
-                this._lastPlayerToModifyHp = null;
-            }
-            super.moveTo(targetZoneName);
-        }
     };
 }
