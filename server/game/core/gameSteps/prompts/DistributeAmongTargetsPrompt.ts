@@ -103,14 +103,28 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
 
     public override onStatefulPromptResults(player: Player, results: IStatefulPromptResults, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
-        this.assertPromptResultsValid(player, results);
-        this.properties.resultsHandler(results);
+        const formattedResults = this.formatPromptResults(results);
+        this.assertPromptResultsValid(formattedResults);
+        this.properties.resultsHandler(formattedResults);
         this.complete();
 
         return true;
     }
 
-    private assertPromptResultsValid(player: Player, results: IStatefulPromptResults): asserts results is IDistributeAmongTargetsPromptResults {
+    private formatPromptResults(results: IStatefulPromptResults): IDistributeAmongTargetsPromptResults {
+        const targets = new Map(
+            results.valueDistribution
+                .map((target) => {
+                    const card = this.game.allCards.find((card) => target.uuid === card.uuid);
+                    return card ? [card, target.amount] : null;
+                })
+        );
+
+        Contract.assertFalse(targets.has(null), 'Illegal prompt results, some target cards were not found');
+        return { type: results.type, valueDistribution: targets };
+    }
+
+    private assertPromptResultsValid(results: IDistributeAmongTargetsPromptResults): asserts results is IDistributeAmongTargetsPromptResults {
         Contract.assertTrue(results.type === this.properties.type, `Unexpected prompt results type, expected '${this.properties.type}' but received result of type '${results.type}'`);
 
         const distributedValues = Array.from(results.valueDistribution.values());

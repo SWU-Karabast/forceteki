@@ -41,7 +41,13 @@ export type DistributePromptType =
   | StatefulPromptType.DistributeExperience
   | StatefulPromptType.DistributeHealing;
 
-export type IStatefulPromptResults = IDistributeAmongTargetsPromptResults;
+export interface IStatefulPromptResults {
+    type: StatefulPromptType;
+    valueDistribution: {
+        uuid: string;
+        amount: number;
+    }[];
+}
 
 export interface IPromptPropertiesBase {
     activePromptTitle?: string;

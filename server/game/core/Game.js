@@ -762,26 +762,14 @@ class Game extends EventEmitter {
      * Gets the results of a "stateful" prompt from the frontend. This is for more
      * involved prompts such as distributing damage / healing that require the frontend
      * to gather some state and send back, instead of just individual clicks.
-     * @param {import('./gameSteps/PromptInterfaces.js').IDistributeAmongTargetsPromptResults} result
+     * @param {import('./gameSteps/PromptInterfaces.js').IStatefulPromptResults} result
      * @param {String} uuid - unique identifier of the prompt clicked
      */
     statefulPromptResults(playerId, result, uuid) {
         var player = this.getPlayerById(playerId);
-        result = this.transformStatefulResult(result);
+
         // check to see if the current step in the pipeline is waiting for input
         return this.pipeline.handleStatefulPromptResults(player, result, uuid);
-    }
-
-    transformStatefulResult(result) {
-        const data = new Map(
-            result.targets
-                .map((target) => {
-                    const card = this.allCards.find((card) => target.uuid === card.uuid);
-                    return card ? [card, target.amount] : null;
-                })
-                .filter(Boolean)
-        );
-        return { type: result.type, valueDistribution: data };
     }
 
     /**
