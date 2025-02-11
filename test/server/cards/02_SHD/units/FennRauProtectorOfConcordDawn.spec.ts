@@ -11,7 +11,6 @@ describe('Fenn Rau Protector of Concord Dawn\'s ability', function () {
                     resources: 9
                 },
                 player2: {
-                    hand: ['waylay'],
                     groundArena: ['consular-security-force'],
                     spaceArena: ['tie-advanced']
                 }
@@ -57,17 +56,24 @@ describe('Fenn Rau Protector of Concord Dawn\'s ability', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    hand: ['academy-training', 'jedi-lightsaber'],
-                    groundArena: ['specforce-soldier', 'fenn-rau#protector-of-concord-dawn'],
+                    hand: ['academy-training', 'survivors-gauntlet'],
+                    groundArena: [{ card: 'specforce-soldier', upgrades: ['jedi-lightsaber'] }, 'fenn-rau#protector-of-concord-dawn'],
                 },
                 player2: {
-                    hand: ['waylay'],
+                    hand: ['consular-security-force'],
                 }
             });
 
             const { context } = contextRef;
 
             context.player1.clickCard(context.academyTraining);
+            context.player1.clickCard(context.fennRau);
+            expect(context.player2).toBeActivePlayer();
+
+            // It should not trigger -2/-2 if we move an upgrade
+            context.player2.clickCard(context.consularSecurityForce);
+            context.player1.clickCard(context.survivorsGauntlet);
+            context.player1.clickCard(context.jediLightsaber);
             context.player1.clickCard(context.fennRau);
             expect(context.player2).toBeActivePlayer();
         });
