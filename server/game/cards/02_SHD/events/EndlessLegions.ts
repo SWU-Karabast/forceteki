@@ -8,6 +8,8 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 
 export default class EndlessLegions extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '5576996578',
