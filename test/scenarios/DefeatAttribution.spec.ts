@@ -21,7 +21,7 @@ describe('Defeat attribution', function () {
 
                 context.player1.clickCard(context.bravado);
                 context.player1.clickCard(context.battlefieldMarine);
-                
+
                 expect(context.player1.exhaustedResourceCount).toBe(5);
                 expect(context.battlefieldMarine.exhausted).toBe(false);
             });
@@ -51,7 +51,7 @@ describe('Defeat attribution', function () {
 
                 context.player1.clickCard(context.bravado);
                 context.player1.clickCard(context.battlefieldMarine);
-                
+
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.battlefieldMarine.exhausted).toBe(false);
             });
@@ -81,7 +81,7 @@ describe('Defeat attribution', function () {
 
                 context.player1.clickCard(context.bravado);
                 context.player1.clickCard(context.battlefieldMarine);
-                
+
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.battlefieldMarine.exhausted).toBe(false);
             });
@@ -136,7 +136,7 @@ describe('Defeat attribution', function () {
             it('"If you\'ve defeated an enemy unit this phase" effects will not trigger', function () {
                 const { context } = contextRef;
 
-                context.player1.passAction()
+                context.player1.passAction();
 
                 context.player2.clickCard(context.takedown);
                 context.player2.clickCard(context.rebelPathfinder);
@@ -421,7 +421,7 @@ describe('Defeat attribution', function () {
                 // TODO this is currently leveraging active player, not player that removed the buff
                 const { context } = contextRef;
 
-                context.player1.passAction()
+                context.player1.passAction();
 
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(context.generalDodonna);
@@ -489,7 +489,7 @@ describe('Defeat attribution', function () {
                 // TODO this is currently leveraging active player, not player that removed the buff
                 const { context } = contextRef;
 
-                context.player1.passAction()
+                context.player1.passAction();
 
                 context.player2.clickCard(context.confiscate);
                 context.player2.clickCard(context.jediLightsaber);

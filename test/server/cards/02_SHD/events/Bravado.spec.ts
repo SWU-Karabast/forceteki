@@ -29,7 +29,6 @@ describe('Bravado', function () {
             // Base cost of 5 plus Tech cost add-on of 2, minus Bravado cost reduction of 2
             expect(context.player1.exhaustedResourceCount).toBe(5);
             expect(context.battlefieldMarine.exhausted).toBe(false);
-
         });
     });
 });

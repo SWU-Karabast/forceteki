@@ -1,5 +1,5 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import type { Arena, MoveZoneDestination } from '../../Constants';
+import type { Arena } from '../../Constants';
 import { CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
