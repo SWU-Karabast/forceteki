@@ -268,6 +268,8 @@ describe('Bravado', function () {
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.player1.exhaustedResourceCount).toBe(5);
             expect(context.battlefieldMarine.exhausted).toBe(false);
+
+            // TODO add test for 'A Fine Addition'
         });
     });
 });

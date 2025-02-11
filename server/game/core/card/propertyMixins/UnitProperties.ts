@@ -650,7 +650,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this._upgrades.push(upgrade);
 
             if (upgrade.printedHp !== 0) {
-                this._lastPlayerToModifyHp = upgrade.owner;
+                this._lastPlayerToModifyHp = upgrade.controller;
             }
         }
 
