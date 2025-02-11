@@ -45,28 +45,26 @@ export abstract class CardDataGetter {
 
     protected abstract getCardInternalAsync(relativePath: string): Promise<ICardDataJson>;
     protected abstract getRelativePathFromInternalName(internalName: string);
-
-    // TODO THIS PR: do we need this?
     public abstract getSetCodeMapAsync(): Promise<Map<string, string>>;
 
-    public async getCard(id: string): Promise<ICardDataJson> {
+    public async getCardAsync(id: string): Promise<ICardDataJson> {
         const relativePath = this.getRelativePathFromInternalName(this.getInternalName(id));
         return await this.getCardInternalAsync(relativePath);
     }
 
-    public async getCardByName(internalName: string): Promise<ICardDataJson> {
+    public async getCardByNameAsync(internalName: string): Promise<ICardDataJson> {
         this.checkInternalName(internalName);
         return await this.getCardInternalAsync(this.getRelativePathFromInternalName(internalName));
     }
 
-    protected static async getTokenCardsDataAsync(getCard: (string) => Promise<ICardDataJson>): Promise<ITokenCardsData> {
+    protected static async getTokenCardsDataAsync(getCardAsync: (string) => Promise<ICardDataJson>): Promise<ITokenCardsData> {
         return {
-            [TokenUnitName.BattleDroid]: await getCard('battle-droid'),
-            [TokenUnitName.CloneTrooper]: await getCard('clone-trooper'),
-            [TokenUnitName.TIEFighter]: await getCard('tie-fighter'),
-            [TokenUnitName.XWing]: await getCard('xwing'),
-            [TokenUpgradeName.Experience]: await getCard('experience'),
-            [TokenUpgradeName.Shield]: await getCard('shield'),
+            [TokenUnitName.BattleDroid]: await getCardAsync('battle-droid'),
+            [TokenUnitName.CloneTrooper]: await getCardAsync('clone-trooper'),
+            [TokenUnitName.TIEFighter]: await getCardAsync('tie-fighter'),
+            [TokenUnitName.XWing]: await getCardAsync('xwing'),
+            [TokenUpgradeName.Experience]: await getCardAsync('experience'),
+            [TokenUpgradeName.Shield]: await getCardAsync('shield'),
         };
     }
 

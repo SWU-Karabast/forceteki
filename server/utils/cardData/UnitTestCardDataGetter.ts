@@ -4,11 +4,10 @@ import { LocalFolderCardDataGetter } from './LocalFolderCardDataGetter';
 import * as Contract from '../../game/core/utils/Contract';
 import fs from 'fs';
 import path from 'path';
-
-// TODO THIS PR: interface for sync getters
+import type { ISynchronousCardDataGetter } from './ISynchronousCardDataGetter';
 
 /** Extends {@link CardDataGetter} with synchronous get methods */
-export class UnitTestCardDataGetter extends LocalFolderCardDataGetter {
+export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements ISynchronousCardDataGetter {
     private static readFileSync(folderRoot: string, relativePath: string): unknown {
         const filePath = path.join(folderRoot, relativePath);
         Contract.assertTrue(fs.existsSync(filePath), `Data file ${filePath} does not exist`);
