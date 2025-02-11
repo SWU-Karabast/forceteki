@@ -29,10 +29,16 @@ describe('Endless Legions', function() {
                 player2: {
                     groundArena: ['hevy#staunch-martyr', 'gor#grievouss-pet'],
                     spaceArena: ['tie-advanced'],
+                    hand: ['regional-governor'],
+                    hasInitiative: true,
                 },
             });
 
             const { context } = contextRef;
+
+            // Player 2 plays Regional Governor and says Battlefield Marine
+            context.player2.clickCard(context.regionalGovernor);
+            context.player2.chooseListOption('Battlefield Marine');
 
             // Player 1 plays Endless Legions
             context.player1.clickCard(context.endlessLegions);
@@ -61,6 +67,7 @@ describe('Endless Legions', function() {
             context.player1.clickCard(context.admiralPiett);
             context.player1.clickCard(context.frozenInCarbonite);
             context.player1.clickCard(context.wrecker);
+            context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickPrompt('Done');
 
             expect(context.getChatLogs(1)[0]).toContain(context.resupply.title);
@@ -70,6 +77,7 @@ describe('Endless Legions', function() {
             expect(context.getChatLogs(1)[0]).toContain(context.admiralPiett.title);
             expect(context.getChatLogs(1)[0]).toContain(context.frozenInCarbonite.title);
             expect(context.getChatLogs(1)[0]).toContain(context.wrecker.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.battlefieldMarine.title);
             expect(context.player1).not.toHaveEnabledPromptButton('Choose no target');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.wrecker,
