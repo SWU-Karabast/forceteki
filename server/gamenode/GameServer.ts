@@ -58,14 +58,14 @@ export class GameServer {
         }
 
         return new GameServer(cardDataGetter,
-            await cardDataGetter.getTokenCardsData(),
-            await cardDataGetter.getPlayableCardTitles(),
+            await cardDataGetter.tokenData,
+            await cardDataGetter.playableCardTitles,
             testGameBuilder);
     }
 
     private static buildRemoteCardDataGetter(): Promise<RemoteCardDataGetter> {
         // TODO: move this url to a config
-        return RemoteCardDataGetter.create('https://karabast-assets.s3.amazonaws.com/data/');
+        return RemoteCardDataGetter.createAsync('https://karabast-assets.s3.amazonaws.com/data/');
     }
 
     private static getTestGameBuilder() {

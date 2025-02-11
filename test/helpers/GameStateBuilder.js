@@ -3,8 +3,8 @@ const { SwuGameFormat } = require('../../server/SwuGameFormat.js');
 const Util = require('./Util.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
-const { LocalFolderCardDataGetter } = require('../../server/utils/cardData/LocalFolderCardDataGetter');
 const fs = require('fs');
+const { UnitTestCardDataGetter } = require('../../server/utils/cardData/UnitTestCardDataGetter');
 
 class GameStateBuilder {
     constructor() {
@@ -30,7 +30,7 @@ class GameStateBuilder {
             'startGame'
         ];
 
-        this.cardDataGetter = new LocalFolderCardDataGetter(directory);
+        this.cardDataGetter = new UnitTestCardDataGetter(directory);
         this.deckBuilder = new DeckBuilder(this.cardDataGetter);
     }
 

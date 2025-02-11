@@ -9,7 +9,10 @@ export type ITokenCardsData = {
 
 export abstract class CardDataGetter {
     public readonly cardMap: ICardMap;
+
     private readonly knownCardInternalNames: Set<string>;
+    private readonly _playableCardTitles: string[];
+    private readonly _tokenData: ITokenCardsData;
 
     protected static readonly setCodeMapFileName = '_setCodeMap.json';
     protected static readonly cardMapFileName = '_cardMap.json';
@@ -19,7 +22,15 @@ export abstract class CardDataGetter {
         return Array.from(this.cardMap.keys());
     }
 
-    protected constructor(cardMapJson: ICardMapJson) {
+    public get playableCardTitles(): string[] {
+        return this._playableCardTitles;
+    }
+
+    public get tokenData(): ITokenCardsData {
+        return this._tokenData;
+    }
+
+    public constructor(cardMapJson: ICardMapJson, tokenData: ITokenCardsData, playableCardTitles: string[]) {
         this.cardMap = new Map<string, ICardMapEntry>();
         this.knownCardInternalNames = new Set<string>();
 
@@ -27,31 +38,46 @@ export abstract class CardDataGetter {
             this.cardMap.set(cardMapEntry.id, cardMapEntry);
             this.knownCardInternalNames.add(cardMapEntry.internalName);
         }
+
+        this._playableCardTitles = playableCardTitles;
+        this._tokenData = tokenData;
     }
 
-    protected abstract getCardInternal(relativePath: string): Promise<ICardDataJson>;
-    public abstract getSetCodeMap(): Promise<Map<string, string>>;
-    public abstract getPlayableCardTitles(): Promise<string[]>;
+    protected abstract getCardInternalAsync(relativePath: string): Promise<ICardDataJson>;
     protected abstract getRelativePathFromInternalName(internalName: string);
+
+    // TODO THIS PR: do we need this?
+    public abstract getSetCodeMapAsync(): Promise<Map<string, string>>;
 
     public async getCard(id: string): Promise<ICardDataJson> {
         const relativePath = this.getRelativePathFromInternalName(this.getInternalName(id));
-        return await this.getCardInternal(relativePath);
+        return await this.getCardInternalAsync(relativePath);
     }
 
     public async getCardByName(internalName: string): Promise<ICardDataJson> {
         this.checkInternalName(internalName);
-        return await this.getCardInternal(this.getRelativePathFromInternalName(internalName));
+        return await this.getCardInternalAsync(this.getRelativePathFromInternalName(internalName));
     }
 
-    public async getTokenCardsData(): Promise<ITokenCardsData> {
+    protected static async getTokenCardsDataAsync(getCard: (string) => Promise<ICardDataJson>): Promise<ITokenCardsData> {
         return {
-            [TokenUnitName.BattleDroid]: await this.getCardByName('battle-droid'),
-            [TokenUnitName.CloneTrooper]: await this.getCardByName('clone-trooper'),
-            [TokenUnitName.TIEFighter]: await this.getCardByName('tie-fighter'),
-            [TokenUnitName.XWing]: await this.getCardByName('xwing'),
-            [TokenUpgradeName.Experience]: await this.getCardByName('experience'),
-            [TokenUpgradeName.Shield]: await this.getCardByName('shield'),
+            [TokenUnitName.BattleDroid]: await getCard('battle-droid'),
+            [TokenUnitName.CloneTrooper]: await getCard('clone-trooper'),
+            [TokenUnitName.TIEFighter]: await getCard('tie-fighter'),
+            [TokenUnitName.XWing]: await getCard('xwing'),
+            [TokenUpgradeName.Experience]: await getCard('experience'),
+            [TokenUpgradeName.Shield]: await getCard('shield'),
+        };
+    }
+
+    protected static getTokenCardsDataSync(getCard: (string) => ICardDataJson): ITokenCardsData {
+        return {
+            [TokenUnitName.BattleDroid]: getCard('battle-droid'),
+            [TokenUnitName.CloneTrooper]: getCard('clone-trooper'),
+            [TokenUnitName.TIEFighter]: getCard('tie-fighter'),
+            [TokenUnitName.XWing]: getCard('xwing'),
+            [TokenUpgradeName.Experience]: getCard('experience'),
+            [TokenUpgradeName.Shield]: getCard('shield'),
         };
     }
 

@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const TestSetupError = require('./TestSetupError.js');
 const Util = require('./Util.js');
+const Contract = require('../../server/game/core/utils/Contract.js');
 
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
@@ -15,10 +16,12 @@ class DeckBuilder {
     /** @param {import('../../server/utils/cardData/CardDataGetter.js').CardDataGetter} cardDataGetter */
     constructor(cardDataGetter) {
         this.cards = {};
-        this.tokenData = cardDataGetter.getTokenCardsDataSynchronous();
+        this.tokenData = cardDataGetter.tokenData;
 
         for (const cardId of cardDataGetter.cardIds) {
-            const card = cardDataGetter.getCardSynchronous(cardId);
+            const card = cardDataGetter.getCardSync(cardId);
+            Contract.assertHasProperty(card, 'internalName', 'Invalid card data from card data getter');
+
             this.cards[card.internalName] = card;
         }
     }
