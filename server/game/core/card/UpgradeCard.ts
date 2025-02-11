@@ -97,10 +97,10 @@ export class UpgradeCard extends UpgradeCardParent {
         return !!this._parentCard;
     }
 
-    public unattach() {
+    public unattach(event = null) {
         Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
 
-        this.parentCard.unattachUpgrade(this);
+        this.parentCard.unattachUpgrade(this, event);
         this._parentCard = null;
     }
 

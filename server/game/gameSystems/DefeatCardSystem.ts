@@ -51,7 +51,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         if (card.zoneName === ZoneName.Resource) {
             this.leavesResourceZoneEventHandler(card, event.context);
         } else if (card.isUpgrade()) {
-            card.unattach();
+            card.unattach(event);
         }
 
         if (card.isToken()) {

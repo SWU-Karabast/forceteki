@@ -631,11 +631,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Removes an upgrade from this card's upgrade list
          * @param {UpgradeCard} upgrade
          */
-        public unattachUpgrade(upgrade) {
+        public unattachUpgrade(upgrade, event = null) {
             this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             this._upgrades = this._upgrades.filter((card) => card.uuid !== upgrade.uuid);
             if (upgrade.printedHp !== 0) {
-                this._lastPlayerToModifyHp = upgrade.owner;
+                this._lastPlayerToModifyHp = event?.context?.ability ? event.context.ability.controller : upgrade.owner;
             }
         }
 
