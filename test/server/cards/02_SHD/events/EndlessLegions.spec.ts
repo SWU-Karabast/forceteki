@@ -12,7 +12,7 @@ describe('Endless Legions', function() {
                         'snowspeeder',
                         'specforce-soldier',
                         'ruthless-raider',
-                        'tieln-fighter',
+                        'pelta-supply-frigate',
                         'frozen-in-carbonite',
                         'confiscate',
                         'pyke-sentinel',
@@ -23,10 +23,11 @@ describe('Endless Legions', function() {
                         'arquitens-assault-cruiser',
                         'resupply',
                         'wrecker#boom',
-                    ]
+                    ],
+                    groundArena: [{ card: '97th-legion#keeping-the-peace-on-sullust', damage: 11 }],
                 },
                 player2: {
-                    groundArena: ['battle-droid-legion', 'gor#grievouss-pet'],
+                    groundArena: ['hevy#staunch-martyr', 'gor#grievouss-pet'],
                     spaceArena: ['tie-advanced'],
                 },
             });
@@ -40,7 +41,7 @@ describe('Endless Legions', function() {
                 context.snowspeeder,
                 context.specforceSoldier,
                 context.ruthlessRaider,
-                context.tielnFighter,
+                context.peltaSupplyFrigate,
                 context.frozenInCarbonite,
                 context.confiscate,
                 context.pykeSentinel,
@@ -56,7 +57,7 @@ describe('Endless Legions', function() {
             context.player1.clickCard(context.resupply);
             context.player1.clickCard(context.relentless);
             context.player1.clickCard(context.arquitensAssaultCruiser);
-            context.player1.clickCard(context.cloneCommanderCody);
+            context.player1.clickCard(context.peltaSupplyFrigate);
             context.player1.clickCard(context.admiralPiett);
             context.player1.clickCard(context.frozenInCarbonite);
             context.player1.clickCard(context.wrecker);
@@ -65,7 +66,7 @@ describe('Endless Legions', function() {
             expect(context.getChatLogs(1)[0]).toContain(context.resupply.title);
             expect(context.getChatLogs(1)[0]).toContain(context.relentless.title);
             expect(context.getChatLogs(1)[0]).toContain(context.arquitensAssaultCruiser.title);
-            expect(context.getChatLogs(1)[0]).toContain(context.cloneCommanderCody.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.peltaSupplyFrigate.title);
             expect(context.getChatLogs(1)[0]).toContain(context.admiralPiett.title);
             expect(context.getChatLogs(1)[0]).toContain(context.frozenInCarbonite.title);
             expect(context.getChatLogs(1)[0]).toContain(context.wrecker.title);
@@ -73,7 +74,7 @@ describe('Endless Legions', function() {
             expect(context.player1).toBeAbleToSelectExactly([
                 context.wrecker,
                 context.arquitensAssaultCruiser,
-                context.cloneCommanderCody,
+                context.peltaSupplyFrigate,
                 context.admiralPiett,
                 context.relentless,
             ]);
@@ -84,13 +85,14 @@ describe('Endless Legions', function() {
             expect(context.player1).toBeAbleToSelectExactly([
                 context.wrecker,
                 context.arquitensAssaultCruiser,
-                context.cloneCommanderCody,
+                context.peltaSupplyFrigate,
                 context.relentless,
             ]);
 
-            // Player 1 plays Clone Commander Cody for free
-            context.player1.clickCard(context.cloneCommanderCody);
+            // Player 1 plays Pelta Supply Frigate for free
+            context.player1.clickCard(context.peltaSupplyFrigate);
 
+            expect(context.player1.findCardsByName('clone-trooper').length).toBe(1);
             expect(context.player1).toBeAbleToSelectExactly([
                 context.wrecker,
                 context.arquitensAssaultCruiser,
@@ -98,21 +100,23 @@ describe('Endless Legions', function() {
             ]);
 
             // Player 1 plays Wrecker for free
+            expect(context._97thLegion).toBeInZone('groundArena', context.player1);
             context.player1.clickCard(context.wrecker);
             context.player1.clickPrompt('Defeat a friendly resource. If you do, deal 5 damage to a ground unit');
 
             // Player 1 defeats Relentless to deal 5 damage to Battle Droid Legion
             context.player1.clickCard(context.relentless);
-            context.player1.clickCard(context.battleDroidLegion);
+            expect(context._97thLegion).toBeInZone('discard', context.player1);
 
-            const battleDroids = context.player2.findCardsByName('battle-droid');
-            expect(battleDroids.length).toBe(3);
+            context.player1.clickCard(context.hevy);
+            expect(context.admiralPiett.damage).toBe(1);
+            expect(context.wrecker.damage).toBe(1);
+            expect(context.peltaSupplyFrigate.damage).toBe(0);
+            expect(context.player1.findCardsByName('clone-trooper').every((cloneTrooper) => cloneTrooper.damage === 1)).toBeTrue();
 
             // Player 1 triggers Wrecker's ambush
             context.player1.clickPrompt('Ambush');
             context.player1.clickCard(context.gor);
-
-            expect(context.p2Base.damage).toBe(1);
 
             // Player 1 plays Arquitens Assault Cruiser for free
             expect(context.player1).toBeAbleToSelectExactly([
@@ -123,7 +127,6 @@ describe('Endless Legions', function() {
             context.player1.clickPrompt('Ambush');
             context.player1.clickCard(context.tieAdvanced);
 
-            expect(context.p2Base.damage).toBe(7);
             expect(context.player2).toBeActivePlayer();
         });
 
