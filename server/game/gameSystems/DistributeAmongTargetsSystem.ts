@@ -6,7 +6,7 @@ import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/game
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
 import type { GameEvent } from '../core/event/GameEvent';
-import type { DistributePromptType, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults } from '../core/gameSteps/PromptInterfaces';
+import type { DistributePromptType, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptMapResults } from '../core/gameSteps/PromptInterfaces';
 import type { DamageSystem } from './DamageSystem';
 import type { HealSystem } from './HealSystem';
 import * as Contract from '../core/utils/Contract';
@@ -93,7 +93,7 @@ export abstract class DistributeAmongTargetsSystem<TContext extends AbilityConte
             maxTargets: properties.maxTargets,
             source: context.source,
             amount: amountToDistribute,
-            resultsHandler: (results: IDistributeAmongTargetsPromptResults) =>
+            resultsHandler: (results: IDistributeAmongTargetsPromptMapResults) =>
                 results.valueDistribution.forEach((amount, card) => events.push(this.generateEffectEvent(card, distributeEvent, context, amount)))
         };
 

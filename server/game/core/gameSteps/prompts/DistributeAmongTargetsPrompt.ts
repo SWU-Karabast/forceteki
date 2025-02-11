@@ -3,7 +3,7 @@ import type Player from '../../Player';
 import type { Card } from '../../card/Card';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
-import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults, IStatefulPromptResults } from '../PromptInterfaces';
+import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptMapResults, IStatefulPromptResults } from '../PromptInterfaces';
 import { StatefulPromptType } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
 import { PromptType } from '../../Constants';
@@ -112,20 +112,20 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         return true;
     }
 
-    private formatPromptResults(results: IStatefulPromptResults): IDistributeAmongTargetsPromptResults {
+    private formatPromptResults(results: IStatefulPromptResults): IDistributeAmongTargetsPromptMapResults {
         const targetsArray: [Card, number][] = results.valueDistribution
             .map((target): [Card, number] | null => {
-                const card = this.game.allCards.find((card) => target.uuid === card.uuid);
+                const card = this.properties.legalTargets.find((card) => target.uuid === card.uuid);
                 return card ? [card, target.amount] : null;
             })
             .filter((entry): entry is [Card, number] => entry !== null);
 
 
-        Contract.assertFalse(results.valueDistribution.length === targetsArray.length, 'Illegal prompt results, some target cards were not found');
+        Contract.assertTrue(results.valueDistribution.length === targetsArray.length, 'Illegal prompt results, some target cards were not found');
         return { type: results.type, valueDistribution: new Map(targetsArray) };
     }
 
-    private assertPromptResultsValid(results: IDistributeAmongTargetsPromptResults): asserts results is IDistributeAmongTargetsPromptResults {
+    private assertPromptResultsValid(results: IDistributeAmongTargetsPromptMapResults): asserts results is IDistributeAmongTargetsPromptMapResults {
         Contract.assertTrue(results.type === this.properties.type, `Unexpected prompt results type, expected '${this.properties.type}' but received result of type '${results.type}'`);
 
         const distributedValues = Array.from(results.valueDistribution.values());

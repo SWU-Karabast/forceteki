@@ -41,13 +41,7 @@ export type DistributePromptType =
   | StatefulPromptType.DistributeExperience
   | StatefulPromptType.DistributeHealing;
 
-export interface IStatefulPromptResults {
-    type: StatefulPromptType;
-    valueDistribution: {
-        uuid: string;
-        amount: number;
-    }[];
-}
+export type IStatefulPromptResults = IDistributeAmongTargetsPromptResults;
 
 export interface IPromptPropertiesBase {
     activePromptTitle?: string;
@@ -63,7 +57,7 @@ export interface IDistributeAmongTargetsPromptProperties extends IPromptProperti
     canDistributeLess: boolean;
     maxTargets?: number;
     legalTargets: Card[];
-    resultsHandler: (results: IDistributeAmongTargetsPromptResults) => void;
+    resultsHandler: (results: IDistributeAmongTargetsPromptMapResults) => void;
 }
 
 export interface IDistributeAmongTargetsPromptData {
@@ -72,6 +66,14 @@ export interface IDistributeAmongTargetsPromptData {
 }
 
 export interface IDistributeAmongTargetsPromptResults {
+    type: DistributePromptType;
+    valueDistribution: {
+        uuid: string;
+        amount: number;
+    }[];
+}
+
+export interface IDistributeAmongTargetsPromptMapResults {
     type: DistributePromptType;
     valueDistribution: Map<Card, number>;
 }
