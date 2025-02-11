@@ -7,19 +7,12 @@ const { LocalFolderCardDataGetter } = require('../../server/utils/cardData/Local
 const fs = require('fs');
 
 class GameStateBuilder {
-    static async create() {
+    constructor() {
         const directory = 'test/json';
         if (!fs.existsSync(directory)) {
             throw new TestSetupError(`Json card definitions folder ${directory} not found, please run 'npm run get-cards'`);
         }
 
-        const cardDataGetter = new LocalFolderCardDataGetter(directory);
-        const deckBuilder = await DeckBuilder.create(cardDataGetter);
-
-        return new GameStateBuilder(cardDataGetter, deckBuilder);
-    }
-
-    constructor(cardDataGetter, deckBuilder) {
         this.proxiedGameFlowWrapperMethods = [
             'advancePhases',
             'allPlayersInInitiativeOrder',
@@ -37,8 +30,8 @@ class GameStateBuilder {
             'startGame'
         ];
 
-        this.cardDataGetter = cardDataGetter;
-        this.deckBuilder = deckBuilder;
+        this.cardDataGetter = new LocalFolderCardDataGetter(directory);
+        this.deckBuilder = new DeckBuilder(this.cardDataGetter);
     }
 
     /**

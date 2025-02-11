@@ -43,9 +43,7 @@ if (!jasmine.getEnv().configuration().random) {
     });
 }
 
-const gameStateBuilderPromise = GameStateBuilder.create().catch((error) => {
-    throw error;
-});
+const gameStateBuilder = new GameStateBuilder();
 
 global.integration = function (definitions) {
     describe('- integration -', function () {
@@ -57,7 +55,7 @@ global.integration = function (definitions) {
                 this.context.setupTest(options);
             }
         };
-        beforeEach(async function () {
+        beforeEach(function () {
             var gameRouter = jasmine.createSpyObj('gameRouter', ['gameWon', 'playerLeft', 'handleError']);
             gameRouter.handleError.and.callFake((game, error) => {
                 throw error;
@@ -72,7 +70,6 @@ global.integration = function (definitions) {
             const newContext = {};
             contextRef.context = newContext;
 
-            const gameStateBuilder = await gameStateBuilderPromise;
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
             gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
 

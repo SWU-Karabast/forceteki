@@ -13,21 +13,14 @@ const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
 
 class DeckBuilder {
     /** @param {import('../../server/utils/cardData/CardDataGetter.js').CardDataGetter} cardDataGetter */
-    static async create(cardDataGetter) {
-        const tokenData = await cardDataGetter.getTokenCardsData();
+    constructor(cardDataGetter) {
+        this.cards = {};
+        this.tokenData = cardDataGetter.getTokenCardsDataSynchronous();
 
-        const cards = {};
         for (const cardId of cardDataGetter.cardIds) {
-            const card = await cardDataGetter.getCard(cardId);
-            cards[card.internalName] = card;
+            const card = cardDataGetter.getCardSynchronous(cardId);
+            this.cards[card.internalName] = card;
         }
-
-        return new DeckBuilder(tokenData, cards);
-    }
-
-    constructor(tokenData, cards) {
-        this.cards = cards;
-        this.tokenData = tokenData;
     }
 
     getOwnedCards(playerNumber, playerOptions, oppOptions, arena = 'anyArena') {
