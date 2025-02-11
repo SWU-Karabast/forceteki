@@ -679,7 +679,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override addOngoingEffect(ongoingEffect: IOngoingCardEffect): void {
-            if (ongoingEffect.type === EffectName.ModifyStats) {
+            if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
                 this._lastPlayerToModifyHp = ongoingEffect.context.source.controller;
             }
             super.addOngoingEffect(ongoingEffect);
