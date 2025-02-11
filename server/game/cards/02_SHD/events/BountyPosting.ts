@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { CardWithCost } from '../../../core/card/CardTypes';
 import { EventCard } from '../../../core/card/EventCard';
 import { Trait } from '../../../core/Constants';
 
@@ -12,21 +13,21 @@ export default class BountyPosting extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Search your deck for a Bounty upgrade, reveal it, and draw it. (Shuffle your deck.)',
+            title: 'Search your deck for a Bounty upgrade, reveal it, and draw it (shuffle your deck)',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 cardCondition: (card) => card.isUpgrade() && card.hasSomeTrait(Trait.Bounty),
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard(),
                 shuffleWhenDone: true
             }),
-            ifYouDo: (context) => ({
-                title: 'Play that upgrade (paying its cost).',
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'Play that upgrade (paying its cost)',
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: () =>
-                        context.targets.length === 1 &&
-                        context.source.controller.readyResourceCount >= context.targets[0].cost,
+                        ifYouDoContext.selectedPromptCards.length === 1 &&
+                        ifYouDoContext.player.readyResourceCount >= (ifYouDoContext.selectedPromptCards[0] as CardWithCost).cost,
                     onTrue: AbilityHelper.immediateEffects.playCardFromHand({
-                        target: context.targets[0]
+                        target: ifYouDoContext.selectedPromptCards[0]
                     }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })
@@ -34,5 +35,3 @@ export default class BountyPosting extends EventCard {
         });
     }
 }
-
-BountyPosting.implemented = true;
