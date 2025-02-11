@@ -1,5 +1,6 @@
 import type Game from '../../Game';
 import type Player from '../../Player';
+import type { Card } from '../../card/Card';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptResults, IStatefulPromptResults } from '../PromptInterfaces';
@@ -112,16 +113,16 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
     }
 
     private formatPromptResults(results: IStatefulPromptResults): IDistributeAmongTargetsPromptResults {
-        const targets = new Map(
-            results.valueDistribution
-                .map((target) => {
-                    const card = this.game.allCards.find((card) => target.uuid === card.uuid);
-                    return card ? [card, target.amount] : null;
-                })
-        );
+        const targetsArray: [Card, number][] = results.valueDistribution
+            .map((target): [Card, number] | null => {
+                const card = this.game.allCards.find((card) => target.uuid === card.uuid);
+                return card ? [card, target.amount] : null;
+            })
+            .filter((entry): entry is [Card, number] => entry !== null);
 
-        Contract.assertFalse(targets.has(null), 'Illegal prompt results, some target cards were not found');
-        return { type: results.type, valueDistribution: targets };
+
+        Contract.assertFalse(results.valueDistribution.length === targetsArray.length, 'Illegal prompt results, some target cards were not found');
+        return { type: results.type, valueDistribution: new Map(targetsArray) };
     }
 
     private assertPromptResultsValid(results: IDistributeAmongTargetsPromptResults): asserts results is IDistributeAmongTargetsPromptResults {
