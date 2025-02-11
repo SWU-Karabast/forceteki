@@ -4,6 +4,8 @@ import { Duration, TargetMode } from '../../../core/Constants';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class QiraPlayingHerPart extends NonLeaderUnitCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '7964782056',
