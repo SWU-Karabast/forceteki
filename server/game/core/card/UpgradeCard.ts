@@ -8,9 +8,7 @@ import type { MoveZoneDestination } from '../Constants';
 import { CardType, ZoneName } from '../Constants';
 import type { TokenOrPlayableCard, UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import type { Card } from './Card';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import type { AbilityContext } from '../ability/AbilityContext';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(WithStandardAbilitySetup(InPlayCard))));
@@ -53,23 +51,6 @@ export class UpgradeCard extends UpgradeCardParent {
             `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
 
         super.moveTo(targetZoneName);
-    }
-
-    /**
-     * This is required because a gainCondition call can happen after an upgrade is discarded,
-     * so we need to short-circuit in that case to keep from trying to access illegal state such as parentCard
-     */
-    private addZoneCheckToGainCondition(gainCondition?: (context: AbilityContext<this>) => boolean) {
-        return gainCondition == null
-            ? null
-            : (context: AbilityContext<this>) => this.isInPlay() && gainCondition(context);
-    }
-
-    /** Adds a condition that must return true for the upgrade to be allowed to attach to the passed card. */
-    protected setAttachCondition(attachCondition: (card: Card) => boolean) {
-        Contract.assertIsNullLike(this.attachCondition, 'Attach condition is already set');
-
-        this.attachCondition = attachCondition;
     }
 
     protected override initializeForCurrentZone(prevZone?: ZoneName): void {
