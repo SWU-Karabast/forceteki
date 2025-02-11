@@ -762,7 +762,7 @@ class Game extends EventEmitter {
      * Gets the results of a "stateful" prompt from the frontend. This is for more
      * involved prompts such as distributing damage / healing that require the frontend
      * to gather some state and send back, instead of just individual clicks.
-     * @param {import('./gameSteps/PromptInterfaces.js').IDistributeAmongTargetsPromptResults} result
+     * @param {import('./gameSteps/PromptInterfaces.js').IStatefulPromptResults} result
      * @param {String} uuid - unique identifier of the prompt clicked
      */
     statefulPromptResults(playerId, result, uuid) {

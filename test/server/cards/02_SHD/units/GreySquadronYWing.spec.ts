@@ -17,12 +17,15 @@ describe('Grey squadron Y-Wing', function() {
 
             it('should deal damage to either a base or a unit (depending on opponent choice)', function () {
                 const { context } = contextRef;
+
                 context.player1.clickCard(context.greySquadronYwing);
                 context.player1.clickCard(context.cartelSpacer);
-                expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to an opponent\s base or unit they control (they choose which)');
-                context.player1.clickPrompt('Deal 2 damage to an opponent\s base or unit they control (they choose which)');
                 expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer, context.battlefieldMarine, context.p2Base]);
+
                 context.player2.clickCard(context.p2Base);
+                expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to Administrator\'s Tower');
+
+                context.player1.clickPrompt('Deal 2 damage to Administrator\'s Tower');
                 expect(context.p2Base.damage).toEqual(2);
             });
         });

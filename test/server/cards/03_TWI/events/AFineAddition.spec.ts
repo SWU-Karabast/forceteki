@@ -27,7 +27,7 @@ describe('A Fine Addition', function () {
             expect(context.player2).toBeActivePlayer();
 
             // Restore for more testing
-            context.aFineAddition.moveTo('hand');
+            context.player1.moveCard(context.aFineAddition, 'hand');
 
             // Now defeat an friendly unit to make sure it doesn't trigger opponent
             context.player2.clickCard(context.wampa);
@@ -40,7 +40,7 @@ describe('A Fine Addition', function () {
             expect(context.player2).toBeActivePlayer();
 
             // Restore for more testing
-            context.aFineAddition.moveTo('hand');
+            context.player1.moveCard(context.aFineAddition, 'hand');
 
             context.player2.passAction();
 
@@ -77,7 +77,7 @@ describe('A Fine Addition', function () {
             context.player2.clickCard(context.resilient);
 
             // Restore for more testing
-            context.aFineAddition.moveTo('hand');
+            context.player1.moveCard(context.aFineAddition, 'hand');
 
             context.player1.clickCard(context.aFineAddition);
             expect(context.player1.exhaustedResourceCount).toBe(3);
@@ -96,7 +96,7 @@ describe('A Fine Addition', function () {
             context.player2.passAction();
 
             // Restore for more testing
-            context.aFineAddition.moveTo('hand');
+            context.player1.moveCard(context.aFineAddition, 'hand');
 
             context.player1.clickCard(context.aFineAddition);
             expect(context.player1.exhaustedResourceCount).toBe(5);
