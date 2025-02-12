@@ -20,13 +20,13 @@ describe('Bodhi Rook', function () {
                 context.player1.clickCard(context.bodhiRook);
                 expect(context.bodhiRook.zoneName).toBe('groundArena');
 
-                // First check that the lookAt sends ALL the oppoents cards in hand to chat
-                expect(context.getChatLogs(1)).toContain('Bodhi Rook sees Sabine Wren, Battlefield Marine, Waylay, Protector, and Inferno Four');
+                // Check that all cards in hand are displayed, with correct selectable state
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.sabineWren, context.battlefieldMarine, context.infernoFour],
+                    selectable: [context.waylay, context.protector]
+                });
 
-                // Now the player can select using the card filters
-                expect(context.player1).toBeAbleToSelectAllOf([context.waylay, context.protector]);
-
-                context.player1.clickCard(context.waylay);
+                context.player1.clickCardInDisplayCardPrompt(context.waylay);
                 expect(context.waylay).toBeInZone('discard');
 
                 context.player2.passAction();
@@ -34,9 +34,11 @@ describe('Bodhi Rook', function () {
 
                 // Only one possible choice -- autoSingleTarget is off, so this still asks to select
                 context.player1.clickCard(context.bodhiRook);
-                expect(context.getChatLogs(1)).toContain('Bodhi Rook sees Sabine Wren, Battlefield Marine, Protector, and Inferno Four');
-                expect(context.player1).toBeAbleToSelectAllOf([context.protector]);
-                context.player1.clickCard(context.protector);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.sabineWren, context.battlefieldMarine, context.infernoFour],
+                    selectable: [context.protector]
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.protector);
                 expect(context.protector).toBeInZone('discard');
 
                 context.player2.passAction();
@@ -44,7 +46,10 @@ describe('Bodhi Rook', function () {
 
                 // No choice here so no prompt, but the player still sees an opponent hand reveal
                 context.player1.clickCard(context.bodhiRook);
-                expect(context.getChatLogs(1)).toContain('Bodhi Rook sees Sabine Wren, Battlefield Marine, and Inferno Four');
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.sabineWren, context.battlefieldMarine, context.infernoFour]
+                });
+                context.player1.clickPrompt('Done');
             });
         });
     });
