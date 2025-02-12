@@ -104,10 +104,12 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 context.player1.chooseListOption('Resupply');
 
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.vanquish, falcon1, falcon2, context.wampa]);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
                 expect(context.getChatLogs(1)[0]).toContain(context.vanquish.title);
                 expect(context.getChatLogs(1)[0]).toContain(falcon1.title);
                 expect(context.getChatLogs(1)[0]).toContain(falcon2.title);
                 expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
+
                 context.player1.clickPrompt('Done');
 
                 expect(falcon1).toBeInZone('hand');
