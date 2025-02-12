@@ -17,7 +17,9 @@ export default class BobaFettsArmor extends UpgradeCard {
         this.addReplacementEffectAbility({
             title: 'If attached unit is Boba Fett and damage would be dealt to him, prevent 2 of that damage',
             when: {
-                onDamageDealt: (event, context) => event.card === context.source.parentCard && context.source.parentCard.title === 'Boba Fett'
+                onDamageDealt: (event, context) => event.card === context.source.parentCard &&
+                  context.source.parentCard.title === 'Boba Fett' &&
+                  !(event.indirect ?? false)
             },
             replaceWith: {
                 replacementImmediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
@@ -26,7 +28,7 @@ export default class BobaFettsArmor extends UpgradeCard {
                     source: context.event.damageSource.damageDealtBy,
                 }))
             },
-            effect: 'Boba Fett\s armor prevents 2 damage to {1}',
+            effect: 'Boba Fett\'s armor prevents 2 damage to {1}',
             effectArgs: (context) => [context.source.parentCard]
         });
     }

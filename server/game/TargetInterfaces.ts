@@ -3,7 +3,6 @@ import type { TriggeredAbilityContext } from './core/ability/TriggeredAbilityCon
 import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
 import type { CardTypeFilter, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from './core/Constants';
-import type { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -82,7 +81,7 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
 // TODO: add functionality to PlayerTargetResolver to autodetect any invalid target players.
 export interface IPlayerTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
     mode: TargetMode.Player | TargetMode.MultiplePlayers;
-    immediateEffect?: PlayerTargetSystem<TContext>;
+    immediateEffect?: GameSystem<TContext>;
 }
 
 export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> = Record<string, ((context: TContext) => boolean) | GameSystem<TContext>>;
