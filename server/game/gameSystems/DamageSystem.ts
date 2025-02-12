@@ -244,7 +244,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             type: DamageSourceType.Ability,
             player: context.player,
             card: context.source,
-            controller: context.player,
             event
         };
 
