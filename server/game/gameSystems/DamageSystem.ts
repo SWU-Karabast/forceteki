@@ -8,6 +8,7 @@ import type { Attack } from '../core/attack/Attack';
 import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
 import { DamageSourceType } from '../IDamageOrDefeatSource';
 import type { UnitCard } from '../core/card/CardTypes';
+import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
     type: DamageType;
@@ -243,6 +244,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             type: DamageSourceType.Ability,
             player: context.player,
             card: context.source,
+            controller: context.player,
             event
         };
 
@@ -250,7 +252,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         event.sourceEventForExcessDamage = properties.sourceEventForExcessDamage;
     }
 
-    // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
     private addAbilityDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IAbilityDamageProperties): void {
         const abilityDamageSource: IDamagedOrDefeatedByAbility = {
             type: DamageSourceType.Ability,
@@ -258,6 +259,13 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             card: properties.source ?? context.source,
             event
         };
+
+        if (context instanceof TriggeredAbilityContext && context.event.name === EventName.OnCardDefeated) {
+            // For the case where a stolen card is defeated, the card.controller has already reverted back
+            // to the card's owner. We need to use the last known information to get the correct controller
+            // for damage attribution (e.g. for Jango's ability)
+            abilityDamageSource.controller = context.event.lastKnownInformation.controller;
+        }
 
         event.damageSource = abilityDamageSource;
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;

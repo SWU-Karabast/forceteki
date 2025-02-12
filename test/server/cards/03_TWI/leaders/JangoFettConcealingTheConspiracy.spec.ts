@@ -103,13 +103,18 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                     'Exhaust this leader'
                 ]);
 
-                // HELP WANTED: The prompts in this test case are not what I expected.
-                //   It prompts to resolve another instance after `Exhaust this leader`
-                //   is clicked.
+                // Pass for Volunteer Soldier
+                context.player1.clickPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Pass');
+                expect(context.jangoFett.exhausted).toBeFalse();
 
-                // These are just here to resolve the prompts and make the test pass
+                // Resolve for Fleet Lieutenant
                 context.player1.clickPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
                 context.player1.clickPrompt('Exhaust this leader');
+                expect(context.fleetLieutenant.exhausted).toBeTrue();
+                expect(context.jangoFett.exhausted).toBeTrue();
 
                 // CASE 5: Trigger Jango's ability from an upgrade's granted ability
 

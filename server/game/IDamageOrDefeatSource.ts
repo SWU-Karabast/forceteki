@@ -33,6 +33,8 @@ export interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
 export interface IDamagedOrDefeatedByAbility extends IDamageOrDefeatSourceBase {
     type: DamageSourceType.Ability | DefeatSourceType.Ability;
     card: Card;
+    /* The player controlling the card that caused the damage */
+    controller?: Player;
     event: any;
 }
 
