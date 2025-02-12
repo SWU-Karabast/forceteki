@@ -12,7 +12,7 @@ export default class DeathSpaceSkirmisher extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
-            title: 'If you control another space unit, you may exhaust a unit.',
+            title: 'Exhaust a unit.',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

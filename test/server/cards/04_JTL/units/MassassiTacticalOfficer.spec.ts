@@ -10,15 +10,15 @@ describe('Massassi Tactical Officer', function() {
             });
 
             const { context } = contextRef;
-            // Exhaust Massassi Tactical Officer, attack with fighter
+            // Exhaust Massassi Tactical Officer, attack with fighter- Wing Leader, observe buff on attack only
             context.player1.clickCard(context.massassiTacticalOfficer);
             context.player1.clickPrompt('Attack with a Fighter unit. It get +2/+0 for this attack');
 
             expect(context.player1).toBeAbleToSelectExactly([context.wingLeader, context.starWingScout]);
-
-            // Attack with Wing Leader, observe buff on attack only
             context.player1.clickCard(context.wingLeader);
             context.player1.clickCard(context.p2Base);
+
+            expect(context.massassiTacticalOfficer.exhausted).toBeTrue();
             expect(context.p2Base.damage).toBe(4);
             expect(context.wingLeader.getPower()).toBe(2);
 

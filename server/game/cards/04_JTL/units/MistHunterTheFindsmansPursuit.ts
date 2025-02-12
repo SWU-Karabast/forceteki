@@ -20,7 +20,7 @@ export default class MistHunterTheFindsmansPursuit extends NonLeaderUnitCard {
     }
 
     private hasPlayedASpecificTraitThisPhase(controller: Player) {
-        return this.cardsPlayedThisPhaseWatcher.someCardPlayed((entry) => entry.playedBy === controller && entry.card.hasSomeTrait(Trait.BountyHunter) || entry.card.hasSomeTrait(Trait.Pilot));
+        return this.cardsPlayedThisPhaseWatcher.someCardPlayed((entry) => entry.playedBy === controller && entry.card.hasSomeTrait([Trait.BountyHunter, Trait.Pilot]));
     }
 
     public override setupCardAbilities () {
@@ -28,8 +28,8 @@ export default class MistHunterTheFindsmansPursuit extends NonLeaderUnitCard {
             title: 'Draw a card',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => this.hasPlayedASpecificTraitThisPhase(context.source.controller),
-                onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller })),
+                condition: (context) => this.hasPlayedASpecificTraitThisPhase(context.player),
+                onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             }),
         });

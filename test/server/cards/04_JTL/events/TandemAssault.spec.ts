@@ -5,7 +5,7 @@ describe('Tandem Assualt', function() {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    hand: ['tandem-assault'],
+                    hand: ['tandem-assault', 'generals-guardian'],
                     groundArena: [{ card: 'atst', damage: 4 }],
                     spaceArena: ['padawan-starfighter', 'tieln-fighter']
                 },
@@ -17,6 +17,7 @@ describe('Tandem Assualt', function() {
 
             });
             const { context } = contextRef;
+
             // Play Tandem Assault, attack with space unit and then attack with ground unit.
             context.player1.clickCard(context.tandemAssault);
             expect(context.player1).toBeAbleToSelectExactly([context.padawanStarfighter, context.tielnFighter]);
@@ -44,6 +45,8 @@ describe('Tandem Assualt', function() {
             context.tandemAssault.moveTo('hand');
 
             // Tandem Assault played, no viable targets
+            context.player1.clickCard(context.generalsGuardian);
+            context.moveToNextActionPhase();
             context.player1.clickCard(context.tandemAssault);
             expect(context.tandemAssault).toBeInZone('discard');
         });

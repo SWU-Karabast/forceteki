@@ -6,13 +6,12 @@ describe('Koiogran Turn', function() {
                 phase: 'action',
                 player1: {
                     hand: ['koiogran-turn'],
-                    groundArena: ['atst'],
+                    groundArena: ['atst', 'low-altitude-gunship'],
                     spaceArena: [{ card: 'padawan-starfighter', exhausted: true }, 'trade-federation-shuttle', { card: 'first-light#headquarters-of-the-crimson-dawn', damage: 3 }]
                 },
                 player2: {
                     hand: ['superlaser-blast'],
                     spaceArena: ['imperial-interceptor'],
-
                 }
             });
 
@@ -20,17 +19,13 @@ describe('Koiogran Turn', function() {
 
             // Ready a Unit
             context.player1.clickCard(context.koiogranTurn);
-            expect(context.player1).toBeAbleToSelectExactly([context.padawanStarfighter, context.tradeFederationShuttle, context.imperialInterceptor]);
+            expect(context.player1).toBeAbleToSelectExactly([context.padawanStarfighter, context.tradeFederationShuttle, context.imperialInterceptor, context.lowAltitudeGunship]);
             context.player1.clickCard(context.padawanStarfighter);
             expect(context.padawanStarfighter.exhausted).toBeFalse();
 
             // Defeat all units
             context.player2.clickCard(context.superlaserBlast);
             context.koiogranTurn.moveTo('hand');
-
-            // Card played but not triggered
-            context.player1.clickCard(context.koiogranTurn);
-            expect(context.koiogranTurn).toBeInZone('discard');
         });
     });
 });

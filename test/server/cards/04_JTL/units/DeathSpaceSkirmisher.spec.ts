@@ -22,7 +22,6 @@ describe('DeathSpace Skirmisher', function () {
             expect(context.player1).toHavePassAbilityButton();
             expect(context.player1).toBeAbleToSelectExactly([context.kyloRen, context.kylosTieSilencer, context.battlefieldMarine, context.greenSquadronAwing, context.deathSpaceSkirmisher]);
 
-
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.battlefieldMarine.exhausted).toBe(true);
 
