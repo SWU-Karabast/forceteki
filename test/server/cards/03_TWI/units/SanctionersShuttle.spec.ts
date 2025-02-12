@@ -10,19 +10,20 @@ describe('Sanctioners Shuttle', function() {
                     spaceArena: ['padawan-starfighter'],
                 },
                 player2: {
-                    spaceArena: ['green-squadron-awing', 'devastating-gunship', { card: 'trade-federation-shuttle', damage: 2 }]
+                    spaceArena: ['green-squadron-awing', 'subjugating-starfighter', { card: 'trade-federation-shuttle', damage: 2 }]
                 }
 
             });
 
             const { context } = contextRef;
+
             // Play Sanctioners Shuttle, capture a unit that costs less than 3
             context.player1.clickCard(context.sanctionersShuttle);
             expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.tradeFederationShuttle]);
             context.player1.clickCard(context.greenSquadronAwing);
 
             // Remove coordinate
-            context.player2.clickCard(context.devastatingGunship);
+            context.player2.clickCard(context.subjugatingStarfighter);
             context.player2.clickCard(context.padawanStarfighter);
 
             context.moveToNextActionPhase();

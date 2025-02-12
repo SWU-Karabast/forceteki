@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { AbilityType, RelativePlayer } from '../../../core/Constants';
 
 export default class SanctionersShuttle extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -18,9 +18,8 @@ export default class SanctionersShuttle extends NonLeaderUnitCard {
                 onCardPlayed: (event, context) => event.card === context.source
             },
             targetResolver: {
-                cardCondition: (card) => card.isUnit() && card.cost <= 3,
+                cardCondition: (card) => card.isNonLeaderUnit() && card.cost <= 3,
                 controller: RelativePlayer.Opponent,
-                cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.capture()
             }
         });
