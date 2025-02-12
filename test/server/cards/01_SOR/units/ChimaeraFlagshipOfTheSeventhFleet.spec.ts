@@ -23,7 +23,14 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 context.player1.clickCard(context.chimaera);
                 expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
                 context.player1.chooseListOption('Millennium Falcon');
-                expect(context.getChatLogs(1)).toContain('player1 reveals Vanquish, Millennium Falcon, Millennium Falcon, Wampa due to Chimaera');
+
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.vanquish, falcon1, falcon2, context.wampa]);
+                expect(context.getChatLogs(1)[0]).toContain(context.vanquish.title);
+                expect(context.getChatLogs(1)[0]).toContain(falcon1.title);
+                expect(context.getChatLogs(1)[0]).toContain(falcon2.title);
+                expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
+                context.player1.clickPrompt('Done');
+
                 expect(context.player2).toBeAbleToSelectExactly([falcon1, falcon2]);
                 context.player2.clickCard(falcon1);
 
@@ -57,7 +64,13 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 context.player1.clickCard(context.chimaera);
                 expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
                 context.player1.chooseListOption('Wampa');
-                expect(context.getChatLogs(1)).toContain('player1 reveals Vanquish, Millennium Falcon, Millennium Falcon, Wampa due to Chimaera');
+
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.vanquish, falcon1, falcon2, context.wampa]);
+                expect(context.getChatLogs(1)[0]).toContain(context.vanquish.title);
+                expect(context.getChatLogs(1)[0]).toContain(falcon1.title);
+                expect(context.getChatLogs(1)[0]).toContain(falcon2.title);
+                expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
+                context.player1.clickPrompt('Done');
 
                 expect(falcon1).toBeInZone('hand');
                 expect(falcon2).toBeInZone('hand');
@@ -89,7 +102,13 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 context.player1.clickCard(context.chimaera);
                 expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
                 context.player1.chooseListOption('Resupply');
-                expect(context.getChatLogs(1)).toContain('player1 reveals Vanquish, Millennium Falcon, Millennium Falcon, Wampa due to Chimaera');
+
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.vanquish, falcon1, falcon2, context.wampa]);
+                expect(context.getChatLogs(1)[0]).toContain(context.vanquish.title);
+                expect(context.getChatLogs(1)[0]).toContain(falcon1.title);
+                expect(context.getChatLogs(1)[0]).toContain(falcon2.title);
+                expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
+                context.player1.clickPrompt('Done');
 
                 expect(falcon1).toBeInZone('hand');
                 expect(falcon2).toBeInZone('hand');
