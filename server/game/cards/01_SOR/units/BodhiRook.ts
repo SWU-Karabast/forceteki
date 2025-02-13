@@ -1,9 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
-export default class BodhiRook extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
+export default class BodhiRookImperialDefector extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
             id: '7257556541',
@@ -14,17 +12,12 @@ export default class BodhiRook extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'Look at an opponent\'s hand and discard a non-unit card from it.',
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.lookAt((context) => ({
-                    target: context.player.opponent.hand,
-                })),
-
-                AbilityHelper.immediateEffects.discardCardsFromOpponentsHand((context) => ({
-                    cardCondition: (card) => !card.isUnit(),
-                    target: context.player.opponent,
-                    amount: 1
-                })),
-            ])
+            immediateEffect: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
+                target: context.player.opponent.hand,
+                canChooseNothing: false,
+                immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard(),
+                cardCondition: (card) => !card.isUnit()
+            }))
         });
     }
 }

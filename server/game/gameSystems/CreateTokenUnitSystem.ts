@@ -55,6 +55,7 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
 
             for (const token of event.generatedTokens) {
                 const putIntoPlayEvent = new PutIntoPlaySystem({
+                    controller: player,
                     target: token,
                     entersReady: event.entersReady
                 }).generateEvent(event.context);
