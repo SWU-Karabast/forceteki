@@ -19,6 +19,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
+import type { ICardCanChangeControllers } from './CardInterfaces';
 
 interface IGainCondition<TSource extends UpgradeCard> {
     gainCondition?: (context: AbilityContext<TSource>) => boolean;
@@ -34,14 +35,13 @@ type IKeywordPropertiesWithGainCondition<TSource extends UpgradeCard> = IKeyword
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
 
-export interface IUpgradeCard extends IInPlayCard, ICardWithPrintedPowerProperty, ICardWithPrintedHpProperty, ICardWithCostProperty {
+export interface IUpgradeCard extends IInPlayCard, ICardWithPrintedPowerProperty, ICardWithPrintedHpProperty, ICardWithCostProperty, ICardCanChangeControllers {
     get parentCard(): IUnitCard;
     attachTo(newParentCard: IUnitCard, newController?: Player);
     isAttached(): boolean;
     unattach();
     canAttach(targetCard: Card, controller?: Player): boolean;
 }
-
 
 export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPlayableCard {
     protected _parentCard?: IUnitCard = null;
@@ -59,6 +59,10 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
 
     public override isPlayable(): this is IPlayableCard {
         return true;
+    }
+
+    public override canChangeController(): this is ICardCanChangeControllers {
+        return this.zoneName === ZoneName.Resource || this.isInPlay();
     }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {

@@ -1,4 +1,5 @@
 import type Player from '../Player';
+import type { ICardWithCostProperty } from './propertyMixins/Cost';
 import { WithCost } from './propertyMixins/Cost';
 import { CardType, ZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
@@ -10,10 +11,11 @@ import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
+import type { ICardCanChangeControllers } from './CardInterfaces';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
-export interface IEventCard extends IPlayableOrDeployableCard {
+export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeControllers, ICardWithCostProperty {
     getEventAbility(): EventAbility;
 }
 
@@ -38,6 +40,10 @@ export class EventCard extends EventCardParent {
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
         return new PlayEventAction(this.game, this, properties);
+    }
+
+    public override canChangeController(): this is ICardCanChangeControllers {
+        return this.zoneName === ZoneName.Resource;
     }
 
     public override isPlayable(): this is IPlayableCard {

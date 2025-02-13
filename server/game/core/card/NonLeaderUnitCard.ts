@@ -8,12 +8,13 @@ import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
+import type { ICardCanChangeControllers } from './CardInterfaces';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
 export interface INonLeaderUnitCard extends IUnitCard, IPlayableCard {}
 
-export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLeaderUnitCard {
+export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLeaderUnitCard, ICardCanChangeControllers {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
@@ -23,6 +24,10 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
 
     public override isNonLeaderUnit(): this is INonLeaderUnitCard {
         return true;
+    }
+
+    public override canChangeController(): this is ICardCanChangeControllers {
+        return this.zoneName === ZoneName.Resource || this.isInPlay();
     }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {

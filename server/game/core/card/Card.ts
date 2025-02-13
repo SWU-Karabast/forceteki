@@ -31,6 +31,7 @@ import type { IInPlayCard } from './baseClasses/InPlayCard';
 import type { ICardWithCostProperty } from './propertyMixins/Cost';
 import type { ILeaderCard } from './LeaderCard';
 import type { INonLeaderUnitCard } from './NonLeaderUnitCard';
+import type { ICardCanChangeControllers } from './CardInterfaces';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -419,6 +420,10 @@ export class Card extends OngoingEffectSource {
     }
 
     public isPlayable(): this is IPlayableCard {
+        return false;
+    }
+
+    public canChangeController(): this is ICardCanChangeControllers {
         return false;
     }
 

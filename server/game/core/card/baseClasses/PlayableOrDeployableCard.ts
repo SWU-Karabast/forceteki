@@ -42,11 +42,8 @@ export interface ICardWithExhaustProperty extends Card {
     ready();
 }
 
-export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty {
-    // TODO THIS PR: move further down to specific cards
-    takeControl(newController: Player, moveTo?: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource);
-    getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
-}
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty {}
 
 export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
     getPlayCardActions(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction[];

@@ -58,6 +58,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     canPlayOn(card);
     unattachUpgrade(upgrade);
     attachUpgrade(upgrade);
+    getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
 }
 
 /**
