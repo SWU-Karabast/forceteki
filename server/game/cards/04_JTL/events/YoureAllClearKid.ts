@@ -12,7 +12,7 @@ export default class YoureAllClearKid extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Defeat a non-leader Vehicle unit',
+            title: 'Defeat an enemy space unit with 3 or less remaining HP',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.SpaceArena,
