@@ -338,7 +338,7 @@ describe('Bounty', function() {
                 // P2 collects bounty and damages own unit
                 context.player2.clickCard(context.consularSecurityForce);
 
-                // Jango triggers (currently failing)
+                // Jango triggers
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
                 context.player1.clickPrompt('Exhaust this leader');
 

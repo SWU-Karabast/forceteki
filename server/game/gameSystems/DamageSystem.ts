@@ -8,7 +8,6 @@ import type { Attack } from '../core/attack/Attack';
 import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
 import { DamageSourceType } from '../IDamageOrDefeatSource';
 import type { UnitCard } from '../core/card/CardTypes';
-import { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
     type: DamageType;
@@ -259,7 +258,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             event
         };
 
-        if (context instanceof TriggeredAbilityContext && context.event.name === EventName.OnCardDefeated) {
+        if (context.isTriggered() && context.event.name === EventName.OnCardDefeated) {
             // For the case where a stolen card is defeated, the card.controller has already reverted back
             // to the card's owner. We need to use the last known information to get the correct controller
             // for damage attribution (e.g. for Jango's ability)

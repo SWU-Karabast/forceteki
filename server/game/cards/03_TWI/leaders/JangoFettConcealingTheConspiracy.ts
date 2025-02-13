@@ -50,6 +50,7 @@ export default class JangoFettConcealingTheConspiracy extends LeaderUnitCard {
         if (event.card.isUnit() && event.card.controller !== context.player) {
             switch (event.damageSource.type) {
                 case DamageSourceType.Ability:
+                    // TODO: event.damageSource.controller will eventually be non-optional
                     const controller = event.damageSource.controller ?? event.damageSource.card.controller;
                     // If the damage was dealt by a friendly unit via an ability
                     return event.damageSource.card.isUnit() &&
