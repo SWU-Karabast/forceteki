@@ -62,6 +62,7 @@ export = {
     //    }),
 
     canPlayFromDiscard: () => OngoingEffectBuilder.card.static(EffectName.CanPlayFromDiscard),
+    canAssignIndirectDamageDealtToOpponents: () => OngoingEffectBuilder.player.static(EffectName.CanAssignIndirectDamageDealtToOpponents),
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>

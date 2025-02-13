@@ -47,6 +47,10 @@ export class DistributeIndirectDamageSystem<TContext extends AbilityContext = Ab
             controller: this.properties.player ?? RelativePlayer.Opponent,
         });
 
+        if (context.player.canAssignIndirectDamageDealtToOpponents()) {
+            properties.player = RelativePlayer.Self;
+        }
+
         return properties;
     }
 }

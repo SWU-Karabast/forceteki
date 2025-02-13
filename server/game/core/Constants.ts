@@ -66,6 +66,7 @@ export enum EffectName {
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
     CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
+    CanAssignIndirectDamageDealtToOpponents = 'canAssignIndirectDamageDealtToOpponents',
     CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
     CostAdjuster = 'costAdjuster',

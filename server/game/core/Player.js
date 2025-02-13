@@ -434,6 +434,10 @@ class Player extends GameObject {
         return this.game.initiativePlayer === this;
     }
 
+    canAssignIndirectDamageDealtToOpponents() {
+        return this.hasOngoingEffect(EffectName.CanAssignIndirectDamageDealtToOpponents);
+    }
+
     /**
      * Returns the total number of units and upgrades controlled by this player which match the passed predicate
      * @param {Function} predicate - DrawCard => Int
