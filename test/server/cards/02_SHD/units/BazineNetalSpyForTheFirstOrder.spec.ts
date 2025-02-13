@@ -23,12 +23,18 @@ describe('Bazin Netal, Spy For The First Order', function() {
                 // Player looks at the opponent's hand and discards a card from it, opponent draws a card
                 context.player1.clickCard(context.bazineNetal);
 
-                expect(context.getChatLogs(1)).toContain('Bazine Netal sees AT-ST and Waylay');
-                expect(context.player1).toHavePassAbilityPrompt('Discard 1 of those cards');
+                // Cards are not revealed in chat
+                expect(context.getChatLogs(1)[0]).not.toContain(context.atst.title);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.waylay.title);
 
-                context.player1.clickPrompt('Discard 1 of those cards');
-                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.waylay]);
-                context.player1.clickCard(context.waylay);
+                // Player sees the opponent's hand and is able to optionally discard a card from it
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([
+                    context.atst,
+                    context.waylay
+                ]);
+
+                context.player1.clickCardInDisplayCardPrompt(context.waylay);
 
                 // Player discarded a card from the opponent's hand and opponent drew a card
                 expect(context.player2.getCardsInZone('discard').length).toBe(1);
@@ -42,11 +48,20 @@ describe('Bazin Netal, Spy For The First Order', function() {
                 // Player looks at the opponent's hand and decides not to discard a card from it
                 context.player1.clickCard(context.bazineNetal);
 
-                expect(context.getChatLogs(1)).toContain('Bazine Netal sees AT-ST and Wampa');
-                expect(context.player1).toHavePassAbilityPrompt('Discard 1 of those cards');
+                // Cards are not revealed in chat
+                expect(context.getChatLogs(1)[0]).not.toContain(context.atst.title);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.wampa.title);
 
-                context.player1.clickPrompt('Pass');
+                // Player sees the opponent's hand and is able to optionally discard a card from it
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([
+                    context.atst,
+                    context.wampa
+                ]);
+
+                context.player1.clickPrompt('Take nothing');
                 expect(context.player2.hand.length).toBe(2);
+                expect(context.player2.discard.length).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
 

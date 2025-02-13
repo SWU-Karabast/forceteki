@@ -25,6 +25,7 @@ export default class Foresight extends UpgradeCard {
             then: (thenContext) => ({
                 title: 'Look at the top card of your deck',
                 immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
+                    useDisplayPrompt: true,
                     target: context.source.controller.getTopCardOfDeck()
                 })),
                 then: {
