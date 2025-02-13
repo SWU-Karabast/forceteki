@@ -10,10 +10,11 @@ import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup'
 import { EpicActionLimit } from '../ability/AbilityLimit';
 import type TriggeredAbility from '../ability/TriggeredAbility';
 import type { IInPlayCard } from './baseClasses/InPlayCard';
+import type { ICardWithTriggeredAbilities } from './CardInterfaces';
 
 const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
 
-export interface IBaseCard extends ICardWithDamageProperty {
+export interface IBaseCard extends ICardWithDamageProperty, ICardWithTriggeredAbilities {
     get epicActionSpent(): boolean;
 }
 

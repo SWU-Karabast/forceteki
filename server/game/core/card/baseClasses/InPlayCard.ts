@@ -16,19 +16,19 @@ import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import type { ActionAbility } from '../../ability/ActionAbility';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import { WithCost } from '../propertyMixins/Cost';
+import type { ICardWithTriggeredAbilities } from '../CardInterfaces';
 
 const InPlayCardParent = WithCost(PlayableOrDeployableCard);
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
 
-export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
+export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithTriggeredAbilities {
     get disableOngoingEffectsForDefeat(): boolean;
     get inPlayId(): number;
     get mostRecentInPlayId(): number;
     get pendingDefeat(): boolean;
     isInPlay(): boolean;
-    getTriggeredAbilities(): TriggeredAbility[];
     createReplacementEffectAbility<TSource extends Card>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility;
     addGainedActionAbility(properties: IActionAbilityProps): string;
     removeGainedActionAbility(removeAbilityUuid: string): void;

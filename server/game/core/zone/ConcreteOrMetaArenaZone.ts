@@ -1,5 +1,5 @@
 import type { IInPlayCard } from '../card/baseClasses/InPlayCard';
-import type { UnitCard } from '../card/CardTypes';
+import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { UpgradeCard } from '../card/UpgradeCard';
 import { WildcardCardType } from '../Constants';
 import type Game from '../Game';
@@ -30,8 +30,8 @@ export abstract class ConcreteOrMetaArenaZone extends ZoneAbstract<IInPlayCard> 
         return super.hasSomeCard(filter);
     }
 
-    public getUnitCards(filter?: Omit<IArenaZoneCardFilterProperties, 'type'>): UnitCard[] {
-        return this.getCards({ ...filter, type: WildcardCardType.Unit }) as UnitCard[];
+    public getUnitCards(filter?: Omit<IArenaZoneCardFilterProperties, 'type'>): IUnitCard[] {
+        return this.getCards({ ...filter, type: WildcardCardType.Unit }) as IUnitCard[];
     }
 
     public getUpgradeCards(filter?: Omit<IArenaZoneCardFilterProperties, 'type'>): UpgradeCard[] {

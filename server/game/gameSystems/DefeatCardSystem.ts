@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import type { UnitCard } from '../core/card/CardTypes';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
@@ -30,7 +30,7 @@ export interface ILastKnownInformation {
     power?: number;
     hp?: number;
     damage?: number;
-    parentCard?: UnitCard;
+    parentCard?: IUnitCard;
     upgrades?: UpgradeCard[];
 }
 

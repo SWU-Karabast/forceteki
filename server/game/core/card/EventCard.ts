@@ -8,7 +8,6 @@ import type { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import type { TokenOrPlayableCard } from './CardTypes';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 
@@ -39,10 +38,6 @@ export class EventCard extends EventCardParent {
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
         return new PlayEventAction(this.game, this, properties);
-    }
-
-    public override isTokenOrPlayable(): this is TokenOrPlayableCard {
-        return true;
     }
 
     public override isPlayable(): this is IPlayableCard {

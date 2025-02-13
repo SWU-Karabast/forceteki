@@ -14,7 +14,6 @@ import type Shield from '../../cards/01_SOR/tokens/Shield';
 import type { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
-import type { TokenOrPlayableCard } from './CardTypes';
 import { v4 as uuidv4 } from 'uuid';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import TriggeredAbility from '../ability/TriggeredAbility';
@@ -450,14 +449,6 @@ export class Card extends OngoingEffectSource {
     }
 
     /**
-     * Returns true if the card is in a playable card (not deployable) or a token
-     */
-    // TODO THIS PR: replace with isPlayable
-    public isTokenOrPlayable(): this is TokenOrPlayableCard {
-        return false;
-    }
-
-    /**
      * Returns true if the card is a type that can legally have triggered abilities.
      * The returned type set is equivalent to {@link CardWithTriggeredAbilities}.
      */
@@ -664,7 +655,7 @@ export class Card extends OngoingEffectSource {
 
             case ZoneName.OutsideTheGame:
                 this._zone = this.owner.outsideTheGameZone;
-                Contract.assertTrue(this.isTokenOrPlayable());
+                Contract.assertTrue(this.isToken() || this.isPlayable());
                 this._zone.addCard(this);
                 break;
 

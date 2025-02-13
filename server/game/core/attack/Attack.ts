@@ -2,7 +2,6 @@ import { GameObject } from '../GameObject';
 import type Game from '../Game';
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
-import type { UnitCard } from '../card/CardTypes';
 import { EffectName, KeywordName } from '../Constants';
 import type { IAttackableCard } from '../card/CardInterfaces';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
@@ -11,7 +10,7 @@ import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 type StatisticTotal = number;
 
 export class Attack extends GameObject {
-    public readonly attacker: UnitCard;
+    public readonly attacker: IUnitCard;
     public readonly attackerInPlayId: number;
     public readonly isAmbush: boolean;
     public readonly target: IAttackableCard;
@@ -21,7 +20,7 @@ export class Attack extends GameObject {
 
     public constructor(
         game: Game,
-        attacker: UnitCard,
+        attacker: IUnitCard,
         target: IAttackableCard,
         isAmbush: boolean = false
     ) {

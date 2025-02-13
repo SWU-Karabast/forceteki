@@ -225,7 +225,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             const prevZone = this.zoneName;
             this.removeFromCurrentZone();
 
-            Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+            Contract.assertTrue(this.isUnit());
             targetZone.addCard(this);
             this.zone = targetZone;
 

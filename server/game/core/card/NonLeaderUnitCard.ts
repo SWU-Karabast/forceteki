@@ -6,7 +6,6 @@ import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import type { TokenOrPlayableCard } from './CardTypes';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
 
@@ -28,10 +27,6 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
         return new PlayUnitAction(this.game, this, properties);
-    }
-
-    public override isTokenOrPlayable(): this is TokenOrPlayableCard {
-        return true;
     }
 
     public override isPlayable(): this is IPlayableCard {

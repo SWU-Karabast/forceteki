@@ -9,7 +9,7 @@ import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { AbilityType, CardType, ZoneName, WildcardRelativePlayer } from '../Constants';
-import type { TokenOrPlayableCard, UnitCard } from './CardTypes';
+import type { UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import type { Card } from './Card';
@@ -78,10 +78,6 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         Contract.assertTrue(this.isInPlay());
 
         return this._parentCard;
-    }
-
-    public override isTokenOrPlayable(): this is TokenOrPlayableCard {
-        return true;
     }
 
     public override moveTo(targetZoneName: MoveZoneDestination) {

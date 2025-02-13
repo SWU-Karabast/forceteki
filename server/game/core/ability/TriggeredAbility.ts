@@ -7,8 +7,8 @@ import type { Card } from '../card/Card';
 import type Game from '../Game';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import * as Contract from '../utils/Contract';
-import type { CardWithTriggeredAbilities } from '../card/CardTypes';
 import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
+import type { ICardWithTriggeredAbilities } from '../card/CardInterfaces';
 
 interface IEventRegistration {
     name: string;
@@ -178,7 +178,7 @@ export default class TriggeredAbility extends CardAbility {
         for (const player of this.game.getPlayers()) {
             const context = this.createContext(player, events);
             if (
-                (this.card as CardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
+                (this.card as ICardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
                 this.aggregateWhen(events, context) &&
                 this.meetsRequirements(context) === ''
             ) {

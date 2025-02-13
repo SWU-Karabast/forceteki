@@ -82,7 +82,7 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
     }
 
     public addCard(card: IPlayableCard, zone: DeckZoneDestination) {
-        Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
+        Contract.assertTrue(card.isPlayable());
         Contract.assertEqual(card.controller, this.owner, `Attempting to add card ${card.internalName} to ${this} but its controller is ${card.controller}`);
         Contract.assertFalse(this.cards.includes(card), `Attempting to add card ${card.internalName} to ${this} but it is already there`);
 
@@ -103,7 +103,7 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
     }
 
     public removeCard(card: Card) {
-        Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
+        Contract.assertTrue(card.isPlayable());
 
         const foundCardInDeckIdx = this.tryGetCardIdx(card, this._deck);
         const foundCardInSearchingCardsIdx = this.tryGetCardIdx(card, this.searchingCards);
@@ -136,7 +136,7 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
      */
     public moveCardsToSearching(cards: Card | Card[], triggeringEvent: GameEvent) {
         for (const card of Helpers.asArray(cards)) {
-            Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
+            Contract.assertTrue(card.isPlayable());
 
             const foundCardInDeckIdx = this.tryGetCardIdx(card, this._deck);
             Contract.assertNotNullLike(
