@@ -73,10 +73,8 @@ describe('Inferno Four - Unforgetting', function() {
             it('while playing should only show card and put it back on top of deck since the deck size is 1', function () {
                 const { context } = contextRef;
                 context.player1.clickCard(context.infernoFour);
-                expect(context.getChatLogs(1)).toContain('Inferno Four sees Foundling');
-                expect(context.player2).toBeActivePlayer();
-                expect(context.p1Base.damage).toEqual(0);
-                expect(context.p2Base.damage).toEqual(0);
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.foundling]);
+                context.player1.clickPrompt('Done');
             });
         });
     });

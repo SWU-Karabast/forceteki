@@ -199,7 +199,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
     private onSearchComplete(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Card[], allCards: Card[]): void {
         event.selectedCards = selectedCards;
-        context.selects['deckSearch'] = Array.from(selectedCards);
+        context.selectedPromptCards = Array.from(selectedCards);
 
         const selectedCardsSet = new Set(selectedCards);
 
@@ -239,16 +239,16 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         const gameSystem = this.generatePropertiesFromContext(event.context).selectedCardsImmediateEffect;
         if (gameSystem) {
             const selectedArray = Array.from(selectedCards);
-            event.context.targets = selectedArray;
 
             const deckZone = context.player.getZone(ZoneName.Deck) as DeckZone;
             deckZone.moveCardsToSearching(selectedArray, event);
 
+            const events = [];
             gameSystem.setDefaultTargetFn(() => selectedArray);
+            gameSystem.queueGenerateEventGameSteps(events, context);
+
             context.game.queueSimpleStep(() => {
-                if (gameSystem.hasLegalTarget(context)) {
-                    gameSystem.resolve(null, context);
-                }
+                context.game.openEventWindow(events);
             }, 'resolve effect on searched cards');
         }
     }
