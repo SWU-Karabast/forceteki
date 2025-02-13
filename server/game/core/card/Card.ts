@@ -18,6 +18,7 @@ import type { EventCard } from './EventCard';
 import type { TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard, CardWithCost } from './CardTypes';
 import type { UpgradeCard } from './UpgradeCard';
 import type { BaseCard } from './BaseCard';
+import type { DoubleSidedLeaderCard } from './DoubleSidedLeaderCard';
 import type { LeaderCard } from './LeaderCard';
 import type { LeaderUnitCard } from './LeaderUnitCard';
 import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
@@ -40,11 +41,13 @@ export type CardConstructor = new (...args: any[]) => Card;
  */
 export class Card extends OngoingEffectSource {
     public static implemented = false;
-    public readonly aspects: Aspect[] = [];
-    public readonly internalName: string;
-    public readonly subtitle?: string;
-    public readonly title: string;
-    public readonly unique: boolean;
+    protected readonly _aspects: Aspect[] = [];
+    protected readonly _backSideAspects?: Aspect[];
+    protected readonly _backSideTitle?: string;
+    protected readonly _internalName: string;
+    protected readonly _subtitle?: string;
+    protected readonly _title: string;
+    protected readonly _unique: boolean;
 
     protected override readonly id: string;
     protected readonly hasNonKeywordAbilityText: boolean;
@@ -68,6 +71,18 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
+    public get aspects(): Aspect[] {
+        return this._aspects;
+    }
+
+    public get backSideAspects(): Aspect[] {
+        return this._backSideAspects;
+    }
+
+    public get backSideTitle(): string {
+        return this._backSideTitle;
+    }
+
     public get controller(): Player {
         return this._controller;
     }
@@ -76,8 +91,24 @@ export class Card extends OngoingEffectSource {
         return this._facedown;
     }
 
+    public get internalName(): string {
+        return this._internalName;
+    }
+
     public get keywords(): KeywordInstance[] {
         return this.getKeywords();
+    }
+
+    public get subtitle(): string {
+        return this._subtitle;
+    }
+
+    public get title(): string {
+        return this._title;
+    }
+
+    public get unique(): boolean {
+        return this._unique;
     }
 
     /** @deprecated use title instead**/
@@ -126,11 +157,13 @@ export class Card extends OngoingEffectSource {
 
         this.hasNonKeywordAbilityText = this.isLeader() || this.checkHasNonKeywordAbilityText(cardData.text);
 
-        this.aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
-        this.internalName = cardData.internalName;
-        this.subtitle = cardData.subtitle;
-        this.title = cardData.title;
-        this.unique = cardData.unique;
+        this._aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
+        this._backSideAspects = cardData.backSideAspects;
+        this._internalName = cardData.internalName;
+        this._subtitle = cardData.subtitle;
+        this._title = cardData.title;
+        this._backSideTitle = cardData.backSideTitle;
+        this._unique = cardData.unique;
 
         this._controller = owner;
         this.id = cardData.id;
@@ -140,6 +173,15 @@ export class Card extends OngoingEffectSource {
         this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
             this.internalName);
+        if (this.printedType === CardType.Leader) {
+            this.printedKeywords.push(
+                ...KeywordHelpers.parseKeywords(
+                    cardData.keywords,
+                    cardData.text,
+                    this.internalName
+                )
+            );
+        }
 
         this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
     }
@@ -339,6 +381,14 @@ export class Card extends OngoingEffectSource {
 
     public isBase(): this is BaseCard {
         return this.type === CardType.Base;
+    }
+
+    public isDeployableLeader(): this is LeaderUnitCard {
+        return false;
+    }
+
+    public isDoubleSidedLeader(): this is DoubleSidedLeaderCard {
+        return false;
     }
 
     public isLeader(): this is LeaderCard {
