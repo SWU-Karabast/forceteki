@@ -2,8 +2,6 @@ import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class RicketyQuadjumper extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '7291903225',
@@ -15,9 +13,10 @@ export default class RicketyQuadjumper extends NonLeaderUnitCard {
         this.addOnAttackAbility({
             title: 'Reveal a card',
             optional: true,
-            immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({ target: context.source.controller.getTopCardOfDeck() })),
+            immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({ target: context.source.controller.getTopCardOfDeck(),
+                useDisplayPrompt: true })),
             ifYouDo: (ifYouDoContext) => ({
-                title: 'Deal 2 damage to a ground unit',
+                title: 'Give an Experience token to another unit.',
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: !ifYouDoContext.events[0].cards[0].isUnit(),
                     onTrue: AbilityHelper.immediateEffects.selectCard({

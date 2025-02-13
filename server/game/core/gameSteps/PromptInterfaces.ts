@@ -57,7 +57,7 @@ export interface IDistributeAmongTargetsPromptProperties extends IPromptProperti
     canDistributeLess: boolean;
     maxTargets?: number;
     legalTargets: Card[];
-    resultsHandler: (results: IDistributeAmongTargetsPromptResults) => void;
+    resultsHandler: (results: IDistributeAmongTargetsPromptMapResults) => void;
 }
 
 export interface IDistributeAmongTargetsPromptData {
@@ -66,6 +66,14 @@ export interface IDistributeAmongTargetsPromptData {
 }
 
 export interface IDistributeAmongTargetsPromptResults {
+    type: DistributePromptType;
+    valueDistribution: {
+        uuid: string;
+        amount: number;
+    }[];
+}
+
+export interface IDistributeAmongTargetsPromptMapResults {
     type: DistributePromptType;
     valueDistribution: Map<Card, number>;
 }

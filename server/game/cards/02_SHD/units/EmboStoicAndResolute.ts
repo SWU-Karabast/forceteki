@@ -6,8 +6,6 @@ import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatc
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
 export default class EmboStoicAndResolute extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
 
     protected override getImplementationId() {

@@ -547,8 +547,13 @@ class PlayerInteractionWrapper {
     setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
         var currentPrompt = this.player.currentPrompt();
 
+        const cardDistributionArray = [...cardDistributionMap].map(([card, amount]) => ({
+            uuid: card.uuid,
+            amount
+        }));
+
         const promptResults = {
-            valueDistribution: cardDistributionMap,
+            valueDistribution: cardDistributionArray,
             type
         };
 
