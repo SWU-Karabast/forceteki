@@ -11,7 +11,7 @@ import { WithDamage } from './Damage';
 import type { ICardWithPrintedPowerProperty } from './PrintedPower';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import type { UpgradeCard } from '../UpgradeCard';
+import type { IUpgradeCard, UpgradeCard } from '../UpgradeCard';
 import type { Card } from '../Card';
 import type { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
@@ -38,7 +38,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     get defaultArena(): Arena;
     get capturedUnits(): IUnitCard[];
     get captureZone(): CaptureZone;
-    // readonly upgrades: UpgradeCard[];
+    readonly upgrades: IUpgradeCard[];
     getCaptor(): IUnitCard | null;
     isAttacking(): boolean;
     isCaptured(): boolean;
