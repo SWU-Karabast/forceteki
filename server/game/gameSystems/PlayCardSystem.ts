@@ -78,7 +78,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
-        if (card.isPlayable()) {
+        if (!card.isPlayable()) {
             return false;
         }
         const properties = this.generatePropertiesFromContext(context, additionalProperties);

@@ -43,7 +43,7 @@ export class EventCard extends EventCardParent {
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
-        return this.zoneName === ZoneName.Resource;
+        return true;
     }
 
     public override isPlayable(): this is IPlayableCard {

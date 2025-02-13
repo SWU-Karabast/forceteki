@@ -33,7 +33,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         Contract.assertTrue(card.isPlayable());
 
         if (event.resourceControllingPlayer !== card.controller) {
-            Contract.assertTrue(card.canChangeController());
+            Contract.assertTrue(card.canChangeController(), `Card ${card.internalName} cannot change controller`);
             card.takeControl(event.resourceControllingPlayer, ZoneName.Resource);
         } else {
             card.moveTo(ZoneName.Resource);

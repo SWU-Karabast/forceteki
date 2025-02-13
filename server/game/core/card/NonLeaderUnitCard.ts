@@ -27,7 +27,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
-        return this.zoneName === ZoneName.Resource || this.isInPlay();
+        return true;
     }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
