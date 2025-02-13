@@ -9,7 +9,7 @@ describe('Captain Tarkin, Full Forward Assault', function() {
                 },
                 player2: {
                     groundArena: ['crafty-smuggler'],
-                    spaceArena: ['lurking-tie-phantom'],
+                    spaceArena: ['lurking-tie-phantom', 'alliance-xwing'],
                 }
             });
 
@@ -22,7 +22,11 @@ describe('Captain Tarkin, Full Forward Assault', function() {
             expect(context.p2Base.damage).toBe(2);
             expect(context.greenSquadronAwing.damage).toBe(2);
 
-            context.player2.passAction();
+            // opponent attack with a space unit, nothing happens
+            context.player2.clickCard(context.allianceXwing);
+            context.player2.clickCard(context.p1Base);
+
+            expect(context.p1Base.damage).toBe(2);
 
             // a non-vehicle unit attack, does not get +1/+0 and overwhelm
             context.player1.clickCard(context.battlefieldMarine);
