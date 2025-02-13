@@ -37,5 +37,3 @@ export default class SlyMooreSecretiveAdvisor extends NonLeaderUnitCard {
         });
     }
 }
-
-SlyMooreSecretiveAdvisor.implemented = true;

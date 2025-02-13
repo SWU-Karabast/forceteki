@@ -48,5 +48,3 @@ export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
         });
     }
 }
-
-CaptainRexFightingForHisBrothers.implemented = true;

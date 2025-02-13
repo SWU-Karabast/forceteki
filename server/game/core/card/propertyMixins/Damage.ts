@@ -2,10 +2,20 @@ import type { Attack } from '../../attack/Attack';
 import * as Contract from '../../utils/Contract';
 import type { Card, CardConstructor } from '../Card';
 import type Player from '../../Player';
-import type { CardWithDamageProperty } from '../CardTypes';
+import type { ICardWithPrintedHpProperty } from './PrintedHp';
 import { WithPrintedHp } from './PrintedHp';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
 import { EffectName } from '../../Constants';
+
+export interface ICardWithDamageProperty extends ICardWithPrintedHpProperty {
+    unsetActiveAttack();
+    isDefending(): boolean;
+    get activeAttack(): Attack;
+    get damage(): number;
+    get remainingHp(): number;
+    addDamage(amount: number, source: IDamageSource): number;
+    removeDamage(amount: number): number;
+}
 
 /**
  * Mixin function that adds the `damage` property and corresponding methods to a base class.
@@ -14,7 +24,7 @@ import { EffectName } from '../../Constants';
 export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     const HpClass = WithPrintedHp(BaseClass);
 
-    return class WithDamage extends HpClass {
+    return class WithDamage extends HpClass implements ICardWithDamageProperty {
         private _activeAttack?: Attack = null;
         private attackEnabled = false;
         private _damage?: number;
@@ -56,7 +66,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             return Math.max(0, this.getHp() - this.damage);
         }
 
-        public override canBeDamaged(): this is CardWithDamageProperty {
+        public override canBeDamaged(): this is ICardWithDamageProperty {
             return true;
         }
 

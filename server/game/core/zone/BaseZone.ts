@@ -1,5 +1,5 @@
-import type { BaseCard } from '../card/BaseCard';
-import type { LeaderCard } from '../card/LeaderCard';
+import type { IBaseCard } from '../card/BaseCard';
+import type { ILeaderCard } from '../card/LeaderCard';
 import { ZoneName } from '../Constants';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
@@ -9,15 +9,15 @@ import { ZoneAbstract } from './ZoneAbstract';
 /**
  * Base zone which holds the player's base and leader
  */
-export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
-    public readonly base: BaseCard;
+export class BaseZone extends ZoneAbstract<ILeaderCard | IBaseCard> {
+    public readonly base: IBaseCard;
     public override readonly hiddenForPlayers: null;
     public override readonly owner: Player;
     public override readonly name: ZoneName.Base;
 
-    private _leader?: LeaderCard;
+    private _leader?: ILeaderCard;
 
-    public override get cards(): (LeaderCard | BaseCard)[] {
+    public override get cards(): (ILeaderCard | IBaseCard)[] {
         return this._leader ? [this.base, this._leader] : [this.base];
     }
 
@@ -25,11 +25,11 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
         return this._leader ? 2 : 1;
     }
 
-    public get leader(): LeaderCard | null {
+    public get leader(): ILeaderCard | null {
         return this._leader;
     }
 
-    public constructor(owner: Player, base: BaseCard, leader: LeaderCard) {
+    public constructor(owner: Player, base: IBaseCard, leader: ILeaderCard) {
         super(owner);
 
         this.hiddenForPlayers = null;
@@ -42,11 +42,11 @@ export class BaseZone extends ZoneAbstract<LeaderCard | BaseCard> {
         leader.initializeZone(this);
     }
 
-    public override getCards(filter?: IZoneCardFilterProperties): (LeaderCard | BaseCard)[] {
+    public override getCards(filter?: IZoneCardFilterProperties): (ILeaderCard | IBaseCard)[] {
         return this.cards.filter(this.buildFilterFn(filter));
     }
 
-    public setLeader(leader: LeaderCard) {
+    public setLeader(leader: ILeaderCard) {
         Contract.assertEqual(leader.controller, this.owner, `Attempting to add card ${leader.internalName} to ${this} as leader but its controller is ${leader.controller}`);
         Contract.assertIsNullLike(this._leader, `Attempting to add leader ${leader.internalName} to ${this} but a leader is already there`);
 

@@ -1,7 +1,10 @@
 import type Player from '../Player';
+import type { ICardWithPrintedHpProperty } from './propertyMixins/PrintedHp';
 import { WithPrintedHp } from './propertyMixins/PrintedHp';
-import { WithCost } from './propertyMixins/Cost';
+import type { ICardWithCostProperty } from './propertyMixins/Cost';
+import type { IInPlayCard } from './baseClasses/InPlayCard';
 import { InPlayCard } from './baseClasses/InPlayCard';
+import type { ICardWithPrintedPowerProperty } from './propertyMixins/PrintedPower';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
@@ -14,6 +17,8 @@ import OngoingEffectLibrary from '../../ongoingEffects/OngoingEffectLibrary';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
+import type { IUnitCard } from './propertyMixins/UnitProperties';
+import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
 
 interface IGainCondition<TSource extends UpgradeCard> {
     gainCondition?: (context: AbilityContext<TSource>) => boolean;
@@ -27,10 +32,19 @@ type IActionAbilityPropsWithGainCondition<TSource extends UpgradeCard, TTarget e
 
 type IKeywordPropertiesWithGainCondition<TSource extends UpgradeCard> = IKeywordProperties & IGainCondition<TSource>;
 
-const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(WithStandardAbilitySetup(InPlayCard))));
+const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
 
-export class UpgradeCard extends UpgradeCardParent {
-    protected _parentCard?: UnitCard = null;
+export interface IUpgradeCard extends IInPlayCard, ICardWithPrintedPowerProperty, ICardWithPrintedHpProperty, ICardWithCostProperty {
+    get parentCard(): IUnitCard;
+    attachTo(newParentCard: IUnitCard, newController?: Player);
+    isAttached(): boolean;
+    unattach();
+    canAttach(targetCard: Card, controller?: Player): boolean;
+}
+
+
+export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPlayableCard {
+    protected _parentCard?: IUnitCard = null;
 
     private attachCondition: (card: Card) => boolean;
 
@@ -39,7 +53,11 @@ export class UpgradeCard extends UpgradeCardParent {
         Contract.assertTrue([CardType.BasicUpgrade, CardType.TokenUpgrade].includes(this.printedType));
     }
 
-    public override isUpgrade(): this is UpgradeCard {
+    public override isUpgrade(): this is IUpgradeCard {
+        return true;
+    }
+
+    public override isPlayable(): this is IPlayableCard {
         return true;
     }
 
@@ -55,7 +73,7 @@ export class UpgradeCard extends UpgradeCardParent {
     }
 
     /** The card that this card is underneath */
-    public get parentCard(): UnitCard {
+    public get parentCard(): IUnitCard {
         Contract.assertNotNullLike(this._parentCard);
         Contract.assertTrue(this.isInPlay());
 

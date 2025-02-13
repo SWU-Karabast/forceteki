@@ -1,17 +1,20 @@
 import type Player from '../Player';
-import { WithCost } from './propertyMixins/Cost';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
 import { CardType, ZoneName } from '../Constants';
+import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { TokenOrPlayableCard } from './CardTypes';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
+import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
 
-const NonLeaderUnitCardParent = WithUnitProperties(WithCost(WithStandardAbilitySetup(InPlayCard)));
+const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
-export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
+export interface INonLeaderUnitCard extends IUnitCard, IPlayableCard {}
+
+export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLeaderUnitCard {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
@@ -19,7 +22,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         Contract.assertFalse(this.printedType === CardType.Leader);
     }
 
-    public override isNonLeaderUnit(): this is NonLeaderUnitCard {
+    public override isNonLeaderUnit(): this is INonLeaderUnitCard {
         return true;
     }
 
@@ -28,6 +31,10 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
     }
 
     public override isTokenOrPlayable(): this is TokenOrPlayableCard {
+        return true;
+    }
+
+    public override isPlayable(): this is IPlayableCard {
         return true;
     }
 

@@ -1,5 +1,4 @@
 import AbilityHelper from '../../../AbilityHelper';
-import type { CardWithCost } from '../../../core/card/CardTypes';
 import { EventCard } from '../../../core/card/EventCard';
 import { Trait } from '../../../core/Constants';
 
@@ -25,7 +24,7 @@ export default class BountyPosting extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: () =>
                         ifYouDoContext.selectedPromptCards.length === 1 &&
-                        ifYouDoContext.player.readyResourceCount >= (ifYouDoContext.selectedPromptCards[0] as CardWithCost).cost,
+                        ifYouDoContext.player.readyResourceCount >= (ifYouDoContext.selectedPromptCards[0] as ICardWithCostProperty).cost,
                     onTrue: AbilityHelper.immediateEffects.playCardFromHand({
                         target: ifYouDoContext.selectedPromptCards[0]
                     }),

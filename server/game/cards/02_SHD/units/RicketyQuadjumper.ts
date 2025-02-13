@@ -30,5 +30,3 @@ export default class RicketyQuadjumper extends NonLeaderUnitCard {
         });
     }
 }
-
-RicketyQuadjumper.implemented = true;

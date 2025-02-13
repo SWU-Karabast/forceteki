@@ -3,6 +3,10 @@ import { InPlayCard } from './baseClasses/InPlayCard';
 import * as Contract from '../utils/Contract';
 import type { ZoneName } from '../Constants';
 import { CardType } from '../Constants';
+import type { ICardWithExhaustProperty } from './baseClasses/PlayableOrDeployableCard';
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface ILeaderCard extends ICardWithExhaustProperty {}
 
 export class LeaderCard extends InPlayCard {
     public constructor(owner: Player, cardData: any) {
@@ -12,7 +16,7 @@ export class LeaderCard extends InPlayCard {
         this.setupLeaderSideAbilities(this);
     }
 
-    public override isLeader(): this is LeaderCard {
+    public override isLeader(): this is ILeaderCard {
         return true;
     }
 

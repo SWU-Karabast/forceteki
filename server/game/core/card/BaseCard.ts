@@ -8,12 +8,16 @@ import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps, ITri
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { EpicActionLimit } from '../ability/AbilityLimit';
 import type TriggeredAbility from '../ability/TriggeredAbility';
-import type { InPlayCard } from './baseClasses/InPlayCard';
+import type { IInPlayCard } from './baseClasses/InPlayCard';
 
 const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
 
+export interface IBaseCard extends Card {
+    get epicActionSpent(): boolean;
+}
+
 /** A Base card (as in, the card you put in your base zone) */
-export class BaseCard extends BaseCardParent {
+export class BaseCard extends BaseCardParent implements IBaseCard {
     private _epicActionAbility: ActionAbility;
 
     public get epicActionSpent() {
@@ -26,7 +30,7 @@ export class BaseCard extends BaseCardParent {
         Contract.assertEqual(this.printedType, CardType.Base);
     }
 
-    public override isBase(): this is BaseCard {
+    public override isBase(): this is IBaseCard {
         return true;
     }
 
@@ -45,7 +49,7 @@ export class BaseCard extends BaseCardParent {
         return super.getActionAbilities();
     }
 
-    public override canRegisterTriggeredAbilities(): this is InPlayCard | BaseCard {
+    public override canRegisterTriggeredAbilities(): this is IInPlayCard | IBaseCard {
         return true;
     }
 

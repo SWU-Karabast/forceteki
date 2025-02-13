@@ -27,5 +27,3 @@ export default class CaptainTyphoProtectingTheSenator extends NonLeaderUnitCard 
         });
     }
 }
-
-CaptainTyphoProtectingTheSenator.implemented = true;

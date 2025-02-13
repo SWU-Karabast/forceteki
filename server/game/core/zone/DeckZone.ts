@@ -1,6 +1,5 @@
 import type seedrandom from 'seedrandom';
 import type { Card } from '../card/Card';
-import type { TokenOrPlayableCard } from '../card/CardTypes';
 import type { MoveZoneDestination } from '../Constants';
 import { ZoneName, DeckZoneDestination, WildcardRelativePlayer } from '../Constants';
 import type Player from '../Player';
@@ -9,25 +8,26 @@ import * as Helpers from '../utils/Helpers';
 import type { IAddRemoveZone, IZoneCardFilterProperties } from './ZoneAbstract';
 import { ZoneAbstract } from './ZoneAbstract';
 import type { GameEvent } from '../event/GameEvent';
+import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 
-export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddRemoveZone {
+export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZone {
     public override readonly hiddenForPlayers: WildcardRelativePlayer.Any;
     public override readonly owner: Player;
     public override readonly name: ZoneName.Deck;
 
-    protected _deck: TokenOrPlayableCard[] = [];
+    protected _deck: IPlayableCard[] = [];
 
     // cards that have been selected for a search effect are considered "in the deck zone" but not "in the deck"
     // while the effect is resolving (see SWU 8.27.7).
     // These cards will be moved back to deck if they are somehow still there at the end of the action (e.g. the
     // U-Wing into ... into opponent Regional Governor scenario).
-    protected searchingCards: TokenOrPlayableCard[] = [];
+    protected searchingCards: IPlayableCard[] = [];
 
-    public override get cards(): TokenOrPlayableCard[] {
+    public override get cards(): IPlayableCard[] {
         return [...this._deck, ...this.searchingCards];
     }
 
-    public get deck(): TokenOrPlayableCard[] {
+    public get deck(): IPlayableCard[] {
         return [...this._deck];
     }
 
@@ -35,11 +35,11 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
         return this._deck.length;
     }
 
-    public get topCard(): TokenOrPlayableCard | null {
+    public get topCard(): IPlayableCard | null {
         return this._deck.length > 0 ? this._deck[0] : null;
     }
 
-    public constructor(owner: Player, cards: TokenOrPlayableCard[]) {
+    public constructor(owner: Player, cards: IPlayableCard[]) {
         super(owner);
 
         this.hiddenForPlayers = WildcardRelativePlayer.Any;
@@ -50,7 +50,7 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
         cards.forEach((card) => card.initializeZone(this));
     }
 
-    public override getCards(filter?: IZoneCardFilterProperties): TokenOrPlayableCard[] {
+    public override getCards(filter?: IZoneCardFilterProperties): IPlayableCard[] {
         return this.cards.filter(this.buildFilterFn(filter));
     }
 
@@ -59,7 +59,7 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
     }
 
     public override hasCard(card: Card): boolean {
-        const cardCount = this.cards.filter((zoneCard: TokenOrPlayableCard) => zoneCard === card).length;
+        const cardCount = this.cards.filter((zoneCard: IPlayableCard) => zoneCard === card).length;
 
         Contract.assertFalse(cardCount > 1, `Found ${cardCount} duplicates of ${card.internalName} in ${this.name}`);
 
@@ -73,15 +73,15 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
         return this._deck.slice(0, cardsToGet);
     }
 
-    public addCardToTop(card: TokenOrPlayableCard) {
+    public addCardToTop(card: IPlayableCard) {
         this.addCard(card, DeckZoneDestination.DeckTop);
     }
 
-    public addCardToBottom(card: TokenOrPlayableCard) {
+    public addCardToBottom(card: IPlayableCard) {
         this.addCard(card, DeckZoneDestination.DeckTop);
     }
 
-    public addCard(card: TokenOrPlayableCard, zone: DeckZoneDestination) {
+    public addCard(card: IPlayableCard, zone: DeckZoneDestination) {
         Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
         Contract.assertEqual(card.controller, this.owner, `Attempting to add card ${card.internalName} to ${this} but its controller is ${card.controller}`);
         Contract.assertFalse(this.cards.includes(card), `Attempting to add card ${card.internalName} to ${this} but it is already there`);
@@ -98,7 +98,7 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
         }
     }
 
-    public removeTopCard(): TokenOrPlayableCard | null {
+    public removeTopCard(): IPlayableCard | null {
         return this._deck.pop() ?? null;
     }
 
@@ -158,7 +158,7 @@ export class DeckZone extends ZoneAbstract<TokenOrPlayableCard> implements IAddR
         });
     }
 
-    private tryGetCardIdx(card: TokenOrPlayableCard, list: TokenOrPlayableCard[]): number | null {
+    private tryGetCardIdx(card: IPlayableCard, list: IPlayableCard[]): number | null {
         const idx = list.indexOf(card);
         return idx === -1 ? null : idx;
     }

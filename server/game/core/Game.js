@@ -1302,7 +1302,7 @@ class Game extends EventEmitter {
 
     /**
      * Removes a shield token from all relevant card lists, including its zone
-     * @param {import('./card/CardTypes.js').TokenCard} token
+     * @param {import('./card/propertyMixins/Token.js').ITokenCard} token
      */
     removeTokenFromPlay(token) {
         Contract.assertEqual(token.zoneName, ZoneName.OutsideTheGame,

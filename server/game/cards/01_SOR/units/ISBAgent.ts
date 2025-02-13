@@ -31,5 +31,3 @@ export default class ISBAgent extends NonLeaderUnitCard {
         });
     }
 }
-
-ISBAgent.implemented = true;

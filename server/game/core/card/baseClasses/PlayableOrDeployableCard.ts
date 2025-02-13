@@ -12,6 +12,7 @@ import { CostAdjustType } from '../../cost/CostAdjuster';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import { Card } from '../Card';
+import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
@@ -34,12 +35,31 @@ export interface IIgnoreSpecificAspectPenaltyProps<TSource extends Card = Card> 
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
 
+export interface ICardWithExhaustProperty extends Card {
+    get exhausted(): boolean;
+    set exhausted(value: boolean);
+    exhaust();
+    ready();
+}
+
+export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty {
+    // TODO THIS PR: move further down to specific cards
+    takeControl(newController: Player, moveTo?: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource);
+    getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
+}
+
+export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
+    getPlayCardActions(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction[];
+    getPlayCardFromOutOfPlayActions(propertyOverrides?: IPlayCardActionOverrides);
+    buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
+}
+
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-export class PlayableOrDeployableCard extends Card {
+export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
     private _exhausted?: boolean = null;
 
     public get exhausted(): boolean {
@@ -164,7 +184,7 @@ export class PlayableOrDeployableCard extends Card {
         this._exhausted = false;
     }
 
-    public override canBeExhausted(): this is PlayableOrDeployableCard {
+    public override canBeExhausted(): this is IPlayableOrDeployableCard {
         return true;
     }
 

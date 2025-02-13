@@ -61,7 +61,10 @@ class Player extends GameObject {
         // mainly used for staging tokens when they are created / removed
         this.outsideTheGameZone = new OutsideTheGameZone(this);
 
+        /** @type {BaseZone} */
         this.baseZone = null;
+
+        /** @type {DeckZone} */
         this.deckZone = null;
 
         this.damageToBase = null;
@@ -469,8 +472,8 @@ class Player extends GameObject {
 
     /**
      * Returns a card in play under this player's control which matches (for uniqueness) the passed card
-     * @param {InPlayCard} card
-     * @returns {InPlayCard[]} Duplicates of passed card (does not check unique status)
+     * @param {import('./card/baseClasses/InPlayCard').IInPlayCard} card
+     * @returns {import('./card/baseClasses/InPlayCard').IInPlayCard[]} Duplicates of passed card (does not check unique status)
      */
     getDuplicatesInPlay(card) {
         return this.getArenaCards().filter((otherCard) =>
@@ -482,7 +485,7 @@ class Player extends GameObject {
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {import('./card/CardTypes').TokenOrPlayableCard | null} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard | null} the Card,© or null if the deck is empty
      */
     getTopCardOfDeck() {
         if (this.drawDeck.length > 0) {
@@ -494,7 +497,7 @@ class Player extends GameObject {
 
     /**
      * Returns ths top cards of the player's deck
-     * @returns {import('./card/CardTypes').TokenOrPlayableCard[]} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard[]} the Card,© or null if the deck is empty
      */
     getTopCardsOfDeck(numCard) {
         Contract.assertPositiveNonZero(numCard);

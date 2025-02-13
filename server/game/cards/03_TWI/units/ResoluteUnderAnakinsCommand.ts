@@ -35,4 +35,3 @@ export default class ResoluteUnderAnakinsCommand extends NonLeaderUnitCard {
     }
 }
 
-ResoluteUnderAnakinsCommand.implemented = true;

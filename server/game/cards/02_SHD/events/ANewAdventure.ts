@@ -33,5 +33,3 @@ export default class ANewAdventure extends EventCard {
         });
     }
 }
-
-ANewAdventure.implemented = true;

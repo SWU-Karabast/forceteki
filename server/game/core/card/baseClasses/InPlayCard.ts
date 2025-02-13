@@ -4,19 +4,43 @@ import type { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import type { Card } from '../Card';
-import type { BaseCard } from '../BaseCard';
+import type { IBaseCard } from '../BaseCard';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import type { ActionAbility } from '../../ability/ActionAbility';
+import type { ICardWithCostProperty } from '../propertyMixins/Cost';
+import { WithCost } from '../propertyMixins/Cost';
+
+const InPlayCardParent = WithCost(PlayableOrDeployableCard);
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
+
+export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
+    get disableOngoingEffectsForDefeat(): boolean;
+    get inPlayId(): number;
+    get mostRecentInPlayId(): number;
+    get pendingDefeat(): boolean;
+    isInPlay(): boolean;
+    getTriggeredAbilities(): TriggeredAbility[];
+    createReplacementEffectAbility<TSource extends Card>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility;
+    addGainedActionAbility(properties: IActionAbilityProps): string;
+    removeGainedActionAbility(removeAbilityUuid: string): void;
+    addGainedConstantAbility(properties: IConstantAbilityProps): string;
+    removeGainedConstantAbility(removeAbilityUuid: string): void;
+    addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string;
+    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string;
+    removeGainedTriggeredAbility(removeAbilityUuid: string): void;
+    removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
+    registerPendingUniqueDefeat();
+    checkUnique();
+}
 
 /**
  * Subclass of {@link Card} (via {@link PlayableOrDeployableCard}) that adds properties for cards that
@@ -27,7 +51,7 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 2. Defeat state management
  * 3. Uniqueness management
  */
-export class InPlayCard extends PlayableOrDeployableCard {
+export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     protected _disableOngoingEffectsForDefeat?: boolean = null;
     protected _mostRecentInPlayId = -1;
     protected _pendingDefeat?: boolean = null;
@@ -90,7 +114,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return EnumHelpers.isArena(this.zoneName);
     }
 
-    public override canBeInPlay(): this is InPlayCard {
+    public override canBeInPlay(): this is IInPlayCard {
         return true;
     }
 
@@ -110,7 +134,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
     }
 
 
-    public override canRegisterTriggeredAbilities(): this is InPlayCard | BaseCard {
+    public override canRegisterTriggeredAbilities(): this is IInPlayCard | IBaseCard {
         return true;
     }
 

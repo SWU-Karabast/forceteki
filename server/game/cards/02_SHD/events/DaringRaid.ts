@@ -18,5 +18,3 @@ export default class DaringRaid extends EventCard {
         });
     }
 }
-
-DaringRaid.implemented = true;

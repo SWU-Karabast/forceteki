@@ -2,7 +2,7 @@ import type Player from '../Player';
 import { WithCost } from './propertyMixins/Cost';
 import { CardType, ZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
-import type { IDecreaseCostAbilityProps } from './baseClasses/PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
@@ -13,6 +13,10 @@ import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
+
+export interface IEventCard extends IPlayableOrDeployableCard {
+    getEventAbility(): EventAbility;
+}
 
 export class EventCard extends EventCardParent {
     private _eventAbility: EventAbility;
@@ -29,7 +33,7 @@ export class EventCard extends EventCardParent {
         }
     }
 
-    public override isEvent(): this is EventCard {
+    public override isEvent(): this is IEventCard {
         return true;
     }
 
@@ -38,6 +42,10 @@ export class EventCard extends EventCardParent {
     }
 
     public override isTokenOrPlayable(): this is TokenOrPlayableCard {
+        return true;
+    }
+
+    public override isPlayable(): this is IPlayableCard {
         return true;
     }
 

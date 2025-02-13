@@ -7,6 +7,8 @@ import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import type { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
 import type { UpgradeCard } from './UpgradeCard';
 
+// TODO THIS PR: remove
+
 export type UnitCard =
   NonLeaderUnitCard |
   LeaderUnitCard |
@@ -36,14 +38,6 @@ export type CardWithPrintedPower =
   TokenUnitCard |
   UpgradeCard |
   TokenUpgradeCard;
-
-export type CardWithCost =
-  NonLeaderUnitCard |
-  LeaderUnitCard |
-  TokenUnitCard |
-  UpgradeCard |
-  TokenUpgradeCard |
-  EventCard;
 
 export type CardWithTriggeredAbilities = InPlayCard;
 export type CardWithConstantAbilities = InPlayCard;

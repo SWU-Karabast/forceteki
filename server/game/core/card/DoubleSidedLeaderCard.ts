@@ -1,10 +1,16 @@
 import type Player from '../Player';
+import type { ILeaderCard } from './LeaderCard';
 import { LeaderCard } from './LeaderCard';
 import type { Aspect } from '../Constants';
 import { ZoneName } from '../Constants';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 
-export class DoubleSidedLeaderCard extends LeaderCard {
+export interface IDoubleSidedLeaderCard extends ILeaderCard {
+    get onStartingSide(): boolean;
+    flipLeader(): void;
+}
+
+export class DoubleSidedLeaderCard extends LeaderCard implements IDoubleSidedLeaderCard {
     protected _onStartingSide = true;
     protected setupLeaderBackSide = false;
 
@@ -27,7 +33,7 @@ export class DoubleSidedLeaderCard extends LeaderCard {
         return this.onStartingSide ? this._title : this._backSideTitle;
     }
 
-    public override isDoubleSidedLeader(): this is DoubleSidedLeaderCard {
+    public override isDoubleSidedLeader(): this is IDoubleSidedLeaderCard {
         return true;
     }
 

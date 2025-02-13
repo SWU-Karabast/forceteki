@@ -1,4 +1,4 @@
-import type { InPlayCard } from '../card/baseClasses/InPlayCard';
+import type { IInPlayCard } from '../card/baseClasses/InPlayCard';
 import type { UnitCard } from '../card/CardTypes';
 import type { UpgradeCard } from '../card/UpgradeCard';
 import { WildcardCardType } from '../Constants';
@@ -14,17 +14,17 @@ export interface IArenaZoneCardFilterProperties extends IZoneCardFilterPropertie
 /**
  * Base class for arena zones, including the meta-zone for all arenas
  */
-export abstract class ConcreteOrMetaArenaZone extends ZoneAbstract<InPlayCard> {
+export abstract class ConcreteOrMetaArenaZone extends ZoneAbstract<IInPlayCard> {
     public override readonly hiddenForPlayers: null;
     public override readonly owner: Game;
 
-    public abstract override get cards(): InPlayCard[];
+    public abstract override get cards(): IInPlayCard[];
 
     public constructor(owner: Game) {
         super(owner);
     }
 
-    public abstract override getCards(filter?: IArenaZoneCardFilterProperties): InPlayCard[];
+    public abstract override getCards(filter?: IArenaZoneCardFilterProperties): IInPlayCard[];
 
     public override hasSomeCard(filter: IArenaZoneCardFilterProperties): boolean {
         return super.hasSomeCard(filter);
