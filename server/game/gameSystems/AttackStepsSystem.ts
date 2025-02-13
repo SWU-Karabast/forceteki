@@ -13,6 +13,7 @@ import * as Contract from '../core/utils/Contract';
 import type { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 import * as Helpers from '../core/utils/Helpers';
 import type { KeywordInstance } from '../core/ability/KeywordInstance';
+import type { IAttackableCard } from '../core/card/CardInterfaces';
 
 export interface IAttackLastingEffectProperties<TContext extends AbilityContext = AbilityContext> {
     condition?: (attack: Attack, context: TContext) => boolean;
@@ -90,7 +91,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
     /** This method is checking whether cards are a valid target for an attack. */
     public override canAffect(targetCard: Card, context: TContext, additionalProperties = {}): boolean {
-        if (!targetCard.canBeDamaged()) {
+        if (!targetCard.isUnit() || !targetCard.isBase()) {
             return false;
         }
 
@@ -238,16 +239,16 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         return true;
     }
 
-    private attackerGainsSaboteur(attackTarget: CardWithDamageProperty, context: TContext, additionalProperties?: any) {
+    private attackerGainsSaboteur(attackTarget: IAttackableCard, context: TContext, additionalProperties?: any) {
         return this.attackerGains(attackTarget, context, additionalProperties, (effect) => effect.impl.type === EffectName.GainKeyword && (effect.impl.valueWrapper.value as KeywordInstance).name === KeywordName.Saboteur);
     }
 
-    private attackerGainsEffect(attackTarget: CardWithDamageProperty, context: TContext, effect: EffectName, additionalProperties?: any) {
+    private attackerGainsEffect(attackTarget: IAttackableCard, context: TContext, effect: EffectName, additionalProperties?: any) {
         return this.attackerGains(attackTarget, context, additionalProperties, (e) => e.impl.type === effect);
     }
 
     /** Checks if there are any lasting effects that would give the attacker Saboteur, for the purposes of targeting */
-    private attackerGains(attackTarget: CardWithDamageProperty, context: TContext, additionalProperties?: any, predicate = (e) => false): boolean {
+    private attackerGains(attackTarget: IAttackableCard, context: TContext, additionalProperties?: any, predicate = (e) => false): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const attackerLastingEffects = Helpers.asArray(properties.attackerLastingEffects);

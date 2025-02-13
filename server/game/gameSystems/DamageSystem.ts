@@ -7,7 +7,7 @@ import * as Contract from '../core/utils/Contract';
 import type { Attack } from '../core/attack/Attack';
 import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
 import { DamageSourceType } from '../IDamageOrDefeatSource';
-import type { UnitCard } from '../core/card/CardTypes';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
     type: DamageType;
@@ -27,7 +27,7 @@ export interface ICombatDamageProperties extends IDamagePropertiesBase {
 /** Used for when an ability is directly dealing damage to a target (most common case for card implementations) */
 export interface IAbilityDamageProperties extends IDamagePropertiesBase {
     type: DamageType.Ability;
-    amount: number | ((card: UnitCard) => number);
+    amount: number | ((card: IUnitCard) => number);
 
     /** The source of the damage, if different from the card that triggered the ability */
     source?: Card;
@@ -181,7 +181,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         Contract.assertTrue(context.source.isUnit());
         Contract.assertNotNullLike(card);
 
-        let damageDealtBy: UnitCard;
+        let damageDealtBy: IUnitCard;
 
         if (properties.source) {
             Contract.assertTrue(properties.source.isUnit());

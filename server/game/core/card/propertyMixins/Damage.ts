@@ -8,6 +8,7 @@ import type { IDamageSource } from '../../../IDamageOrDefeatSource';
 import { EffectName } from '../../Constants';
 
 export interface ICardWithDamageProperty extends ICardWithPrintedHpProperty {
+    setActiveAttack(attack: Attack);
     unsetActiveAttack();
     isDefending(): boolean;
     get activeAttack(): Attack;

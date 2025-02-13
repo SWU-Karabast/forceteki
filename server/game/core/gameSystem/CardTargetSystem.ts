@@ -8,8 +8,9 @@ import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
-import type { UnitCard } from '../card/CardTypes';
 import type { GameObject } from '../GameObject';
+import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
+import type { IPlayableOrDeployableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
@@ -217,7 +218,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         // };
     }
 
-    private generateUpgradeDefeatEvents(card: UnitCard, context: TContext, event: any): any[] {
+    private generateUpgradeDefeatEvents(card: IUnitCard, context: TContext, event: any): any[] {
         const defeatEvents = [];
 
         for (const upgrade of card.upgrades) {
@@ -234,7 +235,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return defeatEvents;
     }
 
-    private generateRescueEvents(card: UnitCard, context: TContext, event: any): any[] {
+    private generateRescueEvents(card: IUnitCard, context: TContext, event: any): any[] {
         const rescueEvents = [];
 
         for (const captured of card.capturedUnits) {

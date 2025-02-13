@@ -3,12 +3,12 @@ import { DamageType, EventName } from '../Constants';
 import type { Attack } from './Attack';
 import { BaseStepWithPipeline } from '../gameSteps/BaseStepWithPipeline';
 import { SimpleStep } from '../gameSteps/SimpleStep';
-import type { CardWithDamageProperty } from '../card/CardTypes';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import { DamageSystem } from '../../gameSystems/DamageSystem';
+import type { IAttackableCard } from '../card/CardInterfaces';
 
 export class AttackFlow extends BaseStepWithPipeline {
     public constructor(
@@ -142,7 +142,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         this.checkUnsetActiveAttack(this.attack.target);
     }
 
-    private checkUnsetActiveAttack(card: CardWithDamageProperty) {
+    private checkUnsetActiveAttack(card: IAttackableCard) {
         if (EnumHelpers.isArena(card.zoneName) || card.isBase()) {
             card.unsetActiveAttack();
         }

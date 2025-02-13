@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { ICardWithCostProperty } from '../../../core/card/propertyMixins/Cost';
 import { Trait } from '../../../core/Constants';
 
 export default class BountyPosting extends EventCard {
