@@ -18,7 +18,7 @@ export default class DeathSpaceSkirmisher extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => {
-                        const spaceUnits = context.source.controller.getUnitsInPlay(ZoneName.SpaceArena)
+                        const spaceUnits = context.player.getUnitsInPlay(ZoneName.SpaceArena)
                             .filter((unit) => unit !== context.source);
 
                         return spaceUnits.length > 0;
