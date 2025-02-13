@@ -40,10 +40,13 @@ export interface IViewCardOnlyProperties extends IViewCardPropertiesBase {
     interactMode: ViewCardInteractMode.ViewOnly;
 }
 
-export interface IViewCardAndSelectSingleProperties extends IViewCardPropertiesBase {
+export interface IViewCardAndSelectSingleProperties<TContext extends AbilityContext = AbilityContext> extends IViewCardPropertiesBase {
     interactMode: ViewCardInteractMode.SelectSingle;
     canChooseNothing?: boolean;
-    immediateEffect?: GameSystem;
+    immediateEffect?: GameSystem<TContext>;
+
+    /** Used for filtering selection based on things like trait, type, etc. */
+    cardCondition?: (card: Card, context: TContext) => boolean;
 }
 
 export interface IViewCardWithPerCardButtonsProperties extends IViewCardPropertiesBase {
@@ -143,14 +146,19 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
             }
         };
 
+        const cardCondition = properties.cardCondition || (() => true);
+
         return () => context.game.promptDisplayCardsForSelection(
             promptedPlayer,
             {
                 source: context.source,
                 displayCards: cards,
                 maxCards: 1,
-                canChooseNothing: properties.canChooseNothing || true,
-                selectedCardsHandler
+                canChooseNothing: properties.canChooseNothing ?? true,
+                selectedCardsHandler,
+                validCardCondition: (card: Card) =>
+                    cardCondition(card, context) &&
+                    (!properties.immediateEffect || properties.immediateEffect.canAffect(card, context))
             }
         );
     }

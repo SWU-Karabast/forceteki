@@ -36,7 +36,10 @@ export class RemoteCardDataGetter extends CardDataGetter {
 
     protected override getCardInternal(relativePath: string): Promise<ICardDataJson> {
         return this.fetchFile(relativePath)
-            .then((response) => response.json() as Promise<ICardDataJson>);
+            .then((response) => response.json() as Promise<ICardDataJson>)
+            .then((cardData) => {
+                return (Array.isArray(cardData) ? cardData[0] : cardData) as ICardDataJson;
+            });
     }
 
     public override getSetCodeMap(): Promise<Map<string, string>> {
