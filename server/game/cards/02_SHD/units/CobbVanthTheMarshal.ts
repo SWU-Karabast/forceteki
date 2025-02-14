@@ -22,7 +22,7 @@ export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
                         effect: [
                             OngoingEffectLibrary.canPlayFromDiscard(),
                             OngoingEffectLibrary.forFree({
-                                match: (card) => deckSearchContext.targets.includes(card) // note cost adjusters are attached to player, so have to refilter
+                                match: (card) => deckSearchContext.selectedPromptCards.includes(card) // note cost adjusters are attached to player, so have to refilter
                             })
                         ]
                     })),

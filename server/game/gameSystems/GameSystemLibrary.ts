@@ -59,6 +59,8 @@ import type { IExhaustResourcesProperties } from './ExhaustResourcesSystem';
 import { ExhaustResourcesSystem } from './ExhaustResourcesSystem';
 import type { IExhaustSystemProperties } from './ExhaustSystem';
 import { ExhaustSystem } from './ExhaustSystem';
+import type { IFlipDoubleSidedLeaderProperties } from './FlipDoubleSidedLeaderSystem';
+import { FlipDoubleSidedLeaderSystem } from './FlipDoubleSidedLeaderSystem';
 import type { IGiveExperienceProperties } from './GiveExperienceSystem';
 import { GiveExperienceSystem } from './GiveExperienceSystem';
 import type { IGiveShieldProperties } from './GiveShieldSystem';
@@ -114,6 +116,8 @@ import type { ICreateXWingProperties } from './CreateXWingSystem';
 import { CreateXWingSystem } from './CreateXWingSystem';
 import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
 import { CreateTieFighterSystem } from './CreateTieFighterSystem';
+import type { IViewCardAndSelectSingleProperties, IViewCardWithPerCardButtonsProperties } from './ViewCardSystem';
+import { ViewCardInteractMode } from './ViewCardSystem';
 
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
@@ -214,6 +218,9 @@ export function excessDamage<TContext extends AbilityContext = AbilityContext>(p
 export function exhaust<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustSystemProperties, TContext> = {}) {
     return new ExhaustSystem<TContext>(propertyFactory);
 }
+export function flipDoubleSidedLeader<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IFlipDoubleSidedLeaderProperties, TContext> = {}) {
+    return new FlipDoubleSidedLeaderSystem<TContext>(propertyFactory);
+}
 export function forThisPhaseCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardPhaseLastingEffectProperties, TContext>) {
     return new CardPhaseLastingEffectSystem<TContext>(propertyFactory);
 }
@@ -229,10 +236,30 @@ export function giveShield<TContext extends AbilityContext = AbilityContext>(pro
 export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);
 }
-export function lookAt<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookAtProperties, TContext> = {}) {
-    return new LookAtSystem<TContext>(propertyFactory);
+export function lookAt<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<ILookAtProperties, 'interactMode'>, TContext> = {}) {
+    return new LookAtSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<ILookAtProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.ViewOnly }
+        )
+    );
 }
-
+export function lookAtAndChooseOption<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewCardWithPerCardButtonsProperties, 'interactMode'>, TContext>) {
+    return new LookAtSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IViewCardWithPerCardButtonsProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.PerCardButtons }
+        )
+    );
+}
+export function lookAtAndSelectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewCardAndSelectSingleProperties, 'interactMode'>, TContext>) {
+    return new LookAtSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IViewCardAndSelectSingleProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.SelectSingle }
+        )
+    );
+}
 export function lookMoveDeckCardsTopOrBottom<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookMoveDeckCardsTopOrBottomProperties, TContext>) {
     return new LookMoveDeckCardsTopOrBottomSystem<TContext>(propertyFactory);
 }
@@ -357,8 +384,13 @@ export function returnToHand<TContext extends AbilityContext = AbilityContext>(p
 /**
  * default chatMessage = false
  */
-export function reveal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IRevealProperties, TContext> = {}) {
-    return new RevealSystem<TContext>(propertyFactory);
+export function reveal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IRevealProperties, 'interactMode'>, TContext> = {}) {
+    return new RevealSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IRevealProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.ViewOnly }
+        )
+    );
 }
 // export function sacrifice(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}) {
 //     return new DiscardFromPlayAction(propertyFactory, true);

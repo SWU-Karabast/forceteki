@@ -3,8 +3,6 @@ import { EventCard } from '../../../core/card/EventCard';
 import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class PrisonerOfWar extends EventCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '3799780905',

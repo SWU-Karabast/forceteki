@@ -19,6 +19,7 @@ import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterPrope
 import { CostAdjustType } from '../core/cost/CostAdjuster';
 import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
+import { playerCannot } from './PlayerCannot';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -76,6 +77,7 @@ export = {
     cannotAttackBase: () => OngoingEffectBuilder.card.static(EffectName.CannotAttackBase),
     dealsDamageBeforeDefender: () => OngoingEffectBuilder.card.static(EffectName.DealsDamageBeforeDefender),
     cardCannot,
+    playerCannot,
     // changeContributionFunction: (func) => OngoingEffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
     // changeType: (type) => OngoingEffectBuilder.card.static(EffectName.ChangeType, type),
     // characterProvidesAdditionalConflict: (type) =>
@@ -91,7 +93,6 @@ export = {
     // doesNotBow: () => OngoingEffectBuilder.card.static(EffectName.DoesNotBow),
     // doesNotReady: () => OngoingEffectBuilder.card.static(EffectName.DoesNotReady),
     // entersPlayWithStatus: (status) => OngoingEffectBuilder.card.static(EffectName.EntersPlayWithStatus, status),
-    // entersPlayForOpponent: () => OngoingEffectBuilder.card.static(EffectName.EntersPlayForOpponent),
     // fateCostToAttack: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),

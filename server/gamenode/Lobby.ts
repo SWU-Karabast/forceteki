@@ -17,6 +17,7 @@ interface LobbyUser {
     ready: boolean;
     socket: Socket | null;
     deck: Deck | null;
+    swuDeck?: Deck | null;
 }
 export enum MatchType {
     Custom = 'Custom',
@@ -74,6 +75,7 @@ export class Lobby {
                 state: u.state,
                 ready: u.ready,
                 deck: u.deck?.data,
+                swuDeck: u.swuDeck,
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
@@ -91,7 +93,7 @@ export class Lobby {
             : `https://beta.karabast.net/lobby?lobbyId=${this._id}`;
     }
 
-    public createLobbyUser(user, deck = null): void {
+    public createLobbyUser(user, deck = null, swuDeck = null): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         const newDeck = deck ? new Deck(deck) : this.useDefaultDeck(user);
         if (existingUser) {
@@ -105,6 +107,7 @@ export class Lobby {
             ready: false,
             socket: null,
             deck: newDeck,
+            swuDeck: swuDeck
         }));
     }
 
@@ -197,6 +200,8 @@ export class Lobby {
     private changeDeck(socket: Socket, ...args) {
         const activeUser = this.users.find((u) => u.id === socket.user.id);
         Contract.assertTrue(args[0] !== null);
+        Contract.assertTrue(args[1] !== null);
+        activeUser.swuDeck = new Deck(args[1]);
         activeUser.deck = new Deck(args[0]);
     }
 
