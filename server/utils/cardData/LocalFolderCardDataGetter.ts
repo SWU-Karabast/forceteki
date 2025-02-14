@@ -7,8 +7,24 @@ import { CardDataGetter } from './CardDataGetter';
 export class LocalFolderCardDataGetter extends SynchronousCardDataGetter {
     private readonly folderRoot: string;
 
-    public constructor(folderRoot: string) {
-        Contract.assertTrue(fs.existsSync(folderRoot), `Card data folder ${folderRoot} does not exist`);
+    private static validateFolderContents(directory: string, isLocal: boolean) {
+        const getCardsSuffix = isLocal ? ', please run \'npm run get-cards\'' : '';
+
+        Contract.assertTrue(fs.existsSync(directory), `Json card definitions folder ${directory} not found${getCardsSuffix}`);
+
+        const actualCardDataVersionPath = path.join(directory, 'card-data-version.txt');
+        Contract.assertTrue(fs.existsSync(actualCardDataVersionPath), `Card data version file ${actualCardDataVersionPath} not found${getCardsSuffix}`);
+
+        const expectedCardDataVersionPath = path.join(__dirname, '../../card-data-version.txt');
+        Contract.assertTrue(fs.existsSync(expectedCardDataVersionPath), `Repository file ${expectedCardDataVersionPath} not found${getCardsSuffix}`);
+
+        const actualCardDataVersion = fs.readFileSync(actualCardDataVersionPath, 'utf8');
+        const expectedCardDataVersion = fs.readFileSync(expectedCardDataVersionPath, 'utf8');
+        Contract.assertTrue(actualCardDataVersion === expectedCardDataVersion, `Json card data version mismatch, expected '${expectedCardDataVersion}' but found '${actualCardDataVersion}' currently installed${getCardsSuffix}`);
+    }
+
+    public constructor(folderRoot: string, isLocal: boolean) {
+        LocalFolderCardDataGetter.validateFolderContents(folderRoot, isLocal);
 
         const cardMap = JSON.parse(fs.readFileSync(path.join(folderRoot, CardDataGetter.cardMapFileName), 'utf8'));
         super(cardMap);
