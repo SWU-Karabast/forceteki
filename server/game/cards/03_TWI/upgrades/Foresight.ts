@@ -42,4 +42,3 @@ export default class Foresight extends UpgradeCard {
     }
 }
 
-Foresight.implemented = true;

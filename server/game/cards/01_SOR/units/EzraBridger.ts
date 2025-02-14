@@ -43,5 +43,3 @@ export default class EzraBridger extends NonLeaderUnitCard {
         });
     }
 }
-
-EzraBridger.implemented = true;

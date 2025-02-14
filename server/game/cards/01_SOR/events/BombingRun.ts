@@ -43,5 +43,3 @@ export default class BombingRun extends EventCard {
         }));
     }
 }
-
-BombingRun.implemented = true;

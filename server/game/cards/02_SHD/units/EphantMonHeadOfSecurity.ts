@@ -42,4 +42,3 @@ export default class EphantMonHeadOfSecurity extends NonLeaderUnitCard {
     }
 }
 
-EphantMonHeadOfSecurity.implemented = true;
