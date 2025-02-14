@@ -118,8 +118,8 @@ import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
 import { CreateTieFighterSystem } from './CreateTieFighterSystem';
 import type { IViewCardAndSelectSingleProperties, IViewCardWithPerCardButtonsProperties } from './ViewCardSystem';
 import { ViewCardInteractMode } from './ViewCardSystem';
-import type { IIndirectDamageProperties } from './IndirectDamageSystem';
-import { IndirectDamageSystem } from './IndirectDamageSystem';
+import type { IIndirectDamageToPlayerProperties } from './IndirectDamageToPlayerSystem';
+import { IndirectDamageToPlayerSystem } from './IndirectDamageToPlayerSystem';
 
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
@@ -238,8 +238,8 @@ export function giveShield<TContext extends AbilityContext = AbilityContext>(pro
 export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);
 }
-export function indirectDamage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IIndirectDamageProperties, TContext>) {
-    return new IndirectDamageSystem<TContext>(propertyFactory);
+export function indirectDamageToPlayer<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IIndirectDamageToPlayerProperties, TContext>) {
+    return new IndirectDamageToPlayerSystem<TContext>(propertyFactory);
 }
 export function lookAt<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<ILookAtProperties, 'interactMode'>, TContext> = {}) {
     return new LookAtSystem<TContext>(

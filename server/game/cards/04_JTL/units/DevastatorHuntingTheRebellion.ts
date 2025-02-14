@@ -17,7 +17,7 @@ export default class DevastatorHuntingTheRebellion extends NonLeaderUnitCard {
 
         this.addWhenPlayedAbility({
             title: 'Deal 4 indirect damage to each opponent',
-            immediateEffect: AbilityHelper.immediateEffects.indirectDamage((context) => ({
+            immediateEffect: AbilityHelper.immediateEffects.indirectDamageToPlayer((context) => ({
                 amount: 4,
                 target: context.source.controller.opponent,
             })),
