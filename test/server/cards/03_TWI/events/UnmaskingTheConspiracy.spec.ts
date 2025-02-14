@@ -20,17 +20,19 @@ describe('Unmasking the Conspiracy', function() {
 
             // Player discards a card and looks at the opponent's hand
             context.player1.clickCard(context.unmaskingTheConspiracy);
-
             expect(context.player1).toHavePrompt('Choose a card to discard');
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
-            context.player1.clickCard(context.battlefieldMarine);
 
+            context.player1.clickCard(context.battlefieldMarine);
             expect(context.battlefieldMarine).toBeInZone('discard');
-            expect(context.getChatLogs(1)).toContain('Unmasking the Conspiracy sees AT-ST and Waylay');
-            expect(context.player1).toBeAbleToSelectExactly([context.atst, context.waylay]);
+
+            // Check that the lookAt sends ALL the opponents cards in hand to chat
+            expect(context.getChatLogs(1)[0]).not.toContain(context.atst.title);
+            expect(context.getChatLogs(1)[0]).not.toContain(context.waylay.title);
 
             // Discards a card from the opponent's hand
-            context.player1.clickCard(context.atst);
+            expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.atst, context.waylay]);
+            context.player1.clickCardInDisplayCardPrompt(context.atst);
             expect(context.atst).toBeInZone('discard');
             expect(context.player2.hand.length).toBe(1);
 
