@@ -226,7 +226,7 @@ export enum EventName {
     OnEntireHandDiscarded = 'onEntireHandDiscarded',
     onExhaustResources = 'onExhaustResources',
     onExploitUnits = 'onExploitUnits',
-    OnIndirectDamageDealt = 'onIndirectDamageDealt',
+    OnIndirectDamageDealtToPlayer = 'onIndirectDamageDealtToPlayer',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLeaderFlipped = 'onLeaderFlipped',

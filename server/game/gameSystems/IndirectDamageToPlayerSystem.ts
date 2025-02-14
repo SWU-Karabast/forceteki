@@ -12,8 +12,8 @@ export interface IIndirectDamageToPlayerProperties extends IPlayerTargetSystemPr
 }
 
 export class IndirectDamageToPlayerSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, IIndirectDamageToPlayerProperties> {
-    public override readonly name = 'indirectDamage';
-    public override readonly eventName = EventName.OnIndirectDamageDealt;
+    public override readonly name = 'indirectDamageToPlayer';
+    public override readonly eventName = EventName.OnIndirectDamageDealtToPlayer;
 
     protected override defaultProperties: IIndirectDamageToPlayerProperties = {
         amount: 1
