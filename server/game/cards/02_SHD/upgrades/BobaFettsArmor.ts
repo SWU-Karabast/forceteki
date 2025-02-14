@@ -19,7 +19,7 @@ export default class BobaFettsArmor extends UpgradeCard {
             when: {
                 onDamageDealt: (event, context) => event.card === context.source.parentCard &&
                   context.source.parentCard.title === 'Boba Fett' &&
-                  !(event.indirect ?? false)
+                  !!event.isIndirect
             },
             replaceWith: {
                 replacementImmediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
