@@ -16,7 +16,7 @@ export class IndirectDamageToPlayerSystem<TContext extends AbilityContext = Abil
     public override readonly eventName = EventName.OnIndirectDamageDealtToPlayer;
 
     protected override defaultProperties: IIndirectDamageToPlayerProperties = {
-        amount: 1
+        amount: null,
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
