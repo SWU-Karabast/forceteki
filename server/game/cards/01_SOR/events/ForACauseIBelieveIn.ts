@@ -15,9 +15,9 @@ export default class ForACauseIBelieveIn extends EventCard {
         this.setEventAbility({
             title: 'Reveal the top 4 cards of your deck',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => {
-                const topCardsOfDeck = context.source.controller.getTopCardsOfDeck(4);
+                const topCardsOfDeck = context.player.getTopCardsOfDeck(4);
                 const heroicCount = this.getHeroicCountFromCards(topCardsOfDeck);
-                const opponentBaseRemainingHp = context.source.controller.opponent.base.remainingHp;
+                const opponentBaseRemainingHp = context.player.opponent.base.remainingHp;
 
                 // Do a simple chat reveal if this will deal lethal damage
                 const revealEffect = (heroicCount >= opponentBaseRemainingHp)
@@ -43,7 +43,7 @@ export default class ForACauseIBelieveIn extends EventCard {
                 return [
                     revealEffect,
                     AbilityHelper.immediateEffects.damage({
-                        target: context.source.controller.opponent.base,
+                        target: context.player.opponent.base,
                         amount: heroicCount
                     })
                 ];
