@@ -59,7 +59,8 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
 
         const promptData: IDistributeAmongTargetsPromptData = {
             type: this.properties.type,
-            amount: this.properties.amount
+            amount: this.properties.amount,
+            isIndirectDamange: this.properties.type === StatefulPromptType.DistributeIndirectDamage,
         };
 
         const buttons = [{ text: 'Done', arg: 'done', command: 'statefulPromptResults' }];

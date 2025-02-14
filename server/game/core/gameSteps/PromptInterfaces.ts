@@ -65,6 +65,7 @@ export interface IDistributeAmongTargetsPromptProperties extends IPromptProperti
 export interface IDistributeAmongTargetsPromptData {
     type: DistributePromptType;
     amount: number;
+    isIndirectDamange: boolean;
 }
 
 export interface IDistributeAmongTargetsPromptResults {
