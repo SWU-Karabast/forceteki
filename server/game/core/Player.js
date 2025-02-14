@@ -434,8 +434,8 @@ class Player extends GameObject {
         return this.game.initiativePlayer === this;
     }
 
-    canAssignIndirectDamageDealtToOpponents() {
-        return this.hasOngoingEffect(EffectName.CanAssignIndirectDamageDealtToOpponents);
+    assignIndirectDamageDealtToOpponents() {
+        return this.hasOngoingEffect(EffectName.AssignIndirectDamageDealtToOpponents);
     }
 
     /**
