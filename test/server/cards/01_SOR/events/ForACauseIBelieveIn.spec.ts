@@ -18,16 +18,11 @@ describe('For A Cause I Believe In', function() {
 
             context.player1.clickCard(context.forACauseIBelieveIn);
 
-            // P2 gets to see the top 4 cards of P1's deck
-            expect(context.player2).toHaveEnabledPromptButton('Done');
-            expect(context.player2).toHaveExactViewableDisplayPromptCards([
-                context.battlefieldMarine,
-                context.echoBaseDefender,
-                context.specforceSoldier,
-                context.regionalSympathizers
-            ]);
-
-            context.player2.clickPrompt('Done');
+            // Top 4 cards are revealed in chat
+            expect(context.getChatLogs(1)[0]).toContain(context.battlefieldMarine.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.specforceSoldier.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.echoBaseDefender.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.regionalSympathizers.title);
 
             // 4 damage is dealt for the 4 Heroic cards revealed
             expect(context.player2.base.damage).toBe(4);
@@ -73,16 +68,11 @@ describe('For A Cause I Believe In', function() {
 
             context.player1.clickCard(context.forACauseIBelieveIn);
 
-            // P2 gets to see the top 4 cards of P1's deck
-            expect(context.player2).toHaveEnabledPromptButton('Done');
-            expect(context.player2).toHaveExactViewableDisplayPromptCards([
-                context.atst,
-                context.waylay,
-                context.wampa,
-                context.frontierAtrt
-            ]);
-
-            context.player2.clickPrompt('Done');
+            // Top 4 cards are revealed in chat
+            expect(context.getChatLogs(1)[0]).toContain(context.atst.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.waylay.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.frontierAtrt.title);
 
             // 0 damage is dealt for the 0 Heroic cards revealed
             expect(context.player2.base.damage).toBe(0);
@@ -124,14 +114,9 @@ describe('For A Cause I Believe In', function() {
 
             context.player1.clickCard(context.forACauseIBelieveIn);
 
-            // P2 gets to see the top 2 cards of P1's deck
-            expect(context.player2).toHaveEnabledPromptButton('Done');
-            expect(context.player2).toHaveExactViewableDisplayPromptCards([
-                context.atst,
-                context.echoBaseDefender
-            ]);
-
-            context.player2.clickPrompt('Done');
+            // Top 2 cards are revealed in chat
+            expect(context.getChatLogs(1)[0]).toContain(context.atst.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.echoBaseDefender.title);
 
             // 1 damage is dealt for the 1 Heroism card revealed
             expect(context.player2.base.damage).toBe(1);
@@ -197,6 +182,8 @@ describe('For A Cause I Believe In', function() {
             expect(context.player1.base.damage).toBe(30);
             expect(context.player2.base.damage).toBe(0);
 
+            // The FACIBI reveal prompt is hiding under the Game Over prompt here
+            // Is there a way to avoid this?
             context.allowTestToEndWithOpenPrompt = true;
         });
 
@@ -209,7 +196,7 @@ describe('For A Cause I Believe In', function() {
                         'battlefield-marine',
                         'echo-base-defender',
                         'specforce-soldier',
-                        'regional-sympathizers'
+                        'this-is-the-way'
                     ]
                 },
                 player2: {
@@ -221,15 +208,11 @@ describe('For A Cause I Believe In', function() {
 
             context.player1.clickCard(context.forACauseIBelieveIn);
 
-            expect(context.player2).toHaveEnabledPromptButton('Done');
-            expect(context.player2).toHaveExactViewableDisplayPromptCards([
-                context.battlefieldMarine,
-                context.echoBaseDefender,
-                context.specforceSoldier,
-                context.regionalSympathizers
-            ]);
-
-            context.player2.clickPrompt('Done');
+            // Top 4 cards are revealed in chat
+            expect(context.getChatLogs(2)[0]).toContain(context.battlefieldMarine.title);
+            expect(context.getChatLogs(2)[0]).toContain(context.specforceSoldier.title);
+            expect(context.getChatLogs(2)[0]).toContain(context.echoBaseDefender.title);
+            expect(context.getChatLogs(2)[0]).toContain(context.thisIsTheWay.title);
 
             expect(context.player2.base.damage).toBe(30);
 

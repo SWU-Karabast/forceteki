@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { Card } from '../../../core/card/Card';
 import { EventCard } from '../../../core/card/EventCard';
-import { Aspect, EventName, RelativePlayer } from '../../../core/Constants';
+import { Aspect } from '../../../core/Constants';
 
 export default class ForACauseIBelieveIn extends EventCard {
     protected override getImplementationId() {
@@ -13,47 +14,45 @@ export default class ForACauseIBelieveIn extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Reveal the top 4 cards of your deck',
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.reveal((context) => ({
-                    target: context.source.controller.getTopCardsOfDeck(4),
-                    useDisplayPrompt: true,
-                    promptedPlayer: RelativePlayer.Opponent
-                })),
-                AbilityHelper.immediateEffects.damage((context) => ({
-                    target: context.source.controller.opponent.base,
-                    amount: this.getHeroicCountFromRevealedCards(context.events)
-                })),
-                AbilityHelper.immediateEffects.conditional((context) => ({
-                    condition: context.source.controller.opponent.base.remainingHp > 0,
-                    onTrue: AbilityHelper.immediateEffects.lookAtAndChooseOption((context) => {
-                        const topCardsOfDeck = context.source.controller.getTopCardsOfDeck(4);
+            immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => {
+                const topCardsOfDeck = context.source.controller.getTopCardsOfDeck(4);
+                const heroicCount = this.getHeroicCountFromCards(topCardsOfDeck);
+                const opponentBaseRemainingHp = context.source.controller.opponent.base.remainingHp;
 
-                        return {
-                            target: topCardsOfDeck,
-                            perCardButtons: [
-                                {
-                                    text: 'Put on top',
-                                    arg: 'top',
-                                    immediateEffect: AbilityHelper.immediateEffects.moveToTopOfDeck({})
-                                },
-                                {
-                                    text: 'Discard',
-                                    arg: 'discard',
-                                    immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard()
-                                }
-                            ]
-                        };
-                    }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
-                }))
-            ])
+                // Do a simple chat reveal if this will deal lethal damage
+                const revealEffect = (heroicCount >= opponentBaseRemainingHp)
+                    ? AbilityHelper.immediateEffects.reveal({
+                        target: topCardsOfDeck,
+                    })
+                    : AbilityHelper.immediateEffects.revealAndChooseOption({
+                        target: topCardsOfDeck,
+                        perCardButtons: [
+                            {
+                                text: 'Put on top',
+                                arg: 'top',
+                                immediateEffect: AbilityHelper.immediateEffects.moveToTopOfDeck({})
+                            },
+                            {
+                                text: 'Discard',
+                                arg: 'discard',
+                                immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard()
+                            }
+                        ]
+                    });
+
+                return [
+                    revealEffect,
+                    AbilityHelper.immediateEffects.damage({
+                        target: context.source.controller.opponent.base,
+                        amount: heroicCount
+                    })
+                ];
+            }),
         });
     }
 
-    private getHeroicCountFromRevealedCards(events: any[]): number {
-        return events
-            .filter((event) => event.name === EventName.OnCardRevealed)
-            .flatMap((event) => event.cards)
+    private getHeroicCountFromCards(cards: Card[]): number {
+        return cards
             .reduce((acc, card) => {
                 if (card.aspects.includes(Aspect.Heroism)) {
                     acc += 1;

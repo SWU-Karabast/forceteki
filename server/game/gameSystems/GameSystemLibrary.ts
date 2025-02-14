@@ -392,6 +392,15 @@ export function reveal<TContext extends AbilityContext = AbilityContext>(propert
         )
     );
 }
+export function revealAndChooseOption<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewCardWithPerCardButtonsProperties, 'interactMode'>, TContext>) {
+    return new RevealSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IRevealProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.PerCardButtons }
+        )
+    );
+}
+
 // export function sacrifice(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}) {
 //     return new DiscardFromPlayAction(propertyFactory, true);
 // }
