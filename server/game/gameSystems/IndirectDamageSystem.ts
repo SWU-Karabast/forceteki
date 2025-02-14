@@ -1,5 +1,6 @@
+import * as EnumHelpers from '../core/utils/EnumHelpers.js';
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { EventName, RelativePlayer } from '../core/Constants';
+import { EventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
@@ -28,7 +29,7 @@ export class IndirectDamageSystem<TContext extends AbilityContext = AbilityConte
 
         new DistributeIndirectDamageSystem({
             amountToDistribute: properties.amount,
-            player: context.player === properties.target[0] ? RelativePlayer.Self : RelativePlayer.Opponent
+            player: EnumHelpers.asRelativePlayer(properties.target[0], context.player),
         }).queueGenerateEventGameSteps(events, context);
     }
 
