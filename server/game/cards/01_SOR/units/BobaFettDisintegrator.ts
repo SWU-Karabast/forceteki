@@ -33,5 +33,3 @@ export default class BobaFettDisintegrator extends NonLeaderUnitCard {
         });
     }
 }
-
-BobaFettDisintegrator.implemented = true;

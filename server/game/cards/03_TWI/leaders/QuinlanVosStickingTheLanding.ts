@@ -50,4 +50,3 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
     }
 }
 
-QuinlanVosStickingTheLanding.implemented = true;

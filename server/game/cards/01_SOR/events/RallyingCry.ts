@@ -20,5 +20,3 @@ export default class RallyingCry extends EventCard {
         });
     }
 }
-
-RallyingCry.implemented = true;
