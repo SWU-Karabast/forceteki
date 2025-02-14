@@ -395,29 +395,28 @@ export class Card extends OngoingEffectSource {
         return false;
     }
 
-    // TODO THIS PR: don't do type enum checks here, do overrides
     public isLeader(): this is ILeaderCard {
-        return this.type === CardType.Leader || this.type === CardType.LeaderUnit;
+        return false;
     }
 
     public isLeaderUnit(): this is ILeaderUnitCard {
-        return this.type === CardType.LeaderUnit;
+        return false;
     }
 
     public isNonLeaderUnit(): this is INonLeaderUnitCard {
-        return this.type === CardType.BasicUnit || this.type === CardType.TokenUnit;
+        return false;
     }
 
     public isToken(): this is ITokenCard {
-        return this.type === CardType.TokenUnit || this.type === CardType.TokenUpgrade;
+        return false;
     }
 
     public isTokenUnit(): this is ITokenUnitCard {
-        return this.type === CardType.TokenUnit;
+        return false;
     }
 
     public isTokenUpgrade(): this is ITokenUpgradeCard {
-        return this.type === CardType.TokenUpgrade;
+        return false;
     }
 
     public isPlayable(): this is IPlayableCard {
@@ -435,11 +434,6 @@ export class Card extends OngoingEffectSource {
     /** Returns true if the card is of a type that can legally be damaged. Note that the card might still be in a zone where damage is not legal. */
     public canBeDamaged(): this is ICardWithDamageProperty {
         return false;
-    }
-
-    /** Returns true if the card is of a type that can legally be involved in an attack. Note that the card might still be in a zone where attacks are not legal. */
-    public canBeInvolvedInAttack(): this is ICardWithDamageProperty {
-        return this.canBeDamaged();
     }
 
     /**

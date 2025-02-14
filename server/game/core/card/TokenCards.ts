@@ -12,7 +12,13 @@ export interface ITokenUpgradeCard extends ITokenCard, IUpgradeCard {}
 export interface ITokenUnitCard extends ITokenCard, IUnitCard {}
 
 export class TokenUnitCard extends TokenUnitParent implements ITokenUnitCard {
+    public override isTokenUnit(): this is ITokenUnitCard {
+        return true;
+    }
 }
 
 export class TokenUpgradeCard extends TokenUpgradeParent implements ITokenUpgradeCard {
+    public override isTokenUpgrade(): this is ITokenUpgradeCard {
+        return true;
+    }
 }
