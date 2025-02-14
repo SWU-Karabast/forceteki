@@ -173,7 +173,10 @@ function getUniqueCards(cards) {
     for (const card of cards) {
         // creates a map of set code + card number to card id. removes reprints when done since we don't need that in the card data
         if (!card.types.includes('token')) {
-            setCodeMap[`${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`] = card.id;
+            const setCodeStr = `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
+            if (!setCodeMap.hasOwnProperty(setCodeStr)) {
+                setCodeMap[setCodeStr] = card.id;
+            }
 
             let mostRecentSetCode = card.setId;
             for (const reprint of card.reprints.data) {
