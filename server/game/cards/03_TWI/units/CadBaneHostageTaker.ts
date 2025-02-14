@@ -1,11 +1,9 @@
 import AbilityHelper from '../../../AbilityHelper';
-import type { UnitCard } from '../../../core/card/CardTypes';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class CadBaneHostageTaker extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '0693815329',
@@ -23,7 +21,7 @@ export default class CadBaneHostageTaker extends NonLeaderUnitCard {
                 numCards: 3,
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                multiSelectCardCondition: (card, selectedCards) => card.isUnit() && selectedCards.reduce((totalHp, selectedCard) => totalHp + (selectedCard as UnitCard).remainingHp, card.remainingHp) <= 8,
+                multiSelectCardCondition: (card, selectedCards) => card.isUnit() && selectedCards.reduce((totalHp, selectedCard) => totalHp + (selectedCard as IUnitCard).remainingHp, card.remainingHp) <= 8,
                 immediateEffect: AbilityHelper.immediateEffects.capture()
             }
         });

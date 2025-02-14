@@ -24,4 +24,3 @@ export default class CalculatingMagnaGuard extends NonLeaderUnitCard {
     }
 }
 
-CalculatingMagnaGuard.implemented = true;

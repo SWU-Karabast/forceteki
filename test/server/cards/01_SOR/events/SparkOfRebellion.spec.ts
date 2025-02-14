@@ -16,13 +16,15 @@ describe('Spark Of Rebellion', function () {
 
                 context.player1.clickCard(context.sparkOfRebellion);
 
-                // First check that the lookAt sends ALL the oppoents cards in hand to chat
-                expect(context.getChatLogs(1)).toContain('Spark of Rebellion sees Battlefield Marine, Waylay, Protector, and Inferno Four');
+                // First check that the lookAt sends ALL the opponents cards in hand to chat
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine, context.waylay, context.protector, context.infernoFour]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                expect(context.getChatLogs(1)[0]).not.toContain(context.battlefieldMarine.title);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.waylay.title);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.protector.title);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.infernoFour.title);
 
-                // Now the player can select any card in the opponents hand
-                expect(context.player1).toBeAbleToSelectAllOf([context.battlefieldMarine, context.waylay, context.protector, context.infernoFourUnforgetting]);
-
-                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
                 expect(context.battlefieldMarine).toBeInZone('discard');
 
                 context.player2.passAction();
@@ -33,10 +35,12 @@ describe('Spark Of Rebellion', function () {
                 // Now test only one card to discard
                 context.player1.clickCard(context.sparkOfRebellion);
 
-                expect(context.getChatLogs(1)).toContain('Spark of Rebellion sees Inferno Four');
-                expect(context.player1).toBeAbleToSelectAllOf([context.infernoFourUnforgetting]);
-                context.player1.clickCard(context.infernoFourUnforgetting);
-                expect(context.infernoFourUnforgetting).toBeInZone('discard');
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.infernoFour]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+                expect(context.getChatLogs(1)[0]).not.toContain(context.infernoFour.title);
+
+                context.player1.clickCardInDisplayCardPrompt(context.infernoFour);
+                expect(context.infernoFour).toBeInZone('discard');
 
                 context.player2.passAction();
 
@@ -45,8 +49,7 @@ describe('Spark Of Rebellion', function () {
 
                 // No choice here so no prompt
                 context.player1.clickCard(context.sparkOfRebellion);
-                // Nothing for lookAt to reveal either -- you get this default message
-                expect(context.getChatLogs(1)).toContain('player1 plays Spark of Rebellion to look at a card');
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

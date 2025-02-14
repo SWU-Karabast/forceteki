@@ -2,25 +2,26 @@ import { GameObject } from '../GameObject';
 import type Game from '../Game';
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
-import type { CardWithDamageProperty, UnitCard } from '../card/CardTypes';
 import { EffectName, KeywordName } from '../Constants';
+import type { IAttackableCard } from '../card/CardInterfaces';
+import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 
 
 type StatisticTotal = number;
 
 export class Attack extends GameObject {
-    public readonly attacker: UnitCard;
+    public readonly attacker: IUnitCard;
     public readonly attackerInPlayId: number;
     public readonly isAmbush: boolean;
-    public readonly target: CardWithDamageProperty;
+    public readonly target: IAttackableCard;
     public readonly targetInPlayId?: number;
 
     public previousAttack: Attack;
 
     public constructor(
         game: Game,
-        attacker: UnitCard,
-        target: CardWithDamageProperty,
+        attacker: IUnitCard,
+        target: IAttackableCard,
         isAmbush: boolean = false
     ) {
         super(game, 'Attack');
@@ -73,7 +74,7 @@ export class Attack extends GameObject {
         return `${this.attacker.name}: ${this.getAttackerTotalPower()} vs ${this.getTargetTotalPower()}: ${this.target.name}`;
     }
 
-    private getUnitPower(involvedUnit: UnitCard): StatisticTotal {
+    private getUnitPower(involvedUnit: IUnitCard): StatisticTotal {
         Contract.assertTrue(involvedUnit.isInPlay(), `Unit ${involvedUnit.name} zone is ${involvedUnit.zoneName}, cannot participate in combat`);
 
         return involvedUnit.getPower();

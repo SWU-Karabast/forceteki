@@ -27,5 +27,3 @@ export default class LethalCrackdown extends EventCard {
         });
     }
 }
-
-LethalCrackdown.implemented = true;

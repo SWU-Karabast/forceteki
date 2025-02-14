@@ -24,5 +24,3 @@ export default class SnowtrooperLieutenant extends NonLeaderUnitCard {
         });
     }
 }
-
-SnowtrooperLieutenant.implemented = true;

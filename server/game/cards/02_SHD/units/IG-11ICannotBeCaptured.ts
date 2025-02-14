@@ -42,5 +42,3 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
         });
     }
 }
-
-IG11ICannotBeCaptured.implemented = true;

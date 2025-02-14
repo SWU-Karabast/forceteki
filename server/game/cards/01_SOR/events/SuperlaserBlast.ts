@@ -19,5 +19,3 @@ export default class SuperlaserBlast extends EventCard {
         });
     }
 }
-
-SuperlaserBlast.implemented = true;

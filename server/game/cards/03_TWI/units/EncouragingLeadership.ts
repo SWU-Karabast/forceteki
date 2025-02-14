@@ -20,5 +20,3 @@ export default class EncouragingLeadership extends EventCard {
         });
     }
 }
-
-EncouragingLeadership.implemented = true;

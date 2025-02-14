@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import type { UnitCard } from '../core/card/CardTypes';
-import type { UpgradeCard } from '../core/card/UpgradeCard';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import type { IUpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type Player from '../core/Player';
@@ -30,8 +30,8 @@ export interface ILastKnownInformation {
     power?: number;
     hp?: number;
     damage?: number;
-    parentCard?: UnitCard;
-    upgrades?: UpgradeCard[];
+    parentCard?: IUnitCard;
+    upgrades?: IUpgradeCard[];
 }
 
 export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IDefeatCardPropertiesBase = IDefeatCardProperties> extends CardTargetSystem<TContext, TProperties> {

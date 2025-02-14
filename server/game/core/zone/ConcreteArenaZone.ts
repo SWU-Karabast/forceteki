@@ -1,4 +1,4 @@
-import type { InPlayCard } from '../card/baseClasses/InPlayCard';
+import type { IInPlayCard } from '../card/baseClasses/InPlayCard';
 import type { Card } from '../card/Card';
 import type { ZoneName } from '../Constants';
 import type Game from '../Game';
@@ -16,9 +16,9 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implemen
     public abstract override readonly name: ZoneName;
     public override readonly owner: Game;
 
-    protected _cards = new Map<Player, InPlayCard[]>();
+    protected _cards = new Map<Player, IInPlayCard[]>();
 
-    public override get cards(): InPlayCard[] {
+    public override get cards(): IInPlayCard[] {
         return Array.from(this._cards.values()).flat();
     }
 
@@ -37,10 +37,10 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implemen
         this._cards.set(player2, []);
     }
 
-    public override getCards(filter?: IArenaZoneCardFilterProperties): InPlayCard[] {
+    public override getCards(filter?: IArenaZoneCardFilterProperties): IInPlayCard[] {
         const filterFn = this.buildFilterFn(filter);
 
-        let cards: InPlayCard[] = [];
+        let cards: IInPlayCard[] = [];
 
         for (const [player, playerCards] of this._cards) {
             if (!filter?.controller || filter.controller === player) {
@@ -51,7 +51,7 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implemen
         return cards;
     }
 
-    public addCard(card: InPlayCard) {
+    public addCard(card: IInPlayCard) {
         const controller = card.controller;
         const cardListForController = this._cards.get(controller);
 

@@ -28,4 +28,3 @@ export default class PoggleTheLesserArchdukeOfTheStalgasinHive extends NonLeader
     }
 }
 
-PoggleTheLesserArchdukeOfTheStalgasinHive.implemented = true;
