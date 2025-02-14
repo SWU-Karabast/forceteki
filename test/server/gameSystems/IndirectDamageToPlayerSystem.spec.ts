@@ -97,8 +97,6 @@ describe('IndirectDamageToPlayer system', function() {
                     [context.p2Base, 1],
                 ]));
             });
-
-            // TODO: Add test for indirect damage with Finn TWI unit
         });
     });
 });
