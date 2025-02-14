@@ -12,3 +12,4 @@ rimraf.sync('./build/');
 fs.mkdirSync('./build/server', { recursive: true });
 
 runCommand('tsc');
+runCommand('cpy ./card-data-version.txt ./build/server/');
