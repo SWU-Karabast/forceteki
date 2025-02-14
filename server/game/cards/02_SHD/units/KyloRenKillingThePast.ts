@@ -36,5 +36,3 @@ export default class KyloRenKillingThePast extends NonLeaderUnitCard {
         });
     }
 }
-
-KyloRenKillingThePast.implemented = true;

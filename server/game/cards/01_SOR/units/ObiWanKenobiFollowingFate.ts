@@ -30,5 +30,3 @@ export default class ObiWanKenobiFollowingFate extends NonLeaderUnitCard {
         });
     }
 }
-
-ObiWanKenobiFollowingFate.implemented = true;

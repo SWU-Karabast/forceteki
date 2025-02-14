@@ -29,5 +29,3 @@ export default class MaKlounkee extends EventCard {
         });
     }
 }
-
-MaKlounkee.implemented = true;

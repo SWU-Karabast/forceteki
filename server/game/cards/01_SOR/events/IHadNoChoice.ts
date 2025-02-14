@@ -38,5 +38,3 @@ export default class IHadNoChoice extends EventCard {
         });
     }
 }
-
-IHadNoChoice.implemented = true;

@@ -30,5 +30,3 @@ export default class PowerFailure extends EventCard {
         });
     }
 }
-
-PowerFailure.implemented = true;

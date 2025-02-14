@@ -1,8 +1,8 @@
+type IBaseCard = import('../../server/game/core/card/BaseCard').IBaseCard;
+type ILeaderCard = import('../../server/game/core/card/propertyMixins/LeaderProperties').ILeaderCard;
 type Card = import('../../server/game/core/card/Card').Card;
 type DeckBuilder = import('./DeckBuilder').DeckBuilder;
 type CardWithDamageProperty = import('../../server/game/core/card/CardTypes').CardWithDamageProperty;
-type BaseCard = import('../../server/game/core/card/BaseCard').BaseCard;
-type LeaderCard = import('../../server/game/core/card/LeaderCard').LeaderCard;
 type Game = import('../../server/game/core/Game');
 type Player = import('../../server/game/core/Player');
 type GameFlowWrapper = import('./GameFlowWrapper');
@@ -29,10 +29,10 @@ interface SwuTestContext {
     player2Name: string;
     player1: PlayerInteractionWrapper;
     player2: PlayerInteractionWrapper;
-    p1Base: BaseCard;
-    p1Leader: LeaderCard;
-    p2Base: BaseCard;
-    p2Leader: LeaderCard;
+    p1Base: IBaseCard;
+    p1Leader: ILeaderCard;
+    p2Base: IBaseCard;
+    p2Leader: ILeaderCard;
 
     allowTestToEndWithOpenPrompt: boolean;
 
