@@ -140,7 +140,7 @@ class Player extends GameObject {
     /**
      * Get all units in designated play arena(s) controlled by this player
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
-     * @param {(card: import('./card/CardTypes').UnitCard) => boolean} cardCondition Condition to filter cards
+     * @param {(card: import('./card/propertyMixins/UnitProperties').IUnitCard) => boolean} cardCondition Condition to filter cards
      */
     getUnitsInPlay(arena = WildcardZoneName.AnyArena, cardCondition = (card) => true) {
         return this.getArenaUnits({ arena, condition: cardCondition });
