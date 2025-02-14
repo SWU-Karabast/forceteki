@@ -63,7 +63,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     }
 
     protected override addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
-        const ability = super.createTriggeredAbility(properties);
+        const ability = super.addTriggeredAbility(properties);
         ability.registerEvents();
         return ability;
     }
