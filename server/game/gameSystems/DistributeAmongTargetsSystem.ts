@@ -34,7 +34,10 @@ export interface IDistributeAmongTargetsSystemProperties<TContext extends Abilit
     maxTargets?: number;
 }
 
-export abstract class DistributeAmongTargetsSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDistributeAmongTargetsSystemProperties> {
+export abstract class DistributeAmongTargetsSystem<
+    TContext extends AbilityContext = AbilityContext,
+    TProperties extends IDistributeAmongTargetsSystemProperties<TContext> = IDistributeAmongTargetsSystemProperties<TContext>
+> extends CardTargetSystem<TContext, TProperties> {
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Base];
     protected override defaultProperties: IDistributeAmongTargetsSystemProperties<TContext> = {
         amountToDistribute: null,

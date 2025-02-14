@@ -161,7 +161,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.mercenaryCompany.damage).toBe(4);
             });
 
-            it('redirects combat damage to another friendly Underworld unit, handling shields correctly', function () {
+            it('redirects combat damage to another friendly Underworld unit, handling shields and damage attribution correctly', function () {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
@@ -171,7 +171,8 @@ describe('Maul, Shadow Collective Visionary', function() {
                         ]
                     },
                     player2: {
-                        groundArena: ['luminara-unduli#softspoken-master']
+                        groundArena: ['luminara-unduli#softspoken-master'],
+                        leader: 'jango-fett#concealing-the-conspiracy'
                     }
                 });
 
@@ -221,9 +222,26 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.maul.isUpgraded()).toBeFalse();
                 expect(context.luminaraUnduli.damage).toBe(7);
                 expect(context.mercenaryCompany.damage).toBe(0);
+
+                // CASE 3: Deflect damage to Mercenary Company, opponent is able to exhaust Mercenary Company with Jango Fett's ability
+
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.maul);
+                context.player1.clickCard(context.luminaraUnduli);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.mercenaryCompany);
+
+                // Resolve Jango's ability
+                expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player2.clickPrompt('Exhaust this leader');
+
+                expect(context.mercenaryCompany.exhausted).toBeTrue();
+                expect(context.mercenaryCompany.damage).toBe(4);
+                expect(context.maul.damage).toBe(0);
             });
         });
     });
-
-    // TODO: test with Jango leader for attribution
 });

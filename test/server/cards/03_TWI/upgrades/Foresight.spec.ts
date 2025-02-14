@@ -18,6 +18,7 @@ describe('Foresight', function () {
             // should name a card
             expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
             context.player1.chooseListOption('Millennium Falcon');
+            context.player1.clickPrompt('Done');
 
             // top card is millennium falcon, can reveal and draw
             expect(context.player1).toHavePassAbilityPrompt('Reveal and draw the top card of deck');
@@ -34,6 +35,7 @@ describe('Foresight', function () {
 
             // wrong name, do not prompt to reveal and draw
             context.player1.chooseListOption('Wampa');
+            context.player1.clickPrompt('Done');
             expect(context.player1).toHavePrompt('Select between 0 and 1 cards to resource');
         });
     });

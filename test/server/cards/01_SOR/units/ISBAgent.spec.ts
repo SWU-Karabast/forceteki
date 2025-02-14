@@ -34,6 +34,12 @@ describe('ISB Agent', function() {
                         'player1 reveals Confiscate due to ISB Agent',
                     ]);
 
+                    expect(context.player2).toHaveExactViewableDisplayPromptCards([context.confiscate]);
+                    expect(context.player2).toHaveEnabledPromptButton('Done');
+                    expect(context.getChatLogs(1)[0]).toContain(context.confiscate.title);
+
+                    context.player2.clickPrompt('Done');
+
                     expect(context.player1).toBeAbleToSelectExactly([context.isbAgent, context.atst, context.cartelSpacer, context.wampa, context.allianceXwing]);
                     context.player1.clickCard(context.wampa);
 
