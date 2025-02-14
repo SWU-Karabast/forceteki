@@ -29,7 +29,7 @@ export class DistributeIndirectDamageSystem<TContext extends AbilityContext = Ab
     }
 
     protected override generateEffectSystem(target: Card = null, amount = 1): DamageSystem {
-        return new DamageSystem({ type: DamageType.Ability, target, amount, indirect: true });
+        return new DamageSystem({ type: DamageType.Ability, target, amount, isIndirect: true });
     }
 
     protected override canDistributeLessDefault(): boolean {
