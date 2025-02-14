@@ -7,20 +7,20 @@ import { DamageSystem } from './DamageSystem';
 import type { IDistributeAmongTargetsSystemProperties } from './DistributeAmongTargetsSystem';
 import { DistributeAmongTargetsSystem } from './DistributeAmongTargetsSystem';
 
-export type IDistributeIndirectDamageSystemProperties<TContext extends AbilityContext = AbilityContext> =
+export type IDistributeIndirectDamageToCardsSystemProperties<TContext extends AbilityContext = AbilityContext> =
     Omit<IDistributeAmongTargetsSystemProperties<TContext>, 'canChooseNoTargets' | 'controller' | 'maxTargets'>;
 
 /**
  * System for distributing indirect damage among target cards.
  * Will prompt the user to select where to put the damage (unless auto-selecting a single target is possible).
  */
-export class DistributeIndirectDamageSystem<TContext extends AbilityContext = AbilityContext> extends DistributeAmongTargetsSystem<TContext> {
-    protected override readonly eventName = MetaEventName.DistributeIndirectDamage;
-    public override readonly name = 'distributeIndirectDamage';
+export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityContext = AbilityContext> extends DistributeAmongTargetsSystem<TContext> {
+    protected override readonly eventName = MetaEventName.DistributeIndirectDamageToCards;
+    public override readonly name = 'distributeIndirectDamageToCards';
 
     public override promptType: DistributePromptType = StatefulPromptType.DistributeIndirectDamage;
 
-    public constructor(properties: IDistributeIndirectDamageSystemProperties<TContext>) {
+    public constructor(properties: IDistributeIndirectDamageToCardsSystemProperties<TContext>) {
         super({
             ...properties,
             canChooseNoTargets: false,

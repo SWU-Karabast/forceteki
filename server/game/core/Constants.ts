@@ -262,7 +262,7 @@ export enum MetaEventName {
     Conditional = 'conditional',
     ChooseModalEffects = 'ChooseModalEffects',
     DistributeDamage = 'distributeDamage',
-    DistributeIndirectDamage = 'distributeIndirectDamage',
+    DistributeIndirectDamageToCards = 'distributeIndirectDamageToCards',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
     ExecuteHandler = 'executeHandler',
