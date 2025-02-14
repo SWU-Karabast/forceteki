@@ -10,7 +10,8 @@ describe('Osi Sobeck, Warden of the Citadel', function () {
                     leader: 'hondo-ohnaka#thats-good-business'
                 },
                 player2: {
-                    groundArena: ['scout-bike-pursuer', 'wampa', 'atst', 'gor#grievouss-pet'],
+                    hand: ['drop-in'],
+                    groundArena: ['scout-bike-pursuer', 'wampa', 'atst', 'maul#shadow-collective-visionary', 'rugged-survivors', 'yoda#old-master', 'bail-organa#rebel-councilor'],
                     spaceArena: ['green-squadron-awing']
                 },
             });
@@ -22,7 +23,7 @@ describe('Osi Sobeck, Warden of the Citadel', function () {
             context.player1.clickPrompt('Play Osi Sobeck');
 
             // can capture any enemy ground unit which cost 6 or less
-            expect(context.player1).toBeAbleToSelectExactly([context.scoutBikePursuer, context.wampa, context.atst]);
+            expect(context.player1).toBeAbleToSelectExactly([context.bailOrgana, context.scoutBikePursuer, context.yoda, context.wampa, context.ruggedSurvivors, context.atst]);
 
             context.player1.clickCard(context.atst);
             expect(context.atst).toBeCapturedBy(context.osiSobeck);
@@ -40,7 +41,7 @@ describe('Osi Sobeck, Warden of the Citadel', function () {
             context.player1.clickPrompt('Done');
 
             // can capture any enemy ground unit which cost 4 or less
-            expect(context.player1).toBeAbleToSelectExactly([context.scoutBikePursuer, context.wampa]);
+            expect(context.player1).toBeAbleToSelectExactly([context.bailOrgana, context.scoutBikePursuer, context.yoda, context.wampa]);
 
             context.player1.clickCard(context.wampa);
             expect(context.wampa).toBeCapturedBy(context.osiSobeck);
@@ -48,14 +49,17 @@ describe('Osi Sobeck, Warden of the Citadel', function () {
             context.player1.moveCard(context.osiSobeck, 'discard');
             context.player2.moveCard(context.wampa, 'groundArena');
 
-            context.player2.passAction();
+            context.player2.clickCard(context.dropIn);
 
             // play osi sobeck free with palpatine's return
             context.player1.clickCard(context.palpatinesReturn);
             context.player1.clickCard(context.osiSobeck);
 
-            // cannot capture anybody
-            expect(context.player2).toBeActivePlayer();
+            const troopers = context.player2.findCardsByName('clone-trooper');
+
+            // can capture 0 cost unit
+            expect(context.player1).toBeAbleToSelectExactly(troopers);
+            context.player1.clickCard(troopers[0]);
         });
     });
 });

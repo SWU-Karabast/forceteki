@@ -4,8 +4,6 @@ import { TargetMode } from '../../../core/Constants';
 
 
 export default class ChimaeraFlagshipOfTheSeventhFleet extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '7728042035',
@@ -25,7 +23,10 @@ export default class ChimaeraFlagshipOfTheSeventhFleet extends NonLeaderUnitCard
                 title: 'An opponent reveals their hand and discards a card with that name from it',
                 thenCondition: (context) => context.source.controller.opponent.hand.length > 0,   // skip ability if opponent has no cards in hand
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.reveal((context) => ({ target: context.source.controller.opponent.hand })),
+                    AbilityHelper.immediateEffects.reveal((context) => ({
+                        target: context.player.opponent.hand,
+                        useDisplayPrompt: true
+                    })),
                     AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                         target: context.source.controller.opponent,
                         cardCondition: (card, _context) => card.title === thenContext.select,
