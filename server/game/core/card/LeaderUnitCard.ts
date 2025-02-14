@@ -1,6 +1,4 @@
 import type Player from '../Player';
-import type { ILeaderCard } from './LeaderCard';
-import { LeaderCard } from './LeaderCard';
 import type { ZoneFilter } from '../Constants';
 import { AbilityType, CardType, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
@@ -12,15 +10,20 @@ import * as Contract from '../utils/Contract';
 import { EpicActionLimit } from '../ability/AbilityLimit';
 import { DeployLeaderSystem } from '../../gameSystems/DeployLeaderSystem';
 import type { ActionAbility } from '../ability/ActionAbility';
+import type { ILeaderCard } from './propertyMixins/LeaderProperties';
+import { WithLeaderProperties } from './propertyMixins/LeaderProperties';
+import { InPlayCard } from './baseClasses/InPlayCard';
 
-const LeaderUnitCardParent = WithUnitProperties(LeaderCard);
+const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
+/** Represents a deployable leader in an undeployed state */
 export interface IDeployableLeaderCard extends ILeaderCard {
     get deployed(): boolean;
     deploy(): void;
     undeploy(): void;
 }
 
+/** Represents a deployable leader in a deployed state (i.e., is also a unit) */
 export interface ILeaderUnitCard extends IDeployableLeaderCard, IUnitCard {}
 
 export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitCard {

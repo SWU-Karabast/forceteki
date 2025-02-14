@@ -29,9 +29,10 @@ import type { ITokenCard } from './propertyMixins/Token';
 import type { ITokenUnitCard, ITokenUpgradeCard } from './TokenCards';
 import type { IInPlayCard } from './baseClasses/InPlayCard';
 import type { ICardWithCostProperty } from './propertyMixins/Cost';
-import type { ILeaderCard } from './LeaderCard';
 import type { INonLeaderUnitCard } from './NonLeaderUnitCard';
 import type { ICardCanChangeControllers } from './CardInterfaces';
+import type { ILeaderCard } from './propertyMixins/LeaderProperties';
+import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -455,9 +456,8 @@ export class Card extends OngoingEffectSource {
 
     /**
      * Returns true if the card is a type that can legally have triggered abilities.
-     * The returned type set is equivalent to {@link CardWithTriggeredAbilities}.
      */
-    public canRegisterTriggeredAbilities(): this is IInPlayCard | IBaseCard {
+    public canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
         return false;
     }
 

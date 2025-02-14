@@ -1,5 +1,5 @@
 import type { IBaseCard } from '../card/BaseCard';
-import type { ILeaderCard } from '../card/LeaderCard';
+import type { ILeaderCard } from '../card/propertyMixins/LeaderProperties';
 import { ZoneName } from '../Constants';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';

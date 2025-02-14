@@ -1,6 +1,5 @@
 import { CardType } from './core/Constants';
-import type { BaseCard } from './core/card/BaseCard';
-import type { LeaderCard } from './core/card/LeaderCard';
+import type { IBaseCard } from './core/card/BaseCard';
 import type { Card } from './core/card/Card';
 import { cards } from './cards/Index';
 import type Player from './core/Player';
@@ -8,6 +7,7 @@ import * as CardHelpers from './core/card/CardHelpers';
 import * as Contract from './core/utils/Contract';
 import type { IPlayableCard } from './core/card/baseClasses/PlayableOrDeployableCard';
 import type { ITokenCard } from './core/card/propertyMixins/Token';
+import type { ILeaderCard } from './core/card/propertyMixins/LeaderProperties';
 
 export class Deck {
     public constructor(public data: any) {}
@@ -19,8 +19,8 @@ export class Deck {
             outOfPlayCards: [],
             outsideTheGameCards: [] as Card[],
             tokens: [] as ITokenCard[],
-            base: undefined as BaseCard | undefined,
-            leader: undefined as LeaderCard | undefined,
+            base: undefined as IBaseCard | undefined,
+            leader: undefined as ILeaderCard | undefined,
             allCards: [] as Card[]
         };
 

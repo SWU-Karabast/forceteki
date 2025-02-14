@@ -7,18 +7,15 @@ import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
-import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
-import type { Card } from '../Card';
-import type { IBaseCard } from '../BaseCard';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
-import type { ActionAbility } from '../../ability/ActionAbility';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import { WithCost } from '../propertyMixins/Cost';
-import type { ICardWithTriggeredAbilities } from '../CardInterfaces';
+import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
+import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
 
-const InPlayCardParent = WithCost(PlayableOrDeployableCard);
+const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
@@ -29,7 +26,6 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get mostRecentInPlayId(): number;
     get pendingDefeat(): boolean;
     isInPlay(): boolean;
-    createReplacementEffectAbility<TSource extends Card>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility;
     addGainedActionAbility(properties: IActionAbilityProps): string;
     removeGainedActionAbility(removeAbilityUuid: string): void;
     addGainedConstantAbility(properties: IConstantAbilityProps): string;
@@ -123,51 +119,14 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         this._disableOngoingEffectsForDefeat = enabledStatus ? false : null;
     }
 
-    // ********************************************** ABILITY GETTERS **********************************************
-    /**
-     * `SWU 7.6.1`: Triggered abilities have bold text indicating their triggering condition, starting with the word
-     * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”
-     * “When Defeated,” and “On Attack” abilities
-     */
-    public getTriggeredAbilities(): TriggeredAbility[] {
-        return this.triggeredAbilities;
-    }
-
-
-    public override canRegisterTriggeredAbilities(): this is IInPlayCard | IBaseCard {
-        return true;
-    }
-
 
     // ********************************************* ABILITY SETUP *********************************************
-    protected addActionAbility(properties: IActionAbilityProps<this>): ActionAbility {
-        const ability = this.createActionAbility(properties);
-        this.actionAbilities.push(ability);
-        return ability;
-    }
-
-    protected addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbilityProps<this> {
-        const ability = this.createConstantAbility(properties);
+    protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
+        const ability = super.addConstantAbility(properties);
         // This check is necessary to make sure on-play cost-reduction effects are registered
         if (ability.sourceZoneFilter === WildcardZoneName.Any) {
             ability.registeredEffects = this.addEffectToEngine(ability);
         }
-        this.constantAbilities.push(ability);
-        return ability;
-    }
-
-    protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): ReplacementEffectAbility {
-        const ability = this.createReplacementEffectAbility(properties);
-
-        // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
-        this.triggeredAbilities.push(ability);
-
-        return ability;
-    }
-
-    protected addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
-        const ability = this.createTriggeredAbility(properties);
-        this.triggeredAbilities.push(ability);
         return ability;
     }
 
@@ -179,10 +138,6 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
         const triggeredProperties = Object.assign(properties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
         return this.addTriggeredAbility(triggeredProperties);
-    }
-
-    public createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
-        return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */

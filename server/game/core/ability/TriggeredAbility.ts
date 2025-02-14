@@ -8,7 +8,7 @@ import type Game from '../Game';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import * as Contract from '../utils/Contract';
 import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
-import type { ICardWithTriggeredAbilities } from '../card/CardInterfaces';
+import type { ICardWithTriggeredAbilities } from '../card/propertyMixins/TriggeredAbilityRegistration';
 
 interface IEventRegistration {
     name: string;

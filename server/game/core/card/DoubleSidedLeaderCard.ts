@@ -1,16 +1,19 @@
 import type Player from '../Player';
-import type { ILeaderCard } from './LeaderCard';
-import { LeaderCard } from './LeaderCard';
 import type { Aspect } from '../Constants';
 import { ZoneName } from '../Constants';
-import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
+import { WithLeaderProperties, type ILeaderCard } from './propertyMixins/LeaderProperties';
+import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
+import { WithAllAbilityTypes } from './propertyMixins/AllAbilityTypeRegistrations';
+
+const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
 export interface IDoubleSidedLeaderCard extends ILeaderCard {
     get onStartingSide(): boolean;
     flipLeader(): void;
 }
 
-export class DoubleSidedLeaderCard extends LeaderCard implements IDoubleSidedLeaderCard {
+export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implements IDoubleSidedLeaderCard {
     protected _onStartingSide = true;
     protected setupLeaderBackSide = false;
 
@@ -74,11 +77,6 @@ export class DoubleSidedLeaderCard extends LeaderCard implements IDoubleSidedLea
         properties.sourceZoneFilter = ZoneName.Base;
         properties.condition = () => !this.onStartingSide;
         return super.addConstantAbility(properties);
-    }
-
-    protected override addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>) {
-        properties.zoneFilter = ZoneName.Base;
-        return super.addReplacementEffectAbility(properties);
     }
 
     protected override addTriggeredAbility(properties: ITriggeredAbilityProps<this>) {

@@ -8,11 +8,12 @@ import { ActionAbility } from '../ability/ActionAbility';
 import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { EpicActionLimit } from '../ability/AbilityLimit';
+import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
+import { WithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
+import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import type TriggeredAbility from '../ability/TriggeredAbility';
-import type { IInPlayCard } from './baseClasses/InPlayCard';
-import type { ICardWithTriggeredAbilities } from './CardInterfaces';
 
-const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
+const BaseCardParent = WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card))));
 
 export interface IBaseCard extends ICardWithDamageProperty, ICardWithTriggeredAbilities {
     get epicActionSpent(): boolean;
@@ -51,15 +52,19 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return super.getActionAbilities();
     }
 
-    public override canRegisterTriggeredAbilities(): this is IInPlayCard | IBaseCard {
+    public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
         return true;
     }
 
-    // TODO TYPE REFACTOR: this method is duplicated
-    protected addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbilityProps<this> {
-        const ability = this.createConstantAbility(properties);
+    protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
+        const ability = super.addConstantAbility(properties);
         ability.registeredEffects = this.addEffectToEngine(ability);
-        this.constantAbilities.push(ability);
+        return ability;
+    }
+
+    protected override addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
+        const ability = super.createTriggeredAbility(properties);
+        ability.registerEvents();
         return ability;
     }
 
@@ -71,20 +76,6 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         });
 
         this._epicActionAbility = new ActionAbility(this.game, this, propertiesWithLimit);
-    }
-
-    protected addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
-        if (!this.triggeredAbilities) {
-            this.triggeredAbilities = [];
-        }
-        const ability = this.createTriggeredAbility(properties);
-        this.triggeredAbilities.push(ability);
-        ability.registerEvents();
-        return ability;
-    }
-
-    public getTriggeredAbilities(): TriggeredAbility[] {
-        return this.triggeredAbilities;
     }
 
     private epicActionSpentInternal(): boolean {
