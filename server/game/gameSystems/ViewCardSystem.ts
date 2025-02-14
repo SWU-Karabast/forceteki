@@ -164,8 +164,19 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
     }
 
     private buildPerCardButtonsPrompt(promptedPlayer: Player, cards: Card[], properties: IViewCardWithPerCardButtonsProperties, context: TContext) {
-        const buttonDefinitions = properties.perCardButtons.map((button) => ({ text: button.text, arg: button.arg, disabled: false }));
         const argsToEffects = new Map<string, GameSystem>(properties.perCardButtons.map((button) => [button.arg, button.immediateEffect]));
+        const buttonDefinitions = properties.perCardButtons.map((button) => {
+            let disabled = false;
+
+            // This is used to filter out game actions that wouldn't be legal such as playing a card blocked by Regional Governor
+            // If we ever have a prompt choice displaying more than one card, we'll need to update this
+            const gameSystem = argsToEffects.get(button.arg);
+            if (cards.length === 1 && !gameSystem.canAffect(cards[0], context)) {
+                disabled = true;
+            }
+
+            return { text: button.text, arg: button.arg, disabled: disabled };
+        });
 
         const events = [];
         const onCardButton = (card: Card, arg: string) => {
@@ -181,13 +192,6 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
                 context.game.openEventWindow(events);
             }, 'resolve effects on selected cards');
         };
-
-        for (const button of buttonDefinitions) {
-            const gameSystem = argsToEffects.get(button.arg);
-            if (cards.length === 1 && !gameSystem.canAffect(cards[0], context)) {
-                button.disabled = true;
-            }
-        }
 
         return () => context.game.promptDisplayCardsWithButtons(
             promptedPlayer,
