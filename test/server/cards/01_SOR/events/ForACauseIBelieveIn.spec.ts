@@ -183,7 +183,7 @@ describe('For A Cause I Believe In', function() {
             expect(context.player2.base.damage).toBe(0);
 
             // The FACIBI reveal prompt is hiding under the Game Over prompt here
-            // Is there a way to avoid this?
+            // https://github.com/SWU-Karabast/forceteki/issues/586
             context.allowTestToEndWithOpenPrompt = true;
         });
 
