@@ -164,7 +164,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
     }
 
     private buildPerCardButtonsPrompt(promptedPlayer: Player, cards: Card[], properties: IViewCardWithPerCardButtonsProperties, context: TContext) {
-        const buttonDefinitions = properties.perCardButtons.map((button) => ({ text: button.text, arg: button.arg }));
+        const buttonDefinitions = properties.perCardButtons.map((button) => ({ text: button.text, arg: button.arg, disabled: false }));
         const argsToEffects = new Map<string, GameSystem>(properties.perCardButtons.map((button) => [button.arg, button.immediateEffect]));
 
         const events = [];
@@ -181,6 +181,13 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
                 context.game.openEventWindow(events);
             }, 'resolve effects on selected cards');
         };
+
+        for (const button of buttonDefinitions) {
+            const gameSystem = argsToEffects.get(button.arg);
+            if (cards.length === 1 && !gameSystem.canAffect(cards[0], context)) {
+                button.disabled = true;
+            }
+        }
 
         return () => context.game.promptDisplayCardsWithButtons(
             promptedPlayer,
