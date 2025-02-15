@@ -146,10 +146,11 @@ class DeckBuilder {
     getAllNamedCards(playerObject) {
         let namedCards = [];
         for (const key of playerCardProperties) {
-            var playerValue = playerObject[key];
-            if (playerValue !== undefined) {
-                namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(playerValue));
+            var value = playerObject[key];
+            if (value === undefined) {
+                continue;
             }
+            namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(value));
         }
         return namedCards;
     }
