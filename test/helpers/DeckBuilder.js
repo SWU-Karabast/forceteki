@@ -6,7 +6,7 @@ const Util = require('./Util.js');
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
 const defaultBase = { 1: 'kestro-city', 2: 'administrators-tower' };
-const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'base', 'opponentAttachedUpgrades'];
+const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'base', 'opponentAttachedUpgrades', 'unitsCapturedByOpponent'];
 const deckFillerCard = 'underworld-thug';
 const defaultResourceCount = 20;
 const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
@@ -57,7 +57,7 @@ class DeckBuilder {
         capturedCards = capturedCards.concat(this.getCapturedUnitsFromArena(oppOptions.groundArena));
         capturedCards = capturedCards.concat(this.getCapturedUnitsFromArena(oppOptions.spaceArena));
 
-        playerCards.capturedUnits = capturedCards;
+        playerCards.unitsCapturedByOpponent = capturedCards;
 
         return playerCards;
     }
@@ -88,7 +88,7 @@ class DeckBuilder {
         return opponentAttachedUpgrades;
     }
 
-    customDeck(playerNumber, playerCards = {}, opponentCards = {}, phase) {
+    customDeck(playerNumber, playerCards = {}, phase) {
         if (Array.isArray(playerCards.leader)) {
             throw new TestSetupError('Test leader must not be specified as an array');
         }
@@ -98,9 +98,8 @@ class DeckBuilder {
 
         let allCards = [];
         let inPlayCards = [];
-        let capturedCards = [];
 
-        const namedCards = this.getAllNamedCards(playerCards, opponentCards);
+        const namedCards = this.getAllNamedCards(playerCards);
         let resources = [];
 
         allCards.push(this.getLeaderCard(playerCards, playerNumber));
@@ -135,42 +134,22 @@ class DeckBuilder {
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.groundArena));
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.spaceArena));
         inPlayCards = inPlayCards.concat(this.getUpgradesFromCard(playerCards.leader));
-
-        // Collect all the cards that the opponent has captured as this player owns them
-        capturedCards = capturedCards.concat(this.getCapturedUnitsFromArena(opponentCards.groundArena));
-        capturedCards = capturedCards.concat(this.getCapturedUnitsFromArena(opponentCards.spaceArena));
-
         // Collect all the cards together
         allCards = allCards.concat(inPlayCards);
-        allCards = allCards.concat(capturedCards);
+
+        // Add all the cards already captured by the opponent
+        allCards = allCards.concat(playerCards.unitsCapturedByOpponent);
 
         return [this.buildDeck(allCards), namedCards, resources, playerCards.deck];
     }
 
-    getAllNamedCards(playerObject, opponentObject) {
+    getAllNamedCards(playerObject) {
         let namedCards = [];
         for (const key of playerCardProperties) {
             var playerValue = playerObject[key];
             if (playerValue !== undefined) {
                 namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(playerValue));
             }
-            var opponentValue = opponentObject[key];
-            if (opponentValue !== undefined) {
-                namedCards = namedCards.concat(this.getNamedCapturedCardsInOpponentEntry(opponentValue));
-            }
-        }
-        return namedCards;
-    }
-
-    getNamedCapturedCardsInOpponentEntry(opponentEntry) {
-        let namedCards = [];
-        if (opponentEntry === null) {
-            throw new TestSetupError(`Null test card specifier format: '${opponentEntry}'`);
-        }
-        if (Array.isArray(opponentEntry)) {
-            opponentEntry.forEach((card) => namedCards = namedCards.concat(this.getNamedCapturedCardsInOpponentEntry(card)));
-        } else if (typeof opponentEntry === 'object' && opponentEntry !== null && 'card' in opponentEntry && opponentEntry.hasOwnProperty('capturedUnits')) {
-            namedCards = namedCards.concat(this.getCapturedUnitsFromCard(opponentEntry));
         }
         return namedCards;
     }
