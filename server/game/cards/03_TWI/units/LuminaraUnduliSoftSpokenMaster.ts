@@ -29,4 +29,3 @@ export default class LuminaraUnduliSoftSpokenMaster extends NonLeaderUnitCard {
     }
 }
 
-LuminaraUnduliSoftSpokenMaster.implemented = true;

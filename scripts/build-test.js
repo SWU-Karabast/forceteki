@@ -34,3 +34,5 @@ if (!buildAll) {
     */
     runCommand('concurrently "tsc" "tsc -p ./test/tsconfig.json" "cpy ./test/json/ ./build/"');
 }
+
+runCommand('cpy ./card-data-version.txt ./build/server/');

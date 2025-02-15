@@ -30,7 +30,7 @@ class GameStateBuilder {
             'startGame'
         ];
 
-        this.cardDataGetter = new LocalFolderCardDataGetter(directory);
+        this.cardDataGetter = new LocalFolderCardDataGetter(directory, true);
         this.deckBuilder = new DeckBuilder(this.cardDataGetter);
     }
 

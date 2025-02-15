@@ -2,8 +2,6 @@ import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 
 export default class UnmaskingTheConspirancy extends EventCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '0959549331',
@@ -20,15 +18,10 @@ export default class UnmaskingTheConspirancy extends EventCard {
             })),
             ifYouDo: {
                 title: 'Look at your opponent\'s hand and discard a card from it',
-                immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.lookAt((context) => ({
-                        target: context.player.opponent.hand,
-                    })),
-                    AbilityHelper.immediateEffects.discardCardsFromOpponentsHand((context) => ({
-                        target: context.player.opponent,
-                        amount: 1
-                    })),
-                ])
+                immediateEffect: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
+                    target: context.player.opponent.hand,
+                    immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard()
+                }))
             },
         });
     }

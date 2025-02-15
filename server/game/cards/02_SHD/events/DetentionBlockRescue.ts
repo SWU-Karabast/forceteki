@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 import { WildcardCardType } from '../../../core/Constants';
-import type { UnitCard } from '../../../core/card/CardTypes';
 
 export default class DetentionBlockRescue extends EventCard {
     protected override getImplementationId() {
@@ -17,7 +17,7 @@ export default class DetentionBlockRescue extends EventCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => (context.target as UnitCard).capturedUnits.length > 0,
+                    condition: (context) => (context.target as IUnitCard).capturedUnits.length > 0,
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 6 }),
                     onFalse: AbilityHelper.immediateEffects.damage({ amount: 3 })
                 })

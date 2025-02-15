@@ -17,5 +17,3 @@ export default class FollowerOfTheWay extends NonLeaderUnitCard {
         });
     }
 }
-
-FollowerOfTheWay.implemented = true;

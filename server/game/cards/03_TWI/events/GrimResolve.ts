@@ -22,5 +22,3 @@ export default class GrimResolve extends EventCard {
         });
     }
 }
-
-GrimResolve.implemented = true;

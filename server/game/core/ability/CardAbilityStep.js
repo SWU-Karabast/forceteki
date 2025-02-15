@@ -116,7 +116,6 @@ class CardAbilityStep extends PlayerOrCardAbility {
                 window.setSubAbilityStep(() => this.getSubAbilityStepContext(context, eventsToResolve));
             // if no events for the current step, skip directly to the "then" step (if any)
             } else {
-                // TODO THIS PR: make sure that this part also passes triggers to parent window?
                 const subAbilityStep = this.getSubAbilityStepContext(context, []);
                 if (!!subAbilityStep) {
                     this.game.resolveAbility(subAbilityStep);
