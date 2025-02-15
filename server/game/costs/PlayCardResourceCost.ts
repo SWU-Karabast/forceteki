@@ -6,7 +6,7 @@ import type { ICost, Result } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
 import type { ExploitPlayCardResourceCost } from '../abilities/keyword/ExploitPlayCardResourceCost';
-import type { CardWithCost } from '../core/card/CardTypes';
+import type { ICardWithCostProperty } from '../core/card/propertyMixins/Cost';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -14,7 +14,7 @@ import type { CardWithCost } from '../core/card/CardTypes';
  */
 export class PlayCardResourceCost<TContext extends AbilityContext = AbilityContext> implements ICost<TContext> {
     public readonly aspects: Aspect[];
-    public readonly card: CardWithCost;
+    public readonly card: ICardWithCostProperty;
     public readonly isPlayCost = true;
     public readonly playType: PlayType;
     public readonly resources: number;
@@ -22,7 +22,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     // used for extending this class if any cards have unique after pay hooks
     protected afterPayHook?: ((event: any) => void) = null;
 
-    public constructor(card: CardWithCost, playType: PlayType, resources: number = null, aspects: Aspect[] = null) {
+    public constructor(card: ICardWithCostProperty, playType: PlayType, resources: number = null, aspects: Aspect[] = null) {
         this.card = card;
         this.playType = playType;
 

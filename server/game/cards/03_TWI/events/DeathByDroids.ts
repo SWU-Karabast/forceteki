@@ -24,5 +24,3 @@ export default class DeathByDroids extends EventCard {
         });
     }
 }
-
-DeathByDroids.implemented = true;

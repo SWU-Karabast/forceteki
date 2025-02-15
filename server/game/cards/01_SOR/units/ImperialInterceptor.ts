@@ -25,5 +25,3 @@ export default class ImperialInterceptor extends NonLeaderUnitCard {
         });
     }
 }
-
-ImperialInterceptor.implemented = true;

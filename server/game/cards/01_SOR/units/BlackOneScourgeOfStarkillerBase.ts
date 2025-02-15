@@ -25,5 +25,3 @@ export default class BlackOneScourgeOfStarkillerBase extends NonLeaderUnitCard {
         });
     }
 }
-
-BlackOneScourgeOfStarkillerBase.implemented = true;

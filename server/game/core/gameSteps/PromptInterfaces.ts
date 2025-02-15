@@ -32,12 +32,14 @@ export interface IDisplayCard {
 
 export enum StatefulPromptType {
     DistributeDamage = 'distributeDamage',
+    DistributeIndirectDamage = 'distributeIndirectDamage',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
 }
 
 export type DistributePromptType =
   | StatefulPromptType.DistributeDamage
+  | StatefulPromptType.DistributeIndirectDamage
   | StatefulPromptType.DistributeExperience
   | StatefulPromptType.DistributeHealing;
 
@@ -63,6 +65,7 @@ export interface IDistributeAmongTargetsPromptProperties extends IPromptProperti
 export interface IDistributeAmongTargetsPromptData {
     type: DistributePromptType;
     amount: number;
+    isIndirectDamange: boolean;
 }
 
 export interface IDistributeAmongTargetsPromptResults {

@@ -4,12 +4,14 @@ import { CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
-import type { InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import type { IInPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { InPlayCard } from '../baseClasses/InPlayCard';
+import type { ICardWithDamageProperty } from './Damage';
 import { WithDamage } from './Damage';
+import type { ICardWithPrintedPowerProperty } from './PrintedPower';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import type { UpgradeCard } from '../UpgradeCard';
+import type { IUpgradeCard } from '../UpgradeCard';
 import type { Card } from '../Card';
 import type { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
@@ -18,7 +20,6 @@ import TriggeredAbility from '../../ability/TriggeredAbility';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
-import type { UnitCard } from '../CardTypes';
 import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
 import { AmbushAbility } from '../../../abilities/keyword/AmbushAbility';
 import type Game from '../../Game';
@@ -31,8 +32,34 @@ import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type Player from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
 
-
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
+
+export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty {
+    get defaultArena(): Arena;
+    get capturedUnits(): IUnitCard[];
+    get captureZone(): CaptureZone;
+    readonly upgrades: IUpgradeCard[];
+    getCaptor(): IUnitCard | null;
+    isAttacking(): boolean;
+    isCaptured(): boolean;
+    isUpgraded(): boolean;
+    hasShield(): boolean;
+    effectsPreventAttack(target: Card);
+    moveToCaptureZone(targetZone: CaptureZone);
+    checkRegisterWhenPlayedKeywordAbilities(event: GameEvent);
+    checkRegisterOnAttackKeywordAbilities(event: GameEvent);
+    checkRegisterWhenDefeatedKeywordAbilities(event: GameEvent);
+    checkRegisterWhenCapturedKeywordAbilities(event: GameEvent);
+    unregisterWhenPlayedKeywords();
+    unregisterAttackKeywords();
+    unregisterWhenDefeatedKeywords();
+    unregisterWhenCapturedKeywords();
+    checkDefeatedByOngoingEffect();
+    canPlayOn(card);
+    unattachUpgrade(upgrade);
+    attachUpgrade(upgrade);
+    getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
+}
 
 /**
  * Mixin function that adds the standard properties for a unit (leader or non-leader) to a base class.
@@ -46,7 +73,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
     // create a "base" class that has the damage, hp, and power properties from other mixins
     const StatsAndDamageClass = WithDamage(WithPrintedPower(BaseClass));
 
-    return class AsUnit extends StatsAndDamageClass {
+    return class AsUnit extends StatsAndDamageClass implements IUnitCard {
         public static registerRulesListeners(game: Game) {
             // register listeners for when-played keyword abilities (see comment in EventWindow.ts for explanation of 'postResolve')
             game.on(EventName.OnUnitEntersPlay + ':postResolve', (event) => {
@@ -84,7 +111,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         public readonly defaultArena: Arena;
 
         protected _captureZone?: CaptureZone = null;
-        protected _upgrades?: UpgradeCard[] = null;
+        protected _upgrades?: IUpgradeCard[] = null;
 
         private readonly attackAction: InitiateAttackAction;
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
@@ -103,17 +130,17 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this._captureZone;
         }
 
-        public get upgrades(): UpgradeCard[] {
+        public get upgrades(): IUpgradeCard[] {
             this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             return this._upgrades;
         }
 
-        public getCaptor(): UnitCard | null {
+        public getCaptor(): IUnitCard | null {
             if (this.zone.name !== ZoneName.Capture) {
                 return null;
             }
 
-            return this.zone.captor as UnitCard;
+            return this.zone.captor as IUnitCard;
         }
 
         public isAttacking(): boolean {
@@ -164,7 +191,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this.getModifiedStatValue(StatType.Power);
         }
 
-        public override isUnit(): this is UnitCard {
+        public override isUnit(): this is IUnitCard {
             return true;
         }
 
@@ -199,7 +226,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             const prevZone = this.zoneName;
             this.removeFromCurrentZone();
 
-            Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+            Contract.assertTrue(this.isUnit());
             targetZone.addCard(this);
             this.zone = targetZone;
 

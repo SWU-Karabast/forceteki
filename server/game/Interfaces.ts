@@ -14,7 +14,6 @@ import type PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
 import type Player from './core/Player';
 import type { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
 import type { OngoingPlayerEffect } from './core/ongoingEffect/OngoingPlayerEffect';
-import type { UnitCard } from './core/card/CardTypes';
 import type { BaseZone } from './core/zone/BaseZone';
 import type { DeckZone } from './core/zone/DeckZone';
 import type { DiscardZone } from './core/zone/DiscardZone';
@@ -24,6 +23,7 @@ import type { ResourceZone } from './core/zone/ResourceZone';
 import type { GroundArenaZone } from './core/zone/GroundArenaZone';
 import type { SpaceArenaZone } from './core/zone/SpaceArenaZone';
 import type { CaptureZone } from './core/zone/CaptureZone';
+import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -309,7 +309,7 @@ interface IAmbushKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Ambush;
 }
 
-interface IBountyKeywordProperties<TSource extends UnitCard = UnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
+interface IBountyKeywordProperties<TSource extends IUnitCard = IUnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
     keyword: KeywordName.Bounty;
     ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>;
 }

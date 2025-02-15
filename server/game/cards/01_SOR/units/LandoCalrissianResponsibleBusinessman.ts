@@ -23,5 +23,3 @@ export default class LandoCalrissianResponsibleBusinessman extends NonLeaderUnit
         });
     }
 }
-
-LandoCalrissianResponsibleBusinessman.implemented = true;

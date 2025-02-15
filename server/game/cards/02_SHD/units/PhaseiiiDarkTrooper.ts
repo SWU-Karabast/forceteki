@@ -20,4 +20,3 @@ export default class PhaseiiiDarkTrooper extends NonLeaderUnitCard {
         });
     }
 }
-PhaseiiiDarkTrooper.implemented = true;
