@@ -32,12 +32,8 @@ export default class BobaFettCollectingTheBounty extends LeaderUnitCard {
             })),
             ifYouDo: {
                 title: 'Ready a resource',
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) =>
-                        context.source.controller.resources.some((resource) => resource.exhausted),
-                    onTrue: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction(),
-                })
+                ifYouDoCondition: (context) => context.source.controller.resources.some((resource) => resource.exhausted),
+                immediateEffect: AbilityHelper.immediateEffects.readyResources({ amount: 1 }),
             }
         });
     }
