@@ -36,13 +36,15 @@ class GameStateBuilder {
 
     /**
      * @param {SwuSetupTestOptions} setupTestOptions
+     * @param {import('../../server/utils/cardData/CardDataGetter').CardDataGetter} cardDataGetter
      * @param {any} router
      * @param {PlayerInfo} player1Info
      * @param {PlayerInfo} player2Info
      * @returns {Game}
      */
-    async setUpTestGameAsync(setupTestOptions, router, player1Info, player2Info) {
+    async setUpTestGameAsync(setupTestOptions, cardDataGetter, router, player1Info, player2Info) {
         const gameFlowWrapper = new GameFlowWrapper(
+            cardDataGetter,
             router,
             { id: player1Info.id, username: player1Info.username },
             { id: player2Info.id, username: player2Info.username }
