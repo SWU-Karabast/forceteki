@@ -29,5 +29,3 @@ export default class ShuttleTydiriumFlyCasual extends NonLeaderUnitCard {
         });
     }
 }
-
-ShuttleTydiriumFlyCasual.implemented = true;

@@ -25,5 +25,3 @@ export default class IHaveYouNow extends EventCard {
         });
     }
 }
-
-IHaveYouNow.implemented = true;
