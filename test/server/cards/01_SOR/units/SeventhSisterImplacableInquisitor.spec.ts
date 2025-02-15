@@ -4,7 +4,7 @@ describe('Seventh Sister', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    groundArena: ['battlefield-marine', 'seventh-sister#implacable-inquisitor'],
+                    groundArena: ['jawa-scavenger', 'seventh-sister#implacable-inquisitor'],
                 },
                 player2: {
                     groundArena: ['wampa', 'pyke-sentinel'],
@@ -12,9 +12,6 @@ describe('Seventh Sister', function () {
                     leader: { card: 'boba-fett#daimyo', deployed: true },
                     base: 'chopper-base'
                 },
-
-                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                autoSingleTarget: true
             });
             const { context } = contextRef;
 
@@ -42,6 +39,12 @@ describe('Seventh Sister', function () {
             context.player1.clickCard(context.wampa);
             expect(context.wampa.damage).toBe(3);
             expect(context.player2).toBeActivePlayer();
+
+            // CASE 3: may not deal 3 damage if attacked with other unit
+            reset();
+            context.player1.clickCard(context.jawaScavenger);
+            context.player1.clickCard(context.p2Base);
+            expect(context.player2).toBeActivePlayer();
         });
 
         it('should trigger ability from overwhelm damage', () => {
@@ -51,17 +54,25 @@ describe('Seventh Sister', function () {
                     groundArena: [{ card: 'seventh-sister#implacable-inquisitor', upgrades: ['heroic-resolve'] }],
                 },
                 player2: {
-                    groundArena: ['wampa', 'pyke-sentinel'],
+                    groundArena: ['wampa', 'pyke-sentinel', 'battlefield-marine'],
                     base: 'chopper-base'
                 },
-
-                // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                autoSingleTarget: true
             });
             const { context } = contextRef;
             context.player1.clickCard(context.seventhSisterImplacableInquisitor);
+
+            // trigger heroic resolve to get overwhelm
             context.player1.clickPrompt('Attack with this unit. It gains +4/+0 and Overwhelm for this attack.');
+            context.player1.clickCard(context.heroicResolve);
+
             context.player1.clickCard(context.pykeSentinel);
+
+            // there are overwhelm damage, sister ability should deal 3 damage to an enemy ground unit
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
+            expect(context.player1).toHavePassAbilityButton();
+
+            context.player1.clickCard(context.wampa);
+
             expect(context.wampa.damage).toBe(3);
             expect(context.player2).toBeActivePlayer();
         });
