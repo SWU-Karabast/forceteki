@@ -279,11 +279,12 @@ class PlayerInteractionWrapper {
 
     setCapturedUnits(card, capturedUnits, prevZones = 'any') {
         for (const capturedUnit of capturedUnits) {
+            const capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
             let capturedUnitCard;
-            if (Util.isTokenUnit(capturedUnit)) {
-                throw new TestSetupError(`Attempting to add token unit ${apturedUnit} to ${card}`);
+            if (Util.isTokenUnit(capturedUnitName)) {
+                throw new TestSetupError(`Attempting to add token unit ${capturedUnitName} to ${card}`);
             } else {
-                capturedUnitCard = this.findCardByName(capturedUnit, prevZones, 'opponent');
+                capturedUnitCard = this.findCardByName(capturedUnitName, prevZones, 'opponent');
             }
             capturedUnitCard.moveToCaptureZone(card.captureZone);
         }
