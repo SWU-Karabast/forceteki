@@ -22,6 +22,7 @@ describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
             context.player1.clickCard(context.p2Base);
 
             expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.p1Base]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.p1Base);
             expect(context.p1Base.damage).toBe(0);
 
@@ -40,6 +41,7 @@ describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
 
             // Controls a command unit giving an Experience token to a unit
             expect(context.player1).toBeAbleToSelectExactly([context.deathTrooper, context._501stLiberator, context.sabinesMasterpieceCrazyColorful]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.deathTrooper);
             expect(context.deathTrooper).toHaveExactUpgradeNames(['experience']);
 
@@ -54,14 +56,17 @@ describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
 
             // Controls a vigilance unit healing 2 damage from a base
             expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.p1Base]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.p1Base);
 
             // Controls a command unit giving an Experience token to a unit
             expect(context.player1).toBeAbleToSelectExactly([context.deathTrooper, context._501stLiberator, context.desperadoFreighter, context.sabinesMasterpieceCrazyColorful]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.deathTrooper);
 
             // Controls an aggression unit dealing 1 damage to a unit or base
             expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.p1Base, context._501stLiberator, context.desperadoFreighter, context.deathTrooper, context.sabinesMasterpieceCrazyColorful]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context._501stLiberator);
             expect(context._501stLiberator.damage).toBe(1);
 
@@ -76,14 +81,17 @@ describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
 
             // Controls a vigilance unit healing 2 damage from a base
             expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.p1Base]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.p1Base);
 
             // Controls a command unit giving an Experience token to a unit
             expect(context.player1).toBeAbleToSelectExactly([context.deathTrooper, context._501stLiberator, context.cloneDiveTrooper, context.desperadoFreighter, context.sabinesMasterpieceCrazyColorful]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.deathTrooper);
 
             // Controls an aggression unit dealing 1 damage to a unit or base
             expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.p1Base, context._501stLiberator, context.cloneDiveTrooper, context.desperadoFreighter, context.deathTrooper, context.sabinesMasterpieceCrazyColorful]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context._501stLiberator);
             expect(context._501stLiberator.damage).toBe(2);
 
@@ -92,6 +100,7 @@ describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
                 'Exhaust a resource',
                 'Ready a resource',
             ]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickPrompt('Exhaust a resource');
 
             // Assert
@@ -113,14 +122,17 @@ describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
 
             // Controls a vigilance unit healing 2 damage from a base
             expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.p1Base]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.p1Base);
 
             // Controls a command unit giving an Experience token to a unit
             expect(context.player1).toBeAbleToSelectExactly([context.deathTrooper, context._501stLiberator, context.cloneDiveTrooper, context.desperadoFreighter, context.sabinesMasterpieceCrazyColorful]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context.deathTrooper);
 
             // Controls an aggression unit dealing 1 damage to a unit or base
             expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.p1Base, context._501stLiberator, context.cloneDiveTrooper, context.desperadoFreighter, context.deathTrooper, context.sabinesMasterpieceCrazyColorful]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickCard(context._501stLiberator);
 
             // Controls a cunning unit exhausting or readying a resource
@@ -128,6 +140,7 @@ describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
                 'Exhaust a resource',
                 'Ready a resource',
             ]);
+            expect(context.player1).not.toHavePassAbilityButton();
             context.player1.clickPrompt('Ready a resource');
 
             // Assert
