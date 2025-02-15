@@ -129,9 +129,9 @@ class CardAbilityStep extends PlayerOrCardAbility {
 
         for (const system of systems) {
             this.game.queueSimpleStep(() => {
-                    system.queueGenerateEventGameSteps(context.events, context);
-                },
-                `queue ${system.name} event generation steps for ${this}`);
+                system.queueGenerateEventGameSteps(context.events, context);
+            },
+            `queue ${system.name} event generation steps for ${this}`);
         }
     }
 
