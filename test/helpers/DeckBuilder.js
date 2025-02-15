@@ -50,6 +50,7 @@ class DeckBuilder {
 
             opponentAttachedUpgrades = opponentAttachedUpgrades.concat(this.getOpponentAttachedUpgrades(playerOptions.spaceArena, playerNumber, oppOptions.spaceArena, playerCards));
         }
+
         playerCards.opponentAttachedUpgrades = opponentAttachedUpgrades;
 
         // Opposite player has the captured units this player 'owns'
@@ -134,6 +135,7 @@ class DeckBuilder {
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.groundArena));
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.spaceArena));
         inPlayCards = inPlayCards.concat(this.getUpgradesFromCard(playerCards.leader));
+
         // Collect all the cards together
         allCards = allCards.concat(inPlayCards);
 
@@ -150,6 +152,7 @@ class DeckBuilder {
             if (value === undefined) {
                 continue;
             }
+
             namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(value));
         }
         return namedCards;
