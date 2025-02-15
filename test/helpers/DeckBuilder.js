@@ -50,8 +50,14 @@ class DeckBuilder {
 
             opponentAttachedUpgrades = opponentAttachedUpgrades.concat(this.getOpponentAttachedUpgrades(playerOptions.spaceArena, playerNumber, oppOptions.spaceArena, playerCards));
         }
-
         playerCards.opponentAttachedUpgrades = opponentAttachedUpgrades;
+
+        // Opposite player has the captured units this player 'owns'
+        let capturedCards = [];
+        capturedCards = capturedCards.concat(this.getCapturedUnitsFromArena(oppOptions.groundArena));
+        capturedCards = capturedCards.concat(this.getCapturedUnitsFromArena(oppOptions.spaceArena));
+
+        playerCards.capturedUnits = capturedCards;
 
         return playerCards;
     }
@@ -82,7 +88,7 @@ class DeckBuilder {
         return opponentAttachedUpgrades;
     }
 
-    customDeck(playerNumber, playerCards = {}, phase) {
+    customDeck(playerNumber, playerCards = {}, opponentCards = {}, phase) {
         if (Array.isArray(playerCards.leader)) {
             throw new TestSetupError('Test leader must not be specified as an array');
         }
@@ -92,8 +98,9 @@ class DeckBuilder {
 
         let allCards = [];
         let inPlayCards = [];
+        let capturedCards = [];
 
-        const namedCards = this.getAllNamedCards(playerCards);
+        const namedCards = this.getAllNamedCards(playerCards, opponentCards);
         let resources = [];
 
         allCards.push(this.getLeaderCard(playerCards, playerNumber));
@@ -129,21 +136,41 @@ class DeckBuilder {
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.spaceArena));
         inPlayCards = inPlayCards.concat(this.getUpgradesFromCard(playerCards.leader));
 
+        // Collect all the cards that the opponent has captured as this player owns them
+        capturedCards = capturedCards.concat(this.getCapturedUnitsFromArena(opponentCards.groundArena));
+        capturedCards = capturedCards.concat(this.getCapturedUnitsFromArena(opponentCards.spaceArena));
+
         // Collect all the cards together
         allCards = allCards.concat(inPlayCards);
+        allCards = allCards.concat(capturedCards);
 
         return [this.buildDeck(allCards), namedCards, resources, playerCards.deck];
     }
 
-    getAllNamedCards(playerObject) {
+    getAllNamedCards(playerObject, opponentObject) {
         let namedCards = [];
         for (const key of playerCardProperties) {
-            var value = playerObject[key];
-            if (value === undefined) {
-                continue;
+            var playerValue = playerObject[key];
+            if (playerValue !== undefined) {
+                namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(playerValue));
             }
+            var opponentValue = opponentObject[key];
+            if (opponentValue !== undefined) {
+                namedCards = namedCards.concat(this.getNamedCapturedCardsInOpponentEntry(opponentValue));
+            }
+        }
+        return namedCards;
+    }
 
-            namedCards = namedCards.concat(this.getNamedCardsInPlayerEntry(value));
+    getNamedCapturedCardsInOpponentEntry(opponentEntry) {
+        let namedCards = [];
+        if (opponentEntry === null) {
+            throw new TestSetupError(`Null test card specifier format: '${opponentEntry}'`);
+        }
+        if (Array.isArray(opponentEntry)) {
+            opponentEntry.forEach((card) => namedCards = namedCards.concat(this.getNamedCapturedCardsInOpponentEntry(card)));
+        } else if (typeof opponentEntry === 'object' && opponentEntry !== null && 'card' in opponentEntry && opponentEntry.hasOwnProperty('capturedUnits')) {
+            namedCards = namedCards.concat(this.getCapturedUnitsFromCard(opponentEntry));
         }
         return namedCards;
     }
@@ -179,6 +206,12 @@ class DeckBuilder {
         }
 
         return [];
+    }
+
+    getCapturedUnitsFromCard(playerEntry) {
+        if (playerEntry && typeof playerEntry !== 'string' && 'capturedUnits' in playerEntry) {
+            return this.getNamedCardsInPlayerEntry(playerEntry.capturedUnits);
+        }
     }
 
     padCardListIfNeeded(cardList, defaultCount) {
@@ -257,6 +290,22 @@ class DeckBuilder {
 
         return inPlayCards;
     }
+
+    getCapturedUnitsFromArena(arenaList) {
+        if (!arenaList) {
+            return [];
+        }
+        let capturedUnits = [];
+        for (const card of arenaList) {
+            if (typeof card !== 'string' && card.capturedUnits) {
+                for (const capturedUnit of card.capturedUnits) {
+                    capturedUnits.push(capturedUnit);
+                }
+            }
+        }
+        return capturedUnits;
+    }
+
 
     getCardsForResources(resources) {
         let resourceCards = [];

@@ -175,36 +175,16 @@ describe('Capture system', function() {
                 contextRef.setupTest({
                     phase: 'action',
                     player1: {
-                        hand: ['take-captive', 'evacuate', 'superlaser-blast'],
-                        groundArena: ['wampa', 'atst'],
-                        spaceArena: ['wing-leader']
+                        hand: ['evacuate', 'superlaser-blast'],
+                        spaceArena: [{ card: 'wing-leader', capturedUnits: ['tieln-fighter'] }]
                     },
                     player2: {
-                        groundArena: ['pyke-sentinel'],
-                        spaceArena: ['tieln-fighter'],
-                        hand: ['discerning-veteran', 'take-captive']
+                        groundArena: [{ card: 'discerning-veteran', capturedUnits: ['wampa', 'atst'] }, 'pyke-sentinel'],
                     },
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
                 });
-
-                const { context } = contextRef;
-                const p1TakeCaptive = context.player1.findCardByName('take-captive');
-                const p2TakeCaptive = context.player2.findCardByName('take-captive');
-
-                // SETUP: Discerning Veteran captures two cards, Wing Leader captures one, Pyke Sentinel zero
-                context.player1.clickCard(p1TakeCaptive);
-                context.player1.clickCard(context.wingLeader);
-
-                context.player2.clickCard(context.discerningVeteran);
-                context.player2.clickCard(context.wampa);
-
-                context.player1.passAction();
-
-                // Take Captive automatically selects AT-ST
-                context.player2.clickCard(p2TakeCaptive);
-                context.player2.clickCard(context.discerningVeteran);
             });
 
             it('and all units in the arena are returned to hand, all captured units are rescued', function () {

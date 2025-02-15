@@ -110,6 +110,10 @@ class PlayerInteractionWrapper {
             if (leaderOptions.upgrades) {
                 this.setCardUpgrades(leaderCard, leaderOptions.upgrades);
             }
+
+            if (leaderOptions.capturedUnits) {
+                this.setCapturedUnits(leaderCard, leaderOptions.capturedUnits);
+            }
         } else {
             if (leaderOptions.deployed === false) {
                 if (leaderCard.deployed === true) {
@@ -247,6 +251,10 @@ class PlayerInteractionWrapper {
                 this.setCardUpgrades(card, options.upgrades, prevZones);
             }
 
+            if (options.capturedUnits) {
+                this.setCapturedUnits(card, options.capturedUnits, prevZones);
+            }
+
             if (options.damage !== undefined) {
                 card.damage = options.damage;
             }
@@ -266,6 +274,18 @@ class PlayerInteractionWrapper {
             }
 
             upgradeCard.attachTo(card);
+        }
+    }
+
+    setCapturedUnits(card, capturedUnits, prevZones = 'any') {
+        for (const capturedUnit of capturedUnits) {
+            let capturedUnitCard;
+            if (Util.isTokenUnit(capturedUnit)) {
+                throw new TestSetupError(`Attempting to add token unit ${apturedUnit} to ${card}`);
+            } else {
+                capturedUnitCard = this.findCardByName(capturedUnit, prevZones, 'opponent');
+            }
+            capturedUnitCard.moveToCaptureZone(card.captureZone);
         }
     }
 

@@ -115,8 +115,8 @@ class GameStateBuilder {
         }
 
         // pass decklists to players. they are initialized into real card objects in the startGame() call
-        const [deck1, namedCards1, resources1, drawDeck1] = this.deckBuilder.customDeck(1, player1OwnedCards, options.phase);
-        const [deck2, namedCards2, resources2, drawDeck2] = this.deckBuilder.customDeck(2, player2OwnedCards, options.phase);
+        const [deck1, namedCards1, resources1, drawDeck1] = this.deckBuilder.customDeck(1, player1OwnedCards, player2OwnedCards, options.phase);
+        const [deck2, namedCards2, resources2, drawDeck2] = this.deckBuilder.customDeck(2, player2OwnedCards, player1OwnedCards, options.phase);
 
         context.player1.selectDeck(deck1);
         context.player2.selectDeck(deck2);
