@@ -75,8 +75,8 @@ class GameFlowWrapper {
         this.game.continue();
     }
 
-    startGame() {
-        this.game.initialise();
+    startGameAsync() {
+        return this.game.initialiseAsync();
     }
 
     /**

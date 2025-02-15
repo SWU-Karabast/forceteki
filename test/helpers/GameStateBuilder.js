@@ -41,7 +41,7 @@ class GameStateBuilder {
      * @param {PlayerInfo} player2Info
      * @returns {Game}
      */
-    setUpTestGame(setupTestOptions, router, player1Info, player2Info) {
+    async setUpTestGameAsync(setupTestOptions, router, player1Info, player2Info) {
         const gameFlowWrapper = new GameFlowWrapper(
             router,
             { id: player1Info.id, username: player1Info.username },
@@ -50,7 +50,7 @@ class GameStateBuilder {
 
         const testContext = {};
         this.attachTestInfoToObj(testContext, gameFlowWrapper, player1Info.username, player2Info.username);
-        this.setupGameState(testContext, setupTestOptions);
+        await this.setupGameState(testContext, setupTestOptions);
 
         return gameFlowWrapper.game;
     }
@@ -83,7 +83,7 @@ class GameStateBuilder {
      * @param {SwuTestContext} context
      * @param {SwuSetupTestOptions} options
      */
-    setupGameState(context, options = {}) {
+    async setupGameStateAsync(context, options = {}) {
         // Set defaults
         if (!options.player1) {
             options.player1 = {};
@@ -125,7 +125,7 @@ class GameStateBuilder {
         context.game.initialiseTokens(this.deckBuilder.tokenData);
 
         // each player object will convert the card names to real cards on start
-        context.startGame();
+        await context.startGameAsync();
 
         if (options.phase !== 'setup') {
             context.player1.player.promptedActionWindows[options.phase] = true;

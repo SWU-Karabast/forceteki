@@ -73,8 +73,8 @@ global.integration = function (definitions) {
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
             gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
 
-            const setupGameStateWrapper = (options) => {
-                gameStateBuilder.setupGameState(newContext, options);
+            const setupGameStateWrapper = async (options) => {
+                await gameStateBuilder.setupGameState(newContext, options);
                 gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
             };
 

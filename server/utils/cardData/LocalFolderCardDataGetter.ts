@@ -16,7 +16,7 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
             async (internalName) => (await LocalFolderCardDataGetter.readFileAsync(
                 folderRoot,
                 LocalFolderCardDataGetter.getRelativePathFromInternalName(internalName)
-            )) as Promise<ICardDataJson>
+            )) as ICardDataJson
         );
 
         const playableCardTitles = await (await LocalFolderCardDataGetter.readFileAsync(
@@ -24,7 +24,10 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
             CardDataGetter.playableCardTitlesFileName)
         ) as string[];
 
-        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, playableCardTitles);
+        const setCodeMap = await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.setCodeMapFileName)
+            .then((data) => data as Map<string, string>);
+
+        return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, playableCardTitles, setCodeMap);
     }
 
     protected static getRelativePathFromInternalName(internalName: string) {
@@ -40,8 +43,14 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
 
     protected readonly folderRoot: string;
 
-    public constructor(folderRoot: string, cardMapJson: ICardMapJson, tokenData: ITokenCardsData, playableCardTitles: string[]) {
-        super(cardMapJson, tokenData, playableCardTitles);
+    public constructor(
+        folderRoot: string,
+        cardMapJson: ICardMapJson,
+        tokenData: ITokenCardsData,
+        playableCardTitles: string[],
+        setCodeMap: Map<string, string>
+    ) {
+        super(cardMapJson, tokenData, playableCardTitles, setCodeMap);
 
         this.folderRoot = folderRoot;
     }
@@ -53,11 +62,6 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
     protected override getCardInternalAsync(relativePath: string): Promise<ICardDataJson> {
         return this.readFileAsync(relativePath)
             .then((data) => data as Promise<ICardDataJson>);
-    }
-
-    public override getSetCodeMapAsync(): Promise<Map<string, string>> {
-        return this.readFileAsync(CardDataGetter.setCodeMapFileName)
-            .then((data) => data as Promise<Map<string, string>>);
     }
 
     protected override getRelativePathFromInternalName(internalName: string) {

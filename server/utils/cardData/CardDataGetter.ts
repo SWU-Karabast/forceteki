@@ -12,6 +12,7 @@ export abstract class CardDataGetter {
 
     private readonly knownCardInternalNames: Set<string>;
     private readonly _playableCardTitles: string[];
+    private readonly _setCodeMap: Map<string, string>;
     private readonly _tokenData: ITokenCardsData;
 
     protected static readonly setCodeMapFileName = '_setCodeMap.json';
@@ -26,11 +27,20 @@ export abstract class CardDataGetter {
         return this._playableCardTitles;
     }
 
+    public get setCodeMap(): Map<string, string> {
+        return this._setCodeMap;
+    }
+
     public get tokenData(): ITokenCardsData {
         return this._tokenData;
     }
 
-    public constructor(cardMapJson: ICardMapJson, tokenData: ITokenCardsData, playableCardTitles: string[]) {
+    public constructor(
+        cardMapJson: ICardMapJson,
+        tokenData: ITokenCardsData,
+        playableCardTitles: string[],
+        setCodeMap: Map<string, string>
+    ) {
         this.cardMap = new Map<string, ICardMapEntry>();
         this.knownCardInternalNames = new Set<string>();
 
@@ -40,21 +50,26 @@ export abstract class CardDataGetter {
         }
 
         this._playableCardTitles = playableCardTitles;
+        this._setCodeMap = setCodeMap;
         this._tokenData = tokenData;
     }
 
     protected abstract getCardInternalAsync(relativePath: string): Promise<ICardDataJson>;
     protected abstract getRelativePathFromInternalName(internalName: string);
-    public abstract getSetCodeMapAsync(): Promise<Map<string, string>>;
 
-    public async getCardAsync(id: string): Promise<ICardDataJson> {
+    public getCardAsync(id: string): Promise<ICardDataJson> {
         const relativePath = this.getRelativePathFromInternalName(this.getInternalName(id));
-        return await this.getCardInternalAsync(relativePath);
+        return this.getCardInternalAsync(relativePath);
     }
 
-    public async getCardByNameAsync(internalName: string): Promise<ICardDataJson> {
+    public getCardByNameAsync(internalName: string): Promise<ICardDataJson> {
         this.checkInternalName(internalName);
-        return await this.getCardInternalAsync(this.getRelativePathFromInternalName(internalName));
+        return this.getCardInternalAsync(this.getRelativePathFromInternalName(internalName));
+    }
+
+    public getCardBySetCodeAsync(setCode: string): Promise<ICardDataJson> {
+        const relativePath = this.getRelativePathFromInternalName(this.getInternalNameFromSetCode(setCode));
+        return this.getCardInternalAsync(relativePath);
     }
 
     protected static async getTokenCardsDataAsync(getCardAsync: (string) => Promise<ICardDataJson>): Promise<ITokenCardsData> {
@@ -87,5 +102,12 @@ export abstract class CardDataGetter {
         const internalName = this.cardMap.get(id)?.internalName;
         Contract.assertNotNullLike(internalName, `Card ${id} not found in card map`);
         return internalName;
+    }
+
+    protected getInternalNameFromSetCode(setCode: string) {
+        const id = this.setCodeMap.get(setCode);
+        Contract.assertNotNullLike(setCode, `Card ${setCode} not found in card map`);
+
+        return this.getInternalName(id);
     }
 }

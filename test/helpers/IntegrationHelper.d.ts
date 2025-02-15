@@ -49,7 +49,7 @@ interface SwuTestContext {
     selectInitiativePlayer(player: PlayerInteractionWrapper);
     setDamage(card: CardWithDamageProperty, amount: number);
     skipSetupPhase();
-    startGame();
+    startGameAsync(): Promise;
 
     // To account for any dynamically added cards or objects, we have a free-form accessor.
     [field: string]: any;

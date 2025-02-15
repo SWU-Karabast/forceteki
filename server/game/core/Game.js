@@ -77,6 +77,9 @@ class Game extends EventEmitter {
         this.movedCards = [];
         this.randomGenerator = seedrandom();
 
+        /** @type {import('../../utils/cardData/CardDataGetter.js').CardDataGetter} */
+        this.cardDataGetter = options.cardDataGetter;
+
         /** @type {import('../Interfaces').IClientUIProperties} */
         this.clientUIProperties = {};
 
@@ -828,29 +831,10 @@ class Game extends EventEmitter {
     }
 
     /*
-     * Sets up Player objects, creates allCards, checks each player has a stronghold
-     * and starts the game pipeline
-     * @returns {undefined}
+     * Sets up Player objects, creates allCards, starts the game pipeline
      */
-    initialise() {
-        // // check if player has left the game
-        // var players = {};
-        // _.each(this.playersAndSpectators, (player) => {
-        //     if (!player.left) {
-        //         players[player.name] = player;
-        //     }
-        // });
-        // this.playersAndSpectators = players;
-
-        // TODO: turn this check into a base + leader check (or merge with deck check somewhere else?)
-        let playerWithNoStronghold = null;
-
-        for (let player of this.getPlayers()) {
-            player.initialise();
-            // if (this.gameMode !== GameMode.Skirmish && !player.stronghold) {
-            //     playerWithNoStronghold = player;
-            // }
-        }
+    async initialiseAsync() {
+        await Promise.all(this.getPlayers().map((player) => player.initialiseAsync()));
 
         this.allCards = this.getPlayers().reduce(
             (cards, player) => {
@@ -858,32 +842,6 @@ class Game extends EventEmitter {
             },
             []
         );
-
-        // if (this.gameMode !== GameMode.Skirmish) {
-        //     if (playerWithNoStronghold) {
-        //         this.queueSimpleStep(() => {
-        //             this.addMessage(
-        //                 'Invalid Deck Detected: {0} does not have a stronghold in their decklist',
-        //                 playerWithNoStronghold
-        //             );
-        //             return false;
-        //         });
-        //         this.continue();
-        //         return false;
-        //     }
-
-        //     for (let player of this.getPlayers()) {
-        //         let numProvinces = this.provinceCards.filter((a) => a.controller === player);
-        //         if (numProvinces.length !== 5) {
-        //             this.queueSimpleStep(() => {
-        //                 this.addMessage('Invalid Deck Detected: {0} has {1} provinces', player, numProvinces.length);
-        //                 return false;
-        //             });
-        //             this.continue();
-        //             return false;
-        //         }
-        //     }
-        // }
 
         this.pipeline.initialise([new SetupPhase(this), new SimpleStep(this, () => this.beginRound(), 'beginRound')]);
 

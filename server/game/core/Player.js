@@ -1,5 +1,5 @@
 const { GameObject } = require('./GameObject');
-const { Deck } = require('../Deck.js');
+const { Deck } = require('../../utils/deck/Deck.js');
 const UpgradePrompt = require('./gameSteps/prompts/UpgradePrompt.js');
 const { clockFor } = require('./clocks/ClockSelector.js');
 const { CostAdjuster, CostAdjustType } = require('./cost/CostAdjuster');
@@ -70,7 +70,9 @@ class Player extends GameObject {
 
         this.limitedPlayed = 0;
         this.decklist = {};
-        this.decklistNames = {};
+
+        /** @type {Deck} */
+        this.decklistNames = null;
         this.costAdjusters = [];
         this.abilityMaxByIdentifier = {}; // This records max limits for abilities
         this.promptedActionWindows = user.promptedActionWindows || {
@@ -604,8 +606,8 @@ class Player extends GameObject {
     /**
      * Takes a decklist passed from the lobby, creates all the cards in it, and puts references to them in the relevant lists
      */
-    prepareDecks() {
-        var preparedDecklist = new Deck(this.decklistNames).prepare(this);
+    async prepareDecksAsync() {
+        var preparedDecklist = await this.decklistNames.buildCardsAsync(this, this.game.cardDataGetter);
 
         this.base = preparedDecklist.base;
         this.leader = preparedDecklist.leader;
@@ -628,13 +630,9 @@ class Player extends GameObject {
     /**
      * Called when the Game object starts the game. Creates all cards on this players decklist, shuffles the decks and initialises player parameters for the start of the game
      */
-    initialise() {
+    initialiseAsync() {
         this.opponent = this.game.getOtherPlayer(this);
-
-        this.prepareDecks();
-        // shuffling happens during game setup
-
-        this.maxLimited = 1;
+        return this.prepareDecksAsync();
     }
 
     /**
@@ -890,11 +888,10 @@ class Player extends GameObject {
 
     /**
      * Called by the game when the game starts, sets the players decklist
-     * @param {*} deck
+     * @param {Deck} deck
      */
     selectDeck(deck) {
         this.decklistNames = deck;
-        this.decklistNames.selected = true;
     }
 
     // TODO NOISY PR: rearrange this file into sections
