@@ -13,6 +13,9 @@ describe('D\'Qar Cargo Frigate', function () {
 
             const { context } = contextRef;
 
+            expect(context.dqarCargoFrigate.damage).toBe(0);
+            expect(context.dqarCargoFrigate.getPower()).toBe(6);
+
             context.player1.clickCard(context.dqarCargoFrigate);
             context.player1.clickCard(context.fettsFirespray);
 
