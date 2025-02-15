@@ -27,11 +27,10 @@ describe('Force Throw', function() {
 
                 // Validate board state and options
                 expect(context.karabast).toBeInZone('discard');
-                expect(context.player1).toHaveEnabledPromptButton('Pass');
 
                 // Apply damage
-                context.player1.clickPrompt('Deal damage to a unit equal to the cost of Karabast (2 damage)');
                 expect(context.player1).toBeAbleToSelectExactly([context.tielnFighter, context.specforceSoldier, context.atst, context.wampa, context.ezraBridger]);
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.atst);
 
                 // Assertions
@@ -103,7 +102,8 @@ describe('Force Throw', function() {
                 context.player1.clickPrompt('You');
 
                 context.player1.clickCard(context.strikeTrue);
-                context.player1.clickPrompt('Deal damage to a unit equal to the cost of Strike True (3 damage)');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.ezraBridger, context.atst]);
+                expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.atst);
 
                 expect(context.strikeTrue).toBeInZone('discard');
