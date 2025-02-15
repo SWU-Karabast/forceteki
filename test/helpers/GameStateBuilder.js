@@ -27,7 +27,7 @@ class GameStateBuilder {
             'selectInitiativePlayer',
             'setDamage',
             'skipSetupPhase',
-            'startGame'
+            'startGameAsync'
         ];
 
         this.cardDataGetter = new UnitTestCardDataGetter(directory);
@@ -50,7 +50,7 @@ class GameStateBuilder {
 
         const testContext = {};
         this.attachTestInfoToObj(testContext, gameFlowWrapper, player1Info.username, player2Info.username);
-        await this.setupGameState(testContext, setupTestOptions);
+        await this.setupGameStateAsync(testContext, setupTestOptions);
 
         return gameFlowWrapper.game;
     }

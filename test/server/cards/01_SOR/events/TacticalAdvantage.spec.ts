@@ -1,8 +1,9 @@
 describe('Tactical Advantage', function () {
     integration(function (contextRef) {
         describe('Tactical Advantage\'s ability', function () {
+            // TODO THIS PR: rename to setupTestAsync
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTest({
                     phase: 'action',
                     player1: {
                         hand: ['tactical-advantage'],
