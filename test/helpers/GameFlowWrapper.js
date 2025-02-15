@@ -13,7 +13,7 @@ class GameFlowWrapper {
      * @param {PlayerInfo} player1Info
      * @param {PlayerInfo} player2Info
      */
-    constructor(router, player1Info, player2Info) {
+    constructor(cardDataGetter, router, player1Info, player2Info) {
         var details = {
             name: `${player1Info.username}'s game`,
             id: 12345,
@@ -23,7 +23,8 @@ class GameFlowWrapper {
                 { user: Settings.getUserWithDefaultsSet(player1Info) },
                 { user: Settings.getUserWithDefaultsSet(player2Info) },
             ],
-            playableCardTitles: this.getPlayableCardTitles()
+            playableCardTitles: this.getPlayableCardTitles(),
+            cardDataGetter
         };
 
         this.game = new Game(details, { router });

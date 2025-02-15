@@ -45,6 +45,7 @@ global.integration = function (definitions) {
             });
 
             const gameFlowWrapper = new GameFlowWrapper(
+                gameStateBuilder.cardDataGetter,
                 gameRouter,
                 { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
                 { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } }

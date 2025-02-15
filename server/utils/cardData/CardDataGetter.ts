@@ -39,7 +39,7 @@ export abstract class CardDataGetter {
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,
         playableCardTitles: string[],
-        setCodeMap: Map<string, string>
+        setCodeMap: Record<string, string>,
     ) {
         this.cardMap = new Map<string, ICardMapEntry>();
         this.knownCardInternalNames = new Set<string>();
@@ -50,7 +50,7 @@ export abstract class CardDataGetter {
         }
 
         this._playableCardTitles = playableCardTitles;
-        this._setCodeMap = setCodeMap;
+        this._setCodeMap = new Map(Object.entries(setCodeMap));
         this._tokenData = tokenData;
     }
 

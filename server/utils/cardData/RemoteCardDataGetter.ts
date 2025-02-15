@@ -18,7 +18,7 @@ export class RemoteCardDataGetter extends CardDataGetter {
         const playableCardTitles = await (await RemoteCardDataGetter.fetchFileAsync(remoteDataUrl, CardDataGetter.playableCardTitlesFileName)).json() as string[];
 
         const setCodeMap = await RemoteCardDataGetter.fetchFileAsync(remoteDataUrl, CardDataGetter.setCodeMapFileName)
-            .then((response) => response.json() as Promise<Map<string, string>>);
+            .then((response) => response.json() as Promise<Record<string, string>>);
 
         return new RemoteCardDataGetter(remoteDataUrl, cardMap, tokenData, playableCardTitles, setCodeMap);
     }
@@ -48,7 +48,7 @@ export class RemoteCardDataGetter extends CardDataGetter {
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,
         playableCardTitles: string[],
-        setCodeMap: Map<string, string>
+        setCodeMap: Record<string, string>
     ) {
         super(cardMapJson, tokenData, playableCardTitles, setCodeMap);
 

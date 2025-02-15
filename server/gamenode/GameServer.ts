@@ -239,7 +239,7 @@ export class GameServer {
         lobby.createLobbyUser(theWay);
         this.userLobbyMap.set(order66.id, lobby.id);
         this.userLobbyMap.set(theWay.id, lobby.id);
-        await lobby.startTestGame(filename);
+        await lobby.startTestGameAsync(filename);
     }
 
     private getTestSetupGames() {

@@ -19,7 +19,7 @@ export interface ISwuDbDecklistShort {
     leader: ISwuDbCardEntry;
     base: ISwuDbCardEntry;
     deck: ISwuDbCardEntry[];
-    sideboard: ISwuDbCardEntry[];
+    sideboard?: ISwuDbCardEntry[];
 }
 
 export interface ICardIdAndName {

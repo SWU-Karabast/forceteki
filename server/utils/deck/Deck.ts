@@ -16,18 +16,20 @@ export class Deck {
     private deckCards: Map<string, number>;
     private sideboard: Map<string, number>;
 
-    public constructor(decklist: ISwuDbDecklist) {
+    public constructor(decklist: ISwuDbDecklist | ISwuDbDecklistShort) {
         this.base = decklist.base.id;
         this.leader = decklist.leader.id;
 
+        const sideboard = decklist.sideboard ?? [];
+
         const allCardIds = new Set(
             decklist.deck.map((cardEntry) => cardEntry.id).concat(
-                decklist.sideboard.map((cardEntry) => cardEntry.id)
+                sideboard.map((cardEntry) => cardEntry.id)
             )
         );
 
         this.deckCards = this.convertCardListToMap(decklist.deck, allCardIds);
-        this.sideboard = this.convertCardListToMap(decklist.sideboard, allCardIds);
+        this.sideboard = this.convertCardListToMap(sideboard, allCardIds);
     }
 
     private convertCardListToMap(cardList: ISwuDbCardEntry[], allCardIds: Set<string>) {
@@ -109,7 +111,7 @@ export class Deck {
         result.base = baseCard;
 
         // leader
-        const leaderCard = await this.buildCardFromSetCodeAsync(this.base, player, cardDataGetter);
+        const leaderCard = await this.buildCardFromSetCodeAsync(this.leader, player, cardDataGetter);
         Contract.assertTrue(leaderCard.isLeader());
         result.leader = leaderCard;
 

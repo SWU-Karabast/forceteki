@@ -249,7 +249,7 @@ export class Lobby {
         this.users = [];
     }
 
-    public startTestGame(filename: string) {
+    public async startTestGameAsync(filename: string) {
         const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
 
@@ -261,8 +261,9 @@ export class Lobby {
         // eslint-disable-next-line
         const router = this;
 
-        const game: Game = this.testGameBuilder.setUpTestGame(
+        const game: Game = await this.testGameBuilder.setUpTestGameAsync(
             setupData,
+            this.cardDataGetter,
             router,
             { id: 'exe66', username: 'Order66' },
             { id: 'th3w4y', username: 'ThisIsTheWay' }
@@ -280,6 +281,7 @@ export class Lobby {
         defaultGameSettings.players[1].user.id = this.users[1].id;
         defaultGameSettings.players[1].user.username = this.users[1].username;
         defaultGameSettings.playableCardTitles = this.playableCardTitles;
+        defaultGameSettings.cardDataGetter = this.cardDataGetter;
 
         const game = new Game(defaultGameSettings, { router: this });
         this.game = game;

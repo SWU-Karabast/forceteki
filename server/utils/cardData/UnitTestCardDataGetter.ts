@@ -22,7 +22,7 @@ export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements
             (internalName) => UnitTestCardDataGetter.readFileSync(
                 folderRoot,
                 LocalFolderCardDataGetter.getRelativePathFromInternalName(internalName)
-            )[0] as ICardDataJson
+            ) as ICardDataJson
         );
 
         const playableCardTitles = UnitTestCardDataGetter.readFileSync(
@@ -30,7 +30,7 @@ export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements
             CardDataGetter.playableCardTitlesFileName
         ) as string[];
 
-        const setCodeMap = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.setCodeMapFileName) as Map<string, string>;
+        const setCodeMap = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.setCodeMapFileName) as Record<string, string>;
 
         super(folderRoot, cardMapJson, tokenData, playableCardTitles, setCodeMap);
     }
@@ -47,7 +47,7 @@ export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements
 
 
     protected getCardInternalSync(relativePath: string): ICardDataJson {
-        return this.readFileSync(relativePath)[0] as ICardDataJson;
+        return this.readFileSync(relativePath) as ICardDataJson;
     }
 
     public getSetCodeMapSync(): Map<string, string> {

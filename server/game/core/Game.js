@@ -78,7 +78,7 @@ class Game extends EventEmitter {
         this.randomGenerator = seedrandom();
 
         /** @type {import('../../utils/cardData/CardDataGetter.js').CardDataGetter} */
-        this.cardDataGetter = options.cardDataGetter;
+        this.cardDataGetter = details.cardDataGetter;
 
         /** @type {import('../Interfaces').IClientUIProperties} */
         this.clientUIProperties = {};
@@ -99,6 +99,8 @@ class Game extends EventEmitter {
                 details.clocks
             );
         });
+
+        // TODO THIS PR: checks for required option values (cardDataGetter, etc.)
 
         details.spectators?.forEach((spectator) => {
             this.playersAndSpectators[spectator.user.id] = new Spectator(spectator.id, spectator.user);
