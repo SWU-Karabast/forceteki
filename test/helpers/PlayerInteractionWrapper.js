@@ -536,6 +536,10 @@ class PlayerInteractionWrapper {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeDamage');
     }
 
+    setDistributeIndirectDamagePromptState(cardDistributionMap) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeIndirectDamage');
+    }
+
     setDistributeHealingPromptState(cardDistributionMap) {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
     }

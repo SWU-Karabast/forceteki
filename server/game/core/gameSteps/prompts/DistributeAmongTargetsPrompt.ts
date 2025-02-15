@@ -28,12 +28,15 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         Contract.assertNonNegative(properties.amount);
 
         if (!properties.waitingPromptTitle) {
-            properties.waitingPromptTitle = 'Waiting for opponent to choose targets for ' + properties.source.name;
+            properties.waitingPromptTitle = 'Waiting for opponent to choose targets for ' + properties.source.title;
         }
 
         switch (this.properties.type) {
             case StatefulPromptType.DistributeDamage:
                 this.distributeType = 'damage';
+                break;
+            case StatefulPromptType.DistributeIndirectDamage:
+                this.distributeType = 'indirect damage';
                 break;
             case StatefulPromptType.DistributeHealing:
                 this.distributeType = 'healing';
@@ -56,7 +59,8 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
 
         const promptData: IDistributeAmongTargetsPromptData = {
             type: this.properties.type,
-            amount: this.properties.amount
+            amount: this.properties.amount,
+            isIndirectDamange: this.properties.type === StatefulPromptType.DistributeIndirectDamage,
         };
 
         const buttons = [{ text: 'Done', arg: 'done', command: 'statefulPromptResults' }];
@@ -66,7 +70,7 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
 
         this._activePrompt = {
             menuTitle,
-            promptTitle: this.properties.promptTitle || (this.properties.source ? this.properties.source.name : undefined),
+            promptTitle: this.properties.promptTitle || (this.properties.source ? this.properties.source.title : undefined),
             distributeAmongTargets: promptData,
             buttons: buttons,
             promptUuid: this.uuid,
@@ -166,5 +170,15 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             illegalCardsDistributedTo.length > 0,
             `Illegal prompt results for '${this._activePrompt.menuTitle}', the following cards were not legal targets for distribution: ${illegalCardsDistributedTo.map((card) => card.internalName).join(', ')}`
         );
+
+        if (results.type === StatefulPromptType.DistributeIndirectDamage) {
+            const cardsWithOverdistributedDamage = Array.from(results.valueDistribution.entries())
+                .filter((entry) => entry[0].isUnit() && entry[0].remainingHp < entry[1])
+                .map((entry) => entry[0]);
+            Contract.assertFalse(
+                cardsWithOverdistributedDamage.length > 0,
+                `Illegal prompt results '${this._activePrompt.menuTitle}', distributed ${this.distributeType} should not exceed the remaining HP of the target units: ${cardsWithOverdistributedDamage.map((card) => card.internalName).join(', ')}`
+            );
+        }
     }
 }
