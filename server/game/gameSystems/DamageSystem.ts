@@ -31,6 +31,9 @@ export interface IAbilityDamageProperties extends IDamagePropertiesBase {
 
     /** The source of the damage, if different from the card that triggered the ability */
     source?: Card;
+
+    /** Whether this damage is indirect damage or not */
+    isIndirect?: boolean;
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -76,7 +79,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     protected override defaultProperties: IAbilityDamageProperties = {
         amount: null,
-        type: DamageType.Ability
+        type: DamageType.Ability,
+        isIndirect: false
     };
 
     public eventHandler(event): void {
@@ -119,7 +123,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         // check cases where a game state change is required
         if (properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) {
-            if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {
+            if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context) && (properties.type !== DamageType.Ability || !properties.isIndirect)) {
                 return false;
             }
 
@@ -265,6 +269,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             abilityDamageSource.controller = context.event.lastKnownInformation.controller;
         }
 
+        event.isIndirect = properties.isIndirect;
         event.damageSource = abilityDamageSource;
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
     }
