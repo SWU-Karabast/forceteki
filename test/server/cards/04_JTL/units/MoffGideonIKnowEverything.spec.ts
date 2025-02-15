@@ -10,7 +10,7 @@ describe('Moff Gideon, I Know Everything', function() {
                 },
                 player2: {
                     hand: ['atst', 'jawa-scavenger', 'b1-security-team', 'droid-deployment'],
-                    groundArena: ['wampa'],
+                    groundArena: ['wampa', 'saw-gerrera#resistance-is-not-terrorism'],
                     leader: 'rio-durant#wisecracking-wheelman',
                     base: 'echo-base'
                 }
@@ -67,6 +67,37 @@ describe('Moff Gideon, I Know Everything', function() {
             exhaustedResourceCount = context.player2.exhaustedResourceCount;
 
             context.player1.passAction();
+            context.player2.clickCard(context.droidDeployment);
+            expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourceCount + 2);
+
+            context.player2.moveCard(context.atst, 'hand');
+            context.player2.moveCard(context.jawaScavenger, 'hand');
+            context.player2.moveCard(context.droidDeployment, 'hand');
+            context.player1.moveCard(context.echoBaseDefender, 'hand');
+
+            context.moveToNextActionPhase();
+
+            exhaustedResourceCount = context.player2.exhaustedResourceCount;
+
+            // attack a unit with moff gideon without overwhelm, enemy units does not cost more resource
+            context.player1.clickCard(context.moffGideon);
+            context.player1.clickCard(context.sawGerrera);
+
+            context.player2.clickCard(context.atst);
+            expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourceCount + 6);
+            exhaustedResourceCount = context.player2.exhaustedResourceCount;
+
+            // my unit does not cost 1 resource more
+            context.player1.clickCard(context.echoBaseDefender);
+            expect(context.player1.exhaustedResourceCount).toBe(3);
+
+            context.player2.clickCard(context.jawaScavenger);
+            expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourceCount + 1);
+            exhaustedResourceCount = context.player2.exhaustedResourceCount;
+
+            context.player1.passAction();
+
+            // event does not cost more
             context.player2.clickCard(context.droidDeployment);
             expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourceCount + 2);
 
