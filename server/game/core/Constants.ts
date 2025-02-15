@@ -217,7 +217,7 @@ export enum EventName {
     OnCardsDrawn = 'onCardsDrawn',
     OnClaimInitiative = 'onClaimInitiative',
     OnDamageDealt = 'onDamageDealt',
-    OnDamageRemoved = 'onDamageRemoved',
+    OnDamageHealed = 'onDamageHealed',
     OnDeckSearch = 'onDeckSearch',
     OnDeckShuffled = 'onDeckShuffled',
     OnDiscardFromDeck = 'onDiscardFromDeck',

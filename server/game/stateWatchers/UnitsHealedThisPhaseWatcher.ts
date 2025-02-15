@@ -71,7 +71,7 @@ export class UnitsHealedThisPhaseWatcher extends StateWatcher<HealedUnitEntry[]>
         // on damage healed, add the card to the player's list of cards healed this phase
         this.addUpdater({
             when: {
-                onDamageRemoved: (context) => context.card.isUnit(),
+                onDamageHealed: (context) => context.card.isUnit(),
             },
             update: (currentState: IUnitsHealedThisPhase, event: any) =>
                 currentState.concat({ unit: event.card, inPlayId: event.card.inPlayId, controlledBy: event.card.controller })
