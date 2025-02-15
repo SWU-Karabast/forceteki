@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class ShuttleTydiriumFlyCasual extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -19,10 +20,13 @@ export default class ShuttleTydiriumFlyCasual extends NonLeaderUnitCard {
                 })),
                 AbilityHelper.immediateEffects.conditional((context) => ({
                     condition: () => {
-                        const isOdd = context.events[0].card.printedCost % 2 === 1;
+                        const isOdd = context.events[0].card?.printedCost % 2 === 1;
                         return isOdd;
                     },
-                    onTrue: AbilityHelper.immediateEffects.giveExperience(),
+                    onTrue: AbilityHelper.immediateEffects.selectCard({
+                        cardTypeFilter: WildcardCardType.Unit,
+                        innerSystem: AbilityHelper.immediateEffects.giveExperience()
+                    }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 }))
             ])
