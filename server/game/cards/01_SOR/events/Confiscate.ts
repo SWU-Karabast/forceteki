@@ -20,5 +20,3 @@ export default class Confiscate extends EventCard {
         });
     }
 }
-
-Confiscate.implemented = true;

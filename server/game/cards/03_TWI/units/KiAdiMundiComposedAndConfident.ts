@@ -41,4 +41,3 @@ export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
     }
 }
 
-KiAdiMundiComposedAndConfident.implemented = true;

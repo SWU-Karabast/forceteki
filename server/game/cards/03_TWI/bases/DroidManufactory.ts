@@ -20,4 +20,3 @@ export default class DroidManufactory extends BaseCard {
     }
 }
 
-DroidManufactory.implemented = true;

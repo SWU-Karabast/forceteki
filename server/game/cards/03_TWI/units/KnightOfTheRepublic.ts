@@ -19,5 +19,3 @@ export default class KnightOfTheRepublic extends NonLeaderUnitCard {
         });
     }
 }
-
-KnightOfTheRepublic.implemented = true;

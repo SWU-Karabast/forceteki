@@ -30,4 +30,3 @@ export default class JynErsoStardust extends NonLeaderUnitCard {
     }
 }
 
-JynErsoStardust.implemented = true;

@@ -27,5 +27,3 @@ export default class ClearTheField extends EventCard {
         });
     }
 }
-
-ClearTheField.implemented = true;

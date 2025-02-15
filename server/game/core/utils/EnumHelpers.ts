@@ -207,3 +207,6 @@ export const asConcretePlayer = (player: Player | RelativePlayer, contextPlayer:
     return player;
 };
 
+export const asRelativePlayer = (player: Player, otherPlayer: Player): RelativePlayer => {
+    return player === otherPlayer ? RelativePlayer.Self : RelativePlayer.Opponent;
+};

@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class LookTheOtherWay extends EventCard {
     protected override getImplementationId() {
@@ -20,7 +21,7 @@ export default class LookTheOtherWay extends EventCard {
                 opponentsChoice: {
                     mode: TargetMode.Select,
                     dependsOn: 'targetUnit',
-                    choosingPlayer: (context) => (context.source.controller !== context.targets.targetUnit.controller ? RelativePlayer.Opponent : RelativePlayer.Self),
+                    choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.source.controller, context.targets.targetUnit.controller),
                     choices: (context) => ({
                         [`Exhaust ${context.targets.targetUnit.title}`]: AbilityHelper.immediateEffects.exhaust({
                             target: context.targets.targetUnit,

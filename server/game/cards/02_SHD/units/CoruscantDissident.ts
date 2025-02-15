@@ -20,5 +20,3 @@ export default class CoruscantDissident extends NonLeaderUnitCard {
         });
     }
 }
-
-CoruscantDissident.implemented = true;

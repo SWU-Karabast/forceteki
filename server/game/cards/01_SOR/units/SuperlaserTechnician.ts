@@ -17,5 +17,3 @@ export default class SuperlaserTechnician extends NonLeaderUnitCard {
         });
     }
 }
-
-SuperlaserTechnician.implemented = true;
