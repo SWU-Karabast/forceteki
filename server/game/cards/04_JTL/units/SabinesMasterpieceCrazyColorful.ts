@@ -27,7 +27,10 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
                 }),
                 AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.isAspectInPlay(Aspect.Command),
-                    onTrue: AbilityHelper.immediateEffects.giveExperience(),
+                    onTrue: AbilityHelper.immediateEffects.selectCard({
+                        cardTypeFilter: WildcardCardType.Unit,
+                        innerSystem: AbilityHelper.immediateEffects.giveExperience()
+                    }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 }),
                 AbilityHelper.immediateEffects.conditional({
