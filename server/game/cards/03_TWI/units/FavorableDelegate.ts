@@ -21,5 +21,3 @@ export default class FavorableDelegate extends NonLeaderUnitCard {
         });
     }
 }
-
-FavorableDelegate.implemented = true;

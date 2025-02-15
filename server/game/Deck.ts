@@ -1,12 +1,13 @@
 import { CardType } from './core/Constants';
-import type { BaseCard } from './core/card/BaseCard';
-import type { LeaderCard } from './core/card/LeaderCard';
+import type { IBaseCard } from './core/card/BaseCard';
 import type { Card } from './core/card/Card';
 import { cards } from './cards/Index';
 import type Player from './core/Player';
 import * as CardHelpers from './core/card/CardHelpers';
-import type { TokenOrPlayableCard, TokenCard } from './core/card/CardTypes';
 import * as Contract from './core/utils/Contract';
+import type { IPlayableCard } from './core/card/baseClasses/PlayableOrDeployableCard';
+import type { ITokenCard } from './core/card/propertyMixins/Token';
+import type { ILeaderCard } from './core/card/propertyMixins/LeaderProperties';
 
 export class Deck {
     public constructor(public data: any) {}
@@ -14,12 +15,12 @@ export class Deck {
     public prepare(player: Player) {
         const result = {
             // there isn't a type that excludes tokens b/c tokens inherit from non-token types, so we manually check that that deck cards aren't tokens
-            deckCards: [] as TokenOrPlayableCard[],
+            deckCards: [] as IPlayableCard[],
             outOfPlayCards: [],
             outsideTheGameCards: [] as Card[],
-            tokens: [] as TokenCard[],
-            base: undefined as BaseCard | undefined,
-            leader: undefined as LeaderCard | undefined,
+            tokens: [] as ITokenCard[],
+            base: undefined as IBaseCard | undefined,
+            leader: undefined as ILeaderCard | undefined,
             allCards: [] as Card[]
         };
 
@@ -28,7 +29,7 @@ export class Deck {
             for (let i = 0; i < count; i++) {
                 const CardConstructor = cards.get(card.id) ?? CardHelpers.createUnimplementedCard;
                 const deckCard: Card = new CardConstructor(player, card);
-                Contract.assertTrue(deckCard.isTokenOrPlayable() && !deckCard.isToken());
+                Contract.assertTrue(deckCard.isPlayable());
                 result.deckCards.push(deckCard);
             }
         }

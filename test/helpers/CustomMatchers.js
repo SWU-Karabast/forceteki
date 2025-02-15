@@ -858,6 +858,56 @@ var customMatchers = {
                 return result;
             }
         };
+    },
+    toHaveExactEnabledDisplayPromptPerCardButtons: function() {
+        return {
+            compare: function (player, expectedButtonsInPrompt) {
+                let result = {};
+
+                if (!Array.isArray(expectedButtonsInPrompt)) {
+                    throw new TestSetupError(`Parameter 'expectedButtonsInPrompt' is not an array: ${expectedButtonsInPrompt}`);
+                }
+
+                const actualButtonsInPrompt = player.currentPrompt().perCardButtons.filter((button) => button.disabled !== true).map((button) => button.text);
+
+                result.pass = stringArraysEqual(actualButtonsInPrompt, expectedButtonsInPrompt);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have this exact set of "per card" buttons but it did: ${expectedButtonsInPrompt.join(', ')}`;
+                } else {
+                    result.message = `Expected ${player.name} to have this exact set of "per card" buttons: '${expectedButtonsInPrompt.join(', ')}' but it has: '${actualButtonsInPrompt.join(', ')}'`;
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
+
+                return result;
+            }
+        };
+    },
+    toHaveExactDisabledDisplayPromptPerCardButtons: function() {
+        return {
+            compare: function (player, expectedButtonsInPrompt) {
+                let result = {};
+
+                if (!Array.isArray(expectedButtonsInPrompt)) {
+                    throw new TestSetupError(`Parameter 'expectedButtonsInPrompt' is not an array: ${expectedButtonsInPrompt}`);
+                }
+
+                const actualButtonsInPrompt = player.currentPrompt().perCardButtons.filter((button) => button.disabled === true).map((button) => button.text);
+
+                result.pass = stringArraysEqual(actualButtonsInPrompt, expectedButtonsInPrompt);
+
+                if (result.pass) {
+                    result.message = `Expected ${player.name} not to have this exact set of "per card" buttons but it did: ${expectedButtonsInPrompt.join(', ')}`;
+                } else {
+                    result.message = `Expected ${player.name} to have this exact set of "per card" buttons: '${expectedButtonsInPrompt.join(', ')}' but it has: '${actualButtonsInPrompt.join(', ')}'`;
+                }
+
+                result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
+
+                return result;
+            }
+        };
     }
 };
 

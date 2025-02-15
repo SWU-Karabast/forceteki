@@ -24,5 +24,3 @@ export default class EmperorsRoyalGuard extends NonLeaderUnitCard {
         });
     }
 }
-
-EmperorsRoyalGuard.implemented = true;

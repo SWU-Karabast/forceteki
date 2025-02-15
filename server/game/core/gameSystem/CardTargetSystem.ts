@@ -8,9 +8,9 @@ import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
-import type { UnitCard } from '../card/CardTypes';
 import type { GameObject } from '../GameObject';
-import type { PlayableOrDeployableCard } from '../card/baseClasses/PlayableOrDeployableCard';
+import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
+import type { IPlayableOrDeployableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
@@ -218,7 +218,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         // };
     }
 
-    private generateUpgradeDefeatEvents(card: UnitCard, context: TContext, event: any): any[] {
+    private generateUpgradeDefeatEvents(card: IUnitCard, context: TContext, event: any): any[] {
         const defeatEvents = [];
 
         for (const upgrade of card.upgrades) {
@@ -235,7 +235,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return defeatEvents;
     }
 
-    private generateRescueEvents(card: UnitCard, context: TContext, event: any): any[] {
+    private generateRescueEvents(card: IUnitCard, context: TContext, event: any): any[] {
         const rescueEvents = [];
 
         for (const captured of card.capturedUnits) {
@@ -261,7 +261,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
      * @param context context
      * @param defaultMoveAction A handler that will move the card to its destination if none of the special cases apply
      */
-    protected leavesPlayEventHandler(card: PlayableOrDeployableCard, destination: ZoneName, context: TContext, defaultMoveAction: () => void): void {
+    protected leavesPlayEventHandler(card: IPlayableOrDeployableCard, destination: ZoneName, context: TContext, defaultMoveAction: () => void): void {
         // Attached upgrades should be unattached before move
         if (card.isUpgrade()) {
             Contract.assertTrue(card.isAttached(), `Attempting to unattach upgrade card ${card} due to leaving play but it is already unattached.`);
@@ -287,7 +287,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
      * @param card Resource card leaving play
      * @param context context
      */
-    protected leavesResourceZoneEventHandler(card: PlayableOrDeployableCard, context: TContext): void {
+    protected leavesResourceZoneEventHandler(card: IPlayableOrDeployableCard, context: TContext): void {
         Contract.assertTrue(card.zoneName === ZoneName.Resource);
         if (card.controller !== context.player) {
             return;

@@ -17,5 +17,3 @@ export default class AnakinsInterceptorWhereTheFunBegins extends NonLeaderUnitCa
         });
     }
 }
-
-AnakinsInterceptorWhereTheFunBegins.implemented = true;

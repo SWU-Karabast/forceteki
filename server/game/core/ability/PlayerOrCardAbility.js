@@ -191,8 +191,6 @@ class PlayerOrCardAbility {
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = typeof this.cost === 'function' ? Helpers.asArray(this.cost(context)) : this.cost;
 
-        // TODO THIS PR: is the below line needed?
-
         costs = costs.map((a) => a);
 
         if (!playCosts) {

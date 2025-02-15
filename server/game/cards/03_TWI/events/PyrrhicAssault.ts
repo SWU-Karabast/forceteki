@@ -29,5 +29,3 @@ export default class PyrrhicAssault extends EventCard {
         });
     }
 }
-
-PyrrhicAssault.implemented = true;
