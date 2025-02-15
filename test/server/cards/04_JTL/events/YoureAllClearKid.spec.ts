@@ -40,7 +40,7 @@ describe('You\'re All Clear, Kid', function() {
 
             // it was the last enemy space unit, you may give an experience token to a unit
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.wampa]);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHavePassAbilityButton();
 
             context.player1.clickCard(context.battlefieldMarine);
 

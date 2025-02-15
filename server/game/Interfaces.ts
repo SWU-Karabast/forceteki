@@ -108,7 +108,7 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
     then?: ((context?: AbilityContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
-    ifYouDo?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
+    ifYouDo?: ((context?: AbilityContext) => IIfYouDoAbilityPropsWithSystems<TContext>) | IIfYouDoAbilityPropsWithSystems<TContext>;
     ifYouDoNot?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
 }
 
@@ -225,6 +225,10 @@ export type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoing
 
 export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     thenCondition?: (context?: TContext) => boolean;
+};
+
+export type IIfYouDoAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
+    ifYouDoCondition?: (context?: TContext) => boolean;
 };
 
 export interface IClientUIProperties {

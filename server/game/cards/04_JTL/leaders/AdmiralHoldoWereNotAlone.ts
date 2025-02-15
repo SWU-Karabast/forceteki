@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { Trait, WildcardCardType } from '../../../core/Constants';
-import type { UnitCard } from '../../../core/card/CardTypes';
+import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 
 export default class AdmiralHoldoWereNotAlone extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -39,7 +39,7 @@ export default class AdmiralHoldoWereNotAlone extends LeaderUnitCard {
         });
     }
 
-    private isResistanceOrHasResistanceUpgrade(card: UnitCard) {
+    private isResistanceOrHasResistanceUpgrade(card: IUnitCard) {
         return card.hasSomeTrait(Trait.Resistance) || card.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Resistance));
     }
 }

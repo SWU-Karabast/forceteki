@@ -20,14 +20,11 @@ export default class GreedoSlowOnTheDraw extends NonLeaderUnitCard {
             })),
             ifYouDo: (context) => ({
                 title: 'Deal 2 damage to a ground unit',
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: !context.events[0].card.isUnit(),
-                    onTrue: AbilityHelper.immediateEffects.selectCard({
-                        zoneFilter: ZoneName.GroundArena,
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
-                    }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
-                })
+                ifYouDoCondition: () => !context.events[0].card.isUnit(),
+                targetResolver: {
+                    zoneFilter: ZoneName.GroundArena,
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                }
             })
         });
     }

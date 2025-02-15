@@ -37,7 +37,7 @@ describe('Admiral Holdo, We\'re Not Alone', function () {
                 expect(context.rey.getHp()).toBe(7);
             });
 
-            // TODO RESISTANCE UPGRADE
+            // TODO WHEN PILOTING IS DONE ADD RESISTANCE UPGRADE TESTS
         });
 
         describe('Admiral Holdo\'s deployed ability', function () {
@@ -76,7 +76,7 @@ describe('Admiral Holdo, We\'re Not Alone', function () {
                 expect(context.rey.getHp()).toBe(7);
             });
 
-            // TODO RESISTANCE UPGRADE
+            // TODO WHEN PILOTING IS DONE ADD RESISTANCE UPGRADE TESTS
         });
     });
 });

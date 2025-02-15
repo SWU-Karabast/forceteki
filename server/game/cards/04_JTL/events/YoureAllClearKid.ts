@@ -22,15 +22,12 @@ export default class YoureAllClearKid extends EventCard {
             },
             ifYouDo: {
                 title: 'If an opponent controls no space, give an experience token to a unit',
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => !context.player.opponent.hasSomeArenaUnit({ arena: ZoneName.SpaceArena }),
-                    onTrue: AbilityHelper.immediateEffects.selectCard({
-                        cardTypeFilter: WildcardCardType.Unit,
-                        optional: true,
-                        innerSystem: AbilityHelper.immediateEffects.giveExperience()
-                    }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
-                })
+                optional: true,
+                ifYouDoCondition: (context) => !context.player.opponent.hasSomeArenaUnit({ arena: ZoneName.SpaceArena }),
+                targetResolver: {
+                    cardTypeFilter: WildcardCardType.Unit,
+                    immediateEffect: AbilityHelper.immediateEffects.giveExperience()
+                }
             }
         });
     }

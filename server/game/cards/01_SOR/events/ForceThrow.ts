@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { TargetMode, WildcardCardType, Trait } from '../../../core/Constants';
+import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class ForceThrow extends EventCard {
     protected override getImplementationId() {
@@ -19,15 +19,12 @@ export default class ForceThrow extends EventCard {
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: `Deal damage to a unit equal to the cost of ${ifYouDoContext.events[0]?.card?.title} (${ifYouDoContext.events[0]?.card?.printedCost} damage)`,
+                ifYouDoCondition: () => ifYouDoContext.source.controller.isTraitInPlay(Trait.Force),
                 optional: true,
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: () => ifYouDoContext.source.controller.isTraitInPlay(Trait.Force),
-                    onTrue: AbilityHelper.immediateEffects.selectCard({
-                        cardTypeFilter: WildcardCardType.Unit,
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: ifYouDoContext.events[0]?.card?.printedCost ?? 0 })
-                    }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
-                })
+                targetResolver: {
+                    cardTypeFilter: WildcardCardType.Unit,
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: ifYouDoContext.events[0]?.card?.printedCost ?? 0 })
+                }
             })
         });
     }
