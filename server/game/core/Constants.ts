@@ -61,6 +61,7 @@ export enum EffectName {
     AdditionalPlayCost = 'additionalPlaycost',
     AdditionalTriggerCost = 'additionalTriggercost',
     AddTrait = 'addTrait',
+    AssignIndirectDamageDealtToOpponents = 'assignIndirectDamageDealtToOpponents',
     Blank = 'blank',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
@@ -217,7 +218,7 @@ export enum EventName {
     OnCardsDrawn = 'onCardsDrawn',
     OnClaimInitiative = 'onClaimInitiative',
     OnDamageDealt = 'onDamageDealt',
-    OnDamageRemoved = 'onDamageRemoved',
+    OnDamageHealed = 'onDamageHealed',
     OnDeckSearch = 'onDeckSearch',
     OnDeckShuffled = 'onDeckShuffled',
     OnDiscardFromDeck = 'onDiscardFromDeck',
@@ -225,6 +226,7 @@ export enum EventName {
     OnEntireHandDiscarded = 'onEntireHandDiscarded',
     onExhaustResources = 'onExhaustResources',
     onExploitUnits = 'onExploitUnits',
+    OnIndirectDamageDealtToPlayer = 'onIndirectDamageDealtToPlayer',
     OnInitiateAbilityEffects = 'onInitiateAbilityEffects',
     OnLeaderDeployed = 'onLeaderDeployed',
     OnLeaderFlipped = 'onLeaderFlipped',
@@ -260,6 +262,7 @@ export enum MetaEventName {
     Conditional = 'conditional',
     ChooseModalEffects = 'ChooseModalEffects',
     DistributeDamage = 'distributeDamage',
+    DistributeIndirectDamageToCards = 'distributeIndirectDamageToCards',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
     ExecuteHandler = 'executeHandler',
@@ -423,6 +426,7 @@ export enum StateWatcherName {
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
     DamageDealtThisPhase = 'damageDealtThisPhase',
+    UnitsHealedThisPhase = 'unitsHealedThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
     // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado

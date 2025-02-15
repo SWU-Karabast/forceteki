@@ -41,10 +41,17 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
         this.selectedCardsButtonText = properties.selectedCardsButtonText || 'Done';
         this.noSelectedCardsButtonText = properties.noSelectedCardsButtonText || 'Take nothing';
 
+        const selectableCardCount = this.displayCards.filter(
+            (card) => card.selectionState === DisplayCardSelectionState.Selectable
+        ).length;
+
         if (this.canChooseNothing) {
             this.doneButton = { text: this.noSelectedCardsButtonText, arg: 'done' };
         } else if (this.maxCards > 1) {
             this.doneButton = { text: this.selectedCardsButtonText, arg: 'done', disabled: true };
+        } else if (selectableCardCount === 0) {
+            // If no cards are selectable, the prompt should be dismissable
+            this.doneButton = { text: this.selectedCardsButtonText, arg: 'done' };
         }
         // if there is only one card to select, the done button is not needed as we'll auto-fire when it's clicked
     }

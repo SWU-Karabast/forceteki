@@ -16,6 +16,8 @@ export class UnitTestCardDataGetter extends LocalFolderCardDataGetter implements
     }
 
     public constructor(folderRoot: string) {
+        LocalFolderCardDataGetter.validateFolderContents(folderRoot, true);
+
         const cardMapJson = UnitTestCardDataGetter.readFileSync(folderRoot, CardDataGetter.cardMapFileName) as ICardMapJson;
 
         const tokenData = UnitTestCardDataGetter.getTokenCardsDataSync(

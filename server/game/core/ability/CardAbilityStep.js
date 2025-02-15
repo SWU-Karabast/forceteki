@@ -114,7 +114,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
             if (eventsToResolve.length > 0) {
                 let window = this.openEventWindow(eventsToResolve);
                 window.setSubAbilityStep(() => this.getSubAbilityStepContext(context, eventsToResolve));
-            // if no events for the current step, skip directly to the "then" step (if any)
+                // if no events for the current step, skip directly to the "then" step (if any)
             } else {
                 const subAbilityStep = this.getSubAbilityStepContext(context, []);
                 if (!!subAbilityStep) {
@@ -159,7 +159,6 @@ class CardAbilityStep extends PlayerOrCardAbility {
             if (resolvedAbilityEvents.length === 0) {
                 return null;
             }
-
             ifAbility = this.properties.ifYouDo;
             effectShouldResolve = true;
         } else if (this.properties.ifYouDoNot) {
@@ -183,9 +182,11 @@ class CardAbilityStep extends PlayerOrCardAbility {
         // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
         const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
 
-        return conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve
-            ? this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy)
-            : null;
+        if (conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
+            return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+        }
+
+        return null;
     }
 
     getConcreteSubAbilityStepProperties(subAbilityStep, context) {

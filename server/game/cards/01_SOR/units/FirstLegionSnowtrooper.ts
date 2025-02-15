@@ -20,5 +20,3 @@ export default class FirstLegionSnowtrooper extends NonLeaderUnitCard {
         });
     }
 }
-
-FirstLegionSnowtrooper.implemented = true;

@@ -6,8 +6,8 @@ import { CardDataGetter } from './CardDataGetter';
 import type { ICardDataJson, ICardMapJson } from './CardDataInterfaces';
 
 export class LocalFolderCardDataGetter extends CardDataGetter {
-    public static async create(folderRoot: string): Promise<LocalFolderCardDataGetter> {
-        Contract.assertTrue(fs.existsSync(folderRoot), `Card data folder ${folderRoot} does not exist`);
+    public static async create(folderRoot: string, isDevelopment = true): Promise<LocalFolderCardDataGetter> {
+        LocalFolderCardDataGetter.validateFolderContents(folderRoot, isDevelopment);
 
         const cardMap: ICardMapJson =
             await LocalFolderCardDataGetter.readFileAsync(folderRoot, CardDataGetter.cardMapFileName) as ICardMapJson;
@@ -30,6 +30,22 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
         return new LocalFolderCardDataGetter(folderRoot, cardMap, tokenData, playableCardTitles, setCodeMap);
     }
 
+    protected static validateFolderContents(directory: string, isDevelopment: boolean) {
+        const getCardsSuffix = isDevelopment ? ', please run \'npm run get-cards\'' : '';
+
+        Contract.assertTrue(fs.existsSync(directory), `Json card definitions folder ${directory} not found${getCardsSuffix}`);
+
+        const actualCardDataVersionPath = path.join(directory, 'card-data-version.txt');
+        Contract.assertTrue(fs.existsSync(actualCardDataVersionPath), `Card data version file ${actualCardDataVersionPath} not found${getCardsSuffix}`);
+
+        const expectedCardDataVersionPath = path.join(__dirname, '../../card-data-version.txt');
+        Contract.assertTrue(fs.existsSync(expectedCardDataVersionPath), `Repository file ${expectedCardDataVersionPath} not found${getCardsSuffix}`);
+
+        const actualCardDataVersion = fs.readFileSync(actualCardDataVersionPath, 'utf8');
+        const expectedCardDataVersion = fs.readFileSync(expectedCardDataVersionPath, 'utf8');
+        Contract.assertTrue(actualCardDataVersion === expectedCardDataVersion, `Json card data version mismatch, expected '${expectedCardDataVersion}' but found '${actualCardDataVersion}' currently installed${getCardsSuffix}`);
+    }
+
     protected static getRelativePathFromInternalName(internalName: string) {
         return `Card/${internalName}.json`;
     }
@@ -43,7 +59,7 @@ export class LocalFolderCardDataGetter extends CardDataGetter {
 
     protected readonly folderRoot: string;
 
-    public constructor(
+    protected constructor(
         folderRoot: string,
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,

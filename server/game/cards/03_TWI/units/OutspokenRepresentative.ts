@@ -23,5 +23,3 @@ export default class OutspokenRepresentative extends NonLeaderUnitCard {
         });
     }
 }
-
-OutspokenRepresentative.implemented = true;

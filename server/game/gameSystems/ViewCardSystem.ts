@@ -40,10 +40,13 @@ export interface IViewCardOnlyProperties extends IViewCardPropertiesBase {
     interactMode: ViewCardInteractMode.ViewOnly;
 }
 
-export interface IViewCardAndSelectSingleProperties extends IViewCardPropertiesBase {
+export interface IViewCardAndSelectSingleProperties<TContext extends AbilityContext = AbilityContext> extends IViewCardPropertiesBase {
     interactMode: ViewCardInteractMode.SelectSingle;
     canChooseNothing?: boolean;
-    immediateEffect?: GameSystem;
+    immediateEffect?: GameSystem<TContext>;
+
+    /** Used for filtering selection based on things like trait, type, etc. */
+    cardCondition?: (card: Card, context: TContext) => boolean;
 }
 
 export interface IViewCardWithPerCardButtonsProperties extends IViewCardPropertiesBase {
@@ -143,21 +146,37 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
             }
         };
 
+        const cardCondition = properties.cardCondition || (() => true);
+
         return () => context.game.promptDisplayCardsForSelection(
             promptedPlayer,
             {
                 source: context.source,
                 displayCards: cards,
                 maxCards: 1,
-                canChooseNothing: properties.canChooseNothing || true,
-                selectedCardsHandler
+                canChooseNothing: properties.canChooseNothing ?? true,
+                selectedCardsHandler,
+                validCardCondition: (card: Card) =>
+                    cardCondition(card, context) &&
+                    (!properties.immediateEffect || properties.immediateEffect.canAffect(card, context))
             }
         );
     }
 
     private buildPerCardButtonsPrompt(promptedPlayer: Player, cards: Card[], properties: IViewCardWithPerCardButtonsProperties, context: TContext) {
-        const buttonDefinitions = properties.perCardButtons.map((button) => ({ text: button.text, arg: button.arg }));
         const argsToEffects = new Map<string, GameSystem>(properties.perCardButtons.map((button) => [button.arg, button.immediateEffect]));
+        const buttonDefinitions = properties.perCardButtons.map((button) => {
+            let disabled = false;
+
+            // This is used to filter out game actions that wouldn't be legal such as playing a card blocked by Regional Governor
+            // If we ever have a prompt choice displaying more than one card, we'll need to update this
+            const gameSystem = argsToEffects.get(button.arg);
+            if (cards.length === 1 && !gameSystem.canAffect(cards[0], context)) {
+                disabled = true;
+            }
+
+            return { text: button.text, arg: button.arg, disabled: disabled };
+        });
 
         const events = [];
         const onCardButton = (card: Card, arg: string) => {

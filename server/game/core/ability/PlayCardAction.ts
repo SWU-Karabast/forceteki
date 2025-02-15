@@ -148,7 +148,8 @@ export abstract class PlayCardAction extends PlayerAction {
     public override getContextProperties(player: Player, event: any) {
         return {
             ...super.getContextProperties(player, event),
-            costAspects: this.card.aspects
+            costAspects: this.card.aspects,
+            playType: this.playType,
         };
     }
 

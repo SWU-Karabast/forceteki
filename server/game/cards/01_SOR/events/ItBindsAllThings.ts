@@ -3,8 +3,6 @@ import { EventCard } from '../../../core/card/EventCard';
 import { Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class ItBindsAllThings extends EventCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId () {
         return {
             id: '0867878280',

@@ -40,4 +40,3 @@ export default class ObiWanKenobiPatientMentor extends LeaderUnitCard {
     }
 }
 
-ObiWanKenobiPatientMentor.implemented = true;

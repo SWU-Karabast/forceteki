@@ -23,5 +23,3 @@ export default class GrievousReassembly extends EventCard {
         });
     }
 }
-
-GrievousReassembly.implemented = true;

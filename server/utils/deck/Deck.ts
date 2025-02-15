@@ -1,13 +1,14 @@
-import type { BaseCard } from '../../game/core/card/BaseCard';
-import type { LeaderCard } from '../../game/core/card/LeaderCard';
 import type { Card } from '../../game/core/card/Card';
 import { cards } from '../../game/cards/Index';
 import type Player from '../../game/core/Player';
 import * as CardHelpers from '../../game/core/card/CardHelpers';
-import type { TokenOrPlayableCard, TokenCard } from '../../game/core/card/CardTypes';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ISwuDbCardEntry, ISwuDbDecklist, ISwuDbDecklistShort } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
+import type { IPlayableCard } from '../../game/core/card/baseClasses/PlayableOrDeployableCard';
+import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
+import type { IBaseCard } from '../../game/core/card/BaseCard';
+import type { ILeaderCard } from '../../game/core/card/propertyMixins/LeaderProperties';
 
 export class Deck {
     public readonly base: string;
@@ -85,12 +86,12 @@ export class Deck {
     public async buildCardsAsync(player: Player, cardDataGetter: CardDataGetter) {
         const result = {
             // there isn't a type that excludes tokens b/c tokens inherit from non-token types, so we manually check that that deck cards aren't tokens
-            deckCards: [] as TokenOrPlayableCard[],
+            deckCards: [] as IPlayableCard[],
             outOfPlayCards: [],
             outsideTheGameCards: [] as Card[],
-            tokens: [] as TokenCard[],
-            base: undefined as BaseCard | undefined,
-            leader: undefined as LeaderCard | undefined,
+            tokens: [] as ITokenCard[],
+            base: undefined as IBaseCard | undefined,
+            leader: undefined as ILeaderCard | undefined,
             allCards: [] as Card[]
         };
 
@@ -100,7 +101,7 @@ export class Deck {
         for (const [cardSetCode, count] of this.deckCards ?? []) {
             for (let i = 0; i < count; i++) {
                 const deckCard = await this.buildCardFromSetCodeAsync(cardSetCode, player, cardDataGetter);
-                Contract.assertTrue(deckCard.isTokenOrPlayable() && !deckCard.isToken());
+                Contract.assertTrue(deckCard.isPlayable());
                 result.deckCards.push(deckCard);
             }
         }

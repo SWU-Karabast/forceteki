@@ -35,5 +35,3 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
         });
     }
 }
-
-ReyKeepingThePast.implemented = true;

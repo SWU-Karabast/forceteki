@@ -32,12 +32,14 @@ export interface IDisplayCard {
 
 export enum StatefulPromptType {
     DistributeDamage = 'distributeDamage',
+    DistributeIndirectDamage = 'distributeIndirectDamage',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
 }
 
 export type DistributePromptType =
   | StatefulPromptType.DistributeDamage
+  | StatefulPromptType.DistributeIndirectDamage
   | StatefulPromptType.DistributeExperience
   | StatefulPromptType.DistributeHealing;
 
@@ -57,15 +59,24 @@ export interface IDistributeAmongTargetsPromptProperties extends IPromptProperti
     canDistributeLess: boolean;
     maxTargets?: number;
     legalTargets: Card[];
-    resultsHandler: (results: IDistributeAmongTargetsPromptResults) => void;
+    resultsHandler: (results: IDistributeAmongTargetsPromptMapResults) => void;
 }
 
 export interface IDistributeAmongTargetsPromptData {
     type: DistributePromptType;
     amount: number;
+    isIndirectDamange: boolean;
 }
 
 export interface IDistributeAmongTargetsPromptResults {
+    type: DistributePromptType;
+    valueDistribution: {
+        uuid: string;
+        amount: number;
+    }[];
+}
+
+export interface IDistributeAmongTargetsPromptMapResults {
     type: DistributePromptType;
     valueDistribution: Map<Card, number>;
 }

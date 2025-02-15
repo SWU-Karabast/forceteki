@@ -28,5 +28,3 @@ export default class RuthlessRaider extends NonLeaderUnitCard {
         });
     }
 }
-
-RuthlessRaider.implemented = true;

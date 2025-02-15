@@ -520,7 +520,7 @@ class Game extends EventEmitter {
 
         /**
          * TODO we currently set the winner here as to send the winner via gameState.
-         * TODO this will likely change when we decide on how the popup will look like seperately
+         * TODO this will likely change when we decide on how the popup will look like separately
          * TODO from the preference popup
          */
         if (Array.isArray(winner)) {
@@ -767,7 +767,7 @@ class Game extends EventEmitter {
      * Gets the results of a "stateful" prompt from the frontend. This is for more
      * involved prompts such as distributing damage / healing that require the frontend
      * to gather some state and send back, instead of just individual clicks.
-     * @param {import('./gameSteps/PromptInterfaces.js').IDistributeAmongTargetsPromptResults} result
+     * @param {import('./gameSteps/PromptInterfaces.js').IStatefulPromptResults} result
      * @param {String} uuid - unique identifier of the prompt clicked
      */
     statefulPromptResults(playerId, result, uuid) {
@@ -1229,6 +1229,8 @@ class Game extends EventEmitter {
         for (const [tokenName, cardData] of Object.entries(tokenCardsData)) {
             const tokenConstructor = cards.get(cardData.id);
 
+            Contract.assertNotNullLike(tokenConstructor, `Token card data for ${tokenName} contained unknown id '${cardData.id}'`);
+
             this.tokenFactories[tokenName] = (player) => new tokenConstructor(player, cardData);
         }
     }
@@ -1262,7 +1264,7 @@ class Game extends EventEmitter {
 
     /**
      * Removes a shield token from all relevant card lists, including its zone
-     * @param {import('./card/CardTypes.js').TokenCard} token
+     * @param {import('./card/propertyMixins/Token.js').ITokenCard} token
      */
     removeTokenFromPlay(token) {
         Contract.assertEqual(token.zoneName, ZoneName.OutsideTheGame,

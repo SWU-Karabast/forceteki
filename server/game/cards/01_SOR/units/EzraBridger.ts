@@ -1,11 +1,8 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { TargetMode } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 
 
 export default class EzraBridger extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '9560139036',
@@ -19,22 +16,30 @@ export default class EzraBridger extends NonLeaderUnitCard {
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
             },
-            immediateEffect: AbilityHelper.immediateEffects.lookAt(
-                (context) => ({ target: context.source.controller.getTopCardOfDeck() })
-            ),
-            ifYouDo: {
-                title: 'You may play it, discard it, or leave it on top of your deck.',
-                targetResolver: {
-                    mode: TargetMode.Select,
-                    choices: {
-                        ['Play it']: AbilityHelper.immediateEffects.playCardFromOutOfPlay((context) => ({ target: context.source.controller.getTopCardOfDeck() })),
-                        ['Discard it']: AbilityHelper.immediateEffects.discardSpecificCard((context) => ({ target: context.source.controller.getTopCardOfDeck() })),
-                        ['Leave it on top of your deck']: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true }),
-                    }
-                }
-            }
+            immediateEffect: AbilityHelper.immediateEffects.lookAtAndChooseOption((context) => {
+                const topCardOfDeck = context.source.controller.getTopCardOfDeck();
+                return {
+                    useDisplayPrompt: true,
+                    target: topCardOfDeck,
+                    perCardButtons: [
+                        {
+                            text: 'Play it',
+                            arg: 'play',
+                            immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({ target: topCardOfDeck })
+                        },
+                        {
+                            text: 'Discard it',
+                            arg: 'discard',
+                            immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard({ target: topCardOfDeck })
+                        },
+                        {
+                            text: 'Leave it on top of your deck',
+                            arg: 'leave',
+                            immediateEffect: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
+                        }
+                    ]
+                };
+            })
         });
     }
 }
-
-EzraBridger.implemented = true;

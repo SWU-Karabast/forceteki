@@ -536,6 +536,10 @@ class PlayerInteractionWrapper {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeDamage');
     }
 
+    setDistributeIndirectDamagePromptState(cardDistributionMap) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeIndirectDamage');
+    }
+
     setDistributeHealingPromptState(cardDistributionMap) {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
     }
@@ -547,8 +551,13 @@ class PlayerInteractionWrapper {
     setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
         var currentPrompt = this.player.currentPrompt();
 
+        const cardDistributionArray = [...cardDistributionMap].map(([card, amount]) => ({
+            uuid: card.uuid,
+            amount
+        }));
+
         const promptResults = {
-            valueDistribution: cardDistributionMap,
+            valueDistribution: cardDistributionArray,
             type
         };
 
