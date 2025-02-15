@@ -188,12 +188,6 @@ class DeckBuilder {
         return [];
     }
 
-    getCapturedUnitsFromCard(playerEntry) {
-        if (playerEntry && typeof playerEntry !== 'string' && 'capturedUnits' in playerEntry) {
-            return this.getNamedCardsInPlayerEntry(playerEntry.capturedUnits);
-        }
-    }
-
     padCardListIfNeeded(cardList, defaultCount) {
         if (cardList == null) {
             return Array(defaultCount).fill(deckFillerCard);
