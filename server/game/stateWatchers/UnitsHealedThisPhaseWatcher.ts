@@ -34,25 +34,6 @@ export class UnitsHealedThisPhaseWatcher extends StateWatcher<HealedUnitEntry[]>
         return super.getCurrentValue();
     }
 
-    /** Get the list of the specified player's units that were healed */
-    public getHealedUnitsControlledByPlayer(controller: Player): IUnitCard[] {
-        return this.getCurrentValue()
-            .filter((entry) => entry.controlledBy === controller)
-            .map((entry) => entry.unit);
-    }
-
-    /** Get the list of the units that were healed this phase */
-    public someUnitHealedThisPhase(filter: (entry: HealedUnitEntry) => boolean): boolean {
-        return this.getCurrentValue().filter(filter).length > 0;
-    }
-
-    /** Get the list of the specified player's units that were healed */
-    public getHealedUnitsControlledByPlayerNew(controller: Player): InPlayUnit[] {
-        return this.getCurrentValue()
-            .filter((entry) => entry.controlledBy === controller)
-            .map((entry) => ({ unit: entry.unit, inPlayId: entry.inPlayId }));
-    }
-
     /** Check if a specific copy of a unit was healed this phase */
     public wasHealedThisPhase(card: IUnitCard, inPlayId?: number): boolean {
         const inPlayIdToCheck = inPlayId ?? (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId);
@@ -60,11 +41,6 @@ export class UnitsHealedThisPhaseWatcher extends StateWatcher<HealedUnitEntry[]>
         return this.getCurrentValue().some(
             (entry) => entry.unit === card && entry.inPlayId === inPlayIdToCheck
         );
-    }
-
-    /** Check if there is some units controlled by player that was healed this phase */
-    public someHealedUnitControlledByPlayer(controller: Player): boolean {
-        return this.getCurrentValue().filter((entry) => entry.controlledBy === controller).length > 0;
     }
 
     protected override setupWatcher() {
