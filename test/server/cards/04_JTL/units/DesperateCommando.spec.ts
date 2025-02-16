@@ -1,7 +1,7 @@
 describe('Desperate Commando', function () {
     integration(function (contextRef) {
-        it('Desperate Commando\'s ability should give a unit -1/-1 on defeat', function () {
-            contextRef.setupTest({
+        it('Desperate Commando\'s ability should give a unit -1/-1 on defeat', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['desperate-commando', 'battlefield-marine'],

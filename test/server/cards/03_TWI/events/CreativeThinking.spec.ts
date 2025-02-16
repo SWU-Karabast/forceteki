@@ -1,7 +1,7 @@
 describe('Creative Thinking', function () {
     integration(function (contextRef) {
-        it('Creative Thinking\'s ability should exhaust a non-unique unit and create a Clone Trooper token', function () {
-            contextRef.setupTest({
+        it('Creative Thinking\'s ability should exhaust a non-unique unit and create a Clone Trooper token', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['creative-thinking', 'waylay'],

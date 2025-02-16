@@ -1,7 +1,7 @@
 describe('Senatorial Corvette', function() {
     integration(function(contextRef) {
-        it('should discard a card from opponents hand', function () {
-            contextRef.setupTest({
+        it('should discard a card from opponents hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['wampa'],

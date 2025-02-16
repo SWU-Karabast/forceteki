@@ -1,7 +1,7 @@
 describe('Mister Bones, I Performed Violence', function () {
     integration(function (contextRef) {
-        it('Mister Bones\'s ability should deal 3 damage if there is no card in controller\'s hand', function () {
-            contextRef.setupTest({
+        it('Mister Bones\'s ability should deal 3 damage if there is no card in controller\'s hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['resupply'],

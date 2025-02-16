@@ -1,8 +1,8 @@
 describe('Take control system', function() {
     integration(function(contextRef) {
         describe('When a player takes control of a unit in the arena', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
@@ -115,8 +115,8 @@ describe('Take control system', function() {
         });
 
         describe('When a player takes control of a unit in the arena,', function() {
-            it('it should retain any lasting effects', function () {
-                contextRef.setupTest({
+            it('it should retain any lasting effects', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
@@ -153,8 +153,8 @@ describe('Take control system', function() {
                 expect(context.p2Base.damage).toBe(11);
             });
 
-            it('it should be targeted by the correct constant abilities', function () {
-                contextRef.setupTest({
+            it('it should be targeted by the correct constant abilities', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
@@ -182,8 +182,8 @@ describe('Take control system', function() {
                 expect(context.p2Base.damage).toBe(4);
             });
 
-            it('its constant ability targets should be updated', function () {
-                contextRef.setupTest({
+            it('its constant ability targets should be updated', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
@@ -218,8 +218,8 @@ describe('Take control system', function() {
                 expect(context.p2Base.damage).toBe(3);
             });
 
-            it('its action ability should be usable by the new controller', function () {
-                contextRef.setupTest({
+            it('its action ability should be usable by the new controller', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
@@ -249,8 +249,8 @@ describe('Take control system', function() {
                 expect(context.bailOrgana.exhausted).toBeTrue();
             });
 
-            it('its original controller should be able to take control back', function () {
-                contextRef.setupTest({
+            it('its original controller should be able to take control back', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true }
@@ -287,8 +287,8 @@ describe('Take control system', function() {
             });
         });
 
-        it('should update constant ability based on other unit on player board', function() {
-            contextRef.setupTest({
+        it('should update constant ability based on other unit on player board', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['traitorous', 'republic-arc170'],
@@ -327,8 +327,8 @@ describe('Take control system', function() {
             context.player2.clickCard(context.gamorreanRetainer);
         });
 
-        it('and it\'s a duplicate of another unique unit, the unique rule should be triggered to defeat one of the copies', function () {
-            contextRef.setupTest({
+        it('and it\'s a duplicate of another unique unit, the unique rule should be triggered to defeat one of the copies', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
@@ -361,8 +361,8 @@ describe('Take control system', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('and it already controls that unit, nothing happens', function () {
-            contextRef.setupTest({
+        it('and it already controls that unit, nothing happens', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },

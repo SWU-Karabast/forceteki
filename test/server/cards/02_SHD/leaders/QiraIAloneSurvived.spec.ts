@@ -1,8 +1,8 @@
 describe('Qi\'ra, I Alone Survived', function() {
     integration(function(contextRef) {
         describe('Qi\'ra\'s leader undeployed ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-star-stormtrooper', 'scout-bike-pursuer'],
@@ -44,8 +44,8 @@ describe('Qi\'ra, I Alone Survived', function() {
         });
 
         describe('Qi\'ra\'s leader deployed ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-star-stormtrooper', { card: 'scout-bike-pursuer', damage: 2, upgrades: ['shield'] }, { card: 'wampa', damage: 3, upgrades: ['fallen-lightsaber'] }],

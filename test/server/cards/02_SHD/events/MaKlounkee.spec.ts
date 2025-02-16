@@ -1,7 +1,7 @@
 describe('MaKlounkee', function() {
     integration(function(contextRef) {
-        it('can only return a friendly underworld unit to hand and deal damage to any unit', function () {
-            contextRef.setupTest({
+        it('can only return a friendly underworld unit to hand and deal damage to any unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['ma-klounkee'],
@@ -27,8 +27,8 @@ describe('MaKlounkee', function() {
             expect(context.wampa.damage).toBe(3);
         });
 
-        it('should be able to deal the damage to a friendly unit and if only one selectable handle everything automatically', function () {
-            contextRef.setupTest({
+        it('should be able to deal the damage to a friendly unit and if only one selectable handle everything automatically', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['ma-klounkee'],
@@ -45,8 +45,8 @@ describe('MaKlounkee', function() {
             expect(context.academyDefenseWalker.damage).toBe(3);
         });
 
-        it('if no underworld units are in play, nothing happens, but resources get exhausted', function () {
-            contextRef.setupTest({
+        it('if no underworld units are in play, nothing happens, but resources get exhausted', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['ma-klounkee'],
@@ -63,8 +63,8 @@ describe('MaKlounkee', function() {
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });
 
-        it('should bounce unit if only one available and nothing happens after that', function () {
-            contextRef.setupTest({
+        it('should bounce unit if only one available and nothing happens after that', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['ma-klounkee'],

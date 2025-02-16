@@ -1,8 +1,8 @@
 describe('Grand Moff Tarkin, Death Star Overseer', function() {
     integration(function(contextRef) {
         describe('Grand Moff Tarkin\'s Ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['grand-moff-tarkin#death-star-overseer'],

@@ -1,8 +1,8 @@
 describe('Death Mark', function() {
     integration(function(contextRef) {
         describe('Death Mark\'s Bounty ability', function() {
-            it('should draw 2 cards', function () {
-                contextRef.setupTest({
+            it('should draw 2 cards', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vanquish']

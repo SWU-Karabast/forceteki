@@ -58,8 +58,8 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                 expect(context.salaciousCrumb).toBeInZone('hand');
             });
 
-            it('should not be available if Crumb is exhausted', function () {
-                contextRef.setupTest({
+            it('should not be available if Crumb is exhausted', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'salacious-crumb#obnoxious-pet', exhausted: true }, 'wampa'],

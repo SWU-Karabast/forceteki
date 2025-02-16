@@ -102,8 +102,8 @@ describe('DJ, Blatant Thief', function() {
             });
         });
 
-        it('DJ\'s when played ability should do nothing if he is played from hand or discard', function() {
-            contextRef.setupTest({
+        it('DJ\'s when played ability should do nothing if he is played from hand or discard', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     base: 'chopper-base',

@@ -55,8 +55,8 @@ describe('First Light, Headquarters of the Crimson Dawn', function() {
             });
         });
 
-        it('First Light\'s Smuggle ability cannot trigger if there are no friendly units', function() {
-            contextRef.setupTest({
+        it('First Light\'s Smuggle ability cannot trigger if there are no friendly units', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'qira#i-alone-survived',
@@ -74,8 +74,8 @@ describe('First Light, Headquarters of the Crimson Dawn', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('First Light\'s Smuggle ability uses the correct cost aspects', function() {
-            contextRef.setupTest({
+        it('First Light\'s Smuggle ability uses the correct cost aspects', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: { card: 'jyn-erso#resisting-oppression', deployed: true },
@@ -102,8 +102,8 @@ describe('First Light, Headquarters of the Crimson Dawn', function() {
             expect(context.jynErso.getPower()).toBe(4);
         });
 
-        it('First Light\'s Smuggle ability will appear as an alternative to a gained Smuggle ability', function() {
-            contextRef.setupTest({
+        it('First Light\'s Smuggle ability will appear as an alternative to a gained Smuggle ability', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'qira#i-alone-survived',

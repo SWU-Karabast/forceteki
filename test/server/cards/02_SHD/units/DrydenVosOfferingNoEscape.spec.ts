@@ -1,8 +1,8 @@
 describe('Dryden Voss, Offering No Escape', function() {
     integration(function(contextRef) {
         describe('Dryden Voss\'s when played ability', function() {
-            it('should choose a captured card guarded by a unit you control. You may play it for free under your control, and its when played ability will trigger', function () {
-                contextRef.setupTest({
+            it('should choose a captured card guarded by a unit you control. You may play it for free under your control, and its when played ability will trigger', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['dryden-vos#offering-no-escape', 'take-captive', 'i-have-the-high-ground'],
@@ -63,8 +63,8 @@ describe('Dryden Voss, Offering No Escape', function() {
                 context.player1.clickCard(context.recklessGunslinger);
             });
 
-            it('should choose ONE of the captured cards guarded by a unit you control. You may play it for free under your control, and its when-defeated ability should trigger when defeated', function () {
-                contextRef.setupTest({
+            it('should choose ONE of the captured cards guarded by a unit you control. You may play it for free under your control, and its when-defeated ability should trigger when defeated', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['dryden-vos#offering-no-escape', 'take-captive', 'take-captive'],
@@ -123,8 +123,8 @@ describe('Dryden Voss, Offering No Escape', function() {
                 expect(context.player1.handSize).toBe(2);
             });
 
-            it('should choose a captured cards guarded by a unit you control. You may play it for free under your control, and its constant ability should operate', function () {
-                contextRef.setupTest({
+            it('should choose a captured cards guarded by a unit you control. You may play it for free under your control, and its constant ability should operate', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['dryden-vos#offering-no-escape', 'take-captive'],

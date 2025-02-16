@@ -1,8 +1,8 @@
 describe('Omega, Part of the Squad', function() {
     integration(function(contextRef) {
         describe('Omega\'s Ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['omega#part-of-the-squad', 'omega#part-of-the-squad'],

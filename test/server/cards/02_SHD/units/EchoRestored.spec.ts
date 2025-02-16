@@ -2,8 +2,8 @@ describe('Echo, Restored', function () {
     integration(function (contextRef) {
         describe('Echo\'s ability', function () {
             const prompt = 'Discard a card from your hand. Give 2 Experience tokens to a unit in play with the same name as the discarded card.';
-            it('can discard a card and give 2 experience tokens to a unit with same name', function () {
-                contextRef.setupTest({
+            it('can discard a card and give 2 experience tokens to a unit with same name', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['echo#restored', 'luke-skywalker#jedi-knight', 'wampa', 'battlefield-marine', 'atst'],

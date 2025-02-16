@@ -124,8 +124,8 @@ describe('Darth Vader, Commanding the First Legion', function () {
             });
         });
 
-        it('Darth Vader\'s ability should play each card as a nested action (triggered abilities happen immediately)', function () {
-            contextRef.setupTest({
+        it('Darth Vader\'s ability should play each card as a nested action (triggered abilities happen immediately)', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'hondo-ohnaka#thats-good-business',
@@ -154,8 +154,8 @@ describe('Darth Vader, Commanding the First Legion', function () {
             expect(context.salaciousCrumb).toHaveExactUpgradeNames(['experience']);
         });
 
-        it('Darth Vader\'s ability and another search card ability should show right cards', function() {
-            contextRef.setupTest({
+        it('Darth Vader\'s ability and another search card ability should show right cards', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'hondo-ohnaka#thats-good-business',

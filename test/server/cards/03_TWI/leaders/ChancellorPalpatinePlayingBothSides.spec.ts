@@ -1,8 +1,8 @@
 describe('Chancellor Palpatine, Playing Both Sides', function () {
     integration(function (contextRef) {
         describe('Chancellor Palpatine\'s leader ability', function () {
-            it('can flip back and forth', function () {
-                contextRef.setupTest({
+            it('can flip back and forth', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'chancellor-palpatine#playing-both-sides',
@@ -57,8 +57,8 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
             });
 
-            it('only exhausts and no other abilities trigger if no friendly Heroism unit has died', function () {
-                contextRef.setupTest({
+            it('only exhausts and no other abilities trigger if no friendly Heroism unit has died', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'chancellor-palpatine#playing-both-sides',
@@ -106,8 +106,8 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.player1.hand.length).toBe(5);
             });
 
-            it('does not trigger a base with a \'When you deploy a leader\' ability', function () {
-                contextRef.setupTest({
+            it('does not trigger a base with a \'When you deploy a leader\' ability', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'chancellor-palpatine#playing-both-sides',
@@ -136,8 +136,8 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.player1.findCardsByName('battle-droid').length).toBe(0);
             });
 
-            it('has proper aspects on Heroism side', function () {
-                contextRef.setupTest({
+            it('has proper aspects on Heroism side', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'chancellor-palpatine#playing-both-sides',
@@ -161,8 +161,8 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.player1.readyResourceCount).toBe(readyResources - 7);
             });
 
-            it('has proper title and aspects on Villainy side', function () {
-                contextRef.setupTest({
+            it('has proper title and aspects on Villainy side', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'chancellor-palpatine#playing-both-sides', flipped: true },

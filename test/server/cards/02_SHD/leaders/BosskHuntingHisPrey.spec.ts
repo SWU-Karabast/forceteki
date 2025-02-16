@@ -1,7 +1,7 @@
 describe('Bossk, Hunting his Prey', function () {
     integration(function (contextRef) {
-        it('Bossk\'s leader undeployed ability should deal 1 damage to a unit with a bounty and optionally give +1/+0', function () {
-            contextRef.setupTest({
+        it('Bossk\'s leader undeployed ability should deal 1 damage to a unit with a bounty and optionally give +1/+0', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'bossk#hunting-his-prey',
@@ -72,8 +72,8 @@ describe('Bossk, Hunting his Prey', function () {
         });
 
         describe('Bossk\'s leader deployed ability', function () {
-            it('should be able to collect a Bounty a second time (for "simple" bounty effects)', function () {
-                contextRef.setupTest({
+            it('should be able to collect a Bounty a second time (for "simple" bounty effects)', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'bossk#hunting-his-prey', deployed: true },
@@ -193,8 +193,8 @@ describe('Bossk, Hunting his Prey', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should be able to collect Jabba\'s play discount Bounty a second time', function () {
-                contextRef.setupTest({
+            it('should be able to collect Jabba\'s play discount Bounty a second time', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'bossk#hunting-his-prey', deployed: true },

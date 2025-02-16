@@ -97,7 +97,7 @@ describe('Ruthlessness', function () {
 
         // describe('Ruthlessness\'s ability', function () {
         //     beforeEach(function () {
-        //         contextRef.setupTest({
+        //         await contextRef.setupTestAsync({
         //             phase: 'action',
         //             player1: {
         //                 groundArena: [{ card: 'guardian-of-the-whills', upgrades: ['ruthlessness', 'fallen-lightsaber'] }],

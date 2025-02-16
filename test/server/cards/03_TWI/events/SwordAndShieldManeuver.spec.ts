@@ -1,7 +1,7 @@
 describe('Sword and Shield Maneuver', function () {
     integration(function (contextRef) {
-        it('should give Raid 1 to each friendly Trooper and sentinel to each friendly Jedi', function () {
-            contextRef.setupTest({
+        it('should give Raid 1 to each friendly Trooper and sentinel to each friendly Jedi', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['sword-and-shield-maneuver'],

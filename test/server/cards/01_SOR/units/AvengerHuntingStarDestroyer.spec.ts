@@ -1,8 +1,8 @@
 describe('Avenger, Hunting Star Destroyer', function() {
     integration(function(contextRef) {
         describe('Avenger\'s destroy ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['avenger#hunting-star-destroyer'],

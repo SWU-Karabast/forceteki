@@ -1,7 +1,7 @@
 describe('No Glory, Only Results', function() {
     integration(function(contextRef) {
-        it('No Glory, Only Results\'s ability should allow to take control of an enemy unit and defeat it', function() {
-            contextRef.setupTest({
+        it('No Glory, Only Results\'s ability should allow to take control of an enemy unit and defeat it', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['no-glory-only-results'],
@@ -41,8 +41,8 @@ describe('No Glory, Only Results', function() {
             expect(context.cartelSpacer).toBeInZone('discard');
         });
 
-        it('No Glory, Only Results\'s ability should allow to target a friendly unit and defeat it', function() {
-            contextRef.setupTest({
+        it('No Glory, Only Results\'s ability should allow to target a friendly unit and defeat it', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['no-glory-only-results'],
@@ -68,8 +68,8 @@ describe('No Glory, Only Results', function() {
             expect(context.p2Base.damage).toBe(2);
         });
 
-        it('No Glory, Only Results\'s ability should trigger Snoke ability before defeating it', function() {
-            contextRef.setupTest({
+        it('No Glory, Only Results\'s ability should trigger Snoke ability before defeating it', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['no-glory-only-results'],

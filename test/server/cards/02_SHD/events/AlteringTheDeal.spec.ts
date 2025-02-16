@@ -1,7 +1,7 @@
 describe('Altering the Deal', function() {
     integration(function(contextRef) {
-        it('Altering the Deal\'s event ability should discard a card guarded by a friendly unit', function() {
-            contextRef.setupTest({
+        it('Altering the Deal\'s event ability should discard a card guarded by a friendly unit', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['take-captive', 'take-captive', 'discerning-veteran', 'altering-the-deal'],

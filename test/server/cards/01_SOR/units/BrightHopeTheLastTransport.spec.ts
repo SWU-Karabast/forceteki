@@ -48,8 +48,8 @@ describe('Bright Hope, The Last Transport', function() {
             });
         });
 
-        it('Bright Hope, The Last Transport\'s ability should return a friendly token ground unit to hand and draw', function () {
-            contextRef.setupTest({
+        it('Bright Hope, The Last Transport\'s ability should return a friendly token ground unit to hand and draw', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['bright-hope#the-last-transport'],

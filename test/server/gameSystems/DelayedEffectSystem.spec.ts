@@ -1,8 +1,8 @@
 describe('Delayed effects', function() {
     integration(function (contextRef) {
         describe('A delayed effect with duration "while source is in play" should', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'chopper-base',
@@ -86,8 +86,8 @@ describe('Delayed effects', function() {
             });
         });
 
-        it('A delayed effect with duration "while source is in play" should immediately activate if the source is defeated before the trigger resolves', function() {
-            contextRef.setupTest({
+        it('A delayed effect with duration "while source is in play" should immediately activate if the source is defeated before the trigger resolves', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     base: 'chopper-base',
@@ -119,8 +119,8 @@ describe('Delayed effects', function() {
         });
 
         describe('A delayed effect with duration "while source is in play", when the unique rule is triggered,', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'chopper-base',

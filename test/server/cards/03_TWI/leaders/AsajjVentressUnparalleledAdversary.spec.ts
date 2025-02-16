@@ -1,8 +1,8 @@
 describe('Asajj Ventress, Unparalleled Adversary', function () {
     integration(function (contextRef) {
         describe('Asajj Ventress\'s leader undeployed  ability', function () {
-            it('should initiate attack and give +1/+0 as we play an event this phase', function () {
-                contextRef.setupTest({
+            it('should initiate attack and give +1/+0 as we play an event this phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['smugglers-aid', 'b1-security-team'],

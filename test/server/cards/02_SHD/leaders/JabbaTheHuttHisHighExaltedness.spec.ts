@@ -98,8 +98,8 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
         });
 
         describe('Jabba the Hutt\'s leader deployed ability', function () {
-            it('should choose a friendly to capture a enemy non leader unit', function () {
-                contextRef.setupTest({
+            it('should choose a friendly to capture a enemy non leader unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'seasoned-shoretrooper'],

@@ -51,8 +51,8 @@ describe('Heroic Resolve', function() {
         });
 
         describe('Heroic Resolve\'s ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'frontier-atrt', upgrades: ['heroic-resolve', 'heroic-resolve', 'academy-training'] }],
@@ -116,8 +116,8 @@ describe('Heroic Resolve', function() {
         });
 
         describe('Heroic Resolve\'s ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'frontier-atrt', upgrades: ['heroic-resolve'] }],

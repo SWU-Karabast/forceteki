@@ -1,8 +1,8 @@
 describe('Pyrrhic Assault', function () {
     integration(function (contextRef) {
         describe('Pyrrhic Assault\'s ability', function () {
-            it('should give each friendly unit, "When Defeated: Deal 2 damage to an enemy unit."', function () {
-                contextRef.setupTest({
+            it('should give each friendly unit, "When Defeated: Deal 2 damage to an enemy unit."', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['pyrrhic-assault'],

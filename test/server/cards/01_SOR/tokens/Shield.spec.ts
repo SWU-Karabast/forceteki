@@ -45,8 +45,8 @@ describe('Shield', function() {
         });
 
         describe('Shield\'s ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['cartel-spacer']

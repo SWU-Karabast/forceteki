@@ -1,8 +1,8 @@
 describe('Abilities', function() {
     integration(function (contextRef) {
         describe('When played ability, on attack ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'wampa'],
@@ -54,8 +54,8 @@ describe('Abilities', function() {
         });
 
         describe('Constant abilities', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],

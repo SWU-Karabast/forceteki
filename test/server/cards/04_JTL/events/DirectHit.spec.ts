@@ -1,7 +1,7 @@
 describe('Direct Hit', function() {
     integration(function(contextRef) {
-        it('Direct Hit\'s ability should defeat any non-leader Vehicle unit', function() {
-            contextRef.setupTest({
+        it('Direct Hit\'s ability should defeat any non-leader Vehicle unit', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['direct-hit'],

@@ -1,8 +1,8 @@
 describe('Reputable Hunter', function() {
     integration(function(contextRef) {
         describe('Reputable Hunter\'s decrease cost ability', function() {
-            it('should cost 3 if there are no bounties on enemy units', () => {
-                contextRef.setupTest({
+            it('should cost 3 if there are no bounties on enemy units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reputable-hunter'],
@@ -21,8 +21,8 @@ describe('Reputable Hunter', function() {
             });
 
 
-            it('should cost 2 after we play a bounty on a unit', () => {
-                contextRef.setupTest({
+            it('should cost 2 after we play a bounty on a unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reputable-hunter', 'top-target'],
@@ -46,8 +46,8 @@ describe('Reputable Hunter', function() {
                 expect(context.player1.exhaustedResourceCount - exhaustedResourcesBeforePlay).toBe(2);
             });
 
-            it('should cost 2 if opponent has a unit with a dedicated bounty in play', () => {
-                contextRef.setupTest({
+            it('should cost 2 if opponent has a unit with a dedicated bounty in play', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reputable-hunter'],

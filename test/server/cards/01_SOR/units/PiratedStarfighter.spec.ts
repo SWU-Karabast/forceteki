@@ -1,7 +1,7 @@
 describe('Pirated Starfighter', function () {
     integration(function (contextRef) {
-        it('should not prompt player if no units are available to return to hand', function () {
-            contextRef.setupTest({
+        it('should not prompt player if no units are available to return to hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['pirated-starfighter'],
@@ -19,8 +19,8 @@ describe('Pirated Starfighter', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should be able to return self or other unit to hand', function () {
-            contextRef.setupTest({
+        it('should be able to return self or other unit to hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['pirated-starfighter'],

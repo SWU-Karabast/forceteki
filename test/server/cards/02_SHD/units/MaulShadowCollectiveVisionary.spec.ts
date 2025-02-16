@@ -1,8 +1,8 @@
 describe('Maul, Shadow Collective Visionary', function() {
     integration(function(contextRef) {
         describe('Maul\'s on attack ability', function() {
-            it('redirects combat damage to another friendly Underworld unit', function () {
-                contextRef.setupTest({
+            it('redirects combat damage to another friendly Underworld unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['heroic-sacrifice'],
@@ -161,8 +161,8 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.mercenaryCompany.damage).toBe(4);
             });
 
-            it('redirects combat damage to another friendly Underworld unit, handling shields and damage attribution correctly', function () {
-                contextRef.setupTest({
+            it('redirects combat damage to another friendly Underworld unit, handling shields and damage attribution correctly', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [

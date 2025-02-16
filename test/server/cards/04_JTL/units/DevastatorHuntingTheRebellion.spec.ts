@@ -1,7 +1,7 @@
 describe('Devastator, Hunting the Rebellion', function () {
     integration(function (contextRef) {
-        it('Devestator\'s ability should allow you to assign indirect damage deal to opponents and deal 4 indirect damage to each opponent when played', function () {
-            contextRef.setupTest({
+        it('Devestator\'s ability should allow you to assign indirect damage deal to opponents and deal 4 indirect damage to each opponent when played', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['devastator#hunting-the-rebellion', 'planetary-bombardment'],
