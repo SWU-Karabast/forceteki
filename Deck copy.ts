@@ -50,6 +50,10 @@ export class Deck {
         return cardsMap;
     }
 
+    private convertMapToCardList(cardsMap: Map<string, number>): ISwuDbCardEntry[] {
+        return Array.from(cardsMap.entries()).map(([id, count]) => ({ id, count }));
+    }
+
     public moveToDeck(cardId: string) {
         const sideboardCount = this.sideboard.get(cardId);
 
@@ -103,12 +107,12 @@ export class Deck {
         }
 
         // base
-        const baseCard = (await this.buildCardsFromSetCodeAsync(this.base, player, cardDataGetter, 1))[0];
+        const baseCard = await this.buildCardsFromSetCodeAsync(this.base, player, cardDataGetter, 1)[0];
         Contract.assertTrue(baseCard.isBase());
         result.base = baseCard;
 
         // leader
-        const leaderCard = (await this.buildCardsFromSetCodeAsync(this.leader, player, cardDataGetter, 1))[0];
+        const leaderCard = await this.buildCardsFromSetCodeAsync(this.leader, player, cardDataGetter, 1)[0];
         Contract.assertTrue(leaderCard.isLeader());
         result.leader = leaderCard;
 
@@ -117,12 +121,6 @@ export class Deck {
         result.allCards.push(result.leader);
 
         return result;
-    }
-
-    private convertMapToCardList(cardsMap: Map<string, number>): ISwuDbCardEntry[] {
-        return Array.from(cardsMap.entries())
-            .filter(([_id, count]) => count > 0)
-            .map(([id, count]) => ({ id, count }));
     }
 
     private async buildCardsFromSetCodeAsync(
@@ -135,7 +133,6 @@ export class Deck {
             return [];
         }
 
-        // TODO: use Object.freeze() to make card data immutable
         const cardData = await cardDataGetter.getCardBySetCodeAsync(setCode);
         const generatedCards = [];
 
