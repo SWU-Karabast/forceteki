@@ -2,7 +2,7 @@ describe('Capture system', function() {
     integration(function (contextRef) {
         describe('When a unit is captured', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['discerning-veteran']

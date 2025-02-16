@@ -2,7 +2,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
     integration(function(contextRef) {
         describe('Crumb\'s when played ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['salacious-crumb#obnoxious-pet']
@@ -32,7 +32,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
 
         describe('Crumb\'s action ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['salacious-crumb#obnoxious-pet', 'wampa'],

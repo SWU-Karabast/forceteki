@@ -2,7 +2,7 @@ describe('First Light, Headquarters of the Crimson Dawn', function() {
     integration(function(contextRef) {
         describe('First Light\'s', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'qira#i-alone-survived',

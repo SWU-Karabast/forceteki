@@ -2,7 +2,7 @@ describe('Bright Hope, The Last Transport', function() {
     integration(function(contextRef) {
         describe('Bright Hope, The Last Transport\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bright-hope#the-last-transport'],

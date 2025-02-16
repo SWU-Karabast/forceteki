@@ -2,7 +2,7 @@ describe('IndirectDamageToPlayer system', function() {
     integration(function (contextRef) {
         describe('When indirect damage is dealt', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['first-order-stormtrooper'],

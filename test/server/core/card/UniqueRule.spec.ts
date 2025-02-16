@@ -2,7 +2,7 @@ describe('Uniqueness rule', function() {
     integration(function(contextRef) {
         describe('When another copy of a unique unit in play enters play for the same controller,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['chopper#metal-menace'],
@@ -64,7 +64,7 @@ describe('Uniqueness rule', function() {
 
         describe('When another copy of a unique upgrade in play enters play for the same controller,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['lukes-lightsaber'],
@@ -108,7 +108,7 @@ describe('Uniqueness rule', function() {
 
         describe('When a card is played that matches the title but not the subtitle of another card in play for the same controller,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['luke-skywalker#jedi-knight'],
@@ -133,7 +133,7 @@ describe('Uniqueness rule', function() {
 
         describe('When a duplicate of a unique card is played that triggers its own ability on play,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['colonel-yularen#isb-director'],
@@ -178,7 +178,7 @@ describe('Uniqueness rule', function() {
 
         describe('When a duplicate of a unique card is played which triggers its copy\'s ability on defeat,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['agent-kallus#seeking-the-rebels'],
@@ -252,7 +252,7 @@ describe('Uniqueness rule', function() {
 
         describe('When a duplicate of a unique card is played,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['admiral-motti#brazen-and-scornful'],
@@ -321,7 +321,7 @@ describe('Uniqueness rule', function() {
 
         describe('When a duplicate of a unique card with an ongoing effect is played,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['supreme-leader-snoke#shadow-ruler'],

@@ -2,7 +2,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
     integration(function(contextRef) {
         describe('Tarkin\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'battlefield-marine'],
@@ -32,7 +32,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
 
         describe('Tarkin\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -59,7 +59,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
 
         describe('Tarkin\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'battlefield-marine'],

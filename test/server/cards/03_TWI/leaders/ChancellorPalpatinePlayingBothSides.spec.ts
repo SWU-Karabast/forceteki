@@ -190,7 +190,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
 
         describe('Chancellor Palpatine\'s leader ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'chancellor-palpatine#playing-both-sides', flipped: true },

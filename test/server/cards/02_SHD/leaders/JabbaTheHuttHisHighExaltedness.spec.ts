@@ -4,7 +4,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
             const bountyPrompt = 'Collect Bounty: The next unit you play this phase costs 1 resource less';
 
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['seasoned-shoretrooper', 'vanguard-infantry'],
@@ -134,7 +134,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
             const bountyPrompt = 'Collect Bounty: The next unit you play this phase costs 2 resources less';
 
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['seasoned-shoretrooper', 'vanguard-infantry'],

@@ -4,7 +4,7 @@ describe('Vambrace Flamethrower', function () {
             const flamethrowerPrompt = 'Deal 3 damage divided as you choose among enemy ground units';
 
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['vambrace-flamethrower'] }, 'wampa'],

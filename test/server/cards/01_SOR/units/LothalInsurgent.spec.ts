@@ -2,7 +2,7 @@ describe('Lothal Insurgent', function() {
     integration(function(contextRef) {
         describe('Lothal Insurgent\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['lothal-insurgent', 'battlefield-marine'],

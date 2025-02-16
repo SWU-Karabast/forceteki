@@ -2,7 +2,7 @@ describe('Synchronized Strike', function () {
     integration(function (contextRef) {
         describe('SynchronizedStrike\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['synchronized-strike'],

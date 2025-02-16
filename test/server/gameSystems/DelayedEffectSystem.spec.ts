@@ -2,7 +2,7 @@ describe('Delayed effects', function() {
     integration(function (contextRef) {
         describe('A delayed effect with duration "while source is in play" should', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'chopper-base',
@@ -120,7 +120,7 @@ describe('Delayed effects', function() {
 
         describe('A delayed effect with duration "while source is in play", when the unique rule is triggered,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'chopper-base',

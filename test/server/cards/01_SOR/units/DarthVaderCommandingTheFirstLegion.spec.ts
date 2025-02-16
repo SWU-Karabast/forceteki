@@ -2,7 +2,7 @@ describe('Darth Vader, Commanding the First Legion', function () {
     integration(function (contextRef) {
         describe('Darth Vader\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'hondo-ohnaka#thats-good-business',

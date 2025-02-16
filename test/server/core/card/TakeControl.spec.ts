@@ -2,7 +2,7 @@ describe('Take control system', function() {
     integration(function(contextRef) {
         describe('When a player takes control of a unit in the arena', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],

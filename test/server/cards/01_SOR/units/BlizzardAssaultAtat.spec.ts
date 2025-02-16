@@ -2,7 +2,7 @@ describe('Blizzard Assault AT-AT', function() {
     integration(function(contextRef) {
         describe('Blizzard Assault AT-AT\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'blizzard-assault-atat']
@@ -86,7 +86,7 @@ describe('Blizzard Assault AT-AT', function() {
 
         describe('Blizzard Assault AT-AT\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'blizzard-assault-atat', upgrades: ['hardpoint-heavy-blaster'] }]
@@ -119,7 +119,7 @@ describe('Blizzard Assault AT-AT', function() {
 
         describe('Blizzard Assault AT-AT\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'blizzard-assault-atat', upgrades: ['heroic-resolve'] }]

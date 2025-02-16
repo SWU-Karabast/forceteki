@@ -12,7 +12,7 @@ declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void)
 
 interface SwuTestContextRef {
     context: SwuTestContext;
-    setupTest: (options?: SwuSetupTestOptions) => Promise;
+    setupTestAsync: (options?: SwuSetupTestOptions) => Promise;
     buildImportAllCardsTools: () => {
         deckBuilder: DeckBuilder;
         implementedCardsCtors: Map<string, new (owner: Player, cardData: any) => Card>;

@@ -2,7 +2,7 @@ describe('DJ, Blatant Thief', function() {
     integration(function(contextRef) {
         describe('DJ\'s when played ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'chopper-base',

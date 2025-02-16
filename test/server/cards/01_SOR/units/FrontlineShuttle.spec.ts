@@ -2,7 +2,7 @@ describe('Frontline Shuttle', function() {
     integration(function(contextRef) {
         describe('Frontline Shuttle\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['frontline-shuttle'],

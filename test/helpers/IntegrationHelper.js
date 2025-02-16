@@ -34,8 +34,8 @@ global.integration = function (definitions) {
          * @type {SwuTestContextRef}
          */
         const contextRef = {
-            context: null, setupTest: async function (options) {
-                await this.context.setupTest(options);
+            context: null, setupTestAsync: async function (options) {
+                await this.context.setupTestAsync(options);
             }
         };
         beforeEach(function () {
@@ -62,7 +62,7 @@ global.integration = function (definitions) {
                 gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
             };
 
-            this.setupTest = newContext.setupTest = setupGameStateWrapperAsync;
+            this.setupTestAsync = newContext.setupTestAsync = setupGameStateWrapperAsync;
 
             // used only for the "import all cards" test
             contextRef.buildImportAllCardsTools = () => ({

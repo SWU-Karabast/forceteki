@@ -2,7 +2,7 @@ describe('Abilities', function() {
     integration(function (contextRef) {
         describe('When played ability, on attack ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'wampa'],
@@ -55,7 +55,7 @@ describe('Abilities', function() {
 
         describe('Constant abilities', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
@@ -116,7 +116,7 @@ describe('Abilities', function() {
         });
         describe('cost reduction', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reputable-hunter'],
@@ -147,7 +147,7 @@ describe('Abilities', function() {
         });
         describe('when defeated', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-emperors-legion'],

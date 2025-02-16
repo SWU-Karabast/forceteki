@@ -2,7 +2,7 @@ describe('Admiral Holdo, We\'re Not Alone', function () {
     integration(function (contextRef) {
         describe('Admiral Holdo\'s undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'admiral-holdo#were-not-alone',
@@ -42,7 +42,7 @@ describe('Admiral Holdo, We\'re Not Alone', function () {
 
         describe('Admiral Holdo\'s deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'admiral-holdo#were-not-alone', deployed: true },

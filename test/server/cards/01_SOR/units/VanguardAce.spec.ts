@@ -2,7 +2,7 @@ describe('Vanguard Ace', function() {
     integration(function(contextRef) {
         describe('Vanguard Ace\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vanguard-ace', 'daring-raid', 'battlefield-marine', 'academy-training', 'frontier-atrt'],

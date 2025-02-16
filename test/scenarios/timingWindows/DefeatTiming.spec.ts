@@ -2,7 +2,7 @@ describe('Defeat timing', function() {
     integration(function(contextRef) {
         describe('When a unit enters play with a constant ability that defeats other units,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['supreme-leader-snoke#shadow-ruler'],
@@ -38,7 +38,7 @@ describe('Defeat timing', function() {
         // TODO: add a similar test for Dodonna and units leaving the field due to a +hp modifier going away
         describe('When a unit enters play and is immediately defeated by a constant ability,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['supreme-leader-snoke#shadow-ruler'],
@@ -74,7 +74,7 @@ describe('Defeat timing', function() {
 
         describe('When a unit enters play and is immediately defeated by a constant ability,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['supreme-leader-snoke#shadow-ruler'],
@@ -104,7 +104,7 @@ describe('Defeat timing', function() {
 
         describe('When multiple units are defeated simultaneously,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['superlaser-blast'],
@@ -175,7 +175,7 @@ describe('Defeat timing', function() {
 
         describe('When a unit not controlled by the owner is defeated,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['change-of-heart'],

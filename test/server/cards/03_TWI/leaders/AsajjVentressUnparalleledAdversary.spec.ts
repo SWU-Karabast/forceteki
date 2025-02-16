@@ -56,7 +56,7 @@ describe('Asajj Ventress, Unparalleled Adversary', function () {
 
         describe('Asajj Ventress\'s leader deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['smugglers-aid', 'b1-security-team'],

@@ -233,7 +233,7 @@ describe('Bossk, Hunting his Prey', function () {
 
         describe('Bossk\'s leader deployed ability,', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'bossk#hunting-his-prey', deployed: true }
@@ -308,7 +308,7 @@ describe('Bossk, Hunting his Prey', function () {
 
         describe('Bossk\'s leader deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'bossk#hunting-his-prey', deployed: true },
@@ -371,7 +371,7 @@ describe('Bossk, Hunting his Prey', function () {
 
         describe('Bossk\'s leader deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'bossk#hunting-his-prey', deployed: true },
