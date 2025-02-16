@@ -22,7 +22,7 @@ export default class InvincibleNavalAdversary extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Return a non-leader unit that costs 3 or less to its owner\'s hand',
             when: {
-                onLeaderDeployed: (event, context) => event.card.controller === context.player,
+                onLeaderDeployed: (event, context) => event.context.player === context.player,
             },
             optional: true,
             targetResolver: {
