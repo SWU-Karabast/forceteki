@@ -1,7 +1,7 @@
 describe('Fett\'s Firespray, Feared Silhouette', function () {
     integration(function (contextRef) {
-        it('Fett\'s Firespray\'s ability should deal 1 indirect damage to opponent when played', function () {
-            contextRef.setupTest({
+        it('Fett\'s Firespray\'s ability should deal 1 indirect damage to opponent when played', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['fetts-firespray#feared-silhouette'],
@@ -22,8 +22,8 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             expect(context.p2Base.damage).toBe(1);
         });
 
-        it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent when played as we control Boba1 as leader', function () {
-            contextRef.setupTest({
+        it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent when played as we control Boba1 as leader', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['fetts-firespray#feared-silhouette'],
@@ -44,8 +44,8 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             expect(context.p2Base.damage).toBe(2);
         });
 
-        it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent when played as we control Boba2 as leader', function () {
-            contextRef.setupTest({
+        it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent when played as we control Boba2 as leader', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['fetts-firespray#feared-silhouette'],
@@ -66,8 +66,8 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             expect(context.p2Base.damage).toBe(2);
         });
 
-        it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent when played as we control Boba4 as leader', function () {
-            contextRef.setupTest({
+        it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent when played as we control Boba4 as leader', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['fetts-firespray#feared-silhouette'],
@@ -88,8 +88,8 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             expect(context.p2Base.damage).toBe(2);
         });
 
-        it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent when played as we control Boba1 as unit', function () {
-            contextRef.setupTest({
+        it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent when played as we control Boba1 as unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['fetts-firespray#feared-silhouette'],
@@ -111,8 +111,8 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             expect(context.p2Base.damage).toBe(2);
         });
 
-        it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent on attack as we control Boba1 as leader unit', function () {
-            contextRef.setupTest({
+        it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent on attack as we control Boba1 as leader unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['fetts-firespray#feared-silhouette'],
@@ -134,8 +134,8 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             expect(context.p2Base.damage).toBe(6); // 4+2
         });
 
-        it('Fett\'s Firespray\'s ability should deal 1 indirect damage to opponent on attack', function () {
-            contextRef.setupTest({
+        it('Fett\'s Firespray\'s ability should deal 1 indirect damage to opponent on attack', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['fetts-firespray#feared-silhouette'],

@@ -1,7 +1,7 @@
 describe('Invincible, Naval Adversary', function () {
     integration(function (contextRef) {
-        it('Invincible\'s ability should cost 1 resource less if we control a unique separatist unit', function () {
-            contextRef.setupTest({
+        it('Invincible\'s ability should cost 1 resource less if we control a unique separatist unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['invincible#naval-adversary'],
@@ -18,8 +18,8 @@ describe('Invincible, Naval Adversary', function () {
             expect(context.player1.exhaustedResourceCount).toBe(5);
         });
 
-        it('Invincible\'s ability should not cost 1 resource less if we do not control a unique separatist unit', function () {
-            contextRef.setupTest({
+        it('Invincible\'s ability should not cost 1 resource less if we do not control a unique separatist unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['invincible#naval-adversary'],
@@ -36,8 +36,8 @@ describe('Invincible, Naval Adversary', function () {
             expect(context.player1.exhaustedResourceCount).toBe(6);
         });
 
-        it('Invincible\'s ability should not cost 1 resource less if opponent controls a separatist unit', function () {
-            contextRef.setupTest({
+        it('Invincible\'s ability should not cost 1 resource less if opponent controls a separatist unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['invincible#naval-adversary'],
@@ -56,8 +56,8 @@ describe('Invincible, Naval Adversary', function () {
             expect(context.player1.exhaustedResourceCount).toBe(6);
         });
 
-        it('Invincible\'s ability should not cost 1 resource less if there isn\'t separatist unit', function () {
-            contextRef.setupTest({
+        it('Invincible\'s ability should not cost 1 resource less if there isn\'t separatist unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['invincible#naval-adversary'],
@@ -76,7 +76,7 @@ describe('Invincible, Naval Adversary', function () {
 
         describe('Invincible\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['invincible#naval-adversary'],

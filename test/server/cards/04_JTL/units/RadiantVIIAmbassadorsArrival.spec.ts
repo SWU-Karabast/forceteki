@@ -1,7 +1,7 @@
 describe('Radiant VII, Ambassadors\' Arrival', function () {
     integration(function (contextRef) {
-        it('Radiant VII\'s ability should deal 5 indirect damage to a player when played', function () {
-            contextRef.setupTest({
+        it('Radiant VII\'s ability should deal 5 indirect damage to a player when played', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['radiant-vii#ambassadors-arrival']
@@ -22,8 +22,8 @@ describe('Radiant VII, Ambassadors\' Arrival', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Radiant VII\'s ability should give -1/-0 per damage to all enemy non-leader unit', function () {
-            contextRef.setupTest({
+        it('Radiant VII\'s ability should give -1/-0 per damage to all enemy non-leader unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['radiant-vii#ambassadors-arrival'],
