@@ -4,7 +4,8 @@ describe('Droid Missile Platform', function () {
             contextRef.setupTest({
                 phase: 'action',
                 player1: {
-                    hand: ['rivals-fall']
+                    hand: ['rivals-fall'],
+                    groundArena: ['battlefield-marine']
                 },
                 player2: {
                     spaceArena: ['droid-missile-platform']
@@ -18,7 +19,9 @@ describe('Droid Missile Platform', function () {
 
             context.player2.clickPrompt('Opponent');
 
-            // we do not have anything on board, indirect damage are automatically dealt on base
+            context.player1.setDistributeIndirectDamagePromptState(new Map([
+                [context.p1Base, 3],
+            ]));
 
             expect(context.player2).toBeActivePlayer();
             expect(context.p1Base.damage).toBe(3);
