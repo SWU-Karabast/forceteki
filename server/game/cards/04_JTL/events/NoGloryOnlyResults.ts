@@ -16,13 +16,13 @@ export default class NoGloryOnlyResults extends EventCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
-                    newController: context.source.controller,
+                    newController: context.player,
                 }))
             },
-            then: (context) => ({
-                title: `Defeat ${context.target.title}`,
+            then: (thenContext) => ({
+                title: `Defeat ${thenContext.target.title}`,
                 immediateEffect: AbilityHelper.immediateEffects.defeat({
-                    target: context.target,
+                    target: thenContext.target,
                 })
             }),
         });
