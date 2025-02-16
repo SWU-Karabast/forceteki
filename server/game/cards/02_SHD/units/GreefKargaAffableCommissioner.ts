@@ -20,5 +20,3 @@ export default class GreefKargaAffableCommissioner extends NonLeaderUnitCard {
         });
     }
 }
-
-GreefKargaAffableCommissioner.implemented = true;

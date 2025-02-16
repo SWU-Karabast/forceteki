@@ -14,7 +14,6 @@ import type PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
 import type Player from './core/Player';
 import type { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
 import type { OngoingPlayerEffect } from './core/ongoingEffect/OngoingPlayerEffect';
-import type { UnitCard } from './core/card/CardTypes';
 import type { BaseZone } from './core/zone/BaseZone';
 import type { DeckZone } from './core/zone/DeckZone';
 import type { DiscardZone } from './core/zone/DiscardZone';
@@ -24,6 +23,7 @@ import type { ResourceZone } from './core/zone/ResourceZone';
 import type { GroundArenaZone } from './core/zone/GroundArenaZone';
 import type { SpaceArenaZone } from './core/zone/SpaceArenaZone';
 import type { CaptureZone } from './core/zone/CaptureZone';
+import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -96,8 +96,9 @@ export interface IAbilityProps<TContext extends AbilityContext> {
      */
     optionalButtonTextOverride?: string;
 
-    /** Indicates which player controls this ability (e.g. for Bounty abilities, it is the opponent) */
-    abilityController?: RelativePlayer;
+    /** Indicates which player can activate this ability (e.g. for Bounty abilities, it is the opponent) */
+    // TODO: Update this property's interaction with SubSteps (then/ifYouDo) and the card A New Adventure
+    canBeTriggeredBy?: RelativePlayerFilter;
 
     /** If this is a gained ability, gives the source card that is giving the ability */
     gainAbilitySource?: Card;
@@ -107,7 +108,7 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
     then?: ((context?: AbilityContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
-    ifYouDo?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
+    ifYouDo?: ((context?: AbilityContext) => IIfYouDoAbilityPropsWithSystems<TContext>) | IIfYouDoAbilityPropsWithSystems<TContext>;
     ifYouDoNot?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
 }
 
@@ -226,6 +227,10 @@ export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbi
     thenCondition?: (context?: TContext) => boolean;
 };
 
+export type IIfYouDoAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
+    ifYouDoCondition?: (context?: TContext) => boolean;
+};
+
 export interface IClientUIProperties {
     lastPlayedCard?: ISetId;
 }
@@ -308,9 +313,9 @@ interface IAmbushKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Ambush;
 }
 
-interface IBountyKeywordProperties<TSource extends UnitCard = UnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
+interface IBountyKeywordProperties<TSource extends IUnitCard = IUnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
     keyword: KeywordName.Bounty;
-    ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'abilityController'>;
+    ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>;
 }
 
 interface IGritKeywordProperties extends IKeywordPropertiesBase {

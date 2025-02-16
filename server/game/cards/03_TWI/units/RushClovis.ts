@@ -18,5 +18,3 @@ export default class RushClovis extends NonLeaderUnitCard {
         });
     }
 }
-
-RushClovis.implemented = true;

@@ -19,5 +19,3 @@ export default class SmugglersAid extends EventCard {
         });
     }
 }
-
-SmugglersAid.implemented = true;

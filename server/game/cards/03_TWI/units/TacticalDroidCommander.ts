@@ -27,5 +27,3 @@ export default class TacticalDroidCommander extends NonLeaderUnitCard {
         });
     }
 }
-
-TacticalDroidCommander.implemented = true;

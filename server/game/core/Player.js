@@ -61,7 +61,10 @@ class Player extends GameObject {
         // mainly used for staging tokens when they are created / removed
         this.outsideTheGameZone = new OutsideTheGameZone(this);
 
+        /** @type {BaseZone} */
         this.baseZone = null;
+
+        /** @type {DeckZone} */
         this.deckZone = null;
 
         this.damageToBase = null;
@@ -137,6 +140,7 @@ class Player extends GameObject {
     /**
      * Get all units in designated play arena(s) controlled by this player
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
+     * @param {(card: import('./card/propertyMixins/UnitProperties').IUnitCard) => boolean} cardCondition Condition to filter cards
      */
     getUnitsInPlay(arena = WildcardZoneName.AnyArena, cardCondition = (card) => true) {
         return this.getArenaUnits({ arena, condition: cardCondition });
@@ -433,6 +437,10 @@ class Player extends GameObject {
         return this.game.initiativePlayer === this;
     }
 
+    assignIndirectDamageDealtToOpponents() {
+        return this.hasOngoingEffect(EffectName.AssignIndirectDamageDealtToOpponents);
+    }
+
     /**
      * Returns the total number of units and upgrades controlled by this player which match the passed predicate
      * @param {Function} predicate - DrawCard => Int
@@ -469,8 +477,8 @@ class Player extends GameObject {
 
     /**
      * Returns a card in play under this player's control which matches (for uniqueness) the passed card
-     * @param {InPlayCard} card
-     * @returns {InPlayCard[]} Duplicates of passed card (does not check unique status)
+     * @param {import('./card/baseClasses/InPlayCard').IInPlayCard} card
+     * @returns {import('./card/baseClasses/InPlayCard').IInPlayCard[]} Duplicates of passed card (does not check unique status)
      */
     getDuplicatesInPlay(card) {
         return this.getArenaCards().filter((otherCard) =>
@@ -482,7 +490,7 @@ class Player extends GameObject {
 
     /**
      * Returns ths top card of the player's deck
-     * @returns {import('./card/CardTypes').TokenOrPlayableCard | null} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard | null} the Card,© or null if the deck is empty
      */
     getTopCardOfDeck() {
         if (this.drawDeck.length > 0) {
@@ -494,7 +502,7 @@ class Player extends GameObject {
 
     /**
      * Returns ths top cards of the player's deck
-     * @returns {import('./card/CardTypes').TokenOrPlayableCard[]} the Card,© or null if the deck is empty
+     * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard[]} the Card,© or null if the deck is empty
      */
     getTopCardsOfDeck(numCard) {
         Contract.assertPositiveNonZero(numCard);
@@ -993,6 +1001,11 @@ class Player extends GameObject {
             resource.exhaust();
             exhaustedResource.ready();
         }
+    }
+
+    getRandomResources(context, amount) {
+        this.resourceZone.rearrangeResourceExhaustState(context);
+        return this.resourceZone.getCards().splice(0, amount);
     }
 
     get selectableCards() {

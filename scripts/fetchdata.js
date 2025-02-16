@@ -47,6 +47,27 @@ function populateMissingData(attributes, id) {
                 }]
             };
             break;
+        case '0026166404': // Chancellor Palpatine - Playing Both Sides
+            attributes.aspects = {
+                data: [{ attributes: {
+                    name: 'Cunning'
+                } },
+                { attributes: {
+                    name: 'Heroism'
+                } }
+                ]
+            };
+            attributes.backSideAspects = {
+                data: [{ attributes: {
+                    name: 'Cunning'
+                } },
+                { attributes: {
+                    name: 'Villainy'
+                } }
+                ]
+            };
+            attributes.backSideTitle = 'Darth Sidious';
+            break;
     }
 }
 
@@ -71,8 +92,8 @@ function filterValues(card) {
     }
 
     // hacky way to strip the object down to just the attributes we want
-    const filterAttributes = ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints }) =>
-        ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints });
+    const filterAttributes = ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints }) =>
+        ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints });
 
     let filteredObj = filterAttributes(card.attributes);
 
@@ -92,6 +113,13 @@ function filterValues(card) {
     filteredObj.traits = getAttributeNames(card.attributes.traits);
     filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
     filteredObj.keywords = getAttributeNames(card.attributes.keywords);
+
+    if (card.attributes.backSideAspects) {
+        filteredObj.backSideAspects = getAttributeNames(card.attributes.backSideAspects);
+    }
+    if (card.attributes.backSideTitle) {
+        filteredObj.backSideTitle = card.attributes.backSideTitle;
+    }
 
     // if a card has multiple types it will be still in one string, like 'token upgrade'
     filteredObj.types = getAttributeNames(card.attributes.type).split(' ');
@@ -145,13 +173,24 @@ function getUniqueCards(cards) {
     for (const card of cards) {
         // creates a map of set code + card number to card id. removes reprints when done since we don't need that in the card data
         if (!card.types.includes('token')) {
-            setCodeMap[`${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`] = card.id;
+            const setCodeStr = `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
+            if (!setCodeMap.hasOwnProperty(setCodeStr)) {
+                setCodeMap[setCodeStr] = card.id;
+            }
+
+            let mostRecentSetCode = card.setId;
             for (const reprint of card.reprints.data) {
                 const setCode = reprint.attributes.expansion.data.attributes.code;
                 if (setCode && setNumber.has(setCode)) {
                     setCodeMap[`${setCode}_${String(reprint.attributes.cardNumber).padStart(3, '0')}`] = card.id;
+
+                    mostRecentSetCode = {
+                        set: reprint.attributes.expansion.data.attributes.code,
+                        number: reprint.attributes.cardNumber
+                    };
                 }
             }
+            card.setId = mostRecentSetCode;
         }
         delete card.reprints;
 

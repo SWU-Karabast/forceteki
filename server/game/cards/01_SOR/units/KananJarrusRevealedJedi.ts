@@ -37,5 +37,3 @@ export default class KananJarrusRevealedJedi extends NonLeaderUnitCard {
         return aspects.size;
     }
 }
-
-KananJarrusRevealedJedi.implemented = true;

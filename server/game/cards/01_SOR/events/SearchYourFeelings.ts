@@ -20,5 +20,3 @@ export default class SearchYourFeelings extends EventCard {
         });
     }
 }
-
-SearchYourFeelings.implemented = true;

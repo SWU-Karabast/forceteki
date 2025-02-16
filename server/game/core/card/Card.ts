@@ -14,19 +14,25 @@ import type Shield from '../../cards/01_SOR/tokens/Shield';
 import type { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
-import type { EventCard } from './EventCard';
-import type { TokenCard, UnitCard, CardWithDamageProperty, TokenOrPlayableCard, CardWithCost } from './CardTypes';
-import type { UpgradeCard } from './UpgradeCard';
-import type { BaseCard } from './BaseCard';
-import type { LeaderCard } from './LeaderCard';
-import type { LeaderUnitCard } from './LeaderUnitCard';
-import type { NonLeaderUnitCard } from './NonLeaderUnitCard';
-import type { TokenUnitCard, TokenUpgradeCard } from './TokenCards';
-import type { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
-import type { InPlayCard } from './baseClasses/InPlayCard';
 import { v4 as uuidv4 } from 'uuid';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import TriggeredAbility from '../ability/TriggeredAbility';
+import type { ICardWithDamageProperty } from './propertyMixins/Damage';
+import type { IEventCard } from './EventCard';
+import type { IUnitCard } from './propertyMixins/UnitProperties';
+import type { IUpgradeCard } from './UpgradeCard';
+import type { IBaseCard } from './BaseCard';
+import type { IDeployableLeaderCard, ILeaderUnitCard } from './LeaderUnitCard';
+import type { IDoubleSidedLeaderCard } from './DoubleSidedLeaderCard';
+import type { IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
+import type { ITokenCard } from './propertyMixins/Token';
+import type { ITokenUnitCard, ITokenUpgradeCard } from './TokenCards';
+import type { IInPlayCard } from './baseClasses/InPlayCard';
+import type { ICardWithCostProperty } from './propertyMixins/Cost';
+import type { INonLeaderUnitCard } from './NonLeaderUnitCard';
+import type { ICardCanChangeControllers } from './CardInterfaces';
+import type { ILeaderCard } from './propertyMixins/LeaderProperties';
+import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -39,12 +45,13 @@ export type CardConstructor = new (...args: any[]) => Card;
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
 export class Card extends OngoingEffectSource {
-    public static implemented = false;
-    public readonly aspects: Aspect[] = [];
-    public readonly internalName: string;
-    public readonly subtitle?: string;
-    public readonly title: string;
-    public readonly unique: boolean;
+    protected readonly _aspects: Aspect[] = [];
+    protected readonly _backSideAspects?: Aspect[];
+    protected readonly _backSideTitle?: string;
+    protected readonly _internalName: string;
+    protected readonly _subtitle?: string;
+    protected readonly _title: string;
+    protected readonly _unique: boolean;
 
     protected override readonly id: string;
     protected readonly hasNonKeywordAbilityText: boolean;
@@ -68,6 +75,18 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
+    public get aspects(): Aspect[] {
+        return this._aspects;
+    }
+
+    public get backSideAspects(): Aspect[] {
+        return this._backSideAspects;
+    }
+
+    public get backSideTitle(): string {
+        return this._backSideTitle;
+    }
+
     public get controller(): Player {
         return this._controller;
     }
@@ -76,8 +95,24 @@ export class Card extends OngoingEffectSource {
         return this._facedown;
     }
 
+    public get internalName(): string {
+        return this._internalName;
+    }
+
     public get keywords(): KeywordInstance[] {
         return this.getKeywords();
+    }
+
+    public get subtitle(): string {
+        return this._subtitle;
+    }
+
+    public get title(): string {
+        return this._title;
+    }
+
+    public get unique(): boolean {
+        return this._unique;
     }
 
     /** @deprecated use title instead**/
@@ -126,11 +161,13 @@ export class Card extends OngoingEffectSource {
 
         this.hasNonKeywordAbilityText = this.isLeader() || this.checkHasNonKeywordAbilityText(cardData.text);
 
-        this.aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
-        this.internalName = cardData.internalName;
-        this.subtitle = cardData.subtitle;
-        this.title = cardData.title;
-        this.unique = cardData.unique;
+        this._aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
+        this._backSideAspects = cardData.backSideAspects;
+        this._internalName = cardData.internalName;
+        this._subtitle = cardData.subtitle;
+        this._title = cardData.title;
+        this._backSideTitle = cardData.backSideTitle;
+        this._unique = cardData.unique;
 
         this._controller = owner;
         this.id = cardData.id;
@@ -140,6 +177,15 @@ export class Card extends OngoingEffectSource {
         this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
             this.internalName);
+        if (this.printedType === CardType.Leader) {
+            this.printedKeywords.push(
+                ...KeywordHelpers.parseKeywords(
+                    cardData.keywords,
+                    cardData.text,
+                    this.internalName
+                )
+            );
+        }
 
         this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
     }
@@ -325,44 +371,60 @@ export class Card extends OngoingEffectSource {
 
 
     // ******************************************* CARD TYPE HELPERS *******************************************
-    public isEvent(): this is EventCard {
+    public isEvent(): this is IEventCard {
         return this.type === CardType.Event;
     }
 
-    public isUnit(): this is UnitCard {
+    public isUnit(): this is IUnitCard {
         return this.type === CardType.BasicUnit || this.type === CardType.LeaderUnit || this.type === CardType.TokenUnit;
     }
 
-    public isUpgrade(): this is UpgradeCard {
+    public isUpgrade(): this is IUpgradeCard {
         return this.type === CardType.BasicUpgrade || this.type === CardType.TokenUpgrade;
     }
 
-    public isBase(): this is BaseCard {
+    public isBase(): this is IBaseCard {
         return this.type === CardType.Base;
     }
 
-    public isLeader(): this is LeaderCard {
-        return this.type === CardType.Leader || this.type === CardType.LeaderUnit;
+    public isDeployableLeader(): this is IDeployableLeaderCard {
+        return false;
     }
 
-    public isLeaderUnit(): this is LeaderUnitCard {
-        return this.type === CardType.LeaderUnit;
+    public isDoubleSidedLeader(): this is IDoubleSidedLeaderCard {
+        return false;
     }
 
-    public isNonLeaderUnit(): this is NonLeaderUnitCard {
-        return this.type === CardType.BasicUnit || this.type === CardType.TokenUnit;
+    public isLeader(): this is ILeaderCard {
+        return false;
     }
 
-    public isToken(): this is TokenCard {
-        return this.type === CardType.TokenUnit || this.type === CardType.TokenUpgrade;
+    public isLeaderUnit(): this is ILeaderUnitCard {
+        return false;
     }
 
-    public isTokenUnit(): this is TokenUnitCard {
-        return this.type === CardType.TokenUnit;
+    public isNonLeaderUnit(): this is INonLeaderUnitCard {
+        return false;
     }
 
-    public isTokenUpgrade(): this is TokenUpgradeCard {
-        return this.type === CardType.TokenUpgrade;
+    public isToken(): this is ITokenCard {
+        return false;
+    }
+
+    public isTokenUnit(): this is ITokenUnitCard {
+        return false;
+    }
+
+    public isTokenUpgrade(): this is ITokenUpgradeCard {
+        return false;
+    }
+
+    public isPlayable(): this is IPlayableCard {
+        return false;
+    }
+
+    public canChangeController(): this is ICardCanChangeControllers {
+        return false;
     }
 
     public isShield(): this is Shield {
@@ -370,39 +432,26 @@ export class Card extends OngoingEffectSource {
     }
 
     /** Returns true if the card is of a type that can legally be damaged. Note that the card might still be in a zone where damage is not legal. */
-    public canBeDamaged(): this is CardWithDamageProperty {
+    public canBeDamaged(): this is ICardWithDamageProperty {
         return false;
-    }
-
-    /** Returns true if the card is of a type that can legally be involved in an attack. Note that the card might still be in a zone where attacks are not legal. */
-    public canBeInvolvedInAttack(): this is CardWithDamageProperty {
-        return this.canBeDamaged();
     }
 
     /**
      * Returns true if the card is in a zone where it can legally be exhausted.
      * The returned type set is equivalent to {@link CardWithExhaustProperty}.
      */
-    public canBeExhausted(): this is PlayableOrDeployableCard {
+    public canBeExhausted(): this is IPlayableOrDeployableCard {
         return false;
     }
 
-    public hasCost(): this is CardWithCost {
-        return false;
-    }
-
-    /**
-     * Returns true if the card is in a playable card (not deployable) or a token
-     */
-    public isTokenOrPlayable(): this is TokenOrPlayableCard {
+    public hasCost(): this is ICardWithCostProperty {
         return false;
     }
 
     /**
      * Returns true if the card is a type that can legally have triggered abilities.
-     * The returned type set is equivalent to {@link CardWithTriggeredAbilities}.
      */
-    public canRegisterTriggeredAbilities(): this is InPlayCard | BaseCard {
+    public canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
         return false;
     }
 
@@ -410,7 +459,7 @@ export class Card extends OngoingEffectSource {
      * Returns true if the card is a type that can be put into play and considered "in play."
      * The returned type set is equivalent to {@link InPlayCard}.
      */
-    public canBeInPlay(): this is InPlayCard {
+    public canBeInPlay(): this is IInPlayCard {
         return false;
     }
 
@@ -581,13 +630,13 @@ export class Card extends OngoingEffectSource {
             case DeckZoneDestination.DeckBottom:
             case DeckZoneDestination.DeckTop:
                 this._zone = this.owner.deckZone;
-                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+                Contract.assertTrue(this.isPlayable());
                 this._zone.addCard(this, zoneName);
                 break;
 
             case ZoneName.Discard:
                 this._zone = this.owner.discardZone;
-                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+                Contract.assertTrue(this.isPlayable());
                 this._zone.addCard(this);
                 break;
 
@@ -599,19 +648,19 @@ export class Card extends OngoingEffectSource {
 
             case ZoneName.Hand:
                 this._zone = this.owner.handZone;
-                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+                Contract.assertTrue(this.isPlayable());
                 this._zone.addCard(this);
                 break;
 
             case ZoneName.OutsideTheGame:
                 this._zone = this.owner.outsideTheGameZone;
-                Contract.assertTrue(this.isTokenOrPlayable());
+                Contract.assertTrue(this.isToken() || this.isPlayable());
                 this._zone.addCard(this);
                 break;
 
             case ZoneName.Resource:
                 this._zone = this.controller.resourceZone;
-                Contract.assertTrue(this.isTokenOrPlayable() && !this.isToken());
+                Contract.assertTrue(this.isPlayable());
                 this._zone.addCard(this);
                 break;
 

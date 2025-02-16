@@ -33,5 +33,3 @@ export default class BoKatanKryzeFightingForMandalore extends NonLeaderUnitCard 
         });
     }
 }
-
-BoKatanKryzeFightingForMandalore.implemented = true;

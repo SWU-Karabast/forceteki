@@ -21,7 +21,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
     public eventHandler(event): void {
         const card = event.card as Card;
-        Contract.assertTrue(card.canBeExhausted());
+        Contract.assertTrue(card.canBeExhausted() && card.canChangeController());
 
         const exhausted = card.exhausted;
         card.takeControl(event.newController);
@@ -56,8 +56,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
         event.newController = player;
 
-        // TODO: randomize player resource ready / exhausted state in accordance with new rules
-        // (should probably prioritize making Smuggle cards exhausted)
+        player.opponent.resourceZone.rearrangeResourceExhaustState(context, true);
         const opponentReadyResources = player.opponent.resources.filter((resource) => !resource.exhausted);
 
         if (opponentReadyResources.length === 1) {

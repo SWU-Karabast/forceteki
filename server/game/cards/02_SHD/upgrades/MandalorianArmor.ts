@@ -23,5 +23,3 @@ export default class MandalorianArmor extends UpgradeCard {
         });
     }
 }
-
-MandalorianArmor.implemented = true;

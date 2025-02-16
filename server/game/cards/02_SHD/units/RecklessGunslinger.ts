@@ -25,5 +25,3 @@ export default class RecklessGunslinger extends NonLeaderUnitCard {
         });
     }
 }
-
-RecklessGunslinger.implemented = true;

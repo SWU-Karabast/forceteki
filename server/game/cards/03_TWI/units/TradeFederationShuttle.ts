@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 import { WildcardZoneName } from '../../../core/Constants';
-import type { UnitCard } from '../../../core/card/CardTypes';
 
 export default class TradeFederationShuttle extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -18,7 +18,7 @@ export default class TradeFederationShuttle extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.controller.getUnitsInPlay(
                     WildcardZoneName.AnyArena,
-                    (unit: UnitCard) => unit.damage > 0).length > 0,
+                    (unit: IUnitCard) => unit.damage > 0).length > 0,
 
                 onTrue: AbilityHelper.immediateEffects.createBattleDroid(),
                 onFalse: AbilityHelper.immediateEffects.noAction() })

@@ -108,7 +108,7 @@ class DeckBuilder {
         }
         playerCards.deck = this.padCardListIfNeeded(playerCards.deck, defaultDeckSize);
 
-        allCards.push(...resources);
+        allCards.push(...this.getCardsForResources(resources));
         allCards.push(...playerCards.deck);
         playerCards.opponentAttachedUpgrades.forEach((card) => {
             allCards.push(card.card);
@@ -256,6 +256,19 @@ class DeckBuilder {
         }
 
         return inPlayCards;
+    }
+
+    getCardsForResources(resources) {
+        let resourceCards = [];
+        for (const card of resources) {
+            if (typeof card === 'string') {
+                resourceCards.push(card);
+            } else {
+                resourceCards.push(card.card);
+            }
+        }
+
+        return resourceCards;
     }
 
     buildDeck(cardInternalNames, cards) {

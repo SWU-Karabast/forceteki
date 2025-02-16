@@ -32,9 +32,9 @@ describe('Ezra Bridger', function() {
                 context.player1.clickCard(context.ezraBridger);
                 context.player1.clickCard(context.deathTrooper);
 
-                // TODO: we need a 'look at' prompt for secretly revealing, currently chat logs go to all players
-                expect(context.getChatLogs(1)).toContain('Ezra Bridger sees Moment of Peace');
-                expect(context.player1).toHaveExactPromptButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.momentOfPeace]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.getChatLogs(1)).not.toContain('Ezra Bridger sees Moment of Peace');
 
                 // check that the damage was done before player1 clicks prompt
                 expect(context.ezraBridger.damage).toBe(3);
@@ -42,7 +42,7 @@ describe('Ezra Bridger', function() {
 
                 // Leave it on top of the deck
                 const beforeActionDeck = context.player1.deck;
-                context.player1.clickPrompt('Leave it on top of your deck');
+                context.player1.clickDisplayCardPromptButton(context.momentOfPeace.uuid, 'leave');
                 expect(context.player1.deck).toEqual(beforeActionDeck);
                 expect(context.player1.deck.length).toEqual(7);
                 expect(context.player1.deck[0]).toBe(context.momentOfPeace);
@@ -53,15 +53,15 @@ describe('Ezra Bridger', function() {
                 // CASE 2: We discard the card.
                 context.player1.clickCard(context.ezraBridger);
                 context.player1.clickCard(context.p2Base);
-                // TODO: we need a 'look at' prompt for secretly revealing, currently chat logs go to all players
-                expect(context.getChatLogs(1)).toContain('Ezra Bridger sees Moment of Peace');
-                expect(context.player1).toHaveExactPromptButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.momentOfPeace]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.getChatLogs(1)).not.toContain('Ezra Bridger sees Moment of Peace');
 
                 // check that the damage was done before player1 clicks prompt
                 expect(context.p2Base.damage).toBe(3);
 
                 // Discard it
-                context.player1.clickPrompt('Discard it');
+                context.player1.clickDisplayCardPromptButton(context.momentOfPeace.uuid, 'discard');
                 expect(context.momentOfPeace).toBeInZone('discard');
                 expect(context.player1.deck.length).toEqual(6);
                 expect(context.player1.deck[0]).toBe(context.wampa);
@@ -73,13 +73,13 @@ describe('Ezra Bridger', function() {
                 context.player1.clickCard(context.ezraBridger);
                 context.player1.clickCard(context.p2Base);
 
-                // TODO: we need a 'look at' prompt for secretly revealing, currently chat logs go to all players
-                expect(context.getChatLogs(1)).toContain('Ezra Bridger sees Wampa');
-                expect(context.player1).toHaveExactPromptButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.wampa]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Play it', 'Discard it', 'Leave it on top of your deck']);
+                expect(context.getChatLogs(1)).not.toContain('Ezra Bridger sees Wampa');
                 // check that the damage was done before player1 clicks prompt
                 expect(context.p2Base.damage).toBe(6);
 
-                context.player1.clickPrompt('Play it');
+                context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'play');
 
                 // check board state
                 expect(context.player1.exhaustedResourceCount).toBe(4);

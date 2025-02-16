@@ -31,11 +31,11 @@ export class PlayUpgradeAction extends PlayCardAction {
                 target: context.target,
                 newController: RelativePlayer.Self
             }).generateEvent(context),
-            this.generateOnPlayEvent(context)
+            this.generateOnPlayEvent(context, { attachTarget: context.target })
         ];
 
         if (context.playType === PlayType.Smuggle) {
-            events.push(this.generateSmuggleEvent(context));
+            this.addSmuggleEvent(events, context);
         }
 
         context.game.openEventWindow(events);

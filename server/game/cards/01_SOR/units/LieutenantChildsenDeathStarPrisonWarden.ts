@@ -3,8 +3,6 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { Aspect, RelativePlayer, ZoneName, TargetMode } from '../../../core/Constants';
 
 export default class LieutenantChildsenDeathStarPrisonWarden extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '2855740390',

@@ -238,6 +238,113 @@ describe('Bounty', function() {
                 expect(context.player2.handSize).toBe(0);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('deals damage, the damage is attributed to the unit with the Bounty ability', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['takedown'],
+                        groundArena: [
+                            'val#loyal-to-the-end',
+                            'atst'
+                        ],
+                        leader: 'jango-fett#concealing-the-conspiracy',
+                    },
+                    player2: {
+                        hand: ['takedown'],
+                        groundArena: [
+                            'val#loyal-to-the-end',
+                            'consular-security-force',
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+                const p1Val = context.player1.findCardByName('val#loyal-to-the-end');
+                const p2Val = context.player2.findCardByName('val#loyal-to-the-end');
+                const p1Takedown = context.player1.findCardByName('takedown');
+                const p2Takedown = context.player2.findCardByName('takedown');
+
+                // CASE 1: P2's val is defeated, and bounty damage is dealt to another P2 unit
+                //   Jango's ability does not trigger because the damage is not dealt by a friendly unit
+
+                context.player1.clickCard(p1Takedown);
+                context.player1.clickCard(p2Val);
+
+                // Resolve bounty first
+                context.player1.clickPrompt('You');
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // Jango does not trigger
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+
+                // Opponent resolves Experience tokens
+                context.player2.clickCard(context.consularSecurityForce);
+
+                // CASE 2: P1's Val is defeated, and bounty damage is dealt to a unit conrolled by P2
+                //   Jango's ability triggers because the damage is dealt by a friendly unit
+
+                context.player2.clickCard(p2Takedown);
+                context.player2.clickCard(p1Val);
+
+                // Resolve Experience tokens first
+                context.player2.clickPrompt('Opponent');
+                context.player1.clickCard(context.atst);
+
+                // Resolve bounty
+                context.player2.clickCard(context.consularSecurityForce);
+
+                // Jango triggers
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Exhaust this leader');
+
+                expect(context.consularSecurityForce.exhausted).toBe(true);
+                expect(context.jangoFett.exhausted).toBe(true);
+            });
+
+            it('changes control, the bounty is still collected by the opposing player', function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        hand: ['change-of-heart'],
+                        groundArena: [
+                            'atst'
+                        ],
+                        leader: 'jango-fett#concealing-the-conspiracy',
+                    },
+                    player2: {
+                        hand: ['takedown'],
+                        groundArena: [
+                            'val#loyal-to-the-end',
+                            'consular-security-force',
+                        ],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // P1 steals Val
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.valLoyalToTheEnd);
+
+                // P2 defeats Val using Takedown
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.valLoyalToTheEnd);
+
+                // Resolve Experience tokens first
+                context.player2.clickPrompt('Opponent');
+                context.player1.clickCard(context.atst);
+
+                // P2 collects bounty and damages own unit
+                context.player2.clickCard(context.consularSecurityForce);
+
+                // Jango triggers
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Exhaust this leader');
+
+                expect(context.consularSecurityForce.exhausted).toBe(true);
+                expect(context.jangoFett.exhausted).toBe(true);
+            });
         });
     });
 });

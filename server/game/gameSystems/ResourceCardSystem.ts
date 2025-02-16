@@ -30,23 +30,14 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         // event.cardStateWhenMoved = card.createSnapshot();
 
         const card = event.card as Card;
-        Contract.assertTrue(card.isTokenOrPlayable());
-        Contract.assertFalse(card.isToken());
+        Contract.assertTrue(card.isPlayable());
 
         if (event.resourceControllingPlayer !== card.controller) {
+            Contract.assertTrue(card.canChangeController(), `Card ${card.internalName} cannot change controller`);
             card.takeControl(event.resourceControllingPlayer, ZoneName.Resource);
         } else {
             card.moveTo(ZoneName.Resource);
         }
-    }
-
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): IResourceCardProperties {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
-
-        if (Array.isArray(properties.target)) {
-            Contract.assertTrue(properties.target.length <= 1, 'Resourcing more than 1 card is not yet supported');
-        }
-        return properties;
     }
 
     public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: any): void {

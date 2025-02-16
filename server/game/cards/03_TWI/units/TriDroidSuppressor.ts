@@ -22,5 +22,3 @@ export default class TriDroidSuppressor extends NonLeaderUnitCard {
         });
     }
 }
-
-TriDroidSuppressor.implemented = true;

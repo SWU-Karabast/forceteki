@@ -34,4 +34,3 @@ export default class SteelaGerreraBelovedTactician extends NonLeaderUnitCard {
     }
 }
 
-SteelaGerreraBelovedTactician.implemented = true;

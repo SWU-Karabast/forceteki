@@ -3,8 +3,6 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName, RelativePlayer, CardType, WildcardCardType } from '../../../core/Constants';
 
 export default class ISBAgent extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '5154172446',
@@ -19,7 +17,10 @@ export default class ISBAgent extends NonLeaderUnitCard {
                 cardTypeFilter: CardType.Event,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                immediateEffect: AbilityHelper.immediateEffects.reveal()
+                immediateEffect: AbilityHelper.immediateEffects.reveal({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             },
             ifYouDo: {
                 title: 'Deal 1 damage to a unit',
@@ -31,5 +32,3 @@ export default class ISBAgent extends NonLeaderUnitCard {
         });
     }
 }
-
-ISBAgent.implemented = true;
