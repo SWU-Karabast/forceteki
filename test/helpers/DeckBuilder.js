@@ -289,7 +289,7 @@ class DeckBuilder {
             return setCode;
         };
 
-        /** @type {import('../../server/utils/deck/DeckInterfaces.js').ISwuDbDecklistShort} */
+        /** @type {import('../../server/utils/deck/DeckInterfaces.js').IDecklistInternal} */
         const decklist = {
             leader: { id: safeGetSetCode(leader), count: 1 },
             base: { id: safeGetSetCode(base), count: 1 },

@@ -15,7 +15,7 @@ export interface ISwuDbDecklist {
     sideboard?: ISwuDbCardEntry[];
 }
 
-export interface ISwuDbDecklistShort {
+export interface IDecklistInternal {
     leader: ISwuDbCardEntry;
     base: ISwuDbCardEntry;
     deck: ISwuDbCardEntry[];
