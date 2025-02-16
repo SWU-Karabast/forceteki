@@ -90,7 +90,7 @@ export class Deck {
             allCards: [] as Card[]
         };
 
-        // TODO THIS PR: get all card data at once to reduce async calls
+        // TODO: get all card data at once to reduce async calls
 
         // deck
         for (const [cardSetCode, count] of this.deckCards ?? []) {

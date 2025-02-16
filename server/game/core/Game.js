@@ -100,7 +100,7 @@ class Game extends EventEmitter {
             );
         });
 
-        // TODO THIS PR: checks for required option values (cardDataGetter, etc.)
+        // TODO: checks for required detail values (cardDataGetter, etc.) and an interface for the details object
 
         details.spectators?.forEach((spectator) => {
             this.playersAndSpectators[spectator.user.id] = new Spectator(spectator.id, spectator.user);

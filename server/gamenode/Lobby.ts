@@ -1,7 +1,6 @@
 import Game from '../game/core/Game';
 import { v4 as uuid } from 'uuid';
 import type Socket from '../socket';
-import defaultGameSettings from './defaultGame';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
 import path from 'path';
@@ -273,17 +272,9 @@ export class Lobby {
     }
 
     private async onStartGameAsync() {
-        // TODO Change this to actual new GameSettings when we get to that point.
         this.rematchRequest = null;
-        defaultGameSettings.players[0].user.id = this.users[0].id;
-        defaultGameSettings.players[0].user.username = this.users[0].username;
 
-        defaultGameSettings.players[1].user.id = this.users[1].id;
-        defaultGameSettings.players[1].user.username = this.users[1].username;
-        defaultGameSettings.playableCardTitles = this.playableCardTitles;
-        defaultGameSettings.cardDataGetter = this.cardDataGetter;
-
-        const game = new Game(defaultGameSettings, { router: this });
+        const game = new Game(this.buildGameSettings(), { router: this });
         this.game = game;
         game.started = true;
 
@@ -298,6 +289,32 @@ export class Lobby {
         await game.initialiseAsync();
 
         this.sendGameState(game);
+    }
+
+    private buildGameSettings() {
+        const players = this.users.map((user) => ({
+            user: {
+                id: user.id,
+                username: user.username,
+                settings: {
+                    optionSettings: {
+                        autoSingleTarget: true,
+                    }
+                }
+            }
+        }));
+
+        return {
+            id: '0001',
+            name: 'Test Game',
+            allowSpectators: false,
+            spectatorSquelch: true,
+            owner: 'Order66',
+            clocks: 'timer',
+            players,
+            playableCardTitles: this.playableCardTitles,
+            cardDataGetter: this.cardDataGetter,
+        };
     }
 
     private onLobbyMessage(socket: Socket, command: string, ...args): void {
