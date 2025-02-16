@@ -178,5 +178,18 @@ describe('Upgrade cards', function() {
                 expect(context.entrenched).toBeInZone('discard', context.player2);
             });
         });
+
+        it('When an upgrade is in hand and has no legal target, it should not be clickable', function() {
+            contextRef.setupTest({
+                phase: 'action',
+                player1: {
+                    hand: ['academy-training', 'wampa'],
+                }
+            });
+            const { context } = contextRef;
+
+            expect(context.player1).not.toBeAbleToSelect(context.academyTraining);
+            expect(context.academyTraining).not.toHaveAvailableActionWhenClickedBy(context.player1);
+        });
     });
 });
