@@ -24,11 +24,8 @@ export default class ProfundityWeFight extends NonLeaderUnitCard {
             },
             then: (thenContext) => ({
                 title: `${thenContext.target} discards a card from their hand`,
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => thenContext.target.hand.length > context.player.hand.length,
-                    onTrue: AbilityHelper.immediateEffects.discardCardsFromOwnHand({ amount: 1 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction(),
-                }),
+                thenCondition: (context) => thenContext.target.hand.length > context.player.hand.length,
+                immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand({ amount: 1 }),
             }),
         });
     }
