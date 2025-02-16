@@ -53,10 +53,14 @@ class DeckBuilder {
 
         playerCards.opponentAttachedUpgrades = opponentAttachedUpgrades;
 
-        // Opposite player has the captured units this player 'owns'
-        let capturedCards = [];
-        capturedCards = capturedCards.concat(this.getCapturedUnitsFromArena(oppOptions.groundArena));
-        capturedCards = capturedCards.concat(this.getCapturedUnitsFromArena(oppOptions.spaceArena));
+        // A player could potentially capture their own units (after a take control) - so we have to check all arenas for both
+        // players and check ownership. By default, we assume that the opponent is the owner of a captured card if undefined
+        let capturedCards = [
+            ...this.getCapturedUnitsFromArena(playerOptions.groundArena, (owner) => owner?.endsWith(playerNumber)),
+            ...this.getCapturedUnitsFromArena(playerOptions.spaceArena, (owner) => owner?.endsWith(playerNumber)),
+            ...this.getCapturedUnitsFromArena(oppOptions.groundArena, (owner) => owner === undefined || owner.endsWith(playerNumber)),
+            ...this.getCapturedUnitsFromArena(oppOptions.spaceArena, (owner) => owner === undefined || owner.endsWith(playerNumber)),
+        ];
 
         playerCards.unitsCapturedByOpponent = capturedCards;
 
@@ -268,7 +272,7 @@ class DeckBuilder {
         return inPlayCards;
     }
 
-    getCapturedUnitsFromArena(arenaList) {
+    getCapturedUnitsFromArena(arenaList, ownerFilter = () => true) {
         if (!arenaList) {
             return [];
         }
@@ -276,7 +280,10 @@ class DeckBuilder {
         for (const card of arenaList) {
             if (typeof card !== 'string' && card.capturedUnits) {
                 for (const capturedUnit of card.capturedUnits) {
-                    capturedUnits.push(capturedUnit);
+                    let capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
+                    if (ownerFilter(capturedUnit?.owner)) {
+                        capturedUnits.push(capturedUnitName);
+                    }
                 }
             }
         }
@@ -291,7 +298,7 @@ class DeckBuilder {
                 resourceCards.push(card);
             } else {
                 resourceCards.push(card.card);
-            }
+            } 
         }
 
         return resourceCards;

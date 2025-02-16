@@ -176,10 +176,10 @@ describe('Capture system', function() {
                     phase: 'action',
                     player1: {
                         hand: ['evacuate', 'superlaser-blast'],
-                        spaceArena: [{ card: 'wing-leader', capturedUnits: ['tieln-fighter'] }]
+                        spaceArena: [{ card: 'wing-leader', capturedUnits: ['tieln-fighter', { card: 'green-squadron-awing', owner: 'player1' }] }]
                     },
                     player2: {
-                        groundArena: [{ card: 'discerning-veteran', capturedUnits: ['wampa', 'atst'] }, 'pyke-sentinel'],
+                        groundArena: ['pyke-sentinel', { card: 'discerning-veteran', capturedUnits: ['wampa', 'atst', { card: 'death-trooper', owner: 'player2' }] }],
                     },
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
@@ -193,12 +193,16 @@ describe('Capture system', function() {
                 context.player1.clickCard(context.evacuate);
 
                 // check captured units are rescued
-                expect(context.wampa).toBeInZone('groundArena');
+                expect(context.wampa).toBeInZone('groundArena', context.player1);
                 expect(context.wampa.exhausted).toBeTrue();
-                expect(context.atst).toBeInZone('groundArena');
+                expect(context.atst).toBeInZone('groundArena', context.player1);
                 expect(context.atst.exhausted).toBeTrue();
-                expect(context.tielnFighter).toBeInZone('spaceArena');
+                expect(context.deathTrooper).toBeInZone('groundArena', context.player2);
+                expect(context.deathTrooper.exhausted).toBeTrue();
+                expect(context.tielnFighter).toBeInZone('spaceArena', context.player2);
                 expect(context.tielnFighter.exhausted).toBeTrue();
+                expect(context.greenSquadronAwing).toBeInZone('spaceArena', context.player1);
+                expect(context.greenSquadronAwing.exhausted).toBeTrue();
 
                 // check previous arena units are returned to hand
                 expect(context.wingLeader).toBeInZone('hand');
@@ -212,12 +216,16 @@ describe('Capture system', function() {
                 context.player1.clickCard(context.superlaserBlast);
 
                 // check captured units are rescued
-                expect(context.wampa).toBeInZone('groundArena');
+                expect(context.wampa).toBeInZone('groundArena', context.player1);
                 expect(context.wampa.exhausted).toBeTrue();
-                expect(context.atst).toBeInZone('groundArena');
+                expect(context.atst).toBeInZone('groundArena', context.player1);
                 expect(context.atst.exhausted).toBeTrue();
-                expect(context.tielnFighter).toBeInZone('spaceArena');
+                expect(context.deathTrooper).toBeInZone('groundArena', context.player2);
+                expect(context.deathTrooper.exhausted).toBeTrue();
+                expect(context.tielnFighter).toBeInZone('spaceArena', context.player2);
                 expect(context.tielnFighter.exhausted).toBeTrue();
+                expect(context.greenSquadronAwing).toBeInZone('spaceArena', context.player1);
+                expect(context.greenSquadronAwing.exhausted).toBeTrue();
 
                 // check previous arena units are returned to hand
                 expect(context.wingLeader).toBeInZone('discard');
