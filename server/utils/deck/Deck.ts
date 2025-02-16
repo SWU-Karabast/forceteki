@@ -23,30 +23,15 @@ export class Deck {
 
         const sideboard = decklist.sideboard ?? [];
 
-        const allCardIds = new Set(
-            decklist.deck.map((cardEntry) => cardEntry.id).concat(
-                sideboard.map((cardEntry) => cardEntry.id)
-            )
-        );
-
-        this.deckCards = this.convertCardListToMap(decklist.deck, allCardIds);
-        this.sideboard = this.convertCardListToMap(sideboard, allCardIds);
+        this.deckCards = this.convertCardListToMap(decklist.deck);
+        this.sideboard = this.convertCardListToMap(sideboard);
     }
 
-    private convertCardListToMap(cardList: ISwuDbCardEntry[], allCardIds: Set<string>) {
+    private convertCardListToMap(cardList: ISwuDbCardEntry[]) {
         const cardsMap = new Map<string, number>();
-        const missingCardIds = new Set(allCardIds);
-
         for (const cardEntry of cardList) {
             cardsMap.set(cardEntry.id, cardEntry.count);
-            missingCardIds.delete(cardEntry.id);
         }
-
-        // add an entry with count 0 for cards that are in the other part of the decklist
-        for (const cardId of missingCardIds) {
-            cardsMap.set(cardId, 0);
-        }
-
         return cardsMap;
     }
 
@@ -60,8 +45,17 @@ export class Deck {
         Contract.assertNotNullLike(sideboardCount, `Card '${cardId}' is not in the decklist`);
         Contract.assertFalse(sideboardCount === 0, `All copies of '${cardId}' are already in the deck and cannot be moved from sideboard`);
 
-        this.sideboard.set(cardId, sideboardCount - 1);
-        this.deckCards.set(cardId, this.deckCards.get(cardId) + 1);
+        // Decrement sideboard count and remove the card if count reaches 0
+        const newSideboardCount = sideboardCount - 1;
+        if (newSideboardCount === 0) {
+            this.sideboard.delete(cardId);
+        } else {
+            this.sideboard.set(cardId, newSideboardCount);
+        }
+
+        // increment deck count and create card if it wasn't in the deck before
+        const deckCount = this.deckCards.get(cardId) || 0;
+        this.deckCards.set(cardId, deckCount + 1);
     }
 
     public moveToSideboard(cardId: string) {
@@ -70,8 +64,16 @@ export class Deck {
         Contract.assertNotNullLike(deckCount, `Card '${cardId}' is not in the decklist`);
         Contract.assertFalse(deckCount === 0, `All copies of '${cardId}' are already in the sideboard and cannot be moved from deck`);
 
-        this.deckCards.set(cardId, deckCount - 1);
-        this.sideboard.set(cardId, this.sideboard.get(cardId) + 1);
+        // Decrement deck count and remove the card if count reaches 0
+        const newDeckCount = deckCount - 1;
+        if (newDeckCount === 0) {
+            this.deckCards.delete(cardId);
+        } else {
+            this.deckCards.set(cardId, newDeckCount);
+        }
+        // increment sideboard count and create card if it wasn't in the sideboard before
+        const sideBoardCount = this.sideboard.get(cardId) || 0;
+        this.sideboard.set(cardId, sideBoardCount + 1);
     }
 
     public getDecklist(): ISwuDbDecklistShort {
