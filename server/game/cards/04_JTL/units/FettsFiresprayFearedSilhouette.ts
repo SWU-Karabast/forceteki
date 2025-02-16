@@ -20,11 +20,7 @@ export default class FettsFiresprayFearedSilhouette extends NonLeaderUnitCard {
             targetResolver: {
                 mode: TargetMode.Player,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) =>
-                        context.player.leader.title === 'Boba Fett' ||
-                        context.player.hasSomeArenaCard({
-                            condition: (card) => card.title === 'Boba Fett'
-                        }),
+                    condition: (context) => context.player.controlsLeaderOrUnitWithTitle('Boba Fett'),
                     onTrue: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 2 }),
                     onFalse: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 1 }),
                 })
