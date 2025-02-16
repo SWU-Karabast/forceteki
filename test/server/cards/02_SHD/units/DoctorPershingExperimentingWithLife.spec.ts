@@ -2,7 +2,7 @@ describe('Doctor Pershing, Experimenting With Life', function() {
     integration(function(contextRef) {
         describe('Doctor Pershing\'s action ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['doctor-pershing#experimenting-with-life', { card: 'wampa', upgrades: ['shield'] }],

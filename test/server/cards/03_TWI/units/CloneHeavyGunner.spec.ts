@@ -1,7 +1,7 @@
 describe('Clone Heavy Gunner', function() {
     integration(function(contextRef) {
-        it('Clone Heavy Gunner\'s constant Coordinate ability should give +2/+0', function () {
-            contextRef.setupTest({
+        it('Clone Heavy Gunner\'s constant Coordinate ability should give +2/+0', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['clone-heavy-gunner', 'battlefield-marine'],

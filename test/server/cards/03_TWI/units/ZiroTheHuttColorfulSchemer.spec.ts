@@ -1,8 +1,8 @@
 describe('Ziro the Hutt, Colorful Schemer', function () {
     integration(function (contextRef) {
         describe('Ziro the Hutt\'s ability', function () {
-            it('should exhaust an enemy unit when played and an enemy resource on attack', function () {
-                contextRef.setupTest({
+            it('should exhaust an enemy unit when played and an enemy resource on attack', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['ziro-the-hutt#colorful-schemer'],

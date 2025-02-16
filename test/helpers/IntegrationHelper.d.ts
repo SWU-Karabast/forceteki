@@ -12,7 +12,7 @@ declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void)
 
 interface SwuTestContextRef {
     context: SwuTestContext;
-    setupTest: (options?: SwuSetupTestOptions) => void;
+    setupTestAsync: (options?: SwuSetupTestOptions) => Promise;
     buildImportAllCardsTools: () => {
         deckBuilder: DeckBuilder;
         implementedCardsCtors: Map<string, new (owner: Player, cardData: any) => Card>;
@@ -49,7 +49,7 @@ interface SwuTestContext {
     selectInitiativePlayer(player: PlayerInteractionWrapper);
     setDamage(card: CardWithDamageProperty, amount: number);
     skipSetupPhase();
-    startGame();
+    startGameAsync(): Promise;
 
     // To account for any dynamically added cards or objects, we have a free-form accessor.
     [field: string]: any;

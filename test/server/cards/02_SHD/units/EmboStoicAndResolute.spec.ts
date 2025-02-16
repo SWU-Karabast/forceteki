@@ -1,8 +1,8 @@
 describe('Embo, Stoic and Resolute', function () {
     integration(function (contextRef) {
         describe('Embo\'s ability', function () {
-            it('should heal up to 2 damage from a unit when he kill someone and survives', function () {
-                contextRef.setupTest({
+            it('should heal up to 2 damage from a unit when he kill someone and survives', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['embo#stoic-and-resolute', { card: 'escort-skiff', damage: 3 }],
@@ -70,8 +70,8 @@ describe('Embo, Stoic and Resolute', function () {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('should heal up to 2 damage from a unit when he kill someone (by ability) and survives', function () {
-                contextRef.setupTest({
+            it('should heal up to 2 damage from a unit when he kill someone (by ability) and survives', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'embo#stoic-and-resolute', damage: 3, upgrades: ['vambrace-flamethrower'] }],
@@ -105,8 +105,8 @@ describe('Embo, Stoic and Resolute', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not heal up to 2 damage from a unit when killed and played again before his attack', function () {
-                contextRef.setupTest({
+            it('should not heal up to 2 damage from a unit when killed and played again before his attack', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['rivals-fall'],

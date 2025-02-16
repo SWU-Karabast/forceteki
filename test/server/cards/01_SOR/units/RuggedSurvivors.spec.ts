@@ -2,7 +2,7 @@ describe('Rugged Survivors', function () {
     integration(function (contextRef) {
         describe('Rugged Survivors\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['rugged-survivors'],
@@ -29,7 +29,7 @@ describe('Rugged Survivors', function () {
 
         describe('Rugged Survivors\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['rugged-survivors'],

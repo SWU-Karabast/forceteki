@@ -2,7 +2,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
     integration(function(contextRef) {
         describe('Crumb\'s when played ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['salacious-crumb#obnoxious-pet']
@@ -32,7 +32,7 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
 
         describe('Crumb\'s action ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['salacious-crumb#obnoxious-pet', 'wampa'],
@@ -58,8 +58,8 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                 expect(context.salaciousCrumb).toBeInZone('hand');
             });
 
-            it('should not be available if Crumb is exhausted', function () {
-                contextRef.setupTest({
+            it('should not be available if Crumb is exhausted', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'salacious-crumb#obnoxious-pet', exhausted: true }, 'wampa'],

@@ -1,7 +1,7 @@
 describe('Onyx Squadron Brute', function() {
     integration(function(contextRef) {
-        it('Onyx Squadron Brute\'s when defeated ability should heal 2 damage from a base', function () {
-            contextRef.setupTest({
+        it('Onyx Squadron Brute\'s when defeated ability should heal 2 damage from a base', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['onyx-squadron-brute'],

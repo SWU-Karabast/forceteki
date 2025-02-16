@@ -1,7 +1,7 @@
 describe('Precision Fire', function () {
     integration(function (contextRef) {
-        it('Precision Fire\'s ability should initiate an attack with saboteur and +2/+0 if unit is trooper', function () {
-            contextRef.setupTest({
+        it('Precision Fire\'s ability should initiate an attack with saboteur and +2/+0 if unit is trooper', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['precision-fire'],

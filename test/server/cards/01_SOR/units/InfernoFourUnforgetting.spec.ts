@@ -2,7 +2,7 @@ describe('Inferno Four - Unforgetting', function() {
     integration(function(contextRef) {
         describe('Inferno Four - Unforgetting\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['inferno-four#unforgetting'],
@@ -60,7 +60,7 @@ describe('Inferno Four - Unforgetting', function() {
 
         describe('Inferno Four - Unforgetting\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['inferno-four#unforgetting'],

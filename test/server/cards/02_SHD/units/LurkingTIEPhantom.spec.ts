@@ -1,7 +1,7 @@
 describe('Lurking TIE Phantom', function() {
     integration(function(contextRef) {
-        it('Lurking TIE Phantom\'s ability', function () {
-            contextRef.setupTest({
+        it('Lurking TIE Phantom\'s ability', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['cassian-andor#rebellions-are-built-on-hope', 'fifth-brother#fear-hunter'],
@@ -148,8 +148,8 @@ describe('Lurking TIE Phantom', function() {
             // TODO Force Lightning currently not implemented
         });
 
-        it('Lurking TIE Phantom should be immune to friendly Val\'s bounty', function () {
-            contextRef.setupTest({
+        it('Lurking TIE Phantom should be immune to friendly Val\'s bounty', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['wampa'],

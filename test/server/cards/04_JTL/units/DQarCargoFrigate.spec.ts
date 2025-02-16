@@ -1,7 +1,7 @@
 describe('D\'Qar Cargo Frigate', function () {
     integration(function (contextRef) {
-        it('D\'Qar Cargo Frigate\'s ability should give this unit gets -1/-0 for each damage on it', function () {
-            contextRef.setupTest({
+        it('D\'Qar Cargo Frigate\'s ability should give this unit gets -1/-0 for each damage on it', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['dqar-cargo-frigate']

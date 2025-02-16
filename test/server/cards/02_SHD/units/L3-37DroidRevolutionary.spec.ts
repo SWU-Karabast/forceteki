@@ -1,8 +1,8 @@
 describe('L3-37, Droid Revolutionary ability', function() {
     integration(function(contextRef) {
         describe('L3-37, Droid Revolutionary\'s when played ability', function() {
-            it('rescue a unit and no shield given', function() {
-                contextRef.setupTest({
+            it('rescue a unit and no shield given', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['take-captive'],
@@ -31,8 +31,8 @@ describe('L3-37, Droid Revolutionary ability', function() {
                 expect(context.l337DroidRevolutionary.isUpgraded()).toBeFalse(); // no shield
             });
 
-            it('does not rescue a unit and is shielded', function() {
-                contextRef.setupTest({
+            it('does not rescue a unit and is shielded', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['take-captive'],
@@ -63,8 +63,8 @@ describe('L3-37, Droid Revolutionary ability', function() {
                 expect(context.l337DroidRevolutionary).toHaveExactUpgradeNames(['shield']);
             });
 
-            it('does not rescue a unit as there is no captured units and is shielded', function() {
-                contextRef.setupTest({
+            it('does not rescue a unit as there is no captured units and is shielded', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['l337#droid-revolutionary']

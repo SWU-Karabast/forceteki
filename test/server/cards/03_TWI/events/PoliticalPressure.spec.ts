@@ -1,8 +1,8 @@
 describe('Political Pressure', function() {
     integration(function(contextRef) {
         describe('Political Pressure\'s ability', function () {
-            it('should prompt Opponent to discard a card or let the opponent create 2 Battle Droids tokens', function () {
-                contextRef.setupTest({
+            it('should prompt Opponent to discard a card or let the opponent create 2 Battle Droids tokens', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['political-pressure'],
@@ -43,8 +43,8 @@ describe('Political Pressure', function() {
                 expect(context.player2.hand.length).toBe(2);
             });
 
-            it('should be skipped as Opponent does not have any cards in hand', function () {
-                contextRef.setupTest({
+            it('should be skipped as Opponent does not have any cards in hand', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['political-pressure'],

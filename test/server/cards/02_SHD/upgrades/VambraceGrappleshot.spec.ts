@@ -2,7 +2,7 @@ describe('Vambrace Grappleshot', function() {
     integration(function(contextRef) {
         describe('Vambrace Grappleshot\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['vambrace-grappleshot'] }],
@@ -44,7 +44,7 @@ describe('Vambrace Grappleshot', function() {
 
         describe('Vambrace Grappleshot', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vambrace-grappleshot'],

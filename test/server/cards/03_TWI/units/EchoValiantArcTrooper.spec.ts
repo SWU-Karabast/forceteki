@@ -1,7 +1,7 @@
 describe('Echo Valiant Arc Trooper', function() {
     integration(function(contextRef) {
-        it('Echo\'s constant Coordinate ability should gain +2/+2', function () {
-            contextRef.setupTest({
+        it('Echo\'s constant Coordinate ability should gain +2/+2', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['echo#valiant-arc-trooper'],

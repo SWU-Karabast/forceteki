@@ -2,7 +2,7 @@ describe('You\'re My Only Hope', function() {
     integration(function(contextRef) {
         describe('You\'re My Only Hope\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'hera-syndulla#spectre-two',

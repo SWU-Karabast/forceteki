@@ -1,8 +1,8 @@
 describe('Inspiring Mentor', function() {
     integration(function(contextRef) {
         describe('when attached to a friendly unit', function() {
-            it('Inspiring Mentor ability should give the attached unit an on attack and when defeated ability to give an experience token to another friendly unit', function () {
-                contextRef.setupTest({
+            it('Inspiring Mentor ability should give the attached unit an on attack and when defeated ability to give an experience token to another friendly unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['inspiring-mentor'],
@@ -45,8 +45,8 @@ describe('Inspiring Mentor', function() {
         });
 
         describe('when attached to a friendly unit and the opponent takes control of it', function() {
-            it('Inspiring Mentor ability should give the attached unit an on attack and when defeated ability to give an experience token to another friendly unit', function () {
-                contextRef.setupTest({
+            it('Inspiring Mentor ability should give the attached unit an on attack and when defeated ability to give an experience token to another friendly unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['inspiring-mentor'],
@@ -94,8 +94,8 @@ describe('Inspiring Mentor', function() {
         });
 
         describe('when attached to a enemy unit', function() {
-            it('Inspiring Mentor ability should give the attached unit an on attack and when defeated ability to give an experience token to another friendly unit', function () {
-                contextRef.setupTest({
+            it('Inspiring Mentor ability should give the attached unit an on attack and when defeated ability to give an experience token to another friendly unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['inspiring-mentor'],
