@@ -308,7 +308,7 @@ class DeckBuilder {
                 resourceCards.push(card);
             } else {
                 resourceCards.push(card.card);
-            } 
+            }
         }
 
         return resourceCards;
