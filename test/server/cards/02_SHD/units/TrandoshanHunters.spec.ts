@@ -1,10 +1,10 @@
 describe('Trandoshan Hunters', function () {
     integration(function (contextRef) {
         describe('Trandoshan Hunters\'s ability', function () {
-            it('should give an experience token to this unit because opponent has a unit with bounty.', function () {
+            it('should give an experience token to this unit because opponent has a unit with bounty.', async function () {
                 const { context } = contextRef;
 
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['trandoshan-hunters'],
@@ -18,10 +18,10 @@ describe('Trandoshan Hunters', function () {
                 expect(context.trandoshanHunters).toHaveExactUpgradeNames(['experience']);
             });
 
-            it('should not give an experience token to this unit because opponent does not have a unit with bounty', function () {
+            it('should not give an experience token to this unit because opponent does not have a unit with bounty', async function () {
                 const { context } = contextRef;
 
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['trandoshan-hunters'],

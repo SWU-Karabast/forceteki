@@ -2,7 +2,7 @@ describe('Bib Fortuna', function() {
     integration(function(contextRef) {
         describe('Bib Fortuna\'s activated ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['bib-fortuna#jabbas-majordomo', 'jawa-scavenger'],

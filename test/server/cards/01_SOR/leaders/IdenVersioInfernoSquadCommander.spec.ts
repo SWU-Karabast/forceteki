@@ -2,7 +2,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
     integration(function(contextRef) {
         describe('Iden\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],
@@ -61,7 +61,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
 
         describe('Iden\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],

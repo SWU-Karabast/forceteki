@@ -1,7 +1,7 @@
 describe('Coruscant Dissident', function() {
     integration(function(contextRef) {
-        beforeEach(function () {
-            contextRef.setupTest({
+        beforeEach(async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: [{ card: 'coruscant-dissident' }],

@@ -2,7 +2,7 @@ describe('The Chaos of War', function() {
     integration(function(contextRef) {
         describe('The Chaos of War\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-chaos-of-war', 'battlefield-marine', 'echo-base-defender'],
@@ -30,7 +30,7 @@ describe('The Chaos of War', function() {
 
         describe('The Chaos of War\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-chaos-of-war'],

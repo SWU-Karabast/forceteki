@@ -1,7 +1,7 @@
 describe('Osi Sobeck, Warden of the Citadel', function () {
     integration(function (contextRef) {
-        it('Osi Sobeck\'s ability should capture an enemy ground unit which cost equal or less than resources paid to play him', function () {
-            contextRef.setupTest({
+        it('Osi Sobeck\'s ability should capture an enemy ground unit which cost equal or less than resources paid to play him', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['osi-sobeck#warden-of-the-citadel', 'palpatines-return'],

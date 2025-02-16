@@ -2,7 +2,7 @@ describe('Upgrade cards', function() {
     integration(function(contextRef) {
         describe('When an upgrade is attached', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['foundling'],
@@ -69,7 +69,7 @@ describe('Upgrade cards', function() {
 
         describe('When an upgrade is attached to a leader', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'boba-fett#daimyo', deployed: true, upgrades: ['academy-training'] }
@@ -96,7 +96,7 @@ describe('Upgrade cards', function() {
 
         describe('When an upgrade is attached,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: [{ card: 'tieln-fighter', upgrades: ['entrenched'] }]
@@ -131,7 +131,7 @@ describe('Upgrade cards', function() {
 
         describe('When an upgrade is attached', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],

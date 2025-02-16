@@ -2,7 +2,7 @@ describe('Overall game mechanics', function() {
     integration(function(contextRef) {
         describe('Simultaneous lethal damage to both bases', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'sabine-wren#galvanized-revolutionary',
@@ -31,7 +31,7 @@ describe('Overall game mechanics', function() {
 
         describe('One player\'s base taking lethal damage', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['rebel-pathfinder']

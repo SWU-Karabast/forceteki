@@ -1,8 +1,8 @@
 describe('Vulture Interceptor Wing', function () {
     integration(function (contextRef) {
         describe('Vulture Interceptor Wing\'s ability', function () {
-            it('should give -1/-1 to an enemy unit', function () {
-                contextRef.setupTest({
+            it('should give -1/-1 to an enemy unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['vulture-interceptor-wing'],

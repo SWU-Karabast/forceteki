@@ -16,7 +16,7 @@ export default class GreedoSlowOnTheDraw extends NonLeaderUnitCard {
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 1,
-                target: context.source.controller
+                target: context.player
             })),
             ifYouDo: (context) => ({
                 title: 'Deal 2 damage to a ground unit',

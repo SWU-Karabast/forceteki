@@ -1,7 +1,7 @@
 describe('Hound\'s Tooth, Reliable and Deadly', function() {
     integration(function(contextRef) {
-        it('Hound\'s Tooth\'s ability should deal damage before defender if it is exhausted and it did not enter play this phase', function () {
-            contextRef.setupTest({
+        it('Hound\'s Tooth\'s ability should deal damage before defender if it is exhausted and it did not enter play this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['take-captive'],

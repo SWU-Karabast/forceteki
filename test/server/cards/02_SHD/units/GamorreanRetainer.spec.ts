@@ -1,7 +1,7 @@
 describe('Gamorrean Retainer', function () {
     integration(function (contextRef) {
-        it('Gamorrean Retainer\'s ability should give it sentinel while he has a Command ally', function () {
-            contextRef.setupTest({
+        it('Gamorrean Retainer\'s ability should give it sentinel while he has a Command ally', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['wampa', 'scout-bike-pursuer'],

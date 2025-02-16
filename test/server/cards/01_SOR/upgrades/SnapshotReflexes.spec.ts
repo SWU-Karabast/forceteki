@@ -2,7 +2,7 @@ describe('Snapshot Reflexes', function() {
     integration(function(contextRef) {
         describe('Snapshot Reflexes\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', { card: 'wampa', exhausted: true }],

@@ -1,8 +1,8 @@
 describe('Coordinate keyword', function() {
     integration(function(contextRef) {
         describe('When a unit with the Coordinate keyword', function() {
-            it('is in play with at least 2 other friendly units, its Coordinate ability is online', function () {
-                contextRef.setupTest({
+            it('is in play with at least 2 other friendly units, its Coordinate ability is online', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['anakin-skywalker#maverick-mentor', 'clone-heavy-gunner'],
@@ -27,8 +27,8 @@ describe('Coordinate keyword', function() {
                 expect(context.wampa).toBeInZone('hand');
             });
 
-            it('is in play with at fewer than 2 other friendly units, its Coordinate ability is offline', function () {
-                contextRef.setupTest({
+            it('is in play with at fewer than 2 other friendly units, its Coordinate ability is offline', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['anakin-skywalker#maverick-mentor', 'clone-heavy-gunner'],
@@ -57,8 +57,8 @@ describe('Coordinate keyword', function() {
                 expect(context.wampa).toBeInZone('deck');
             });
 
-            it('is in play with a variable number of other friendly units, its Coordinate ability will correct go online / offline', function () {
-                contextRef.setupTest({
+            it('is in play with a variable number of other friendly units, its Coordinate ability will correct go online / offline', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['anakin-skywalker#maverick-mentor', 'clone-heavy-gunner'],
@@ -106,8 +106,8 @@ describe('Coordinate keyword', function() {
                 expect(context.atst).toBeInZone('deck');
             });
 
-            it('is returned to hand and played again, its Coordinate ability doesn\'t trigger twice', function () {
-                contextRef.setupTest({
+            it('is returned to hand and played again, its Coordinate ability doesn\'t trigger twice', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['anakin-skywalker#maverick-mentor', 'clone-heavy-gunner'],

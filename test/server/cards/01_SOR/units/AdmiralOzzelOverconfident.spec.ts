@@ -2,7 +2,7 @@ describe('Admiral Ozzel, Overconfident', function() {
     integration(function(contextRef) {
         describe('Admiral Ozzel, Overconfident\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['atst', 'death-star-stormtrooper', 'maximum-firepower', 'liberated-slaves'],
@@ -43,7 +43,7 @@ describe('Admiral Ozzel, Overconfident', function() {
 
         describe('Admiral Ozzel, Overconfident\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['maximum-firepower', 'liberated-slaves'],

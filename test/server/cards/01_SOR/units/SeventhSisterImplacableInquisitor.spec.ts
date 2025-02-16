@@ -1,7 +1,7 @@
 describe('Seventh Sister', function () {
     integration(function (contextRef) {
-        it('may deal 3 damage to a ground unit if attacked base', function () {
-            contextRef.setupTest({
+        it('may deal 3 damage to a ground unit if attacked base', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['jawa-scavenger', 'seventh-sister#implacable-inquisitor'],
@@ -47,8 +47,8 @@ describe('Seventh Sister', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should trigger ability from overwhelm damage', () => {
-            contextRef.setupTest({
+        it('should trigger ability from overwhelm damage', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: [{ card: 'seventh-sister#implacable-inquisitor', upgrades: ['heroic-resolve'] }],

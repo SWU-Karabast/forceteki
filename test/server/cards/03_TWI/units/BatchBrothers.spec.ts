@@ -1,7 +1,7 @@
 describe('Batch Brothers', function() {
     integration(function(contextRef) {
-        it('Batch Brothers\'s ability should create a Clone Trooper when played', function () {
-            contextRef.setupTest({
+        it('Batch Brothers\'s ability should create a Clone Trooper when played', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['batch-brothers']

@@ -2,7 +2,7 @@ describe('General Krell, Heartless Tactician', function() {
     integration(function(contextRef) {
         describe('Krell\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['battlefield-marine'],
@@ -69,7 +69,7 @@ describe('General Krell, Heartless Tactician', function() {
 
         describe('Krell\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['general-krell#heartless-tactician'],
@@ -100,7 +100,7 @@ describe('General Krell, Heartless Tactician', function() {
         });
         describe('Krell\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-emperors-legion'],

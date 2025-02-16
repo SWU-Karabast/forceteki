@@ -1,7 +1,7 @@
 describe('Poggle The Lesser, Archduke of the Stalgasin Hive', function() {
     integration(function(contextRef) {
-        it('Poggle The Lesser, Archduke of the Stalgasin Hive\'s triggered ability should create a Battle Droid token if exhausted', function () {
-            contextRef.setupTest({
+        it('Poggle The Lesser, Archduke of the Stalgasin Hive\'s triggered ability should create a Battle Droid token if exhausted', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['battlefield-marine', 'green-squadron-awing', 'confiscate'],

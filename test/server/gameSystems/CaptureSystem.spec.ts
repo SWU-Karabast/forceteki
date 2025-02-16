@@ -1,8 +1,8 @@
 describe('Capture system', function() {
     integration(function (contextRef) {
         describe('When a unit is captured', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['discerning-veteran']
@@ -47,8 +47,8 @@ describe('Capture system', function() {
             });
         });
 
-        it('When multiple units are captured, they should all be in the capture zone and all rescued on capture defeat', function () {
-            contextRef.setupTest({
+        it('When multiple units are captured, they should all be in the capture zone and all rescued on capture defeat', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['discerning-veteran', 'legal-authority'],
@@ -90,8 +90,8 @@ describe('Capture system', function() {
             expect(context.greenSquadronAwing.exhausted).toBeTrue();
         });
 
-        it('When a unit with captives is taken control of and defeated, the captives should return to their owner\'s control', function () {
-            contextRef.setupTest({
+        it('When a unit with captives is taken control of and defeated, the captives should return to their owner\'s control', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['take-captive'],
@@ -138,8 +138,8 @@ describe('Capture system', function() {
             expect(context.wampa.exhausted).toBeTrue();
         });
 
-        it('When a unit is captured that has upgrades and its own captured unit, the upgrades are defeated and the unit is rescued', function () {
-            contextRef.setupTest({
+        it('When a unit is captured that has upgrades and its own captured unit, the upgrades are defeated and the unit is rescued', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['discerning-veteran'],
@@ -171,8 +171,8 @@ describe('Capture system', function() {
         });
 
         describe('When multiple units are guarding captured units', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['evacuate', 'superlaser-blast'],

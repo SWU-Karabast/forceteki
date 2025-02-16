@@ -1,8 +1,8 @@
 describe('R2-D2, Full of Solutions', function() {
     integration(function(contextRef) {
         describe('R2-D2, Full of Solution\'s ability', function() {
-            it('should be able to discard a card from hand to search the top 3 cards of your deck for a card to draw', function () {
-                contextRef.setupTest({
+            it('should be able to discard a card from hand to search the top 3 cards of your deck for a card to draw', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['r2d2#full-of-solutions', 'entrenched', 'pyke-sentinel'],
@@ -30,8 +30,8 @@ describe('R2-D2, Full of Solutions', function() {
                 expect(context.player1.deck[0]).toBe(context.wampa);
             });
 
-            it('should do nothing if the player\'s hand is empty after playing R2', function () {
-                contextRef.setupTest({
+            it('should do nothing if the player\'s hand is empty after playing R2', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['r2d2#full-of-solutions'],

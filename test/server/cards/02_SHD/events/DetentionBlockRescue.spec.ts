@@ -1,8 +1,8 @@
 describe('Detention Block Rescue', function() {
     integration(function(contextRef) {
         describe('Detention Block Rescue\'s ability', function() {
-            it('should deal 3 damage to a unit or 6 if he is guarding a unit', function () {
-                contextRef.setupTest({
+            it('should deal 3 damage to a unit or 6 if he is guarding a unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['detention-block-rescue'],
