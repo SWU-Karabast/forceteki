@@ -75,17 +75,19 @@ describe('Invincible, Naval Adversary', function () {
         });
 
         describe('Invincible\'s ability', function () {
-            contextRef.setupTest({
-                phase: 'action',
-                player1: {
-                    spaceArena: ['invincible#naval-adversary'],
-                    leader: 'jango-fett#concealing-the-conspiracy'
-                },
-                player2: {
-                    groundArena: ['wampa', 'battlefield-marine'],
-                    spaceArena: ['lurking-tie-phantom'],
-                    leader: 'boba-fett#collecting-the-bounty'
-                }
+            beforeEach(function () {
+                contextRef.setupTest({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['invincible#naval-adversary'],
+                        leader: 'jango-fett#concealing-the-conspiracy',
+                    },
+                    player2: {
+                        groundArena: ['wampa', 'battlefield-marine'],
+                        spaceArena: ['lurking-tie-phantom'],
+                        leader: 'boba-fett#collecting-the-bounty'
+                    }
+                });
             });
 
             it('should return to hand an enemy non-leader unit which cost 3 or less when my leader is deployed', function () {
