@@ -14,23 +14,6 @@ const DeckBuilder = require('./DeckBuilder.js');
 const { cards } = require('../../server/game/cards/Index.js');
 const CardHelpers = require('../../server/game/core/card/CardHelpers.js');
 
-const ProxiedGameFlowWrapperMethods = [
-    'advancePhases',
-    'allPlayersInInitiativeOrder',
-    'getPlayableCardTitles',
-    'getChatLog',
-    'getChatLogs',
-    'getPromptedPlayer',
-    'keepStartingHand',
-    'moveToNextActionPhase',
-    'moveToRegroupPhase',
-    'nextPhase',
-    'selectInitiativePlayer',
-    'setDamage',
-    'skipSetupPhase',
-    'startGame'
-];
-
 // this is a hack to get around the fact that our method for checking spec failures doesn't work in parallel mode
 if (!jasmine.getEnv().configuration().random) {
     jasmine.getEnv().addReporter({
@@ -51,8 +34,8 @@ global.integration = function (definitions) {
          * @type {SwuTestContextRef}
          */
         const contextRef = {
-            context: null, setupTest: function (options) {
-                this.context.setupTest(options);
+            context: null, setupTest: async function (options) {
+                await this.context.setupTest(options);
             }
         };
         beforeEach(function () {
@@ -62,6 +45,7 @@ global.integration = function (definitions) {
             });
 
             const gameFlowWrapper = new GameFlowWrapper(
+                gameStateBuilder.cardDataGetter,
                 gameRouter,
                 { id: '111', username: 'player1', settings: { optionSettings: { autoSingleTarget: false } } },
                 { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } }
@@ -73,12 +57,12 @@ global.integration = function (definitions) {
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
             gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
 
-            const setupGameStateWrapper = (options) => {
-                gameStateBuilder.setupGameState(newContext, options);
+            const setupGameStateWrapperAsync = async (options) => {
+                await gameStateBuilder.setupGameStateAsync(newContext, options);
                 gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
             };
 
-            this.setupTest = newContext.setupTest = setupGameStateWrapper;
+            this.setupTest = newContext.setupTest = setupGameStateWrapperAsync;
 
             // used only for the "import all cards" test
             contextRef.buildImportAllCardsTools = () => ({
