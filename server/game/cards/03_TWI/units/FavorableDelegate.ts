@@ -17,7 +17,7 @@ export default class FavorableDelegate extends NonLeaderUnitCard {
 
         this.addWhenDefeatedAbility({
             title: 'Discard a card from your hand.',
-            immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({ target: context.source.controller, amount: 1 })),
+            immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({ target: context.player, amount: 1 })),
         });
     }
 }
