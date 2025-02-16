@@ -19,13 +19,13 @@ export default class BoKatanKryzeFightingForMandalore extends NonLeaderUnitCard 
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.conditional({
                     // player base damage check
-                    condition: (context) => context.source.controller.base.damage >= 15,
+                    condition: (context) => context.player.base.damage >= 15,
                     onTrue: AbilityHelper.immediateEffects.draw(),
                     onFalse: AbilityHelper.immediateEffects.noAction(),
                 }),
                 AbilityHelper.immediateEffects.conditional({
                     // Opponent base damage check
-                    condition: (context) => context.source.controller.opponent.base.damage >= 15,
+                    condition: (context) => context.player.opponent.base.damage >= 15,
                     onTrue: AbilityHelper.immediateEffects.draw(),
                     onFalse: AbilityHelper.immediateEffects.noAction(),
                 }),
