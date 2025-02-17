@@ -282,6 +282,16 @@ class DeckBuilder {
         return inPlayCards;
     }
 
+    validateCapturedUnitProperties(capturedUnit) {
+        if (typeof capturedUnit === 'object' && capturedUnit !== null) {
+            const validKeys = ['card', 'owner'];
+            const capturedUnitKeys = Object.keys(capturedUnit);
+            if (capturedUnitKeys.some((key) => !validKeys.includes(key))) {
+                throw new TestSetupError(`Invalid property in capturedUnit: ${capturedUnitKeys.join(', ')}`);
+            }
+        }
+    }
+
     getCapturedUnitsFromArena(arenaList, ownerFilter = () => true) {
         if (!arenaList) {
             return [];
@@ -290,6 +300,7 @@ class DeckBuilder {
         for (const card of arenaList) {
             if (typeof card !== 'string' && card.capturedUnits) {
                 for (const capturedUnit of card.capturedUnits) {
+                    this.validateCapturedUnitProperties(capturedUnit);
                     let capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
                     if (ownerFilter(capturedUnit?.owner)) {
                         capturedUnits.push(capturedUnitName);
