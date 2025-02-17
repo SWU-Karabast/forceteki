@@ -29,7 +29,7 @@ describe('Lux Bonteri, Renegade Separatist', function () {
             context.player1.moveCard(context.scoutBikePursuer, 'hand');
 
             context.player2.clickCard(context.youreMyOnlyHope);
-            context.player2.clickPrompt('Play Ki-Adi-Mundi, it costs 5 less');
+            context.player2.clickDisplayCardPromptButton(context.kiadimundi.uuid, 'play-discount');
 
             // player 2 play a unit with decreased cost, nothing happens
 
