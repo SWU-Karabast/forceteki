@@ -36,6 +36,34 @@ describe('Black One, Straight At Them', function() {
                 expect(context.p2Base.damage).toBe(3);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should allow 1 damage to a unit for controlling Poe Dameron as a unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['poe-dameron#quick-to-improvise'],
+                        spaceArena: ['black-one#straight-at-them']
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper'],
+                        spaceArena: ['inferno-four#unforgetting']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.blackOne);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.blackOne, context.poeDameron, context.deathStarStormtrooper, context.infernoFour]);
+
+                context.player1.clickCard(context.deathStarStormtrooper);
+
+                expect(context.deathStarStormtrooper).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
