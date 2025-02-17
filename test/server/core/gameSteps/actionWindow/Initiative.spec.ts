@@ -2,7 +2,7 @@ describe('Claiming initiative', function() {
     integration(function(contextRef) {
         describe('Claiming initiative', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['moment-of-peace'],

@@ -2,7 +2,7 @@ describe('Rukh, Thrawn\'s Assassin', function() {
     integration(function(contextRef) {
         describe('Rukh\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['rukh#thrawns-assassin'],

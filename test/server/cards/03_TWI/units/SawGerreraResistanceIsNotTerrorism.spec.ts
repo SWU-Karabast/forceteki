@@ -1,8 +1,8 @@
 describe('Saw Gerrera, Resistance is Not Terrorism', function () {
     integration(function (contextRef) {
         describe('Saw Gerrera\'s ability', function () {
-            it('should pay 2 resources to deal 2 damage to a unit', function () {
-                contextRef.setupTest({
+            it('should pay 2 resources to deal 2 damage to a unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['saw-gerrera#resistance-is-not-terrorism'],

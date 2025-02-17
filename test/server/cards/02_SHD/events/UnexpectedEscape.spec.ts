@@ -1,8 +1,8 @@
 describe('Unexpected Escape', function() {
     integration(function(contextRef) {
         describe('Unexpected Escape\'s event ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['take-captive', 'unexpected-escape'],

@@ -1,7 +1,7 @@
 describe('First Order Stormtrooper', function () {
     integration(function (contextRef) {
-        it('First Order Stormtrooper\'s on attack and when defeated ability should deal 1 indirect damaged to a player', function () {
-            contextRef.setupTest({
+        it('First Order Stormtrooper\'s on attack and when defeated ability should deal 1 indirect damaged to a player', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['first-order-stormtrooper'],

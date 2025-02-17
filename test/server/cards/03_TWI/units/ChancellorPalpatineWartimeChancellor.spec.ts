@@ -1,7 +1,7 @@
 describe('Chancellor Palpatine Wartime Chancellor', function() {
     integration(function(contextRef) {
-        it('Chancellor Palpatine\'s ability should ready token units we create', function () {
-            contextRef.setupTest({
+        it('Chancellor Palpatine\'s ability should ready token units we create', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['captain-rex#lead-by-example', 'daring-raid', 'kraken#confederate-tactician'],

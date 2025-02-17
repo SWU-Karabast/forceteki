@@ -1,8 +1,8 @@
 describe('Droid Commando', function () {
     integration(function (contextRef) {
         describe('Droid Commando\'s ability', function () {
-            it('should have Ambush while we control a Separatist unit', function () {
-                contextRef.setupTest({
+            it('should have Ambush while we control a Separatist unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['droid-commando'],
@@ -27,8 +27,8 @@ describe('Droid Commando', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not have Ambush while we do not control a Separatist unit', function () {
-                contextRef.setupTest({
+            it('should not have Ambush while we do not control a Separatist unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['droid-commando'],

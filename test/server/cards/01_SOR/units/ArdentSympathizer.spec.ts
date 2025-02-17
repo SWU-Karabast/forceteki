@@ -2,8 +2,8 @@ describe('Ardent Sympathizer', function () {
     integration(function (contextRef) {
         describe('Ardent Sympathizer\'s ability', function () {
             describe('when the player does not have initiative', function () {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             groundArena: ['ardent-sympathizer'],
@@ -27,8 +27,8 @@ describe('Ardent Sympathizer', function () {
             });
 
             describe('when the player has initiative', function () {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             groundArena: ['ardent-sympathizer'],

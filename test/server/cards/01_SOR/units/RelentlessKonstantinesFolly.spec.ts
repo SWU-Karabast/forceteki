@@ -2,7 +2,7 @@ describe('Relentless, Konstantine\'s Folly', function() {
     integration(function(contextRef) {
         describe('Relentless, Konstantine\'s Folly\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['relentless#konstantines-folly', 'daring-raid']

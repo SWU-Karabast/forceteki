@@ -1,7 +1,7 @@
 describe('Barriss Offee Unassuming Apprentice ability\'s', function() {
     integration(function(contextRef) {
-        it('should give +1/0 to all friendly units healed this phase', function () {
-            contextRef.setupTest({
+        it('should give +1/0 to all friendly units healed this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['repair', 'redemption#medical-frigate'],
@@ -90,8 +90,8 @@ describe('Barriss Offee Unassuming Apprentice ability\'s', function() {
             expect(context.greenSquadronAwing.getHp()).toBe(3);
         });
 
-        it('should not give +1/+0 to a new copy of a unit not healed while the first copy was healed', function () {
-            contextRef.setupTest({
+        it('should not give +1/+0 to a new copy of a unit not healed while the first copy was healed', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['battlefield-marine', 'repair'],

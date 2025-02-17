@@ -1,7 +1,7 @@
 describe('Confederate Courier\'s ability', function () {
     integration(function (contextRef) {
-        it('should exhaust targeted unit when played', function () {
-            contextRef.setupTest({
+        it('should exhaust targeted unit when played', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['perilous-position'],
@@ -16,8 +16,8 @@ describe('Confederate Courier\'s ability', function () {
             expect(context.outspokenRepresentative.exhausted).toBeTrue();
         });
 
-        it('should defeat unit when played', function () {
-            contextRef.setupTest({
+        it('should defeat unit when played', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['perilous-position'],

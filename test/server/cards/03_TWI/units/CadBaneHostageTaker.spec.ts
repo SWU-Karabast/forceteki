@@ -1,7 +1,7 @@
 describe('Cad Bane, Hostage Taker', function() {
     integration(function(contextRef) {
-        it('Cad Bane\'s ability should allow you to capture up to 3 enemy non-leader units and on attack the opponent can rescue one', function () {
-            contextRef.setupTest({
+        it('Cad Bane\'s ability should allow you to capture up to 3 enemy non-leader units and on attack the opponent can rescue one', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['cad-bane#hostage-taker'],
@@ -69,8 +69,8 @@ describe('Cad Bane, Hostage Taker', function() {
             expect(context.player1.handSize).toBe(2);
         });
 
-        it('Cad Bane\'s ability should do nothing when it has no captured units', function () {
-            contextRef.setupTest({
+        it('Cad Bane\'s ability should do nothing when it has no captured units', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['cad-bane#hostage-taker']

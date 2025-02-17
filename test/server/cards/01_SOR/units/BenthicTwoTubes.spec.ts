@@ -2,7 +2,7 @@ describe('Benthic Two Tubes', function() {
     integration(function(contextRef) {
         describe('Benthic Two Tubes\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['benthic-two-tubes#partisan-lieutenant', 'battlefield-marine'],

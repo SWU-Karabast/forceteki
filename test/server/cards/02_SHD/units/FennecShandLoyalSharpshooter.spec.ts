@@ -2,7 +2,7 @@ describe('Fennec Shand, Loyal Sharpshooter', function () {
     integration(function (contextRef) {
         describe('Fennec Shand\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['fennec-shand#loyal-sharpshooter'],
@@ -38,7 +38,7 @@ describe('Fennec Shand, Loyal Sharpshooter', function () {
 
         describe('Fennec Shand\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['fennec-shand#loyal-sharpshooter'],

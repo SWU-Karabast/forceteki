@@ -1,7 +1,7 @@
 describe('Black Squadron Scout Wing', function() {
     integration(function(contextRef) {
-        it('Black Squadron Scout Wing\'s ability should attack when an upgrade is played on this unit giving it a +1/0 for this attack', function () {
-            contextRef.setupTest({
+        it('Black Squadron Scout Wing\'s ability should attack when an upgrade is played on this unit giving it a +1/0 for this attack', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['academy-training', 'armed-to-the-teeth'],

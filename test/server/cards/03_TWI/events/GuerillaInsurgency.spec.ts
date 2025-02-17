@@ -1,8 +1,8 @@
 describe('GuerillaI nsurgency', function() {
     integration(function(contextRef) {
         describe('Guerilla Insurgency\'s ability -', function() {
-            it('should defeat a friendly and enemy resource, make players to discard 2 cards and deal damage 4 to each ground unit', function() {
-                contextRef.setupTest({
+            it('should defeat a friendly and enemy resource, make players to discard 2 cards and deal damage 4 to each ground unit', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['guerilla-insurgency', 'grim-resolve', 'in-pursuit', 'droid-deployment'],

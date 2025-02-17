@@ -2,7 +2,7 @@ describe('I Am Your Father', function() {
     integration(function(contextRef) {
         describe('I Am Your Father\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['i-am-your-father'],
@@ -43,7 +43,7 @@ describe('I Am Your Father', function() {
 
         describe('I Am Your Father\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['i-am-your-father'],
