@@ -12,10 +12,6 @@ export class LoseGameSystem<TContext extends AbilityContext = AbilityContext> ex
     public override readonly name = 'loseGame';
     public override readonly eventName = MetaEventName.GameLost;
 
-    protected override defaultProperties: ILoseGameProperties = {
-        target: null,
-    };
-
     public eventHandler(event: any): void {
         const player = event.player as Player;
         player.game.endGame(player.opponent, event.endGameReason);
