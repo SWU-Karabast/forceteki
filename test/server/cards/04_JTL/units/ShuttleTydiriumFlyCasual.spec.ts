@@ -1,7 +1,7 @@
 describe('Shuttle Tyridium, Fly Casual', function () {
     integration(function (contextRef) {
-        it('Shuttle Tyridium, Fly Casual\'s ability should discard a card from its deck and if its cost is odd should give an experience token to a unit', function () {
-            contextRef.setupTest({
+        it('Shuttle Tyridium, Fly Casual\'s ability should discard a card from its deck and if its cost is odd should give an experience token to a unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['shuttle-tydirium#fly-casual'],

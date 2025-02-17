@@ -1,7 +1,7 @@
 describe('IG-2000, Assassins\'s Aggressor', function () {
     integration(function (contextRef) {
-        it('IG-2000, Assassins\'s Aggressor\'s ability should deal 1 damage to each of up to 3 units', function () {
-            contextRef.setupTest({
+        it('IG-2000, Assassins\'s Aggressor\'s ability should deal 1 damage to each of up to 3 units', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['ig2000#assassins-aggressor'],

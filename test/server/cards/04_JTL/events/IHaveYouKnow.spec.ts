@@ -1,7 +1,7 @@
 describe('I Have You Now', function() {
     integration(function(contextRef) {
-        it('I Have You Now\'s ability should start an attack with Vehicle unit and prevent all combat damage for that attack', function() {
-            contextRef.setupTest({
+        it('I Have You Now\'s ability should start an attack with Vehicle unit and prevent all combat damage for that attack', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['i-have-you-now'],

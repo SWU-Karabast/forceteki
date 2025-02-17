@@ -1,7 +1,7 @@
 describe('Zygerrian Starhopper', function() {
     integration(function(contextRef) {
-        it('Zygerrian Starhopper\'s ability should deal 2 indirect damage to a player when defeated', function() {
-            contextRef.setupTest({
+        it('Zygerrian Starhopper\'s ability should deal 2 indirect damage to a player when defeated', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['avenger#hunting-star-destroyer', 'zygerrian-starhopper'],

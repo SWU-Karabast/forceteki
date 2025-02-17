@@ -1,8 +1,8 @@
 
 describe('Sabine\'s Masterpiece, Crazy Colorful', function() {
     integration(function(contextRef) {
-        it('Sabine\'s Masterpiece, Crazy Colorful\'s ability should heal 2 damage from a base if you control a vigilance unit, give an Experience token to a unit if you control a command unit, deal 1 damage to a unit or base if you control an aggression unit and/or exhaust or ready a resource if you control a cunning unit', function () {
-            contextRef.setupTest({
+        it('Sabine\'s Masterpiece, Crazy Colorful\'s ability should heal 2 damage from a base if you control a vigilance unit, give an Experience token to a unit if you control a command unit, deal 1 damage to a unit or base if you control an aggression unit and/or exhaust or ready a resource if you control a cunning unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['501st-liberator', 'clone-dive-trooper', 'desperado-freighter'],
