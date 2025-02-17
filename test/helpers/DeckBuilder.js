@@ -24,6 +24,8 @@ class DeckBuilder {
         this.internalNameToSetCode = new Map();
         this.tokenData = cardDataGetter.tokenData;
 
+        this.cardDataGetter = cardDataGetter;
+
         for (const cardId of cardDataGetter.cardIds) {
             const card = cardDataGetter.getCardSync(cardId);
             Contract.assertHasProperty(card, 'internalName', 'Invalid card data from card data getter');
@@ -356,7 +358,7 @@ class DeckBuilder {
             decklist.deck.push({ id, count });
         }
 
-        return new Deck(decklist);
+        return new Deck(decklist, this.cardDataGetter);
     }
 
     getCard(internalName) {
