@@ -1,8 +1,8 @@
 describe('Price on your Head', function() {
     integration(function(contextRef) {
         describe('Price on your Head\'s Bounty ability', function() {
-            it('should add the top deck card as a resource', function () {
-                contextRef.setupTest({
+            it('should add the top deck card as a resource', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['green-squadron-awing']
@@ -27,8 +27,8 @@ describe('Price on your Head', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not add the top deck card as a resource if deck is empty', function () {
-                contextRef.setupTest({
+            it('should not add the top deck card as a resource if deck is empty', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['green-squadron-awing'],

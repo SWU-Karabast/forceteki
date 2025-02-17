@@ -2,7 +2,7 @@ describe('Restore keyword', function() {
     integration(function(contextRef) {
         describe('When a unit with the Restore keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['regional-sympathizers'],
@@ -49,7 +49,7 @@ describe('Restore keyword', function() {
 
         describe('When a unit with the Restore keyword and a gained Restore ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'regional-sympathizers', upgrades: ['devotion'] }],

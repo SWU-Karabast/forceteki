@@ -1,8 +1,8 @@
 describe('OOM-Series Officer', function () {
     integration(function (contextRef) {
         describe('OOM-Series Officer\'s ability', function () {
-            it('Player 2 Base should take 2 damages when Officer is defeated', function () {
-                contextRef.setupTest({
+            it('Player 2 Base should take 2 damages when Officer is defeated', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['oomseries-officer'],

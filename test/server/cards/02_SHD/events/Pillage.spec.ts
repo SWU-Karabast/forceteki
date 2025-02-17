@@ -1,8 +1,8 @@
 describe('Pillage', function() {
     integration(function(contextRef) {
         describe('Pillage\'s ability', function() {
-            it('should let the player target the opponent, and let the opponent discard 2 cards from their hand', function() {
-                contextRef.setupTest({
+            it('should let the player target the opponent, and let the opponent discard 2 cards from their hand', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['pillage'],
@@ -35,8 +35,8 @@ describe('Pillage', function() {
                 expect(player2).toBeActivePlayer();
             });
 
-            it('should let the player target the opponent, and opponent must discard the only card in the opponents hand', function() {
-                contextRef.setupTest({
+            it('should let the player target the opponent, and opponent must discard the only card in the opponents hand', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['pillage'],
@@ -59,8 +59,8 @@ describe('Pillage', function() {
                 expect(player2).toBeActivePlayer();
             });
 
-            it('should let the player target the opponent, even if they have no cards in hand', function() {
-                contextRef.setupTest({
+            it('should let the player target the opponent, even if they have no cards in hand', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['pillage'],
@@ -77,8 +77,8 @@ describe('Pillage', function() {
                 expect(player2).toBeActivePlayer();
             });
 
-            it('should let the player target the themselves, and let the player discard 2 cards from their hand', function() {
-                contextRef.setupTest({
+            it('should let the player target the themselves, and let the player discard 2 cards from their hand', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['pillage', 'alliance-xwing', 'battlefield-marine', 'imperial-interceptor', 'wampa'],

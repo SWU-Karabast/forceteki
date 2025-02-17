@@ -1,7 +1,7 @@
 describe('Tantive IV Fleeing The Empire', function() {
     integration(function(contextRef) {
-        it('Tantive IV Fleeing The Empire\'s ability should create an XWing when played', function () {
-            contextRef.setupTest({
+        it('Tantive IV Fleeing The Empire\'s ability should create an XWing when played', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['tantive-iv#fleeing-the-empire']

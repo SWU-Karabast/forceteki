@@ -2,7 +2,7 @@ describe('Mercenary Gunship', function() {
     integration(function(contextRef) {
         describe('Mercenary Gunship\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['mercenary-gunship'],

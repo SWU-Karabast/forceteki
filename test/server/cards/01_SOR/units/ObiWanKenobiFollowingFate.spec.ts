@@ -2,7 +2,7 @@ describe('Obi-Wan Kenobi, Following Fate', function() {
     integration(function(contextRef) {
         describe('Obi-Wan Kenobi, Following Fate\'s when defeated ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vanquish']

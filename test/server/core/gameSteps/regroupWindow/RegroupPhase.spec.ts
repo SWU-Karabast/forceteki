@@ -2,8 +2,8 @@ describe('Regroup phase', function() {
     integration(function(contextRef) {
         describe('Regroup phase', function() {
             it('should let both players draw 2 cards, choose what to put into resources and ready all exhausted units.',
-                function () {
-                    contextRef.setupTest({
+                async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             resources: ['smugglers-aid', 'atst', 'atst', 'atst'],
@@ -114,8 +114,8 @@ describe('Regroup phase', function() {
             );
 
             it('should end all "for this phase" abilities',
-                function () {
-                    contextRef.setupTest({
+                async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['attack-pattern-delta'],

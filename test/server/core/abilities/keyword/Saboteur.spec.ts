@@ -2,7 +2,7 @@ describe('Saboteur keyword', function() {
     integration(function(contextRef) {
         describe('When a unit with the Saboteur keyword attacks', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['resourceful-pursuers']

@@ -7,7 +7,7 @@ describe('Aggression', function () {
 
         describe('Aggression\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['aggression'],

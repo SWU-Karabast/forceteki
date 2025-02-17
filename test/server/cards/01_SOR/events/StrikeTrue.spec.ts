@@ -1,8 +1,8 @@
 describe('Strike True', function() {
     integration(function(contextRef) {
         describe('Strike True\'s ability', function() {
-            it('should deal damage to an enemy unit equals to a friendly unit power', function () {
-                contextRef.setupTest({
+            it('should deal damage to an enemy unit equals to a friendly unit power', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['strike-true'],
@@ -25,8 +25,8 @@ describe('Strike True', function() {
                 expect(context.atst.damage).toBe(4);
             });
 
-            it('should be playable even if there is no friendly units ', function () {
-                contextRef.setupTest({
+            it('should be playable even if there is no friendly units ', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['strike-true']
@@ -40,8 +40,8 @@ describe('Strike True', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should be playable even if there is no enemy units ', function () {
-                contextRef.setupTest({
+            it('should be playable even if there is no enemy units ', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['strike-true'],

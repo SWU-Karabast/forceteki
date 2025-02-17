@@ -1,8 +1,8 @@
 describe('Guarding the Way', function () {
     integration(function (contextRef) {
         describe('Guarding the Way\'s ability', function () {
-            it('should give a unit Sentinel and +2/+2 for the phase when the controller has initiative', function () {
-                contextRef.setupTest({
+            it('should give a unit Sentinel and +2/+2 for the phase when the controller has initiative', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['guarding-the-way'],
@@ -36,8 +36,8 @@ describe('Guarding the Way', function () {
                 expect(context.lukeSkywalkerJediKnight.getHp()).toBe(7);
             });
 
-            it('should give a unit Sentinel for the phase when the controller does not have initiative', function () {
-                contextRef.setupTest({
+            it('should give a unit Sentinel for the phase when the controller does not have initiative', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['pyke-sentinel'],

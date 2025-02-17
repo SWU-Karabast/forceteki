@@ -2,24 +2,34 @@ const fs = require('fs');
 const path = require('path');
 const TestSetupError = require('./TestSetupError.js');
 const Util = require('./Util.js');
+const Contract = require('../../server/game/core/utils/Contract.js');
+const { setCodeToString } = require('../../server/Util.js');
+const { Deck } = require('../../server/utils/deck/Deck.js');
 
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
 const defaultBase = { 1: 'kestro-city', 2: 'administrators-tower' };
-const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'base', 'opponentAttachedUpgrades'];
+const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'base', 'opponentAttachedUpgrades', 'unitsCapturedByOpponent'];
 const deckFillerCard = 'underworld-thug';
 const defaultResourceCount = 20;
 const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
 
 class DeckBuilder {
-    /** @param {import('../../server/utils/cardData/CardDataGetter.js').CardDataGetter} cardDataGetter */
+    /** @param {import('../../server/utils/cardData/UnitTestCardDataGetter.js').UnitTestCardDataGetter} cardDataGetter */
     constructor(cardDataGetter) {
-        this.cards = {};
-        this.tokenData = cardDataGetter.getTokenCardsDataSynchronous();
+        /** @type {Map<string, import('../../server/utils/cardData/CardDataInterfaces.js').ICardDataJson>} */
+        this.cards = new Map();
+
+        /** @type {Map<string, string>} */
+        this.internalNameToSetCode = new Map();
+        this.tokenData = cardDataGetter.tokenData;
 
         for (const cardId of cardDataGetter.cardIds) {
-            const card = cardDataGetter.getCardSynchronous(cardId);
-            this.cards[card.internalName] = card;
+            const card = cardDataGetter.getCardSync(cardId);
+            Contract.assertHasProperty(card, 'internalName', 'Invalid card data from card data getter');
+
+            this.cards.set(card.internalName, card);
+            this.internalNameToSetCode.set(card.internalName, setCodeToString(card.setId));
         }
     }
 
@@ -52,6 +62,17 @@ class DeckBuilder {
         }
 
         playerCards.opponentAttachedUpgrades = opponentAttachedUpgrades;
+
+        // A player could potentially capture their own units (after a take control) - so we have to check all arenas for both
+        // players and check ownership. By default, we assume that the opponent is the owner of a captured card if undefined
+        let capturedCards = [
+            ...this.getCapturedUnitsFromArena(playerOptions.groundArena, (owner) => owner?.endsWith(playerNumber)),
+            ...this.getCapturedUnitsFromArena(playerOptions.spaceArena, (owner) => owner?.endsWith(playerNumber)),
+            ...this.getCapturedUnitsFromArena(oppOptions.groundArena, (owner) => owner === undefined || owner.endsWith(playerNumber)),
+            ...this.getCapturedUnitsFromArena(oppOptions.spaceArena, (owner) => owner === undefined || owner.endsWith(playerNumber)),
+        ];
+
+        playerCards.unitsCapturedByOpponent = capturedCards;
 
         return playerCards;
     }
@@ -90,14 +111,14 @@ class DeckBuilder {
             throw new TestSetupError('Test base must not be specified as an array');
         }
 
-        let allCards = [];
+        let deckCards = [];
         let inPlayCards = [];
 
         const namedCards = this.getAllNamedCards(playerCards);
         let resources = [];
 
-        allCards.push(this.getLeaderCard(playerCards, playerNumber));
-        allCards.push(this.getBaseCard(playerCards, playerNumber));
+        const leader = this.getLeaderCard(playerCards, playerNumber);
+        const base = this.getBaseCard(playerCards, playerNumber);
 
         // if user didn't provide explicit resource cards, create default ones to be added to deck
         // if the phase is setup the playerCards.resources becomes []
@@ -108,10 +129,10 @@ class DeckBuilder {
         }
         playerCards.deck = this.padCardListIfNeeded(playerCards.deck, defaultDeckSize);
 
-        allCards.push(...this.getCardsForResources(resources));
-        allCards.push(...playerCards.deck);
+        deckCards.push(...this.getCardsForResources(resources));
+        deckCards.push(...playerCards.deck);
         playerCards.opponentAttachedUpgrades.forEach((card) => {
-            allCards.push(card.card);
+            deckCards.push(card.card);
         });
 
         /**
@@ -119,10 +140,10 @@ class DeckBuilder {
          * hand and discard
          */
         if (playerCards.discard) {
-            allCards.push(...playerCards.discard);
+            deckCards.push(...playerCards.discard);
         }
         if (playerCards.hand) {
-            allCards.push(...playerCards.hand);
+            deckCards.push(...playerCards.hand);
         }
 
         inPlayCards = inPlayCards.concat(this.getInPlayCardsForArena(playerCards.groundArena));
@@ -130,9 +151,12 @@ class DeckBuilder {
         inPlayCards = inPlayCards.concat(this.getUpgradesFromCard(playerCards.leader));
 
         // Collect all the cards together
-        allCards = allCards.concat(inPlayCards);
+        deckCards = deckCards.concat(inPlayCards);
 
-        return [this.buildDeck(allCards), namedCards, resources, playerCards.deck];
+        // Add all the cards already captured by the opponent
+        deckCards = deckCards.concat(playerCards.unitsCapturedByOpponent);
+
+        return [this.buildDeck(deckCards, leader, base), namedCards, resources, playerCards.deck];
     }
 
     getAllNamedCards(playerObject) {
@@ -258,6 +282,36 @@ class DeckBuilder {
         return inPlayCards;
     }
 
+    validateCapturedUnitProperties(capturedUnit) {
+        if (typeof capturedUnit === 'object' && capturedUnit !== null) {
+            const validKeys = ['card', 'owner'];
+            const capturedUnitKeys = Object.keys(capturedUnit);
+            if (capturedUnitKeys.some((key) => !validKeys.includes(key))) {
+                throw new TestSetupError(`Invalid property in capturedUnit: ${capturedUnitKeys.join(', ')}`);
+            }
+        }
+    }
+
+    getCapturedUnitsFromArena(arenaList, ownerFilter = () => true) {
+        if (!arenaList) {
+            return [];
+        }
+        let capturedUnits = [];
+        for (const card of arenaList) {
+            if (typeof card !== 'string' && card.capturedUnits) {
+                for (const capturedUnit of card.capturedUnits) {
+                    this.validateCapturedUnitProperties(capturedUnit);
+                    let capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
+                    if (ownerFilter(capturedUnit?.owner)) {
+                        capturedUnits.push(capturedUnitName);
+                    }
+                }
+            }
+        }
+        return capturedUnits;
+    }
+
+
     getCardsForResources(resources) {
         let resourceCards = [];
         for (const card of resources) {
@@ -271,44 +325,44 @@ class DeckBuilder {
         return resourceCards;
     }
 
-    buildDeck(cardInternalNames, cards) {
-        var cardCounts = {};
-        cardInternalNames.forEach((internalName) => {
-            var cardData = this.getCard(internalName);
-            if (cardCounts[cardData.id]) {
-                cardCounts[cardData.id].count++;
-            } else {
-                cardCounts[cardData.id] = {
-                    count: 1,
-                    card: cardData
-                };
-            }
-        });
-
-        return {
-            leader: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('leader')),
-            base: this.filterPropertiesToArray(cardCounts, (count) => count.card.types.includes('base')),
-            deckCards: this.filterPropertiesToArray(cardCounts, (count) => !count.card.types.includes('leader') && !count.card.types.includes('base'))
+    /** @returns {import('../../server/utils/deck/Deck').Deck} */
+    buildDeck(deckCards, leader, base) {
+        const safeGetSetCode = (internalName) => {
+            var setCode = this.internalNameToSetCode.get(internalName);
+            Contract.assertNotNullLike(setCode, `Unknown card name: ${internalName}`);
+            return setCode;
         };
+
+        /** @type {import('../../server/utils/deck/DeckInterfaces.js').IDecklistInternal} */
+        const decklist = {
+            leader: { id: safeGetSetCode(leader), count: 1 },
+            base: { id: safeGetSetCode(base), count: 1 },
+            deck: []
+        };
+
+        /** @type {Record<string, number>} */
+        const deckCardCounts = {};
+        for (const deckCardName of deckCards) {
+            var setCode = safeGetSetCode(deckCardName);
+
+            if (deckCardCounts[setCode]) {
+                deckCardCounts[setCode]++;
+            } else {
+                deckCardCounts[setCode] = 1;
+            }
+        }
+
+        for (const [id, count] of Object.entries(deckCardCounts)) {
+            decklist.deck.push({ id, count });
+        }
+
+        return new Deck(decklist);
     }
 
     getCard(internalName) {
-        if (this.cards[internalName]) {
-            return this.cards[internalName];
-        }
-
-        var cardsByName = this.filterPropertiesToArray(this.cards, (card) => card.internalName === internalName);
-
-        if (cardsByName.length === 0) {
-            throw new TestSetupError(`Unable to find any card matching ${internalName}`);
-        }
-
-        if (cardsByName.length > 1) {
-            var matchingLabels = cardsByName.map((card) => card.name).join('\n');
-            throw new TestSetupError(`Multiple cards match the name ${internalName}. Use one of these instead:\n${matchingLabels}`);
-        }
-
-        return cardsByName[0];
+        const card = this.cards.get(internalName);
+        Contract.assertNotNullLike(card, `Unknown card name: ${internalName}`);
+        return card;
     }
 
     filterPropertiesToArray(obj, predicate) {

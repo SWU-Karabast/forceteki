@@ -1,8 +1,8 @@
 
 describe('Koiogran Turn', function() {
     integration(function(contextRef) {
-        it('KoiogranTurn\'s ability should ready a Fighter or Transport unit with 6 or less power', function() {
-            contextRef.setupTest({
+        it('KoiogranTurn\'s ability should ready a Fighter or Transport unit with 6 or less power', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['koiogran-turn'],

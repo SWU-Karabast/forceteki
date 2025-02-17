@@ -1,8 +1,8 @@
 describe('Yoda, Sensing Darkness', function () {
     integration(function (contextRef) {
         describe('Yoda\'s leader undeployed ability', function () {
-            it('can draw a card then put a card on top/bottom of deck when an enemy unit has left play', function () {
-                contextRef.setupTest({
+            it('can draw a card then put a card on top/bottom of deck when an enemy unit has left play', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'yoda#sensing-darkness',
@@ -39,8 +39,8 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.deck[0]).toBe(context.kraytDragon);
             });
 
-            it('can draw a card then put a card on top/bottom of deck when a friendly unit has left play', function () {
-                contextRef.setupTest({
+            it('can draw a card then put a card on top/bottom of deck when a friendly unit has left play', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'yoda#sensing-darkness',
@@ -78,8 +78,8 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.deck[0]).toBe(context.kraytDragon);
             });
 
-            it('can draw a card then put a card on top/bottom of deck when a token leaves play but not when an upgrade leaves play', function () {
-                contextRef.setupTest({
+            it('can draw a card then put a card on top/bottom of deck when a token leaves play but not when an upgrade leaves play', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'yoda#sensing-darkness',
@@ -129,8 +129,8 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.deck[0]).toBe(context.kraytDragon);
             });
 
-            it('can optionally discard the top card of his deck to defeat an enemy non-leader unit with cost equal to or lesser than the cost of the discarded card when deployed', function () {
-                contextRef.setupTest({
+            it('can optionally discard the top card of his deck to defeat an enemy non-leader unit with cost equal to or lesser than the cost of the discarded card when deployed', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'yoda#sensing-darkness',
@@ -160,8 +160,8 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.pykeSentinel).toBeInZone('discard');
             });
 
-            it('does not work when no unit has left play and can deploy without defeating anything', function () {
-                contextRef.setupTest({
+            it('does not work when no unit has left play and can deploy without defeating anything', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'yoda#sensing-darkness',

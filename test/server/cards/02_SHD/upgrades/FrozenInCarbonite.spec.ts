@@ -1,8 +1,8 @@
 describe('Frozen in Carbonite', function() {
     integration(function(contextRef) {
         describe('Frozen in Carbonite\'s ability', function() {
-            it('should exhaust attached unit and restrict it to be ready', function () {
-                contextRef.setupTest({
+            it('should exhaust attached unit and restrict it to be ready', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['frozen-in-carbonite'],

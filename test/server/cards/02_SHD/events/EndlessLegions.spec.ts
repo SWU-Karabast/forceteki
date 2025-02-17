@@ -1,7 +1,7 @@
 describe('Endless Legions', function() {
     integration(function(contextRef) {
-        it('Endless Legionsl\'s event ability should allows to play for free any number of resources', function() {
-            contextRef.setupTest({
+        it('Endless Legionsl\'s event ability should allows to play for free any number of resources', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'grand-moff-tarkin#oversector-governor',
@@ -138,8 +138,8 @@ describe('Endless Legions', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Endless Legionsl\'s event ability should play no cards if no units are revealed', function() {
-            contextRef.setupTest({
+        it('Endless Legionsl\'s event ability should play no cards if no units are revealed', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'grand-moff-tarkin#oversector-governor',

@@ -1,7 +1,7 @@
 describe('Shadowed Intentions', function() {
     integration(function(contextRef) {
-        it('Shadowed Intentions\' ability should prevent the unit to be defeated, captured or returned to hand', function () {
-            contextRef.setupTest({
+        it('Shadowed Intentions\' ability should prevent the unit to be defeated, captured or returned to hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['waylay', 'vanquish', 'relentless-pursuit', 'daring-raid'],

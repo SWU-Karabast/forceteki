@@ -1,9 +1,9 @@
 describe('Chain Code Collector', function () {
     integration(function (contextRef) {
         describe('Chain Code Collector\'s on attack ability', function () {
-            it('should give -4/-0 on unit who have bounty', function () {
+            it('should give -4/-0 on unit who have bounty', async function () {
                 const { context } = contextRef;
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['chain-code-collector'],

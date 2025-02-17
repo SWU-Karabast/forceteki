@@ -2,7 +2,7 @@ describe('Home One', function () {
     integration(function (contextRef) {
         describe('Home One\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -50,7 +50,7 @@ describe('Home One', function () {
 
         describe('Home One\'s when played ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -105,7 +105,7 @@ describe('Home One', function () {
 
         describe('Home One\'s when played ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],

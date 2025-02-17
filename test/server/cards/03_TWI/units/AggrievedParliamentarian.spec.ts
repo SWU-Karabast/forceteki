@@ -1,7 +1,7 @@
 describe('Aggrieved Parliamentarian', function () {
     integration(function (contextRef) {
-        it('Aggrieved Parliamentarian\'s ability should shuffle opponent discard pile and move them to the bottom of deck', function () {
-            contextRef.setupTest({
+        it('Aggrieved Parliamentarian\'s ability should shuffle opponent discard pile and move them to the bottom of deck', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['aggrieved-parliamentarian'],

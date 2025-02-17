@@ -2,7 +2,7 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
     integration(function(contextRef) {
         describe('Kanan\'s On Attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: { card: 'chopper-base', damage: 5 },
@@ -36,7 +36,7 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
 
         describe('Kanan\'s On Attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: { card: 'chopper-base', damage: 5 },
@@ -75,7 +75,7 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
 
         describe('Kanan\'s On Attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: { card: 'chopper-base', damage: 5 },

@@ -2,7 +2,7 @@ describe('Clan Saxon Gauntlet', function () {
     integration(function (contextRef) {
         describe('Clan Saxon Gauntlet\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['clan-saxon-gauntlet'],

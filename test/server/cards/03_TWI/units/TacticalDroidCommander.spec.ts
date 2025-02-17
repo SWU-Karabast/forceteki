@@ -1,8 +1,8 @@
 
 describe('Tactical Droid Commander', function() {
     integration(function(contextRef) {
-        it('should be able to exhaust a unit that costs the same or less than the played separatist', function () {
-            contextRef.setupTest({
+        it('should be able to exhaust a unit that costs the same or less than the played separatist', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['providence-destroyer', 'morgan-elsbeth#keeper-of-many-secrets', 'planetary-invasion'],
