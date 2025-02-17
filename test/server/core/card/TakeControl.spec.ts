@@ -6,15 +6,14 @@ describe('Take control system', function() {
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
-                        groundArena: ['battlefield-marine'],
                         leader: { card: 'emperor-palpatine#galactic-ruler', exhausted: true },
                     },
                     player2: {
                         groundArena: [
-                            { card: 'lom-pyke#dealer-in-truths', damage: 1, exhausted: true, upgrades: ['academy-training'] },
+                            { card: 'lom-pyke#dealer-in-truths', damage: 1, exhausted: true, upgrades: ['academy-training'], capturedUnits: ['battlefield-marine'] },
                             'wampa', 'atat-suppressor'
                         ],
-                        hand: ['strike-true', 'vanquish', 'take-captive'],
+                        hand: ['strike-true', 'vanquish'],
                         leader: 'finn#this-is-a-rescue'
                     },
 
@@ -23,11 +22,6 @@ describe('Take control system', function() {
                 });
 
                 const { context } = contextRef;
-
-                // Lom Pyke captures Battlefield Marine to confirm that captured units remain captured
-                context.player1.passAction();
-                context.player2.clickCard(context.takeCaptive);
-                context.player2.clickCard(context.lomPyke);
 
                 // flip Palpatine to take control of Lom Pyke
                 context.player1.clickCard(context.emperorPalpatine);
