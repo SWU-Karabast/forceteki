@@ -9,7 +9,7 @@ const { Deck } = require('../../server/utils/deck/Deck.js');
 // defaults to fill in with if not explicitly provided by the test case
 const defaultLeader = { 1: 'darth-vader#dark-lord-of-the-sith', 2: 'luke-skywalker#faithful-friend' };
 const defaultBase = { 1: 'kestro-city', 2: 'administrators-tower' };
-const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'base', 'opponentAttachedUpgrades'];
+const playerCardProperties = ['groundArena', 'spaceArena', 'hand', 'resources', 'deck', 'discard', 'leader', 'base', 'opponentAttachedUpgrades', 'unitsCapturedByOpponent'];
 const deckFillerCard = 'underworld-thug';
 const defaultResourceCount = 20;
 const defaultDeckSize = 8; // buffer decks to prevent re-shuffling
@@ -62,6 +62,17 @@ class DeckBuilder {
         }
 
         playerCards.opponentAttachedUpgrades = opponentAttachedUpgrades;
+
+        // A player could potentially capture their own units (after a take control) - so we have to check all arenas for both
+        // players and check ownership. By default, we assume that the opponent is the owner of a captured card if undefined
+        let capturedCards = [
+            ...this.getCapturedUnitsFromArena(playerOptions.groundArena, (owner) => owner?.endsWith(playerNumber)),
+            ...this.getCapturedUnitsFromArena(playerOptions.spaceArena, (owner) => owner?.endsWith(playerNumber)),
+            ...this.getCapturedUnitsFromArena(oppOptions.groundArena, (owner) => owner === undefined || owner.endsWith(playerNumber)),
+            ...this.getCapturedUnitsFromArena(oppOptions.spaceArena, (owner) => owner === undefined || owner.endsWith(playerNumber)),
+        ];
+
+        playerCards.unitsCapturedByOpponent = capturedCards;
 
         return playerCards;
     }
@@ -141,6 +152,9 @@ class DeckBuilder {
 
         // Collect all the cards together
         deckCards = deckCards.concat(inPlayCards);
+
+        // Add all the cards already captured by the opponent
+        deckCards = deckCards.concat(playerCards.unitsCapturedByOpponent);
 
         return [this.buildDeck(deckCards, leader, base), namedCards, resources, playerCards.deck];
     }
@@ -267,6 +281,36 @@ class DeckBuilder {
 
         return inPlayCards;
     }
+
+    validateCapturedUnitProperties(capturedUnit) {
+        if (typeof capturedUnit === 'object' && capturedUnit !== null) {
+            const validKeys = ['card', 'owner'];
+            const capturedUnitKeys = Object.keys(capturedUnit);
+            if (capturedUnitKeys.some((key) => !validKeys.includes(key))) {
+                throw new TestSetupError(`Invalid property in capturedUnit: ${capturedUnitKeys.join(', ')}`);
+            }
+        }
+    }
+
+    getCapturedUnitsFromArena(arenaList, ownerFilter = () => true) {
+        if (!arenaList) {
+            return [];
+        }
+        let capturedUnits = [];
+        for (const card of arenaList) {
+            if (typeof card !== 'string' && card.capturedUnits) {
+                for (const capturedUnit of card.capturedUnits) {
+                    this.validateCapturedUnitProperties(capturedUnit);
+                    let capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
+                    if (ownerFilter(capturedUnit?.owner)) {
+                        capturedUnits.push(capturedUnitName);
+                    }
+                }
+            }
+        }
+        return capturedUnits;
+    }
+
 
     getCardsForResources(resources) {
         let resourceCards = [];

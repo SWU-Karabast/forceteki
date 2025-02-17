@@ -5,22 +5,16 @@ describe('L3-37, Droid Revolutionary ability', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['take-captive'],
-                        spaceArena: ['tieln-fighter']
+                        spaceArena: [{ card: 'tieln-fighter', capturedUnits: ['wing-leader'] }]
                     },
                     player2: {
-                        spaceArena: ['wing-leader'],
                         hand: ['l337#droid-revolutionary']
                     }
                 });
 
                 const { context } = contextRef;
 
-                // SETUP: P1 Captures Wing Leader with Tie/LN
-                context.player1.clickCard(context.takeCaptive);
-                context.player1.clickCard(context.tielnFighter);
-                context.player1.clickCard(context.wingLeader);
-                expect(context.wingLeader).toBeCapturedBy(context.tielnFighter);
+                context.player1.passAction();
 
                 // P2 Rescues Wing Leader with L3-37
                 context.player2.clickCard(context.l337DroidRevolutionary);
@@ -35,23 +29,16 @@ describe('L3-37, Droid Revolutionary ability', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['take-captive'],
-                        spaceArena: ['tieln-fighter']
+                        spaceArena: [{ card: 'tieln-fighter', capturedUnits: ['wing-leader'] }]
                     },
                     player2: {
-                        spaceArena: ['wing-leader'],
                         hand: ['l337#droid-revolutionary']
                     }
                 });
 
                 const { context } = contextRef;
 
-                // SETUP: P1 Captures Wing Leader with Tie/LN
-                context.player1.clickCard(context.takeCaptive);
-                context.player1.clickCard(context.tielnFighter);
-                context.player1.clickCard(context.wingLeader);
-
-                expect(context.wingLeader).toBeCapturedBy(context.tielnFighter);
+                context.player1.passAction();
 
                 context.player2.clickCard(context.l337DroidRevolutionary);
                 expect(context.player2).toBeAbleToSelectExactly([context.wingLeader]);

@@ -52,6 +52,11 @@ export class PlayUpgradeAction extends PlayCardAction {
         ) {
             return 'restriction';
         }
+
+        if (!this.hasSomeLegalTarget(context)) {
+            return 'attachTarget';
+        }
+
         return super.meetsRequirements(context, ignoredRequirements);
     }
 

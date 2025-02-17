@@ -873,9 +873,9 @@ var customMatchers = {
                 result.pass = stringArraysEqual(actualButtonsInPrompt, expectedButtonsInPrompt);
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to have this exact set of "per card" buttons but it did: ${expectedButtonsInPrompt.join(', ')}`;
+                    result.message = `Expected ${player.name} not to have this exact set of enabled "per card" buttons but it did: ${expectedButtonsInPrompt.join(', ')}`;
                 } else {
-                    result.message = `Expected ${player.name} to have this exact set of "per card" buttons: '${expectedButtonsInPrompt.join(', ')}' but it has: '${actualButtonsInPrompt.join(', ')}'`;
+                    result.message = `Expected ${player.name} to have this exact set of enabled "per card" buttons: '${expectedButtonsInPrompt.join(', ')}' but it has: '${actualButtonsInPrompt.join(', ')}'`;
                 }
 
                 result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;
@@ -898,9 +898,9 @@ var customMatchers = {
                 result.pass = stringArraysEqual(actualButtonsInPrompt, expectedButtonsInPrompt);
 
                 if (result.pass) {
-                    result.message = `Expected ${player.name} not to have this exact set of "per card" buttons but it did: ${expectedButtonsInPrompt.join(', ')}`;
+                    result.message = `Expected ${player.name} not to have this exact set of disabled "per card" buttons but it did: ${expectedButtonsInPrompt.join(', ')}`;
                 } else {
-                    result.message = `Expected ${player.name} to have this exact set of "per card" buttons: '${expectedButtonsInPrompt.join(', ')}' but it has: '${actualButtonsInPrompt.join(', ')}'`;
+                    result.message = `Expected ${player.name} to have this exact set of disabled "per card" buttons: '${expectedButtonsInPrompt.join(', ')}' but it has: '${actualButtonsInPrompt.join(', ')}'`;
                 }
 
                 result.message += `\n\n${generatePromptHelpMessage(player.testContext)}`;

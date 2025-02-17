@@ -9,8 +9,7 @@ describe('Detention Block Rescue', function() {
                         groundArena: ['battlefield-marine']
                     },
                     player2: {
-                        hand: ['take-captive'],
-                        groundArena: ['wampa', 'atst']
+                        groundArena: ['wampa', { card: 'atst', capturedUnits: ['echo-base-defender'] }]
                     },
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
@@ -31,9 +30,7 @@ describe('Detention Block Rescue', function() {
                 // reset
                 context.player1.moveCard(context.detentionBlockRescue, 'hand');
 
-                // atst capture a unit
-                context.player2.clickCard(context.takeCaptive);
-                context.player2.clickCard(context.atst);
+                context.player2.passAction();
 
                 // deal 6 damage to atst because he's guarding battlefield marine
                 context.player1.clickCard(context.detentionBlockRescue);

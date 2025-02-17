@@ -24,7 +24,8 @@ export class RemoteCardDataGetter extends CardDataGetter {
     }
 
     protected static getRelativePathFromInternalName(internalName: string) {
-        return `cards/${internalName}.json`;
+        const webSafeInternalName = internalName.replace('#', '%23');
+        return `cards/${webSafeInternalName}.json`;
     }
 
     protected static async fetchFileAsync(remoteDataUrl: string, relativePath: string): Promise<Response> {
