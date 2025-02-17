@@ -119,6 +119,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenPlayedKeywordAbilities?: TriggeredAbility[] = null;
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
+        private _lastPlayerToModifyHp?: Player;
 
         public get capturedUnits() {
             this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
@@ -657,9 +658,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Removes an upgrade from this card's upgrade list
          * @param {UpgradeCard} upgrade
          */
-        public unattachUpgrade(upgrade) {
+        public unattachUpgrade(upgrade, event = null) {
             this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             this._upgrades = this._upgrades.filter((card) => card.uuid !== upgrade.uuid);
+            if (upgrade.printedHp !== 0) {
+                this._lastPlayerToModifyHp = event?.context?.ability ? event.context.ability.controller : upgrade.owner;
+            }
         }
 
         /**
@@ -671,6 +675,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             Contract.assertTrue(this.zone.hasCard(upgrade));
 
             this._upgrades.push(upgrade);
+
+            if (upgrade.printedHp !== 0) {
+                this._lastPlayerToModifyHp = upgrade.controller;
+            }
         }
 
         public override getSummary(activePlayer: Player) {
@@ -695,6 +703,18 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 ...super.getSummary(activePlayer),
                 parentCardId: this.getCaptor()?.uuid,
             };
+        }
+
+        public override addOngoingEffect(ongoingEffect: IOngoingCardEffect): void {
+            if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
+                this._lastPlayerToModifyHp = ongoingEffect.context.source.controller;
+            }
+            super.addOngoingEffect(ongoingEffect);
+        }
+
+        public get lastPlayerToModifyHp() {
+            Contract.assertTrue(this.isInPlay());
+            return this._lastPlayerToModifyHp;
         }
     };
 }
