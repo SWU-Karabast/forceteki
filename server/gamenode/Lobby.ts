@@ -92,7 +92,7 @@ export class Lobby {
 
     public createLobbyUser(user, decklist = null): void {
         const existingUser = this.users.find((u) => u.id === user.id);
-        const deck = decklist ? new Deck(decklist) : null;
+        const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
         if (existingUser) {
             existingUser.deck = deck;
             return;
@@ -186,7 +186,7 @@ export class Lobby {
         const activeUser = this.users.find((u) => u.id === socket.user.id);
         Contract.assertTrue(args[0] !== null);
         Contract.assertTrue(args[1] !== null);
-        activeUser.deck = new Deck(args[1]);
+        activeUser.deck = new Deck(args[1], this.cardDataGetter);
     }
 
     private updateDeck(socket: Socket, ...args) {
