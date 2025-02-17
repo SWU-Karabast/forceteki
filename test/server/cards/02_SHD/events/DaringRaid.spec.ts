@@ -2,7 +2,7 @@ describe('Daring Raid', function() {
     integration(function(contextRef) {
         describe('Daring Raid\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['daring-raid'],

@@ -2,7 +2,7 @@ describe('Devotion', function() {
     integration(function(contextRef) {
         describe('Devotion\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', upgrades: ['devotion'] }],

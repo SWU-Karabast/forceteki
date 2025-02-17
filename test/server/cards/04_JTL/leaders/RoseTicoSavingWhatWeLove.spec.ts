@@ -2,8 +2,8 @@
 describe('Rose Tico, Saving What We Love', function() {
     integration(function(contextRef) {
         describe('Rose Tico, Saving What We Love\'s undeployed ability', function() {
-            it('should heal a Vehicle unit that attacked this phase', function () {
-                contextRef.setupTest({
+            it('should heal a Vehicle unit that attacked this phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: [{ card: 'alliance-xwing', damage: 2 }],
@@ -66,8 +66,8 @@ describe('Rose Tico, Saving What We Love', function() {
         });
 
         describe('Rose Tico, Saving What We Love\'s deployed ability', function() {
-            it('should heal a Vehicle unit', function () {
-                contextRef.setupTest({
+            it('should heal a Vehicle unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: [{ card: 'alliance-xwing', damage: 2 }],

@@ -1,8 +1,8 @@
 describe('Daughter of Dathomir', function () {
     integration(function (contextRef) {
         describe('Daughter of Dathomir\'s ability', function () {
-            it('should gain Restore 2 while undamaged', function () {
-                contextRef.setupTest({
+            it('should gain Restore 2 while undamaged', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['daughter-of-dathomir'],

@@ -1,7 +1,7 @@
 describe('Resolute, Under Anakin\'s Command', function () {
     integration(function (contextRef) {
-        it('Resolute when played and on attack ability should deal 2 damage to an enemy unit and all enemy unit with same name and it have a 1 cost reduction for each 5 damage to our base', function () {
-            contextRef.setupTest({
+        it('Resolute when played and on attack ability should deal 2 damage to an enemy unit and all enemy unit with same name and it have a 1 cost reduction for each 5 damage to our base', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['resolute#under-anakins-command'],

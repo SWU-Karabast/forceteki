@@ -1,7 +1,7 @@
 describe('The Clone Wars ability\'s', function() {
     integration(function(contextRef) {
-        it('allow to pay any number of resources and to create clone trooper token. Opponent create the same number of battle droid token', function () {
-            contextRef.setupTest({
+        it('allow to pay any number of resources and to create clone trooper token. Opponent create the same number of battle droid token', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['the-clone-wars'],
@@ -24,8 +24,8 @@ describe('The Clone Wars ability\'s', function() {
             expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
         });
 
-        it('allow to pay 0 resource and it should not create any Trooper Token or Battle Droid Token', function () {
-            contextRef.setupTest({
+        it('allow to pay 0 resource and it should not create any Trooper Token or Battle Droid Token', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['the-clone-wars'],
@@ -46,8 +46,8 @@ describe('The Clone Wars ability\'s', function() {
             expect(battleDroids.length).toBe(0);
         });
 
-        it('pass if there are no resources available', function () {
-            contextRef.setupTest({
+        it('pass if there are no resources available', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['the-clone-wars'],

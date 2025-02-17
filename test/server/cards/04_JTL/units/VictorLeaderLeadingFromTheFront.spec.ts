@@ -1,7 +1,7 @@
 describe('Victor Leader', function() {
     integration(function(contextRef) {
-        it('Victor Leader\'s ability should give other friendly space units +1/+1', function () {
-            contextRef.setupTest({
+        it('Victor Leader\'s ability should give other friendly space units +1/+1', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['droideka-security'],

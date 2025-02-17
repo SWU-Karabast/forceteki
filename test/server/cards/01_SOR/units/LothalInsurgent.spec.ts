@@ -2,7 +2,7 @@ describe('Lothal Insurgent', function() {
     integration(function(contextRef) {
         describe('Lothal Insurgent\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['lothal-insurgent', 'battlefield-marine'],
@@ -51,8 +51,8 @@ describe('Lothal Insurgent', function() {
             });
         });
 
-        it('Lothal Insurgent\'s ability causes the opponent to draw and discard the drawn card if another friendly card was played this phase and the opponent\'s hand is empty', function () {
-            contextRef.setupTest({
+        it('Lothal Insurgent\'s ability causes the opponent to draw and discard the drawn card if another friendly card was played this phase and the opponent\'s hand is empty', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['lothal-insurgent', 'battlefield-marine'],
@@ -77,8 +77,8 @@ describe('Lothal Insurgent', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Lothal Insurgent\'s ability will do nothing another friendly card was played only in the previous phase', function () {
-            contextRef.setupTest({
+        it('Lothal Insurgent\'s ability will do nothing another friendly card was played only in the previous phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['lothal-insurgent', 'battlefield-marine'],
@@ -103,8 +103,8 @@ describe('Lothal Insurgent', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Lothal Insurgent\'s ability causes the opponent to draw and discard the drawn card if it was previously played this phase and the opponent\'s hand is empty', function () {
-            contextRef.setupTest({
+        it('Lothal Insurgent\'s ability causes the opponent to draw and discard the drawn card if it was previously played this phase and the opponent\'s hand is empty', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['lothal-insurgent'],

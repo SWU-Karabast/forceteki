@@ -1,8 +1,8 @@
 describe('Zorii Bliss', function() {
     integration(function(contextRef) {
         describe('Zorii Bliss\'s ability', function() {
-            it('draws a card on attack and discards a card at the start of the regroup phase even if zorii dies', function () {
-                contextRef.setupTest({
+            it('draws a card on attack and discards a card at the start of the regroup phase even if zorii dies', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['zorii-bliss#valiant-smuggler'],
@@ -50,8 +50,8 @@ describe('Zorii Bliss', function() {
         });
 
         describe('Zorii Bliss\'s ability', function() {
-            it('draws a card on attack and has no card to discard', function () {
-                contextRef.setupTest({
+            it('draws a card on attack and has no card to discard', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['zorii-bliss#valiant-smuggler'],

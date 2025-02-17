@@ -1,7 +1,7 @@
 describe('DeathSpace Skirmisher', function () {
     integration(function (contextRef) {
-        it('DeathSpace Skirmisher\'s when played ability should exhaust a unit, If you control another space unit', function () {
-            contextRef.setupTest({
+        it('DeathSpace Skirmisher\'s when played ability should exhaust a unit, If you control another space unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['death-space-skirmisher'],

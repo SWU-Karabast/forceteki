@@ -1,8 +1,8 @@
 describe('Ezra Bridger', function() {
     integration(function(contextRef) {
         describe('Ezra Bridger\'s ability', function() {
-            it('should trigger when he completes an attack', function () {
-                contextRef.setupTest({
+            it('should trigger when he completes an attack', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['moisture-farmer'],
@@ -99,8 +99,8 @@ describe('Ezra Bridger', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not trigger when the deck is empty.', function () {
-                contextRef.setupTest({
+            it('should not trigger when the deck is empty.', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['moisture-farmer'],

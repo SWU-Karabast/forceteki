@@ -1,7 +1,7 @@
 describe('Quinlan Vos, Sticking the Landing', function () {
     integration(function (contextRef) {
-        it('Quinlan Vos\'s leader undeployed ability should deal 1 damage to an enemy unit that costs the same as the played unit', function () {
-            contextRef.setupTest({
+        it('Quinlan Vos\'s leader undeployed ability should deal 1 damage to an enemy unit that costs the same as the played unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['battlefield-marine', 'the-emperors-legion'],
@@ -39,8 +39,8 @@ describe('Quinlan Vos, Sticking the Landing', function () {
             expect(context.quinlanVos.exhausted).toBeTrue();
         });
 
-        it('Quinlan Vos\'s leader deployed ability should deal 1 damage to an enemy unit that costs the same as the played unit', function () {
-            contextRef.setupTest({
+        it('Quinlan Vos\'s leader deployed ability should deal 1 damage to an enemy unit that costs the same as the played unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['battlefield-marine', 'desperado-freighter', 'resupply'],

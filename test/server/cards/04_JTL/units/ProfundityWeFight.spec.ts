@@ -1,7 +1,7 @@
 describe('Profundity, We Fight!', function() {
     integration(function(contextRef) {
-        it('Profundity\'s when player and when defeated ability should make a player discard a card and then another card if they have more cards in hand', function () {
-            contextRef.setupTest({
+        it('Profundity\'s when player and when defeated ability should make a player discard a card and then another card if they have more cards in hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['onyx-squadron-brute', 'profundity#we-fight'],
@@ -63,8 +63,8 @@ describe('Profundity, We Fight!', function() {
             expect(context.player1).toBeActivePlayer();
         });
 
-        it('Profundity\'s when player and when defeated ability should always discard a single card when targeting self', function () {
-            contextRef.setupTest({
+        it('Profundity\'s when player and when defeated ability should always discard a single card when targeting self', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['battlefield-marine', 'wampa', 'atst', 'profundity#we-fight'],

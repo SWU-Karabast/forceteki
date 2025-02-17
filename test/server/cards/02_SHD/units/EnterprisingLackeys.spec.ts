@@ -2,7 +2,7 @@ describe('Enterprising Lackeys', function() {
     integration(function(contextRef) {
         describe('Enterprising Lackeys\'s when defeated ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['enterprising-lackeys'],

@@ -1,8 +1,8 @@
 
 describe('Sanctioners Shuttle', function() {
     integration(function(contextRef) {
-        it('should capture an enemy non-leader unit that costs 3 or less', function () {
-            contextRef.setupTest({
+        it('should capture an enemy non-leader unit that costs 3 or less', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['sanctioners-shuttle'],

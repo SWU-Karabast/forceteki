@@ -2,7 +2,7 @@ describe('Battle Droid Legion', function() {
     integration(function(contextRef) {
         describe('Battle Droid Legion\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['power-of-the-dark-side']

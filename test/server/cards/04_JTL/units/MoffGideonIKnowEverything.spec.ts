@@ -1,7 +1,7 @@
 describe('Moff Gideon, I Know Everything', function() {
     integration(function(contextRef) {
-        it('Moff Gideon\'s ability should ', function () {
-            contextRef.setupTest({
+        it('Moff Gideon\'s ability should ', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['echo-base-defender'],
