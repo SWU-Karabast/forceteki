@@ -3,6 +3,11 @@ export interface ISwuDbCardEntry {
     count: number;
 }
 
+export interface IInternalCardEntry extends ISwuDbCardEntry {
+    internalName: string;
+    cost?: number;
+}
+
 export interface ISwuDbDecklist {
     metadata: {
         name: string;
@@ -16,10 +21,10 @@ export interface ISwuDbDecklist {
 }
 
 export interface IDecklistInternal {
-    leader: ISwuDbCardEntry;
-    base: ISwuDbCardEntry;
-    deck: ISwuDbCardEntry[];
-    sideboard?: ISwuDbCardEntry[];
+    leader: IInternalCardEntry;
+    base: IInternalCardEntry;
+    deck: IInternalCardEntry[];
+    sideboard?: IInternalCardEntry[];
 }
 
 export interface ICardIdAndName {

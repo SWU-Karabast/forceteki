@@ -161,7 +161,7 @@ function getCardData(page, progressBar) {
         });
 }
 
-function getUniqueCards(cards) {
+function buildCardLists(cards) {
     const cardMap = [];
     const setCodeMap = {};
     const playableCardTitlesSet = new Set();
@@ -207,7 +207,7 @@ function getUniqueCards(cards) {
         }
 
         seenNames.push(card.internalName);
-        cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle });
+        cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle, cost: card.cost });
 
         if (!card.types.includes('token') && !card.types.includes('leader') && !card.types.includes('base')) {
             playableCardTitlesSet.add(card.title);
@@ -245,7 +245,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap } = getUniqueCards(cards);
+    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap } = buildCardLists(cards);
 
     cards.map((card) => delete card.debugObject);
 
