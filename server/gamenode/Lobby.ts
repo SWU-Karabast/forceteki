@@ -8,6 +8,7 @@ import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
 import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
+import type { DeckValidator } from '../utils/deck/DeckValidator';
 
 interface LobbyUser {
     id: string;
@@ -33,7 +34,8 @@ export class Lobby {
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
     private readonly gameChat: GameChat;
-    private readonly cardDataGetter: CardDataGetter; // TODO: currently not used but will be once we migrate card loading logic out of the FE
+    private readonly cardDataGetter: CardDataGetter;
+    private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly tokenCardsData: ITokenCardsData;
     private readonly playableCardTitles: string[];
@@ -44,7 +46,14 @@ export class Lobby {
     private gameType: MatchType;
     private rematchRequest?: RematchRequest = null;
 
-    public constructor(lobbyGameType: MatchType, cardDataGetter: CardDataGetter, tokenCardsData: ITokenCardsData, playableCardTitles: string[], testGameBuilder?: any) {
+    public constructor(
+        lobbyGameType: MatchType,
+        cardDataGetter: CardDataGetter,
+        deckValidator: DeckValidator,
+        tokenCardsData: ITokenCardsData,
+        playableCardTitles: string[],
+        testGameBuilder?: any
+    ) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
             `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
@@ -58,6 +67,7 @@ export class Lobby {
         this.testGameBuilder = testGameBuilder;
         this.playableCardTitles = playableCardTitles;
         this.tokenCardsData = tokenCardsData;
+        this.deckValidator = deckValidator;
     }
 
     public get id(): string {
