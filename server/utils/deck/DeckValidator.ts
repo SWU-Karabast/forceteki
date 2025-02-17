@@ -3,6 +3,7 @@ import { cards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
 import type { CardType } from '../../game/core/Constants';
 import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
+import type { ISwuDbCardEntry } from './DeckInterfaces';
 import { DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbDecklist } from './DeckInterfaces';
 import { SwuGameFormat } from '../../SwuGameFormat';
 import type { ICardDataJson } from '../cardData/CardDataInterfaces';
@@ -32,7 +33,9 @@ export class DeckValidator {
     private readonly cardData: Map<string, ICardCheckData>;
     private readonly setCodeToId: Map<string, string>;
 
-    public static async create(cardDataGetter: CardDataGetter): Promise<DeckValidator> {
+    private static readonly MaxSideboardSize = 10;
+
+    public static async createAsync(cardDataGetter: CardDataGetter): Promise<DeckValidator> {
         const allCardsData: ICardDataJson[] = [];
         for (const cardId of cardDataGetter.cardIds) {
             allCardsData.push(await cardDataGetter.getCardAsync(cardId));
@@ -81,13 +84,13 @@ export class DeckValidator {
         return unimplementedCards;
     }
 
-    // TODO: account for new base that modifies this
+    // TODO: account for new bases that modify these values
     public getMinimumSideboardedDeckSize(_deck: ISwuDbDecklist): number {
         return 50;
     }
 
     public getMaximumSideboardedDeckSize(_deck: ISwuDbDecklist): number {
-        return 60;
+        return this.getMinimumSideboardedDeckSize(_deck) + DeckValidator.MaxSideboardSize;
     }
 
     public validateDeck(deck: ISwuDbDecklist, format: SwuGameFormat): IDeckValidationFailures {
@@ -109,36 +112,56 @@ export class DeckValidator {
 
             const deckCards = deck.sideboard ? deck.deck.concat(deck.sideboard) : deck.deck;
 
-            const minDeckSize = this.getMinimumSideboardedDeckSize(deck);
-            const maxDeckSize = this.getMaximumSideboardedDeckSize(deck);
-            if (deckCards.length < minDeckSize) {
-                failures[DeckValidationFailureReason.MinDeckSizeNotMet] = {
-                    minDeckSize: minDeckSize,
-                    actualDeckSize: deckCards.length
+            const minBoardedSize = this.getMinimumSideboardedDeckSize(deck);
+            const maxBoardedSize = this.getMaximumSideboardedDeckSize(deck);
+
+            const decklistCardsCount = this.getTotalCardCount(deckCards);
+            const boardedCardsCount = this.getTotalCardCount(deck.deck);
+            const sideboardCardsCount = deck.sideboard ? this.getTotalCardCount(deck.sideboard) : 0;
+
+            if (decklistCardsCount > maxBoardedSize) {
+                failures[DeckValidationFailureReason.MaxDecklistSizeExceeded] = {
+                    maxDecklistSize: maxBoardedSize,
+                    actualDecklistSize: decklistCardsCount
                 };
-            } else if (deckCards.length > maxDeckSize) {
-                failures[DeckValidationFailureReason.MaxDeckSizeExceeded] = {
-                    maxDeckSize: maxDeckSize,
-                    actualDeckSize: deckCards.length
+            } else if (decklistCardsCount < minBoardedSize) {
+                failures[DeckValidationFailureReason.MinDecklistSizeNotMet] = {
+                    minDecklistSize: minBoardedSize,
+                    actualDecklistSize: decklistCardsCount
                 };
             }
 
+            if (boardedCardsCount > maxBoardedSize) {
+                failures[DeckValidationFailureReason.MaxMainboardSizeExceeded] = {
+                    maxBoardedSize: maxBoardedSize,
+                    actualBoardedSize: boardedCardsCount
+                };
+            } else if (boardedCardsCount < minBoardedSize) {
+                failures[DeckValidationFailureReason.MinMainboardSizeNotMet] = {
+                    minBoardedSize: minBoardedSize,
+                    actualBoardedSize: boardedCardsCount
+                };
+            }
+
+            if (sideboardCardsCount > DeckValidator.MaxSideboardSize) {
+                failures[DeckValidationFailureReason.MaxSideboardSizeExceeded] = {
+                    maxSideboardSize: DeckValidator.MaxSideboardSize,
+                    actualSideboardSize: sideboardCardsCount
+                };
+            }
+
+            this.checkFormatLegality(this.getCardCheckData(deck.leader.id), format, failures);
+            this.checkFormatLegality(this.getCardCheckData(deck.base.id), format, failures);
+
             for (const card of deckCards) {
-                // slightly confusing - the SWUDB format calls the set code the "id" but we use it to mean the numerical card id
-                const cardId = this.setCodeToId.get(card.id);
-                const cardData = this.cardData.get(cardId);
+                const cardData = this.getCardCheckData(card.id);
 
                 if (!cardData) {
                     failures[DeckValidationFailureReason.UnknownCardId].push({ id: card.id });
                     continue;
                 }
 
-                if (
-                    (cardData.banned && format !== SwuGameFormat.Open) ||
-                    (!legalSets.includes(cardData.set) && format === SwuGameFormat.Premier)
-                ) {
-                    failures[DeckValidationFailureReason.IllegalInFormat].push({ id: card.id, name: cardData.titleAndSubtitle });
-                }
+                this.checkFormatLegality(cardData, format, failures);
 
                 if (!cardData.implemented) {
                     failures[DeckValidationFailureReason.NotImplemented].push({ id: card.id, name: cardData.titleAndSubtitle });
@@ -158,16 +181,38 @@ export class DeckValidator {
             }
 
             // clean up any unused failure reasons
+            const failuresCleaned: IDeckValidationFailures = {};
             for (const [key, value] of Object.entries(failures)) {
                 if (Array.isArray(value) && value.length === 0) {
-                    failures[key] = undefined;
+                    continue;
                 }
+
+                failuresCleaned[key] = value;
             }
 
-            return failures;
-        } catch (_error) {
-            // TODO: log the validation exception body here
+            return failuresCleaned;
+        } catch (error) {
+            console.error(error);
             return { [DeckValidationFailureReason.InvalidDeckData]: true };
         }
+    }
+
+    private getCardCheckData(setCode: string): ICardCheckData {
+        // slightly confusing - the SWUDB format calls the set code the "id" but we use it to mean the numerical card id
+        const cardId = this.setCodeToId.get(setCode);
+        return this.cardData.get(cardId);
+    }
+
+    protected checkFormatLegality(cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
+        if (
+            (cardData.banned && format !== SwuGameFormat.Open) ||
+            (!legalSets.includes(cardData.set) && format === SwuGameFormat.Premier)
+        ) {
+            failures[DeckValidationFailureReason.IllegalInFormat].push({ id: cardData.set, name: cardData.titleAndSubtitle });
+        }
+    }
+
+    private getTotalCardCount(cardlist: ISwuDbCardEntry[]): number {
+        return cardlist.reduce((sum, card) => sum + card.count, 0);
     }
 }

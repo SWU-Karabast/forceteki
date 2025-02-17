@@ -7,9 +7,11 @@ import * as Helpers from './Helpers';
 export function checkConvertToEnum<T>(values: string | string[], enumObj: T): T[keyof T][] {
     const result: T[keyof T][] = [];
 
+    const enumValues = Object.values(enumObj);
     for (const value of Helpers.asArray(values)) {
-        if (Object.values(enumObj).indexOf(value.toLowerCase()) >= 0) {
-            result.push(value as T[keyof T]);
+        const matchingValue = enumValues.find((enumValue) => enumValue.toLowerCase() === value.toLowerCase());
+        if (matchingValue) {
+            result.push(matchingValue as T[keyof T]);
         } else {
             throw new Error(`Invalid value for enum: ${value}`);
         }

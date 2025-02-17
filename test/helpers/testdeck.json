@@ -4,10 +4,9 @@
         "author": "Veld"
     },
     "leader": {
-        "id": "SHD_010",
+        "id": "SOR_015",
         "count": 1
     },
-    "secondleader": null,
     "base": {
         "id": "TWI_023",
         "count": 1
@@ -26,7 +25,7 @@
             "count": 2
         },
         {
-            "id": "SOR_079",
+            "id": "JTL_140",
             "count": 2
         },
         {
@@ -48,54 +47,6 @@
         {
             "id": "SHD_176",
             "count": 2
-        },
-        {
-            "id": "SHD_129",
-            "count": 1
-        },
-        {
-            "id": "SHD_137",
-            "count": 3
-        },
-        {
-            "id": "SHD_085",
-            "count": 3
-        },
-        {
-            "id": "TWI_127",
-            "count": 3
-        },
-        {
-            "id": "SOR_134",
-            "count": 3
-        },
-        {
-            "id": "SHD_238",
-            "count": 1
-        },
-        {
-            "id": "TWI_170",
-            "count": 2
-        },
-        {
-            "id": "SHD_112",
-            "count": 2
-        },
-        {
-            "id": "SHD_090",
-            "count": 3
-        },
-        {
-            "id": "SHD_084",
-            "count": 3
-        },
-        {
-            "id": "SOR_139",
-            "count": 2
-        },
-        {
-            "id": "SHD_123",
-            "count": 3
         }
     ],
     "sideboard": [

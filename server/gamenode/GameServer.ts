@@ -42,7 +42,7 @@ interface QueuedPlayer {
 }
 
 export class GameServer {
-    public static async create(): Promise<GameServer> {
+    public static async createAsync(): Promise<GameServer> {
         let cardDataGetter: CardDataGetter;
         let testGameBuilder: any = null;
 

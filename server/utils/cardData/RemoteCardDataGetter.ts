@@ -44,7 +44,7 @@ export class RemoteCardDataGetter extends CardDataGetter {
 
     private readonly remoteDataUrl: string;
 
-    public constructor(
+    protected constructor(
         remoteDataUrl: string,
         cardMapJson: ICardMapJson,
         tokenData: ITokenCardsData,
