@@ -1,7 +1,7 @@
 describe('Outspoken Representative', function () {
     integration(function (contextRef) {
-        it('should gain Sentinel and create a Clone Trooper token when defeated', function () {
-            contextRef.setupTest({
+        it('should gain Sentinel and create a Clone Trooper token when defeated', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['clone-heavy-gunner'],

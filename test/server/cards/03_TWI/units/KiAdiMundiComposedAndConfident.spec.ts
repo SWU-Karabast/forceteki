@@ -1,8 +1,8 @@
 describe('Ki Adi Mundi, Composed and Confident', function() {
     integration(function(contextRef) {
         describe('Ki Adi Mundi, Composed and Confident\'s ability', function () {
-            it('should trigger when Opponent plays its second card during that phase and Coordinate is active', function () {
-                contextRef.setupTest({
+            it('should trigger when Opponent plays its second card during that phase and Coordinate is active', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['41st-elite-corps', 'specforce-soldier'],

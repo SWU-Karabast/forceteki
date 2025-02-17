@@ -2,7 +2,7 @@ describe('Outmaneuver', function() {
     integration(function(contextRef) {
         describe('Outmaneuver\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['outmaneuver'],

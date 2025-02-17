@@ -1,8 +1,8 @@
 describe('Jango Fett, Concealing the Conspiracy', function () {
     integration(function(contextRef) {
         describe('Jango Fett\'s undeployed leader ability', function() {
-            it('should exhaust an enemy unit when a friendly unit deals damage to it', function() {
-                contextRef.setupTest({
+            it('should exhaust an enemy unit when a friendly unit deals damage to it', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -191,8 +191,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.consularSecurityForce.exhausted).toBeTrue();
             });
 
-            it('should not trigger for specific scenarios', function() {
-                contextRef.setupTest({
+            it('should not trigger for specific scenarios', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -296,8 +296,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
         });
 
         describe('Jango Fett\'s deployed leader ability', function() {
-            it('should exhaust an enemy unit when a friendly unit deals damage to it', function() {
-                contextRef.setupTest({
+            it('should exhaust an enemy unit when a friendly unit deals damage to it', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -530,8 +530,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
         });
 
         describe('Jango Fett\'s deployed leader ability', function() {
-            it('should not trigger from damage that is not dealt by a friendly unit', function() {
-                contextRef.setupTest({
+            it('should not trigger from damage that is not dealt by a friendly unit', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [

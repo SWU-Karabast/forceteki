@@ -2,7 +2,7 @@ describe('Grit keyword', function() {
     integration(function(contextRef) {
         describe('When a unit with the Grit keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'scout-bike-pursuer', damage: 2 }],
@@ -52,7 +52,7 @@ describe('Grit keyword', function() {
 
         describe('When a unit with the Grit keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist'],

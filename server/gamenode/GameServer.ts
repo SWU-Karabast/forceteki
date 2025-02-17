@@ -11,7 +11,7 @@ import { logger } from '../logger';
 import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
 import * as env from '../env';
-import type { Deck } from '../game/Deck';
+import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
 import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
@@ -37,7 +37,6 @@ interface SocketData {
  */
 interface QueuedPlayer {
     deck: Deck;
-    swuDeck?: Deck;
     socket?: Socket;
     user: User;
 }
@@ -58,14 +57,14 @@ export class GameServer {
         }
 
         return new GameServer(cardDataGetter,
-            await cardDataGetter.getTokenCardsData(),
-            await cardDataGetter.getPlayableCardTitles(),
+            await cardDataGetter.tokenData,
+            await cardDataGetter.playableCardTitles,
             testGameBuilder);
     }
 
     private static buildRemoteCardDataGetter(): Promise<RemoteCardDataGetter> {
         // TODO: move this url to a config
-        return RemoteCardDataGetter.create('https://karabast-assets.s3.amazonaws.com/data/');
+        return RemoteCardDataGetter.createAsync('https://karabast-assets.s3.amazonaws.com/data/');
     }
 
     private static getTestGameBuilder() {
@@ -134,7 +133,7 @@ export class GameServer {
 
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', async (req, res) => {
-            await this.createLobby(req.body.user, req.body.deck, req.body.swuDeck, req.body.isPrivate);
+            await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
             return res.status(200).json({ success: true });
         });
 
@@ -174,8 +173,8 @@ export class GameServer {
         });
 
         app.post('/api/enter-queue', (req, res) => {
-            const { user, deck, swuDeck } = req.body;
-            const success = this.enterQueue(user, deck, swuDeck);
+            const { user, deck } = req.body;
+            const success = this.enterQueue(user, deck);
             if (!success) {
                 return res.status(400).json({ success: false, message: 'Failed to enter queue' });
             }
@@ -201,11 +200,10 @@ export class GameServer {
      *
      * @param {User | string} user - The user creating the lobby. If string(id) is passed in for a private lobby, a default user is created with that id.
      * @param {Deck} deck - The deck used by this user.
-     * @param {Deck} swuDeck - The swudb format of the deck used by this user.
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(user: User | string, deck: Deck, swuDeck: Deck, isPrivate: boolean) {
+    private createLobby(user: User | string, deck: Deck, isPrivate: boolean) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -226,7 +224,7 @@ export class GameServer {
             user = { id: user, username: 'Player1' };
         }
 
-        lobby.createLobbyUser(user, deck, swuDeck);
+        lobby.createLobbyUser(user, deck);
         lobby.setLobbyOwner(user.id);
         this.userLobbyMap.set(user.id, lobby.id);
     }
@@ -240,7 +238,7 @@ export class GameServer {
         lobby.createLobbyUser(theWay);
         this.userLobbyMap.set(order66.id, lobby.id);
         this.userLobbyMap.set(theWay.id, lobby.id);
-        await lobby.startTestGame(filename);
+        await lobby.startTestGameAsync(filename);
     }
 
     private getTestSetupGames() {
@@ -384,7 +382,7 @@ export class GameServer {
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(user: any, deck: any, swuDeck: Deck): boolean {
+    private enterQueue(user: any, deck: any): boolean {
         // Quick check: if they're already in a lobby, no queue
         if (this.userLobbyMap.has(user.id)) {
             logger.info(`User ${user.id} already in a lobby, ignoring queue request.`);
@@ -398,7 +396,6 @@ export class GameServer {
         this.queue.push({
             user,
             deck,
-            swuDeck,
             socket: null
         });
         return true;
@@ -421,8 +418,8 @@ export class GameServer {
             this.lobbies.set(lobby.id, lobby);
 
             // Create the 2 lobby users
-            lobby.createLobbyUser(p1.user, p1.deck, p1.swuDeck);
-            lobby.createLobbyUser(p2.user, p2.deck, p2.swuDeck);
+            lobby.createLobbyUser(p1.user, p1.deck);
+            lobby.createLobbyUser(p2.user, p2.deck);
 
             // Attach their sockets to the lobby (if they exist)
             const socket1 = p1.socket ? p1.socket : null;
@@ -430,12 +427,12 @@ export class GameServer {
             if (socket1) {
                 lobby.addLobbyUser(p1.user, socket1);
                 socket1.on('disconnect', () => this.onSocketDisconnected(socket1.socket, p1.user.id));
-                socket1.registerEvent('requeue', () => this.requeueUser(socket1, p1.user, p1.deck, p1.swuDeck));
+                socket1.registerEvent('requeue', () => this.requeueUser(socket1, p1.user, p1.deck));
             }
             if (socket2) {
                 lobby.addLobbyUser(p2.user, socket2);
                 socket2.on('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.id));
-                socket2.registerEvent('requeue', () => this.requeueUser(socket2, p2.user, p2.deck, p2.swuDeck));
+                socket2.registerEvent('requeue', () => this.requeueUser(socket2, p2.user, p2.deck));
             }
 
             // Save user => lobby mapping
@@ -460,7 +457,7 @@ export class GameServer {
     /**
      * requeues the user and removes him from the previous lobby. If the lobby is empty, it cleans it up.
      */
-    private async requeueUser(socket: Socket, user: User, deck: any, swuDeck: Deck) {
+    private async requeueUser(socket: Socket, user: User, deck: any) {
         if (this.userLobbyMap.has(user.id)) {
             const lobbyId = this.userLobbyMap.get(user.id);
             const lobby = this.lobbies.get(lobbyId);
@@ -477,7 +474,6 @@ export class GameServer {
         this.queue.push({
             user,
             deck,
-            swuDeck,
             socket: socket
         });
 

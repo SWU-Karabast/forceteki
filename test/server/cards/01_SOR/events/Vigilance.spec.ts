@@ -2,7 +2,7 @@ describe('Vigilance', function() {
     integration(function(contextRef) {
         describe('Vigilance\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vigilance'],
@@ -95,7 +95,7 @@ describe('Vigilance', function() {
         });
         describe('Vigilance\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vigilance'],

@@ -1,8 +1,8 @@
 describe('Doctor Aphra, Rapacious Archaeologist', function () {
     integration(function (contextRef) {
         describe('Doctor Aphra\'s leader undeployed ability', function () {
-            it('should discard a card from the deck at the start of the regroup phase', function () {
-                contextRef.setupTest({
+            it('should discard a card from the deck at the start of the regroup phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         deck: ['consular-security-force'],
@@ -19,8 +19,8 @@ describe('Doctor Aphra, Rapacious Archaeologist', function () {
         });
 
         describe('Doctor Aphra\'s leader deployed ability', function () {
-            it('should give it +3/+0 if there are five different cost cards in the discard and return one random card to hand if three different named cards are picked from the discards', function () {
-                contextRef.setupTest({
+            it('should give it +3/+0 if there are five different cost cards in the discard and return one random card to hand if three different named cards are picked from the discards', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         discard: ['millennium-falcon#piece-of-junk', 'millennium-falcon#landos-pride', 'warzone-lieutenant', 'devotion', 'separatist-super-tank'],
@@ -61,8 +61,8 @@ describe('Doctor Aphra, Rapacious Archaeologist', function () {
                 expect(context.doctorAphraRapaciousArchaeologist.getHp()).toBe(5);
             });
 
-            it('should do nothing if there are less than 3 cards with unique names in the discards', function () {
-                contextRef.setupTest({
+            it('should do nothing if there are less than 3 cards with unique names in the discards', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         discard: ['millennium-falcon#piece-of-junk', 'millennium-falcon#landos-pride', 'chewbacca#loyal-companion', 'chewbacca#pykesbane'],

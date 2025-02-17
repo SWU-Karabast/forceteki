@@ -1,16 +1,36 @@
+import type { ITokenCardsData } from './CardDataGetter';
 import { CardDataGetter } from './CardDataGetter';
 import type { ICardDataJson, ICardMapJson } from './CardDataInterfaces';
 
 /** Card data getter that makes single calls to AWS with no caching */
 export class RemoteCardDataGetter extends CardDataGetter {
-    public static async create(remoteDataUrl: string): Promise<RemoteCardDataGetter> {
+    public static async createAsync(remoteDataUrl: string): Promise<RemoteCardDataGetter> {
         const cardMap: ICardMapJson =
-            await (await RemoteCardDataGetter.fetchFileAbsolute(`${remoteDataUrl}${CardDataGetter.cardMapFileName}`)).json() as ICardMapJson;
+            await (await RemoteCardDataGetter.fetchFileAsync(remoteDataUrl, CardDataGetter.cardMapFileName)).json() as ICardMapJson;
 
-        return new RemoteCardDataGetter(cardMap, remoteDataUrl);
+        const tokenData = await CardDataGetter.getTokenCardsDataAsync(
+            async (internalName) => (await RemoteCardDataGetter.fetchFileAsync(
+                remoteDataUrl,
+                RemoteCardDataGetter.getRelativePathFromInternalName(internalName)
+            )).json() as Promise<ICardDataJson>
+        );
+
+        const playableCardTitles = await (await RemoteCardDataGetter.fetchFileAsync(remoteDataUrl, CardDataGetter.playableCardTitlesFileName)).json() as string[];
+
+        const setCodeMap = await RemoteCardDataGetter.fetchFileAsync(remoteDataUrl, CardDataGetter.setCodeMapFileName)
+            .then((response) => response.json() as Promise<Record<string, string>>);
+
+        return new RemoteCardDataGetter(remoteDataUrl, cardMap, tokenData, playableCardTitles, setCodeMap);
     }
 
-    protected static async fetchFileAbsolute(url: string): Promise<Response> {
+    protected static getRelativePathFromInternalName(internalName: string) {
+        const webSafeInternalName = internalName.replace('#', '%23');
+        return `cards/${webSafeInternalName}.json`;
+    }
+
+    protected static async fetchFileAsync(remoteDataUrl: string, relativePath: string): Promise<Response> {
+        const url = remoteDataUrl + relativePath;
+
         try {
             const response = await fetch(url);
             if (!response.ok) {
@@ -24,35 +44,28 @@ export class RemoteCardDataGetter extends CardDataGetter {
 
     private readonly remoteDataUrl: string;
 
-    private constructor(cardMapJson: ICardMapJson, remoteDataUrl: string) {
-        super(cardMapJson);
+    public constructor(
+        remoteDataUrl: string,
+        cardMapJson: ICardMapJson,
+        tokenData: ITokenCardsData,
+        playableCardTitles: string[],
+        setCodeMap: Record<string, string>
+    ) {
+        super(cardMapJson, tokenData, playableCardTitles, setCodeMap);
 
         this.remoteDataUrl = remoteDataUrl;
     }
 
-    private fetchFile(relativePath: string): Promise<Response> {
-        return RemoteCardDataGetter.fetchFileAbsolute(`${this.remoteDataUrl}${relativePath}`);
+    private fetchFileAsync(relativePath: string): Promise<Response> {
+        return RemoteCardDataGetter.fetchFileAsync(this.remoteDataUrl, relativePath);
     }
 
-    protected override getCardInternal(relativePath: string): Promise<ICardDataJson> {
-        return this.fetchFile(relativePath)
-            .then((response) => response.json() as Promise<ICardDataJson>)
-            .then((cardData) => {
-                return (Array.isArray(cardData) ? cardData[0] : cardData) as ICardDataJson;
-            });
-    }
-
-    public override getSetCodeMap(): Promise<Map<string, string>> {
-        return this.fetchFile(CardDataGetter.setCodeMapFileName)
-            .then((response) => response.json() as Promise<Map<string, string>>);
-    }
-
-    public override getPlayableCardTitles(): Promise<string[]> {
-        return this.fetchFile(CardDataGetter.playableCardTitlesFileName)
-            .then((response) => response.json() as Promise<string[]>);
+    protected override getCardInternalAsync(relativePath: string): Promise<ICardDataJson> {
+        return this.fetchFileAsync(relativePath)
+            .then((response) => response.json() as Promise<ICardDataJson>);
     }
 
     protected override getRelativePathFromInternalName(internalName: string) {
-        return `cards/${internalName}.json`;
+        return RemoteCardDataGetter.getRelativePathFromInternalName(internalName);
     }
 }

@@ -2,7 +2,7 @@ describe('Surprise Strike', function() {
     integration(function(contextRef) {
         describe('Surprise Strike\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['surprise-strike'],

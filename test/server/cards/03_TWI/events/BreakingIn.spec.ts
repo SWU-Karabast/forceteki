@@ -1,7 +1,7 @@
 describe('Breaking In', function () {
     integration(function (contextRef) {
-        it('Breaking In\'s ability should initiate an attack and give +2/+0 and Saboteur', function () {
-            contextRef.setupTest({
+        it('Breaking In\'s ability should initiate an attack and give +2/+0 and Saboteur', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['breaking-in'],

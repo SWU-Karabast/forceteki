@@ -2,7 +2,7 @@ describe('General Veers, Blizzard Force Commander', function() {
     integration(function(contextRef) {
         describe('General Veers\' ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['general-veers#blizzard-force-commander', 'viper-probe-droid', 'death-star-stormtrooper', 'wampa'],

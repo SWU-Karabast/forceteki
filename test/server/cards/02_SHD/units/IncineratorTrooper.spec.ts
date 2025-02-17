@@ -2,7 +2,7 @@ describe('Incinerator Trooper', function() {
     integration(function(contextRef) {
         describe('Incinerator Trooper\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['incinerator-trooper'],

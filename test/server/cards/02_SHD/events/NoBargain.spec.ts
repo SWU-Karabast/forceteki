@@ -2,7 +2,7 @@ describe('No Bargain', function() {
     integration(function(contextRef) {
         describe('No Bargain\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['no-bargain', 'wampa'],
@@ -35,7 +35,7 @@ describe('No Bargain', function() {
 
         describe('No Bargain\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['no-bargain', 'wampa'],

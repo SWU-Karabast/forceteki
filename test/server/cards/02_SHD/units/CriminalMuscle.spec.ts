@@ -1,8 +1,8 @@
 describe('Criminal Muscle', function () {
     integration(function (contextRef) {
         describe('Criminal Muscle\'s ability', function() {
-            it('should return an non-unique upgrade to owner\'s hand', function () {
-                contextRef.setupTest({
+            it('should return an non-unique upgrade to owner\'s hand', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['frozen-in-carbonite'],
@@ -33,8 +33,8 @@ describe('Criminal Muscle', function () {
                 expect(context.frozenInCarbonite).toBeInZone('hand', context.player1);
             });
 
-            it('should defeat a token upgrade instead of returning to hand', function () {
-                contextRef.setupTest({
+            it('should defeat a token upgrade instead of returning to hand', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['criminal-muscle'],

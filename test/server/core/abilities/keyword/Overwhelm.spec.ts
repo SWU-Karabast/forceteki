@@ -2,7 +2,7 @@ describe('Overwhelm keyword', function() {
     integration(function(contextRef) {
         describe('When a unit with the Overwhelm keyword attacks,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa']
@@ -90,7 +90,7 @@ describe('Overwhelm keyword', function() {
 
         describe('When a unit with the Overwhelm keyword attacks', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'emperor-palpatine#master-of-the-dark-side', upgrades: ['fallen-lightsaber'] }]

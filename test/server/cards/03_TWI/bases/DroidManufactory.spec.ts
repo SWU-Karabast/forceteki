@@ -1,7 +1,7 @@
 describe('Droid Manufactory', function () {
     integration(function (contextRef) {
-        it('Droid Manufactory\'s ability should create 2 battle droid tokens when leader deploys', function () {
-            contextRef.setupTest({
+        it('Droid Manufactory\'s ability should create 2 battle droid tokens when leader deploys', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['battlefield-marine'],

@@ -2,7 +2,7 @@ describe('Clan Challengers', function() {
     integration(function(contextRef) {
         describe('Clan Challengers\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'clan-challengers', upgrades: ['academy-training'] }]
@@ -28,7 +28,7 @@ describe('Clan Challengers', function() {
 
         describe('Clan Challengers\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['clan-challengers']

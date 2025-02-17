@@ -1,8 +1,8 @@
 describe('Millennium Falcon, Piece of Junk', function () {
     integration(function (contextRef) {
         describe('Millennium Falcon\'s ability', function () {
-            it('should enter ready and on regroup phase should have to pay 1 resource or return unit in hand', function () {
-                contextRef.setupTest({
+            it('should enter ready and on regroup phase should have to pay 1 resource or return unit in hand', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['millennium-falcon#piece-of-junk'],
@@ -62,8 +62,8 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 expect(context.millenniumFalcon).toBeInZone('hand');
             });
 
-            it('should enter play ready if rescued from capture', function () {
-                contextRef.setupTest({
+            it('should enter play ready if rescued from capture', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['millennium-falcon#piece-of-junk'],
@@ -91,8 +91,8 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 expect(context.millenniumFalcon.exhausted).toBeFalse();
             });
 
-            it('should enter ready if played from discard', function () {
-                contextRef.setupTest({
+            it('should enter ready if played from discard', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['millennium-falcon#piece-of-junk'],

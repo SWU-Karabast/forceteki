@@ -1,7 +1,7 @@
 describe('Independent Senator', function () {
     integration(function (contextRef) {
-        it('Independent Senator\'s should exhaust a unit with 4 or less power', function () {
-            contextRef.setupTest({
+        it('Independent Senator\'s should exhaust a unit with 4 or less power', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['independent-senator']

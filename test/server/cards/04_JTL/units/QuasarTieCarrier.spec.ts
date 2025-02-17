@@ -1,7 +1,7 @@
 describe('Quasar Tie Carrier', function () {
     integration(function (contextRef) {
-        it('Quasar Tie Carrier\'s ability should create a tie fighter token', function () {
-            contextRef.setupTest({
+        it('Quasar Tie Carrier\'s ability should create a tie fighter token', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['quasar-tie-carrier'],
