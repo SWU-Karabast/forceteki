@@ -5,7 +5,6 @@ const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const fs = require('fs');
 const { UnitTestCardDataGetter } = require('../../server/utils/cardData/UnitTestCardDataGetter');
-const { DeckValidator } = require('../../server/utils/deck/DeckValidator');
 
 class GameStateBuilder {
     constructor() {
@@ -87,10 +86,6 @@ class GameStateBuilder {
      * @param {SwuSetupTestOptions} options
      */
     async setupGameStateAsync(context, options = {}) {
-        const validator = await DeckValidator.createAsync(this.cardDataGetter);
-        const testDeck = require('./testdeck.json');
-        const results = validator.validateDeck(testDeck, SwuGameFormat.Premier);
-
         // Set defaults
         if (!options.player1) {
             options.player1 = {};
