@@ -35,10 +35,10 @@ export class DeckValidator {
     public static async create(cardDataGetter: CardDataGetter): Promise<DeckValidator> {
         const allCardsData: ICardDataJson[] = [];
         for (const cardId of cardDataGetter.cardIds) {
-            allCardsData.push(await cardDataGetter.getCard(cardId));
+            allCardsData.push(await cardDataGetter.getCardAsync(cardId));
         }
 
-        return new DeckValidator(allCardsData, await cardDataGetter.getSetCodeMap());
+        return new DeckValidator(allCardsData, cardDataGetter.setCodeMap);
     }
 
     private constructor(allCardsData: ICardDataJson[], setCodeToId: Map<string, string>) {
