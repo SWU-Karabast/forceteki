@@ -22,15 +22,15 @@ export default class BlackOneStraightAtThem extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card, context) => this.controlsPoeDameron(context),
+                cardCondition: (card, context) => this.hasControlOfPoeDameron(context),
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             }
         });
     }
 
-    private controlsPoeDameron (context): boolean {
+    private hasControlOfPoeDameron (context): boolean {
         return context.source.controller.leader.title === 'Poe Dameron' ||
-          context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.title === 'Poe Dameron').length > 0 ||
-          context.source.controller.getUpgradesInPlay(WildcardZoneName.AnyArena, (card) => card.title === 'Poe Dameron').length > 0;
+          context.source.controller.getArenaUnits({ arena: WildcardZoneName.AnyArena, condition: (card) => card.title === 'Poe Dameron' }).length > 0 ||
+          context.source.controller.getArenaUpgrades({ arena: WildcardZoneName.AnyArena, condition: (card) => card.title === 'Poe Dameron' }).length > 0;
     }
 }

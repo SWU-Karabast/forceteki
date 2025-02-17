@@ -156,15 +156,6 @@ class Player extends GameObject {
     }
 
     /**
-     * Get all upgrades in designated play arena(s) controlled by this player
-     * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
-     * @param {(card: import('./card/propertyMixins/UnitProperties').IUnitCard) => boolean} cardCondition Condition to filter cards
-     */
-    getUpgradesInPlay(arena = WildcardZoneName.AnyArena, cardCondition = (card) => true) {
-        return this.getArenaUpgrades({ arena, condition: cardCondition });
-    }
-
-    /**
      * @param {import('./zone/AllArenasZone').IAllArenasForPlayerCardFilterProperties} filter
      */
     hasSomeArenaCard(filter) {
