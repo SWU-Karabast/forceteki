@@ -5,38 +5,16 @@ describe('Unexpected Escape', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['take-captive', 'unexpected-escape'],
-                        groundArena: ['wampa', 'atst'],
-                        spaceArena: ['tieln-fighter']
+                        hand: ['unexpected-escape'],
+                        spaceArena: [{ card: 'tieln-fighter', capturedUnits: ['wing-leader'] }]
                     },
                     player2: {
-                        groundArena: ['pyke-sentinel'],
-                        spaceArena: ['wing-leader'],
-                        hand: ['discerning-veteran', 'take-captive']
+                        groundArena: ['pyke-sentinel', { card: 'discerning-veteran', capturedUnits: ['wampa', 'atst'] }],
                     },
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
                 });
-
-                const { context } = contextRef;
-                const p1TakeCaptive = context.player1.findCardByName('take-captive');
-                const p2TakeCaptive = context.player2.findCardByName('take-captive');
-
-                // SETUP: P2 Discerning Veteran captures two cards, P1 TIE/LN captures one, P2 Pyke Sentinel zero
-                context.player1.clickCard(p1TakeCaptive);
-                context.player1.clickCard(context.tielnFighter);
-
-                context.player2.clickCard(context.discerningVeteran);
-                context.player2.clickCard(context.wampa);
-
-                context.player1.passAction();
-
-                // Take Captive automatically selects AT-ST
-                context.player2.clickCard(p2TakeCaptive);
-                context.player2.clickCard(context.discerningVeteran);
-
-                // Discerning Veteran stays exhausted
             });
 
             it('can select one of multiple captured units to rescue and exhaust the captor', function() {

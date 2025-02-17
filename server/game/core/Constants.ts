@@ -267,6 +267,7 @@ export enum MetaEventName {
     DistributeExperience = 'distributeExperience',
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
+    GameLost = 'gameLost',
     NoAction = 'noAction',
     PlayCard = 'playCard',
     ReplacementEffect = 'replacementEffect',
