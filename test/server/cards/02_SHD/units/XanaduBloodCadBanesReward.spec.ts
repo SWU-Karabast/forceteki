@@ -1,8 +1,8 @@
 describe('Xanadu Blood, Cad Bane\'s Reward', function () {
     integration(function (contextRef) {
         describe('Xanadu Blood\'s ability', function () {
-            it('should return a friendly Underworld unit to hand and exhaust an enemy unit or resource', function () {
-                contextRef.setupTest({
+            it('should return a friendly Underworld unit to hand and exhaust an enemy unit or resource', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['xanadu-blood#cad-banes-reward'],

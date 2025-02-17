@@ -2,7 +2,7 @@ describe('Traitorous', function() {
     integration(function(contextRef) {
         describe('Traitorous\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],

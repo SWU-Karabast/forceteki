@@ -2,7 +2,7 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
     integration(function(contextRef) {
         describe('Tarfful\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['tarfful#kashyyyk-chieftain', 'liberated-slaves', 'isb-agent'],

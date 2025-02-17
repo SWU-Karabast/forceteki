@@ -1,7 +1,7 @@
 describe('Saw Gerrera, Extremist', function () {
     integration(function (contextRef) {
-        it('should add an additional cost (2 damage to base) to opponent\'s events', function () {
-            contextRef.setupTest({
+        it('should add an additional cost (2 damage to base) to opponent\'s events', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['surprise-strike'],

@@ -218,7 +218,7 @@ export enum EventName {
     OnCardsDrawn = 'onCardsDrawn',
     OnClaimInitiative = 'onClaimInitiative',
     OnDamageDealt = 'onDamageDealt',
-    OnDamageRemoved = 'onDamageRemoved',
+    OnDamageHealed = 'onDamageHealed',
     OnDeckSearch = 'onDeckSearch',
     OnDeckShuffled = 'onDeckShuffled',
     OnDiscardFromDeck = 'onDiscardFromDeck',
@@ -267,6 +267,7 @@ export enum MetaEventName {
     DistributeExperience = 'distributeExperience',
     ExecuteHandler = 'executeHandler',
     InitiateAttack = 'initiateAttack',
+    GameLost = 'gameLost',
     NoAction = 'noAction',
     PlayCard = 'playCard',
     ReplacementEffect = 'replacementEffect',
@@ -426,6 +427,7 @@ export enum StateWatcherName {
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
     DamageDealtThisPhase = 'damageDealtThisPhase',
+    UnitsHealedThisPhase = 'unitsHealedThisPhase',
 
     // TODO STATE WATCHERS: watcher types needed
     // - unit defeated: Iden, Emperor's Legion, Brutal Traditions, Spark of Hope, Bravado

@@ -2,7 +2,7 @@ describe('Protector', function() {
     integration(function(contextRef) {
         describe('Protector\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],

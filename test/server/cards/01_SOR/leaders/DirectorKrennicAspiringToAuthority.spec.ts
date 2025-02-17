@@ -2,7 +2,7 @@ describe('Director Krennic, Aspiring to Authority', function() {
     integration(function(contextRef) {
         describe('Krennic\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', damage: 1 }, 'battlefield-marine'],
@@ -41,7 +41,7 @@ describe('Director Krennic, Aspiring to Authority', function() {
 
         describe('Krennic\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', damage: 1 }, 'battlefield-marine'],

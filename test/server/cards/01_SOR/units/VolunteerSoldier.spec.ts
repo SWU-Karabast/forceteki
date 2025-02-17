@@ -1,8 +1,8 @@
 describe('Volunteer Soldier', function() {
     integration(function(contextRef) {
         describe('Volunteer Soldier\'s decrease cost ability', function() {
-            it('should cost 2 if there is tropper friendly unit', () => {
-                contextRef.setupTest({
+            it('should cost 2 if there is tropper friendly unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['volunteer-soldier'],
@@ -16,8 +16,8 @@ describe('Volunteer Soldier', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(2);
             });
 
-            it('should cost 3 if there is no tropper friendly unit', () => {
-                contextRef.setupTest({
+            it('should cost 3 if there is no tropper friendly unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['volunteer-soldier'],

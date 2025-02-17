@@ -1,8 +1,8 @@
 describe('Compassionate Senator', function () {
     integration(function (contextRef) {
         describe('Compassionate Senator\'s ability', function () {
-            it('should heal 2 damage from a unit or a base', function () {
-                contextRef.setupTest({
+            it('should heal 2 damage from a unit or a base', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'compassionate-senator', damage: 3 }],

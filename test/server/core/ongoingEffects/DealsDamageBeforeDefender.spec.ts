@@ -2,7 +2,7 @@ describe('Deals Damage Before Defender', function () {
     integration(function (contextRef) {
         describe('Deals Damage Before Defender', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['shoot-first'],
@@ -52,7 +52,7 @@ describe('Deals Damage Before Defender', function () {
 
         describe('Deals Damage Before Defender', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['shoot-first'],

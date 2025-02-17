@@ -1,7 +1,7 @@
 describe('Chirrut Îmwe, One with the Force', function() {
     integration(function(contextRef) {
-        it('Chirrut\'s undeployed ability', function() {
-            contextRef.setupTest({
+        it('Chirrut\'s undeployed ability', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'chirrut-imwe#one-with-the-force',
@@ -51,8 +51,8 @@ describe('Chirrut Îmwe, One with the Force', function() {
         });
 
         describe('Chirrut\'s deployed ability', function() {
-            it('prevents him from being defeated by damage during the action phase', function () {
-                contextRef.setupTest({
+            it('prevents him from being defeated by damage during the action phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['repair'],
@@ -100,8 +100,8 @@ describe('Chirrut Îmwe, One with the Force', function() {
                 expect(context.chirrutImwe).toBeInZone('base');
             });
 
-            it('prevents him from being defeated by HP reduction effects during the action phase', function () {
-                contextRef.setupTest({
+            it('prevents him from being defeated by HP reduction effects during the action phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['repair'],

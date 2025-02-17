@@ -2,7 +2,7 @@ describe('Admiral Ackbar, Brilliant Strategist', function() {
     integration(function(contextRef) {
         describe('Admiral Ackbar\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['admiral-ackbar#brilliant-strategist'],

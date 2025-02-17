@@ -1,8 +1,8 @@
 describe('Survivors Gauntlet', function() {
     integration(function(contextRef) {
         describe('Survivors Gauntle\'s ability', function() {
-            it('should allow to attach an upgrade to another eligible unit controlled by the same player', function () {
-                contextRef.setupTest({
+            it('should allow to attach an upgrade to another eligible unit controlled by the same player', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['survivors-gauntlet'],

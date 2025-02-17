@@ -2,7 +2,7 @@ describe('Slaver\'s Freighter', function() {
     integration(function(contextRef) {
         describe('Slaver\'s Freighter\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['slavers-freighter'], // power: 4

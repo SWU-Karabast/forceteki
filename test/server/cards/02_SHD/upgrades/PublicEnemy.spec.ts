@@ -1,8 +1,8 @@
 describe('Public Enemy', function() {
     integration(function(contextRef) {
         describe('Public Enemy\'s Bounty ability', function() {
-            it('should give a unit a shield', function () {
-                contextRef.setupTest({
+            it('should give a unit a shield', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'atst']

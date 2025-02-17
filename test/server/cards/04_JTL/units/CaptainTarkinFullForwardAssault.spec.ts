@@ -1,7 +1,7 @@
 describe('Captain Tarkin, Full Forward Assault', function() {
     integration(function(contextRef) {
-        it('Captain Tarkin\'s ability should give Overwhelm and +1/+0 to friendly vehicle unit', function () {
-            contextRef.setupTest({
+        it('Captain Tarkin\'s ability should give Overwhelm and +1/+0 to friendly vehicle unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['captain-tarkin#full-forward-assault', 'battlefield-marine'],

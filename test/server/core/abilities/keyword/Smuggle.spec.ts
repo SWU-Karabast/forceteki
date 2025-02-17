@@ -2,7 +2,7 @@ describe('Smuggle keyword', function() {
     integration(function(contextRef) {
         describe('When a card with a Smuggle cost is in resources', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', damage: 4 }, 'pyke-sentinel'],

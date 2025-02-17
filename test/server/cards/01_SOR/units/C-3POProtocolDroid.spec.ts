@@ -2,7 +2,7 @@ describe('C-3PO, Protocol Droid', function() {
     integration(function(contextRef) {
         describe('C-3PO\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['c3po#protocol-droid'],
@@ -79,7 +79,7 @@ describe('C-3PO, Protocol Droid', function() {
 
         describe('C-3PO\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['c3po#protocol-droid'],

@@ -1,7 +1,7 @@
 describe('Mist Hunter The Findsmans Pursuit', function() {
     integration(function(contextRef) {
-        it('Mist Hunter The Findsmans Pursuit\'s ability should draw a card on attack, if a Pilor or Bounty hunter has been played this phase', function () {
-            contextRef.setupTest({
+        it('Mist Hunter The Findsmans Pursuit\'s ability should draw a card on attack, if a Pilor or Bounty hunter has been played this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['boshek#charismatic-smuggler', 'ketsu-onyo#old-friend', 'battlefield-marine'],

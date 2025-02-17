@@ -2,7 +2,7 @@ describe('Lethal Crackdown', function () {
     integration(function (contextRef) {
         describe('ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['lethal-crackdown'],

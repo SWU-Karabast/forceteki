@@ -183,12 +183,12 @@ function getUniqueCards(cards) {
                 const setCode = reprint.attributes.expansion.data.attributes.code;
                 if (setCode && setNumber.has(setCode)) {
                     setCodeMap[`${setCode}_${String(reprint.attributes.cardNumber).padStart(3, '0')}`] = card.id;
-                }
 
-                mostRecentSetCode = {
-                    set: reprint.attributes.expansion.data.attributes.code,
-                    number: reprint.attributes.cardNumber
-                };
+                    mostRecentSetCode = {
+                        set: reprint.attributes.expansion.data.attributes.code,
+                        number: reprint.attributes.cardNumber
+                    };
+                }
             }
             card.setId = mostRecentSetCode;
         }
@@ -254,7 +254,7 @@ async function main() {
     fileWriteProgressBar.start(uniqueCards.length, 0);
 
     await Promise.all(uniqueCards.map((card) => {
-        fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify([card], null, 2));
+        fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify(card, null, 2));
         fileWriteProgressBar.increment();
     }));
 
