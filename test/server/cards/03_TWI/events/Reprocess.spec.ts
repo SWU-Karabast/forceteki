@@ -1,7 +1,7 @@
 describe('Reprocess\' ability', function () {
     integration(function (contextRef) {
-        it('should return up to 4 units from your discard pile to the bottom of your deck in a random order and create that many Battle Droid tokens.', function () {
-            contextRef.setupTest({
+        it('should return up to 4 units from your discard pile to the bottom of your deck in a random order and create that many Battle Droid tokens.', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['reprocess'],
@@ -61,8 +61,66 @@ describe('Reprocess\' ability', function () {
             expect(opponentBattleDroids.length).toBe(0);
         });
 
-        it('should not prompt if there are no units in the discard pile', function () {
-            contextRef.setupTest({
+        it('should return less than 4 units (if player wants) from your discard pile to the bottom of your deck in a random order and create that many Battle Droid tokens.', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['reprocess'],
+                    groundArena: ['pyke-sentinel'],
+                    spaceArena: ['cartel-spacer'],
+                    discard: [
+                        'battlefield-marine',
+                        'echo-base-defender',
+                        'specforce-soldier',
+                        'regional-sympathizers',
+                        'resupply',
+                        'restock',
+                        'atst',
+                        'wampa',
+                    ]
+                },
+                player2: {
+                    discard: [
+                        'consular-security-force', // We can't select in opponent's discard pile
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.reprocess);
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.battlefieldMarine,
+                context.echoBaseDefender,
+                context.specforceSoldier,
+                context.regionalSympathizers,
+                context.atst,
+                context.wampa,
+            ]);
+            expect(context.player1).toHaveChooseNoTargetButton();
+            context.player1.clickCard(context.battlefieldMarine);
+            context.player1.clickCard(context.echoBaseDefender);
+            context.player1.clickCard(context.specforceSoldier);
+            context.player1.clickPrompt('Done');
+
+            expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 3);
+            expect(context.echoBaseDefender).toBeInBottomOfDeck(context.player1, 3);
+            expect(context.specforceSoldier).toBeInBottomOfDeck(context.player1, 3);
+            expect(context.regionalSympathizers).toBeInZone('discard');
+            expect(context.atst).toBeInZone('discard');
+            expect(context.wampa).toBeInZone('discard');
+            expect(context.restock).toBeInZone('discard');
+            expect(context.resupply).toBeInZone('discard');
+
+            const battleDroids = context.player1.findCardsByName('battle-droid');
+            expect(battleDroids.length).toBe(3);
+
+            const opponentBattleDroids = context.player2.findCardsByName('battle-droid');
+            expect(opponentBattleDroids.length).toBe(0);
+        });
+
+        it('should not prompt if there are no units in the discard pile', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['reprocess', 'reprocess'],
