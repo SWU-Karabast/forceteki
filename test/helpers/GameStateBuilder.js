@@ -72,8 +72,8 @@ class GameStateBuilder {
         toObj.player2Object = game.getPlayerByName(player2Name);
         toObj.player1 = gameFlowWrapper.player1;
         toObj.player2 = gameFlowWrapper.player2;
-        toObj.player1Name = gameFlowWrapper.player1Name;
-        toObj.player2Name = gameFlowWrapper.player2Name;
+        toObj.player1Name = player1Name;
+        toObj.player2Name = player2Name;
 
         // attach the game flow wrapper methods directly to the object so they can be called like e.g. 'toObj.setDamage()`
         this.proxiedGameFlowWrapperMethods.forEach((method) => {

@@ -4,14 +4,12 @@ describe('Altering the Deal', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    hand: ['take-captive', 'take-captive', 'discerning-veteran', 'altering-the-deal'],
-                    groundArena: ['wampa', 'atst', 'pyke-sentinel'],
-                    spaceArena: ['tieln-fighter']
+                    hand: ['altering-the-deal'],
+                    groundArena: ['pyke-sentinel', { card: 'discerning-veteran', capturedUnits: ['snowspeeder', 'specforce-soldier'] }],
+                    spaceArena: [{ card: 'tieln-fighter', capturedUnits: ['ruthless-raider'] }]
                 },
                 player2: {
-                    groundArena: ['snowspeeder', 'specforce-soldier'],
-                    spaceArena: ['ruthless-raider'],
-                    hand: ['discerning-veteran', 'take-captive']
+                    groundArena: [{ card: 'discerning-veteran', capturedUnits: ['wampa', 'atst'] }],
                 },
 
                 // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
@@ -19,33 +17,6 @@ describe('Altering the Deal', function() {
             });
 
             const { context } = contextRef;
-            const [p1TakeCaptive1, p1TakeCaptive2] = context.player1.findCardsByName('take-captive');
-            const p2TakeCaptive = context.player2.findCardByName('take-captive');
-            const p1DiscerningVeteran = context.player1.findCardByName('discerning-veteran');
-            const p2DiscerningVeteran = context.player2.findCardByName('discerning-veteran');
-
-            // SETUP:
-            // - P2 Discerning Veteran captures Wampa + AT-ST
-            // - P1 Discerning Veteran captures Snowspeeder + SpecForce Soldier
-            // - P1 TIE/LN captures Ruthless Raider
-            context.player1.clickCard(p1TakeCaptive1);
-            context.player1.clickCard(context.tielnFighter);
-
-            context.player2.clickCard(p2DiscerningVeteran);
-            context.player2.clickCard(context.wampa);
-
-            context.player1.clickCard(p1DiscerningVeteran);
-            context.player1.clickCard(context.snowspeeder);
-
-            context.player2.clickCard(p2TakeCaptive);
-            context.player2.clickCard(p2DiscerningVeteran);
-            context.player2.clickCard(context.atst);
-
-            context.player1.clickCard(p1TakeCaptive2);
-            context.player1.clickCard(p1DiscerningVeteran);
-            context.player1.clickCard(context.specforceSoldier);
-
-            context.player2.passAction();
 
             // TEST: can't select friendly cards (Wampa, AT-ST) guarded by enemy unit
             context.player1.clickCard(context.alteringTheDeal);

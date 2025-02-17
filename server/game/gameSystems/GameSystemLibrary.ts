@@ -120,6 +120,8 @@ import type { IViewCardAndSelectSingleProperties, IViewCardWithPerCardButtonsPro
 import { ViewCardInteractMode } from './ViewCardSystem';
 import type { IIndirectDamageToPlayerProperties } from './IndirectDamageToPlayerSystem';
 import { IndirectDamageToPlayerSystem } from './IndirectDamageToPlayerSystem';
+import type { ILoseGameProperties } from './LoseGameSystem';
+import { LoseGameSystem } from './LoseGameSystem';
 
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
@@ -536,6 +538,9 @@ export function delayedPlayerEffect<TContext extends AbilityContext = AbilityCon
             propertyFactory,
             { effectType: DelayedEffectType.Player }
         ));
+}
+export function loseGame<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILoseGameProperties, TContext>) {
+    return new LoseGameSystem<TContext>(propertyFactory);
 }
 export function takeControlOfResource<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ITakeControlOfResourceProperties, TContext> = {}) {
     return new TakeControlOfResourceSystem(propertyFactory);
