@@ -20,7 +20,7 @@ export default class YoureMyOnlyHope extends EventCard {
                     const leaveOnTopButton = {
                         text: 'Leave on top',
                         arg: 'leave',
-                        immediateEffect: AbilityHelper.immediateEffects.noAction()
+                        immediateEffect: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
                     };
                     const playForFreeButton = {
                         text: 'Play for free',
