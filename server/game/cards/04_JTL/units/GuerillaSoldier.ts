@@ -29,9 +29,7 @@ export default class GuerillaSoldier extends NonLeaderUnitCard {
                     event.damageSource.card === context.source &&
                     event.isIndirect
                 ),
-                immediateEffect: AbilityHelper.immediateEffects.ready((context) => ({
-                    target: context.source
-                })),
+                immediateEffect: AbilityHelper.immediateEffects.ready(),
             }
         });
     }
