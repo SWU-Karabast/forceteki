@@ -3,7 +3,7 @@ import path from 'path';
 import http from 'http';
 import express from 'express';
 import cors from 'cors';
-import type { Socket as IOSocket, DefaultEventsMap } from 'socket.io';
+import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 
 import { logger } from '../logger';
@@ -16,6 +16,7 @@ import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardData
 import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
+import { SwuGameFormat } from '../SwuGameFormat';
 
 /**
  * Represents a user object
@@ -145,6 +146,7 @@ export class GameServer {
 
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', async (req, res) => {
+            // TODO add check for deck validation
             await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
             return res.status(200).json({ success: true });
         });
@@ -186,6 +188,8 @@ export class GameServer {
 
         app.post('/api/enter-queue', (req, res) => {
             const { user, deck } = req.body;
+            // TODO add check for deck validation
+
             const success = this.enterQueue(user, deck);
             if (!success) {
                 return res.status(400).json({ success: false, message: 'Failed to enter queue' });
@@ -225,6 +229,7 @@ export class GameServer {
 
         const lobby = new Lobby(
             isPrivate ? MatchType.Private : MatchType.Custom,
+            SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
             this.cardDataGetter,
             this.deckValidator,
             this.tokenCardsData,
@@ -245,6 +250,7 @@ export class GameServer {
     private async startTestGame(filename: string) {
         const lobby = new Lobby(
             MatchType.Custom,
+            SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
             this.cardDataGetter,
             this.deckValidator,
             this.tokenCardsData,
@@ -436,6 +442,7 @@ export class GameServer {
             // Create a new Lobby
             const lobby = new Lobby(
                 MatchType.Quick,
+                SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
                 this.cardDataGetter,
                 this.deckValidator,
                 this.tokenCardsData,

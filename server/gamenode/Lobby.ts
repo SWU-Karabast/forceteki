@@ -9,6 +9,7 @@ import { GameChat } from '../game/core/chat/GameChat';
 import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
+import type { SwuGameFormat } from '../SwuGameFormat';
 
 interface LobbyUser {
     id: string;
@@ -44,10 +45,12 @@ export class Lobby {
     private users: LobbyUser[] = [];
     private lobbyOwnerId: string;
     private gameType: MatchType;
+    private gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
 
     public constructor(
         lobbyGameType: MatchType,
+        lobbyGameFormat: SwuGameFormat,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         tokenCardsData: ITokenCardsData,
@@ -68,6 +71,7 @@ export class Lobby {
         this.playableCardTitles = playableCardTitles;
         this.tokenCardsData = tokenCardsData;
         this.deckValidator = deckValidator;
+        this.gameFormat = lobbyGameFormat;
     }
 
     public get id(): string {
@@ -83,6 +87,7 @@ export class Lobby {
                 state: u.state,
                 ready: u.ready,
                 deck: u.deck?.getDecklist(),
+                deckValidator: u.deck ? this.deckValidator.validateDeck(u.deck.getDecklist(), this.gameFormat) : null,
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
@@ -194,6 +199,7 @@ export class Lobby {
 
     private changeDeck(socket: Socket, ...args) {
         const activeUser = this.users.find((u) => u.id === socket.user.id);
+        // TODO before we change the deck we check if its valid.
         Contract.assertTrue(args[0] !== null);
         Contract.assertTrue(args[1] !== null);
         activeUser.deck = new Deck(args[1], this.cardDataGetter);

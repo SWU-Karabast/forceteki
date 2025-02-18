@@ -3,7 +3,7 @@ import { cards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
 import type { CardType } from '../../game/core/Constants';
 import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
-import type { ISwuDbCardEntry } from './DeckInterfaces';
+import type { IDecklistInternal, ISwuDbCardEntry } from './DeckInterfaces';
 import { DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbDecklist } from './DeckInterfaces';
 import { SwuGameFormat } from '../../SwuGameFormat';
 import type { ICardDataJson } from '../cardData/CardDataInterfaces';
@@ -85,19 +85,20 @@ export class DeckValidator {
     }
 
     // TODO: account for new bases that modify these values
-    public getMinimumSideboardedDeckSize(_deck: ISwuDbDecklist): number {
+    // TODO: return back to ISwuDbDecklist when we have checks for those
+    public getMinimumSideboardedDeckSize(_deck: IDecklistInternal): number {
         return 50;
     }
 
-    public validateDeck(deck: ISwuDbDecklist, format: SwuGameFormat): IDeckValidationFailures {
+    public validateDeck(deck: IDecklistInternal, format: SwuGameFormat): IDeckValidationFailures {
         try {
             if (!deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
                 return { [DeckValidationFailureReason.InvalidDeckData]: true };
             }
 
-            if (deck.secondleader) {
+            /* TODO uncomment this when we add checks for SWUDB deck links if (deck.secondleader) {
                 return { [DeckValidationFailureReason.TooManyLeaders]: true };
-            }
+            }*/
 
             const failures: IDeckValidationFailures = {
                 [DeckValidationFailureReason.NotImplemented]: [],
