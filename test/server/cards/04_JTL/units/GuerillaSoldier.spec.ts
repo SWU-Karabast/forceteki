@@ -1,6 +1,6 @@
 describe('Guerilla Soldier', function() {
     integration(function(contextRef) {
-        it('Guerilla Soldier\'s ability should deal 3 indirect damage to a player and ready the unit if a base was damaged', async function () {
+        beforeEach(async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -10,7 +10,9 @@ describe('Guerilla Soldier', function() {
                     spaceArena: ['green-squadron-awing', 'republic-arc170', 'headhunter-squadron']
                 }
             });
+        });
 
+        it('Guerilla Soldier\'s ability should deal 3 indirect damage to a player and ready the unit if a base was damaged', function () {
             const { context } = contextRef;
 
             // Player 1 plays Guerilla Soldier
@@ -30,17 +32,7 @@ describe('Guerilla Soldier', function() {
             expect(context.guerillaSoldier.exhausted).toBeFalse();
         });
 
-        it('Guerilla Soldier\'s ability should deal 3 indirect damage to a player and not ready the unit if a base was not damaged', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['guerilla-soldier'],
-                },
-                player2: {
-                    spaceArena: ['green-squadron-awing', 'republic-arc170', 'headhunter-squadron']
-                }
-            });
-
+        it('Guerilla Soldier\'s ability should deal 3 indirect damage to a player and not ready the unit if a base was not damaged', function () {
             const { context } = contextRef;
 
             // Player 1 plays Guerilla Soldier
