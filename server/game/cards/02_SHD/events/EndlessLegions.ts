@@ -24,7 +24,10 @@ export default class EndlessLegions extends EventCard {
                 mode: TargetMode.Unlimited,
                 zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.reveal(),
+                immediateEffect: AbilityHelper.immediateEffects.reveal({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                }),
             },
             then: (context) => this.playRevealedCard([], context),
         });
