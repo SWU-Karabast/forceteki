@@ -16,7 +16,6 @@ export default class TrandoshanHunters extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.controller.opponent.isKeywordInPlay(KeywordName.Bounty),
                 onTrue: AbilityHelper.immediateEffects.giveExperience(),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

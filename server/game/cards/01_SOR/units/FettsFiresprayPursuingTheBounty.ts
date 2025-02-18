@@ -19,7 +19,6 @@ export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
                     context.source.controller.leader.title === 'Jango Fett' ||
                     context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.title === 'Boba Fett' || card.title === 'Jango Fett').length > 0,
                 onTrue: AbilityHelper.immediateEffects.ready((context) => ({ target: context.source })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
 

@@ -22,7 +22,6 @@ export default class HotshotDL44Blaster extends UpgradeCard {
                 onTrue: AbilityHelper.immediateEffects.attack((context) => ({
                     attacker: context.source.parentCard,
                 })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             }))
         });
     }

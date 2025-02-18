@@ -32,7 +32,6 @@ export default class ChancellorPalpatineWartimeChancellor extends NonLeaderUnitC
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ filter: (entry) => entry.card.isUnit() }),
                 onTrue: AbilityHelper.immediateEffects.createCloneTrooper(),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

@@ -19,7 +19,6 @@ export default class BountyGuildInitiate extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.isTraitInPlay(Trait.BountyHunter, context.source),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             },
         });

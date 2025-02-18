@@ -36,7 +36,6 @@ export default class LothalInsurgent extends NonLeaderUnitCard {
                         random: true
                     }))
                 ]),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

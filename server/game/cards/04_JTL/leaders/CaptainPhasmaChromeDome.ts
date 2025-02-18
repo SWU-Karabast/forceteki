@@ -27,7 +27,6 @@ export default class CaptainPhasmaChromeDome extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => this.firstOrderCardPlayedThisPhase(context),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
         });
@@ -42,7 +41,6 @@ export default class CaptainPhasmaChromeDome extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => this.firstOrderCardPlayedThisPhase(context),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 }),
             },
             ifYouDo: {

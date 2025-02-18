@@ -15,7 +15,6 @@ export default class OldAccessCodes extends UpgradeCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.controller.getUnitsInPlay().length < context.player.opponent.getUnitsInPlay().length,
                 onTrue: AbilityHelper.immediateEffects.draw(),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

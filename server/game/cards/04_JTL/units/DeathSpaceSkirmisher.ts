@@ -24,7 +24,6 @@ export default class DeathSpaceSkirmisher extends NonLeaderUnitCard {
                         return spaceUnits.length > 0;
                     },
                     onTrue: AbilityHelper.immediateEffects.exhaust(),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
         });

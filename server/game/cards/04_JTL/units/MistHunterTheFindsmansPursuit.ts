@@ -30,7 +30,6 @@ export default class MistHunterTheFindsmansPursuit extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.hasPlayedASpecificTraitThisPhase(context.player),
                 onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             }),
         });
     }

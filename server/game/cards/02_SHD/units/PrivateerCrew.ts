@@ -19,7 +19,6 @@ export default class PrivateerCrew extends NonLeaderUnitCard {
                     amount: 3,
                     target: context.source
                 })),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
             })
         });
     }

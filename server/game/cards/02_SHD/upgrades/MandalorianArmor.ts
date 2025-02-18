@@ -16,10 +16,10 @@ export default class MandalorianArmor extends UpgradeCard {
 
         this.addWhenPlayedAbility({
             title: 'Give a Shield token to attached unit.',
-            immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({ condition: context.source.parentCard?.hasSomeTrait(Trait.Mandalorian),
+            immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
+                condition: context.source.parentCard?.hasSomeTrait(Trait.Mandalorian),
                 onTrue: AbilityHelper.immediateEffects.giveShield({ target: context.source.parentCard }),
-                onFalse: AbilityHelper.immediateEffects.noAction() }),
-            )
+            }))
         });
     }
 }

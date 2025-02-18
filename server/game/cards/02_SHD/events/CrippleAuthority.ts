@@ -24,7 +24,6 @@ export default class CrippleAuthority extends EventCard {
                             target: context.source.controller.opponent,
                             amount: 1
                         }),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
                     })
                 ]
             )

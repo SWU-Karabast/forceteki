@@ -15,7 +15,6 @@ export default class GuerillaAttackPod extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.controller.base.damage >= 15 || context.source.controller.opponent.base.damage >= 15,
                 onTrue: AbilityHelper.immediateEffects.ready((context) => ({ target: context.source })),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
             })
         });
     }

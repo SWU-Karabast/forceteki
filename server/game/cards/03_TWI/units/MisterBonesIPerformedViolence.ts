@@ -19,7 +19,6 @@ export default class MisterBonesIPerformedViolence extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.hand.length === 0,
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 3 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
         });
