@@ -625,8 +625,11 @@ class Player extends GameObject {
         // set up playable zones now that all relevant zones are created
         this.playableZones = [
             new PlayableZone(PlayType.PlayFromHand, this.handZone),
+            new PlayableZone(PlayType.Piloting, this.handZone),
             new PlayableZone(PlayType.Smuggle, this.resourceZone),
+            new PlayableZone(PlayType.Piloting, this.deckZone), // I believe we can play Piloting from things like U-Wing or Ezra?
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
+            new PlayableZone(PlayType.Piloting, this.discardZone), // We can play Pilots from discard with Fine Addiiton
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 

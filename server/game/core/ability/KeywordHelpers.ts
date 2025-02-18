@@ -6,7 +6,7 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import { BountyKeywordInstance, KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
 import type { PlayCardAction } from './PlayCardAction';
 
-export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, cardName: string): KeywordInstance[] {
+export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, cardName: string, pilotText: string): KeywordInstance[] {
     const expectedKeywords = EnumHelpers.checkConvertToEnum(expectedKeywordsRaw, KeywordName);
 
     const keywords: KeywordInstance[] = [];
@@ -18,7 +18,7 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
                 keywords.push(new KeywordWithNumericValue(keywordName, keywordValueOrNull));
             }
         } else if (keywordName === KeywordName.Piloting) {
-            const pilotingValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Piloting, cardText, cardName);
+            const pilotingValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Piloting, pilotText, cardName);
             if (pilotingValuesOrNull != null) {
                 keywords.push(pilotingValuesOrNull);
             }
@@ -147,6 +147,7 @@ function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: str
     const matchIter = cardText.matchAll(regex);
 
     const match = matchIter.next();
+
     if (match.done) {
         return null;
     }
@@ -184,7 +185,7 @@ function getRegexForKeyword(keyword: KeywordName) {
         case KeywordName.Overwhelm:
             return /(?:^|(?:\n))Overwhelm/g;
         case KeywordName.Piloting:
-            return /(?:^|(?:\n))Piloting/g;
+            return /Piloting\s\[\s*(\d+)\s+resource(?:s)?(?:,\s*|\s+)([\w\s]+)\]/g;
         case KeywordName.Raid:
             return /(?:^|(?:\n))Raid ([\d]+)/g;
         case KeywordName.Restore:

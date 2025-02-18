@@ -7,6 +7,7 @@ const fs = require('fs/promises');
 const mkdirp = require('mkdirp');
 const path = require('path');
 const cliProgress = require('cli-progress');
+const { title } = require('process');
 
 // ############################################################################
 // #################                 IMPORTANT              ###################
@@ -71,6 +72,11 @@ function populateMissingData(attributes, id) {
         case '8862896760': // Maul - Shadow Collective Visionary
             attributes.text = 'Ambush\nOverwhelm\nOn Attack: You may choose another friendly Underworld unit. If you do, all combat damage that would be dealt to this unit during this attack is dealt to the chosen unit instead.';
             break;
+        case '0011262813': // Wedge Antilles - Leader of Red Squadron
+            attributes.keywords = {
+                data: []
+            };
+            break;
     }
 }
 
@@ -106,11 +112,11 @@ function filterValues(card) {
 
     filteredObj.text = card.attributes.text;
 
-    if (card.attributes.upgradeHp != null) {
+    if (card.attributes.hp === null && card.attributes.upgradeHp != null) {
         filteredObj.hp = card.attributes.upgradeHp;
     }
 
-    if (card.attributes.upgradePower != null) {
+    if (card.attributes.power === null && card.attributes.upgradePower != null) {
         filteredObj.power = card.attributes.upgradePower;
     }
 
@@ -136,6 +142,12 @@ function filterValues(card) {
         filteredObj.setId.number = card.attributes.cardNumber;
     }
 
+    if (filteredObj.keywords.includes('piloting')) {
+        console.log('\n', filteredObj.title);
+        filteredObj.pilotText = filteredObj.epicAction;
+        filteredObj.epicAction = null;
+    }
+
     let internalName = filteredObj.title;
     internalName += filteredObj.subtitle ? '#' + filteredObj.subtitle : '';
     // remove accents / diacritics (e.g., 'Chirrut Îmwe' -> 'Chirrut Imwe')
@@ -146,6 +158,10 @@ function filterValues(card) {
     // keep original card for debug logging, will be removed before card is written to file
     delete card.attributes.variants;
     filteredObj.debugObject = card;
+
+    if (filteredObj.id === '9831674351') {
+        console.log(card);
+    }
 
     return filteredObj;
 }
