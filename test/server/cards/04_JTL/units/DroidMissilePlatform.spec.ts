@@ -1,7 +1,7 @@
 describe('Droid Missile Platform', function () {
     integration(function (contextRef) {
-        it('Droid Missile Platform\'s ability should deal 3 indirect damage when defeated', function () {
-            contextRef.setupTest({
+        it('Droid Missile Platform\'s ability should deal 3 indirect damage when defeated', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['rivals-fall'],
