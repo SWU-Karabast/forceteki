@@ -1,13 +1,13 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
-import type { IUpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type Player from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
 import { DamageSourceType, DefeatSourceType } from '../IDamageOrDefeatSource';
+import type { IUpgradeCard } from '../Interfaces';
 
 export interface IDefeatCardPropertiesBase extends ICardTargetSystemProperties {
     defeatSource?: IDamageSource | DefeatSourceType.Ability | DefeatSourceType.UniqueRule | DefeatSourceType.FrameworkEffect;

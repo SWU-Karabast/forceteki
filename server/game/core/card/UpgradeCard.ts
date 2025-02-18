@@ -1,16 +1,12 @@
 import type Player from '../Player';
-import type { ICardWithPrintedHpProperty } from './propertyMixins/PrintedHp';
 import { WithPrintedHp } from './propertyMixins/PrintedHp';
-import type { ICardWithCostProperty } from './propertyMixins/Cost';
-import type { IInPlayCard } from './baseClasses/InPlayCard';
 import { InPlayCard } from './baseClasses/InPlayCard';
-import type { ICardWithPrintedPowerProperty } from './propertyMixins/PrintedPower';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { AbilityType, CardType, ZoneName, WildcardRelativePlayer } from '../Constants';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import type { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps, IUpgradeCard } from '../../Interfaces';
 import type { Card } from './Card';
 import OngoingEffectLibrary from '../../ongoingEffects/OngoingEffectLibrary';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
@@ -34,19 +30,7 @@ type IKeywordPropertiesWithGainCondition<TSource extends UpgradeCard> = IKeyword
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
 
-export interface IUpgradeCard extends IInPlayCard, ICardWithPrintedPowerProperty, ICardWithPrintedHpProperty, ICardWithCostProperty, ICardCanChangeControllers {
-    get parentCard(): IUnitCard;
-    attachTo(newParentCard: IUnitCard, newController?: Player);
-    isAttached(): boolean;
-    unattach();
-    canAttach(targetCard: Card, controller?: Player): boolean;
-}
-
 export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPlayableCard {
-    protected _parentCard?: IUnitCard = null;
-
-    private attachCondition: (card: Card) => boolean;
-
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
         Contract.assertTrue([CardType.BasicUpgrade, CardType.TokenUpgrade].includes(this.printedType));
@@ -70,17 +54,8 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
 
     public override getSummary(activePlayer: Player) {
         return {
-            ...super.getSummary(activePlayer),
-            parentCardId: this._parentCard ? this._parentCard.uuid : null
+            ...super.getSummary(activePlayer)
         };
-    }
-
-    /** The card that this card is underneath */
-    public get parentCard(): IUnitCard {
-        Contract.assertNotNullLike(this._parentCard);
-        Contract.assertTrue(this.isInPlay());
-
-        return this._parentCard;
     }
 
     public override moveTo(targetZoneName: MoveZoneDestination) {
@@ -88,49 +63,6 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
 
         super.moveTo(targetZoneName);
-    }
-
-    public attachTo(newParentCard: IUnitCard, newController?: Player) {
-        Contract.assertTrue(newParentCard.isUnit());
-
-        // this assert needed for type narrowing or else the moveTo fails
-        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
-
-        if (this._parentCard) {
-            this.unattach();
-        }
-
-        if (newController && newController !== this.controller) {
-            this.takeControl(newController, newParentCard.zoneName);
-        } else {
-            this.moveTo(newParentCard.zoneName);
-        }
-
-        newParentCard.attachUpgrade(this);
-        this._parentCard = newParentCard;
-    }
-
-    public isAttached(): boolean {
-        return !!this._parentCard;
-    }
-
-    public unattach() {
-        Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
-
-        this.parentCard.unattachUpgrade(this);
-        this._parentCard = null;
-    }
-
-    /**
-     * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
-     * implementations must override this if they have specific attachment conditions.
-     */
-    public canAttach(targetCard: Card, controller: Player = this.controller): boolean {
-        if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
-            return false;
-        }
-
-        return true;
     }
 
     /**

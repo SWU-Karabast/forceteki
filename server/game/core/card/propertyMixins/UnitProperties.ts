@@ -11,9 +11,8 @@ import { WithDamage } from './Damage';
 import type { ICardWithPrintedPowerProperty } from './PrintedPower';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import type { IUpgradeCard } from '../UpgradeCard';
 import type { Card } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, IUpgradeCard } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
@@ -157,6 +156,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         public hasShield(): boolean {
             return this.upgrades.some((card) => card.isShield());
+        }
+
+        public asUpgradeCard(): IUpgradeCard {
+            return this as IUpgradeCard;
+        }
+
+        public override isUpgrade(): this is IUpgradeCard {
+            return this._parentCard !== null; // TODO: is there a better check?
         }
 
         // ****************************************** CONSTRUCTOR ******************************************

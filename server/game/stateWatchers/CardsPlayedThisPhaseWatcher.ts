@@ -55,8 +55,8 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
                 currentState.concat({
                     card: event.card,
                     playEvent: event,
-                    parentCard: event.card.parentCard ?? null,
-                    parentCardInPlayId: event.card.parentCard?.canBeInPlay() ? event.card.parentCard.inPlayId : null,
+                    parentCard: event.card.isUpgrade() && event.card.isAttached() !== null ? event.card.parentCard : null,
+                    parentCardInPlayId: event.card.isUpgrade() && event.card.parentCard?.canBeInPlay() ? event.card.parentCard.inPlayId : null,
                     inPlayId: event.card.canBeInPlay() ? event.card.inPlayId : null,
                     playedBy: event.card.controller
                 })

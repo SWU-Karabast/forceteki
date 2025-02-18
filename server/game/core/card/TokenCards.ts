@@ -1,9 +1,9 @@
 import type { ITokenCard } from './propertyMixins/Token';
 import { AsToken } from './propertyMixins/Token';
 import { NonLeaderUnitCard } from './NonLeaderUnitCard';
-import type { IUpgradeCard } from './UpgradeCard';
 import { UpgradeCard } from './UpgradeCard';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
+import type { IUpgradeCard } from '../../Interfaces';
 
 const TokenUnitParent = AsToken(NonLeaderUnitCard);
 const TokenUpgradeParent = AsToken(UpgradeCard);

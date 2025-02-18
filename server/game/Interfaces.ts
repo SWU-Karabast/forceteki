@@ -24,11 +24,25 @@ import type { GroundArenaZone } from './core/zone/GroundArenaZone';
 import type { SpaceArenaZone } from './core/zone/SpaceArenaZone';
 import type { CaptureZone } from './core/zone/CaptureZone';
 import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
+import type { IInPlayCard } from './core/card/baseClasses/InPlayCard';
+import type { ICardWithPrintedPowerProperty } from './core/card/propertyMixins/PrintedPower';
+import type { ICardWithCostProperty } from './core/card/propertyMixins/Cost';
+import type { ICardCanChangeControllers } from './core/card/CardInterfaces';
+import type { ICardWithPrintedHpProperty } from './core/card/propertyMixins/PrintedHp';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
 
 // ********************************************** EXPORTED TYPES **********************************************
+
+/** IUpgradeCard definition (exists here to prevent import loops) */
+export interface IUpgradeCard extends IInPlayCard, ICardWithPrintedHpProperty, ICardWithPrintedPowerProperty, ICardWithCostProperty, ICardCanChangeControllers {
+    get parentCard(): IUnitCard;
+    attachTo(newParentCard: IUnitCard, newController?: Player);
+    isAttached(): boolean;
+    unattach();
+    canAttach(targetCard: Card, controller?: Player): boolean;
+}
 
 /** Interface definition for addTriggeredAbility */
 export type ITriggeredAbilityProps<TSource extends Card = Card> = ITriggeredAbilityWhenProps<TSource> | ITriggeredAbilityAggregateWhenProps<TSource>;

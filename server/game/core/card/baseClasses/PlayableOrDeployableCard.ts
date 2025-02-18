@@ -13,6 +13,7 @@ import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import { Card } from '../Card';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
+import type { IUnitCard } from '../propertyMixins/UnitProperties';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
@@ -58,6 +59,9 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
  */
 export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
     private _exhausted?: boolean = null;
+    protected _parentCard?: IUnitCard = null;
+
+    protected attachCondition: (card: Card) => boolean;
 
     public get exhausted(): boolean {
         this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
@@ -67,6 +71,15 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     public set exhausted(val: boolean) {
         this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         this._exhausted = val;
+    }
+
+    /** The card that this card is underneath */
+    public get parentCard(): IUnitCard {
+        Contract.assertNotNullLike(this._parentCard);
+        // TODO: move IsInPlay to be usable here
+        // Contract.assertTrue(this.isInPlay());
+
+        return this._parentCard;
     }
 
     // see Card constructor for list of expected args
@@ -153,6 +166,49 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         return actions;
     }
 
+    public attachTo(newParentCard: IUnitCard, newController?: Player) {
+        Contract.assertTrue(newParentCard.isUnit());
+
+        // this assert needed for type narrowing or else the moveTo fails
+        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
+
+        if (this._parentCard) {
+            this.unattach();
+        }
+
+        if (newController && newController !== this.controller) {
+            this.takeControl(newController, newParentCard.zoneName);
+        } else {
+            this.moveTo(newParentCard.zoneName);
+        }
+
+        newParentCard.attachUpgrade(this);
+        this._parentCard = newParentCard;
+    }
+
+    public isAttached(): boolean {
+        return !!this._parentCard;
+    }
+
+    public unattach() {
+        Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
+
+        this.parentCard.unattachUpgrade(this);
+        this._parentCard = null;
+    }
+
+    /**
+         * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
+         * implementations must override this if they have specific attachment conditions.
+         */
+    public canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+        if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
+            return false;
+        }
+
+        return true;
+    }
+
     // TODO: Simplify this if it turns out there are no alternative ways to gain a Piloting cost
     protected buildCheapestPilotingAction(propertyOverrides: IPlayCardActionOverrides = null) {
         Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
@@ -216,7 +272,9 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     }
 
     public override getSummary(activePlayer: Player) {
-        return { ...super.getSummary(activePlayer), exhausted: this._exhausted };
+        return { ...super.getSummary(activePlayer),
+            exhausted: this._exhausted,
+            parentCardId: this._parentCard ? this._parentCard.uuid : null };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {

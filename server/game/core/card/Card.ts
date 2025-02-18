@@ -1,4 +1,4 @@
-import type { IActionAbilityProps, IConstantAbilityProps, ISetId, Zone, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, ISetId, Zone, ITriggeredAbilityProps, IUpgradeCard } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
@@ -20,7 +20,6 @@ import TriggeredAbility from '../ability/TriggeredAbility';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import type { IEventCard } from './EventCard';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
-import type { IUpgradeCard } from './UpgradeCard';
 import type { IBaseCard } from './BaseCard';
 import type { IDeployableLeaderCard, ILeaderUnitCard } from './LeaderUnitCard';
 import type { IDoubleSidedLeaderCard } from './DoubleSidedLeaderCard';
