@@ -20,9 +20,9 @@ export default class GuerillaSoldier extends NonLeaderUnitCard {
                 mode: TargetMode.Player,
                 immediateEffect: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 3 })
             },
-            then: {
+            ifYouDo: {
                 title: 'Ready this unit',
-                thenCondition: (context) => context.events.some((event) =>
+                ifYouDoCondition: (context) => context.events.some((event) =>
                     event.name === EventName.OnDamageDealt &&
                     (event.card as Card).isBase() &&
                     event.damageSource.type === DamageSourceType.Ability &&

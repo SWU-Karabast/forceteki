@@ -19,9 +19,9 @@ export default class TacticalHeavyBomber extends NonLeaderUnitCard {
                 amount: context.source.getPower(),
                 target: context.player.opponent,
             })),
-            then: {
+            ifYouDo: {
                 title: 'Draw a card',
-                thenCondition: (context) => context.events.some((event) =>
+                ifYouDoCondition: (context) => context.events.some((event) =>
                     event.name === EventName.OnDamageDealt &&
                     (event.card as Card).isBase() &&
                     event.damageSource.type === DamageSourceType.Ability &&
