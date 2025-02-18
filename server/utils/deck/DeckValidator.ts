@@ -89,10 +89,6 @@ export class DeckValidator {
         return 50;
     }
 
-    public getMaximumSideboardedDeckSize(_deck: ISwuDbDecklist): number {
-        return this.getMinimumSideboardedDeckSize(_deck) + DeckValidator.MaxSideboardSize;
-    }
-
     public validateDeck(deck: ISwuDbDecklist, format: SwuGameFormat): IDeckValidationFailures {
         try {
             if (!deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
@@ -113,30 +109,19 @@ export class DeckValidator {
             const deckCards = deck.sideboard ? deck.deck.concat(deck.sideboard) : deck.deck;
 
             const minBoardedSize = this.getMinimumSideboardedDeckSize(deck);
-            const maxBoardedSize = this.getMaximumSideboardedDeckSize(deck);
 
             const decklistCardsCount = this.getTotalCardCount(deckCards);
             const boardedCardsCount = this.getTotalCardCount(deck.deck);
             const sideboardCardsCount = deck.sideboard ? this.getTotalCardCount(deck.sideboard) : 0;
 
-            if (decklistCardsCount > maxBoardedSize) {
-                failures[DeckValidationFailureReason.MaxDecklistSizeExceeded] = {
-                    maxDecklistSize: maxBoardedSize,
-                    actualDecklistSize: decklistCardsCount
-                };
-            } else if (decklistCardsCount < minBoardedSize) {
+            if (decklistCardsCount < minBoardedSize) {
                 failures[DeckValidationFailureReason.MinDecklistSizeNotMet] = {
                     minDecklistSize: minBoardedSize,
                     actualDecklistSize: decklistCardsCount
                 };
             }
 
-            if (boardedCardsCount > maxBoardedSize) {
-                failures[DeckValidationFailureReason.MaxMainboardSizeExceeded] = {
-                    maxBoardedSize: maxBoardedSize,
-                    actualBoardedSize: boardedCardsCount
-                };
-            } else if (boardedCardsCount < minBoardedSize) {
+            if (boardedCardsCount < minBoardedSize) {
                 failures[DeckValidationFailureReason.MinMainboardSizeNotMet] = {
                     minBoardedSize: minBoardedSize,
                     actualBoardedSize: boardedCardsCount
@@ -171,13 +156,7 @@ export class DeckValidator {
                     failures[DeckValidationFailureReason.InvalidDeckData] = true;
                 }
 
-                if (card.count > 3) {
-                    failures[DeckValidationFailureReason.TooManyCopiesOfCard].push({
-                        card: { id: card.id, name: cardData.titleAndSubtitle },
-                        maxCopies: 3,
-                        actualCopies: card.count
-                    });
-                }
+                this.checkMaxCopiesOfCard(card, cardData, format, failures);
             }
 
             // clean up any unused failure reasons
@@ -209,6 +188,16 @@ export class DeckValidator {
             (!legalSets.includes(cardData.set) && format === SwuGameFormat.Premier)
         ) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({ id: cardData.set, name: cardData.titleAndSubtitle });
+        }
+    }
+
+    protected checkMaxCopiesOfCard(card: ISwuDbCardEntry, cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
+        if (card.count > 3) {
+            failures[DeckValidationFailureReason.TooManyCopiesOfCard].push({
+                card: { id: card.id, name: cardData.titleAndSubtitle },
+                maxCopies: 3,
+                actualCopies: card.count
+            });
         }
     }
 
