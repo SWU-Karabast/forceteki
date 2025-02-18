@@ -1,4 +1,4 @@
-import { EventName, PhaseName, ZoneName } from '../../Constants';
+import { AbilityRestriction, EventName, PhaseName, WildcardZoneName, ZoneName } from '../../Constants';
 import type Game from '../../Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
@@ -35,7 +35,7 @@ export class RegroupPhase extends Phase {
         const cardsToReady: ICardWithExhaustProperty[] = [];
 
         for (const player of this.game.getPlayers()) {
-            cardsToReady.push(...player.getUnitsInPlay());
+            cardsToReady.push(...player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => !card.hasRestriction(AbilityRestriction.DoesNotReadyDuringRegroup)));
             cardsToReady.push(...player.resources);
 
             if (player.leader.zoneName === ZoneName.Base) {

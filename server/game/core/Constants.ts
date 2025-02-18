@@ -411,6 +411,7 @@ export enum AbilityRestriction {
     Exhaust = 'exhaust',
     InitiateKeywords = 'initiateKeywords',
     Ready = 'ready',
+    DoesNotReadyDuringRegroup = 'doesNotReadyDuringRegroup',
     ReceiveDamage = 'receiveDamage',
     TriggerAbilities = 'triggerAbilities',
     BeCaptured = 'beCaptured',

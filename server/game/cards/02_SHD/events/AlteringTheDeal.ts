@@ -3,6 +3,8 @@ import { EventCard } from '../../../core/card/EventCard';
 import { ZoneName } from '../../../core/Constants';
 
 export default class AlteringTheDeal extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '6425029011',

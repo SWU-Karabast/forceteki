@@ -4,6 +4,8 @@ import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties
 import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class CadBaneHostageTaker extends NonLeaderUnitCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '0693815329',

@@ -109,5 +109,30 @@ describe('Overwhelm keyword', function() {
                 expect(context.p2Base.damage).toBe(9);
             });
         });
+
+        describe('When a unit with the Overwhelm and Ambush keyword attacks', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['gor#grievouss-pet'],
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper']
+                    }
+                });
+            });
+
+            it('and the unit is defeated all damage goes to base', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.gorGrievoussPet);
+                context.player1.clickPrompt('Ambush');
+                context.player1.clickCard(context.deathStarStormtrooper);
+
+                expect(context.deathStarStormtrooper).toBeInZone('discard');
+                expect(context.p2Base.damage).toBe(6); // 1 for stormtrooper, 6 for base
+            });
+        });
     });
 });

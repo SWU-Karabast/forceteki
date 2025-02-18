@@ -3,6 +3,8 @@ import { EventCard } from '../../../core/card/EventCard';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class PowerFailure extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '4323691274',
