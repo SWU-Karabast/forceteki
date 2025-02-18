@@ -66,22 +66,14 @@ describe('Millennium Falcon, Piece of Junk', function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        spaceArena: ['millennium-falcon#piece-of-junk'],
                         hand: ['vanquish']
                     },
                     player2: {
-                        spaceArena: ['cartel-spacer'],
-                        hand: ['take-captive'],
-                        hasInitiative: true
+                        spaceArena: [{ card: 'cartel-spacer', capturedUnits: ['millennium-falcon#piece-of-junk'] }]
                     }
                 });
 
                 const { context } = contextRef;
-
-                // capture Falcon with RR
-                context.player2.clickCard(context.takeCaptive);
-                context.player2.clickCard(context.cartelSpacer);
-                context.player2.clickCard(context.millenniumFalcon);
 
                 // defeat RR to rescue Falcon
                 context.player1.clickCard(context.vanquish);
