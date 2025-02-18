@@ -2,7 +2,7 @@ import type { Card } from '../../game/core/card/Card';
 import type Player from '../../game/core/Player';
 import * as CardHelpers from '../../game/core/card/CardHelpers';
 import * as Contract from '../../game/core/utils/Contract';
-import type { ISwuDbCardEntry, ISwuDbDecklist, IDecklistInternal } from './DeckInterfaces';
+import type { ISwuDbCardEntry, ISwuDbDecklist, IDecklistInternal, IInternalCardEntry } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
 import type { IPlayableCard } from '../../game/core/card/baseClasses/PlayableOrDeployableCard';
 import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
@@ -11,15 +11,27 @@ import type { ILeaderCard } from '../../game/core/card/propertyMixins/LeaderProp
 import { cards } from '../../game/cards/Index';
 
 export class Deck {
-    public readonly base: string;
-    public readonly leader: string;
+    private static buildDecklistEntry(cardId: string, count: number, cardDataGetter: CardDataGetter): IInternalCardEntry {
+        const internalId = cardDataGetter.setCodeMap.get(cardId);
+        Contract.assertNotNullLike(internalId, `Card ${cardId} not found in set code map`);
+
+        const mapEntry = cardDataGetter.cardMap.get(internalId);
+        Contract.assertNotNullLike(mapEntry, `Card internal id ${internalId} for set code ${cardId} not found in card map`);
+
+        return { id: cardId, count, internalName: mapEntry.id, cost: mapEntry.cost };
+    }
+
+    public readonly base: IInternalCardEntry;
+    public readonly leader: IInternalCardEntry;
+
+    private readonly cardDataGetter: CardDataGetter;
 
     private deckCards: Map<string, number>;
     private sideboard: Map<string, number>;
 
-    public constructor(decklist: ISwuDbDecklist | IDecklistInternal) {
-        this.base = decklist.base.id;
-        this.leader = decklist.leader.id;
+    public constructor(decklist: ISwuDbDecklist | IDecklistInternal, cardDataGetter: CardDataGetter) {
+        this.base = Deck.buildDecklistEntry(decklist.base.id, 1, cardDataGetter);
+        this.leader = Deck.buildDecklistEntry(decklist.leader.id, 1, cardDataGetter);
 
         const sideboard = decklist.sideboard ?? [];
 
@@ -31,6 +43,7 @@ export class Deck {
 
         this.deckCards = this.convertCardListToMap(decklist.deck, allCardIds);
         this.sideboard = this.convertCardListToMap(sideboard, allCardIds);
+        this.cardDataGetter = cardDataGetter;
     }
 
     private convertCardListToMap(cardList: ISwuDbCardEntry[], allCardIds: Set<string>) {
@@ -72,8 +85,8 @@ export class Deck {
 
     public getDecklist(): IDecklistInternal {
         return {
-            leader: { id: this.leader, count: 1 },
-            base: { id: this.base, count: 1 },
+            leader: this.leader,
+            base: this.base,
             deck: this.convertMapToCardList(this.deckCards),
             sideboard: this.convertMapToCardList(this.sideboard),
         };
@@ -103,12 +116,12 @@ export class Deck {
         }
 
         // base
-        const baseCard = (await this.buildCardsFromSetCodeAsync(this.base, player, cardDataGetter, 1))[0];
+        const baseCard = (await this.buildCardsFromSetCodeAsync(this.base.id, player, cardDataGetter, 1))[0];
         Contract.assertTrue(baseCard.isBase());
         result.base = baseCard;
 
         // leader
-        const leaderCard = (await this.buildCardsFromSetCodeAsync(this.leader, player, cardDataGetter, 1))[0];
+        const leaderCard = (await this.buildCardsFromSetCodeAsync(this.leader.id, player, cardDataGetter, 1))[0];
         Contract.assertTrue(leaderCard.isLeader());
         result.leader = leaderCard;
 
@@ -119,10 +132,17 @@ export class Deck {
         return result;
     }
 
-    private convertMapToCardList(cardsMap: Map<string, number>): ISwuDbCardEntry[] {
-        return Array.from(cardsMap.entries())
-            .filter(([_id, count]) => count > 0)
-            .map(([id, count]) => ({ id, count }));
+    private convertMapToCardList(cardsMap: Map<string, number>): IInternalCardEntry[] {
+        const cardList: IInternalCardEntry[] = [];
+        for (const [id, count] of cardsMap.entries()) {
+            if (count === 0) {
+                continue;
+            }
+
+            cardList.push(Deck.buildDecklistEntry(id, count, this.cardDataGetter));
+        }
+
+        return cardList;
     }
 
     private async buildCardsFromSetCodeAsync(

@@ -3,6 +3,8 @@ import { EventCard } from '../../../core/card/EventCard';
 import { WildcardCardType } from '../../../core/Constants';
 
 export default class Confiscate extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '5950125325',
