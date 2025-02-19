@@ -2,7 +2,7 @@ describe('Red Three', function () {
     integration(function (contextRef) {
         describe('Red Three\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-trooper', 'bail-organa#rebel-councilor', 'battlefield-marine'],

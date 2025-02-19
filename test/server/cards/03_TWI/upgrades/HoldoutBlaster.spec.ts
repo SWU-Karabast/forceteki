@@ -1,7 +1,7 @@
 describe('Hold-out Blaster', function() {
     integration(function(contextRef) {
-        it('Hold-out Blaster\'s ability deals 1 domage to a ground unit when played', function () {
-            contextRef.setupTest({
+        it('Hold-out Blaster\'s ability deals 1 domage to a ground unit when played', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['holdout-blaster'],

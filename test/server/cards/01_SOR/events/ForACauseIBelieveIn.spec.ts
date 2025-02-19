@@ -1,7 +1,7 @@
 describe('For A Cause I Believe In', function() {
     integration(function(contextRef) {
-        it('deals 4 damage to opponents base when 4 heroism cards are revealed', function() {
-            contextRef.setupTest({
+        it('deals 4 damage to opponents base when 4 heroism cards are revealed', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['for-a-cause-i-believe-in'],
@@ -50,8 +50,8 @@ describe('For A Cause I Believe In', function() {
             expect(context.regionalSympathizers).toBeInZone('discard');
         });
 
-        it('deals 0 damage to opponents base when 0 heroism cards are revealed', function() {
-            contextRef.setupTest({
+        it('deals 0 damage to opponents base when 0 heroism cards are revealed', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['for-a-cause-i-believe-in'],
@@ -98,8 +98,8 @@ describe('For A Cause I Believe In', function() {
             expect(context.player1.deck[3]).toBe(context.atst);
         });
 
-        it('reveals less than 4 cards if there are less than 4 cards remaining in the deck', function() {
-            contextRef.setupTest({
+        it('reveals less than 4 cards if there are less than 4 cards remaining in the deck', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['for-a-cause-i-believe-in'],
@@ -138,8 +138,8 @@ describe('For A Cause I Believe In', function() {
             expect(context.atst).toBeInZone('discard');
         });
 
-        it('should do nothing if there are no cards remaining in the deck', function() {
-            contextRef.setupTest({
+        it('should do nothing if there are no cards remaining in the deck', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['for-a-cause-i-believe-in'],
@@ -154,8 +154,8 @@ describe('For A Cause I Believe In', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should do nothing if the game ends before the ability resolves', function() {
-            contextRef.setupTest({
+        it('should do nothing if the game ends before the ability resolves', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     base: { card: 'dagobah-swamp', damage: 28 },
@@ -187,8 +187,8 @@ describe('For A Cause I Believe In', function() {
             context.allowTestToEndWithOpenPrompt = true;
         });
 
-        it('should end the game if it deals lethal damage to the opponent\'s base', function() {
-            contextRef.setupTest({
+        it('should end the game if it deals lethal damage to the opponent\'s base', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['for-a-cause-i-believe-in'],

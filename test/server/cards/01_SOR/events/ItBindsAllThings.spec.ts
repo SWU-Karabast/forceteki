@@ -2,7 +2,7 @@ describe('It Binds All Things', function() {
     integration(function(contextRef) {
         describe('It Binds All Things\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['it-binds-all-things'],
@@ -59,7 +59,7 @@ describe('It Binds All Things', function() {
 
         describe('It binds all thing\'s ability, when no force user is present', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['it-binds-all-things'],

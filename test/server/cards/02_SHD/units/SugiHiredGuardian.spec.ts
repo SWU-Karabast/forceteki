@@ -2,7 +2,7 @@ describe('Sugi, Hired Guardian', function () {
     integration(function (contextRef) {
         describe('Sugi\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['sugi#hired-guardian', { card: 'battlefield-marine', upgrades: ['academy-training'] }],
@@ -30,7 +30,7 @@ describe('Sugi, Hired Guardian', function () {
 
         describe('Sugi\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['sugi#hired-guardian'],

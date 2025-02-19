@@ -1,7 +1,7 @@
 describe('Manufactured Soldiers', function () {
     integration(function (contextRef) {
-        it('Manufactured Soldiers\'s ability should create two Clone Tropper tokens or three Battle Droid tokens', function () {
-            contextRef.setupTest({
+        it('Manufactured Soldiers\'s ability should create two Clone Tropper tokens or three Battle Droid tokens', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['manufactured-soldiers'],

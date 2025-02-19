@@ -2,7 +2,7 @@ describe('Action Phase', function() {
     integration(function(contextRef) {
         describe('Action Phase', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         resources: ['armed-to-the-teeth',

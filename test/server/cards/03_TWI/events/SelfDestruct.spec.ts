@@ -1,8 +1,8 @@
 describe('Self-Destruct', function () {
     integration(function (contextRef) {
         describe('Self-Destruct\'s ability', function () {
-            it('should defeat a friendly unit to deal 4 damage to an enemy unit', function () {
-                contextRef.setupTest({
+            it('should defeat a friendly unit to deal 4 damage to an enemy unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['selfdestruct'],

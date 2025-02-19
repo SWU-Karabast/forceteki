@@ -1,8 +1,8 @@
 describe('Providence Destroyer', function() {
     integration(function(contextRef) {
         describe('Providence Destroyer\'s ability', function () {
-            it('should give a enemy space unit -2/-2 for the phase', function () {
-                contextRef.setupTest({
+            it('should give a enemy space unit -2/-2 for the phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['droideka-security'],
@@ -33,8 +33,8 @@ describe('Providence Destroyer', function() {
                 expect(context.consortiumStarviper.getHp()).toBe(3);
             });
 
-            it('should not give -2/-2 without an enemy space unit', function () {
-                contextRef.setupTest({
+            it('should not give -2/-2 without an enemy space unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['droideka-security'],

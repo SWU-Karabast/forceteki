@@ -2,7 +2,7 @@ describe('Clan Wren Rescuer', function() {
     integration(function(contextRef) {
         describe('Clan Wren Rescuer\'s when played ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['clan-wren-rescuer'],

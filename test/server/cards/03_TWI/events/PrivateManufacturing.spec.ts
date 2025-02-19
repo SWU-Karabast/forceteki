@@ -1,8 +1,8 @@
 describe('Private Manufacturing', function () {
     integration(function (contextRef) {
         describe('Private Manufacturing\'s ability', function () {
-            it('should draw two cards and not ask to move two cards to bottom of the deck because there is at least one token unit', function () {
-                contextRef.setupTest({
+            it('should draw two cards and not ask to move two cards to bottom of the deck because there is at least one token unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['private-manufacturing'],
@@ -16,8 +16,8 @@ describe('Private Manufacturing', function () {
                 expect(context.player1.hand.length).toBe(2);
             });
 
-            it('should draw two cards and should ask to move two cards to bottom of the deck because there are no token units', function () {
-                contextRef.setupTest({
+            it('should draw two cards and should ask to move two cards to bottom of the deck because there are no token units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['private-manufacturing', 'republic-tactical-officer', 'advanced-recon-commando'],

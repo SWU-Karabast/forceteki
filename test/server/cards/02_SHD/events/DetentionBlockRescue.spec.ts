@@ -1,16 +1,15 @@
 describe('Detention Block Rescue', function() {
     integration(function(contextRef) {
         describe('Detention Block Rescue\'s ability', function() {
-            it('should deal 3 damage to a unit or 6 if he is guarding a unit', function () {
-                contextRef.setupTest({
+            it('should deal 3 damage to a unit or 6 if he is guarding a unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['detention-block-rescue'],
                         groundArena: ['battlefield-marine']
                     },
                     player2: {
-                        hand: ['take-captive'],
-                        groundArena: ['wampa', 'atst']
+                        groundArena: ['wampa', { card: 'atst', capturedUnits: ['echo-base-defender'] }]
                     },
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
@@ -31,9 +30,7 @@ describe('Detention Block Rescue', function() {
                 // reset
                 context.player1.moveCard(context.detentionBlockRescue, 'hand');
 
-                // atst capture a unit
-                context.player2.clickCard(context.takeCaptive);
-                context.player2.clickCard(context.atst);
+                context.player2.passAction();
 
                 // deal 6 damage to atst because he's guarding battlefield marine
                 context.player1.clickCard(context.detentionBlockRescue);

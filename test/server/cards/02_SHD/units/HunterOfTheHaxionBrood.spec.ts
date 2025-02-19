@@ -1,10 +1,10 @@
 describe('Hunter of the Haxion Brood', function () {
     integration(function (contextRef) {
         describe('Hunter of the Haxion Brood\'s ability', function () {
-            it('should have Shield because opponent has a unit with bounty.', function () {
+            it('should have Shield because opponent has a unit with bounty.', async function () {
                 const { context } = contextRef;
 
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['hunter-of-the-haxion-brood'],
@@ -18,10 +18,10 @@ describe('Hunter of the Haxion Brood', function () {
                 expect(context.hunterOfTheHaxionBrood).toHaveExactUpgradeNames(['shield']);
             });
 
-            it('should not have Shield because opponent does not have a unit with bounty', function () {
+            it('should not have Shield because opponent does not have a unit with bounty', async function () {
                 const { context } = contextRef;
 
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['hunter-of-the-haxion-brood'],

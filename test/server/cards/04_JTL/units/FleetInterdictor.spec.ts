@@ -1,7 +1,7 @@
 describe('Fleet Interdictor', function() {
     integration(function(contextRef) {
-        it('Fleet Interdictor\'s ability should defeat a space unit that cost 3 or less', function () {
-            contextRef.setupTest({
+        it('Fleet Interdictor\'s ability should defeat a space unit that cost 3 or less', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['fleet-interdictor', 'tieln-fighter'],

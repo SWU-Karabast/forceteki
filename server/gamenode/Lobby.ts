@@ -1,23 +1,22 @@
 import Game from '../game/core/Game';
 import { v4 as uuid } from 'uuid';
 import type Socket from '../socket';
-import defaultGameSettings from './defaultGame';
-import { Deck } from '../game/Deck';
 import * as Contract from '../game/core/utils/Contract';
 import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
 import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
+import { Deck } from '../utils/deck/Deck';
+import type { DeckValidator } from '../utils/deck/DeckValidator';
 
 interface LobbyUser {
     id: string;
     username: string;
     state: 'connected' | 'disconnected';
     ready: boolean;
-    socket: Socket | null;
-    deck: Deck | null;
-    swuDeck?: Deck | null;
+    socket?: Socket;
+    deck?: Deck;
 }
 export enum MatchType {
     Custom = 'Custom',
@@ -35,7 +34,8 @@ export class Lobby {
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
     private readonly gameChat: GameChat;
-    private readonly cardDataGetter: CardDataGetter; // TODO: currently not used but will be once we migrate card loading logic out of the FE
+    private readonly cardDataGetter: CardDataGetter;
+    private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly tokenCardsData: ITokenCardsData;
     private readonly playableCardTitles: string[];
@@ -46,7 +46,14 @@ export class Lobby {
     private gameType: MatchType;
     private rematchRequest?: RematchRequest = null;
 
-    public constructor(lobbyGameType: MatchType, cardDataGetter: CardDataGetter, tokenCardsData: ITokenCardsData, playableCardTitles: string[], testGameBuilder?: any) {
+    public constructor(
+        lobbyGameType: MatchType,
+        cardDataGetter: CardDataGetter,
+        deckValidator: DeckValidator,
+        tokenCardsData: ITokenCardsData,
+        playableCardTitles: string[],
+        testGameBuilder?: any
+    ) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
             `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
@@ -60,6 +67,7 @@ export class Lobby {
         this.testGameBuilder = testGameBuilder;
         this.playableCardTitles = playableCardTitles;
         this.tokenCardsData = tokenCardsData;
+        this.deckValidator = deckValidator;
     }
 
     public get id(): string {
@@ -74,8 +82,7 @@ export class Lobby {
                 username: u.username,
                 state: u.state,
                 ready: u.ready,
-                deck: u.deck?.data,
-                swuDeck: u.swuDeck,
+                deck: u.deck?.getDecklist(),
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
@@ -93,33 +100,22 @@ export class Lobby {
             : `https://beta.karabast.net/lobby?lobbyId=${this._id}`;
     }
 
-    public createLobbyUser(user, deck = null, swuDeck = null): void {
+    public createLobbyUser(user, decklist = null): void {
         const existingUser = this.users.find((u) => u.id === user.id);
-        const newDeck = deck ? new Deck(deck) : this.useDefaultDeck(user);
+        const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
         if (existingUser) {
-            existingUser.deck = newDeck;
+            existingUser.deck = deck;
             return;
         }
+
         this.users.push(({
             id: user.id,
             username: user.username,
             state: null,
             ready: false,
             socket: null,
-            deck: newDeck,
-            swuDeck: swuDeck
+            deck
         }));
-    }
-
-    private useDefaultDeck(user) {
-        switch (user.id) {
-            case 'exe66':
-                return new Deck(defaultGameSettings.players[0].deck);
-            case 'th3w4y':
-                return new Deck(defaultGameSettings.players[1].deck);
-            default:
-                return null;
-        }
     }
 
     public addLobbyUser(user, socket: Socket): void {
@@ -141,8 +137,7 @@ export class Lobby {
                 username: user.username,
                 state: 'connected',
                 ready: false,
-                socket,
-                deck: this.useDefaultDeck(user),
+                socket
             });
         }
 
@@ -201,53 +196,28 @@ export class Lobby {
         const activeUser = this.users.find((u) => u.id === socket.user.id);
         Contract.assertTrue(args[0] !== null);
         Contract.assertTrue(args[1] !== null);
-        activeUser.swuDeck = new Deck(args[1]);
-        activeUser.deck = new Deck(args[0]);
+        activeUser.deck = new Deck(args[1], this.cardDataGetter);
     }
 
     private updateDeck(socket: Socket, ...args) {
-        const activeUser = this.users.find((u) => u.id === socket.user.id);
-        const userDeck = activeUser.deck.data;
         const source = args[0]; // [<'Deck'|'Sideboard>'<cardID>]
-        const cardID = args[1];
+        const cardId = args[1];
 
         Contract.assertTrue(source === 'Deck' || source === 'Sideboard', `source isn't 'Deck' or 'Sideboard' but ${source}`);
-        // Determine the arrays we are moving between
-        const sourceArray = source === 'Deck' ? userDeck.deckCards : userDeck.sideboard;
-        const targetArray = source === 'Deck' ? userDeck.sideboard : userDeck.deckCards;
 
-        // Find the card in the source array
-        const sourceIndex = sourceArray.findIndex((item) => item.card.id === cardID);
-        Contract.assertTrue(sourceIndex !== -1);
+        const userDeck = this.getUser(socket.user.id).deck;
 
-        // Extract the card entry from the source
-        const sourceEntry = sourceArray[sourceIndex];
-
-        // Decrement the count in the source entry
-        sourceEntry.count -= 1;
-
-        // If count is now zero, remove it from the source array
-        Contract.assertNonNegative(sourceEntry.count, sourceEntry);
-        if (sourceEntry.count === 0) {
-            sourceArray.splice(sourceIndex, 1);
-        }
-
-        // Add this card to the target array
-        // Check if the card already exists in the target
-        const targetIndex = targetArray.findIndex((item) => item.card.id === cardID);
-
-        if (targetIndex === -1) {
-            // Card not in target array, add a new entry
-            targetArray.push({
-                count: 1,
-                card: sourceEntry.card
-            });
+        if (source === 'Deck') {
+            userDeck.moveToSideboard(cardId);
         } else {
-            // Card already exists in target, just increment the count
-            targetArray[targetIndex].count += 1;
+            userDeck.moveToDeck(cardId);
         }
+    }
 
-        socket.user.deck = userDeck;
+    private getUser(id: string) {
+        const user = this.users.find((u) => u.id === id);
+        Contract.assertNotNullLike(user, `Unable to find user with id ${id} in lobby ${this.id}`);
+        return user;
     }
 
     public setUserDisconnected(id: string): void {
@@ -288,7 +258,7 @@ export class Lobby {
         this.users = [];
     }
 
-    public startTestGame(filename: string) {
+    public async startTestGameAsync(filename: string) {
         const testJSONPath = path.resolve(__dirname, `../../../test/gameSetups/${filename}`);
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
 
@@ -300,8 +270,9 @@ export class Lobby {
         // eslint-disable-next-line
         const router = this;
 
-        const game: Game = this.testGameBuilder.setUpTestGame(
+        const game: Game = await this.testGameBuilder.setUpTestGameAsync(
             setupData,
+            this.cardDataGetter,
             router,
             { id: 'exe66', username: 'Order66' },
             { id: 'th3w4y', username: 'ThisIsTheWay' }
@@ -310,30 +281,50 @@ export class Lobby {
         this.game = game;
     }
 
-    private onStartGame(): void {
-        // TODO Change this to actual new GameSettings when we get to that point.
+    private async onStartGameAsync() {
         this.rematchRequest = null;
-        defaultGameSettings.players[0].user.id = this.users[0].id;
-        defaultGameSettings.players[0].user.username = this.users[0].username;
 
-        defaultGameSettings.players[1].user.id = this.users[1].id;
-        defaultGameSettings.players[1].user.username = this.users[1].username;
-        defaultGameSettings.playableCardTitles = this.playableCardTitles;
-
-        const game = new Game(defaultGameSettings, { router: this });
+        const game = new Game(this.buildGameSettings(), { router: this });
         this.game = game;
         game.started = true;
+
         // For each user, if they have a deck, select it in the game
         this.users.forEach((user) => {
             if (user.deck) {
-                game.selectDeck(user.id, user.deck.data);
+                game.selectDeck(user.id, user.deck);
             }
         });
 
         game.initialiseTokens(this.tokenCardsData);
-        game.initialise();
+        await game.initialiseAsync();
 
         this.sendGameState(game);
+    }
+
+    private buildGameSettings() {
+        const players = this.users.map((user) => ({
+            user: {
+                id: user.id,
+                username: user.username,
+                settings: {
+                    optionSettings: {
+                        autoSingleTarget: true,
+                    }
+                }
+            }
+        }));
+
+        return {
+            id: '0001',
+            name: 'Test Game',
+            allowSpectators: false,
+            spectatorSquelch: true,
+            owner: 'Order66',
+            clocks: 'timer',
+            players,
+            playableCardTitles: this.playableCardTitles,
+            cardDataGetter: this.cardDataGetter,
+        };
     }
 
     private onLobbyMessage(socket: Socket, command: string, ...args): void {

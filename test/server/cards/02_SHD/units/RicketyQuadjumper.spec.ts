@@ -1,9 +1,9 @@
 describe('RicketyQuadjumper', function () {
     integration(function (contextRef) {
         describe('Rickety Quadjumper\'s ability', function () {
-            it('should give an experience token to another unit if the revealed card is not a unit', function () {
+            it('should give an experience token to another unit if the revealed card is not a unit', async function () {
                 const { context } = contextRef;
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],
@@ -35,9 +35,9 @@ describe('RicketyQuadjumper', function () {
             });
 
 
-            it('should not give an experience token to another unit if the discarded card is a unit', function () {
+            it('should not give an experience token to another unit if the discarded card is a unit', async function () {
                 const { context } = contextRef;
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],
@@ -63,9 +63,9 @@ describe('RicketyQuadjumper', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not prompt if the deck is empty', function () {
+            it('should not prompt if the deck is empty', async function () {
                 const { context } = contextRef;
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],

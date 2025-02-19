@@ -1,7 +1,7 @@
 describe('Roger Roger\'s when defeated ability', function() {
     integration(function(contextRef) {
-        it('should transfer the upgrade to a friendly Battle Droid token', function() {
-            contextRef.setupTest({
+        it('should transfer the upgrade to a friendly Battle Droid token', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['droid-deployment', 'takedown'],

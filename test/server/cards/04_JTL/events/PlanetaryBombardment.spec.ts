@@ -1,7 +1,7 @@
 describe('Planetary Bombardment', function() {
     integration(function(contextRef) {
-        it('Planetary Bombardment\'s ability should deal 8 indirect damage to a player, or 12 if you control a Capital Ship', function() {
-            contextRef.setupTest({
+        it('Planetary Bombardment\'s ability should deal 8 indirect damage to a player, or 12 if you control a Capital Ship', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['planetary-bombardment'],

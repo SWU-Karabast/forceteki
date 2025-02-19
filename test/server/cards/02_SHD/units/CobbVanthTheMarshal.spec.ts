@@ -1,8 +1,8 @@
 describe('Cobb Vanth, The Marshal', function() {
     integration(function(contextRef) {
         describe('Cobb Vanth, The Marshal\'s ability', function() {
-            it('should search the deck for a card and make it playable for free for the phase', function () {
-                contextRef.setupTest({
+            it('should search the deck for a card and make it playable for free for the phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['cobb-vanth#the-marshal'],
@@ -59,8 +59,8 @@ describe('Cobb Vanth, The Marshal', function() {
                 expect(context.patrollingVwing).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
 
-            it('shouldn\'t allow the discarded card to be playable/be free after the phase ends', function () {
-                contextRef.setupTest({
+            it('shouldn\'t allow the discarded card to be playable/be free after the phase ends', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['cobb-vanth#the-marshal'],
@@ -89,8 +89,8 @@ describe('Cobb Vanth, The Marshal', function() {
                 expect(context.battlefieldMarine).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
 
-            it('shouldn\'t allow the discarded card to move to deck and hand and keep its effects', function () {
-                contextRef.setupTest({
+            it('shouldn\'t allow the discarded card to move to deck and hand and keep its effects', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['restock', 'strategic-analysis'],
@@ -142,8 +142,8 @@ describe('Cobb Vanth, The Marshal', function() {
                 expect(context.battlefieldMarine).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
 
-            it('should allow another play from discard event to operate on the selected card without creating play action dupes', function () {
-                contextRef.setupTest({
+            it('should allow another play from discard event to operate on the selected card without creating play action dupes', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['palpatines-return'],

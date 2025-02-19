@@ -1,8 +1,8 @@
 describe('Home One, On My Mark', function() {
     integration(function(contextRef) {
         describe('Home One, On My Mark\'s decrease cost ability', function() {
-            it('should cost 3 less if the opponent controls 3 or more space units', () => {
-                contextRef.setupTest({
+            it('should cost 3 less if the opponent controls 3 or more space units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['home-one#on-my-mark'],
@@ -21,8 +21,8 @@ describe('Home One, On My Mark', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(6);
             });
 
-            it('should not reduce unit cost as there are not three or more space units under the opponent\'s control', () => {
-                contextRef.setupTest({
+            it('should not reduce unit cost as there are not three or more space units under the opponent\'s control', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['home-one#on-my-mark'],

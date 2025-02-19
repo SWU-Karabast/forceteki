@@ -1,7 +1,7 @@
 describe('Play Restrictions Interactions', function () {
     integration(function (contextRef) {
-        it('Regional Governor\'s ability should prevent the blocked card being played via other cards like Ezra', function () {
-            contextRef.setupTest({
+        it('Regional Governor\'s ability should prevent the blocked card being played via other cards like Ezra', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['regional-governor'],
