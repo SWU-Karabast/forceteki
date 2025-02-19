@@ -4,11 +4,12 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import AbilityHelper from '../AbilityHelper';
+import * as Contract from '../core/utils/Contract';
 
 // TODO: allow providing only onTrue or onFalse in the properties so we don't need to use noAction()
 export interface IConditionalSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     condition: ((context: TContext, properties: IConditionalSystemProperties) => boolean) | boolean;
-    onTrue: GameSystem<TContext>;
+    onTrue?: GameSystem<TContext>;
     onFalse?: GameSystem<TContext>;
 }
 
@@ -17,9 +18,15 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
 
     protected override readonly defaultProperties: IConditionalSystemProperties<TContext> = {
         condition: null,
-        onTrue: null,
+        onTrue: AbilityHelper.immediateEffects.noAction(),
         onFalse: AbilityHelper.immediateEffects.noAction(),
     };
+
+    public constructor(propertiesOrPropertyFactory: ((context?: TContext) => IConditionalSystemProperties<TContext>) | IConditionalSystemProperties<TContext>) {
+        super(propertiesOrPropertyFactory);
+
+        Contract.assertTrue(!!this.properties.onTrue || !!this.properties.onFalse, 'You must provide onTrue or onFalse for ConditionalSystem');
+    }
 
     public override getInnerSystems(properties: IConditionalSystemProperties<TContext>) {
         return [properties.onTrue, properties.onFalse];
