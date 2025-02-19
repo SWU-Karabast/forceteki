@@ -289,7 +289,6 @@ export class Lobby {
 
     private async onStartGameAsync() {
         this.rematchRequest = null;
-
         const game = new Game(this.buildGameSettings(), { router: this });
         this.game = game;
         game.started = true;

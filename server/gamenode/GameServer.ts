@@ -17,6 +17,7 @@ import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
+import { DeckValidationFailureReason } from '../utils/deck/DeckInterfaces';
 
 /**
  * Represents a user object
@@ -146,9 +147,31 @@ export class GameServer {
 
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', async (req, res) => {
-            // TODO add check for deck validation
-            await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
-            return res.status(200).json({ success: true });
+            try {
+                const validationResults = this.deckValidator.validateDeck(req.body.deck, SwuGameFormat.Premier);
+
+                // Check if there's any failure reason other than "NotImplemented"
+                const hasBlockingFailures = Object.keys(validationResults).some(
+                    (key) => key !== DeckValidationFailureReason.NotImplemented
+                );
+
+                if (hasBlockingFailures) {
+                    // Return all validation failures so the client knows why
+                    return res.status(400).json({
+                        success: false,
+                        errors: validationResults
+                    });
+                }
+
+                // create the lobby
+                await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
+                return res.status(200).json({
+                    success: true,
+                });
+            } catch (err) {
+                console.error(err);
+                return res.status(500).json({ success: false, error: 'Server error.' });
+            }
         });
 
         app.get('/api/available-lobbies', (_, res) => {
@@ -187,14 +210,32 @@ export class GameServer {
         });
 
         app.post('/api/enter-queue', (req, res) => {
-            const { user, deck } = req.body;
-            // TODO add check for deck validation
+            try {
+                const { user, deck } = req.body;
+                const validationResults = this.deckValidator.validateDeck(deck, SwuGameFormat.Premier);
 
-            const success = this.enterQueue(user, deck);
-            if (!success) {
-                return res.status(400).json({ success: false, message: 'Failed to enter queue' });
+                // Check if any failures exist besides "NotImplemented"
+                const hasBlockingFailures = Object.keys(validationResults).some(
+                    (reason) => reason !== DeckValidationFailureReason.NotImplemented
+                );
+
+                if (hasBlockingFailures) {
+                    return res.status(400).json({
+                        success: false,
+                        errors: validationResults
+                    });
+                }
+
+                // If no blocking failures, proceed (unimplemented cards are allowed)
+                const success = this.enterQueue(user, deck);
+                if (!success) {
+                    return res.status(400).json({ success: false, message: 'Failed to enter queue' });
+                }
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                console.error(err);
+                return res.status(500).json({ success: false, error: 'Server error.' });
             }
-            return res.status(200).json({ success: true });
         });
 
         app.get('/api/health', (_, res) => {

@@ -86,19 +86,26 @@ export class DeckValidator {
 
     // TODO: account for new bases that modify these values
     // TODO: return back to ISwuDbDecklist when we have checks for those
-    public getMinimumSideboardedDeckSize(_deck: IDecklistInternal): number {
+    public getMinimumSideboardedDeckSize(_deck: IDecklistInternal | ISwuDbDecklist): number {
         return 50;
     }
 
-    public validateDeck(deck: IDecklistInternal, format: SwuGameFormat): IDeckValidationFailures {
+    // Type guard to check if a deck is an ISwuDbDecklist
+    private isSwuDbDecklist(
+        deck: IDecklistInternal | ISwuDbDecklist
+    ): deck is ISwuDbDecklist {
+        return 'metadata' in deck;
+    }
+
+    public validateDeck(deck: IDecklistInternal | ISwuDbDecklist, format: SwuGameFormat): IDeckValidationFailures {
         try {
-            if (!deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
+            if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
                 return { [DeckValidationFailureReason.InvalidDeckData]: true };
             }
 
-            /* TODO uncomment this when we add checks for SWUDB deck links if (deck.secondleader) {
+            if (this.isSwuDbDecklist(deck) && deck.secondleader) {
                 return { [DeckValidationFailureReason.TooManyLeaders]: true };
-            }*/
+            }
 
             const failures: IDeckValidationFailures = {
                 [DeckValidationFailureReason.NotImplemented]: [],
@@ -107,7 +114,9 @@ export class DeckValidator {
                 [DeckValidationFailureReason.UnknownCardId]: [],
             };
 
-            const deckCards = deck.sideboard ? deck.deck.concat(deck.sideboard) : deck.deck;
+            const deckCards: ISwuDbCardEntry[] = this.isSwuDbDecklist(deck)
+                ? [...(deck.deck ?? []), ...(deck.sideboard ?? [])]
+                : [...deck.deck, ...(deck.sideboard ?? [])];
 
             const minBoardedSize = this.getMinimumSideboardedDeckSize(deck);
 
