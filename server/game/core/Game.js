@@ -40,7 +40,7 @@ const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
 const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
 const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayCardsForSelectionPrompt.js');
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
-const { WildcardCardType } = require("./Constants");
+const { WildcardCardType } = require('./Constants');
 
 class Game extends EventEmitter {
     constructor(details, options = {}) {
