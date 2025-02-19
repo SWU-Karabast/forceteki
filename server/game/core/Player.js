@@ -199,6 +199,7 @@ class Player extends GameObject {
      * Get all units in designated play arena(s) controlled by this player
      * @param { Aspect } aspect Aspect needed for units
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
+     * @param {(card: Card) => boolean} [cardCondition=(card) => true]
      */
     getUnitsInPlayWithAspect(aspect, arena = WildcardZoneName.AnyArena, cardCondition = () => true) {
         return this.getArenaUnits({ aspect, arena, condition: cardCondition });
@@ -208,6 +209,7 @@ class Player extends GameObject {
      * Get all cards in designated play arena(s) other than the passed card controlled by this player.
      * @param { any } ignoreUnit Unit to filter from the returned results
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
+     * @param {(card: Card) => boolean} [cardCondition=(card) => true]
      */
     getOtherUnitsInPlay(ignoreUnit, arena = WildcardZoneName.AnyArena, cardCondition = () => true) {
         return this.getArenaUnits({ otherThan: ignoreUnit, arena, condition: cardCondition });
@@ -218,6 +220,7 @@ class Player extends GameObject {
      * @param { any } ignoreUnit Unit to filter from the returned results
      * @param { Aspect } aspect Aspect needed for units
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
+     * @param {(card: Card) => boolean} [cardCondition=(card) => true]
      */
     getOtherUnitsInPlayWithAspect(ignoreUnit, aspect, arena = WildcardZoneName.AnyArena, cardCondition = () => true) {
         return this.getArenaUnits({ otherThan: ignoreUnit, aspect, arena, condition: cardCondition });
