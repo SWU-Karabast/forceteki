@@ -37,6 +37,7 @@ const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
 const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
 const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayCardsForSelectionPrompt.js');
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
+const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 
 class Game extends EventEmitter {
     /**
@@ -47,14 +48,9 @@ class Game extends EventEmitter {
         super();
 
         Contract.assertNotNullLike(details);
-        Contract.assertNotNullLike(details.id);
-        Contract.assertNotNullLike(details.name);
-        Contract.assertNotNullLike(details.owner);
-        Contract.assertNotNullLike(details.gameMode);
-        Contract.assertNotNullLike(details.cardDataGetter);
-
+        validateGameConfiguration(details);
         Contract.assertNotNullLike(options);
-        Contract.assertNotNullLike(options.router);
+        validateGameOptions(options);
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
