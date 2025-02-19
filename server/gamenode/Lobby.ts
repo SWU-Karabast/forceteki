@@ -292,7 +292,6 @@ export class Lobby {
             }
         });
 
-        game.initialiseTokens(this.cardDataGetter.tokenData);
         await game.initialiseAsync();
 
         this.sendGameState(game);
