@@ -19,11 +19,10 @@ export default class JediLightsaber extends UpgradeCard {
             title: 'Give the defender -2/-2 for this phase',
             gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force),
 
-            // need to check if the target is a base - if so, don't apply the stat modifier effect
+            // need to check if the target is not a base - if so, apply the stat modifier effect
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.event.attack.target.isBase(),
-                onTrue: AbilityHelper.immediateEffects.noAction(),
-                onFalse: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
+                condition: (context) => !context.event.attack.target.isBase(),
+                onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 }),
                     target: (context.event.attack as Attack).target
                 }))

@@ -34,7 +34,6 @@ export default class PrisonerOfWar extends EventCard {
                                 target: context.targets.friendlyUnit.controller,
                                 amount: 2
                             })),
-                            onFalse: AbilityHelper.immediateEffects.noAction(),
                         })
                     ])
                 }

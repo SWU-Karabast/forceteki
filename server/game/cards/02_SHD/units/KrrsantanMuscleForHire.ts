@@ -17,7 +17,6 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.controller.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.hasSomeKeyword(KeywordName.Bounty)).length > 0,
                 onTrue: AbilityHelper.immediateEffects.ready(),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
 

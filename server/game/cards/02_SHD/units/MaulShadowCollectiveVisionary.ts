@@ -42,7 +42,6 @@ export default class MaulShadowCollectiveVisionary extends NonLeaderUnitCard {
                             }
                         })
                     })),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
         });

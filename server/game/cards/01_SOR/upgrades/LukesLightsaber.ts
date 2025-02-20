@@ -22,7 +22,6 @@ export default class LukesLightsaber extends UpgradeCard {
                 onTrue: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.heal({ amount: context.source.parentCard.damage }),
                     AbilityHelper.immediateEffects.giveShield()]),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             }))
         });
     }

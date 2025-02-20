@@ -31,7 +31,6 @@ export default class EnticingReward extends UpgradeCard {
                             target: context.player,
                             amount: 1
                         })),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
                     })
                 }
             }

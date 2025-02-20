@@ -27,9 +27,8 @@ export default class KyloRenKillingThePast extends NonLeaderUnitCard {
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
                     }),
                     AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => context.target.aspects.includes(Aspect.Villainy),
-                        onTrue: AbilityHelper.immediateEffects.noAction(),
-                        onFalse: AbilityHelper.immediateEffects.giveExperience()
+                        condition: (context) => !context.target.aspects.includes(Aspect.Villainy),
+                        onTrue: AbilityHelper.immediateEffects.giveExperience()
                     })
                 ])
             },

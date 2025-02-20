@@ -16,7 +16,6 @@ export default class VanguardDroidBomber extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
                 condition: context.source.controller.getOtherUnitsInPlayWithTrait(context.source, Trait.Separatist).length > 0,
                 onTrue: AbilityHelper.immediateEffects.damage({ amount: 2, target: context.source.controller.opponent.base }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             }))
         });
     }

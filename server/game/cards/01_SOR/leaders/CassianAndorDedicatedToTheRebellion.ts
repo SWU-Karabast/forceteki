@@ -31,7 +31,6 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
                     return damageDealtToBase >= 3;
                 },
                 onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

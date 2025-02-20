@@ -31,7 +31,6 @@ export default class GeneralGrievousTrophyCollector extends NonLeaderUnitCard {
                     numCardsFunc: (context) => Math.min(4, context.player.opponent.getUnitsInPlay().length),
                     innerSystem: AbilityHelper.immediateEffects.defeat()
                 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

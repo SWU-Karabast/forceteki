@@ -19,7 +19,6 @@ export default class KoskaReeves extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.isUpgraded(),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             },
         });
