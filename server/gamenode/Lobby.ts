@@ -122,6 +122,7 @@ export class Lobby {
             state: null,
             ready: false,
             socket: null,
+            deckValidationErrors: this.deckValidator.validateDeck(deck.getDecklist(), this.gameFormat),
             deck
         }));
     }
