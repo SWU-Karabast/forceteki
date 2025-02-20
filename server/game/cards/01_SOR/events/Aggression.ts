@@ -4,8 +4,6 @@ import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class Aggression extends EventCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '3736081333',

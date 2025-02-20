@@ -21,9 +21,6 @@ const AbilityResolver = require('./gameSteps/AbilityResolver.js');
 const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
-// const { Conflict } = require('./conflict');
-// const ConflictFlow = require('./gamesteps/conflict/conflictflow');
-// const MenuCommands = require('./MenuCommands');
 
 const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
@@ -41,33 +38,43 @@ const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCa
 const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayCardsForSelectionPrompt.js');
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
 const { WildcardCardType } = require('./Constants');
+const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 
 class Game extends EventEmitter {
-    constructor(details, options = {}) {
+    /**
+     * @param {import('./GameInterfaces.js').GameConfiguration} details
+     * @param {import('./GameInterfaces.js').GameOptions} options
+     */
+    constructor(details, options) {
         super();
 
+        Contract.assertNotNullLike(details);
+        validateGameConfiguration(details);
+        Contract.assertNotNullLike(options);
+        validateGameOptions(options);
+
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
+
+        /** @type { {[key: string]: Player | Spectator} } */
         this.playersAndSpectators = {};
         this.gameChat = new GameChat();
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.name = details.name;
         this.allowSpectators = details.allowSpectators;
-        this.spectatorSquelch = details.spectatorSquelch;
         this.owner = details.owner;
         this.started = false;
         this.playStarted = false;
         this.createdAt = new Date();
-        // this.savedGameId = details.savedGameId;
-        // this.gameType = details.gameType;
         this.currentActionWindow = null;
+
+        /** @type { EventWindow } */
         this.currentEventWindow = null;
+
         this.currentAttack = null;
         this.manualMode = false;
         this.gameMode = details.gameMode;
         this.currentPhase = null;
-        this.password = details.password;
-        this.playableCardTitles = details.playableCardTitles;
         this.roundNumber = 0;
         this.initialFirstPlayer = null;
         this.initiativePlayer = null;
@@ -77,34 +84,32 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
         this.randomGenerator = seedrandom();
-
-        /** @type {import('../../utils/cardData/CardDataGetter.js').CardDataGetter} */
         this.cardDataGetter = details.cardDataGetter;
+        this.playableCardTitles = this.cardDataGetter.playableCardTitles;
+
+        this.initialiseTokens(this.cardDataGetter.tokenData);
 
         /** @type {import('../Interfaces').IClientUIProperties} */
         this.clientUIProperties = {};
 
         this.registerGlobalRulesListeners();
 
-        this.shortCardData = options.shortCardData || [];
-
         // TODO TWIN SUNS
         Contract.assertArraySize(details.players, 2, 'Game must have exactly 2 players');
 
         details.players.forEach((player) => {
-            this.playersAndSpectators[player.user.id] = new Player(
-                player.user.id,
-                player.user,
-                this.owner === player.user.id,
+            this.playersAndSpectators[player.id] = new Player(
+                player.id,
+                player,
                 this,
-                details.clocks
+                details.clock
             );
         });
 
         // TODO: checks for required detail values (cardDataGetter, etc.) and an interface for the details object
 
         details.spectators?.forEach((spectator) => {
-            this.playersAndSpectators[spectator.user.id] = new Spectator(spectator.id, spectator.user);
+            this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator);
         });
 
         const [player1, player2] = this.getPlayers();
@@ -119,10 +124,9 @@ class Game extends EventEmitter {
     }
 
 
-    /*
+    /**
      * Reports errors from the game engine back to the router
-     * @param {type} e
-     * @returns {undefined}
+     * @param {Error} e
      */
     reportError(e) {
         this.router.handleError(this, e);
@@ -155,11 +159,20 @@ class Game extends EventEmitter {
 
     /**
      * Checks if a player is a spectator
-     * @param {Object} player
-     * @returns {Boolean}
+     * @param {Player | Spectator} player
+     * @returns {player is Spectator}
      */
     isSpectator(player) {
         return player.constructor === Spectator;
+    }
+
+    /**
+     * Checks if a player is a player
+     * @param {Player | Spectator} player
+     * @returns {player is Player}
+     */
+    isPlayer(player) {
+        return !this.isSpectator(player);
     }
 
     /**
@@ -168,7 +181,12 @@ class Game extends EventEmitter {
      * @returns {Boolean}
      */
     hasPlayerNotInactive(playerName) {
-        return this.playersAndSpectators[playerName] && !this.playersAndSpectators[playerName].left;
+        const player = this.playersAndSpectators[playerName];
+        if (!player) {
+            return false;
+        }
+
+        return !this.isPlayer(player) || !player.left;
     }
 
     /**
@@ -186,7 +204,7 @@ class Game extends EventEmitter {
      * @returns {Player[]}
      */
     getPlayers() {
-        return Object.values(this.playersAndSpectators).filter((player) => !this.isSpectator(player));
+        return Object.values(this.playersAndSpectators).filter((player) => this.isPlayer(player));
     }
 
     /**
@@ -203,12 +221,16 @@ class Game extends EventEmitter {
         throw new Error(`Player with name ${playerName} not found`);
     }
 
+    /**
+     * @param {string} playerId
+     * @returns {Player}
+     */
     getPlayerById(playerId) {
         Contract.assertHasProperty(this.playersAndSpectators, playerId);
 
         let player = this.playersAndSpectators[playerId];
-        Contract.assertFalse(this.isSpectator(player), `Player ${player.name} is a spectator`);
         Contract.assertNotNullLike(player, `Player with id ${playerId} not found`);
+        Contract.assertTrue(this.isPlayer(player), `Player ${player.name} is a spectator`);
 
         return player;
     }
@@ -223,7 +245,7 @@ class Game extends EventEmitter {
 
     /**
      * Get all players and spectators in the game
-     * @returns {Object} {name1: Player, name2: Player, name3: Spectator}
+     * @returns {{[key: string]: Player | Spectator}} {name1: Player, name2: Player, name3: Spectator}
      */
     getPlayersAndSpectators() {
         return this.playersAndSpectators;
@@ -318,7 +340,7 @@ class Game extends EventEmitter {
 
     /**
      * Returns all cards which matching the passed predicated function from either players arenas
-     * @param {(Card) => boolean} predicate - card => Boolean
+     * @param {(card: Card) => boolean} predicate - card => Boolean
      * @returns {Array} Array of DrawCard objects
      */
     findAnyCardsInPlay(predicate = () => true) {
@@ -819,7 +841,6 @@ class Game extends EventEmitter {
      * @param {String} playerId
      * @param {String} windowName - the name of the action window being toggled
      * @param {Boolean} toggle - the new setting of the toggle
-     * @returns {undefined}
      */
     togglePromptedActionWindow(playerId, windowName, toggle) {
         var player = this.getPlayerById(playerId);
@@ -831,29 +852,11 @@ class Game extends EventEmitter {
     }
 
     /**
-     * This function is called by the client when a player clicks an timer setting
+     * This function is called by the client when a player clicks an option setting
      * toggle in the settings menu
      * @param {String} playerId
      * @param {String} settingName - the name of the setting being toggled
      * @param {Boolean} toggle - the new setting of the toggle
-     * @returns {undefined}
-     */
-    toggleTimerSetting(playerId, settingName, toggle) {
-        var player = this.getPlayerByName(playerId);
-        if (!player) {
-            return;
-        }
-
-        // player.timerSettings[settingName] = toggle;
-    }
-
-    /*
-     * This function is called by the client when a player clicks an option setting
-     * toggle in the settings menu
-     * @param {String} playerName
-     * @param {String} settingName - the name of the setting being toggled
-     * @param {Boolean} toggle - the new setting of the toggle
-     * @returns {undefined}
      */
     toggleOptionSetting(playerId, settingName, toggle) {
         var player = this.getPlayerById(playerId);
@@ -924,20 +927,20 @@ class Game extends EventEmitter {
         this.resolveGameState();
     }
 
-    /*
+    /**
      * Adds a step to the pipeline queue
-     * @param {BaseStep} step
-     * @returns {undefined}
+     * @param {import('./gameSteps/IStep.js').IStep} step
+     * @returns {import('./gameSteps/IStep.js').IStep}
      */
     queueStep(step) {
         this.pipeline.queueStep(step);
         return step;
     }
 
-    /*
+    /**
      * Creates a step which calls a handler function
-     * @param {Function} handler - () => undefined
-     * @returns {undefined}
+     * @param {() => void} handler - () => void
+     * @param {string} stepName
      */
     queueSimpleStep(handler, stepName) {
         this.pipeline.queueStep(new SimpleStep(this, handler, stepName));
@@ -954,10 +957,10 @@ class Game extends EventEmitter {
         }
     }
 
-    /*
+    /**
      * Resolves a card ability
      * @param {AbilityContext} context - see AbilityContext.js
-     * @returns {undefined}
+     * @returns {AbilityResolver}
      */
     resolveAbility(context) {
         let resolver = new AbilityResolver(this, context);
@@ -972,7 +975,7 @@ class Game extends EventEmitter {
      * @param {Object} params - parameters for this event
      * @param {TriggerHandlingMode} triggerHandlingMode - whether the EventWindow should make its own TriggeredAbilityWindow to resolve
      * after its events and any nested events
-     * @param {(GameEvent) => void} handler - (GameEvent + params) => undefined
+     * @param {(event: GameEvent) => void} handler - (GameEvent + params) => undefined
      * returns {GameEvent} - this allows the caller to track GameEvent.resolved and
      * tell whether or not the handler resolved successfully
      */
@@ -998,7 +1001,7 @@ class Game extends EventEmitter {
      * ability which can respond any passed events, and execute their handlers.
      * @param events
      * @param {TriggerHandlingMode} triggerHandlingMode
-     * @returns {EventWindow}
+     * @returns {import('./gameSteps/IStep.js').IStep}
      */
     openEventWindow(events, triggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow) {
         if (!Array.isArray(events)) {
@@ -1066,6 +1069,10 @@ class Game extends EventEmitter {
     //     return events;
     // }
 
+    /**
+     * @param {Player} player
+     * @returns {AbilityContext}
+     */
     getFrameworkContext(player = null) {
         return new AbilityContext({ game: this, player: player });
     }
@@ -1134,7 +1141,7 @@ class Game extends EventEmitter {
             return false;
         }
 
-        this.playersAndSpectators[user.username] = new Player(socketId, user, this.owner === user.username, this);
+        this.playersAndSpectators[user.username] = new Player(socketId, user, this);
 
         return true;
     }
@@ -1176,9 +1183,8 @@ class Game extends EventEmitter {
             delete this.playersAndSpectators[playerName];
         } else {
             player.disconnected = true;
+            player.socket = undefined;
         }
-
-        player.socket = undefined;
     }
 
     failedConnect(playerName) {
@@ -1406,7 +1412,6 @@ class Game extends EventEmitter {
     getState(notInactivePlayerId) {
         let activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
         let playerState = {};
-        let { blocklist, email, emailHash, promptedActionWindows, settings, ...simplifiedOwner } = this.owner;
         if (this.started) {
             for (const player of this.getPlayers()) {
                 playerState[player.id] = player.getState(activePlayer);
@@ -1417,7 +1422,7 @@ class Game extends EventEmitter {
                 id: this.id,
                 manualMode: this.manualMode,
                 name: this.name,
-                owner: simplifiedOwner,
+                owner: this.owner,
                 players: playerState,
                 phase: this.currentPhase,
                 messages: this.gameChat.messages,
