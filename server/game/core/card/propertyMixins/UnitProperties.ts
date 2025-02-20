@@ -1,6 +1,6 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena } from '../../Constants';
-import { CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
+import { CardType, EffectName, EventName, KeywordName, StatType, Trait, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -55,6 +55,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
     canPlayOn(card);
+    canAttachPilot(): boolean;
     unattachUpgrade(upgrade);
     attachUpgrade(upgrade);
     getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
@@ -652,7 +653,39 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Checks whether an attachment can be played on a given card.  Intended to be
          * used by cards inheriting this class
          */
+        // TODO - is this used at all anywhere?
         public canPlayOn(card) {
+            return true;
+        }
+
+        /**
+         *  This should only be called if a unit is a Pilot or has some other ability that lets it attach as an upgrade
+         * @param {Card} targetCard The card that this would be attached to
+         * @param {Player} controller The controller of this card
+         * @returns True if this is allowed to attach to the targetCard; false otherwise
+         */
+        public override canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+            if (this.hasSomeKeyword(KeywordName.Piloting) && targetCard.isUnit()) {
+                return targetCard.canAttachPilot() && targetCard.controller === controller;
+            }
+            // TODO: Handle Phantom II and Sidon Ithano
+            return false;
+        }
+
+        /**
+         * Checks if a pilot can be attached to this unit
+         * @returns True if a Pilot can be attached to this unit; false otherwise
+         */
+        public canAttachPilot(): boolean {
+            if (!this.hasSomeTrait(Trait.Vehicle)) {
+                return false;
+            }
+
+            // TODO: we need logic for cards that override the pilot limit
+            if (this.upgrades.length > 0) {
+                const pilotUpgrades = this.upgrades.filter((upgrade) => upgrade.hasSomeTrait(Trait.Pilot));
+                return pilotUpgrades.length === 0;
+            }
             return true;
         }
 
