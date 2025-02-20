@@ -3,11 +3,12 @@ import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
-import { AbilityRestriction, PlayType, RelativePlayer } from '../core/Constants';
+import { AbilityRestriction, KeywordName, PlayType, RelativePlayer } from '../core/Constants';
 import type Game from '../core/Game';
 import * as Contract from '../core/utils/Contract';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
+import type { IUpgradeCard } from '../Interfaces';
 
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
@@ -23,11 +24,14 @@ export class PlayUpgradeAction extends PlayCardAction {
     }
 
     public override executeHandler(context: PlayCardContext) {
-        Contract.assertTrue(context.source.isUpgrade());
+        const isUpgrade = context.source.isUpgrade();
+        const isPilot = !isUpgrade && (context.source.isUnit() && context.source.hasSomeKeyword(KeywordName.Piloting));
+
+        Contract.assertTrue(isUpgrade || isPilot);
 
         const events = [
             new AttachUpgradeSystem({
-                upgrade: context.source,
+                upgrade: context.source as IUpgradeCard,
                 target: context.target,
                 newController: RelativePlayer.Self
             }).generateEvent(context),

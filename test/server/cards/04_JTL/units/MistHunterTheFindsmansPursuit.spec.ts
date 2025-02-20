@@ -1,6 +1,6 @@
 describe('Mist Hunter The Findsmans Pursuit', function() {
     integration(function(contextRef) {
-        it('Mist Hunter The Findsmans Pursuit\'s ability should draw a card on attack, if a Pilor or Bounty hunter has been played this phase', async function () {
+        it('Mist Hunter The Findsmans Pursuit\'s ability should draw a card on attack, if a Pilot or Bounty hunter has been played this phase', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -26,6 +26,7 @@ describe('Mist Hunter The Findsmans Pursuit', function() {
 
             // Play a Pilot Trait card and trigger draw
             context.player1.clickCard(context.boshek);
+            context.player1.clickPrompt('Play BoShek'); // Play him as a unit
             context.player2.passAction();
             context.player1.clickCard(context.mistHunter);
             context.player1.clickCard(context.p2Base);

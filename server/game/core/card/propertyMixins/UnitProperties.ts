@@ -158,10 +158,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this.upgrades.some((card) => card.isShield());
         }
 
-        public asUpgradeCard(): IUpgradeCard {
-            return this as IUpgradeCard;
-        }
-
         public override isUpgrade(): this is IUpgradeCard {
             return this._parentCard !== null; // TODO: is there a better check?
         }

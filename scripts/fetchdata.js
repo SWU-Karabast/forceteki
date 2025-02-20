@@ -143,7 +143,6 @@ function filterValues(card) {
     }
 
     if (filteredObj.keywords.includes('piloting')) {
-        console.log('\n', filteredObj.title);
         filteredObj.pilotText = filteredObj.epicAction;
         filteredObj.epicAction = null;
     }
@@ -158,10 +157,6 @@ function filterValues(card) {
     // keep original card for debug logging, will be removed before card is written to file
     delete card.attributes.variants;
     filteredObj.debugObject = card;
-
-    if (filteredObj.id === '9831674351') {
-        console.log(card);
-    }
 
     return filteredObj;
 }

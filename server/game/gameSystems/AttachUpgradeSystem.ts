@@ -2,12 +2,13 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
 import type { CardTypeFilter } from '../core/Constants';
-import { RelativePlayer } from '../core/Constants';
+import { KeywordName, RelativePlayer } from '../core/Constants';
 import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import type { IUpgradeCard } from '../Interfaces';
+import type { PlayableOrDeployableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 
 export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
     upgrade?: IUpgradeCard;
@@ -20,10 +21,10 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
 
     public override eventHandler(event, additionalProperties = {}): void {
-        const upgradeCard = (event.upgradeCard as Card);
+        const upgradeCard = (event.upgradeCard as PlayableOrDeployableCard);
         const parentCard = (event.parentCard as Card);
 
-        Contract.assertTrue(upgradeCard.isUpgrade());
+        Contract.assertTrue(upgradeCard.isUpgrade() || (upgradeCard.isUnit() && upgradeCard.hasSomeKeyword(KeywordName.Piloting)));
         Contract.assertTrue(parentCard.isUnit());
 
         event.originalZone = upgradeCard.zoneName;
