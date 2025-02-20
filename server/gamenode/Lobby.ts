@@ -10,6 +10,8 @@ import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardData
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
 import type { SwuGameFormat } from '../SwuGameFormat';
+import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
+import { DeckValidationFailureReason } from '../utils/deck/DeckInterfaces';
 
 interface LobbyUser {
     id: string;
@@ -18,6 +20,7 @@ interface LobbyUser {
     ready: boolean;
     socket?: Socket;
     deck?: Deck;
+    deckValidationErrors?: IDeckValidationFailures;
 }
 export enum MatchType {
     Custom = 'Custom',
@@ -87,7 +90,7 @@ export class Lobby {
                 state: u.state,
                 ready: u.ready,
                 deck: u.deck?.getDecklist(),
-                deckValidator: u.deck ? this.deckValidator.validateDeck(u.deck.getDecklist(), this.gameFormat) : null,
+                deckValidator: u.deckValidationErrors,
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
@@ -199,10 +202,20 @@ export class Lobby {
 
     private changeDeck(socket: Socket, ...args) {
         const activeUser = this.users.find((u) => u.id === socket.user.id);
-        // TODO before we change the deck we check if its valid.
-        Contract.assertTrue(args[0] !== null);
-        Contract.assertTrue(args[1] !== null);
-        activeUser.deck = new Deck(args[1], this.cardDataGetter);
+
+        // we check if the deck is valid.
+        activeUser.deckValidationErrors = this.deckValidator.validateDeck(args[0], this.gameFormat);
+        const failures = activeUser.deckValidationErrors;
+        const isEmptyOrOnlyNotImplemented = Object.entries(failures).every(
+            ([reason, value]) =>
+                reason === DeckValidationFailureReason.NotImplemented ||
+                (Array.isArray(value) ? value.length === 0 : !value)
+        );
+
+        // if the deck doesn't have any errors or only NotImplemented set it as active.
+        if (isEmptyOrOnlyNotImplemented) {
+            activeUser.deck = new Deck(args[0], this.cardDataGetter);
+        }
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -218,6 +231,8 @@ export class Lobby {
         } else {
             userDeck.moveToDeck(cardId);
         }
+        // check deck for deckValidationErrors
+        this.getUser(socket.user.id).deckValidationErrors = this.deckValidator.validateDeck(userDeck.getDecklist(), this.gameFormat);
     }
 
     private getUser(id: string) {
