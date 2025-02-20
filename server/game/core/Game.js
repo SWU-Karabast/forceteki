@@ -335,35 +335,35 @@ class Game extends EventEmitter {
     }
 
     /**
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerCardFilterProperties} filter
+     * @param {import('./zone/AllArenasZone').IAllArenasZoneCardFilterProperties} filter
      */
     getArenaCards(filter = {}) {
         return this.allArenas.getCards(filter);
     }
 
     /**
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
+     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
      */
     getArenaUnits(filter = {}) {
         return this.allArenas.getUnitCards(filter);
     }
 
     /**
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
+     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
      */
     getArenaUpgrades(filter = {}) {
         return this.allArenas.getUpgradeCards(filter);
     }
 
     /**
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerCardFilterProperties} filter
+     * @param {import('./zone/AllArenasZone').IAllArenasZoneCardFilterProperties} filter
      */
     hasSomeArenaCard(filter) {
         return this.allArenas.hasSomeCard(filter);
     }
 
     /**
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
+     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
      */
     hasSomeArenaUnit(filter) {
         return this.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit });
