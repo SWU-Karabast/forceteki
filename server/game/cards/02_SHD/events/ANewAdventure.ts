@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class ANewAdventure extends EventCard {
@@ -21,7 +21,8 @@ export default class ANewAdventure extends EventCard {
             then: (thenContext) => ({
                 title: `Play ${thenContext.target.title} for free`,
                 optional: true,
-                abilityController: thenContext.source.controller !== thenContext.target.controller ? RelativePlayer.Opponent : RelativePlayer.Self,
+                // TODO: Update this to use a GameSystem that lets the opponent play a card
+                canBeTriggeredBy: EnumHelpers.asRelativePlayer(thenContext.source.controller, thenContext.target.controller),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                     target: thenContext.target,
                     adjustCost: {
@@ -32,5 +33,3 @@ export default class ANewAdventure extends EventCard {
         });
     }
 }
-
-ANewAdventure.implemented = true;

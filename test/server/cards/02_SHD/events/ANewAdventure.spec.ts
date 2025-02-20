@@ -2,7 +2,7 @@ describe('A New Adventure', function() {
     integration(function(contextRef) {
         describe('A New Adventure\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['a-new-adventure'],
@@ -51,8 +51,8 @@ describe('A New Adventure', function() {
             });
         });
 
-        it('A New Adventure\'s ability should return a friendly-owned unit controlled by the opponent to hand and then the onwer can play it for free', function () {
-            contextRef.setupTest({
+        it('A New Adventure\'s ability should return a friendly-owned unit controlled by the opponent to hand and then the onwer can play it for free', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['a-new-adventure'],

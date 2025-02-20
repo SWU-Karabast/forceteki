@@ -2,7 +2,7 @@ describe('Koska Reeves', function() {
     integration(function(contextRef) {
         describe('Koska Reeves\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['academy-training'],

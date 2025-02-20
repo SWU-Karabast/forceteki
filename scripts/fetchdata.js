@@ -47,6 +47,30 @@ function populateMissingData(attributes, id) {
                 }]
             };
             break;
+        case '0026166404': // Chancellor Palpatine - Playing Both Sides
+            attributes.aspects = {
+                data: [{ attributes: {
+                    name: 'Cunning'
+                } },
+                { attributes: {
+                    name: 'Heroism'
+                } }
+                ]
+            };
+            attributes.backSideAspects = {
+                data: [{ attributes: {
+                    name: 'Cunning'
+                } },
+                { attributes: {
+                    name: 'Villainy'
+                } }
+                ]
+            };
+            attributes.backSideTitle = 'Darth Sidious';
+            break;
+        case '8862896760': // Maul - Shadow Collective Visionary
+            attributes.text = 'Ambush\nOverwhelm\nOn Attack: You may choose another friendly Underworld unit. If you do, all combat damage that would be dealt to this unit during this attack is dealt to the chosen unit instead.';
+            break;
     }
 }
 
@@ -71,14 +95,16 @@ function filterValues(card) {
     }
 
     // hacky way to strip the object down to just the attributes we want
-    const filterAttributes = ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints }) =>
-        ({ title, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints });
+    const filterAttributes = ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints }) =>
+        ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints });
 
     let filteredObj = filterAttributes(card.attributes);
 
     filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
 
     populateMissingData(card.attributes, filteredObj.id);
+
+    filteredObj.text = card.attributes.text;
 
     if (card.attributes.upgradeHp != null) {
         filteredObj.hp = card.attributes.upgradeHp;
@@ -92,6 +118,13 @@ function filterValues(card) {
     filteredObj.traits = getAttributeNames(card.attributes.traits);
     filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
     filteredObj.keywords = getAttributeNames(card.attributes.keywords);
+
+    if (card.attributes.backSideAspects) {
+        filteredObj.backSideAspects = getAttributeNames(card.attributes.backSideAspects);
+    }
+    if (card.attributes.backSideTitle) {
+        filteredObj.backSideTitle = card.attributes.backSideTitle;
+    }
 
     // if a card has multiple types it will be still in one string, like 'token upgrade'
     filteredObj.types = getAttributeNames(card.attributes.type).split(' ');
@@ -133,7 +166,7 @@ function getCardData(page, progressBar) {
         });
 }
 
-function getUniqueCards(cards) {
+function buildCardLists(cards) {
     const cardMap = [];
     const setCodeMap = {};
     const playableCardTitlesSet = new Set();
@@ -145,13 +178,24 @@ function getUniqueCards(cards) {
     for (const card of cards) {
         // creates a map of set code + card number to card id. removes reprints when done since we don't need that in the card data
         if (!card.types.includes('token')) {
-            setCodeMap[`${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`] = card.id;
+            const setCodeStr = `${card.setId.set}_${String(card.setId.number).padStart(3, '0')}`;
+            if (!setCodeMap.hasOwnProperty(setCodeStr)) {
+                setCodeMap[setCodeStr] = card.id;
+            }
+
+            let mostRecentSetCode = card.setId;
             for (const reprint of card.reprints.data) {
                 const setCode = reprint.attributes.expansion.data.attributes.code;
                 if (setCode && setNumber.has(setCode)) {
                     setCodeMap[`${setCode}_${String(reprint.attributes.cardNumber).padStart(3, '0')}`] = card.id;
+
+                    mostRecentSetCode = {
+                        set: reprint.attributes.expansion.data.attributes.code,
+                        number: reprint.attributes.cardNumber
+                    };
                 }
             }
+            card.setId = mostRecentSetCode;
         }
         delete card.reprints;
 
@@ -168,7 +212,7 @@ function getUniqueCards(cards) {
         }
 
         seenNames.push(card.internalName);
-        cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle });
+        cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle, cost: card.cost });
 
         if (!card.types.includes('token') && !card.types.includes('leader') && !card.types.includes('base')) {
             playableCardTitlesSet.add(card.title);
@@ -206,7 +250,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap } = getUniqueCards(cards);
+    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap } = buildCardLists(cards);
 
     cards.map((card) => delete card.debugObject);
 
@@ -215,7 +259,7 @@ async function main() {
     fileWriteProgressBar.start(uniqueCards.length, 0);
 
     await Promise.all(uniqueCards.map((card) => {
-        fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify([card], null, 2));
+        fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify(card, null, 2));
         fileWriteProgressBar.increment();
     }));
 

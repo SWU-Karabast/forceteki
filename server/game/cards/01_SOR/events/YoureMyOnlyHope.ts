@@ -3,8 +3,6 @@ import { EventCard } from '../../../core/card/EventCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class YoureMyOnlyHope extends EventCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '3509161777',
@@ -15,28 +13,40 @@ export default class YoureMyOnlyHope extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Look at the top card of your deck',
-            immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
-                target: context.source.controller.getTopCardOfDeck()
-            })),
-            ifYouDo: (ifYouDoContext) => ({
-                title: ifYouDoContext.source.controller.base.remainingHp <= 5
-                    ? `Play ${ifYouDoContext.source.controller.getTopCardOfDeck().title} for free`
-                    : `Play ${ifYouDoContext.source.controller.getTopCardOfDeck().title}, it costs 5 less`,
-                optional: true,
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.source.controller.base.remainingHp <= 5,
-                    onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay((context) => ({
-                        target: context.source.controller.getTopCardOfDeck(),
-                        adjustCost: { costAdjustType: CostAdjustType.Free }
-                    })),
-                    onFalse: AbilityHelper.immediateEffects.playCardFromOutOfPlay((context) => ({
-                        target: context.source.controller.getTopCardOfDeck(),
-                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 5 }
-                    }))
-                })
-            })
+            immediateEffect: AbilityHelper.immediateEffects.lookAtAndChooseOption(
+                (context) => {
+                    const topCardOfDeck = context.source.controller.getTopCardOfDeck();
+                    const canPlayForFree = context.source.controller.base.remainingHp <= 5;
+                    const leaveOnTopButton = {
+                        text: 'Leave on top',
+                        arg: 'leave',
+                        immediateEffect: AbilityHelper.immediateEffects.noAction({ hasLegalTarget: true })
+                    };
+                    const playForFreeButton = {
+                        text: 'Play for free',
+                        arg: 'play-free',
+                        immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
+                            target: topCardOfDeck,
+                            adjustCost: { costAdjustType: CostAdjustType.Free }
+                        })
+                    };
+                    const playForDiscountButton = {
+                        text: 'Play for 5 less',
+                        arg: 'play-discount',
+                        immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
+                            target: topCardOfDeck,
+                            adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 5 }
+                        })
+                    };
+
+                    return {
+                        target: topCardOfDeck,
+                        perCardButtons: canPlayForFree
+                            ? [playForFreeButton, leaveOnTopButton]
+                            : [playForDiscountButton, leaveOnTopButton]
+                    };
+                }
+            )
         });
     }
 }
-
-YoureMyOnlyHope.implemented = true;

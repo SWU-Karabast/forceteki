@@ -2,7 +2,7 @@ describe('The Ghost, Spectre Home Base', function () {
     integration(function (contextRef) {
         describe('The Ghost\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-ghost#spectre-home-base'],
@@ -34,7 +34,7 @@ describe('The Ghost, Spectre Home Base', function () {
 
         describe('The Ghost\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['21b-surgical-droid', 'sabine-wren#explosives-artist'],

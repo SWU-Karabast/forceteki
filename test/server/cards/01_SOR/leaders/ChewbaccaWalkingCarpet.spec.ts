@@ -2,7 +2,7 @@ describe('Chewbacca, Walking Carpet', function() {
     integration(function(contextRef) {
         describe('Chewbacca, Walking Carpet\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['alliance-xwing', 'liberated-slaves', 'seventh-fleet-defender', 'consular-security-force'],

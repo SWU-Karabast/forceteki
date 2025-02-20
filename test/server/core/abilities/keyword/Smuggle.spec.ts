@@ -2,7 +2,7 @@ describe('Smuggle keyword', function() {
     integration(function(contextRef) {
         describe('When a card with a Smuggle cost is in resources', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', damage: 4 }, 'pyke-sentinel'],
@@ -86,7 +86,26 @@ describe('Smuggle keyword', function() {
                 expect(context.player1.readyResourceCount).toBe(7);
             });
 
-            // TODO: add test confirming if a ready resource is smuggled, its status is swapped with an exhausted resource before moving
+            it('can be Smuggled even if the deck is empty', function () {
+                const { context } = contextRef;
+
+                context.player1.setDeck([]);
+
+                context.player1.clickCard(context.collectionsStarhopper);
+                expect(context.collectionsStarhopper).toBeInZone('spaceArena');
+                expect(context.player1.resources.length).toBe(17);
+            });
+
+            it('and the card is readied, will swap its state with an exhausted card before playing if possible', function () {
+                const { context } = contextRef;
+
+                context.covertStrength.exhausted = true;
+
+                context.player1.clickCard(context.collectionsStarhopper);
+                expect(context.collectionsStarhopper).toBeInZone('spaceArena');
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+                expect(context.player1.readyResourceCount).toBe(14);
+            });
         });
     });
 });

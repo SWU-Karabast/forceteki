@@ -13,11 +13,9 @@ export default class SuperlaserBlast extends EventCard {
         this.setEventAbility({
             title: 'Defeat all units',
             immediateEffect: AbilityHelper.immediateEffects.defeat((context) => {
-                const allUnits = context.player.getUnitsInPlay().concat(context.player.opponent.getUnitsInPlay());
+                const allUnits = context.game.getArenaUnits();
                 return { target: allUnits };
             })
         });
     }
 }
-
-SuperlaserBlast.implemented = true;

@@ -110,6 +110,10 @@ class PlayerInteractionWrapper {
             if (leaderOptions.upgrades) {
                 this.setCardUpgrades(leaderCard, leaderOptions.upgrades);
             }
+
+            if (leaderOptions.capturedUnits) {
+                this.setCapturedUnits(leaderCard, leaderOptions.capturedUnits);
+            }
         } else {
             if (leaderOptions.deployed === false) {
                 if (leaderCard.deployed === true) {
@@ -121,6 +125,10 @@ class PlayerInteractionWrapper {
             }
             if (leaderOptions.upgrades) {
                 throw new TestSetupError('Leader should not have upgrades when not deployed');
+            }
+
+            if (leaderOptions.flipped) {
+                leaderCard.flipLeader();
             }
 
             leaderCard.exhausted = leaderOptions.exhausted || false;
@@ -243,6 +251,10 @@ class PlayerInteractionWrapper {
                 this.setCardUpgrades(card, options.upgrades, prevZones);
             }
 
+            if (options.capturedUnits) {
+                this.setCapturedUnits(card, options.capturedUnits, prevZones);
+            }
+
             if (options.damage !== undefined) {
                 card.damage = options.damage;
             }
@@ -262,6 +274,20 @@ class PlayerInteractionWrapper {
             }
 
             upgradeCard.attachTo(card);
+        }
+    }
+
+    setCapturedUnits(card, capturedUnits, prevZones = 'any') {
+        for (const capturedUnit of capturedUnits) {
+            const capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
+            const side = (capturedUnit.hasOwnProperty('owner') && capturedUnit.owner === this.player.nameField) ? 'self' : 'opponent';
+            let capturedUnitCard;
+            if (Util.isTokenUnit(capturedUnitName)) {
+                throw new TestSetupError(`Attempting to add token unit ${capturedUnitName} to ${card}`);
+            } else {
+                capturedUnitCard = this.findCardByName(capturedUnitName, prevZones, side);
+            }
+            capturedUnitCard.moveToCaptureZone(card.captureZone);
         }
     }
 
@@ -328,7 +354,8 @@ class PlayerInteractionWrapper {
         });
         // Move cards to the resource area in reverse order
         // (helps with referring to cards by index)
-        newContents.reverse().forEach((name) => {
+        newContents.reverse().forEach((resource) => {
+            const name = typeof resource === 'string' ? resource : resource.card;
             var card = this.findCardByName(name, prevZones);
             this.moveCard(card, 'resource');
             card.exhausted = false;
@@ -531,6 +558,10 @@ class PlayerInteractionWrapper {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeDamage');
     }
 
+    setDistributeIndirectDamagePromptState(cardDistributionMap) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeIndirectDamage');
+    }
+
     setDistributeHealingPromptState(cardDistributionMap) {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
     }
@@ -542,8 +573,13 @@ class PlayerInteractionWrapper {
     setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
         var currentPrompt = this.player.currentPrompt();
 
+        const cardDistributionArray = [...cardDistributionMap].map(([card, amount]) => ({
+            uuid: card.uuid,
+            amount
+        }));
+
         const promptResults = {
-            valueDistribution: cardDistributionMap,
+            valueDistribution: cardDistributionArray,
             type
         };
 

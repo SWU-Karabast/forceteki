@@ -2,18 +2,18 @@ import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type Player from '../core/Player';
-import type { UnitCard } from '../core/card/CardTypes';
 import type { Card } from '../core/card/Card';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 // TODO: add a "defeatedBy: Player" field here.
 export interface DefeatedUnitEntry {
-    unit: UnitCard;
+    unit: IUnitCard;
     inPlayId: number;
     controlledBy: Player;
 }
 
 interface InPlayUnit {
-    unit: UnitCard;
+    unit: IUnitCard;
     inPlayId: number;
 }
 
@@ -36,10 +36,15 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     }
 
     /** Get the list of the specified player's units that were defeated */
-    public getDefeatedUnitsControlledByPlayer(controller: Player): UnitCard[] {
+    public getDefeatedUnitsControlledByPlayer(controller: Player): IUnitCard[] {
         return this.getCurrentValue()
             .filter((entry) => entry.controlledBy === controller)
             .map((entry) => entry.unit);
+    }
+
+    /** Get the list of the units that were defeated this phase */
+    public someUnitDefeatedThisPhase(filter: (entry: DefeatedUnitEntry) => boolean): boolean {
+        return this.getCurrentValue().filter(filter).length > 0;
     }
 
     /** Get the list of the specified player's units that were defeated */
@@ -50,7 +55,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     }
 
     /** Check if a specific copy of a unit was defeated this phase */
-    public wasDefeatedThisPhase(card: UnitCard, inPlayId?: number): boolean {
+    public wasDefeatedThisPhase(card: IUnitCard, inPlayId?: number): boolean {
         const inPlayIdToCheck = inPlayId ?? (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId);
 
         return this.getCurrentValue().some(

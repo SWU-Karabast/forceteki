@@ -7,8 +7,8 @@ import type { Card } from '../card/Card';
 import type Game from '../Game';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import * as Contract from '../utils/Contract';
-import type { CardWithTriggeredAbilities } from '../card/CardTypes';
 import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
+import type { ICardWithTriggeredAbilities } from '../card/propertyMixins/TriggeredAbilityRegistration';
 
 interface IEventRegistration {
     name: string;
@@ -105,13 +105,13 @@ export default class TriggeredAbility extends CardAbility {
             controller = context.event.lastKnownInformation.controller;
         }
 
-        switch (this.abilityController) {
+        switch (this.canBeTriggeredBy) {
             case RelativePlayer.Self:
                 return context.player === controller;
             case RelativePlayer.Opponent:
                 return context.player === controller.opponent;
             default:
-                Contract.fail(`Unexpected value for relative player: ${this.abilityController}`);
+                Contract.fail(`Unexpected value for relative player: ${this.canBeTriggeredBy}`);
         }
     }
 
@@ -178,7 +178,7 @@ export default class TriggeredAbility extends CardAbility {
         for (const player of this.game.getPlayers()) {
             const context = this.createContext(player, events);
             if (
-                (this.card as CardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
+                (this.card as ICardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
                 this.aggregateWhen(events, context) &&
                 this.meetsRequirements(context) === ''
             ) {

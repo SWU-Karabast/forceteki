@@ -1,8 +1,8 @@
 describe('Fugitive Wookiee', function() {
     integration(function(contextRef) {
         describe('Fugitive Wookiee\'s Bounty ability', function() {
-            it('should exhaust a unit when triggered by defeat', function () {
-                contextRef.setupTest({
+            it('should exhaust a unit when triggered by defeat', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['fugitive-wookiee', 'battlefield-marine']
@@ -25,8 +25,8 @@ describe('Fugitive Wookiee', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should exhaust a unit when triggered by capture', function () {
-                contextRef.setupTest({
+            it('should exhaust a unit when triggered by capture', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['fugitive-wookiee', 'battlefield-marine']

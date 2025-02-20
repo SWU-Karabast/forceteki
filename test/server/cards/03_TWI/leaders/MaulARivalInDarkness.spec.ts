@@ -1,8 +1,8 @@
 describe('Maul, A Rival In Darkness', function() {
     integration(function(contextRef) {
         describe('Maul, A Rival In Darkness\'s undeployed leader ability', function() {
-            it('should attack with a unit and it gains Overwhelm', function() {
-                contextRef.setupTest({
+            it('should attack with a unit and it gains Overwhelm', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['zuckuss#bounty-hunter-for-hire', 'scout-bike-pursuer'],
@@ -36,8 +36,8 @@ describe('Maul, A Rival In Darkness', function() {
         });
 
         describe('Maul, A Rival In Darkness\'s leader deployed ability', function() {
-            it('should give Overwhelm to all friendly units', function() {
-                contextRef.setupTest({
+            it('should give Overwhelm to all friendly units', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-star-stormtrooper', 'zuckuss#bounty-hunter-for-hire', 'greedo#slow-on-the-draw'],

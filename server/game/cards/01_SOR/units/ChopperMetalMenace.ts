@@ -34,5 +34,3 @@ export default class ChopperMetalMenace extends NonLeaderUnitCard {
         });
     }
 }
-
-ChopperMetalMenace.implemented = true;

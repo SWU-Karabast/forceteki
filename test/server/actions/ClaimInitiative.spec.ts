@@ -2,7 +2,7 @@ describe('Claim Initiative', function() {
     integration(function (contextRef) {
         describe('when a player has not taken the initiative', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                 });
             });
@@ -18,8 +18,8 @@ describe('Claim Initiative', function() {
         });
 
         describe('when a player has taken the initiative', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                 });
 

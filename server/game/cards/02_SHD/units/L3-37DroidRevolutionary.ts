@@ -27,5 +27,3 @@ export default class L337DroidRevolutionary extends NonLeaderUnitCard {
         });
     }
 }
-
-L337DroidRevolutionary.implemented = true;

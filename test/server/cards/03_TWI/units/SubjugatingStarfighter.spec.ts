@@ -1,8 +1,8 @@
 describe('Subjugating Starfighter', function() {
     integration(function(contextRef) {
         describe('Subjugating Starfighter\'s abilities', function() {
-            it('Should create a Battle Droid token if the player has the initiative', function () {
-                contextRef.setupTest({
+            it('Should create a Battle Droid token if the player has the initiative', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['subjugating-starfighter'],
@@ -28,8 +28,8 @@ describe('Subjugating Starfighter', function() {
                 expect(context.player1.findCardsByName('battle-droid').every((battleDroid) => battleDroid.exhausted)).toBeTrue();
             });
 
-            it('Should NOT create a Battle Droid token if the player DOES NOT has the initiative', function () {
-                contextRef.setupTest({
+            it('Should NOT create a Battle Droid token if the player DOES NOT has the initiative', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['subjugating-starfighter']

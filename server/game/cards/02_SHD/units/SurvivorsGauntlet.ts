@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
+import { WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
 
 export default class SurvivorsGauntlet extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -28,7 +29,7 @@ export default class SurvivorsGauntlet extends NonLeaderUnitCard {
                     dependsOn: 'chooseUpgrade',
                     cardTypeFilter: WildcardCardType.Unit,
                     zoneFilter: WildcardZoneName.AnyArena,
-                    controller: (context) => (context.source.controller === context.targets.chooseUpgrade.controller ? RelativePlayer.Self : RelativePlayer.Opponent),
+                    controller: (context) => EnumHelpers.asRelativePlayer(context.source.controller, context.targets.chooseUpgrade.controller),
                     cardCondition: (card, context) => context.targets.chooseUpgrade.isUpgrade() && context.targets.chooseUpgrade.parentCard !== card,
                     immediateEffect: AbilityHelper.immediateEffects.attachUpgrade((context) => ({
                         upgrade: context.targets.chooseUpgrade,

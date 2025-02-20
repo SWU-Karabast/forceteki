@@ -28,5 +28,3 @@ export default class InDefenseOfKamino extends EventCard {
         });
     }
 }
-
-InDefenseOfKamino.implemented = true;

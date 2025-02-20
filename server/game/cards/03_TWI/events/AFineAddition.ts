@@ -52,4 +52,3 @@ export default class AFineAddition extends EventCard {
     }
 }
 
-AFineAddition.implemented = true;

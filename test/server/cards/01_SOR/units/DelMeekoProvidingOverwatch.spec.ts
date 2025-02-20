@@ -2,7 +2,7 @@ describe('Del Meeko, Providing Overwatch', function() {
     integration(function(contextRef) {
         describe('Del Meeko\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['moment-of-peace'],

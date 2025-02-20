@@ -1,8 +1,8 @@
 describe('Grenade Strike', function() {
     integration(function(contextRef) {
         describe('Grenade Strike\'s ability -', function() {
-            it('should deal 2 damage to a unit and 1 damage to another unit in the same arena', function() {
-                contextRef.setupTest({
+            it('should deal 2 damage to a unit and 1 damage to another unit in the same arena', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['grenade-strike'],

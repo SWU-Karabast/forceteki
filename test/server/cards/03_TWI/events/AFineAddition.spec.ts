@@ -1,7 +1,7 @@
 describe('A Fine Addition', function () {
     integration(function (contextRef) {
-        it('A Fine Addition\'s ability should play an upgrade from your hand or opponents discard, ignoring aspect penalty, if an enemy was defeated this phase', function () {
-            contextRef.setupTest({
+        it('A Fine Addition\'s ability should play an upgrade from your hand or opponents discard, ignoring aspect penalty, if an enemy was defeated this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['a-fine-addition', 'ahsokas-padawan-lightsaber'],
@@ -27,7 +27,7 @@ describe('A Fine Addition', function () {
             expect(context.player2).toBeActivePlayer();
 
             // Restore for more testing
-            context.aFineAddition.moveTo('hand');
+            context.player1.moveCard(context.aFineAddition, 'hand');
 
             // Now defeat an friendly unit to make sure it doesn't trigger opponent
             context.player2.clickCard(context.wampa);
@@ -40,7 +40,7 @@ describe('A Fine Addition', function () {
             expect(context.player2).toBeActivePlayer();
 
             // Restore for more testing
-            context.aFineAddition.moveTo('hand');
+            context.player1.moveCard(context.aFineAddition, 'hand');
 
             context.player2.passAction();
 
@@ -77,7 +77,7 @@ describe('A Fine Addition', function () {
             context.player2.clickCard(context.resilient);
 
             // Restore for more testing
-            context.aFineAddition.moveTo('hand');
+            context.player1.moveCard(context.aFineAddition, 'hand');
 
             context.player1.clickCard(context.aFineAddition);
             expect(context.player1.exhaustedResourceCount).toBe(3);
@@ -96,7 +96,7 @@ describe('A Fine Addition', function () {
             context.player2.passAction();
 
             // Restore for more testing
-            context.aFineAddition.moveTo('hand');
+            context.player1.moveCard(context.aFineAddition, 'hand');
 
             context.player1.clickCard(context.aFineAddition);
             expect(context.player1.exhaustedResourceCount).toBe(5);

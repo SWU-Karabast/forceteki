@@ -5,10 +5,10 @@ import { EventName } from '../core/Constants';
 import type { ICost, ICostResult } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
-import type { CardWithCost } from '../core/card/CardTypes';
 import type { CostAdjuster } from '../core/cost/CostAdjuster';
 import * as Helpers from '../core/utils/Helpers';
 import { ExploitCostAdjuster } from '../abilities/keyword/ExploitCostAdjuster';
+import type { ICardWithCostProperty } from '../core/card/propertyMixins/Cost';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -16,7 +16,7 @@ import { ExploitCostAdjuster } from '../abilities/keyword/ExploitCostAdjuster';
  */
 export class PlayCardResourceCost<TContext extends AbilityContext = AbilityContext> implements ICost<TContext> {
     public readonly aspects: Aspect[];
-    public readonly card: CardWithCost;
+    public readonly card: ICardWithCostProperty;
     public readonly isPlayCost = true;
     public readonly playType: PlayType;
     public readonly resources: number;
@@ -24,7 +24,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     // used for extending this class if any cards have unique after pay hooks
     protected afterPayHook?: ((event: any) => void) = null;
 
-    public constructor(card: CardWithCost, playType: PlayType, resources: number = null, aspects: Aspect[] = null) {
+    public constructor(card: ICardWithCostProperty, playType: PlayType, resources: number = null, aspects: Aspect[] = null) {
         this.card = card;
         this.playType = playType;
 
@@ -102,9 +102,11 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     protected getExhaustResourceEvent(context: TContext): GameEvent {
         return new GameEvent(EventName.onExhaustResources, context, { amount: this.getAdjustedCost(context) }, (event) => {
             const amount = this.getAdjustedCost(context);
+            context.costs.resources = amount;
 
             event.context.player.markUsedAdjusters(context.playType, event.context.source, context);
             if (this.playType === PlayType.Smuggle) {
+                Contract.assertTrue(event.context.source.canBeExhausted());
                 event.context.player.exhaustResources(amount, [event.context.source]);
             } else {
                 event.context.player.exhaustResources(amount);

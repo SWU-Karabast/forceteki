@@ -11,10 +11,11 @@ import { logger } from '../logger';
 import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
 import * as env from '../env';
-import type { Deck } from '../game/Deck';
-import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
+import type { Deck } from '../utils/deck/Deck';
+import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
+import { DeckValidator } from '../utils/deck/DeckValidator';
 
 /**
  * Represents a user object
@@ -42,7 +43,7 @@ interface QueuedPlayer {
 }
 
 export class GameServer {
-    public static async create(): Promise<GameServer> {
+    public static async createAsync(): Promise<GameServer> {
         let cardDataGetter: CardDataGetter;
         let testGameBuilder: any = null;
 
@@ -56,15 +57,16 @@ export class GameServer {
             cardDataGetter = await GameServer.buildRemoteCardDataGetter();
         }
 
-        return new GameServer(cardDataGetter,
-            await cardDataGetter.getTokenCardsData(),
-            await cardDataGetter.getPlayableCardTitles(),
-            testGameBuilder);
+        return new GameServer(
+            cardDataGetter,
+            await DeckValidator.createAsync(cardDataGetter),
+            testGameBuilder
+        );
     }
 
     private static buildRemoteCardDataGetter(): Promise<RemoteCardDataGetter> {
         // TODO: move this url to a config
-        return RemoteCardDataGetter.create('https://karabast-assets.s3.amazonaws.com/data/');
+        return RemoteCardDataGetter.createAsync('https://karabast-assets.s3.amazonaws.com/data/');
     }
 
     private static getTestGameBuilder() {
@@ -83,13 +85,16 @@ export class GameServer {
     private readonly userLobbyMap = new Map<string, string>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
+    private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
-    private readonly tokenCardsData: ITokenCardsData;
-    private readonly playableCardTitles: string[];
 
     private queue: QueuedPlayer[] = [];
 
-    private constructor(cardDataGetter: CardDataGetter, tokenCardsData: ITokenCardsData, playableCardTitles: string[], testGameBuilder?: any) {
+    private constructor(
+        cardDataGetter: CardDataGetter,
+        deckValidator: DeckValidator,
+        testGameBuilder?: any
+    ) {
         const app = express();
         app.use(express.json());
         const server = http.createServer(app);
@@ -127,8 +132,7 @@ export class GameServer {
 
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
-        this.tokenCardsData = tokenCardsData;
-        this.playableCardTitles = playableCardTitles;
+        this.deckValidator = deckValidator;
     }
 
     private setupAppRoutes(app: express.Application) {
@@ -214,8 +218,7 @@ export class GameServer {
         const lobby = new Lobby(
             isPrivate ? MatchType.Private : MatchType.Custom,
             this.cardDataGetter,
-            this.tokenCardsData,
-            this.playableCardTitles,
+            this.deckValidator,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -230,7 +233,12 @@ export class GameServer {
     }
 
     private async startTestGame(filename: string) {
-        const lobby = new Lobby(MatchType.Custom, this.cardDataGetter, this.tokenCardsData, this.playableCardTitles, this.testGameBuilder);
+        const lobby = new Lobby(
+            MatchType.Custom,
+            this.cardDataGetter,
+            this.deckValidator,
+            this.testGameBuilder
+        );
         this.lobbies.set(lobby.id, lobby);
         const order66 = { id: 'exe66', username: 'Order66' };
         const theWay = { id: 'th3w4y', username: 'ThisIsTheWay' };
@@ -238,7 +246,7 @@ export class GameServer {
         lobby.createLobbyUser(theWay);
         this.userLobbyMap.set(order66.id, lobby.id);
         this.userLobbyMap.set(theWay.id, lobby.id);
-        await lobby.startTestGame(filename);
+        await lobby.startTestGameAsync(filename);
     }
 
     private getTestSetupGames() {
@@ -414,7 +422,12 @@ export class GameServer {
             }
 
             // Create a new Lobby
-            const lobby = new Lobby(MatchType.Quick, this.cardDataGetter, this.tokenCardsData, this.playableCardTitles, this.testGameBuilder);
+            const lobby = new Lobby(
+                MatchType.Quick,
+                this.cardDataGetter,
+                this.deckValidator,
+                this.testGameBuilder
+            );
             this.lobbies.set(lobby.id, lobby);
 
             // Create the 2 lobby users

@@ -2,7 +2,7 @@ describe('Battle Droid Escort', function() {
     integration(function(contextRef) {
         describe('Battle Droid Escort\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['battle-droid-escort']

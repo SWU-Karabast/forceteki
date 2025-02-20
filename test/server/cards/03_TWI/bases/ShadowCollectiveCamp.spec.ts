@@ -1,7 +1,7 @@
 describe('Shadow Collective Camp', function () {
     integration(function (contextRef) {
-        it('Shadow Collective Camp\'s ability should draw a card when leader deploys', function () {
-            contextRef.setupTest({
+        it('Shadow Collective Camp\'s ability should draw a card when leader deploys', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['battlefield-marine'],

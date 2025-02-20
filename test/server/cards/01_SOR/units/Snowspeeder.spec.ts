@@ -1,8 +1,8 @@
 describe('Snowspeeder', function() {
     integration(function (contextRef) {
         describe('Snowspeeder\'s ability -', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['snowspeeder'],

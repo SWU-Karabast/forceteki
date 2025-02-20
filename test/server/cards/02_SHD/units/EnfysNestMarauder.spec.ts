@@ -2,7 +2,7 @@ describe('Enfys Nest, Marauder', function () {
     integration(function (contextRef) {
         describe('Enfys Nest\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['enfys-nest#marauder', 'syndicate-lackeys', 'liberated-slaves'],

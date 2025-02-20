@@ -1,7 +1,7 @@
 describe('Steela Gerrera, Beloved Tactician', function () {
     integration(function (contextRef) {
-        it('Steela Gerrera\'s ability should deal 2 damage to our base to search the top 8 cards of deck for a tactic card', function () {
-            contextRef.setupTest({
+        it('Steela Gerrera\'s ability should deal 2 damage to our base to search the top 8 cards of deck for a tactic card', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['steela-gerrera#beloved-tactician'],

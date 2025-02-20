@@ -2,8 +2,8 @@ describe('ISB Agent', function() {
     integration(function(contextRef) {
         describe('ISB Agent\'s When Played ability', function() {
             describe('when hand contains some events', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['confiscate', 'waylay', 'isb-agent'],
@@ -33,6 +33,12 @@ describe('ISB Agent', function() {
                         'player1 uses ISB Agent to reveal a card',
                         'player1 reveals Confiscate due to ISB Agent',
                     ]);
+
+                    expect(context.player2).toHaveExactViewableDisplayPromptCards([context.confiscate]);
+                    expect(context.player2).toHaveEnabledPromptButton('Done');
+                    expect(context.getChatLogs(1)[0]).toContain(context.confiscate.title);
+
+                    context.player2.clickPrompt('Done');
 
                     expect(context.player1).toBeAbleToSelectExactly([context.isbAgent, context.atst, context.cartelSpacer, context.wampa, context.allianceXwing]);
                     context.player1.clickCard(context.wampa);
@@ -68,8 +74,8 @@ describe('ISB Agent', function() {
             });
 
             describe('when hand contains no events', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['isb-agent']

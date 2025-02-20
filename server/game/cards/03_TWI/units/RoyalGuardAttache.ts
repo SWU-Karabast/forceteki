@@ -19,5 +19,3 @@ export default class RoyalGuardAttache extends NonLeaderUnitCard {
         });
     }
 }
-
-RoyalGuardAttache.implemented = true;

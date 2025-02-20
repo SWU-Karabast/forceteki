@@ -18,12 +18,9 @@ export default class KuiilIHaveSpoken extends NonLeaderUnitCard {
             })),
             ifYouDo: (context) => ({
                 title: 'If it shares an aspect with your base, return it to your hand.',
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: this.hasMatchingAspects(context),
-                    onTrue: AbilityHelper.immediateEffects.returnToHand({
-                        target: context.events[0].card
-                    }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
+                ifYouDoCondition: () => this.hasMatchingAspects(context),
+                immediateEffect: AbilityHelper.immediateEffects.returnToHand({
+                    target: context.events[0].card
                 })
             })
         });

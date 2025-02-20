@@ -2,7 +2,7 @@ describe('Guerilla Attack Pod', function () {
     integration(function (contextRef) {
         describe('Guerilla Attack Pod\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['guerilla-attack-pod'],

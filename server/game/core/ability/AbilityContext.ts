@@ -25,6 +25,7 @@ export interface IAbilityContextProperties {
     stage?: Stage;
     targetAbility?: any;
     playType?: PlayType;
+    selectedPromptCards?: Card[];
 }
 
 /**
@@ -53,6 +54,7 @@ export class AbilityContext<TSource extends Card = Card> {
     public playType?: PlayType;
     public cardStateWhenInitiated: any = null;
     public usesExploit?: boolean;
+    public selectedPromptCards: Card[] = [];
 
     public constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
@@ -67,6 +69,7 @@ export class AbilityContext<TSource extends Card = Card> {
         this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
         this.usesExploit = properties.usesExploit;
+        this.selectedPromptCards = properties.selectedPromptCards || [];
         // const zone = this.player && this.player.playableZones.find(zone => zone.contains(this.source));
 
         this.playType = this.ability?.isPlayCardAbility()
@@ -109,7 +112,8 @@ export class AbilityContext<TSource extends Card = Card> {
             events: this.events,
             stage: this.stage,
             targetAbility: this.targetAbility,
-            playType: this.playType
+            playType: this.playType,
+            selectedPromptCards: this.selectedPromptCards,
         };
     }
 }

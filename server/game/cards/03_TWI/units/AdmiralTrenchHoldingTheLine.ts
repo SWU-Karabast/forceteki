@@ -34,5 +34,3 @@ export default class AdmiralTrenchHoldingTheLine extends NonLeaderUnitCard {
     }
 }
 
-
-AdmiralTrenchHoldingTheLine.implemented = true;

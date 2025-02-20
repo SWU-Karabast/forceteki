@@ -1,7 +1,7 @@
 describe('Kashyyyk Defender', function() {
     integration(function(contextRef) {
-        it('Should allow to heal up to 2 damage on a unit and damage itself for the same value healed', function () {
-            contextRef.setupTest({
+        it('Should allow to heal up to 2 damage on a unit and damage itself for the same value healed', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['kashyyyk-defender'],

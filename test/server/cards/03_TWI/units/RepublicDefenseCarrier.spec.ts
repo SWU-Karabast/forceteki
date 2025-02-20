@@ -1,7 +1,7 @@
 describe('Republic Defense Carrier', function () {
     integration(function (contextRef) {
-        it('Republic Defense Carrier\'s ability should decrease its costs by number of units opponent control', function () {
-            contextRef.setupTest({
+        it('Republic Defense Carrier\'s ability should decrease its costs by number of units opponent control', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['republic-defense-carrier'],
@@ -20,8 +20,8 @@ describe('Republic Defense Carrier', function () {
             expect(context.player1.exhaustedResourceCount).toBe(8);
         });
 
-        it('Republic Defense Carrier\'s ability should decrease its costs by number of units opponent control (opponent does not control unit) ', function () {
-            contextRef.setupTest({
+        it('Republic Defense Carrier\'s ability should decrease its costs by number of units opponent control (opponent does not control unit) ', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['republic-defense-carrier'],

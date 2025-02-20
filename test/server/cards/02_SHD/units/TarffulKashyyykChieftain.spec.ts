@@ -2,7 +2,7 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
     integration(function(contextRef) {
         describe('Tarfful\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['tarfful#kashyyyk-chieftain', 'liberated-slaves', 'isb-agent'],
@@ -18,7 +18,7 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                 });
             });
 
-            it('when a wookie unit is damaged that unit deals that much damage to an enemey ground unit', function () {
+            it('when a wookie unit is damaged that unit deals that much damage to an enemy ground unit', function () {
                 const { context } = contextRef;
 
                 // Scenario 1: a friendly wookie unit attacks
@@ -78,8 +78,8 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                 expect(context.player1).toBeActivePlayer();
                 expect(context.player1).toHavePrompt('Choose an action');
 
-                // TODO: Add test with TWI Maul unit dealing damage to multiple friendly wooikee at the same time
-                // TODO: Add test where Tarfful is defeated and another friednly wookiee unit is damaged at the same time (for example, using TWI Maul unit)
+                // TODO: Add test with TWI Maul unit dealing damage to multiple friendly wookiee at the same time
+                // TODO: Add test where Tarfful is defeated and another friendly wookiee unit is damaged at the same time (for example, using TWI Maul unit)
             });
         });
     });

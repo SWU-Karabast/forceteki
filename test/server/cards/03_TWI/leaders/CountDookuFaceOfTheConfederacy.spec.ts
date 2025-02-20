@@ -2,8 +2,8 @@
 describe('Count Dooku, Face of the Confederacy', function () {
     integration(function (contextRef) {
         describe('Count Dooku\'s leader undeployed ability', function () {
-            it('should play a Separatist card from hand that does not already have Exploit and give it Exploit 1', function () {
-                contextRef.setupTest({
+            it('should play a Separatist card from hand that does not already have Exploit and give it Exploit 1', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['droideka-security', 'generals-guardian', 'pyke-sentinel', 'dwarf-spider-droid'],
@@ -96,8 +96,8 @@ describe('Count Dooku, Face of the Confederacy', function () {
             });
         });
 
-        it('Count Dooku\'s leader undeployed ability should default to standard play if there are no units available to exploit', function () {
-            contextRef.setupTest({
+        it('Count Dooku\'s leader undeployed ability should default to standard play if there are no units available to exploit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['droideka-security', 'generals-guardian', 'pyke-sentinel'],
@@ -119,7 +119,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
 
         describe('Count Dooku\'s leader deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['droideka-security', 'generals-guardian', 'pyke-sentinel', 'dwarf-spider-droid'],

@@ -1,7 +1,7 @@
 describe('It\'s a Trap', function() {
     integration(function(contextRef) {
-        it('It\'s a Trap\'s ability should ready all space units controlled the player', function() {
-            contextRef.setupTest({
+        it('It\'s a Trap\'s ability should ready all space units controlled the player', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['its-a-trap'],
@@ -27,8 +27,8 @@ describe('It\'s a Trap', function() {
             expect(context.imperialInterceptor.exhausted).toBe(true);
         });
 
-        it('It\'s a Trap\'s ability Should not ready any space unit as the player has fewer units than the opponent', function() {
-            contextRef.setupTest({
+        it('It\'s a Trap\'s ability Should not ready any space unit as the player has fewer units than the opponent', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['its-a-trap'],

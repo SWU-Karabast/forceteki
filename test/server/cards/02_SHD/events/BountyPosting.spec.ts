@@ -1,8 +1,8 @@
 describe('Bounty Posting', function() {
     integration(function(contextRef) {
         describe('Bounty Posting\'s ability', function() {
-            it('should be able to search your deck for a bounty upgrade (shuffling deck) and then play it for its cost', function () {
-                contextRef.setupTest({
+            it('should be able to search your deck for a bounty upgrade (shuffling deck) and then play it for its cost', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bounty-posting'],
@@ -27,7 +27,7 @@ describe('Bounty Posting', function() {
 
                 context.player1.clickCardInDisplayCardPrompt(context.topTarget);
                 expect(context.topTarget).toBeInZone('hand', context.player1);
-                expect(context.player1).toHavePassAbilityPrompt('Play that upgrade (paying its cost).');
+                expect(context.player1).toHavePassAbilityPrompt('Play that upgrade (paying its cost)');
 
                 expect(context.getChatLogs(4)).toEqual([
                     'player1 plays Bounty Posting to search their deck',
@@ -36,15 +36,15 @@ describe('Bounty Posting', function() {
                     'player1 is shuffling their deck'
                 ]);
 
-                context.player1.clickPrompt('Play that upgrade (paying its cost).');
+                context.player1.clickPrompt('Play that upgrade (paying its cost)');
                 context.player1.clickCard(context.cloneTrooper);
                 expect(context.cloneTrooper).toHaveExactUpgradeNames(['top-target']);
                 expect(preShuffleDeck).not.toEqual(context.player1.deck);
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should be able to search your deck for a bounty upgrade (shuffling deck) and then not play it without the resources', function () {
-                contextRef.setupTest({
+            it('should be able to search your deck for a bounty upgrade (shuffling deck) and then not play it without the resources', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bounty-posting'],
@@ -72,8 +72,8 @@ describe('Bounty Posting', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should do nothing if no bounty upgrades are found', function () {
-                contextRef.setupTest({
+            it('should do nothing if no bounty upgrades are found', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bounty-posting'],

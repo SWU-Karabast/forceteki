@@ -1,8 +1,8 @@
 describe('Confederate Tri-Fighter', function () {
     integration(function (contextRef) {
         describe('Confederate Tri-Fighter\'s ability', function () {
-            it('should cancel heal on bases', function () {
-                contextRef.setupTest({
+            it('should cancel heal on bases', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['repair'],

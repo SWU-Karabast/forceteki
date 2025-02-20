@@ -163,7 +163,8 @@ export abstract class PlayCardAction extends PlayerAction {
     public override getContextProperties(player: Player, event: any) {
         return {
             ...super.getContextProperties(player, event),
-            costAspects: this.card.aspects
+            costAspects: this.card.aspects,
+            playType: this.playType,
         };
     }
 
@@ -189,11 +190,17 @@ export abstract class PlayCardAction extends PlayerAction {
         return costs;
     }
 
-    protected generateSmuggleEvent(context: PlayCardContext) {
-        return resourceCard({
+    protected addSmuggleEvent(events: any[], context: PlayCardContext) {
+        if (context.player.drawDeck.length === 0) {
+            return;
+        }
+
+        const smuggleEvent = resourceCard({
             target: context.player.getTopCardOfDeck(),
             readyResource: !this.card.exhausted,
         }).generateEvent(context);
+
+        events.push(smuggleEvent);
     }
 
     protected generateOnPlayEvent(context: PlayCardContext, additionalProps: any = {}) {

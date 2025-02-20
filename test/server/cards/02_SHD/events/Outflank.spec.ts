@@ -1,8 +1,8 @@
 describe('Outflank', function () {
     integration(function (contextRef) {
         describe('Outflank\'s ability', function () {
-            it('should initiate 2 attacks', function () {
-                contextRef.setupTest({
+            it('should initiate 2 attacks', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['outflank'],
@@ -33,8 +33,8 @@ describe('Outflank', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should initiate 1 attack if there is not another unit', function () {
-                contextRef.setupTest({
+            it('should initiate 1 attack if there is not another unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['outflank'],

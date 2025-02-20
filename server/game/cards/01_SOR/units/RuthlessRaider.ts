@@ -23,10 +23,8 @@ export default class RuthlessRaider extends NonLeaderUnitCard {
                     controller: RelativePlayer.Opponent,
                     innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
                 }),
-                AbilityHelper.immediateEffects.damage((context) => ({ amount: 2, target: context.source.controller.opponent.base }))
+                AbilityHelper.immediateEffects.damage((context) => ({ amount: 2, target: context.player.opponent.base }))
             ])
         });
     }
 }
-
-RuthlessRaider.implemented = true;

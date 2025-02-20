@@ -1,8 +1,8 @@
 describe('Relentless Rocket Droid', function () {
     integration(function (contextRef) {
         describe('Relentless Rocket Droid\'s ability', function () {
-            it('should have +2/+0 when you control another trooper unit', function () {
-                contextRef.setupTest({
+            it('should have +2/+0 when you control another trooper unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['specforce-soldier'],

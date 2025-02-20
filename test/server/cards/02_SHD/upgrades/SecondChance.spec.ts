@@ -2,8 +2,8 @@
 describe('Second Chance', function() {
     integration(function(contextRef) {
         describe('Second Chance\'s when defeated ability', function() {
-            it('allows attached unit to be played for free from discard pile when defeated', function() {
-                contextRef.setupTest({
+            it('allows attached unit to be played for free from discard pile when defeated', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['second-chance', 'second-chance'],
@@ -64,8 +64,8 @@ describe('Second Chance', function() {
                 expect(context.battlefieldMarine).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
 
-            it('behaves correctly for more niche scenarios', function() {
-                contextRef.setupTest({
+            it('behaves correctly for more niche scenarios', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['second-chance', 'second-chance'],

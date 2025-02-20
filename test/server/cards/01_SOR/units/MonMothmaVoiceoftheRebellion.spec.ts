@@ -2,7 +2,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
     integration(function(contextRef) {
         describe('Mon Mothma\'s Ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['mon-mothma#voice-of-the-rebellion'],
@@ -80,7 +80,7 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
 
         describe('Mon Mothma\'s Ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['mon-mothma#voice-of-the-rebellion'],

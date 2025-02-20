@@ -5,8 +5,6 @@ import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThis
 import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class EphantMonHeadOfSecurity extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;
 
     protected override getImplementationId() {
@@ -44,4 +42,3 @@ export default class EphantMonHeadOfSecurity extends NonLeaderUnitCard {
     }
 }
 
-EphantMonHeadOfSecurity.implemented = true;

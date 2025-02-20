@@ -2,7 +2,7 @@ describe('Wat Tambor, Techno Union Foreman', function () {
     integration(function (contextRef) {
         describe('Wat Tambor\'s leader undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'guardian-of-the-whills'],
@@ -63,7 +63,7 @@ describe('Wat Tambor, Techno Union Foreman', function () {
 
         describe('Wat Tambor\'s leader deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'guardian-of-the-whills'],

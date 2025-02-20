@@ -20,6 +20,7 @@ import { CostAdjustType } from '../core/cost/CostAdjuster';
 import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
 import type { IExploitCostAdjusterProperties } from '../abilities/keyword/ExploitCostAdjuster';
+import { playerCannot } from './PlayerCannot';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -28,6 +29,7 @@ import type { IExploitCostAdjusterProperties } from '../abilities/keyword/Exploi
 */
 
 export = {
+    assignIndirectDamageDealtToOpponents: () => OngoingEffectBuilder.player.static(EffectName.AssignIndirectDamageDealtToOpponents),
     // Card effects
     // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
     // addTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.AddTrait, trait),
@@ -77,6 +79,7 @@ export = {
     cannotAttackBase: () => OngoingEffectBuilder.card.static(EffectName.CannotAttackBase),
     dealsDamageBeforeDefender: () => OngoingEffectBuilder.card.static(EffectName.DealsDamageBeforeDefender),
     cardCannot,
+    playerCannot,
     // changeContributionFunction: (func) => OngoingEffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
     // changeType: (type) => OngoingEffectBuilder.card.static(EffectName.ChangeType, type),
     // characterProvidesAdditionalConflict: (type) =>
@@ -92,7 +95,6 @@ export = {
     // doesNotBow: () => OngoingEffectBuilder.card.static(EffectName.DoesNotBow),
     // doesNotReady: () => OngoingEffectBuilder.card.static(EffectName.DoesNotReady),
     // entersPlayWithStatus: (status) => OngoingEffectBuilder.card.static(EffectName.EntersPlayWithStatus, status),
-    // entersPlayForOpponent: () => OngoingEffectBuilder.card.static(EffectName.EntersPlayForOpponent),
     // fateCostToAttack: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),

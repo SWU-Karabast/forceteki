@@ -3,8 +3,8 @@ const { SwuGameFormat } = require('../../server/SwuGameFormat.js');
 const Util = require('./Util.js');
 const DeckBuilder = require('./DeckBuilder.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
-const { LocalFolderCardDataGetter } = require('../../server/utils/cardData/LocalFolderCardDataGetter');
 const fs = require('fs');
+const { UnitTestCardDataGetter } = require('../../server/utils/cardData/UnitTestCardDataGetter');
 
 class GameStateBuilder {
     constructor() {
@@ -27,22 +27,24 @@ class GameStateBuilder {
             'selectInitiativePlayer',
             'setDamage',
             'skipSetupPhase',
-            'startGame'
+            'startGameAsync'
         ];
 
-        this.cardDataGetter = new LocalFolderCardDataGetter(directory);
+        this.cardDataGetter = new UnitTestCardDataGetter(directory);
         this.deckBuilder = new DeckBuilder(this.cardDataGetter);
     }
 
     /**
      * @param {SwuSetupTestOptions} setupTestOptions
+     * @param {import('../../server/utils/cardData/CardDataGetter').CardDataGetter} cardDataGetter
      * @param {any} router
      * @param {PlayerInfo} player1Info
      * @param {PlayerInfo} player2Info
      * @returns {Game}
      */
-    setUpTestGame(setupTestOptions, router, player1Info, player2Info) {
+    async setUpTestGameAsync(setupTestOptions, cardDataGetter, router, player1Info, player2Info) {
         const gameFlowWrapper = new GameFlowWrapper(
+            cardDataGetter,
             router,
             { id: player1Info.id, username: player1Info.username },
             { id: player2Info.id, username: player2Info.username }
@@ -50,7 +52,7 @@ class GameStateBuilder {
 
         const testContext = {};
         this.attachTestInfoToObj(testContext, gameFlowWrapper, player1Info.username, player2Info.username);
-        this.setupGameState(testContext, setupTestOptions);
+        await this.setupGameStateAsync(testContext, setupTestOptions);
 
         return gameFlowWrapper.game;
     }
@@ -70,8 +72,8 @@ class GameStateBuilder {
         toObj.player2Object = game.getPlayerByName(player2Name);
         toObj.player1 = gameFlowWrapper.player1;
         toObj.player2 = gameFlowWrapper.player2;
-        toObj.player1Name = gameFlowWrapper.player1Name;
-        toObj.player2Name = gameFlowWrapper.player2Name;
+        toObj.player1Name = player1Name;
+        toObj.player2Name = player2Name;
 
         // attach the game flow wrapper methods directly to the object so they can be called like e.g. 'toObj.setDamage()`
         this.proxiedGameFlowWrapperMethods.forEach((method) => {
@@ -83,7 +85,7 @@ class GameStateBuilder {
      * @param {SwuTestContext} context
      * @param {SwuSetupTestOptions} options
      */
-    setupGameState(context, options = {}) {
+    async setupGameStateAsync(context, options = {}) {
         // Set defaults
         if (!options.player1) {
             options.player1 = {};
@@ -125,7 +127,7 @@ class GameStateBuilder {
         context.game.initialiseTokens(this.deckBuilder.tokenData);
 
         // each player object will convert the card names to real cards on start
-        context.startGame();
+        await context.startGameAsync();
 
         if (options.phase !== 'setup') {
             context.player1.player.promptedActionWindows[options.phase] = true;
