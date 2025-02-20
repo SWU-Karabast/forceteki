@@ -55,6 +55,7 @@ export function keywordFromProperties(properties: IKeywordProperties) {
         case KeywordName.Bounty:
             return new BountyKeywordInstance(properties.keyword, properties.ability);
 
+        // TODO: Do we need Piloting here?
         case KeywordName.Smuggle:
             return new KeywordWithCostValues(properties.keyword, properties.cost, properties.aspects, false);
 
