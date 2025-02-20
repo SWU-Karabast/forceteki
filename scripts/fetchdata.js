@@ -2,12 +2,10 @@
 const { default: axios } = require('axios');
 const { default: axiosRetry } = require('axios-retry');
 const { Agent } = require('https');
-const { log } = require('console');
 const fs = require('fs/promises');
 const mkdirp = require('mkdirp');
 const path = require('path');
 const cliProgress = require('cli-progress');
-const { title } = require('process');
 
 // ############################################################################
 // #################                 IMPORTANT              ###################
