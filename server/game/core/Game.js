@@ -37,6 +37,7 @@ const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
 const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
 const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayCardsForSelectionPrompt.js');
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
+const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 
 class Game extends EventEmitter {
@@ -353,6 +354,41 @@ class Game extends EventEmitter {
      */
     isTraitInPlay(trait) {
         return this.getPlayers().some((player) => player.isTraitInPlay(trait));
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasZoneCardFilterProperties} filter
+     */
+    getArenaCards(filter = {}) {
+        return this.allArenas.getCards(filter);
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
+     */
+    getArenaUnits(filter = {}) {
+        return this.allArenas.getUnitCards(filter);
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
+     */
+    getArenaUpgrades(filter = {}) {
+        return this.allArenas.getUpgradeCards(filter);
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasZoneCardFilterProperties} filter
+     */
+    hasSomeArenaCard(filter) {
+        return this.allArenas.hasSomeCard(filter);
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
+     */
+    hasSomeArenaUnit(filter) {
+        return this.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit });
     }
 
     // createToken(card, token = undefined) {
