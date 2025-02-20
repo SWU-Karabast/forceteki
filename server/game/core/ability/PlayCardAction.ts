@@ -67,8 +67,7 @@ export abstract class PlayCardAction extends PlayerAction {
             `PlayCardAction for ${card.internalName} has an exploit adjuster already included in properties`
         );
 
-        const usesExploit = !!properties.exploitValue;
-        if (usesExploit) {
+        if (!!properties.exploitValue) {
             propertiesWithDefaults = Helpers.mergeArrayProperty(
                 propertiesWithDefaults, 'costAdjusters', [new ExploitCostAdjuster(card.game, card, { exploitKeywordAmount: properties.exploitValue })]
             );
@@ -91,7 +90,7 @@ export abstract class PlayCardAction extends PlayerAction {
         super(
             game,
             card,
-            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit, appendSmuggleToTitle),
+            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, appendSmuggleToTitle),
             propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
@@ -108,7 +107,7 @@ export abstract class PlayCardAction extends PlayerAction {
         return this.getCosts(context).some((cost) => cost.usesExploit && cost.usesExploit(context));
     }
 
-    private static getTitle(title: string, playType: PlayType, withExploit: boolean = false, appendToTitle: boolean = true): string {
+    private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true): string {
         let updatedTitle = title;
 
         switch (playType) {
@@ -120,10 +119,6 @@ export abstract class PlayCardAction extends PlayerAction {
                 break;
             default:
                 Contract.fail(`Unknown play type: ${playType}`);
-        }
-
-        if (withExploit) {
-            updatedTitle += ' using Exploit';
         }
 
         return updatedTitle;

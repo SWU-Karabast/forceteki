@@ -77,7 +77,9 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
         return context.player.getAdjustedCost(this.resources, this.aspects, context, this.costAdjustersFromAbility(context));
     }
 
-    public queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result?: ICostResult) {
+    public queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: ICostResult) {
+        Contract.assertNotNullLike(result);
+
         const { trueAra: exploitAdjusters, falseAra: nonExploitAdjusters } =
             Helpers.splitArray(this.getMatchingCostAdjusters(context), (adjuster) => adjuster.isExploit());
 
@@ -87,16 +89,20 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
             const totalExploitAmount =
                 (exploitAdjusters as ExploitCostAdjuster[]).reduce((acc, adjuster) => acc + adjuster.exploitKeywordAmount, 0);
 
-            costAdjusters.push(new ExploitCostAdjuster(context.game, this.card, { exploitKeywordAmount: totalExploitAmount }));
+            costAdjusters.unshift(new ExploitCostAdjuster(context.game, this.card, { exploitKeywordAmount: totalExploitAmount }));
         } else if (exploitAdjusters.length === 1) {
-            costAdjusters.push(exploitAdjusters[0]);
+            costAdjusters.unshift(exploitAdjusters[0]);
         }
 
         for (const costAdjuster of costAdjusters) {
             costAdjuster.queueGenerateEventGameSteps(events, context, this, result);
         }
 
-        events.push(this.getExhaustResourceEvent(context));
+        context.game.queueSimpleStep(() => {
+            if (!result.cancelled) {
+                events.push(this.getExhaustResourceEvent(context));
+            }
+        }, `generate exhaust resources event for ${context.source.internalName}`);
     }
 
     protected getExhaustResourceEvent(context: TContext): GameEvent {
