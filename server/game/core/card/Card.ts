@@ -181,7 +181,7 @@ export class Card extends OngoingEffectSource {
      * actions such as playing a card or attacking, as well as any action abilities from card text.
      */
     public getActions(): PlayerOrCardAbility[] {
-        return this.getActionAbilities().flatMap((action) => action.getSubModeContexts(action.createContext()));
+        return this.getActionAbilities();
     }
 
 
