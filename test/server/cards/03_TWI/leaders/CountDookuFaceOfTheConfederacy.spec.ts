@@ -21,9 +21,9 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 context.player1.clickCard(context.countDooku);
                 expect(context.player1).toBeAbleToSelectExactly([context.droidekaSecurity, context.generalsGuardian, context.dwarfSpiderDroid]);
                 context.player1.clickCard(context.generalsGuardian);
-                expect(context.player1).toHaveExactPromptButtons(['Play General\'s Guardian', 'Play General\'s Guardian using Exploit']);
+                expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
 
-                context.player1.clickPrompt('Play General\'s Guardian using Exploit');
+                context.player1.clickPrompt('Trigger Exploit');
                 expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.atst, context.snowspeeder, context.cartelSpacer]);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
@@ -46,9 +46,9 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 context.player1.clickCard(context.countDooku);
                 expect(context.player1).toBeAbleToSelectExactly([context.droidekaSecurity, context.dwarfSpiderDroid]);
                 context.player1.clickCard(context.droidekaSecurity);
-                expect(context.player1).toHaveExactPromptButtons(['Play Droideka Security', 'Play Droideka Security using Exploit']);
+                expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
 
-                context.player1.clickPrompt('Play Droideka Security using Exploit');
+                context.player1.clickPrompt('Trigger Exploit');
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.snowspeeder, context.cartelSpacer, context.generalsGuardian]);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
@@ -77,7 +77,9 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.dwarfSpiderDroid]);
                 context.player1.clickCard(context.dwarfSpiderDroid);
 
-                // go directly to Exploit selection since there are too few resources for standard play
+                // omit non-exploit option since there are too few resources for standard play
+                expect(context.player1).toHaveExactPromptButtons(['Trigger Exploit', 'Cancel']);
+                context.player1.clickPrompt('Trigger Exploit');
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.droidekaSecurity]);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
@@ -141,11 +143,11 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.dwarfSpiderDroid);
-                expect(context.player1).toHaveExactPromptButtons(['Play Dwarf Spider Droid', 'Play Dwarf Spider Droid using Exploit']);
+                expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
 
-                context.player1.clickPrompt('Play Dwarf Spider Droid using Exploit');
-                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.atst, context.snowspeeder, context.cartelSpacer]);
-                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickPrompt('Trigger Exploit');
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.atst, context.snowspeeder, context.cartelSpacer, context.countDooku]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
                 context.player1.clickCard(context.battleDroid);
                 context.player1.clickCard(context.atst);

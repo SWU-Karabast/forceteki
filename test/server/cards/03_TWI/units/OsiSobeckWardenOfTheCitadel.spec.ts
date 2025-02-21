@@ -20,7 +20,7 @@ describe('Osi Sobeck, Warden of the Citadel', function () {
 
             // play osi sobeck using 6 resources
             context.player1.clickCard(context.osiSobeck);
-            context.player1.clickPrompt('Play Osi Sobeck');
+            context.player1.clickPrompt('Play without Exploit');
 
             // can capture any enemy ground unit which cost 6 or less
             expect(context.player1).toBeAbleToSelectExactly([context.bailOrgana, context.scoutBikePursuer, context.yoda, context.wampa, context.ruggedSurvivors, context.atst]);
@@ -35,7 +35,7 @@ describe('Osi Sobeck, Warden of the Citadel', function () {
 
             // play osi sobeck using 4 resources and exploit 1
             context.player1.clickCard(context.osiSobeck);
-            context.player1.clickPrompt('Play Osi Sobeck using Exploit');
+            context.player1.clickPrompt('Trigger exploit');
 
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickPrompt('Done');

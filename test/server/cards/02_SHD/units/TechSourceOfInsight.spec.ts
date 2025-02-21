@@ -125,12 +125,8 @@ describe('Tech, Source of Insight', function () {
 
             // test smuggle + exploit
             context.player1.clickCard(context.infiltratingDemolisher);
-            expect(context.player1).toHaveExactPromptButtons([
-                'Play Infiltrating Demolisher with Smuggle',
-                'Play Infiltrating Demolisher with Smuggle using Exploit',
-                'Cancel'
-            ]);
-            context.player1.clickPrompt('Play Infiltrating Demolisher with Smuggle using Exploit');
+            expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
+            context.player1.clickPrompt('Trigger Exploit');
 
             expect(context.player1).toBeAbleToSelectExactly([context.tech, context.tobiasBeckett]);
             context.player1.clickCard(context.tobiasBeckett);

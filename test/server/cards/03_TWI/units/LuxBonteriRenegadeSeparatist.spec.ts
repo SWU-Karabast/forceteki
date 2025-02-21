@@ -37,7 +37,7 @@ describe('Lux Bonteri, Renegade Separatist', function () {
 
             // play a unit with exploit (decreased cost)
             context.player1.clickCard(context.droidekaSecurity);
-            context.player1.clickPrompt('Play Droideka Security using Exploit');
+            context.player1.clickPrompt('Trigger exploit');
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickPrompt('Done');
 

@@ -46,7 +46,7 @@ describe('Admiral Trench, Holding the Line', function () {
             context.player1.passAction();
 
             context.player2.clickCard(context.admiralTrenchHoldingTheLine);
-            context.player2.clickPrompt('Play Admiral Trench using Exploit');
+            context.player2.clickPrompt('Trigger exploit');
 
             expect(context.player2).toHavePrompt('Select 1 cards to exploit');
 
@@ -85,7 +85,7 @@ describe('Admiral Trench, Holding the Line', function () {
             expect(context.firstLegionSnowtrooper).toBeInZone('discard', context.player2);
 
             context.player2.clickCard(context.admiralTrenchHoldingTheLine);
-            context.player2.clickPrompt('Play Admiral Trench');
+            context.player2.clickPrompt('Play without Exploit');
 
             // Should not be able to return any cards since First Legion Snowtrooper is a new copy and was not defeated this phase
             expect(context.player1).toBeActivePlayer();

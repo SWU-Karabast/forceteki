@@ -18,7 +18,7 @@ describe('Heavy Persuader Tank', function() {
 
             // Play the card
             context.player1.clickCard(context.heavyPersuaderTank);
-            context.player1.clickPrompt('Play Heavy Persuader Tank');
+            context.player1.clickPrompt('Play without Exploit');
 
             // See if the ability is available
             expect(context.player1).toBeAbleToSelectExactly([
