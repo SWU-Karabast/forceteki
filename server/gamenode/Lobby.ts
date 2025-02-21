@@ -237,6 +237,8 @@ export class Lobby {
         }
         // check deck for deckValidationErrors
         this.getUser(socket.user.id).deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
+        // we need to clear any importDeckValidation errors otherwise they can persist
+        this.getUser(socket.user.id).importDeckValidationErrors = null;
     }
 
     private getUser(id: string) {
