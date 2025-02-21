@@ -2,7 +2,7 @@ describe('Ketsu Onyo, Old friend', function() {
     integration(function(contextRef) {
         describe('Ketsu Onyo\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['infiltrators-skill'] }, { card: 'ketsu-onyo#old-friend', upgrades: ['heroic-resolve'] }],

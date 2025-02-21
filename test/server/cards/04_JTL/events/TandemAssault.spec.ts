@@ -1,8 +1,8 @@
 
 describe('Tandem Assualt', function() {
     integration(function(contextRef) {
-        it('Tandem Assualt\'s ability should attack with a space unit and if you do, attack with a ground unit and that gets +2/0', function() {
-            contextRef.setupTest({
+        it('Tandem Assualt\'s ability should attack with a space unit and if you do, attack with a ground unit and that gets +2/0', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['tandem-assault', 'generals-guardian'],

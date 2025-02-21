@@ -2,7 +2,7 @@ describe('Hello There', function() {
     integration(function(contextRef) {
         describe('Hello There\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['hello-there', 'green-squadron-awing', 'pyke-sentinel'],

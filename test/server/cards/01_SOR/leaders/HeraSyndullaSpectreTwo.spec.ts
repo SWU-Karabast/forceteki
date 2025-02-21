@@ -2,7 +2,7 @@ describe('Hera Syndulla, Spectre Two', function() {
     integration(function(contextRef) {
         describe('Hera\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['sabine-wren#explosives-artist', 'wampa', 'karabast'],
@@ -44,7 +44,7 @@ describe('Hera Syndulla, Spectre Two', function() {
 
         describe('Hera\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['karabast'],
@@ -79,7 +79,7 @@ describe('Hera Syndulla, Spectre Two', function() {
 
         describe('Hera\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['sabine-wren#explosives-artist', 'wampa', 'karabast'],

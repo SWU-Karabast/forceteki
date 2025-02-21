@@ -2,7 +2,7 @@ describe('Wookiee Warrior', function () {
     integration(function (contextRef) {
         describe('Wookiee Warrior\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wookiee-warrior'],
@@ -23,7 +23,7 @@ describe('Wookiee Warrior', function () {
 
         describe('Wookiee Warrior\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wookiee-warrior'],

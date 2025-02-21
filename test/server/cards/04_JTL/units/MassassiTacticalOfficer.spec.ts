@@ -1,7 +1,7 @@
 describe('Massassi Tactical Officer', function() {
     integration(function(contextRef) {
-        it('Massassi Tactical Officer\'s ability should exhaust and then attack with a Fighter unit. It get +2/+0 for this attack', function () {
-            contextRef.setupTest({
+        it('Massassi Tactical Officer\'s ability should exhaust and then attack with a Fighter unit. It get +2/+0 for this attack', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['massassi-tactical-officer', 'battlefield-marine'],

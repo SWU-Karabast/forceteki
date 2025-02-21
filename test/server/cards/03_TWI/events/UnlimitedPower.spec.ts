@@ -1,7 +1,7 @@
 describe('Unlimited Power', function() {
     integration(function(contextRef) {
-        it('should deal 4 damage to a unit, 3 damage to a second unit, 2 damage to a third unit, and 1 damage to a fourth unit', function() {
-            contextRef.setupTest({
+        it('should deal 4 damage to a unit, 3 damage to a second unit, 2 damage to a third unit, and 1 damage to a fourth unit', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['wampa'],

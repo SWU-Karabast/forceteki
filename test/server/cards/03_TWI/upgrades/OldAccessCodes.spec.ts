@@ -1,8 +1,8 @@
 describe('Old Access Codes', function() {
     integration(function(contextRef) {
         describe('Old Access Codes ability', function() {
-            it('should draw a card when the controller has fewer units than the opponent', function () {
-                contextRef.setupTest({
+            it('should draw a card when the controller has fewer units than the opponent', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['old-access-codes'],
@@ -24,8 +24,8 @@ describe('Old Access Codes', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not draw a card as the controller has more units than the opponent', function () {
-                contextRef.setupTest({
+            it('should not draw a card as the controller has more units than the opponent', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['old-access-codes'],

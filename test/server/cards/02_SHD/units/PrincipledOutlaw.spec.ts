@@ -2,7 +2,7 @@ describe('Principled Outlaw', function() {
     integration(function(contextRef) {
         describe('Principled Outlaw\'s exhaust ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['principled-outlaw', 'battlefield-marine']

@@ -1,8 +1,8 @@
 describe('Krrsantan, Muscle For Hire', function() {
     integration(function(contextRef) {
         describe('Krrsantan\'s Bounty ability', function() {
-            it('should ready when played while opponent has a unit with bounty', function () {
-                contextRef.setupTest({
+            it('should ready when played while opponent has a unit with bounty', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['krrsantan#muscle-for-hire']
@@ -20,8 +20,8 @@ describe('Krrsantan, Muscle For Hire', function() {
                 expect(context.krrsantan.exhausted).toBeFalse();
             });
 
-            it('should not ready when played while opponent does not have a unit with bounty', function () {
-                contextRef.setupTest({
+            it('should not ready when played while opponent does not have a unit with bounty', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['krrsantan#muscle-for-hire']
@@ -38,8 +38,8 @@ describe('Krrsantan, Muscle For Hire', function() {
                 expect(context.krrsantan.exhausted).toBeTrue();
             });
 
-            it('should not deal damage if krrsantan have no damage on him', function () {
-                contextRef.setupTest({
+            it('should not deal damage if krrsantan have no damage on him', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['krrsantan#muscle-for-hire']
@@ -56,8 +56,8 @@ describe('Krrsantan, Muscle For Hire', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should deal damage equal to damage he have', function () {
-                contextRef.setupTest({
+            it('should deal damage equal to damage he have', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'krrsantan#muscle-for-hire', damage: 3 }],

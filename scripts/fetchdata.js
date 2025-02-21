@@ -68,6 +68,9 @@ function populateMissingData(attributes, id) {
             };
             attributes.backSideTitle = 'Darth Sidious';
             break;
+        case '8862896760': // Maul - Shadow Collective Visionary
+            attributes.text = 'Ambush\nOverwhelm\nOn Attack: You may choose another friendly Underworld unit. If you do, all combat damage that would be dealt to this unit during this attack is dealt to the chosen unit instead.';
+            break;
     }
 }
 
@@ -100,6 +103,8 @@ function filterValues(card) {
     filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
 
     populateMissingData(card.attributes, filteredObj.id);
+
+    filteredObj.text = card.attributes.text;
 
     if (card.attributes.upgradeHp != null) {
         filteredObj.hp = card.attributes.upgradeHp;
@@ -161,7 +166,7 @@ function getCardData(page, progressBar) {
         });
 }
 
-function getUniqueCards(cards) {
+function buildCardLists(cards) {
     const cardMap = [];
     const setCodeMap = {};
     const playableCardTitlesSet = new Set();
@@ -207,7 +212,7 @@ function getUniqueCards(cards) {
         }
 
         seenNames.push(card.internalName);
-        cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle });
+        cardMap.push({ id: card.id, internalName: card.internalName, title: card.title, subtitle: card.subtitle, cost: card.cost });
 
         if (!card.types.includes('token') && !card.types.includes('leader') && !card.types.includes('base')) {
             playableCardTitlesSet.add(card.title);
@@ -245,7 +250,7 @@ async function main() {
 
     downloadProgressBar.stop();
 
-    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap } = getUniqueCards(cards);
+    const { uniqueCards, cardMap, playableCardTitles, duplicatesWithSetCode, setCodeMap } = buildCardLists(cards);
 
     cards.map((card) => delete card.debugObject);
 
@@ -254,7 +259,7 @@ async function main() {
     fileWriteProgressBar.start(uniqueCards.length, 0);
 
     await Promise.all(uniqueCards.map((card) => {
-        fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify([card], null, 2));
+        fs.writeFile(path.join(pathToJSON, `Card/${card.internalName}.json`), JSON.stringify(card, null, 2));
         fileWriteProgressBar.increment();
     }));
 

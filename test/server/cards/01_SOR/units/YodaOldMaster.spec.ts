@@ -2,7 +2,7 @@ describe('Yoda, Old Master', function() {
     integration(function(contextRef) {
         describe('Yoda\'s When Defeated ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['yoda#old-master'],

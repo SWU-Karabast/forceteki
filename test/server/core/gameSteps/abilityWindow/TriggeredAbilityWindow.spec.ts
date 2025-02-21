@@ -2,7 +2,7 @@ describe('Simultaneous triggers', function() {
     integration(function(contextRef) {
         describe('Chewbacca being attacked by Sabine', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist']
@@ -57,7 +57,7 @@ describe('Simultaneous triggers', function() {
 
         describe('Two units with a when defeated ability killing each other', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'yoda#old-master', damage: 3 }],

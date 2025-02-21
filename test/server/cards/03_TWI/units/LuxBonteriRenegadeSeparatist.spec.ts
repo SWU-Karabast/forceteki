@@ -1,7 +1,7 @@
 describe('Lux Bonteri, Renegade Separatist', function () {
     integration(function (contextRef) {
-        it('Lux Bonteri\'s ability should ready or exhaust a unit when opponent play a unit with decreased cost', function () {
-            contextRef.setupTest({
+        it('Lux Bonteri\'s ability should ready or exhaust a unit when opponent play a unit with decreased cost', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['droideka-security', 'scout-bike-pursuer', 'palpatines-return', 'krayt-dragon', 'clone'],
@@ -29,7 +29,7 @@ describe('Lux Bonteri, Renegade Separatist', function () {
             context.player1.moveCard(context.scoutBikePursuer, 'hand');
 
             context.player2.clickCard(context.youreMyOnlyHope);
-            context.player2.clickPrompt('Play Ki-Adi-Mundi, it costs 5 less');
+            context.player2.clickDisplayCardPromptButton(context.kiadimundi.uuid, 'play-discount');
 
             // player 2 play a unit with decreased cost, nothing happens
 
@@ -106,8 +106,8 @@ describe('Lux Bonteri, Renegade Separatist', function () {
             // TODO PILOTING
         });
 
-        it('Lux Bonteri\'s ability should ready or exhaust a unit when opponent play a unit with decreased cost (from smuggle)', function () {
-            contextRef.setupTest({
+        it('Lux Bonteri\'s ability should ready or exhaust a unit when opponent play a unit with decreased cost (from smuggle)', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine'],

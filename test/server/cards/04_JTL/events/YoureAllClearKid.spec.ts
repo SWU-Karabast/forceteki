@@ -1,7 +1,7 @@
 describe('You\'re All Clear, Kid', function() {
     integration(function(contextRef) {
-        it('You\'re All Clear, Kid\'s ability should defeat an enemy space unit with 3 or less remaining hp and give an experience token to a unit', function() {
-            contextRef.setupTest({
+        it('You\'re All Clear, Kid\'s ability should defeat an enemy space unit with 3 or less remaining hp and give an experience token to a unit', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['youre-all-clear-kid', 'rivals-fall'],

@@ -1,7 +1,7 @@
 describe('Unmasking the Conspiracy', function() {
     integration(function(contextRef) {
-        it('Unmasking The Conspiracy\'s ability should prompt player to discard a random card to look at the opponent\'s hand and discard a card from it', function () {
-            contextRef.setupTest({
+        it('Unmasking The Conspiracy\'s ability should prompt player to discard a random card to look at the opponent\'s hand and discard a card from it', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['unmasking-the-conspiracy', 'battlefield-marine'],

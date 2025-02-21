@@ -2,7 +2,7 @@ describe('Vigilant Honor Guards', function() {
     integration(function(contextRef) {
         describe('Vigilant Honor Guards\' ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['consular-security-force']

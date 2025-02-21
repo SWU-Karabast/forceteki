@@ -1,8 +1,8 @@
 describe('Wanted Insurgents', function() {
     integration(function(contextRef) {
         describe('Wanted Insurgents\' Bounty ability', function() {
-            it('should deal 2 damage to a unit', function () {
-                contextRef.setupTest({
+            it('should deal 2 damage to a unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wanted-insurgents'],

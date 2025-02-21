@@ -1,8 +1,8 @@
 describe('Force Throw', function() {
     integration(function(contextRef) {
         describe('Force Throw\'s ability', function() {
-            it('should select opponent to discard a card and deal damage to a unit equals to its cost', function () {
-                contextRef.setupTest({
+            it('should select opponent to discard a card and deal damage to a unit equals to its cost', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['force-throw'],
@@ -38,8 +38,8 @@ describe('Force Throw', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should select opponent to discard a card but no deal damage as there is not a force unit', function () {
-                contextRef.setupTest({
+            it('should select opponent to discard a card but no deal damage as there is not a force unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['force-throw'],
@@ -62,8 +62,8 @@ describe('Force Throw', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should select myself to discard a card but no cards to discard', function () {
-                contextRef.setupTest({
+            it('should select myself to discard a card but no cards to discard', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['force-throw'],
@@ -83,8 +83,8 @@ describe('Force Throw', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should select myself to discard a card and deal damage to an enemy unit', function () {
-                contextRef.setupTest({
+            it('should select myself to discard a card and deal damage to an enemy unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['force-throw', 'strike-true'],

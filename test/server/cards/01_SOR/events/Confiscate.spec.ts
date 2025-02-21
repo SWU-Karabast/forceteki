@@ -2,7 +2,7 @@ describe('Confiscate', function() {
     integration(function(contextRef) {
         describe('Confiscate\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['confiscate'],
@@ -29,7 +29,7 @@ describe('Confiscate', function() {
 
         describe('Confiscate\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['confiscate', 'entrenched'],

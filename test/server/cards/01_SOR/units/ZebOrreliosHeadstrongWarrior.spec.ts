@@ -1,8 +1,8 @@
 describe('Zeb Orrelios, Headstrong Warrior', function () {
     integration(function (contextRef) {
         describe('Zeb Orrelios\'s ability', function () {
-            it('should deal 4 damage to a ground unit when he kill someone and survives', function () {
-                contextRef.setupTest({
+            it('should deal 4 damage to a ground unit when he kill someone and survives', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['zeb-orrelios#headstrong-warrior', 'swoop-racer'],
@@ -57,8 +57,8 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
             });
 
 
-            it('should deal 4 damage to a ground unit when zeb attacks and kill with on attack abilities', function () {
-                contextRef.setupTest({
+            it('should deal 4 damage to a ground unit when zeb attacks and kill with on attack abilities', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'zeb-orrelios#headstrong-warrior', upgrades: ['vambrace-flamethrower'] }]
@@ -89,8 +89,8 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
             });
         });
 
-        it('should do nothing if the defender was previously defeated and played again before his attack', function () {
-            contextRef.setupTest({
+        it('should do nothing if the defender was previously defeated and played again before his attack', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['rivals-fall'],

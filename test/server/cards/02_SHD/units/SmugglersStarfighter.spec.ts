@@ -2,7 +2,7 @@ describe('Smuggler\'s Starfighter', function() {
     integration(function(contextRef) {
         describe('Smuggler\'s Starfighter\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['smugglers-starfighter'],
@@ -33,7 +33,7 @@ describe('Smuggler\'s Starfighter', function() {
 
         describe('Smuggler\'s Starfighter\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['smugglers-starfighter'],
