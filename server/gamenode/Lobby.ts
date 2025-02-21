@@ -21,6 +21,7 @@ interface LobbyUser {
     socket?: Socket;
     deck?: Deck;
     deckValidationErrors?: IDeckValidationFailures;
+    importDeckValidationErrors?: IDeckValidationFailures;
 }
 export enum MatchType {
     Custom = 'Custom',
@@ -90,7 +91,8 @@ export class Lobby {
                 state: u.state,
                 ready: u.ready,
                 deck: u.deck?.getDecklist(),
-                deckValidator: u.deckValidationErrors,
+                deckErrors: u.deckValidationErrors,
+                importDeckErrors: u.importDeckValidationErrors,
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
@@ -98,6 +100,7 @@ export class Lobby {
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
             gameType: this.gameType,
+            gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
         };
     }
@@ -205,8 +208,8 @@ export class Lobby {
         const activeUser = this.users.find((u) => u.id === socket.user.id);
 
         // we check if the deck is valid.
-        activeUser.deckValidationErrors = this.deckValidator.validateDeck(args[0], this.gameFormat);
-        const failures = activeUser.deckValidationErrors;
+        activeUser.importDeckValidationErrors = this.deckValidator.validateDeck(args[0], this.gameFormat);
+        const failures = activeUser.importDeckValidationErrors;
         const isEmptyOrOnlyNotImplemented = Object.entries(failures).every(
             ([reason, value]) =>
                 reason === DeckValidationFailureReason.NotImplemented ||
@@ -216,6 +219,9 @@ export class Lobby {
         // if the deck doesn't have any errors or only NotImplemented set it as active.
         if (isEmptyOrOnlyNotImplemented) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
+            activeUser.deckValidationErrors = this.deckValidator.validateDeck(activeUser.deck.getDecklist(),
+                this.gameFormat);
+            activeUser.importDeckValidationErrors = null;
         }
     }
 
