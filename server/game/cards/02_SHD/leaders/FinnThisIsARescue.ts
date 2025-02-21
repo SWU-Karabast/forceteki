@@ -3,8 +3,6 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 
 export default class FinnThisIsARescue extends LeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId () {
         return {
             id: '9596662994',

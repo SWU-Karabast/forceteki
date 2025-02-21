@@ -12,7 +12,7 @@ import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
 import * as env from '../env';
 import type { Deck } from '../utils/deck/Deck';
-import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
+import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
@@ -62,8 +62,6 @@ export class GameServer {
         return new GameServer(
             cardDataGetter,
             await DeckValidator.createAsync(cardDataGetter),
-            await cardDataGetter.tokenData,
-            await cardDataGetter.playableCardTitles,
             testGameBuilder
         );
     }
@@ -91,16 +89,12 @@ export class GameServer {
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
-    private readonly tokenCardsData: ITokenCardsData;
-    private readonly playableCardTitles: string[];
 
     private queue: QueuedPlayer[] = [];
 
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
-        tokenCardsData: ITokenCardsData,
-        playableCardTitles: string[],
         testGameBuilder?: any
     ) {
         const app = express();
@@ -140,8 +134,6 @@ export class GameServer {
 
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
-        this.tokenCardsData = tokenCardsData;
-        this.playableCardTitles = playableCardTitles;
         this.deckValidator = deckValidator;
     }
 
@@ -273,8 +265,6 @@ export class GameServer {
             SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
             this.cardDataGetter,
             this.deckValidator,
-            this.tokenCardsData,
-            this.playableCardTitles,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -294,8 +284,6 @@ export class GameServer {
             SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
             this.cardDataGetter,
             this.deckValidator,
-            this.tokenCardsData,
-            this.playableCardTitles,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -486,8 +474,6 @@ export class GameServer {
                 SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
                 this.cardDataGetter,
                 this.deckValidator,
-                this.tokenCardsData,
-                this.playableCardTitles,
                 this.testGameBuilder
             );
             this.lobbies.set(lobby.id, lobby);

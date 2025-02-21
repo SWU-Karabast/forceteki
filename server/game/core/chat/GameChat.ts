@@ -11,7 +11,6 @@ export class GameChat {
     public addChatMessage(player: any, message: any): void {
         const playerArg = {
             name: player.username,
-            email: player.email,
         };
 
         this.addMessage('{0} {1}', playerArg, message);

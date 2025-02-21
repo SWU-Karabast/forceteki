@@ -14,6 +14,7 @@ export interface IAllArenasZoneCardFilterProperties extends IArenaZoneCardFilter
 
 // used for player.getArenaCards, declared here since that file is still JS
 export type IAllArenasForPlayerCardFilterProperties = Omit<IAllArenasZoneCardFilterProperties, 'controller'>;
+export type IAllArenasSpecificTypeCardFilterProperties = Omit<IAllArenasZoneCardFilterProperties, 'type'>;
 export type IAllArenasForPlayerSpecificTypeCardFilterProperties = Omit<IAllArenasForPlayerCardFilterProperties, 'type'>;
 
 /**

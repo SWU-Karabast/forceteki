@@ -6,12 +6,15 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
-import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
+import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
 import type { SwuGameFormat } from '../SwuGameFormat';
 import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
 import { DeckValidationFailureReason } from '../utils/deck/DeckInterfaces';
+import type { GameConfiguration } from '../game/core/GameInterfaces';
+import { getUserWithDefaultsSet, type User } from '../Settings';
+import { GameMode } from '../GameMode';
 
 interface LobbyUser {
     id: string;
@@ -42,8 +45,6 @@ export class Lobby {
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
-    private readonly tokenCardsData: ITokenCardsData;
-    private readonly playableCardTitles: string[];
 
     private game: Game;
     private users: LobbyUser[] = [];
@@ -57,8 +58,6 @@ export class Lobby {
         lobbyGameFormat: SwuGameFormat,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
-        tokenCardsData: ITokenCardsData,
-        playableCardTitles: string[],
         testGameBuilder?: any
     ) {
         Contract.assertTrue(
@@ -72,8 +71,6 @@ export class Lobby {
         this.gameType = lobbyGameType;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
-        this.playableCardTitles = playableCardTitles;
-        this.tokenCardsData = tokenCardsData;
         this.deckValidator = deckValidator;
         this.gameFormat = lobbyGameFormat;
     }
@@ -322,15 +319,14 @@ export class Lobby {
             }
         });
 
-        game.initialiseTokens(this.tokenCardsData);
         await game.initialiseAsync();
 
         this.sendGameState(game);
     }
 
-    private buildGameSettings() {
-        const players = this.users.map((user) => ({
-            user: {
+    private buildGameSettings(): GameConfiguration {
+        const players: User[] = this.users.map((user) =>
+            getUserWithDefaultsSet({
                 id: user.id,
                 username: user.username,
                 settings: {
@@ -338,18 +334,16 @@ export class Lobby {
                         autoSingleTarget: true,
                     }
                 }
-            }
-        }));
+            })
+        );
 
         return {
             id: '0001',
             name: 'Test Game',
             allowSpectators: false,
-            spectatorSquelch: true,
             owner: 'Order66',
-            clocks: 'timer',
+            gameMode: GameMode.Premier,
             players,
-            playableCardTitles: this.playableCardTitles,
             cardDataGetter: this.cardDataGetter,
         };
     }
@@ -408,7 +402,7 @@ export class Lobby {
     }
 
     // TODO: Review this to make sure we're getting the info we need for debugging
-    private handleError(game: Game, e: Error) {
+    public handleError(game: Game, e: Error) {
         logger.error(e);
 
         // const gameState = game.getState();
