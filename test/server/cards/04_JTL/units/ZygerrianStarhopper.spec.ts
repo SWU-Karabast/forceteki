@@ -19,7 +19,8 @@ describe('Zygerrian Starhopper', function() {
             context.player2.clickCard(context.vanquish);
             context.player2.clickCard(context.zygerrianStarhopper);
 
-            expect(context.player2).toHavePrompt('Distribute 2 indirect damage among targets');
+            expect(context.player1).toHavePrompt('Choose a player');
+            context.player1.clickPrompt('Opponent');
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
             expect(context.player2).not.toHaveChooseNoTargetButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([

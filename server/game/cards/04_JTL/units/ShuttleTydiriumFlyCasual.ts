@@ -12,24 +12,20 @@ export default class ShuttleTydiriumFlyCasual extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addOnAttackAbility({
-            title: 'Discard a card from your deck. If it has an odd cost, you may give an Experience token to another unit',
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.discardFromDeck((context) => ({
-                    amount: 1,
-                    target: context.source.controller
-                })),
-                AbilityHelper.immediateEffects.conditional((context) => ({
-                    condition: () => {
-                        const isOdd = context.events[0].card?.printedCost % 2 === 1;
-                        return isOdd;
-                    },
-                    onTrue: AbilityHelper.immediateEffects.selectCard({
-                        cardTypeFilter: WildcardCardType.Unit,
-                        innerSystem: AbilityHelper.immediateEffects.giveExperience()
-                    }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
-                }))
-            ])
+            title: 'Discard a card from your deck',
+            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
+                amount: 1,
+                target: context.player
+            })),
+            ifYouDo: (context) => ({
+                title: 'You may give an Experience token to another unit',
+                ifYouDoCondition: () => context.events[0].card?.printedCost % 2 === 1,
+                immediateEffect: AbilityHelper.immediateEffects.selectCard({
+                    cardTypeFilter: WildcardCardType.Unit,
+                    cardCondition: (card) => card !== this,
+                    innerSystem: AbilityHelper.immediateEffects.giveExperience()
+                })
+            })
         });
     }
 }

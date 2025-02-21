@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { TargetMode } from '../../../core/Constants';
 
 export default class ZygerrianStarhopper extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -12,7 +13,10 @@ export default class ZygerrianStarhopper extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addWhenDefeatedAbility({
             title: 'Deal 2 indirect damage to a player',
-            immediateEffect: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 2 })
+            targetResolver: {
+                mode: TargetMode.Player,
+                immediateEffect: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 2 })
+            }
         });
     }
 }

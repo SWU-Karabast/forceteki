@@ -24,17 +24,19 @@ describe('IG-2000, Assassins\'s Aggressor', function () {
 
             // Play IG-2000, Assassins' Aggressor
             context.player1.clickCard(context.ig2000);
-            expect(context.player1).toHavePassAbilityButton();
+            expect(context.player1).toHaveChooseNoTargetButton();
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tieAdvanced, context.ig2000]);
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.atst);
             context.player1.clickCard(context.ig2000);
+            context.player1.clickCardNonChecking(context.tieAdvanced);
             context.player1.clickPrompt('Done');
 
             // Assert the damage
             expect(context.wampa.damage).toBe(1);
             expect(context.atst.damage).toBe(1);
             expect(context.ig2000.damage).toBe(1);
+            expect(context.tieAdvanced.damage).toBe(0);
             expect(context.player2).toBeActivePlayer();
 
             // Reset the game state
@@ -42,7 +44,7 @@ describe('IG-2000, Assassins\'s Aggressor', function () {
 
             // Play IG-2000, Assassins' Aggressor and select only 2 units
             context.player1.clickCard(context.ig2000);
-            expect(context.player1).toHavePassAbilityButton();
+            expect(context.player1).toHaveChooseNoTargetButton();
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tieAdvanced, context.ig2000]);
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.atst);
@@ -59,13 +61,12 @@ describe('IG-2000, Assassins\'s Aggressor', function () {
 
             // Play IG-2000, Assassins' Aggressor and select only 1 units
             context.player1.clickCard(context.ig2000);
-            expect(context.player1).toHavePassAbilityButton();
+            expect(context.player1).toHaveChooseNoTargetButton();
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tieAdvanced, context.ig2000]);
-            context.player1.clickCard(context.wampa);
             context.player1.clickPrompt('Done');
 
             // Assert the damage
-            expect(context.wampa.damage).toBe(1);
+            expect(context.wampa.damage).toBe(0);
             expect(context.atst.damage).toBe(0);
             expect(context.ig2000.damage).toBe(0);
             expect(context.player2).toBeActivePlayer();

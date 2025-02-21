@@ -17,7 +17,7 @@ describe('Shuttle Tyridium, Fly Casual', function () {
             // Should give an experience token since the discarded card has an odd cost
             context.player1.clickCard(context.shuttleTydiriumFlyCasual);
             context.player1.clickCard(context.player2.base);
-            expect(context.player1).toBeAbleToSelectExactly([context.shuttleTydiriumFlyCasual, context.battlefieldMarine, context.atst]);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.atst]);
             context.player1.clickCard(context.battlefieldMarine);
 
             expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);

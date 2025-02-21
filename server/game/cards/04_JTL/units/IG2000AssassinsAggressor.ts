@@ -11,14 +11,11 @@ export default class IG2000AssassinsAggressor extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
-        this.addTriggeredAbility({
+        this.addWhenPlayedAbility({
             title: 'Deal 1 damage to each of up to 3 units',
-            when: {
-                onCardPlayed: (event, context) => event.card === context.source
-            },
-            optional: true,
             targetResolver: {
                 mode: TargetMode.UpTo,
+                canChooseNoCards: true,
                 numCards: 3,
                 cardTypeFilter: WildcardCardType.Unit,
                 multiSelectCardCondition: (card, selectedCards) => selectedCards.every((selectedCard) => selectedCard.title !== card.title),
