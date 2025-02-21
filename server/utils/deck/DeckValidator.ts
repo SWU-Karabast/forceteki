@@ -146,8 +146,20 @@ export class DeckValidator {
             }
 
             this.checkFormatLegality(this.getCardCheckData(deck.leader.id), format, failures);
-            this.checkFormatLegality(this.getCardCheckData(deck.base.id), format, failures);
+            // check if leader is implemented
+            if (!this.getCardCheckData(deck.leader.id).implemented) {
+                failures[DeckValidationFailureReason.NotImplemented].push({ id: deck.leader.id,
+                    name: this.getCardCheckData(deck.leader.id).titleAndSubtitle });
+            }
 
+            this.checkFormatLegality(this.getCardCheckData(deck.base.id), format, failures);
+            // check if base is implemented
+            if (!this.getCardCheckData(deck.base.id).implemented) {
+                failures[DeckValidationFailureReason.NotImplemented].push({ id: deck.base.id,
+                    name: this.getCardCheckData(deck.base.id).titleAndSubtitle });
+            }
+
+            // check if deckCards are implemented
             for (const card of deckCards) {
                 const cardData = this.getCardCheckData(card.id);
 
