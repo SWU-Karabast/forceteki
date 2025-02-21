@@ -61,7 +61,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     private resolvePlayCardAbility(ability: PlayCardAction, event: any) {
         const newContext = ability.createContext(event.player);
 
-        event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
+        event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional, false));
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

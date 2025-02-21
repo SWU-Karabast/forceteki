@@ -6,11 +6,11 @@ const Contract = require('../utils/Contract.js');
 const { EventWindow } = require('../event/EventWindow.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
-    constructor(game, context, optional = false) {
+    constructor(game, context, optional = false, canCancel = true) {
         super(game);
 
         this.context = context;
-        this.canCancel = true;
+        this.canCancel = canCancel;
         this.events = [];
         this.targetResults = {};
         this.costResults = this.getCostResults();
