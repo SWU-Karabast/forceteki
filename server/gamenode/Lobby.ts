@@ -122,7 +122,7 @@ export class Lobby {
             state: null,
             ready: false,
             socket: null,
-            deckValidationErrors: this.deckValidator.validateDeck(deck.getDecklist(), this.gameFormat),
+            deckValidationErrors: this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat),
             deck
         }));
     }
@@ -205,7 +205,7 @@ export class Lobby {
         const activeUser = this.users.find((u) => u.id === socket.user.id);
 
         // we check if the deck is valid.
-        activeUser.importDeckValidationErrors = this.deckValidator.validateDeck(args[0], this.gameFormat);
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], this.gameFormat);
         const failures = activeUser.importDeckValidationErrors;
         const isEmptyOrOnlyNotImplemented = Object.entries(failures).every(
             ([reason, value]) =>
@@ -216,7 +216,7 @@ export class Lobby {
         // if the deck doesn't have any errors or only NotImplemented set it as active.
         if (isEmptyOrOnlyNotImplemented) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
-            activeUser.deckValidationErrors = this.deckValidator.validateDeck(activeUser.deck.getDecklist(),
+            activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(activeUser.deck.getDecklist(),
                 this.gameFormat);
             activeUser.importDeckValidationErrors = null;
         }
@@ -236,7 +236,7 @@ export class Lobby {
             userDeck.moveToDeck(cardId);
         }
         // check deck for deckValidationErrors
-        this.getUser(socket.user.id).deckValidationErrors = this.deckValidator.validateDeck(userDeck.getDecklist(), this.gameFormat);
+        this.getUser(socket.user.id).deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
     }
 
     private getUser(id: string) {
