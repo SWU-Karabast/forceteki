@@ -16,7 +16,7 @@ export default class PowerFromPain extends EventCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
-                    effect: AbilityHelper.ongoingEffects.modifyStats({ power: context.target.damage, hp: 2 })
+                    effect: AbilityHelper.ongoingEffects.modifyStats({ power: context.target.damage, hp: 0 })
                 }))
             }
         });

@@ -9,7 +9,8 @@ describe('Sith Trooper', function() {
                 },
                 player2: {
                     groundArena: [{ card: 'atst', damage: 1 }, 'battlefield-marine'],
-                    spaceArena: [{ card: 'restored-arc170', damage: 1 }]
+                    spaceArena: [{ card: 'restored-arc170', damage: 1 }],
+                    hand: ['vanquish']
                 }
             });
 
@@ -22,6 +23,18 @@ describe('Sith Trooper', function() {
 
             expect(context.sithTrooper.getPower()).toBe(3);
             expect(context.p2Base.damage).toBe(5); // Only counts defending player's damaged units (3 Base power + 2 Damaged units)
+            expect(context.player2).toBeActivePlayer();
+            // Defeat a damage unit to validate Power adjusts correctly
+            context.player2.clickCard(context.vanquish);
+            context.player2.clickCard(context.atst);
+
+            context.moveToNextActionPhase();
+
+            context.player1.clickCard(context.sithTrooper);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.sithTrooper.getPower()).toBe(3);
+            expect(context.p2Base.damage).toBe(9); // Only counts defending player's damaged units (3 Base power + 1 Damaged units) + 5 previous damage
             expect(context.player2).toBeActivePlayer();
         });
     });
