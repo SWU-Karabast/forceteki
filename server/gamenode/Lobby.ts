@@ -6,8 +6,12 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '../logger';
 import { GameChat } from '../game/core/chat/GameChat';
-import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
+import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
+import type { DeckValidator } from '../utils/deck/DeckValidator';
+import type { GameConfiguration } from '../game/core/GameInterfaces';
+import { getUserWithDefaultsSet, type User } from '../Settings';
+import { GameMode } from '../GameMode';
 
 interface LobbyUser {
     id: string;
@@ -33,10 +37,9 @@ export class Lobby {
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
     private readonly gameChat: GameChat;
-    private readonly cardDataGetter: CardDataGetter; // TODO: currently not used but will be once we migrate card loading logic out of the FE
+    private readonly cardDataGetter: CardDataGetter;
+    private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
-    private readonly tokenCardsData: ITokenCardsData;
-    private readonly playableCardTitles: string[];
 
     private game: Game;
     private users: LobbyUser[] = [];
@@ -44,7 +47,12 @@ export class Lobby {
     private gameType: MatchType;
     private rematchRequest?: RematchRequest = null;
 
-    public constructor(lobbyGameType: MatchType, cardDataGetter: CardDataGetter, tokenCardsData: ITokenCardsData, playableCardTitles: string[], testGameBuilder?: any) {
+    public constructor(
+        lobbyGameType: MatchType,
+        cardDataGetter: CardDataGetter,
+        deckValidator: DeckValidator,
+        testGameBuilder?: any
+    ) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
             `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
@@ -56,8 +64,7 @@ export class Lobby {
         this.gameType = lobbyGameType;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
-        this.playableCardTitles = playableCardTitles;
-        this.tokenCardsData = tokenCardsData;
+        this.deckValidator = deckValidator;
     }
 
     public get id(): string {
@@ -92,7 +99,7 @@ export class Lobby {
 
     public createLobbyUser(user, decklist = null): void {
         const existingUser = this.users.find((u) => u.id === user.id);
-        const deck = decklist ? new Deck(decklist) : null;
+        const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
         if (existingUser) {
             existingUser.deck = deck;
             return;
@@ -186,7 +193,7 @@ export class Lobby {
         const activeUser = this.users.find((u) => u.id === socket.user.id);
         Contract.assertTrue(args[0] !== null);
         Contract.assertTrue(args[1] !== null);
-        activeUser.deck = new Deck(args[1]);
+        activeUser.deck = new Deck(args[1], this.cardDataGetter);
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -285,15 +292,14 @@ export class Lobby {
             }
         });
 
-        game.initialiseTokens(this.tokenCardsData);
         await game.initialiseAsync();
 
         this.sendGameState(game);
     }
 
-    private buildGameSettings() {
-        const players = this.users.map((user) => ({
-            user: {
+    private buildGameSettings(): GameConfiguration {
+        const players: User[] = this.users.map((user) =>
+            getUserWithDefaultsSet({
                 id: user.id,
                 username: user.username,
                 settings: {
@@ -301,18 +307,16 @@ export class Lobby {
                         autoSingleTarget: true,
                     }
                 }
-            }
-        }));
+            })
+        );
 
         return {
             id: '0001',
             name: 'Test Game',
             allowSpectators: false,
-            spectatorSquelch: true,
             owner: 'Order66',
-            clocks: 'timer',
+            gameMode: GameMode.Premier,
             players,
-            playableCardTitles: this.playableCardTitles,
             cardDataGetter: this.cardDataGetter,
         };
     }
@@ -371,7 +375,7 @@ export class Lobby {
     }
 
     // TODO: Review this to make sure we're getting the info we need for debugging
-    private handleError(game: Game, e: Error) {
+    public handleError(game: Game, e: Error) {
         logger.error(e);
 
         // const gameState = game.getState();

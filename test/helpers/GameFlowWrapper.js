@@ -6,6 +6,7 @@ const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');
 const playableCardTitles = require('../json/_playableCardTitles.json');
 const Util = require('./Util.js');
+const { GameMode } = require('../../server/GameMode.js');
 
 class GameFlowWrapper {
     /**
@@ -14,16 +15,17 @@ class GameFlowWrapper {
      * @param {PlayerInfo} player2Info
      */
     constructor(cardDataGetter, router, player1Info, player2Info) {
+        /** @type {import('../../server/game/core/GameInterfaces.js').GameConfiguration} */
         var details = {
             name: `${player1Info.username}'s game`,
             id: 12345,
             owner: player1Info.username,
             saveGameId: 12345,
+            gameMode: GameMode.Premier,
             players: [
-                { user: Settings.getUserWithDefaultsSet(player1Info) },
-                { user: Settings.getUserWithDefaultsSet(player2Info) },
+                Settings.getUserWithDefaultsSet(player1Info),
+                Settings.getUserWithDefaultsSet(player2Info),
             ],
-            playableCardTitles: this.getPlayableCardTitles(),
             cardDataGetter
         };
 
@@ -35,8 +37,6 @@ class GameFlowWrapper {
 
         this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerById(this.player1Id), this);
         this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerById(this.player2Id), this);
-        // this.player1.player.timerSettings.events = false;
-        // this.player2.player.timerSettings.events = false;
         this.allPlayers = [this.player1, this.player2];
     }
 

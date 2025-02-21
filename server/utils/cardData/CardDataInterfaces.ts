@@ -3,6 +3,7 @@ export interface ICardMapEntry {
     title: string;
     subtitle?: string;
     internalName: string;
+    cost?: number;
 }
 
 export type ICardMapJson = ICardMapEntry[];
