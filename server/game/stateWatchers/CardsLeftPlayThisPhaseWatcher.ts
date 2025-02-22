@@ -44,6 +44,14 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
         return this.getCardsLeftPlay({ controller, filter }).length > 0;
     }
 
+    public someUnitLeftPlay({ controller, filter }: {
+        controller?: Player;
+        filter?: (event: CardLeftPlayEntry) => boolean;
+    }) {
+        // We check if a unit or leader left play because defeated leaders are already changed to leader side at time of registration
+        return this.getCardsLeftPlay({ controller, filter }).filter((card) => card.isUnit() || card.isLeader()).length > 0;
+    }
+
     protected override setupWatcher() {
         this.addUpdater({
             when: {
