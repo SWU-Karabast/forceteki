@@ -625,7 +625,7 @@ class Game extends EventEmitter {
 
     /**
      * This function is called by the client every time a player enters a chat message
-     * @param {String} playerName
+     * @param {String} playerId
      * @param {String} message
      */
     chat(playerId, message) {

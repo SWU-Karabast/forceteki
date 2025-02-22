@@ -10,7 +10,9 @@ export class GameChat {
 
     public addChatMessage(player: any, message: any): void {
         const playerArg = {
-            name: player.username,
+            name: player.name,
+            id: player.id,
+            type: 'playerChat'
         };
 
         this.addMessage('{0} {1}', playerArg, message);
