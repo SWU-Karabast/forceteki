@@ -24,7 +24,7 @@ export default class TheInvisibleHandImposingFlagship extends NonLeaderUnitCard 
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: WildcardZoneName.AnyArena,
-                cardCondition: (card) => card.hasSomeTrait(Trait.Separatist) && card.isPlayable() && !card.exhausted,
+                cardCondition: (card) => card.hasSomeTrait(Trait.Separatist) && card.isUnit() && !card.exhausted,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.exhaust((context) => ({
                         target: context.target
