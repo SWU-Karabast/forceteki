@@ -25,14 +25,16 @@ export default class TheInvisibleHandImposingFlagship extends NonLeaderUnitCard 
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: WildcardZoneName.AnyArena,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Separatist) && card.isPlayable() && !card.exhausted,
+                immediateEffect: AbilityHelper.immediateEffects.sequential([
+                    AbilityHelper.immediateEffects.exhaust((context) => ({
+                        target: context.target
+                    })),
+                    AbilityHelper.immediateEffects.damage((context) => ({
+                        target: context.player.opponent.base,
+                        amount: context.target.length,
+                    }))
+                ])
             },
-            then: (thenContext) => ({
-                title: 'Deal 1 damage to the defending player\'s base for each unit exhausted this way',
-                immediateEffect: AbilityHelper.immediateEffects.damage({
-                    target: thenContext.player.opponent.base,
-                    amount: thenContext.target.length,
-                })
-            })
         });
     }
 }
