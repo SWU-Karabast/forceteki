@@ -3,7 +3,7 @@ import { AsToken } from './propertyMixins/Token';
 import { NonLeaderUnitCard } from './NonLeaderUnitCard';
 import { UpgradeCard } from './UpgradeCard';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
-import type { IUpgradeCard } from '../../Interfaces';
+import type { IUpgradeCard } from './CardInterfaces';
 
 const TokenUnitParent = AsToken(NonLeaderUnitCard);
 const TokenUpgradeParent = AsToken(UpgradeCard);

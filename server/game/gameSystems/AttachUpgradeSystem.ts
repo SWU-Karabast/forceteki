@@ -7,8 +7,8 @@ import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constan
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import type { IUpgradeCard } from '../Interfaces';
 import type { PlayableOrDeployableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
+import type { IUpgradeCard } from '../core/card/CardInterfaces';
 
 export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
     upgrade?: IUpgradeCard;

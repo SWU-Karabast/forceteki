@@ -2,13 +2,13 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
+import type { IUpgradeCard } from '../core/card/CardInterfaces';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, KeywordName, PlayType, RelativePlayer } from '../core/Constants';
 import type Game from '../core/Game';
 import * as Contract from '../core/utils/Contract';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
 import { attachUpgrade } from '../gameSystems/GameSystemLibrary';
-import type { IUpgradeCard } from '../Interfaces';
 
 export class PlayUpgradeAction extends PlayCardAction {
     // we pass in a targetResolver holding the attachUpgrade system so that the action will be blocked if there are no valid targets
