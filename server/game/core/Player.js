@@ -739,6 +739,8 @@ class Player extends GameObject {
         return penaltyAspects;
     }
 
+    // UP NEXT: add support for "ignoreExploit" in here, and also figure out how to merge exploit adjusters for "PlayCardResourceCost.canPay"
+
     /**
      * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
      * Accounts for aspect penalties and any modifiers to those specifically
@@ -747,7 +749,7 @@ class Player extends GameObject {
      * @param {AbilityContext} context
      * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
      */
-    getAdjustedCost(cost, aspects, context, additionalCostAdjusters = null) {
+    getAdjustedCost(cost, aspects, context, additionalCostAdjusters = null, ignoreExploit = false) {
         const card = context.source;
 
         // if any aspect penalties, check modifiers for them separately
@@ -755,11 +757,11 @@ class Player extends GameObject {
 
         let penaltyAspects = this.getPenaltyAspects(aspects);
         for (const aspect of penaltyAspects) {
-            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(2, context, aspect, additionalCostAdjusters);
+            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(2, context, aspect, additionalCostAdjusters, ignoreExploit);
         }
 
         let penalizedCost = cost + aspectPenaltiesTotal;
-        return this.runAdjustersForCostType(penalizedCost, card, context, additionalCostAdjusters);
+        return this.runAdjustersForCostType(penalizedCost, card, context, additionalCostAdjusters, ignoreExploit);
     }
 
     /**
@@ -769,8 +771,8 @@ class Player extends GameObject {
      * @param target
      * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
      */
-    runAdjustersForCostType(baseCost, card, context, additionalCostAdjusters = null) {
-        const matchingAdjusters = this.getMatchingCostAdjusters(context, null, additionalCostAdjusters);
+    runAdjustersForCostType(baseCost, card, context, additionalCostAdjusters = null, ignoreExploit = false) {
+        const matchingAdjusters = this.getMatchingCostAdjusters(context, null, additionalCostAdjusters, ignoreExploit);
         const costIncreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
             .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context), 0);
@@ -797,8 +799,8 @@ class Player extends GameObject {
      * @param penaltyAspect Aspect that is not present on the current base or leader
      * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
      */
-    runAdjustersForAspectPenalties(baseCost, context, penaltyAspect, additionalCostAdjusters = null) {
-        const matchingAdjusters = this.getMatchingCostAdjusters(context, penaltyAspect, additionalCostAdjusters);
+    runAdjustersForAspectPenalties(baseCost, context, penaltyAspect, additionalCostAdjusters = null, ignoreExploit = false) {
+        const matchingAdjusters = this.getMatchingCostAdjusters(context, penaltyAspect, additionalCostAdjusters, ignoreExploit);
 
         const ignoreAllAspectPenalties = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects).length > 0;
@@ -814,9 +816,10 @@ class Player extends GameObject {
         return Math.max(cost, 0);
     }
 
-    getMatchingCostAdjusters(context, penaltyAspect = null, additionalCostAdjusters = null) {
+    getMatchingCostAdjusters(context, penaltyAspect = null, additionalCostAdjusters = null, ignoreExploit = false) {
         return this.costAdjusters.concat(additionalCostAdjusters).filter((adjuster) =>
-            adjuster?.canAdjust(context.playingType, context.source, context, context.target, penaltyAspect)
+            adjuster?.canAdjust(context.playingType, context.source, context, context.target, penaltyAspect) &&
+            (!ignoreExploit || !adjuster.isExploit())
         );
     }
 

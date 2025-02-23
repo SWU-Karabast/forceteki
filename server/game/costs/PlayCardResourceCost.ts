@@ -9,6 +9,7 @@ import type { CostAdjuster } from '../core/cost/CostAdjuster';
 import * as Helpers from '../core/utils/Helpers';
 import { ExploitCostAdjuster } from '../abilities/keyword/ExploitCostAdjuster';
 import type { ICardWithCostProperty } from '../core/card/propertyMixins/Cost';
+import { PerGameAbilityLimit } from '../core/ability/AbilityLimit';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -55,11 +56,11 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
         return context.player.readyResourceCount >= minCost;
     }
 
-    private getMatchingCostAdjusters(context: TContext): CostAdjuster[] {
-        return context.player.getMatchingCostAdjusters(context, null, this.costAdjustersFromAbility(context));
+    private getMatchingCostAdjusters(context: TContext, ignoreExploit = false): CostAdjuster[] {
+        return context.player.getMatchingCostAdjusters(context, null, this.costAdjustersFromAbility(context), ignoreExploit);
     }
 
-    private costAdjustersFromAbility(context: TContext) {
+    private costAdjustersFromAbility(context: TContext): CostAdjuster[] {
         Contract.assertTrue(context.ability.isPlayCardAbility());
         return context.ability.costAdjusters;
     }
@@ -73,8 +74,8 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
         }
     }
 
-    public getAdjustedCost(context: TContext): number {
-        return context.player.getAdjustedCost(this.resources, this.aspects, context, this.costAdjustersFromAbility(context));
+    public getAdjustedCost(context: TContext, ignoreExploit = false): number {
+        return context.player.getAdjustedCost(this.resources, this.aspects, context, this.costAdjustersFromAbility(context), ignoreExploit);
     }
 
     public queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: ICostResult) {
@@ -86,10 +87,17 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
         // if there are multiple Exploit adjusters, merge them into one before resolving
         const costAdjusters = nonExploitAdjusters;
         if (exploitAdjusters.length > 1) {
-            const totalExploitAmount =
-                (exploitAdjusters as ExploitCostAdjuster[]).reduce((acc, adjuster) => acc + adjuster.exploitKeywordAmount, 0);
+            let totalExploitAmount = 0;
 
-            costAdjusters.unshift(new ExploitCostAdjuster(context.game, this.card, { exploitKeywordAmount: totalExploitAmount }));
+            for (const adjuster of exploitAdjusters) {
+                Contract.assertTrue(adjuster.isExploit());
+                totalExploitAmount += adjuster.exploitKeywordAmount;
+                adjuster.markMerged();
+            }
+
+            const mergedAdjuster = new ExploitCostAdjuster(context.game, this.card, { exploitKeywordAmount: totalExploitAmount, limit: new PerGameAbilityLimit(1) });
+            costAdjusters.unshift(mergedAdjuster);
+            context.player.addCostAdjuster(mergedAdjuster);
         } else if (exploitAdjusters.length === 1) {
             costAdjusters.unshift(exploitAdjusters[0]);
         }
