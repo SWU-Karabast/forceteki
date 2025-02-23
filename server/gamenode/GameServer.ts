@@ -3,7 +3,7 @@ import path from 'path';
 import http from 'http';
 import express from 'express';
 import cors from 'cors';
-import type { Socket as IOSocket, DefaultEventsMap } from 'socket.io';
+import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 
 import { logger } from '../logger';
@@ -16,6 +16,8 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
+import { SwuGameFormat } from '../SwuGameFormat';
+import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 
 /**
  * Represents a user object
@@ -137,8 +139,15 @@ export class GameServer {
 
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', async (req, res) => {
-            await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
-            return res.status(200).json({ success: true });
+            try {
+                await this.processDeckValidation(req.body.deck, SwuGameFormat.Premier, res, async () => {
+                    await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
+                    res.status(200).json({ success: true });
+                });
+            } catch (err) {
+                console.error(err);
+                res.status(500).json({ success: false, error: 'Server error.' });
+            }
         });
 
         app.get('/api/available-lobbies', (_, res) => {
@@ -176,18 +185,43 @@ export class GameServer {
             return res.status(200).json({ success: true });
         });
 
-        app.post('/api/enter-queue', (req, res) => {
-            const { user, deck } = req.body;
-            const success = this.enterQueue(user, deck);
-            if (!success) {
-                return res.status(400).json({ success: false, message: 'Failed to enter queue' });
+        app.post('/api/enter-queue', async (req, res) => {
+            try {
+                await this.processDeckValidation(req.body.deck, SwuGameFormat.Premier, res, () => {
+                    const { user, deck } = req.body;
+                    const success = this.enterQueue(user, deck);
+                    if (!success) {
+                        return res.status(400).json({ success: false, message: 'Failed to enter queue' });
+                    }
+                    res.status(200).json({ success: true });
+                });
+            } catch (err) {
+                console.error(err);
+                res.status(500).json({ success: false, error: 'Server error.' });
             }
-            return res.status(200).json({ success: true });
         });
 
         app.get('/api/health', (_, res) => {
             return res.status(200).json({ success: true });
         });
+    }
+
+    // method for validating the deck via API
+    private async processDeckValidation(
+        deck: ISwuDbDecklist,
+        format: SwuGameFormat,
+        res: express.Response,
+        onValid: () => Promise<void> | void
+    ): Promise<void> {
+        const validationResults = this.deckValidator.validateSwuDbDeck(deck, format);
+        if (Object.keys(validationResults).length > 0) {
+            res.status(400).json({
+                success: false,
+                errors: validationResults,
+            });
+            return;
+        }
+        await onValid();
     }
 
     private lobbiesWithOpenSeat() {
@@ -217,6 +251,7 @@ export class GameServer {
 
         const lobby = new Lobby(
             isPrivate ? MatchType.Private : MatchType.Custom,
+            SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
             this.cardDataGetter,
             this.deckValidator,
             this.testGameBuilder
@@ -235,6 +270,7 @@ export class GameServer {
     private async startTestGame(filename: string) {
         const lobby = new Lobby(
             MatchType.Custom,
+            SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
             this.cardDataGetter,
             this.deckValidator,
             this.testGameBuilder
@@ -424,6 +460,7 @@ export class GameServer {
             // Create a new Lobby
             const lobby = new Lobby(
                 MatchType.Quick,
+                SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
                 this.cardDataGetter,
                 this.deckValidator,
                 this.testGameBuilder

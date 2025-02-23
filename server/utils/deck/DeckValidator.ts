@@ -3,7 +3,7 @@ import { cards } from '../../game/cards/Index';
 import { Card } from '../../game/core/card/Card';
 import type { CardType } from '../../game/core/Constants';
 import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
-import type { ISwuDbCardEntry } from './DeckInterfaces';
+import type { IDecklistInternal, ISwuDbCardEntry } from './DeckInterfaces';
 import { DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbDecklist } from './DeckInterfaces';
 import { SwuGameFormat } from '../../SwuGameFormat';
 import type { ICardDataJson } from '../cardData/CardDataInterfaces';
@@ -85,31 +85,74 @@ export class DeckValidator {
     }
 
     // TODO: account for new bases that modify these values
-    public getMinimumSideboardedDeckSize(_deck: ISwuDbDecklist): number {
+    public getMinimumSideboardedDeckSize(_deck: IDecklistInternal | ISwuDbDecklist): number {
         return 50;
     }
 
-    public validateDeck(deck: ISwuDbDecklist, format: SwuGameFormat): IDeckValidationFailures {
+    public getUnimplementedCardsInDeck(deck: IDecklistInternal | ISwuDbDecklist): { id: string; name: string }[] {
+        if (!deck) {
+            return [];
+        }
+        const deckCards: ISwuDbCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
+        const unimplemented: { id: string; name: string }[] = [];
+
+        // check leader
+        const leaderData = this.getCardCheckData(deck.leader.id);
+        if (!leaderData.implemented) {
+            unimplemented.push({ id: deck.leader.id, name: leaderData.titleAndSubtitle });
+        }
+
+        // check base
+        const baseData = this.getCardCheckData(deck.base.id);
+        if (!baseData.implemented) {
+            unimplemented.push({ id: deck.base.id, name: baseData.titleAndSubtitle });
+        }
+
+        // check other cards
+        for (const card of deckCards) {
+            const cardData = this.getCardCheckData(card.id);
+            if (!cardData.implemented) {
+                unimplemented.push({ id: card.id, name: cardData.titleAndSubtitle });
+            }
+        }
+
+        return unimplemented;
+    }
+
+    // Validate IDecklistInternal
+    public validateInternalDeck(deck: IDecklistInternal, format: SwuGameFormat): IDeckValidationFailures {
+        // Basic structure check (internal decks have mandatory leader, base, and deck)
+        if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
+            return { [DeckValidationFailureReason.InvalidDeckData]: true };
+        }
+        return this.validateCommonDeck(deck, format);
+    }
+
+    // Validate the ISwuDbDeckList
+    public validateSwuDbDeck(deck: ISwuDbDecklist, format: SwuGameFormat): IDeckValidationFailures {
+        // Basic structure check (SWU‑DB decks use optional properties, so we check them explicitly)
+        if (!deck || !deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
+            return { [DeckValidationFailureReason.InvalidDeckData]: true };
+        }
+        // SWU‑DB decks must not have a second leader.
+        if (deck.secondleader) {
+            return { [DeckValidationFailureReason.TooManyLeaders]: true };
+        }
+        return this.validateCommonDeck(deck, format);
+    }
+
+    private validateCommonDeck(deck: IDecklistInternal | ISwuDbDecklist, format: SwuGameFormat): IDeckValidationFailures {
         try {
-            if (!deck.leader || !deck.base || !deck.deck || deck.deck.length === 0) {
-                return { [DeckValidationFailureReason.InvalidDeckData]: true };
-            }
-
-            if (deck.secondleader) {
-                return { [DeckValidationFailureReason.TooManyLeaders]: true };
-            }
-
             const failures: IDeckValidationFailures = {
-                [DeckValidationFailureReason.NotImplemented]: [],
                 [DeckValidationFailureReason.IllegalInFormat]: [],
                 [DeckValidationFailureReason.TooManyCopiesOfCard]: [],
                 [DeckValidationFailureReason.UnknownCardId]: [],
             };
 
-            const deckCards = deck.sideboard ? deck.deck.concat(deck.sideboard) : deck.deck;
+            // Combine main deck and sideboard cards.
+            const deckCards: ISwuDbCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
 
             const minBoardedSize = this.getMinimumSideboardedDeckSize(deck);
-
             const decklistCardsCount = this.getTotalCardCount(deckCards);
             const boardedCardsCount = this.getTotalCardCount(deck.deck);
             const sideboardCardsCount = deck.sideboard ? this.getTotalCardCount(deck.sideboard) : 0;
@@ -135,9 +178,15 @@ export class DeckValidator {
                 };
             }
 
-            this.checkFormatLegality(this.getCardCheckData(deck.leader.id), format, failures);
-            this.checkFormatLegality(this.getCardCheckData(deck.base.id), format, failures);
+            // Validate leader.
+            const leaderData = this.getCardCheckData(deck.leader.id);
+            this.checkFormatLegality(leaderData, format, failures);
 
+            // Validate base.
+            const baseData = this.getCardCheckData(deck.base.id);
+            this.checkFormatLegality(baseData, format, failures);
+
+            // Validate each card in the deck (and sideboard).
             for (const card of deckCards) {
                 const cardData = this.getCardCheckData(card.id);
 
@@ -148,10 +197,6 @@ export class DeckValidator {
 
                 this.checkFormatLegality(cardData, format, failures);
 
-                if (!cardData.implemented) {
-                    failures[DeckValidationFailureReason.NotImplemented].push({ id: card.id, name: cardData.titleAndSubtitle });
-                }
-
                 if (card.count < 0) {
                     failures[DeckValidationFailureReason.InvalidDeckData] = true;
                 }
@@ -159,13 +204,12 @@ export class DeckValidator {
                 this.checkMaxCopiesOfCard(card, cardData, format, failures);
             }
 
-            // clean up any unused failure reasons
+            // Remove any failure entries that are empty arrays.
             const failuresCleaned: IDeckValidationFailures = {};
             for (const [key, value] of Object.entries(failures)) {
                 if (Array.isArray(value) && value.length === 0) {
                     continue;
                 }
-
                 failuresCleaned[key] = value;
             }
 

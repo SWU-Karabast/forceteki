@@ -9,6 +9,8 @@ import { GameChat } from '../game/core/chat/GameChat';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
+import type { SwuGameFormat } from '../SwuGameFormat';
+import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { getUserWithDefaultsSet, type User } from '../Settings';
 import { GameMode } from '../GameMode';
@@ -20,6 +22,8 @@ interface LobbyUser {
     ready: boolean;
     socket?: Socket;
     deck?: Deck;
+    deckValidationErrors?: IDeckValidationFailures;
+    importDeckValidationErrors?: IDeckValidationFailures;
 }
 export enum MatchType {
     Custom = 'Custom',
@@ -45,10 +49,12 @@ export class Lobby {
     private users: LobbyUser[] = [];
     private lobbyOwnerId: string;
     private gameType: MatchType;
+    private gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
 
     public constructor(
         lobbyGameType: MatchType,
+        lobbyGameFormat: SwuGameFormat,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         testGameBuilder?: any
@@ -65,6 +71,7 @@ export class Lobby {
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
+        this.gameFormat = lobbyGameFormat;
     }
 
     public get id(): string {
@@ -80,6 +87,9 @@ export class Lobby {
                 state: u.state,
                 ready: u.ready,
                 deck: u.deck?.getDecklist(),
+                deckErrors: u.deckValidationErrors,
+                importDeckErrors: u.importDeckValidationErrors,
+                unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist())
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
@@ -87,6 +97,7 @@ export class Lobby {
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
             gameType: this.gameType,
+            gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
         };
     }
@@ -111,6 +122,7 @@ export class Lobby {
             state: null,
             ready: false,
             socket: null,
+            deckValidationErrors: this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat),
             deck
         }));
     }
@@ -196,9 +208,17 @@ export class Lobby {
 
     private changeDeck(socket: Socket, ...args) {
         const activeUser = this.users.find((u) => u.id === socket.user.id);
-        Contract.assertTrue(args[0] !== null);
-        Contract.assertTrue(args[1] !== null);
-        activeUser.deck = new Deck(args[1], this.cardDataGetter);
+
+        // we check if the deck is valid.
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], this.gameFormat);
+
+        // if the deck doesn't have any errors set it as active.
+        if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
+            activeUser.deck = new Deck(args[0], this.cardDataGetter);
+            activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(activeUser.deck.getDecklist(),
+                this.gameFormat);
+            activeUser.importDeckValidationErrors = null;
+        }
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -214,6 +234,10 @@ export class Lobby {
         } else {
             userDeck.moveToDeck(cardId);
         }
+        // check deck for deckValidationErrors
+        this.getUser(socket.user.id).deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
+        // we need to clear any importDeckValidation errors otherwise they can persist
+        this.getUser(socket.user.id).importDeckValidationErrors = null;
     }
 
     private getUser(id: string) {
@@ -285,7 +309,6 @@ export class Lobby {
 
     private async onStartGameAsync() {
         this.rematchRequest = null;
-
         const game = new Game(this.buildGameSettings(), { router: this });
         this.game = game;
         game.started = true;
