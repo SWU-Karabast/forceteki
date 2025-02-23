@@ -3,7 +3,7 @@ import path from 'path';
 import http from 'http';
 import express from 'express';
 import cors from 'cors';
-import type { Socket as IOSocket, DefaultEventsMap } from 'socket.io';
+import type { DefaultEventsMap, Socket as IOSocket } from 'socket.io';
 import { Server as IOServer } from 'socket.io';
 
 import { logger } from '../logger';
@@ -12,9 +12,12 @@ import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
 import * as env from '../env';
 import type { Deck } from '../utils/deck/Deck';
-import type { CardDataGetter, ITokenCardsData } from '../utils/cardData/CardDataGetter';
+import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import * as Contract from '../game/core/utils/Contract';
 import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
+import { DeckValidator } from '../utils/deck/DeckValidator';
+import { SwuGameFormat } from '../SwuGameFormat';
+import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 
 /**
  * Represents a user object
@@ -42,7 +45,7 @@ interface QueuedPlayer {
 }
 
 export class GameServer {
-    public static async create(): Promise<GameServer> {
+    public static async createAsync(): Promise<GameServer> {
         let cardDataGetter: CardDataGetter;
         let testGameBuilder: any = null;
 
@@ -56,10 +59,11 @@ export class GameServer {
             cardDataGetter = await GameServer.buildRemoteCardDataGetter();
         }
 
-        return new GameServer(cardDataGetter,
-            await cardDataGetter.tokenData,
-            await cardDataGetter.playableCardTitles,
-            testGameBuilder);
+        return new GameServer(
+            cardDataGetter,
+            await DeckValidator.createAsync(cardDataGetter),
+            testGameBuilder
+        );
     }
 
     private static buildRemoteCardDataGetter(): Promise<RemoteCardDataGetter> {
@@ -83,13 +87,16 @@ export class GameServer {
     private readonly userLobbyMap = new Map<string, string>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
+    private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
-    private readonly tokenCardsData: ITokenCardsData;
-    private readonly playableCardTitles: string[];
 
     private queue: QueuedPlayer[] = [];
 
-    private constructor(cardDataGetter: CardDataGetter, tokenCardsData: ITokenCardsData, playableCardTitles: string[], testGameBuilder?: any) {
+    private constructor(
+        cardDataGetter: CardDataGetter,
+        deckValidator: DeckValidator,
+        testGameBuilder?: any
+    ) {
         const app = express();
         app.use(express.json());
         const server = http.createServer(app);
@@ -127,14 +134,20 @@ export class GameServer {
 
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
-        this.tokenCardsData = tokenCardsData;
-        this.playableCardTitles = playableCardTitles;
+        this.deckValidator = deckValidator;
     }
 
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', async (req, res) => {
-            await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
-            return res.status(200).json({ success: true });
+            try {
+                await this.processDeckValidation(req.body.deck, SwuGameFormat.Premier, res, async () => {
+                    await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
+                    res.status(200).json({ success: true });
+                });
+            } catch (err) {
+                console.error(err);
+                res.status(500).json({ success: false, error: 'Server error.' });
+            }
         });
 
         app.get('/api/available-lobbies', (_, res) => {
@@ -172,18 +185,43 @@ export class GameServer {
             return res.status(200).json({ success: true });
         });
 
-        app.post('/api/enter-queue', (req, res) => {
-            const { user, deck } = req.body;
-            const success = this.enterQueue(user, deck);
-            if (!success) {
-                return res.status(400).json({ success: false, message: 'Failed to enter queue' });
+        app.post('/api/enter-queue', async (req, res) => {
+            try {
+                await this.processDeckValidation(req.body.deck, SwuGameFormat.Premier, res, () => {
+                    const { user, deck } = req.body;
+                    const success = this.enterQueue(user, deck);
+                    if (!success) {
+                        return res.status(400).json({ success: false, message: 'Failed to enter queue' });
+                    }
+                    res.status(200).json({ success: true });
+                });
+            } catch (err) {
+                console.error(err);
+                res.status(500).json({ success: false, error: 'Server error.' });
             }
-            return res.status(200).json({ success: true });
         });
 
         app.get('/api/health', (_, res) => {
             return res.status(200).json({ success: true });
         });
+    }
+
+    // method for validating the deck via API
+    private async processDeckValidation(
+        deck: ISwuDbDecklist,
+        format: SwuGameFormat,
+        res: express.Response,
+        onValid: () => Promise<void> | void
+    ): Promise<void> {
+        const validationResults = this.deckValidator.validateSwuDbDeck(deck, format);
+        if (Object.keys(validationResults).length > 0) {
+            res.status(400).json({
+                success: false,
+                errors: validationResults,
+            });
+            return;
+        }
+        await onValid();
     }
 
     private lobbiesWithOpenSeat() {
@@ -213,9 +251,9 @@ export class GameServer {
 
         const lobby = new Lobby(
             isPrivate ? MatchType.Private : MatchType.Custom,
+            SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
             this.cardDataGetter,
-            this.tokenCardsData,
-            this.playableCardTitles,
+            this.deckValidator,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -230,7 +268,13 @@ export class GameServer {
     }
 
     private async startTestGame(filename: string) {
-        const lobby = new Lobby(MatchType.Custom, this.cardDataGetter, this.tokenCardsData, this.playableCardTitles, this.testGameBuilder);
+        const lobby = new Lobby(
+            MatchType.Custom,
+            SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
+            this.cardDataGetter,
+            this.deckValidator,
+            this.testGameBuilder
+        );
         this.lobbies.set(lobby.id, lobby);
         const order66 = { id: 'exe66', username: 'Order66' };
         const theWay = { id: 'th3w4y', username: 'ThisIsTheWay' };
@@ -340,7 +384,7 @@ export class GameServer {
             }
 
             // check if the lobby is full
-            if (lobby.isFilled() && lobby.hasOngoingGame()) {
+            if (lobby.isFilled() || lobby.hasOngoingGame()) {
                 logger.info('Requested lobby', requestedLobby.lobbyId, 'is full or already in game, disconnecting');
                 ioSocket.disconnect();
                 return;
@@ -414,7 +458,13 @@ export class GameServer {
             }
 
             // Create a new Lobby
-            const lobby = new Lobby(MatchType.Quick, this.cardDataGetter, this.tokenCardsData, this.playableCardTitles, this.testGameBuilder);
+            const lobby = new Lobby(
+                MatchType.Quick,
+                SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
+                this.cardDataGetter,
+                this.deckValidator,
+                this.testGameBuilder
+            );
             this.lobbies.set(lobby.id, lobby);
 
             // Create the 2 lobby users

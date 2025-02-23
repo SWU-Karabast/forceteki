@@ -33,3 +33,24 @@ export interface ICardIdAndName {
     id: string;
     name: string;
 }
+
+export enum DeckValidationFailureReason {
+    IllegalInFormat = 'illegalInFormat',
+    TooManyLeaders = 'tooManyLeaders',
+    InvalidDeckData = 'invalidDeckData',
+    MinDecklistSizeNotMet = 'minDecklistSizeNotMet',
+    MinMainboardSizeNotMet = 'minMainboardSizeNotMet',
+    MaxSideboardSizeExceeded = 'maxSideboardSizeExceeded',
+    TooManyCopiesOfCard = 'tooManyCopiesOfCard',
+    UnknownCardId = 'unknownCardId'
+}
+
+export interface IDeckValidationFailures {
+    [DeckValidationFailureReason.IllegalInFormat]?: ICardIdAndName[];
+    [DeckValidationFailureReason.TooManyLeaders]?: boolean;
+    [DeckValidationFailureReason.InvalidDeckData]?: boolean;
+    [DeckValidationFailureReason.MinDecklistSizeNotMet]?: { minDecklistSize: number; actualDecklistSize: number };
+    [DeckValidationFailureReason.MinMainboardSizeNotMet]?: { minBoardedSize: number; actualBoardedSize: number };
+    [DeckValidationFailureReason.TooManyCopiesOfCard]?: { card: ICardIdAndName; maxCopies: number; actualCopies: number }[];
+    [DeckValidationFailureReason.UnknownCardId]?: { id: string }[];
+}
