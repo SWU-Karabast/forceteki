@@ -24,6 +24,7 @@ describe('Execute Order 66\'s ability', function () {
             expect(context.miningGuildTieFighter.damage).toBe(0);
             const cloneTroopers = context.player1.findCardsByName('clone-trooper');
             expect(cloneTroopers.length).toBe(2);
+            expect(cloneTroopers.every((trooper) => trooper.exhausted)).toBe(true);
             context.player1.clickCard(cloneTroopers[0]); // We resolve Obi-Wan when defeated
 
             expect(context.player2).toBeActivePlayer();
@@ -54,10 +55,12 @@ describe('Execute Order 66\'s ability', function () {
             // Player clone trooper
             const playerCloneTroopers = context.player1.findCardsByName('clone-trooper');
             expect(playerCloneTroopers.length).toBe(2);
+            expect(playerCloneTroopers.every((trooper) => trooper.exhausted)).toBe(true);
 
             // Opponent clone troopers
             const opponentCloneTroopers = context.player2.findCardsByName('clone-trooper');
             expect(opponentCloneTroopers.length).toBe(1);
+            expect(opponentCloneTroopers[0].exhausted).toBe(true);
             context.player2.clickCard(opponentCloneTroopers[0]);
         });
 
