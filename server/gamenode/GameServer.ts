@@ -384,7 +384,7 @@ export class GameServer {
             }
 
             // check if the lobby is full
-            if (lobby.isFilled() && lobby.hasOngoingGame()) {
+            if (lobby.isFilled() || lobby.hasOngoingGame()) {
                 logger.info('Requested lobby', requestedLobby.lobbyId, 'is full or already in game, disconnecting');
                 ioSocket.disconnect();
                 return;

@@ -623,47 +623,47 @@ class Game extends EventEmitter {
         }
     }
 
-    // /**
-    //  * This function is called by the client every time a player enters a chat message
-    //  * @param {String} playerName
-    //  * @param {String} message
-    //  */
-    // chat(playerName, message) {
-    //     var player = this.playersAndSpectators[playerName];
-    //     var args = message.split(' ');
+    /**
+     * This function is called by the client every time a player enters a chat message
+     * @param {String} playerId
+     * @param {String} message
+     */
+    chat(playerId, message) {
+        var player = this.getPlayerById(playerId);
+        var args = message.split(' ');
 
-    //     if (!player) {
-    //         return;
-    //     }
+        if (!player) {
+            return;
+        }
 
-    //     if (!this.isSpectator(player)) {
-    //         if (this.chatCommands.executeCommand(player, args[0], args)) {
-    //             this.resolveGameState(true);
-    //             return;
-    //         }
+        // if (!this.isSpectator(player)) {
+        //     if (this.chatCommands.executeCommand(player, args[0], args)) {
+        //         this.resolveGameState(true);
+        //         return;
+        //     }
 
-    //         let card = _.find(this.shortCardData, (c) => {
-    //             return c.name.toLowerCase() === message.toLowerCase() || c.id.toLowerCase() === message.toLowerCase();
-    //         });
+        //     let card = _.find(this.shortCardData, (c) => {
+        //         return c.name.toLowerCase() === message.toLowerCase() || c.id.toLowerCase() === message.toLowerCase();
+        //     });
 
-    //         if (card) {
-    //             this.gameChat.addChatMessage(player, { message: this.gameChat.formatMessage('{0}', [card]) });
+        //     if (card) {
+        //         this.gameChat.addChatMessage(player, { message: this.gameChat.formatMessage('{0}', [card]) });
 
-    //             return;
-    //         }
-    //     }
+        //         return;
+        //     }
+        // }
 
-    //     if (!this.isSpectator(player) || !this.spectatorSquelch) {
-    //         this.gameChat.addChatMessage(player, message);
-    //     }
-    // }
+        if (!this.isSpectator(player)) {
+            this.gameChat.addChatMessage(player, message);
+        }
+    }
 
     /**
      * This is called by the client when a player clicks 'Concede'
      * @param {String} playerId
      */
     concede(playerId) {
-        var player = this.getPlayerByName(playerId);
+        var player = this.getPlayerById(playerId);
 
         if (!player) {
             return;
