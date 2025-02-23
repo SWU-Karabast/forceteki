@@ -11,7 +11,6 @@ import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
 import type { SwuGameFormat } from '../SwuGameFormat';
 import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
-import { DeckValidationFailureReason } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { getUserWithDefaultsSet, type User } from '../Settings';
 import { GameMode } from '../GameMode';
@@ -90,6 +89,7 @@ export class Lobby {
                 deck: u.deck?.getDecklist(),
                 deckErrors: u.deckValidationErrors,
                 importDeckErrors: u.importDeckValidationErrors,
+                unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist())
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
@@ -206,15 +206,9 @@ export class Lobby {
 
         // we check if the deck is valid.
         activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], this.gameFormat);
-        const failures = activeUser.importDeckValidationErrors;
-        const isEmptyOrOnlyNotImplemented = Object.entries(failures).every(
-            ([reason, value]) =>
-                reason === DeckValidationFailureReason.NotImplemented ||
-                (Array.isArray(value) ? value.length === 0 : !value)
-        );
 
-        // if the deck doesn't have any errors or only NotImplemented set it as active.
-        if (isEmptyOrOnlyNotImplemented) {
+        // if the deck doesn't have any errors set it as active.
+        if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
             activeUser.deck = new Deck(args[0], this.cardDataGetter);
             activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(activeUser.deck.getDecklist(),
                 this.gameFormat);

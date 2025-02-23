@@ -89,6 +89,36 @@ export class DeckValidator {
         return 50;
     }
 
+    public getUnimplementedCardsInDeck(deck: IDecklistInternal | ISwuDbDecklist): { id: string; name: string }[] {
+        if (!deck) {
+            return [];
+        }
+        const deckCards: ISwuDbCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
+        const unimplemented: { id: string; name: string }[] = [];
+
+        // check leader
+        const leaderData = this.getCardCheckData(deck.leader.id);
+        if (!leaderData.implemented) {
+            unimplemented.push({ id: deck.leader.id, name: leaderData.titleAndSubtitle });
+        }
+
+        // check base
+        const baseData = this.getCardCheckData(deck.base.id);
+        if (!baseData.implemented) {
+            unimplemented.push({ id: deck.base.id, name: baseData.titleAndSubtitle });
+        }
+
+        // check other cards
+        for (const card of deckCards) {
+            const cardData = this.getCardCheckData(card.id);
+            if (!cardData.implemented) {
+                unimplemented.push({ id: card.id, name: cardData.titleAndSubtitle });
+            }
+        }
+
+        return unimplemented;
+    }
+
     // Validate IDecklistInternal
     public validateInternalDeck(deck: IDecklistInternal, format: SwuGameFormat): IDeckValidationFailures {
         // Basic structure check (internal decks have mandatory leader, base, and deck)
@@ -114,7 +144,6 @@ export class DeckValidator {
     private validateCommonDeck(deck: IDecklistInternal | ISwuDbDecklist, format: SwuGameFormat): IDeckValidationFailures {
         try {
             const failures: IDeckValidationFailures = {
-                [DeckValidationFailureReason.NotImplemented]: [],
                 [DeckValidationFailureReason.IllegalInFormat]: [],
                 [DeckValidationFailureReason.TooManyCopiesOfCard]: [],
                 [DeckValidationFailureReason.UnknownCardId]: [],
@@ -152,22 +181,10 @@ export class DeckValidator {
             // Validate leader.
             const leaderData = this.getCardCheckData(deck.leader.id);
             this.checkFormatLegality(leaderData, format, failures);
-            if (!leaderData.implemented) {
-                failures[DeckValidationFailureReason.NotImplemented].push({
-                    id: deck.leader.id,
-                    name: leaderData.titleAndSubtitle
-                });
-            }
 
             // Validate base.
             const baseData = this.getCardCheckData(deck.base.id);
             this.checkFormatLegality(baseData, format, failures);
-            if (!baseData.implemented) {
-                failures[DeckValidationFailureReason.NotImplemented].push({
-                    id: deck.base.id,
-                    name: baseData.titleAndSubtitle
-                });
-            }
 
             // Validate each card in the deck (and sideboard).
             for (const card of deckCards) {
@@ -179,13 +196,6 @@ export class DeckValidator {
                 }
 
                 this.checkFormatLegality(cardData, format, failures);
-
-                if (!cardData.implemented) {
-                    failures[DeckValidationFailureReason.NotImplemented].push({
-                        id: card.id,
-                        name: cardData.titleAndSubtitle
-                    });
-                }
 
                 if (card.count < 0) {
                     failures[DeckValidationFailureReason.InvalidDeckData] = true;

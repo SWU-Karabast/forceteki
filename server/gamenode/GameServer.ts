@@ -18,7 +18,6 @@ import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
-import { DeckValidationFailureReason } from '../utils/deck/DeckInterfaces';
 
 /**
  * Represents a user object
@@ -215,11 +214,7 @@ export class GameServer {
         onValid: () => Promise<void> | void
     ): Promise<void> {
         const validationResults = this.deckValidator.validateSwuDbDeck(deck, format);
-        const hasBlockingFailures = Object.keys(validationResults).some(
-            (key) => key !== DeckValidationFailureReason.NotImplemented
-        );
-
-        if (hasBlockingFailures) {
+        if (Object.keys(validationResults).length > 0) {
             res.status(400).json({
                 success: false,
                 errors: validationResults,
