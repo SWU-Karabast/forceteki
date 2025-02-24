@@ -99,5 +99,7 @@ describe('Black One, Straight At Them', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        // TODO: Add tests for controlling Poe Dameron as an upgrade
     });
 });
