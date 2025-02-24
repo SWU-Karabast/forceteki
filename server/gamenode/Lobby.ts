@@ -152,9 +152,14 @@ export class Lobby {
     }
 
     private sendChatMessage(socket: Socket, ...args) {
-        // we need to get the player and message
+        const existingUser = this.users.find((u) => u.id === socket.user.id);
+        Contract.assertNotNullLike(existingUser, `Unable to find user with id ${socket.user.id} in lobby ${this.id}`);
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
-        this.gameChat.addChatMessage(socket.user, args[0]);
+        if (!existingUser) {
+            return;
+        }
+
+        this.gameChat.addChatMessage(existingUser, args[0]);
         this.sendLobbyState();
     }
 
