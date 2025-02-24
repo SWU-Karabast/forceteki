@@ -39,6 +39,27 @@ describe('Contracted Hunter', function() {
             expect(context.p2Base.damage).toBe(5);
         });
 
+        it('Contracted Hunter\'s ability should be defeat on start of regroup phase (iden ability should trigger on regroup phase)', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['contracted-hunter']
+                },
+                player2: {
+                    leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
+                    base: { card: 'dagobah-swamp', damage: 5 }
+                }
+            });
+
+            const { context } = contextRef;
+
+            // contracted hunter dies on start of regroup phase
+            context.moveToRegroupPhase();
+
+            expect(context.contractedHunter).toBeInZone('discard');
+            expect(context.p2Base.damage).toBe(4);
+        });
+
         // todo nullify his ability
     });
 });
