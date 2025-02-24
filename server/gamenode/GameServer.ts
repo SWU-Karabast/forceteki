@@ -110,6 +110,14 @@ export class GameServer {
 
         this.setupAppRoutes(app);
 
+        app.use((err, req, res, next) => {
+            logger.error('Error in API route:', err);
+            res.status(err.status || 500).json({
+                success: false,
+                error: err.message || 'Server error.',
+            });
+        });
+
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
 
@@ -138,15 +146,14 @@ export class GameServer {
     }
 
     private setupAppRoutes(app: express.Application) {
-        app.post('/api/create-lobby', async (req, res) => {
+        app.post('/api/create-lobby', async (req, res, next) => {
             try {
                 await this.processDeckValidation(req.body.deck, SwuGameFormat.Premier, res, async () => {
                     await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
-                console.error(err);
-                res.status(500).json({ success: false, error: 'Server error.' });
+                next(err);
             }
         });
 
@@ -179,13 +186,17 @@ export class GameServer {
             return res.json(testSetupFilenames);
         });
 
-        app.post('/api/start-test-game', async (req, res) => {
+        app.post('/api/start-test-game', async (req, res, next) => {
             const { filename } = req.body;
-            await this.startTestGame(filename);
-            return res.status(200).json({ success: true });
+            try {
+                await this.startTestGame(filename);
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                next(err);
+            }
         });
 
-        app.post('/api/enter-queue', async (req, res) => {
+        app.post('/api/enter-queue', async (req, res, next) => {
             try {
                 await this.processDeckValidation(req.body.deck, SwuGameFormat.Premier, res, () => {
                     const { user, deck } = req.body;
@@ -196,8 +207,7 @@ export class GameServer {
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
-                console.error(err);
-                res.status(500).json({ success: false, error: 'Server error.' });
+                next(err);
             }
         });
 

@@ -57,10 +57,15 @@ class Socket extends EventEmitter {
             return;
         }
 
+        const handleError = (err) => logger.info('WebSocket Error:', err);
+
         try {
-            callback(this, ...args);
+            const result = callback(this, ...args);
+            if (result instanceof Promise) {
+                result.catch(handleError);
+            }
         } catch (err) {
-            logger.info(err);
+            handleError(err);
         }
     }
 
