@@ -21,11 +21,11 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
             targetResolver: {
                 mode: TargetMode.DropdownList,
                 options: Array.from({ length: 21 }, (x, i) => `${i}`),  // array of strings from 0 to 20
-                condition: (context) => context.source.controller.drawDeck.length > 0   // skip ability if deck is empty
+                condition: (context) => context.player.drawDeck.length > 0   // skip ability if deck is empty
             },
             then: (thenContext) => ({
                 title: 'Look at the top card of your deck',
-                thenCondition: (context) => context.source.controller.drawDeck.length > 0,   // skip ability if deck is empty
+                thenCondition: (context) => context.player.drawDeck.length > 0,   // skip ability if deck is empty
                 immediateEffect: AbilityHelper.immediateEffects.conditional((context) => {
                     const topCardOfDeck = context.player.getTopCardOfDeck();
                     return {
