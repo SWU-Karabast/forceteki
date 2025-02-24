@@ -349,18 +349,16 @@ export class Lobby {
         };
     }
 
-    private onLobbyMessage(socket: Socket, command: string, ...args): void {
+    private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         if (!this[command] || typeof this[command] !== 'function') {
             throw new Error(`Incorrect command or command format expected function but got: ${command}`);
         }
 
-        this.runLobbyFuncAndCatchErrors(() => {
-            this[command](socket, ...args);
-            this.sendLobbyState();
-        });
+        await this[command](socket, ...args);
+        this.sendLobbyState();
     }
 
-    private onGameMessage(socket: Socket, command: string, ...args): void {
+    private async onGameMessage(socket: Socket, command: string, ...args): Promise<void> {
         if (!this.game) {
             return;
         }
@@ -373,34 +371,14 @@ export class Lobby {
             return;
         }
 
-        this.runAndCatchErrors(this.game, () => {
-            this.game.stopNonChessClocks();
-            this.game[command](socket.user.id, ...args);
+        this.game.stopNonChessClocks();
+        await this.game[command](socket.user.id, ...args);
 
-            this.game.continue();
+        this.game.continue();
 
-            this.sendGameState(this.game);
-        });
+        this.sendGameState(this.game);
     }
 
-    private runAndCatchErrors(game: Game, func: () => void) {
-        try {
-            func();
-        } catch (e) {
-            this.handleError(game, e);
-            this.sendGameState(game);
-        }
-    }
-
-    // might just use the top function at some point?
-    private runLobbyFuncAndCatchErrors(func: () => void) {
-        try {
-            func();
-        } catch (e) {
-            logger.error(e);
-            this.sendLobbyState();
-        }
-    }
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, e: Error) {
