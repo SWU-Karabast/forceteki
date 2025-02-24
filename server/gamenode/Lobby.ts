@@ -122,7 +122,7 @@ export class Lobby {
             state: null,
             ready: false,
             socket: null,
-            deckValidationErrors: this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat),
+            deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck
         }));
     }
