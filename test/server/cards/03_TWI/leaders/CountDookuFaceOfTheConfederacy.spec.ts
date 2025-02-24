@@ -172,8 +172,6 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 expect(context.battleDroid).toBeInZone('outsideTheGame');
                 expect(context.player1.exhaustedResourceCount).toBe(2);
 
-                // TODO THIS PR: same test as below but with merged exploit
-
                 // next Separatist card played should not gain Exploit
                 context.player2.passAction();
                 context.player1.clickCard(context.dwarfSpiderDroid);
@@ -259,6 +257,53 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
 
                 context.player1.clickPrompt('Trigger Exploit');
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.atst, context.snowspeeder, context.cartelSpacer, context.countDooku]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
+                // confirm that we can exploit 4 units total
+                context.player1.clickCard(context.battleDroid);
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.snowspeeder);
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCardNonChecking(context.countDooku);
+                context.player1.clickPrompt('Done');
+
+                // confirm Exploit results
+                expect(context.snowspeeder).toBeInZone('discard');
+                expect(context.cartelSpacer).toBeInZone('discard');
+                expect(context.atst).toBeInZone('discard');
+                expect(context.battleDroid).toBeInZone('outsideTheGame');
+                expect(context.countDooku).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+
+                // next Separatist card played should not gain Exploit
+                context.player2.passAction();
+                context.player1.clickCard(context.dwarfSpiderDroid);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should give the next Separatist card played this phase an additional Exploit 3 if it does already have Exploit, and allow cancelling', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.countDooku);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.infiltratingDemolisher);
+                expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
+                context.player1.clickPrompt('Cancel');
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.infiltratingDemolisher).toBeInZone('hand');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.player1).toBeAbleToSelect(context.infiltratingDemolisher);
+
+                // confirm that the Exploit will still correctly work after cancelling once
+                context.player1.clickCard(context.infiltratingDemolisher);
+                expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
+                context.player1.clickPrompt('Trigger Exploit');
+
                 expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.atst, context.snowspeeder, context.cartelSpacer, context.countDooku]);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
