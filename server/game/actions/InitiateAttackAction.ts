@@ -35,6 +35,7 @@ export class InitiateAttackAction extends PlayerAction {
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
+        //TODO CHECK WITH VELD IF NEEDED TO CHANGE
         if (context.player !== context.source.controller) {
             return 'player';
         }

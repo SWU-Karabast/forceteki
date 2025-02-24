@@ -23,7 +23,7 @@ export default class AsajjVentressCountDookusAssassin extends NonLeaderUnitCard 
             title: 'If you\'ve attacked with another Separatist unit this phase, this unit gets +3/+0 for this phase.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({
-                    controller: context.source.controller,
+                    controller: context.player,
                     filter: (attackEvent) =>
                         attackEvent.attacker.hasSomeTrait(Trait.Separatist) &&
                         (attackEvent.attacker !== context.source || attackEvent.attackerInPlayId !== context.source.inPlayId)
