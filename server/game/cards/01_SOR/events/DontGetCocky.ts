@@ -24,7 +24,9 @@ export default class DontGetCocky extends EventCard {
             },
             then: (unitChosenContext) => ({
                 title: 'Reveal the top card of your deck',
-                immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({ target: context.source.controller.getTopCardOfDeck() })),
+                immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
+                    target: context.player.getTopCardOfDeck()
+                })),
                 then: this.thenAfterReveal(1, unitChosenContext)
             })
         });
@@ -44,7 +46,7 @@ export default class DontGetCocky extends EventCard {
                 activePromptTitle: `Current total cost: ${this.topXCardsTotalCost(cardsRevealedCount, contextWithUnitTarget)}\nSelect one:`,
                 mode: TargetMode.Select,
                 choices: {
-                    ['Reveal another card']: AbilityHelper.immediateEffects.reveal((context) => ({ target: context.source.controller.getTopCardsOfDeck(7)[cardsRevealedCount] })),
+                    ['Reveal another card']: AbilityHelper.immediateEffects.reveal((context) => ({ target: context.player.getTopCardsOfDeck(7)[cardsRevealedCount] })),
                     ['Stop revealing cards']: this.afterStopRevealingEffect(cardsRevealedCount, contextWithUnitTarget)
                 }
             },
@@ -66,12 +68,12 @@ export default class DontGetCocky extends EventCard {
                     onFalse: AbilityHelper.immediateEffects.noAction()
 
                 }),
-                AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.source.controller.getTopCardsOfDeck(cardsRevealedCount) })
+                AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.player.getTopCardsOfDeck(cardsRevealedCount) })
             ];
         });
     }
 
     private topXCardsTotalCost(cardsRevealedCount: number, context: AbilityContext) {
-        return context.source.controller.getTopCardsOfDeck(cardsRevealedCount).reduce((total, card) => total + card.printedCost, 0);
+        return context.player.getTopCardsOfDeck(cardsRevealedCount).reduce((total, card) => total + card.printedCost, 0);
     }
 }

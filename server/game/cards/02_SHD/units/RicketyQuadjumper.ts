@@ -14,7 +14,7 @@ export default class RicketyQuadjumper extends NonLeaderUnitCard {
             title: 'Reveal a card',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
-                target: context.source.controller.getTopCardOfDeck(),
+                target: context.player.getTopCardOfDeck(),
                 useDisplayPrompt: true
             })),
             ifYouDo: (ifYouDoContext) => ({

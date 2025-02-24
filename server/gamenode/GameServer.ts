@@ -147,9 +147,10 @@ export class GameServer {
 
     private setupAppRoutes(app: express.Application) {
         app.post('/api/create-lobby', async (req, res, next) => {
+            const { user, deck, format, isPrivate } = req.body;
             try {
-                await this.processDeckValidation(req.body.deck, SwuGameFormat.Premier, res, async () => {
-                    await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
+                await this.processDeckValidation(deck, format, res, async () => {
+                    await this.createLobby(user, deck, format, isPrivate);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -251,7 +252,7 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(user: User | string, deck: Deck, isPrivate: boolean) {
+    private createLobby(user: User | string, deck: Deck, format: SwuGameFormat, isPrivate: boolean) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -261,7 +262,7 @@ export class GameServer {
 
         const lobby = new Lobby(
             isPrivate ? MatchType.Private : MatchType.Custom,
-            SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
+            format,
             this.cardDataGetter,
             this.deckValidator,
             this.testGameBuilder
@@ -280,7 +281,7 @@ export class GameServer {
     private async startTestGame(filename: string) {
         const lobby = new Lobby(
             MatchType.Custom,
-            SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
+            SwuGameFormat.Open,
             this.cardDataGetter,
             this.deckValidator,
             this.testGameBuilder

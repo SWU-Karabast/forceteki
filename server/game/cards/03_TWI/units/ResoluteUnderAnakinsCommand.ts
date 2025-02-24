@@ -28,7 +28,7 @@ export default class ResoluteUnderAnakinsCommand extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                     amount: 2,
-                    target: context.source.controller.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (c: IUnitCard) => c.title === context.target.title)
+                    target: context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (c: IUnitCard) => c.title === context.target.title)
                 })),
             }
         });

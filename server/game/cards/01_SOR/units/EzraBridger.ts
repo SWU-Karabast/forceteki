@@ -17,7 +17,7 @@ export default class EzraBridger extends NonLeaderUnitCard {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
             },
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndChooseOption((context) => {
-                const topCardOfDeck = context.source.controller.getTopCardOfDeck();
+                const topCardOfDeck = context.player.getTopCardOfDeck();
                 return {
                     useDisplayPrompt: true,
                     target: topCardOfDeck,
