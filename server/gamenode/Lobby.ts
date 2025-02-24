@@ -349,18 +349,16 @@ export class Lobby {
         };
     }
 
-    private onLobbyMessage(socket: Socket, command: string, ...args): void {
+    private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         if (!this[command] || typeof this[command] !== 'function') {
             throw new Error(`Incorrect command or command format expected function but got: ${command}`);
         }
 
-        this.runLobbyFuncAndCatchErrors(() => {
-            this[command](socket, ...args);
-            this.sendLobbyState();
-        });
+        await this[command](socket, ...args);
+        this.sendLobbyState();
     }
 
-    private onGameMessage(socket: Socket, command: string, ...args): void {
+    private async onGameMessage(socket: Socket, command: string, ...args): Promise<void> {
         if (!this.game) {
             return;
         }
@@ -373,7 +371,7 @@ export class Lobby {
             return;
         }
 
-        this.runAndCatchErrors(this.game, () => {
+        await this.runAndCatchErrors(this.game, () => {
             this.game.stopNonChessClocks();
             this.game[command](socket.user.id, ...args);
 
@@ -383,22 +381,12 @@ export class Lobby {
         });
     }
 
-    private runAndCatchErrors(game: Game, func: () => void) {
+    private async runAndCatchErrors(game: Game, func: () => Promise<void> | void) {
         try {
-            func();
+            await func();
         } catch (e) {
             this.handleError(game, e);
             this.sendGameState(game);
-        }
-    }
-
-    // might just use the top function at some point?
-    private runLobbyFuncAndCatchErrors(func: () => void) {
-        try {
-            func();
-        } catch (e) {
-            logger.error(e);
-            this.sendLobbyState();
         }
     }
 

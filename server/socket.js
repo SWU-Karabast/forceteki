@@ -28,7 +28,9 @@ class Socket extends EventEmitter {
     }
 
     registerEvent(event, callback) {
-        this.socket.on(event, this.onSocketEvent.bind(this, callback));
+        this.socket.on(event, async (...args) => {
+            await this.onSocketEvent(callback, ...args);
+        });
     }
 
     eventContainsListener(event) {
@@ -52,20 +54,15 @@ class Socket extends EventEmitter {
     }
 
     // Events
-    onSocketEvent(callback, ...args) {
+    async onSocketEvent(callback, ...args) {
         if (!this.user) {
             return;
         }
 
-        const handleError = (err) => logger.info('WebSocket Error:', err);
-
         try {
-            const result = callback(this, ...args);
-            if (result instanceof Promise) {
-                result.catch(handleError);
-            }
+            await callback(this, ...args);
         } catch (err) {
-            handleError(err);
+            logger.info('WebSocket Error:', err);
         }
     }
 
