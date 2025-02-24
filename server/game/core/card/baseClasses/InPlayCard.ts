@@ -1,6 +1,6 @@
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
-import type { ZoneName } from '../../Constants';
+import { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
@@ -14,6 +14,8 @@ import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import { WithCost } from '../propertyMixins/Cost';
 import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
+import type { IUnitCard } from '../propertyMixins/UnitProperties';
+import type { Card } from '../Card';
 
 const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -119,6 +121,56 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         this._disableOngoingEffectsForDefeat = enabledStatus ? false : null;
     }
 
+
+    public assertIsUpgrade(): void {
+        Contract.assertTrue(this.isUpgrade());
+        Contract.assertNotNullLike(this.parentCard);
+    }
+
+    public attachTo(newParentCard: IUnitCard, newController?: Player) {
+        Contract.assertTrue(newParentCard.isUnit());
+
+        // this assert needed for type narrowing or else the moveTo fails
+        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
+
+        if (this._parentCard) {
+            this.unattach();
+        }
+
+        if (newController && newController !== this.controller) {
+            this.takeControl(newController, newParentCard.zoneName);
+        } else {
+            this.moveTo(newParentCard.zoneName);
+        }
+
+        newParentCard.attachUpgrade(this);
+        this._parentCard = newParentCard;
+    }
+
+    public isAttached(): boolean {
+        this.assertIsUpgrade();
+        return !!this._parentCard;
+    }
+
+    public unattach() {
+        Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
+        this.assertIsUpgrade();
+
+        this.parentCard.unattachUpgrade(this);
+        this._parentCard = null;
+    }
+
+    /**
+     * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
+     * implementations must override this if they have specific attachment conditions.
+     */
+    public canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+        if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
+            return false;
+        }
+
+        return true;
+    }
 
     // ********************************************* ABILITY SETUP *********************************************
     protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {

@@ -7,8 +7,8 @@ import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constan
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import type { PlayableOrDeployableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import type { IUpgradeCard } from '../core/card/CardInterfaces';
+import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 
 export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
     upgrade?: IUpgradeCard;
@@ -21,7 +21,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
 
     public override eventHandler(event, additionalProperties = {}): void {
-        const upgradeCard = (event.upgradeCard as PlayableOrDeployableCard);
+        const upgradeCard = (event.upgradeCard as InPlayCard);
         const parentCard = (event.parentCard as Card);
 
         Contract.assertTrue(upgradeCard.isUpgrade() || (upgradeCard.isUnit() && upgradeCard.hasSomeKeyword(KeywordName.Piloting)));

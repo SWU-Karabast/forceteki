@@ -167,56 +167,6 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         return actions;
     }
 
-    public assertIsUpgrade(): void {
-        Contract.assertTrue(this.isUpgrade());
-        Contract.assertNotNullLike(this.parentCard);
-    }
-
-    public attachTo(newParentCard: IUnitCard, newController?: Player) {
-        Contract.assertTrue(newParentCard.isUnit());
-
-        // this assert needed for type narrowing or else the moveTo fails
-        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
-
-        if (this._parentCard) {
-            this.unattach();
-        }
-
-        if (newController && newController !== this.controller) {
-            this.takeControl(newController, newParentCard.zoneName);
-        } else {
-            this.moveTo(newParentCard.zoneName);
-        }
-
-        newParentCard.attachUpgrade(this);
-        this._parentCard = newParentCard;
-    }
-
-    public isAttached(): boolean {
-        this.assertIsUpgrade();
-        return !!this._parentCard;
-    }
-
-    public unattach() {
-        Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
-        this.assertIsUpgrade();
-
-        this.parentCard.unattachUpgrade(this);
-        this._parentCard = null;
-    }
-
-    /**
-     * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
-     * implementations must override this if they have specific attachment conditions.
-     */
-    public canAttach(targetCard: Card, controller: Player = this.controller): boolean {
-        if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
-            return false;
-        }
-
-        return true;
-    }
-
     // TODO: Simplify this if it turns out there are no alternative ways to gain a Piloting cost
     protected buildCheapestPilotingAction(propertyOverrides: IPlayCardActionOverrides = null) {
         Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
