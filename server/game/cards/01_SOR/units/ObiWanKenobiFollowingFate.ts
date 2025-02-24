@@ -24,7 +24,6 @@ export default class ObiWanKenobiFollowingFate extends NonLeaderUnitCard {
                         onTrue: AbilityHelper.immediateEffects.draw((context) => ({
                             target: context.player
                         })),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
                     })])
             }
         });

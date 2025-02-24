@@ -19,7 +19,6 @@ export default class _501stLiberator extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.isTraitInPlay(Trait.Republic, context.source),
                     onTrue: AbilityHelper.immediateEffects.heal({ amount: 3 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 }),
             }
         });

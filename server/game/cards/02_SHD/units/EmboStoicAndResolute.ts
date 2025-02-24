@@ -34,7 +34,6 @@ export default class EmboStoicAndResolute extends NonLeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     maxTargets: 1
                 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

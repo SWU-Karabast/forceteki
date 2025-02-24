@@ -63,8 +63,6 @@ export default class DontGetCocky extends EventCard {
                 AbilityHelper.immediateEffects.conditional({
                     condition: totalCost <= 7,
                     onTrue: AbilityHelper.immediateEffects.damage({ target: contextWithUnitTarget.target, amount: totalCost }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
-
                 }),
                 AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.source.controller.getTopCardsOfDeck(cardsRevealedCount) })
             ];

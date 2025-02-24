@@ -16,7 +16,6 @@ export default class WookieeWarrior extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.controller.isTraitInPlay(Trait.Wookiee, context.source),
                 onTrue: AbilityHelper.immediateEffects.draw(),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

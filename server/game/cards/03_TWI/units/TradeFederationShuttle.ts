@@ -21,7 +21,7 @@ export default class TradeFederationShuttle extends NonLeaderUnitCard {
                     (unit: IUnitCard) => unit.damage > 0).length > 0,
 
                 onTrue: AbilityHelper.immediateEffects.createBattleDroid(),
-                onFalse: AbilityHelper.immediateEffects.noAction() })
+            })
         });
     }
 }

@@ -24,7 +24,6 @@ export default class NuteGunrayVindictiveViceroy extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.source.controller).length >= 2,
                 onTrue: AbilityHelper.immediateEffects.createBattleDroid(),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

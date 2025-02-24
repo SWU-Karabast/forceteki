@@ -32,7 +32,6 @@ export default class StolenLandspeeder extends NonLeaderUnitCard {
                     }),
                     AbilityHelper.immediateEffects.giveExperience(),
                 ]),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

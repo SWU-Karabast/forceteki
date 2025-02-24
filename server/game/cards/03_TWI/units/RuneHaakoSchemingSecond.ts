@@ -29,7 +29,6 @@ export default class RuneHaakoSchemingSecond extends NonLeaderUnitCard {
                     onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 })
                     }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
         });

@@ -26,9 +26,8 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.heal({ amount: 2 }),
                     AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => context.target.aspects.includes(Aspect.Heroism),
-                        onTrue: AbilityHelper.immediateEffects.noAction(),
-                        onFalse: AbilityHelper.immediateEffects.giveShield()
+                        condition: (context) => !context.target.aspects.includes(Aspect.Heroism),
+                        onTrue: AbilityHelper.immediateEffects.giveShield()
                     })
                 ])
             },

@@ -26,7 +26,6 @@ export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
                 onTrue: AbilityHelper.immediateEffects.heal((context) => {
                     return { amount: 1, target: context.source.controller.base };
                 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

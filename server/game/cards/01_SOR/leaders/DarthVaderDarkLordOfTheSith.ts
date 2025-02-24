@@ -28,7 +28,6 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
                     immediateEffect: AbilityHelper.immediateEffects.conditional({
                         condition: (context) => this.villainyCardPlayedThisPhase(context),
                         onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
                     })
                 },
                 base: {
@@ -36,7 +35,6 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
                     immediateEffect: AbilityHelper.immediateEffects.conditional({
                         condition: (context) => this.villainyCardPlayedThisPhase(context),
                         onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
                     })
                 }
             }

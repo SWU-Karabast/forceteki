@@ -49,7 +49,6 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
             onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                 effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
             }),
-            onFalse: AbilityHelper.immediateEffects.noAction()
         });
     }
 }
