@@ -48,6 +48,9 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         return true;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public override checkIsAttachable(): void { }
+
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
         return new PlayUpgradeAction(this.game, this, properties);
     }

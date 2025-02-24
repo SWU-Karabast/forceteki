@@ -121,6 +121,9 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         this._disableOngoingEffectsForDefeat = enabledStatus ? false : null;
     }
 
+    public checkIsAttachable(): void {
+        throw new Error('Card may not be attached');
+    }
 
     public assertIsUpgrade(): void {
         Contract.assertTrue(this.isUpgrade());
@@ -128,6 +131,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     public attachTo(newParentCard: IUnitCard, newController?: Player) {
+        this.checkIsAttachable();
         Contract.assertTrue(newParentCard.isUnit());
 
         // this assert needed for type narrowing or else the moveTo fails
@@ -165,6 +169,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
      * implementations must override this if they have specific attachment conditions.
      */
     public canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+        this.checkIsAttachable();
         if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
             return false;
         }
