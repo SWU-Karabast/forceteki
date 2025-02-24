@@ -103,10 +103,6 @@ export abstract class PlayCardAction extends PlayerAction {
         this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
     }
 
-    public hasAvailableExploit(context: AbilityContext) {
-        return this.getCosts(context).some((cost) => cost.usesExploit && cost.usesExploit(context));
-    }
-
     private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true): string {
         let updatedTitle = title;
 
@@ -125,10 +121,6 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     public abstract clone(overrideProperties: Partial<IPlayCardActionProperties>): PlayCardAction;
-
-    public override hasMultipleModes(context: AbilityContext): boolean {
-        return this.hasAvailableExploit(context);
-    }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
         if (

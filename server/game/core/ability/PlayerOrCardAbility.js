@@ -176,23 +176,6 @@ class PlayerOrCardAbility {
     }
 
     /**
-     * True if this ability has multiple activation modes (e.g. playing a card with or without Exploit triggering)
-     * @param {AbilityContext} context
-     */
-    hasMultipleModes(context) {
-        return false;
-    }
-
-    /**
-     * Get this card's available activation "sub-modes" (e.g. playing a card with or without Exploit triggering)
-     * @param {AbilityContext} context
-     * @returns {AbilityContext[]}
-     */
-    getSubModeContexts(context) {
-        return [this.createContext(context.player)];
-    }
-
-    /**
      * Return whether all costs are capable of being paid for the ability.
      *
      * @returns {Boolean}
