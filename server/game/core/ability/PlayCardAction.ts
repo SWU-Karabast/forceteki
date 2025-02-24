@@ -12,7 +12,7 @@ import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';
-import { ExploitCostAdjuster } from '../../abilities/keyword/ExploitCostAdjuster';
+import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type Game from '../Game';
 import type Player from '../Player';
 

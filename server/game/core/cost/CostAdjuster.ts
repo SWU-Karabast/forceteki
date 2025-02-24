@@ -6,7 +6,7 @@ import { WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 import * as Contract from '../../core/utils/Contract';
-import type { ExploitCostAdjuster } from '../../abilities/keyword/ExploitCostAdjuster';
+import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type { ICostResult } from './ICost';
 import type { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import * as EnumHelpers from '../utils/EnumHelpers';

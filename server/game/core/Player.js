@@ -32,7 +32,8 @@ const { BaseZone } = require('./zone/BaseZone');
 const Game = require('./Game');
 const { ZoneAbstract } = require('./zone/ZoneAbstract');
 const { Card } = require('./card/Card');
-const { ExploitCostAdjuster } = require('../abilities/keyword/ExploitCostAdjuster');
+const { ExploitCostAdjuster } = require('../abilities/keyword/exploit/ExploitCostAdjuster');
+const { MergedExploitCostAdjuster } = require('../abilities/keyword/exploit/MergedExploitCostAdjuster');
 
 class Player extends GameObject {
     /**
@@ -833,7 +834,7 @@ class Player extends GameObject {
         // if there are multiple Exploit adjusters, generate a single merged one to represent the total Exploit value
         const costAdjusters = nonExploitAdjusters;
         if (exploitAdjusters.length > 1) {
-            costAdjusters.unshift(ExploitCostAdjuster.createMerged(exploitAdjusters, context.source, context));
+            costAdjusters.unshift(new MergedExploitCostAdjuster(exploitAdjusters, context.source, context));
         } else {
             costAdjusters.unshift(...exploitAdjusters);
         }

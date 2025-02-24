@@ -19,7 +19,7 @@ import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterPrope
 import { CostAdjustType } from '../core/cost/CostAdjuster';
 import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
-import type { IExploitCostAdjusterProperties } from '../abilities/keyword/ExploitCostAdjuster';
+import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import { playerCannot } from './PlayerCannot';
 
 /* Types of effect

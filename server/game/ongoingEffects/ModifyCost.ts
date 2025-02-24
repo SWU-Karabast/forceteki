@@ -4,8 +4,8 @@ import type { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjuster } from '../core/cost/CostAdjuster';
 import type Player from '../core/Player';
 import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder';
-import type { IExploitCostAdjusterProperties } from '../abilities/keyword/ExploitCostAdjuster';
-import { ExploitCostAdjuster } from '../abilities/keyword/ExploitCostAdjuster';
+import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
+import { ExploitCostAdjuster } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import * as Contract from '../core/utils/Contract';
 
 export function modifyCost(properties: ICostAdjusterProperties) {
