@@ -19,9 +19,9 @@ export default class JarJarBinksFoolishGungan extends NonLeaderUnitCard {
     }
 
     private chooseRandomTarget(context) {
-        const controllerUnits = context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena);
-        const opponentUnits = context.source.controller.opponent.getUnitsInPlay(WildcardZoneName.AnyArena);
-        const allTargets = [...controllerUnits, ...opponentUnits, context.source.controller.opponent.base, context.source.controller.base]; // All units and bases
+        const controllerUnits = context.player.getUnitsInPlay(WildcardZoneName.AnyArena);
+        const opponentUnits = context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena);
+        const allTargets = [...controllerUnits, ...opponentUnits, context.player.opponent.base, context.player.base]; // All units and bases
         return Helpers.randomItem(allTargets, context.game.randomGenerator);
     }
 }

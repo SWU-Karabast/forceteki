@@ -16,7 +16,7 @@ export default class FreelanceAssassin extends NonLeaderUnitCard {
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
                 amount: 2,
-                target: context.source.controller
+                target: context.player
             })),
             ifYouDo: {
                 title: 'Deal 2 damage to a unit',

@@ -26,8 +26,8 @@ export default class ForcedSurrender extends EventCard {
                     target: [
                         ...new Set(
                             this.damageDealtThisPhaseWatcher.getDamageDealtByPlayer(
-                                context.source.controller,
-                                (damage) => damage.target.isBase() && damage.target.controller !== context.source.controller
+                                context.player,
+                                (damage) => damage.target.isBase() && damage.target.controller !== context.player
                             ).map((damage) => damage.target.controller)
                         )
                     ],

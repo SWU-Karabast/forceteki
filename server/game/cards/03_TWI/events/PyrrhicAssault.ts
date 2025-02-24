@@ -24,7 +24,7 @@ export default class PyrrhicAssault extends EventCard {
                         immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                     }
                 }),
-                target: context.source.controller.getUnitsInPlay()
+                target: context.player.getUnitsInPlay()
             }))
         });
     }

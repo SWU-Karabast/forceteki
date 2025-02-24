@@ -21,7 +21,7 @@ export default class LookTheOtherWay extends EventCard {
                 opponentsChoice: {
                     mode: TargetMode.Select,
                     dependsOn: 'targetUnit',
-                    choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.source.controller, context.targets.targetUnit.controller),
+                    choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.targets.targetUnit.controller),
                     choices: (context) => ({
                         [`Exhaust ${context.targets.targetUnit.title}`]: AbilityHelper.immediateEffects.exhaust({
                             target: context.targets.targetUnit,

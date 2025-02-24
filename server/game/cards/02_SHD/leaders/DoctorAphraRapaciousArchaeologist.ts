@@ -19,7 +19,7 @@ export default class DoctorAphraRapaciousArchaeologist extends LeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 1,
-                target: context.source.controller
+                target: context.player
             })),
         });
     }
@@ -28,7 +28,7 @@ export default class DoctorAphraRapaciousArchaeologist extends LeaderUnitCard {
         this.addConstantAbility({
             title: 'While there are 5 or more different costs among cards in your discard pile, this unit gets +3/+0',
             condition: (context) => new Set(
-                context.source.controller.getCardsInZone(ZoneName.Discard).filter((card) => card.hasCost())
+                context.player.getCardsInZone(ZoneName.Discard).filter((card) => card.hasCost())
                     .map((card) => card.cost)
             ).size >= 5,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 3, hp: 0 })

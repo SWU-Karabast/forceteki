@@ -22,7 +22,7 @@ export default class ZoriiBlissValiantSmuggler extends NonLeaderUnitCard {
                     },
                     immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                         amount: 1,
-                        target: context.source.controller
+                        target: context.player
                     }))
                 })
             ])

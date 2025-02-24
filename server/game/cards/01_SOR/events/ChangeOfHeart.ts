@@ -17,7 +17,7 @@ export default class ChangeOfHeart extends EventCard {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
-                        newController: context.source.controller
+                        newController: context.player,
                     })),
                     AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
                         title: 'Owner takes control',

@@ -354,7 +354,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
                     const coordinateKeywordAbilityProps: IConstantAbilityProps = {
                         title: `Coordinate: ${gainedAbilityProps.title}`,
-                        condition: (context) => context.source.controller.getArenaUnits().length >= 3 && !keywordInstance.isBlank,
+                        condition: (context) => context.player.getArenaUnits().length >= 3 && !keywordInstance.isBlank,
                         ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProps)
                     };
 
