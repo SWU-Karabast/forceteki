@@ -172,6 +172,8 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 expect(context.battleDroid).toBeInZone('outsideTheGame');
                 expect(context.player1.exhaustedResourceCount).toBe(2);
 
+                // TODO THIS PR: same test as below but with merged exploit
+
                 // next Separatist card played should not gain Exploit
                 context.player2.passAction();
                 context.player1.clickCard(context.dwarfSpiderDroid);
@@ -281,6 +283,8 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 context.player1.clickCard(context.dwarfSpiderDroid);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            // TODO THIS PR: cancel tests
         });
 
         it('Count Dooku\'s leader deployed ability, when used on a unit that already has exploit, should not double-count units for exploit targeting', async function () {

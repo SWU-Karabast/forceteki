@@ -6,10 +6,7 @@ import type { ICost, ICostResult } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract.js';
 import type { CostAdjuster } from '../core/cost/CostAdjuster';
-import * as Helpers from '../core/utils/Helpers';
-import { ExploitCostAdjuster } from '../abilities/keyword/ExploitCostAdjuster';
 import type { ICardWithCostProperty } from '../core/card/propertyMixins/Cost';
-import { PerGameAbilityLimit } from '../core/ability/AbilityLimit';
 
 /**
  * Represents the resource cost of playing a card. When calculated / paid, will account for
@@ -81,28 +78,8 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
     public queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: ICostResult) {
         Contract.assertNotNullLike(result);
 
-        const { trueAra: exploitAdjusters, falseAra: nonExploitAdjusters } =
-            Helpers.splitArray(this.getMatchingCostAdjusters(context), (adjuster) => adjuster.isExploit());
 
-        // if there are multiple Exploit adjusters, merge them into one before resolving
-        const costAdjusters = nonExploitAdjusters;
-        if (exploitAdjusters.length > 1) {
-            let totalExploitAmount = 0;
-
-            for (const adjuster of exploitAdjusters) {
-                Contract.assertTrue(adjuster.isExploit());
-                totalExploitAmount += adjuster.exploitKeywordAmount;
-                adjuster.markMerged();
-            }
-
-            const mergedAdjuster = new ExploitCostAdjuster(context.game, this.card, { exploitKeywordAmount: totalExploitAmount, limit: new PerGameAbilityLimit(1) });
-            costAdjusters.unshift(mergedAdjuster);
-            context.player.addCostAdjuster(mergedAdjuster);
-        } else if (exploitAdjusters.length === 1) {
-            costAdjusters.unshift(exploitAdjusters[0]);
-        }
-
-        for (const costAdjuster of costAdjusters) {
+        for (const costAdjuster of this.getMatchingCostAdjusters(context)) {
             costAdjuster.queueGenerateEventGameSteps(events, context, this, result);
         }
 

@@ -32,6 +32,7 @@ const { BaseZone } = require('./zone/BaseZone');
 const Game = require('./Game');
 const { ZoneAbstract } = require('./zone/ZoneAbstract');
 const { Card } = require('./card/Card');
+const { ExploitCostAdjuster } = require('../abilities/keyword/ExploitCostAdjuster');
 
 class Player extends GameObject {
     /**
@@ -817,10 +818,27 @@ class Player extends GameObject {
     }
 
     getMatchingCostAdjusters(context, penaltyAspect = null, additionalCostAdjusters = null, ignoreExploit = false) {
-        return this.costAdjusters.concat(additionalCostAdjusters).filter((adjuster) =>
-            adjuster?.canAdjust(context.playingType, context.source, context, context.target, penaltyAspect) &&
-            (!ignoreExploit || !adjuster.isExploit())
-        );
+        const allMatchingAdjusters = this.costAdjusters.concat(additionalCostAdjusters)
+            .filter((adjuster) =>
+                adjuster?.canAdjust(context.playingType, context.source, context, context.target, penaltyAspect)
+            );
+
+        if (ignoreExploit) {
+            return allMatchingAdjusters.filter((adjuster) => !adjuster.isExploit());
+        }
+
+        const { trueAra: exploitAdjusters, falseAra: nonExploitAdjusters } =
+                    Helpers.splitArray(allMatchingAdjusters, (adjuster) => adjuster.isExploit());
+
+        // if there are multiple Exploit adjusters, generate a single merged one to represent the total Exploit value
+        const costAdjusters = nonExploitAdjusters;
+        if (exploitAdjusters.length > 1) {
+            costAdjusters.unshift(ExploitCostAdjuster.createMerged(exploitAdjusters, context.source, context));
+        } else {
+            costAdjusters.unshift(...exploitAdjusters);
+        }
+
+        return costAdjusters;
     }
 
     /**
