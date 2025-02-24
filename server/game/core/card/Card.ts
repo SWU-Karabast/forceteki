@@ -80,6 +80,7 @@ export class Card extends OngoingEffectSource {
     protected readonly _title: string;
     protected readonly _unique: boolean;
 
+    protected readonly canBeUpgrade: boolean;
     protected override readonly id: string;
     protected readonly hasNonKeywordAbilityText: boolean;
     protected readonly hasImplementationFile: boolean;
@@ -198,6 +199,7 @@ export class Card extends OngoingEffectSource {
 
         this._controller = owner;
         this.id = cardData.id;
+        this.canBeUpgrade = cardData.upgradeHp !== null && cardData.upgradePower !== null; // TODO: Check if this is working
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 

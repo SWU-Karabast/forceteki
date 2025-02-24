@@ -104,6 +104,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
         if (this.zoneName === ZoneName.Hand) {
             let playActions = this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
+            // TODO: update this once we suppport Piloting from discard
             if (this.hasSomeKeyword(KeywordName.Piloting)) {
                 playActions = playActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
             }
@@ -166,6 +167,11 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         return actions;
     }
 
+    public assertIsUpgrade(): void {
+        Contract.assertTrue(this.isUpgrade());
+        Contract.assertNotNullLike(this.parentCard);
+    }
+
     public attachTo(newParentCard: IUnitCard, newController?: Player) {
         Contract.assertTrue(newParentCard.isUnit());
 
@@ -187,20 +193,22 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     }
 
     public isAttached(): boolean {
+        this.assertIsUpgrade();
         return !!this._parentCard;
     }
 
     public unattach() {
         Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
+        this.assertIsUpgrade();
 
         this.parentCard.unattachUpgrade(this);
         this._parentCard = null;
     }
 
     /**
-         * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
-         * implementations must override this if they have specific attachment conditions.
-         */
+     * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
+     * implementations must override this if they have specific attachment conditions.
+     */
     public canAttach(targetCard: Card, controller: Player = this.controller): boolean {
         if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
             return false;
@@ -221,8 +229,8 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             const pilotingActionProps: IPilotingCardActionProperties = {
                 ...propertyOverrides,
                 playType: PlayType.Piloting,
-                pilotingResourceCost: pilotingKeyword.cost,
-                pilotingAspects: pilotingKeyword.aspects
+                alternatePlayActionResourceCost: pilotingKeyword.cost,
+                alternatePlayActionAspects: pilotingKeyword.aspects
             };
 
             return this.buildPlayCardAction(pilotingActionProps);
@@ -242,8 +250,8 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             const smuggleActionProps: ISmuggleCardActionProperties = {
                 ...propertyOverrides,
                 playType: PlayType.Smuggle,
-                smuggleResourceCost: smuggleKeyword.cost,
-                smuggleAspects: smuggleKeyword.aspects
+                alternatePlayActionResourceCost: smuggleKeyword.cost,
+                alternatePlayActionAspects: smuggleKeyword.aspects
             };
 
             return this.buildPlayCardAction(smuggleActionProps);

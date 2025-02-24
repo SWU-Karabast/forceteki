@@ -31,19 +31,18 @@ interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
     playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay;
 }
 
-// TODO - can we refacor these two to be shared?
-export interface IPilotingCardActionProperties extends IPlayCardActionPropertiesBase {
-    playType: PlayType.Piloting;
-    pilotingResourceCost: number;
-    pilotingAspects: Aspect[];
-    appendPilotingToTitle?: boolean;
+interface IAlternatePlayActionProperties extends IPlayCardActionPropertiesBase {
+    alternatePlayActionResourceCost: number;
+    alternatePlayActionAspects: Aspect[];
+    appendAlternatePlayActionKeywordToTitle?: boolean;
 }
 
-export interface ISmuggleCardActionProperties extends IPlayCardActionPropertiesBase {
+export interface IPilotingCardActionProperties extends IAlternatePlayActionProperties {
+    playType: PlayType.Piloting;
+}
+
+export interface ISmuggleCardActionProperties extends IAlternatePlayActionProperties {
     playType: PlayType.Smuggle;
-    smuggleResourceCost: number;
-    smuggleAspects: Aspect[];
-    appendSmuggleToTitle?: boolean;
 }
 
 export type IPlayCardActionProperties = IStandardPlayActionProperties | IPilotingCardActionProperties | ISmuggleCardActionProperties;
@@ -75,15 +74,10 @@ export abstract class PlayCardAction extends PlayerAction {
         let cost: number;
         let aspects: Aspect[];
         let appendToTitle: boolean = null;
-        // TODO - is there some way to refactor this to be more generic?
-        if (properties.playType === PlayType.Piloting) {
-            cost = properties.pilotingResourceCost;
-            aspects = properties.pilotingAspects;
-            appendToTitle = properties.appendPilotingToTitle;
-        } else if (properties.playType === PlayType.Smuggle) {
-            cost = properties.smuggleResourceCost;
-            aspects = properties.smuggleAspects;
-            appendToTitle = properties.appendSmuggleToTitle;
+        if (properties.playType === PlayType.Piloting || properties.playType === PlayType.Smuggle) {
+            cost = properties.alternatePlayActionResourceCost;
+            aspects = properties.alternatePlayActionAspects;
+            appendToTitle = properties.appendAlternatePlayActionKeywordToTitle;
         } else {
             cost = card.cost;
             aspects = card.aspects;

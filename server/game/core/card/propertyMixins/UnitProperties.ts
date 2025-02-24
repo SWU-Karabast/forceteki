@@ -55,7 +55,6 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenDefeatedKeywords();
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
-    canPlayOn(card);
     canAttachPilot(): boolean;
     unattachUpgrade(upgrade);
     attachUpgrade(upgrade);
@@ -161,7 +160,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override isUpgrade(): this is IUpgradeCard {
-            return this._parentCard !== null; // TODO: is there a better check?
+            return this._parentCard !== null;
         }
 
         // ****************************************** CONSTRUCTOR ******************************************
@@ -647,16 +646,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
 
             return wrappedStatsModifiers;
-        }
-
-        // *************************************** UPGRADE HELPERS ***************************************
-        /**
-         * Checks whether an attachment can be played on a given card.  Intended to be
-         * used by cards inheriting this class
-         */
-        // TODO - is this used at all anywhere?
-        public canPlayOn(card) {
-            return true;
         }
 
         /**
