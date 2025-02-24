@@ -371,24 +371,14 @@ export class Lobby {
             return;
         }
 
-        await this.runAndCatchErrors(this.game, () => {
-            this.game.stopNonChessClocks();
-            this.game[command](socket.user.id, ...args);
+        this.game.stopNonChessClocks();
+        await this.game[command](socket.user.id, ...args);
 
-            this.game.continue();
+        this.game.continue();
 
-            this.sendGameState(this.game);
-        });
+        this.sendGameState(this.game);
     }
 
-    private async runAndCatchErrors(game: Game, func: () => Promise<void> | void) {
-        try {
-            await func();
-        } catch (e) {
-            this.handleError(game, e);
-            this.sendGameState(game);
-        }
-    }
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, e: Error) {
