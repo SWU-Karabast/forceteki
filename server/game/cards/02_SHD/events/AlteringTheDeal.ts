@@ -17,7 +17,7 @@ export default class AlteringTheDeal extends EventCard {
             title: 'Discard a captured card guarded by a friendly unit',
             targetResolver: {
                 zoneFilter: ZoneName.Capture,
-                capturedByFilter: (context) => context.source.controller.getArenaUnits(),
+                capturedByFilter: (context) => context.player.getArenaUnits(),
                 immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard()
             }
         });

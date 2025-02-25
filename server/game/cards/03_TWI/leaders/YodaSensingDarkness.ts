@@ -53,7 +53,7 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },
-            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({ amount: 1, target: context.source.controller })),
+            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({ amount: 1, target: context.player })),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Defeat an enemy non-leader unit that costs equal to or less than the discarded card',
                 targetResolver: {

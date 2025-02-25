@@ -45,6 +45,34 @@ export type CardConstructor = new (...args: any[]) => Card;
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
 export class Card extends OngoingEffectSource {
+    public static checkHasNonKeywordAbilityText(abilityText?: string) {
+        if (abilityText == null) {
+            return false;
+        }
+
+        const abilityLines = abilityText.split('\n');
+
+        // bounty and coordinate keywords always require explicit implementation so we omit them from here
+        const keywords = Object.values(KeywordName)
+            .filter((keyword) => keyword !== KeywordName.Bounty && keyword !== KeywordName.Coordinate);
+
+        for (const abilityLine of abilityLines) {
+            if (abilityLine.trim().length === 0) {
+                continue;
+            }
+
+            const lowerCaseAbilityLine = abilityLine.toLowerCase();
+
+            if (keywords.some((keyword) => lowerCaseAbilityLine.startsWith(keyword))) {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     protected readonly _aspects: Aspect[] = [];
     protected readonly _backSideAspects?: Aspect[];
     protected readonly _backSideTitle?: string;
@@ -159,7 +187,7 @@ export class Card extends OngoingEffectSource {
             this.validateImplementationId(implementationId, cardData);
         }
 
-        this.hasNonKeywordAbilityText = this.isLeader() || this.checkHasNonKeywordAbilityText(cardData.text);
+        this.hasNonKeywordAbilityText = this.isLeader() || Card.checkHasNonKeywordAbilityText(cardData.text);
 
         this._aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
         this._backSideAspects = cardData.backSideAspects;
@@ -293,34 +321,6 @@ export class Card extends OngoingEffectSource {
      */
     protected getImplementationId(): null | { internalName: string; id: string } {
         return null;
-    }
-
-    private checkHasNonKeywordAbilityText(abilityText?: string) {
-        if (abilityText == null) {
-            return false;
-        }
-
-        const abilityLines = abilityText.split('\n');
-
-        // bounty and coordinate keywords always require explicit implementation so we omit them from here
-        const keywords = Object.values(KeywordName)
-            .filter((keyword) => keyword !== KeywordName.Bounty && keyword !== KeywordName.Coordinate);
-
-        for (const abilityLine of abilityLines) {
-            if (abilityLine.trim().length === 0) {
-                continue;
-            }
-
-            const lowerCaseAbilityLine = abilityLine.toLowerCase();
-
-            if (keywords.some((keyword) => lowerCaseAbilityLine.startsWith(keyword))) {
-                continue;
-            }
-
-            return true;
-        }
-
-        return false;
     }
 
     protected unpackConstructorArgs(...args: any[]): [Player, any] {

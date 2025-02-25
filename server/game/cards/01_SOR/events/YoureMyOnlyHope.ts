@@ -15,8 +15,8 @@ export default class YoureMyOnlyHope extends EventCard {
             title: 'Look at the top card of your deck',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndChooseOption(
                 (context) => {
-                    const topCardOfDeck = context.source.controller.getTopCardOfDeck();
-                    const canPlayForFree = context.source.controller.base.remainingHp <= 5;
+                    const topCardOfDeck = context.player.getTopCardOfDeck();
+                    const canPlayForFree = context.player.base.remainingHp <= 5;
                     const leaveOnTopButton = {
                         text: 'Leave on top',
                         arg: 'leave',

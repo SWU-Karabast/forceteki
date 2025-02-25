@@ -68,6 +68,9 @@ function populateMissingData(attributes, id) {
             };
             attributes.backSideTitle = 'Darth Sidious';
             break;
+        case '8862896760': // Maul - Shadow Collective Visionary
+            attributes.text = 'Ambush\nOverwhelm\nOn Attack: You may choose another friendly Underworld unit. If you do, all combat damage that would be dealt to this unit during this attack is dealt to the chosen unit instead.';
+            break;
     }
 }
 
@@ -100,6 +103,8 @@ function filterValues(card) {
     filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
 
     populateMissingData(card.attributes, filteredObj.id);
+
+    filteredObj.text = card.attributes.text;
 
     if (card.attributes.upgradeHp != null) {
         filteredObj.hp = card.attributes.upgradeHp;

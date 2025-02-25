@@ -18,7 +18,7 @@ export default class EnfysNestMarauder extends NonLeaderUnitCard {
                 card.isUnit() &&
                 card.isInPlay() &&
                 card.isDefending() &&
-                card.activeAttack.attacker.controller === context.source.controller &&
+                card.activeAttack.attacker.controller === context.player &&
                 card.activeAttack.isAmbush,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -3, hp: 0 })
         });

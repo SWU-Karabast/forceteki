@@ -6,7 +6,7 @@ import { CardDataGetter } from './CardDataGetter';
 import type { ICardDataJson, ICardMapJson } from './CardDataInterfaces';
 
 export class LocalFolderCardDataGetter extends CardDataGetter {
-    public static async create(folderRoot: string, isDevelopment = true): Promise<LocalFolderCardDataGetter> {
+    public static async createAsync(folderRoot: string, isDevelopment = true): Promise<LocalFolderCardDataGetter> {
         LocalFolderCardDataGetter.validateFolderContents(folderRoot, isDevelopment);
 
         const cardMap: ICardMapJson =

@@ -13,7 +13,7 @@ export default class DuchesssChampion extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'Gain Sentinel while an opponent controls 3 or more units',
-            condition: (context) => context.source.controller.opponent.getUnitsInPlay().length >= 3,
+            condition: (context) => context.player.opponent.getUnitsInPlay().length >= 3,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
     }
