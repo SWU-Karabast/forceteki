@@ -648,6 +648,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return wrappedStatsModifiers;
         }
 
+
+        public override checkIsAttachable(): void {
+            Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+        }
+
         /**
          *  This should only be called if a unit is a Pilot or has some other ability that lets it attach as an upgrade
          * @param {Card} targetCard The card that this would be attached to
@@ -655,6 +660,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * @returns True if this is allowed to attach to the targetCard; false otherwise
          */
         public override canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+            Contract.assertTrue(this.canBeUpgrade);
             if (this.hasSomeKeyword(KeywordName.Piloting) && targetCard.isUnit()) {
                 return targetCard.canAttachPilot() && targetCard.controller === controller;
             }
@@ -673,8 +679,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             // TODO: we need logic for cards that override the pilot limit
             if (this.upgrades.length > 0) {
-                const pilotUpgrades = this.upgrades.filter((upgrade) => upgrade.hasSomeTrait(Trait.Pilot));
-                return pilotUpgrades.length === 0;
+                return !this.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot));
             }
             return true;
         }
