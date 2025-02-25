@@ -15,6 +15,8 @@ export default class DontGetCocky extends EventCard {
     }
 
     public override setupCardAbilities() {
+        // TODO: Consolidate this to a single prompt that includes the revealed cards and
+        //       Reveal Another Card/Stop Revealing Cards options
         this.setEventAbility({
             title: 'Choose a unit',
             targetResolver: {
