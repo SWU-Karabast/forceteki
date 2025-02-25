@@ -52,21 +52,33 @@ describe('Don\'t Get Cocky', function() {
                 context.player1.clickPrompt('Done');
 
                 context.player1.clickPrompt('Reveal another card');
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.medalCeremony]);
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    context.allianceDispatcher,
+                    context.medalCeremony
+                ]);
                 expect(context.getChatLogs(1)[0]).toContain(context.medalCeremony.title);
                 context.player1.clickPrompt('Done');
                 expect(context.player1).toHavePrompt('Current total cost: 1\nSelect one:');
                 expect(context.player1).toHaveEnabledPromptButtons(['Reveal another card', 'Stop revealing cards']);
 
                 context.player1.clickPrompt('Reveal another card');
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.wildernessFighter]);
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    context.wildernessFighter,
+                    context.allianceDispatcher,
+                    context.medalCeremony
+                ]);
                 expect(context.getChatLogs(1)[0]).toContain(context.wildernessFighter.title);
                 context.player1.clickPrompt('Done');
                 expect(context.player1).toHavePrompt('Current total cost: 4\nSelect one:');
                 expect(context.player1).toHaveEnabledPromptButtons(['Reveal another card', 'Stop revealing cards']);
 
                 context.player1.clickPrompt('Reveal another card');
-                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.consortiumStarviper]);
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([
+                    context.consortiumStarviper,
+                    context.wildernessFighter,
+                    context.allianceDispatcher,
+                    context.medalCeremony
+                ]);
                 expect(context.getChatLogs(1)[0]).toContain(context.consortiumStarviper.title);
                 context.player1.clickPrompt('Done');
                 expect(context.player1).toHavePrompt('Current total cost: 7\nSelect one:');

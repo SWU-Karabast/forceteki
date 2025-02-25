@@ -35,7 +35,8 @@ export default class DontGetCocky extends EventCard {
 
     private thenAfterReveal(cardsRevealedCount: number, contextWithUnitTarget: AbilityContext): IThenAbilityPropsWithSystems<AbilityContext> {
         Contract.assertTrue(cardsRevealedCount > 0 && cardsRevealedCount < 8, `Error in Don't Get Cocky implementation: thenAfterReveal called with invalid cardsRevealedCount ${cardsRevealedCount}`);
-        if (cardsRevealedCount === 7) {
+        const deckLength = contextWithUnitTarget.player.drawDeck.length;
+        if (cardsRevealedCount === 7 || cardsRevealedCount >= deckLength) {
             return {
                 title: 'Deal damage equal to the chosen unit equal to the total cost of cards revealed, if it is 7 or less',
                 immediateEffect: this.afterStopRevealingEffect(7, contextWithUnitTarget)
@@ -49,7 +50,7 @@ export default class DontGetCocky extends EventCard {
                 choices: {
                     ['Reveal another card']: AbilityHelper.immediateEffects.reveal((context) => ({
                         useDisplayPrompt: true,
-                        target: context.player.getTopCardsOfDeck(7)[cardsRevealedCount]
+                        target: context.player.getTopCardsOfDeck(1 + cardsRevealedCount)
                     })),
                     ['Stop revealing cards']: this.afterStopRevealingEffect(cardsRevealedCount, contextWithUnitTarget)
                 }
