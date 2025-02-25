@@ -35,7 +35,6 @@ export interface ICardIdAndName {
 }
 
 export enum DeckValidationFailureReason {
-    NotImplemented = 'notImplemented',
     IllegalInFormat = 'illegalInFormat',
     TooManyLeaders = 'tooManyLeaders',
     InvalidDeckData = 'invalidDeckData',
@@ -47,7 +46,6 @@ export enum DeckValidationFailureReason {
 }
 
 export interface IDeckValidationFailures {
-    [DeckValidationFailureReason.NotImplemented]?: ICardIdAndName[];
     [DeckValidationFailureReason.IllegalInFormat]?: ICardIdAndName[];
     [DeckValidationFailureReason.TooManyLeaders]?: boolean;
     [DeckValidationFailureReason.InvalidDeckData]?: boolean;

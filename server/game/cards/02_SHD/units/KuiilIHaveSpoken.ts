@@ -14,7 +14,7 @@ export default class KuiilIHaveSpoken extends NonLeaderUnitCard {
             title: 'Discard a card from your deck.',
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 1,
-                target: context.source.controller
+                target: context.player
             })),
             ifYouDo: (context) => ({
                 title: 'If it shares an aspect with your base, return it to your hand.',
@@ -27,7 +27,7 @@ export default class KuiilIHaveSpoken extends NonLeaderUnitCard {
     }
 
     private hasMatchingAspects(context) {
-        const baseAspects = context.source.controller.base.aspects;
+        const baseAspects = context.player.base.aspects;
         const discardedCardAspects = context.events[0].card.aspects;
 
         return baseAspects.some((aspect) => discardedCardAspects.includes(aspect));

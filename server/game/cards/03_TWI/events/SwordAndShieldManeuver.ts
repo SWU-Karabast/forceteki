@@ -16,11 +16,11 @@ export default class SwordAndShieldManeuver extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                     effect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 }),
-                    target: context.source.controller.getUnitsInPlayWithTrait(Trait.Trooper)
+                    target: context.player.getUnitsInPlayWithTrait(Trait.Trooper)
                 })),
                 AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                     effect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel }),
-                    target: context.source.controller.getUnitsInPlayWithTrait(Trait.Jedi)
+                    target: context.player.getUnitsInPlayWithTrait(Trait.Jedi)
                 }))
             ])
         });

@@ -19,7 +19,7 @@ export default class ForceThrow extends EventCard {
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: `Deal damage to a unit equal to the cost of ${ifYouDoContext.events[0]?.card?.title} (${ifYouDoContext.events[0]?.card?.printedCost} damage)`,
-                ifYouDoCondition: () => ifYouDoContext.source.controller.isTraitInPlay(Trait.Force),
+                ifYouDoCondition: () => ifYouDoContext.player.isTraitInPlay(Trait.Force),
                 optional: true,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,

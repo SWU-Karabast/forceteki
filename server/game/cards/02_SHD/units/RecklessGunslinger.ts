@@ -15,11 +15,11 @@ export default class RecklessGunslinger extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.damage((context) => ({
                     amount: 1,
-                    target: context.source.controller.opponent.base,
+                    target: context.player.opponent.base,
                 })),
                 AbilityHelper.immediateEffects.damage((context) => ({
                     amount: 1,
-                    target: context.source.controller.base,
+                    target: context.player.base,
                 })),
             ]),
         });

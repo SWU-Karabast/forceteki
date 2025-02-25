@@ -49,7 +49,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
         this.epicActionAbility = this.addActionAbility({
             title: `Deploy ${this.title}`,
             limit: new EpicActionLimit(),
-            condition: (context) => context.source.controller.resources.length >= context.source.cost,
+            condition: (context) => context.player.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
             immediateEffect: new DeployLeaderSystem({})
         });
