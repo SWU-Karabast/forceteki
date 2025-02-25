@@ -18,16 +18,14 @@ describe('The Invisible Hand Imposing Flagship\'s ability', function() {
             context.player1.clickCard(context.theInvisibleHand);
             const battleDroidTokens = context.player1.findCardsByName('battle-droid');
             expect(battleDroidTokens.length).toBe(4);
+            expect(battleDroidTokens.every((token) => token.exhausted)).toBe(true);
 
             context.moveToNextActionPhase();
             expect(battleDroidTokens.every((token) => !token.exhausted)).toBeTrue();
             context.player1.clickCard(context.theInvisibleHand);
             context.player1.clickCard(context.player2.base);
             expect(context.player1).toBeAbleToSelectExactly([
-                battleDroidTokens[0],
-                battleDroidTokens[1],
-                battleDroidTokens[2],
-                battleDroidTokens[3],
+                ...battleDroidTokens,
                 context.warriorDrone,
                 context.vanguardDroidBomber
             ]);

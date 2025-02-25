@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, TargetMode, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, Trait } from '../../../core/Constants';
 
 export default class TheInvisibleHandImposingFlagship extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -22,8 +22,6 @@ export default class TheInvisibleHandImposingFlagship extends NonLeaderUnitCard 
             targetResolver: {
                 mode: TargetMode.Unlimited,
                 controller: RelativePlayer.Self,
-                cardTypeFilter: WildcardCardType.Unit,
-                zoneFilter: WildcardZoneName.AnyArena,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Separatist) && card.isUnit() && !card.exhausted,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.exhaust((context) => ({
