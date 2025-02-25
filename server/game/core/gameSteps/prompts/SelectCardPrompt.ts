@@ -125,6 +125,7 @@ export class SelectCardPrompt extends UiPrompt {
         };
     }
 
+    // TODO: can we remove this?
     private savePreviouslySelectedCards() {
         this.previouslySelectedCards = this.choosingPlayer.selectedCards;
         this.choosingPlayer.clearSelectedCards();

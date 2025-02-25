@@ -1,6 +1,6 @@
 import type { Card } from './card/Card';
 import type { PromptType } from './Constants';
-import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData } from './gameSteps/PromptInterfaces';
+import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData, SelectCardMode } from './gameSteps/PromptInterfaces';
 import type Player from './Player';
 
 export interface IPlayerPromptStateProperties {
@@ -10,7 +10,7 @@ export interface IPlayerPromptStateProperties {
     promptTitle?: string;
     promptType?: PromptType;
 
-    selectCard?: boolean;
+    selectCard?: SelectCardMode;
     selectOrder?: boolean;
     distributeAmongTargets?: IDistributeAmongTargetsPromptData;
     dropdownListOptions?: string[];
@@ -19,7 +19,7 @@ export interface IPlayerPromptStateProperties {
 }
 
 export class PlayerPromptState {
-    public selectCard = false;
+    public selectCard? = null;
     public selectOrder = false;
     public distributeAmongTargets?: IDistributeAmongTargetsPromptData = null;
     public menuTitle = '';

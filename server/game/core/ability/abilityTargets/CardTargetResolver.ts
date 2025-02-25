@@ -11,6 +11,7 @@ import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
 import * as EnumHelpers from '../../utils/EnumHelpers.js';
 import type { GameSystem } from '../../gameSystem/GameSystem';
+import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 
 /**
  * Target resolver for selecting cards for the target of an effect.
@@ -210,6 +211,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
         context.game.promptWithHandlerMenu(context.player, {
             activePromptTitle,
+            selectCard: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             choices: [`${effectName} -> ${target.title}`, 'Pass'],
             handlers: [
                 () => this.setTargetResult(context, target),

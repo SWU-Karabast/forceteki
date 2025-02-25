@@ -9,6 +9,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
 import type { AggregateSystem } from '../core/gameSystem/AggregateSystem';
+import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     activePromptTitle?: string;
@@ -138,6 +139,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             mustSelect: mustSelect,
             buttons: buttons,
             source: context.source,
+            selectCard: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             onCancel: properties.cancelHandler,
             onSelect: (cards) => {
                 if (properties.message) {
