@@ -15,7 +15,7 @@ export default class DorsalTurret extends UpgradeCard {
         this.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
 
         this.addGainTriggeredAbilityTargetingAttached({
-            title: 'When this unit deals combat damage to a unit while attacking: Defeat that unit.',
+            title: 'Defeat that unit.',
             when: {
                 onDamageDealt: (event, context) =>
                     event.type === DamageType.Combat &&
@@ -23,7 +23,7 @@ export default class DorsalTurret extends UpgradeCard {
                     event.damageSource.damageDealtBy === context.source &&
                     event.damageSource.attack.target?.isUnit()
             },
-            immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({ target: context.event.damageSource.attack.target }))
+            immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({ target: context.event.card }))
         });
     }
 }
