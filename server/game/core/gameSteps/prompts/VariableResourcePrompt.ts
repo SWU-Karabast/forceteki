@@ -23,7 +23,7 @@ export class VariableResourcePrompt extends ResourcePrompt {
         const promptText = `Select between ${this.minCardsToResource} and ${this.maxCardsToResource} cards to resource`;
 
         return {
-            selectCard: SelectCardMode.Multiple,
+            selectCardMode: SelectCardMode.Multiple,
             menuTitle: promptText,
             buttons: [{ text: 'Done', arg: 'done' }],
             promptTitle: 'Resource Step',

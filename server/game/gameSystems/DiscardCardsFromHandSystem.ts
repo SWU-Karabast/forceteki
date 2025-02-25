@@ -108,7 +108,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 source: context.source,
                 selector: selector,
                 context: context,
-                selectCard: amount === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
+                selectCardMode: amount === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
                 onSelect: (cards) => {
                     this.generateEventsForCards(cards, context, events, additionalProperties);
                     return true;

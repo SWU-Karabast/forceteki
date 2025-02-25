@@ -99,7 +99,7 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     onCancel?: (player: Player) => void;
     onMenuCommand?: (arg: string) => boolean;
     onSelect?: (card: Card[]) => boolean;
-    selectCard: SelectCardMode;
+    selectCardMode: SelectCardMode;
     selectOrder?: boolean;
     selector?: BaseCardSelector;
 }

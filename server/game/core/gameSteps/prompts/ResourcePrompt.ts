@@ -58,7 +58,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         }
 
         return {
-            selectCard: this.nCardsToResource === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
+            selectCardMode: this.nCardsToResource === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
             menuTitle: promptText,
             buttons: [{ text: 'Done', arg: 'done' }],
             promptTitle: 'Resource Step',

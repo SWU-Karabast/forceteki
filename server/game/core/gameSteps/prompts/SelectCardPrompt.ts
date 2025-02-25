@@ -116,7 +116,7 @@ export class SelectCardPrompt extends UiPrompt {
     private defaultProperties() {
         return {
             buttons: [],
-            selectCard: true,
+            selectCardMode: true,
             cardCondition: () => true,
             onSelect: () => true,
             onMenuCommand: () => true,
@@ -162,7 +162,7 @@ export class SelectCardPrompt extends UiPrompt {
         }
 
         return {
-            selectCard: this.properties.selectCard,
+            selectCardMode: this.properties.selectCardMode,
             selectOrder: this.properties.selectOrder,
             menuTitle: this.properties.activePromptTitle || this.selector.defaultActivePromptTitle(this.context),
             buttons: buttons,

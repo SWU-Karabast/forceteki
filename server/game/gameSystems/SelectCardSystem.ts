@@ -139,7 +139,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             mustSelect: mustSelect,
             buttons: buttons,
             source: context.source,
-            selectCard: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
+            selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             onCancel: properties.cancelHandler,
             onSelect: (cards) => {
                 if (properties.message) {

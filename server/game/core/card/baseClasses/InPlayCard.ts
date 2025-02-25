@@ -341,7 +341,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             activePromptTitle: `Choose which copy of ${unitDisplayName} to defeat`,
             waitingPromptTitle: `Waiting for opponent to choose which copy of ${unitDisplayName} to defeat`,
             source: 'Unique rule',
-            selectCard: SelectCardMode.Single,
+            selectCardMode: SelectCardMode.Single,
             zoneFilter: WildcardZoneName.AnyArena,
             controller: RelativePlayer.Self,
             cardCondition: (card: InPlayCard) =>
