@@ -162,5 +162,50 @@ describe('Piloting keyword', function() {
                 expect(context.idenInHand).toBeInZone('spaceArena');
             });
         });
+
+        describe('When a Pilot is attached to a friendly Vehicle', function () {
+            it('it can be defeated like an upgrade', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'echo-base',
+                        spaceArena: [{ card: 'concord-dawn-interceptors', upgrades: ['iden-versio#adapt-or-die', 'shield'] }, 'restored-arc170'],
+                    },
+                    player2: {
+                        hand: ['confiscate']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.confiscate);
+                expect(context.player2).toBeAbleToSelectExactly([context.idenVersio, context.shield]);
+                context.player2.clickCard(context.idenVersio);
+                expect(context.concordDawnInterceptors.upgrades).not.toContain(context.idenVersio);
+                expect(context.idenVersio).toBeInZone('discard');
+            });
+        });
+
+        it('A unit with Piloting should not be able to be played as a pilot when played from Smuggle', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'han-solo#audacious-smuggler',
+                    base: 'echo-base',
+                    groundArena: ['tech#source-of-insight'],
+                    spaceArena: ['cartel-turncoat'],
+                    resources: ['dagger-squadron-pilot', 'wampa', 'wampa', 'wampa', 'wampa', 'wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // check that the gained smuggle is used since it's the lower cost
+            context.player1.clickCard(context.daggerSquadronPilot);
+            expect(context.daggerSquadronPilot).toBeInZone('groundArena');
+            expect(context.player1.exhaustedResourceCount).toBe(3);
+        });
     });
 });

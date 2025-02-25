@@ -1,6 +1,7 @@
 import type Player from '../Player';
 import type { ZoneFilter } from '../Constants';
-import { AbilityType, CardType, ZoneName } from '../Constants';
+import { CardType } from '../Constants';
+import { AbilityType, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import * as EnumHelpers from '../utils/EnumHelpers';
