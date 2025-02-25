@@ -1,7 +1,7 @@
 describe('Bravado', function () {
     integration(function (contextRef) {
-        it('Bravado readies unit with cost reduction when smuggled', function () {
-            contextRef.setupTest({
+        it('Bravado readies unit with cost reduction when smuggled', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: [{ card: 'battlefield-marine', exhausted: true }, 'tech#source-of-insight'],

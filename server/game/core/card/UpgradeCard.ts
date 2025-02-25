@@ -38,7 +38,7 @@ export interface IUpgradeCard extends IInPlayCard, ICardWithPrintedPowerProperty
     get parentCard(): IUnitCard;
     attachTo(newParentCard: IUnitCard, newController?: Player);
     isAttached(): boolean;
-    unattach();
+    unattach(event?);
     canAttach(targetCard: Card, controller?: Player): boolean;
 }
 

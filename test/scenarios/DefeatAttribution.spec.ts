@@ -1,8 +1,8 @@
 describe('Defeat attribution', function () {
     integration(function (contextRef) {
         describe('When a unit has not been defeated by a player,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -28,8 +28,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by a player through attacking,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -58,8 +58,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by a player through being attacked,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -88,8 +88,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by a player through an event,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -119,8 +119,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by an opponent through an event,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -150,8 +150,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by a player through an event even opponent chose unit,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -181,8 +181,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by a player through an event that deals damage,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -212,8 +212,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by a player through an event that has a unit deal damage,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -244,8 +244,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by a player through an upgrade that applies a negative HP modifier,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -275,8 +275,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by an opponet through an upgrade that applies a negative HP modifier,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -306,8 +306,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by a player through a unit that applies a negative HP modifier,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -336,8 +336,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by a player through an event that applies a negative HP modifier,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -367,8 +367,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by a player through bouncing enemy unit that applied positive HP modifier,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -403,8 +403,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by an opponent through bouncing their own unit that applied positive HP modifier,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -437,8 +437,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by a player through defeating an enemy upgrade that applied positive HP modifier,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],
@@ -471,8 +471,8 @@ describe('Defeat attribution', function () {
         });
 
         describe('When a unit has been defeated by an opponent through defeating their own upgrade that applied positive HP modifier,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }],

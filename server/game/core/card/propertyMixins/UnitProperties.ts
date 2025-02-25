@@ -38,6 +38,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     get defaultArena(): Arena;
     get capturedUnits(): IUnitCard[];
     get captureZone(): CaptureZone;
+    get lastPlayerToModifyHp(): Player;
     readonly upgrades: IUpgradeCard[];
     getCaptor(): IUnitCard | null;
     isAttacking(): boolean;
@@ -56,7 +57,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
     canPlayOn(card);
-    unattachUpgrade(upgrade);
+    unattachUpgrade(upgrade, event);
     attachUpgrade(upgrade);
     getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
 }
