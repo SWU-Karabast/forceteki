@@ -2,8 +2,8 @@
 describe('Captain Phasma, Chrome Dome', function() {
     integration(function(contextRef) {
         describe('Captain Phasma, Chrome Dome\'s undeployed ability', function() {
-            it('should only have an effect if the controller played a First Order card this phase, but still be usable otherwise', function () {
-                contextRef.setupTest({
+            it('should only have an effect if the controller played a First Order card this phase, but still be usable otherwise', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['kylos-tie-silencer#ruthlessly-efficient'],
@@ -51,8 +51,8 @@ describe('Captain Phasma, Chrome Dome', function() {
         });
 
         describe('Captain Phasma, Chrome Domer\'s deployed ability', function() {
-            it('should optionally deal 1 damage to any unit and base on attack', function () {
-                contextRef.setupTest({
+            it('should optionally deal 1 damage to any unit and base on attack', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['kylo-ren#killing-the-past'],

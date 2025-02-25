@@ -1,7 +1,7 @@
 describe('Chewbacca Pykesbane', function () {
     integration(function (contextRef) {
-        it('Chewbacca Pykesbane\'s when played ability should allow to defeat a unit with 5 or less HP', function () {
-            contextRef.setupTest({
+        it('Chewbacca Pykesbane\'s when played ability should allow to defeat a unit with 5 or less HP', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['knight-of-the-republic', { card: 'luminara-unduli#softspoken-master', damage: 5 }, { card: 'the-zillo-beast#awoken-from-the-depths', damage: 4 }],

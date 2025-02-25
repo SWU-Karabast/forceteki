@@ -4,6 +4,7 @@ import type { GameSystem } from './core/gameSystem/GameSystem';
 import type { Card } from './core/card/Card';
 import type { CardTypeFilter, RelativePlayer, RelativePlayerFilter, TargetMode, ZoneFilter } from './core/Constants';
 import type { PlayerTargetSystem } from './core/gameSystem/PlayerTargetSystem';
+import type { AggregateSystem } from './core/gameSystem/AggregateSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -55,7 +56,7 @@ export interface ISelectTargetResolver<TContext extends AbilityContext> extends 
 
 export interface IDropdownListTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
     mode: TargetMode.DropdownList;
-    options: string[];
+    options: string[] | ((context: TContext) => string[]);
     condition?: (context: AbilityContext) => boolean;
 }
 
@@ -82,7 +83,7 @@ export interface ITargetResolverBase<TContext extends AbilityContext> {
 // TODO: add functionality to PlayerTargetResolver to autodetect any invalid target players.
 export interface IPlayerTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
     mode: TargetMode.Player | TargetMode.MultiplePlayers;
-    immediateEffect?: PlayerTargetSystem<TContext>;
+    immediateEffect?: PlayerTargetSystem<TContext> | AggregateSystem<TContext>;
 }
 
 export type IChoicesInterface<TContext extends AbilityContext = AbilityContext> = Record<string, ((context: TContext) => boolean) | GameSystem<TContext>>;

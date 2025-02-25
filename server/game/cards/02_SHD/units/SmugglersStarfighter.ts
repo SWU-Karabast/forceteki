@@ -17,7 +17,7 @@ export default class SmugglersStarfighter extends NonLeaderUnitCard {
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.source.controller.isTraitInPlay(Trait.Underworld, context.source),
+                    condition: (context) => context.player.isTraitInPlay(Trait.Underworld, context.source),
                     onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: -3, hp: 0 })
                     }),

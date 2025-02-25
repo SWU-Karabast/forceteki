@@ -14,12 +14,12 @@ export default class TheChaosOfWar extends EventCard {
             title: 'Deal damage to each player’s base equal to the number of cards in that player’s hand.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: context.source.controller.opponent.hand.length,
-                    target: context.source.controller.opponent.base,
+                    amount: context.player.opponent.hand.length,
+                    target: context.player.opponent.base,
                 })),
                 AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: context.source.controller.hand.length,
-                    target: context.source.controller.base,
+                    amount: context.player.hand.length,
+                    target: context.player.base,
                 })),
             ]),
         });

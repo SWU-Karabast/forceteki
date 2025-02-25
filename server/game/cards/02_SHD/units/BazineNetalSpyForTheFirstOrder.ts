@@ -2,8 +2,6 @@ import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class BazineNetalSpyForTheFirstOrder extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '5830140660',
@@ -14,23 +12,13 @@ export default class BazineNetalSpyForTheFirstOrder extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'Look at an opponent\'s hand',
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.lookAt((context) => ({
-                    target: context.player.opponent.hand,
-                })),
-            ]),
-            then: {
-                title: 'Discard 1 of those cards',
-                optional: true,
-                immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOpponentsHand((context) => ({
-                    target: context.player.opponent,
-                    amount: 1,
-                })),
-                ifYouDo: {
-                    title: 'That player draws a card',
-                    immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player.opponent })),
-                }
-            },
+            immediateEffect: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
+                target: context.player.opponent.hand,
+                immediateEffect: AbilityHelper.immediateEffects.sequential([
+                    AbilityHelper.immediateEffects.discardSpecificCard(),
+                    AbilityHelper.immediateEffects.draw((context) => ({ target: context.player.opponent }))
+                ])
+            }))
         });
     }
 }

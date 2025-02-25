@@ -2,7 +2,7 @@ describe('Don\'t Get Cocky', function() {
     integration(function(contextRef) {
         describe('Don\'t Get Cocky\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['dont-get-cocky'],

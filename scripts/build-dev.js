@@ -18,5 +18,6 @@ runCommand('tsc');
 
 runCommand('cpy ./test/json/ ./build/');
 runCommand('cpy ./test/helpers/ ./build/');
+runCommand('cpy ./card-data-version.txt ./build/server/');
 
 console.log('Build-dev process completed.');

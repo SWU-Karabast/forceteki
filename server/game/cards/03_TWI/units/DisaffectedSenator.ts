@@ -21,5 +21,3 @@ export default class DisaffectedSenator extends NonLeaderUnitCard {
         });
     }
 }
-
-DisaffectedSenator.implemented = true;

@@ -1,7 +1,7 @@
 describe('Redemption Medical Frigate', function() {
     integration(function(contextRef) {
-        it('Redemption\'s ability can heal up to 8 damages from units and base and deal damage to itself', function () {
-            contextRef.setupTest({
+        it('Redemption\'s ability can heal up to 8 damages from units and base and deal damage to itself', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['redemption#medical-frigate', 'the-emperors-legion'],

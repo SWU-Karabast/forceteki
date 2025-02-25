@@ -1,7 +1,7 @@
 describe('Confederate Courier', function () {
     integration(function (contextRef) {
-        it('Confederate Courier\'s ability should create a Battle Droid token when defeated', function () {
-            contextRef.setupTest({
+        it('Confederate Courier\'s ability should create a Battle Droid token when defeated', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['green-squadron-awing'],

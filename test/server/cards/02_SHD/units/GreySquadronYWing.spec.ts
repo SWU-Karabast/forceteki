@@ -2,7 +2,7 @@ describe('Grey squadron Y-Wing', function() {
     integration(function(contextRef) {
         describe('Grey squadron Y-Wing\'s Ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['grey-squadron-ywing'],

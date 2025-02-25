@@ -1,7 +1,7 @@
 describe('Red Squadron X-Wing', function() {
     integration(function(contextRef) {
-        it('Red Squadron X-Wing\'s ability should deal to damge to itself and draw a card', function () {
-            contextRef.setupTest({
+        it('Red Squadron X-Wing\'s ability should deal to damge to itself and draw a card', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['red-squadron-xwing'],

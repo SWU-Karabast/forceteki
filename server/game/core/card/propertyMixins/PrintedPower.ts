@@ -1,5 +1,10 @@
 import * as Contract from '../../utils/Contract';
-import type { CardConstructor } from '../Card';
+import type { Card, CardConstructor } from '../Card';
+
+export interface ICardWithPrintedPowerProperty extends Card {
+    readonly printedPower: number;
+    getPower(): number;
+}
 
 /** Mixin function that adds the `printedPower` property to a base class. */
 export function WithPrintedPower<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {

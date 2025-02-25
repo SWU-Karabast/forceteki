@@ -2,7 +2,7 @@ describe('Sentinel keyword', function() {
     integration(function(contextRef) {
         describe('When a unit with the Sentinel keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
@@ -47,7 +47,7 @@ describe('Sentinel keyword', function() {
 
         describe('When two units with the Sentinel keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['liberated-slaves'],
@@ -77,7 +77,7 @@ describe('Sentinel keyword', function() {
 
         describe('When attacker can attack both arena while there are Sentinel on both arena', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['strafing-gunship'],
@@ -121,7 +121,7 @@ describe('Sentinel keyword', function() {
 
         describe('When attack can attack both arena while there are Sentinel only on ground arena', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['strafing-gunship'],
@@ -149,8 +149,8 @@ describe('Sentinel keyword', function() {
         });
 
         describe('When defender have Sentinel and target ability restriction', function () {
-            it('should override target ability restriction', function () {
-                contextRef.setupTest({
+            it('should override target ability restriction', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['unshakeable-will', 'on-top-of-things'],

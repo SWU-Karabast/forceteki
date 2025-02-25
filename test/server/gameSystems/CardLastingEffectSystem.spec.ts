@@ -1,8 +1,8 @@
 describe('Card lasting effects', function() {
     integration(function (contextRef) {
         describe('A card lasting effect with duration "while source is in play" should', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['huyang#enduring-instructor'],
@@ -103,8 +103,8 @@ describe('Card lasting effects', function() {
             });
         });
 
-        it('A triggered card lasting effect with duration "while source is in play" should not activate if the source is defeated before the trigger resolves', function() {
-            contextRef.setupTest({
+        it('A triggered card lasting effect with duration "while source is in play" should not activate if the source is defeated before the trigger resolves', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['huyang#enduring-instructor'],
@@ -128,8 +128,8 @@ describe('Card lasting effects', function() {
         });
 
         describe('A card lasting effect with duration "while source is in play", when the unique rule is triggered,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['huyang#enduring-instructor', 'huyang#enduring-instructor'],

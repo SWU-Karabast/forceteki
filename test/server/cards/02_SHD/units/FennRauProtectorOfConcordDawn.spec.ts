@@ -1,7 +1,7 @@
 describe('Fenn Rau Protector of Concord Dawn\'s ability', function () {
     integration(function (contextRef) {
-        it('should allow to play an upgrade for 2 less', function () {
-            contextRef.setupTest({
+        it('should allow to play an upgrade for 2 less', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['fenn-rau#protector-of-concord-dawn', 'academy-training', 'jedi-lightsaber', 'wampa'],
@@ -52,8 +52,8 @@ describe('Fenn Rau Protector of Concord Dawn\'s ability', function () {
             expect(context.consularSecurityForce.getHp()).toBe(7);
         });
 
-        it('should not bug if there is no enemy unit', function () {
-            contextRef.setupTest({
+        it('should not bug if there is no enemy unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['academy-training', 'survivors-gauntlet'],

@@ -2,7 +2,7 @@ describe('Gentle Giant', function() {
     integration(function(contextRef) {
         describe('Gentle Giant\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [

@@ -2,7 +2,7 @@ describe('Clone Cohort', function() {
     integration(function(contextRef) {
         describe('Clone Cohort\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['clone-cohort'] }]

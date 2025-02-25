@@ -1,15 +1,15 @@
+import type { User } from './Settings';
+
 export class Spectator {
     public readonly buttons = [];
     public readonly menuTitle = 'Spectator mode';
     public readonly name: string;
-    public readonly emailHash: string;
 
     public constructor(
         public id: string,
-        public user: { username: string; emailHash: string }
+        public user: User
     ) {
         this.name = this.user.username;
-        this.emailHash = this.user.emailHash;
     }
 
     public getCardSelectionState() {

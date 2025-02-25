@@ -1,7 +1,7 @@
 describe('Swoop Down', function () {
     integration(function (contextRef) {
-        it('Swoop Down\'s ability should initiate an attack with space unit, add saboteur and +2/+0 because if target is on ground arena and give -2/-0 to target if he is on ground arena', function () {
-            contextRef.setupTest({
+        it('Swoop Down\'s ability should initiate an attack with space unit, add saboteur and +2/+0 because if target is on ground arena and give -2/-0 to target if he is on ground arena', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['swoop-down'],

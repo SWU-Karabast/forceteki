@@ -29,4 +29,3 @@ export default class PoliticalPressure extends EventCard {
     }
 }
 
-PoliticalPressure.implemented = true;

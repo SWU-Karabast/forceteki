@@ -19,5 +19,3 @@ export default class Tarkintown extends BaseCard {
         });
     }
 }
-
-Tarkintown.implemented = true;

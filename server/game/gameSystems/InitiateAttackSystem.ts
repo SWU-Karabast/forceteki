@@ -1,12 +1,12 @@
 import type { Card } from '../core/card/Card';
 import AbilityResolver from '../core/gameSteps/AbilityResolver';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import type { UnitCard } from '../core/card/CardTypes';
 import { InitiateAttackAction } from '../actions/InitiateAttackAction';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import type { IAttackProperties } from './AttackStepsSystem';
 import { MetaEventName } from '../core/Constants';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 export interface IInitiateAttackProperties<TContext extends AbilityContext = AbilityContext> extends IAttackProperties {
     ignoredRequirements?: string[];
@@ -75,7 +75,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
      * Generate an attack ability for the specified card.
      * Uses the passed properties but strips out the `target` property to avoid overriding it in the attack.
      */
-    private generateAttackAbilityNoTarget(card: UnitCard, properties: IAttackProperties) {
+    private generateAttackAbilityNoTarget(card: IUnitCard, properties: IAttackProperties) {
         const { target, ...propertiesNoTarget } = properties;
         return new InitiateAttackAction(card.game, card, propertiesNoTarget);
     }

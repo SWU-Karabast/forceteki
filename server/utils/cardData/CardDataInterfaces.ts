@@ -3,10 +3,16 @@ export interface ICardMapEntry {
     title: string;
     subtitle?: string;
     internalName: string;
+    cost?: number;
 }
 
 export type ICardMapJson = ICardMapEntry[];
 export type ICardMap = Map<string, ICardMapEntry>;
+
+export interface ISetCode {
+    set: string;
+    number: number;
+}
 
 export interface ICardDataJson {
     title: string;
@@ -25,9 +31,6 @@ export interface ICardDataJson {
     arena?: string;
     keywords?: string[];
     types: string[];
-    setId: {
-        set: string;
-        number: number;
-    };
+    setId: ISetCode;
     internalName: string;
 }

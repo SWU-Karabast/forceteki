@@ -1,8 +1,8 @@
 describe('Guardian of the Whills', function () {
     integration(function (contextRef) {
         describe('Guardian of the Whills\' ability', function () {
-            it('should decrease the cost of the first upgrade played on it by 1 resource, once per round', function () {
-                contextRef.setupTest({
+            it('should decrease the cost of the first upgrade played on it by 1 resource, once per round', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['jetpack', 'devotion', 'electrostaff', 'foundling', 'entrenched', 'jedi-lightsaber', 'mandalorian-armor',

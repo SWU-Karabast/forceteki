@@ -1,7 +1,7 @@
 describe('Endless Legions', function() {
     integration(function(contextRef) {
-        it('Endless Legionsl\'s event ability should allows to play for free any number of resources', function() {
-            contextRef.setupTest({
+        it('Endless Legionsl\'s event ability should allows to play for free any number of resources', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'grand-moff-tarkin#oversector-governor',
@@ -78,7 +78,22 @@ describe('Endless Legions', function() {
             expect(context.getChatLogs(1)[0]).toContain(context.frozenInCarbonite.title);
             expect(context.getChatLogs(1)[0]).toContain(context.wrecker.title);
             expect(context.getChatLogs(1)[0]).toContain(context.battlefieldMarine.title);
+
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([
+                context.resupply,
+                context.relentless,
+                context.arquitensAssaultCruiser,
+                context.peltaSupplyFrigate,
+                context.admiralPiett,
+                context.frozenInCarbonite,
+                context.wrecker,
+                context.battlefieldMarine,
+            ]);
+            context.player2.clickPrompt('Done');
+
             expect(context.player1).not.toHaveEnabledPromptButton('Choose no target');
+
+            // Only the units are selectable
             expect(context.player1).toBeAbleToSelectExactly([
                 context.wrecker,
                 context.arquitensAssaultCruiser,
@@ -138,8 +153,8 @@ describe('Endless Legions', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Endless Legionsl\'s event ability should play no cards if no units are revealed', function() {
-            contextRef.setupTest({
+        it('Endless Legionsl\'s event ability should play no cards if no units are revealed', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'grand-moff-tarkin#oversector-governor',
@@ -196,7 +211,17 @@ describe('Endless Legions', function() {
             context.player1.clickCard(context.confiscate);
             context.player1.clickPrompt('Done');
 
-            expect(context.getChatLogs(1)).toContain('player1 reveals Resupply, Frozen in Carbonite, Confiscate due to Endless Legions');
+            expect(context.getChatLogs(1)[0]).toContain(context.resupply.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.frozenInCarbonite.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.confiscate.title);
+
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([
+                context.resupply,
+                context.frozenInCarbonite,
+                context.confiscate
+            ]);
+            context.player2.clickPrompt('Done');
+
             expect(context.player2).toBeActivePlayer();
         });
     });

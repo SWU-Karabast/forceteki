@@ -1,7 +1,7 @@
 describe('The Invasion Of Christophsis', function() {
     integration(function(contextRef) {
-        it('should defeat all opponents units', function() {
-            contextRef.setupTest({
+        it('should defeat all opponents units', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine'],

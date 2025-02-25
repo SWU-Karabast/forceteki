@@ -23,5 +23,3 @@ export default class WolfPackEscort extends NonLeaderUnitCard {
         });
     }
 }
-
-WolfPackEscort.implemented = true;

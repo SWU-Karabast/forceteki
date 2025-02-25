@@ -2,7 +2,7 @@ describe('General Dodonna, Massassi Group Commander', function() {
     integration(function(contextRef) {
         describe('General Dodonna\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'general-dodonna#massassi-group-commander', 'wampa'],

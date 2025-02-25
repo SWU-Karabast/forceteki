@@ -1,8 +1,8 @@
 describe('Reinforcement Walker', function() {
     integration(function(contextRef) {
         describe('Reinforcement Walker\'s ability', function() {
-            it('should let the play draw a card when played and on attack', function () {
-                contextRef.setupTest({
+            it('should let the play draw a card when played and on attack', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reinforcement-walker'],
@@ -41,8 +41,8 @@ describe('Reinforcement Walker', function() {
             });
 
             it('should let the play discard a card and heal 3 damage from their base on attack when played and on attack',
-                function () {
-                    contextRef.setupTest({
+                async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['reinforcement-walker'],
@@ -84,8 +84,8 @@ describe('Reinforcement Walker', function() {
                 }
             );
 
-            it('should skip abilities when the deck is empty', function () {
-                contextRef.setupTest({
+            it('should skip abilities when the deck is empty', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reinforcement-walker'],
@@ -110,8 +110,8 @@ describe('Reinforcement Walker', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should trigger abilities twice when played with Ambush', function () {
-                contextRef.setupTest({
+            it('should trigger abilities twice when played with Ambush', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reinforcement-walker'],

@@ -15,7 +15,7 @@ export default class PoggleTheLesserArchdukeOfTheStalgasinHive extends NonLeader
             when: {
                 onCardPlayed: (event, context) =>
                     event.card.isUnit() &&
-                    event.card.controller === context.source.controller &&
+                    event.card.controller === context.player &&
                     event.card !== context.source
             },
             optional: true,
@@ -28,4 +28,3 @@ export default class PoggleTheLesserArchdukeOfTheStalgasinHive extends NonLeader
     }
 }
 
-PoggleTheLesserArchdukeOfTheStalgasinHive.implemented = true;

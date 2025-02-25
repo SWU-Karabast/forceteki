@@ -2,7 +2,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
     integration(function (contextRef) {
         describe('Fennec Shand\'s undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'echo-base',
@@ -40,7 +40,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
 
         describe('Fennec Shand\'s deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'echo-base',
@@ -117,7 +117,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
 
         describe('Fennec Shand\'s deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'fennec-shand#honoring-the-deal', deployed: true },

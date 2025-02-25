@@ -1,8 +1,8 @@
 describe('Street Gang Recruiter', function () {
     integration(function (contextRef) {
         describe('Street Gang Recruiter\'s ability', function() {
-            it('should return an Underworld card to player hand from his discard pile', function () {
-                contextRef.setupTest({
+            it('should return an Underworld card to player hand from his discard pile', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['street-gang-recruiter'],
@@ -26,8 +26,8 @@ describe('Street Gang Recruiter', function () {
                 expect(context.bosskDeadlyStalker.zoneName).toBe('hand');
             });
 
-            it('should not do anything if no Underworld card is in the discard pile', function () {
-                contextRef.setupTest({
+            it('should not do anything if no Underworld card is in the discard pile', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['street-gang-recruiter'],

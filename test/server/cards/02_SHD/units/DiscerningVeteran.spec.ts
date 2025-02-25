@@ -1,8 +1,8 @@
 describe('Discerning Veteran', function() {
     integration(function(contextRef) {
         describe('Discerning Veteran\'s when played ability', function() {
-            it('should capture an enemy ground unit', () => {
-                contextRef.setupTest({
+            it('should capture an enemy ground unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['discerning-veteran'],

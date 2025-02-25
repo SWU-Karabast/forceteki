@@ -2,7 +2,7 @@ describe('Setup Phase', function() {
     integration(function(contextRef) {
         describe('Setup Phase', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'setup',
                     player1: {
                         deck: ['armed-to-the-teeth',

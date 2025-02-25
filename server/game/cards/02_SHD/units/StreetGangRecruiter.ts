@@ -23,5 +23,3 @@ export default class StreetGangRecruiter extends NonLeaderUnitCard {
         });
     }
 }
-
-StreetGangRecruiter.implemented = true;

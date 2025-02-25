@@ -2,7 +2,7 @@ describe('Infiltrator\'s Skill', function() {
     integration(function(contextRef) {
         describe('Infiltrator\'s Skill\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['infiltrators-skill'] }],

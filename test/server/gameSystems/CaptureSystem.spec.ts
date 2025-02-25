@@ -1,8 +1,8 @@
 describe('Capture system', function() {
     integration(function (contextRef) {
         describe('When a unit is captured', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['discerning-veteran']
@@ -47,8 +47,8 @@ describe('Capture system', function() {
             });
         });
 
-        it('When multiple units are captured, they should all be in the capture zone and all rescued on capture defeat', function () {
-            contextRef.setupTest({
+        it('When multiple units are captured, they should all be in the capture zone and all rescued on capture defeat', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['discerning-veteran', 'legal-authority'],
@@ -90,8 +90,8 @@ describe('Capture system', function() {
             expect(context.greenSquadronAwing.exhausted).toBeTrue();
         });
 
-        it('When a unit with captives is taken control of and defeated, the captives should return to their owner\'s control', function () {
-            contextRef.setupTest({
+        it('When a unit with captives is taken control of and defeated, the captives should return to their owner\'s control', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['take-captive'],
@@ -138,8 +138,8 @@ describe('Capture system', function() {
             expect(context.wampa.exhausted).toBeTrue();
         });
 
-        it('When a unit is captured that has upgrades and its own captured unit, the upgrades are defeated and the unit is rescued', function () {
-            contextRef.setupTest({
+        it('When a unit is captured that has upgrades and its own captured unit, the upgrades are defeated and the unit is rescued', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['discerning-veteran'],
@@ -171,40 +171,20 @@ describe('Capture system', function() {
         });
 
         describe('When multiple units are guarding captured units', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['take-captive', 'evacuate', 'superlaser-blast'],
-                        groundArena: ['wampa', 'atst'],
-                        spaceArena: ['wing-leader']
+                        hand: ['evacuate', 'superlaser-blast'],
+                        spaceArena: [{ card: 'wing-leader', capturedUnits: ['tieln-fighter', { card: 'green-squadron-awing', owner: 'player1' }] }]
                     },
                     player2: {
-                        groundArena: ['pyke-sentinel'],
-                        spaceArena: ['tieln-fighter'],
-                        hand: ['discerning-veteran', 'take-captive']
+                        groundArena: ['pyke-sentinel', { card: 'discerning-veteran', capturedUnits: ['wampa', 'atst', { card: 'death-trooper', owner: 'player2' }] }],
                     },
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
                 });
-
-                const { context } = contextRef;
-                const p1TakeCaptive = context.player1.findCardByName('take-captive');
-                const p2TakeCaptive = context.player2.findCardByName('take-captive');
-
-                // SETUP: Discerning Veteran captures two cards, Wing Leader captures one, Pyke Sentinel zero
-                context.player1.clickCard(p1TakeCaptive);
-                context.player1.clickCard(context.wingLeader);
-
-                context.player2.clickCard(context.discerningVeteran);
-                context.player2.clickCard(context.wampa);
-
-                context.player1.passAction();
-
-                // Take Captive automatically selects AT-ST
-                context.player2.clickCard(p2TakeCaptive);
-                context.player2.clickCard(context.discerningVeteran);
             });
 
             it('and all units in the arena are returned to hand, all captured units are rescued', function () {
@@ -213,12 +193,16 @@ describe('Capture system', function() {
                 context.player1.clickCard(context.evacuate);
 
                 // check captured units are rescued
-                expect(context.wampa).toBeInZone('groundArena');
+                expect(context.wampa).toBeInZone('groundArena', context.player1);
                 expect(context.wampa.exhausted).toBeTrue();
-                expect(context.atst).toBeInZone('groundArena');
+                expect(context.atst).toBeInZone('groundArena', context.player1);
                 expect(context.atst.exhausted).toBeTrue();
-                expect(context.tielnFighter).toBeInZone('spaceArena');
+                expect(context.deathTrooper).toBeInZone('groundArena', context.player2);
+                expect(context.deathTrooper.exhausted).toBeTrue();
+                expect(context.tielnFighter).toBeInZone('spaceArena', context.player2);
                 expect(context.tielnFighter.exhausted).toBeTrue();
+                expect(context.greenSquadronAwing).toBeInZone('spaceArena', context.player1);
+                expect(context.greenSquadronAwing.exhausted).toBeTrue();
 
                 // check previous arena units are returned to hand
                 expect(context.wingLeader).toBeInZone('hand');
@@ -232,12 +216,16 @@ describe('Capture system', function() {
                 context.player1.clickCard(context.superlaserBlast);
 
                 // check captured units are rescued
-                expect(context.wampa).toBeInZone('groundArena');
+                expect(context.wampa).toBeInZone('groundArena', context.player1);
                 expect(context.wampa.exhausted).toBeTrue();
-                expect(context.atst).toBeInZone('groundArena');
+                expect(context.atst).toBeInZone('groundArena', context.player1);
                 expect(context.atst.exhausted).toBeTrue();
-                expect(context.tielnFighter).toBeInZone('spaceArena');
+                expect(context.deathTrooper).toBeInZone('groundArena', context.player2);
+                expect(context.deathTrooper.exhausted).toBeTrue();
+                expect(context.tielnFighter).toBeInZone('spaceArena', context.player2);
                 expect(context.tielnFighter.exhausted).toBeTrue();
+                expect(context.greenSquadronAwing).toBeInZone('spaceArena', context.player1);
+                expect(context.greenSquadronAwing.exhausted).toBeTrue();
 
                 // check previous arena units are returned to hand
                 expect(context.wingLeader).toBeInZone('discard');

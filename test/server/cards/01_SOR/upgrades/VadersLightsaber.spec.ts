@@ -2,7 +2,7 @@ describe('Vader\'s Lightsaber', function() {
     integration(function(contextRef) {
         describe('Vader\'s Lightsaber\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vaders-lightsaber'],
@@ -46,7 +46,7 @@ describe('Vader\'s Lightsaber', function() {
 
         describe('Vader\'s Lightsaber\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vaders-lightsaber'],

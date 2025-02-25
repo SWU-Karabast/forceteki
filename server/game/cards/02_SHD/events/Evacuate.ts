@@ -21,5 +21,3 @@ export default class Evacuate extends EventCard {
         });
     }
 }
-
-Evacuate.implemented = true;

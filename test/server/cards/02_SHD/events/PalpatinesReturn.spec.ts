@@ -2,7 +2,7 @@ describe('Palpatine\'s Return', function() {
     integration(function(contextRef) {
         describe('Palpatine\'s Return\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'administrators-tower',

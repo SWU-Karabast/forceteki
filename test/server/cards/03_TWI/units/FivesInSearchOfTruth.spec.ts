@@ -1,7 +1,7 @@
 describe('Fives, In Search of Truth', function() {
     integration(function(contextRef) {
-        it('Fives\' ability should put a clone unit from own discard to bottom of deck to draw one card ', function () {
-            contextRef.setupTest({
+        it('Fives\' ability should put a clone unit from own discard to bottom of deck to draw one card ', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['fives#in-search-of-truth'],

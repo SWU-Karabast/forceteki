@@ -2,7 +2,7 @@ describe('Devastating Gunship', function () {
     integration(function (contextRef) {
         describe('Devastating Gunship\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['devastating-gunship'],

@@ -1,7 +1,7 @@
 describe('Rush Clovis\'s ability', function () {
     integration(function (contextRef) {
-        it('should create a Battle Droid token if the opponent has no ready resources', function () {
-            contextRef.setupTest({
+        it('should create a Battle Droid token if the opponent has no ready resources', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['rush-clovis#banking-clan-scion'],

@@ -4,7 +4,7 @@ describe('Boba Fett, Disintegrator', function() {
             const { context } = contextRef;
 
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vambrace-grappleshot'],

@@ -2,7 +2,7 @@ describe('Partisan Insurgent', function () {
     integration(function (contextRef) {
         describe('Partisan Insurgent\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['keep-fighting'],

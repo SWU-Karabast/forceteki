@@ -1,7 +1,7 @@
 describe('Tech, Source of Insight', function () {
     integration(function (contextRef) {
-        it('Tech\'s ability should give Smuggle to all cards in the resource zone', function () {
-            contextRef.setupTest({
+        it('Tech\'s ability should give Smuggle to all cards in the resource zone', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: { card: 'boba-fett#daimyo', deployed: true },
@@ -97,8 +97,8 @@ describe('Tech, Source of Insight', function () {
         });
 
 
-        it('Tech\'s ability should give Smuggle to all cards in the resource zone and handle alternate costs correctly', function () {
-            contextRef.setupTest({
+        it('Tech\'s ability should give Smuggle to all cards in the resource zone and handle alternate costs correctly', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'asajj-ventress#unparalleled-adversary',

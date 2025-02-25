@@ -2,7 +2,7 @@ describe('Rival\'s Fall', function() {
     integration(function(contextRef) {
         describe('Rival\'s Fall\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['rivals-fall'],

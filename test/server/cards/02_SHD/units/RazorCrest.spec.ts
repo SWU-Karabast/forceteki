@@ -1,8 +1,8 @@
 describe('Razor Crest', function () {
     integration(function (contextRef) {
         describe('Razor Crest\'s ability', function() {
-            it('should return card to player hand from his discard pile', function () {
-                contextRef.setupTest({
+            it('should return card to player hand from his discard pile', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['razor-crest#reliable-gunship'],
@@ -23,8 +23,8 @@ describe('Razor Crest', function () {
                 expect(context.jediLightsaber.zoneName).toBe('hand');
             });
 
-            it('should not do anything if no upgrade is in the discard pile', function () {
-                contextRef.setupTest({
+            it('should not do anything if no upgrade is in the discard pile', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['razor-crest#reliable-gunship'],

@@ -1,7 +1,7 @@
 describe('Geonosis Patrol Fighter', function() {
     integration(function(contextRef) {
-        it('Geonosis Patrol Fighter\'s when played ability should return a non-leader unit that costs 3 or less to its owner\'s hand', function () {
-            contextRef.setupTest({
+        it('Geonosis Patrol Fighter\'s when played ability should return a non-leader unit that costs 3 or less to its owner\'s hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['geonosis-patrol-fighter'],

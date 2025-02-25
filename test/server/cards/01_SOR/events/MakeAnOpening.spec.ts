@@ -2,7 +2,7 @@ describe('Make an Opening', function () {
     integration(function (contextRef) {
         describe('Make an Opening\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['make-an-opening'],

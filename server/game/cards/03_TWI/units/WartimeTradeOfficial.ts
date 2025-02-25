@@ -16,5 +16,3 @@ export default class WartimeTradeOfficial extends NonLeaderUnitCard {
         });
     }
 }
-
-WartimeTradeOfficial.implemented = true;

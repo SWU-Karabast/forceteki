@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
-import { DamageType } from '../../../core/Constants';
+import { DamageType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 
 export default class SeventhSisterImplacableInquisitor extends NonLeaderUnitCard {
@@ -14,14 +13,14 @@ export default class SeventhSisterImplacableInquisitor extends NonLeaderUnitCard
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'When this unit deals combat damage to an opponent’s base: You may deal 3 damage to a ground unit that opponent controls',
+            title: 'Deal 3 damage to a ground unit that opponent controls',
             when: {
-                onDamageDealt: (event, _context) =>
+                onDamageDealt: (event, context) =>
                     // TODO: refactor damage enum types to account for the fact that overwhelm is combat damage
-                    (event.type === DamageType.Combat &&
-                      event.damageSource.attack.target?.isBase()) ||
-                      event.type === DamageType.Overwhelm
+                    event.damageSource?.attack?.attacker === context.source &&
+                    ((event.type === DamageType.Combat && event.damageSource.attack.target?.isBase()) || event.type === DamageType.Overwhelm)
             },
+            optional: true,
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,

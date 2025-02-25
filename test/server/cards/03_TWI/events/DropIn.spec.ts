@@ -1,7 +1,7 @@
 describe('Drop In', function () {
     integration(function (contextRef) {
-        it('Drop In\'s ability should create two Clone Trooper tokens for the controller', function () {
-            contextRef.setupTest({
+        it('Drop In\'s ability should create two Clone Trooper tokens for the controller', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['drop-in'],

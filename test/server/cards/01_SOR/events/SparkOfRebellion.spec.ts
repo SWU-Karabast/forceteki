@@ -1,8 +1,8 @@
 describe('Spark Of Rebellion', function () {
     integration(function (contextRef) {
         describe('Spark Of Rebellion\'s ability', function () {
-            it('should look at an opponent\'s hand and discard a non-unit card from it.', function () {
-                contextRef.setupTest({
+            it('should look at an opponent\'s hand and discard a non-unit card from it.', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['spark-of-rebellion', 'open-fire'],

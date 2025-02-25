@@ -1,8 +1,8 @@
 describe('Doctor Evazan, Wanted on Twelve Systems', function() {
     integration(function(contextRef) {
         describe('Doctor Evazan\'s Bounty ability', function() {
-            it('should ready 12 resources', function () {
-                contextRef.setupTest({
+            it('should ready 12 resources', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa'],

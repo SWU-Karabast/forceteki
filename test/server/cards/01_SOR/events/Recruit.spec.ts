@@ -2,8 +2,8 @@ describe('Recruit', function () {
     integration(function (contextRef) {
         describe('Recruit\'s ability - ', function () {
             describe('when there is one valid option,', function () {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
@@ -61,8 +61,8 @@ describe('Recruit', function () {
             });
 
             describe('when the deck is empty,', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
@@ -85,8 +85,8 @@ describe('Recruit', function () {
             });
 
             describe('when there are no valid options,', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
@@ -112,8 +112,8 @@ describe('Recruit', function () {
 
 
             describe('when there are multiple valid options,', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
