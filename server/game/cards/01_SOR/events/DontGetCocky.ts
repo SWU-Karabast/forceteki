@@ -7,8 +7,6 @@ import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 import * as Contract from '../../../core/utils/Contract';
 
 export default class DontGetCocky extends EventCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '2202839291',
@@ -25,6 +23,7 @@ export default class DontGetCocky extends EventCard {
             then: (unitChosenContext) => ({
                 title: 'Reveal the top card of your deck',
                 immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
+                    useDisplayPrompt: true,
                     target: context.player.getTopCardOfDeck()
                 })),
                 then: this.thenAfterReveal(1, unitChosenContext)
@@ -46,7 +45,10 @@ export default class DontGetCocky extends EventCard {
                 activePromptTitle: `Current total cost: ${this.topXCardsTotalCost(cardsRevealedCount, contextWithUnitTarget)}\nSelect one:`,
                 mode: TargetMode.Select,
                 choices: {
-                    ['Reveal another card']: AbilityHelper.immediateEffects.reveal((context) => ({ target: context.player.getTopCardsOfDeck(7)[cardsRevealedCount] })),
+                    ['Reveal another card']: AbilityHelper.immediateEffects.reveal((context) => ({
+                        useDisplayPrompt: true,
+                        target: context.player.getTopCardsOfDeck(7)[cardsRevealedCount]
+                    })),
                     ['Stop revealing cards']: this.afterStopRevealingEffect(cardsRevealedCount, contextWithUnitTarget)
                 }
             },
