@@ -10,7 +10,10 @@ class SingleCardSelector extends BaseCardSelector {
 
 
     /** @override */
-    defaultPromptString() {
+    defaultPromptString(context) {
+        if (context.ability?.title) {
+            return context.ability.title;
+        }
         if (this.cardTypeFilter.length === 1 && this.cardTypeFilter[0] !== WildcardCardType.Any) {
             if (this.cardTypeFilter[0] === WildcardCardType.Upgrade) {
                 return 'Choose an upgrade';
