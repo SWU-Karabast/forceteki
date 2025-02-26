@@ -414,6 +414,10 @@ class PlayerInteractionWrapper {
         return this.game.actionPhaseActivePlayer;
     }
 
+    get activePlayer() {
+        return this.game.getActivePlayer();
+    }
+
     get opponent() {
         return this.player.opponent;
     }

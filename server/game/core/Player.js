@@ -455,7 +455,7 @@ class Player extends GameObject {
     }
 
     isActivePlayer() {
-        return this.game.actionPhaseActivePlayer === this;
+        return this.game.getActivePlayer() === this;
     }
 
     hasInitiative() {

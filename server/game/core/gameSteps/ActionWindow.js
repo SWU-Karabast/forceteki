@@ -11,9 +11,11 @@ class ActionWindow extends UiPrompt {
 
         this.title = title;
         this.windowName = windowName;
-        this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
         this.activePlayerConsecutiveActions = 0;
         this.opportunityCounter = 0;
+
+        this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
+        Contract.assertNotNullLike(this.activePlayer);
 
         // whether the previous player passed their action
         this.prevPlayerPassed = prevPlayerPassed;
