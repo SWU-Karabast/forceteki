@@ -34,7 +34,7 @@ class PlayerInteractionWrapper {
         this.player.handZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
         this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     get hand() {
@@ -134,7 +134,7 @@ class PlayerInteractionWrapper {
             leaderCard.exhausted = leaderOptions.exhausted || false;
         }
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     setBaseStatus(baseOptions) {
@@ -156,7 +156,7 @@ class PlayerInteractionWrapper {
         var baseCard = this.player.base;
         baseCard.damage = baseOptions.damage || 0;
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     /**
@@ -260,7 +260,7 @@ class PlayerInteractionWrapper {
             }
         });
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     setCardUpgrades(card, upgrades, prevZones = 'any') {
@@ -414,6 +414,10 @@ class PlayerInteractionWrapper {
         return this.game.actionPhaseActivePlayer;
     }
 
+    get activePlayer() {
+        return this.game.getActivePlayer();
+    }
+
     get opponent() {
         return this.player.opponent;
     }
@@ -507,7 +511,7 @@ class PlayerInteractionWrapper {
 
     exhaustResources(number) {
         this.player.exhaustResources(number);
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     hasPrompt(title) {
