@@ -203,10 +203,10 @@ describe('Piloting keyword', function() {
                 const { context } = contextRef;
 
                 context.player1.passAction();
-                context.player2.clickCard(context.confiscate);
-                expect(context.player2).toBeAbleToSelectExactly([context.idenVersio, context.shield]);
-                context.player2.clickCard(context.idenVersio);
-                expect(context.concordDawnInterceptors.upgrades).not.toContain(context.idenVersio);
+                context.player2.clickCard(context.waylay);
+                expect(context.player2).toBeAbleToSelectExactly([context.concordDawnInterceptors, context.restoredArc170]);
+                context.player2.clickCard(context.concordDawnInterceptors);
+                expect(context.concordDawnInterceptors).toBeInZone('hand');
                 expect(context.idenVersio).toBeInZone('discard');
             });
         });
