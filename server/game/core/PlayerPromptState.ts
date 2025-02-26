@@ -63,7 +63,7 @@ export class PlayerPromptState {
     public setPrompt(prompt: IPlayerPromptStateProperties) {
         this.promptTitle = prompt.promptTitle;
         this.promptType = prompt.promptType;
-        this.selectCardMode = prompt.selectCardMode ?? false;
+        this.selectCardMode = prompt.selectCardMode;
         this.selectOrder = prompt.selectOrder ?? false;
         this.menuTitle = prompt.menuTitle ?? '';
         this.distributeAmongTargets = prompt.distributeAmongTargets;
@@ -75,7 +75,7 @@ export class PlayerPromptState {
     }
 
     public cancelPrompt() {
-        this.selectCardMode = false;
+        this.selectCardMode = null;
         this.menuTitle = '';
         this.buttons = [];
         this.clearSelectableCards();
