@@ -31,5 +31,3 @@ export default class GeneralRieekanDefensiveStrategist extends NonLeaderUnitCard
         });
     }
 }
-
-GeneralRieekanDefensiveStrategist.implemented = true;

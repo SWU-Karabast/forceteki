@@ -23,5 +23,3 @@ export default class ThisIsTheWay extends EventCard {
         });
     }
 }
-
-ThisIsTheWay.implemented = true;

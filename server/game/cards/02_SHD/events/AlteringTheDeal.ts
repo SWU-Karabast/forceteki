@@ -21,5 +21,3 @@ export default class AlteringTheDeal extends EventCard {
         });
     }
 }
-
-AlteringTheDeal.implemented = true;

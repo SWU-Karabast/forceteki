@@ -58,7 +58,7 @@ describe('Power Failure', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
 
                 context.player1.clickCard(context.pykeSentinel);
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.imperialInterceptor).toHaveExactUpgradeNames(['academy-training', 'shield']);
                 expect(context.pykeSentinel).toHaveExactUpgradeNames(['entrenched', 'devotion']);

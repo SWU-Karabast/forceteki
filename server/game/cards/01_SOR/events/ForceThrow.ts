@@ -32,5 +32,3 @@ export default class ForceThrow extends EventCard {
         });
     }
 }
-
-ForceThrow.implemented = true;

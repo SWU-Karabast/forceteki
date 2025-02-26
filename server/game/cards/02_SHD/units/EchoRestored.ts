@@ -30,5 +30,3 @@ export default class EchoRestored extends NonLeaderUnitCard {
         });
     }
 }
-
-EchoRestored.implemented = true;

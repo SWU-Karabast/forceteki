@@ -21,5 +21,3 @@ export default class RuggedSurvivors extends NonLeaderUnitCard {
         });
     }
 }
-
-RuggedSurvivors.implemented = true;

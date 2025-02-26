@@ -33,5 +33,3 @@ export default class SalaciousCrumbObnoxiousPet extends NonLeaderUnitCard {
         });
     }
 }
-
-SalaciousCrumbObnoxiousPet.implemented = true;

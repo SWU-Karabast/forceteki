@@ -19,5 +19,3 @@ export default class VanguardInfantry extends NonLeaderUnitCard {
         });
     }
 }
-
-VanguardInfantry.implemented = true;

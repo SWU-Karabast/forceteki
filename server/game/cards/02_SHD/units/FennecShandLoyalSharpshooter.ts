@@ -23,5 +23,3 @@ export default class FennecShandLoyalSharpshooter extends NonLeaderUnitCard {
         });
     }
 }
-
-FennecShandLoyalSharpshooter.implemented = true;

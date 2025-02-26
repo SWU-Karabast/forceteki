@@ -34,5 +34,3 @@ export default class IAmYourFather extends EventCard {
         });
     }
 }
-
-IAmYourFather.implemented = true;

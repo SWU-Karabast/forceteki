@@ -143,8 +143,9 @@ export class SelectCardPrompt extends UiPrompt {
         return super.continue();
     }
 
-    private highlightSelectableCards() {
+    protected override highlightSelectableCards() {
         this.choosingPlayer.setSelectableCards(this.selector.findPossibleCards(this.context).filter((card) => this.checkCardCondition(card)));
+        this.choosingPlayer.opponent.setSelectableCards([]);
     }
 
     public override activeCondition(player) {
@@ -229,7 +230,6 @@ export class SelectCardPrompt extends UiPrompt {
             this.complete();
             return true;
         }
-        this.clearSelection();
         return false;
     }
 
@@ -245,19 +245,5 @@ export class SelectCardPrompt extends UiPrompt {
             return true;
         }
         Contract.fail(`Unexpected menu command: '${arg}'`);
-    }
-
-    public override complete() {
-        this.clearSelection();
-        return super.complete();
-    }
-
-    private clearSelection() {
-        this.selectedCards = [];
-        this.choosingPlayer.clearSelectedCards();
-        this.choosingPlayer.clearSelectableCards();
-
-        // Restore previous selections.
-        this.choosingPlayer.setSelectedCards(this.previouslySelectedCards);
     }
 }

@@ -18,5 +18,3 @@ export default class HomesteadMilitia extends NonLeaderUnitCard {
         });
     }
 }
-
-HomesteadMilitia.implemented = true;

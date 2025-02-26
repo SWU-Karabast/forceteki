@@ -30,5 +30,3 @@ export default class CrosshairFollowingOrders extends NonLeaderUnitCard {
         });
     }
 }
-
-CrosshairFollowingOrders.implemented = true;

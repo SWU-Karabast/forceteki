@@ -44,5 +44,3 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
         });
     }
 }
-
-MaceWinduVaapadFormMaster.implemented = true;

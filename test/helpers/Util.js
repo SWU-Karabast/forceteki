@@ -1,10 +1,10 @@
 const TestSetupError = require('./TestSetupError.js');
 
 // card can be a single or an array
-function checkNullCard(card, testContext) {
+function checkNullCard(card, prefix = 'Card list contains one more null elements') {
     if (Array.isArray(card)) {
         if (card.some((cardInList) => cardInList == null)) {
-            throw new TestSetupError(`Card list contains one more null elements: ${card.map((cardInList) => getCardName(cardInList)).join(', ')}`);
+            throw new TestSetupError(`${prefix}: ${card.map((cardInList) => getCardName(cardInList)).join(', ')}`);
         }
     }
 
@@ -29,16 +29,46 @@ function formatPrompt(prompt, currentActionTargets) {
     }
 
     return (
-        prompt.menuTitle +
-        '\n' +
-        prompt.buttons.map((button) => '[ ' + button.text + (button.disabled ? ' (disabled)' : '') + ' ]').join(
-            '\n'
-        ) +
-        '\n' +
-        currentActionTargets.map((obj) => obj['name']).join('\n') +
-        '\n' +
-        createStringForOptions(prompt.dropdownListOptions)
+        prompt.menuTitle + '\n' +
+        prompt.buttons.map((button) => '[ ' + button.text + (button.disabled ? ' (disabled)' : '') + ' ]').join('\n') + '\n' +
+        formatSelectableCardsPromptData(prompt, currentActionTargets) + '\n' +
+        formatDropdownListOptions(prompt.dropdownListOptions)
     );
+}
+
+function formatSelectableCardsPromptData(prompt, currentActionTargets) {
+    if (prompt.displayCards?.length !== 0) {
+        return prompt.perCardButtons?.length === 0
+            ? formatSelectableDisplayCardsPromptData(prompt)
+            : formatPerCardButtonDisplayCardsPromptData(prompt);
+    }
+
+    if (currentActionTargets?.length !== 0) {
+        return formatCurrentActionTargets(currentActionTargets);
+    }
+
+    return '';
+}
+
+function formatCurrentActionTargets(currentActionTargets) {
+    return currentActionTargets.map((obj) => obj['name']).join('\n');
+}
+
+function formatSelectableDisplayCardsPromptData(prompt) {
+    let result = '';
+    for (const displayCard of prompt.displayCards) {
+        const selectionOrderStr = displayCard.selectionOrder ? `, selectionOrder: ${displayCard.selectionOrder}` : '';
+        result += `[${displayCard.selectionState}${selectionOrderStr}]${displayCard.internalName}\n`;
+    }
+    return result;
+}
+
+function formatPerCardButtonDisplayCardsPromptData(prompt) {
+    let result = '';
+    for (const card of prompt.displayCards) {
+        result += `${card.internalName}: ${prompt.perCardButtons.map((button) => `[${button.text}]`).join('')}\n`;
+    }
+    return result;
 }
 
 function formatBothPlayerPrompts(testContext) {
@@ -63,6 +93,10 @@ function getPlayerPromptState(player) {
         menuTitle: player.currentPrompt().menuTitle,
         promptTitle: player.currentPrompt().promptTitle
     };
+}
+
+function cardNamesToString(cards) {
+    return cards.map((card) => card.internalName).join(', ');
 }
 
 function copySelectionArray(ara) {
@@ -107,7 +141,7 @@ function stringArraysEqual(ara1, ara2) {
     return true;
 }
 
-function createStringForOptions(options) {
+function formatDropdownListOptions(options) {
     return options.length > 10 ? options.slice(0, 10).join(', ') + ', ...' : options.join(', ');
 }
 
@@ -125,8 +159,9 @@ module.exports = {
     getPlayerPromptState,
     promptStatesEqual,
     stringArraysEqual,
-    createStringForOptions,
+    formatDropdownListOptions,
     formatBothPlayerPrompts,
     isTokenUnit,
-    isTokenUpgrade
+    isTokenUpgrade,
+    cardNamesToString
 };

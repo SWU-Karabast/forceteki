@@ -22,5 +22,3 @@ export default class AtAtSuppressor extends NonLeaderUnitCard {
         });
     }
 }
-
-AtAtSuppressor.implemented = true;

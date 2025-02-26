@@ -33,7 +33,7 @@ describe('Soulless One, Customized for Grievous', function () {
             expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, grievousLeader, grievousUnit]);
             expect(context.player1).toHavePassAbilityButton();
 
-            context.player1.clickPrompt('Pass ability');
+            context.player1.clickPrompt('Pass');
 
             // we pass, no power boost
             expect(context.player2).toBeActivePlayer();

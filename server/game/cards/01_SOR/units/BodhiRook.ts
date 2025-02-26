@@ -26,5 +26,3 @@ export default class BodhiRook extends NonLeaderUnitCard {
         });
     }
 }
-
-BodhiRook.implemented = true;

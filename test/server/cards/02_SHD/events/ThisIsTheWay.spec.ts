@@ -11,16 +11,34 @@ describe('This is the Way', function () {
                 });
             });
 
-            it('should prompt to choose up to 2 units from the top 8 cards, reveal them, draw them, and move the rest to the bottom of the deck', function () {
+            it('should prompt to choose up to 2 Mandalorian cards from the top 8 cards, reveal them, draw them, and move the rest to the bottom of the deck', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.thisIsTheWay);
                 expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
-                expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.infernoFour.title, context.consularSecurityForce.title, context.echoBaseDefender.title]);
-                expect(context.player1).toHaveEnabledPromptButtons([context.sabineWren.title, context.supercommandoSquad.title, context.protector.title, context.devotion.title, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    selectable: [context.sabineWren, context.supercommandoSquad, context.protector, context.devotion]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.devotion.title);
-                context.player1.clickPrompt(context.sabineWren.title);
+                context.player1.clickCardInDisplayCardPrompt(context.devotion);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.devotion],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    selectable: [context.sabineWren, context.supercommandoSquad, context.protector]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCardInDisplayCardPrompt(context.sabineWren);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.devotion, context.sabineWren],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    selectable: [context.supercommandoSquad, context.protector]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
+                context.player1.clickPrompt('Done');
                 expect(context.getChatLogs(2)).toContain('player1 takes Devotion and Sabine Wren');
                 expect(context.sabineWren).toBeInZone('hand');
                 expect(context.devotion).toBeInZone('hand');
@@ -33,15 +51,25 @@ describe('This is the Way', function () {
                 expect(context.echoBaseDefender).toBeInBottomOfDeck(context.player1, 6);
             });
 
-            it('should prompt to choose up to 2 units from the top 8 cards, pick one, reveal it, draw it, and move the rest to the bottom of the deck', function () {
+            it('should prompt to choose up to 2 Mandalorian cards from the top 8 cards, pick one, reveal it, draw it, and move the rest to the bottom of the deck', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.thisIsTheWay);
                 expect(context.player1).toHavePrompt('Select up to 2 cards to reveal');
-                expect(context.player1).toHaveDisabledPromptButtons([context.battlefieldMarine.title, context.infernoFour.title, context.consularSecurityForce.title, context.echoBaseDefender.title]);
-                expect(context.player1).toHaveEnabledPromptButtons([context.sabineWren.title, context.supercommandoSquad.title, context.protector.title, context.devotion.title, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    selectable: [context.sabineWren, context.supercommandoSquad, context.protector, context.devotion]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                context.player1.clickPrompt(context.devotion.title);
+                context.player1.clickCardInDisplayCardPrompt(context.devotion);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selected: [context.devotion],
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    selectable: [context.sabineWren, context.supercommandoSquad, context.protector]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+
                 context.player1.clickPrompt('Done');
                 expect(context.getChatLogs(2)).toContain('player1 takes Devotion');
                 expect(context.devotion).toBeInZone('hand');
@@ -59,8 +87,13 @@ describe('This is the Way', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.thisIsTheWay);
-                context.player1.clickPrompt('Take nothing');
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.battlefieldMarine, context.infernoFour, context.consularSecurityForce, context.echoBaseDefender],
+                    selectable: [context.sabineWren, context.supercommandoSquad, context.protector, context.devotion]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
+                context.player1.clickPrompt('Take nothing');
                 expect([
                     context.sabineWren,
                     context.battlefieldMarine,

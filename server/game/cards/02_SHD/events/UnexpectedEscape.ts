@@ -31,5 +31,3 @@ export default class UnexpectedEscape extends EventCard {
         });
     }
 }
-
-UnexpectedEscape.implemented = true;

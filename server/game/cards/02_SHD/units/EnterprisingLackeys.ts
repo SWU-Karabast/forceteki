@@ -26,5 +26,3 @@ export default class EnterprisingLackeys extends NonLeaderUnitCard {
         });
     }
 }
-
-EnterprisingLackeys.implemented = true;

@@ -37,5 +37,3 @@ export default class ForcedSurrender extends EventCard {
         });
     }
 }
-
-ForcedSurrender.implemented = true;

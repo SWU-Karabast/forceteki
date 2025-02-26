@@ -30,7 +30,7 @@ describe('Tobias Beckett, I Trust No One', function () {
 
                 expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.deathStarStormtrooper]);
                 expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 // enemy play an event card, nothing happen
                 context.player2.clickCard(context.tacticalAdvantage);

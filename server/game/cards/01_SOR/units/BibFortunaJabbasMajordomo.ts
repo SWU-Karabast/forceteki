@@ -26,5 +26,3 @@ export default class BibFortunaJabbasMajordomo extends NonLeaderUnitCard {
         });
     }
 }
-
-BibFortunaJabbasMajordomo.implemented = true;

@@ -47,5 +47,3 @@ export default class CadBaneHeWhoNeedsNoIntroduction extends LeaderUnitCard {
         });
     }
 }
-
-CadBaneHeWhoNeedsNoIntroduction.implemented = true;

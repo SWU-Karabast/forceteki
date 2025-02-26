@@ -21,5 +21,3 @@ export default class DiscerningVeteran extends NonLeaderUnitCard {
         });
     }
 }
-
-DiscerningVeteran.implemented = true;

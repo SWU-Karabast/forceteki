@@ -37,5 +37,3 @@ export default class Karabast extends EventCard {
         });
     }
 }
-
-Karabast.implemented = true;

@@ -73,5 +73,3 @@ export default class DontGetCocky extends EventCard {
         return context.source.controller.getTopCardsOfDeck(cardsRevealedCount).reduce((total, card) => total + card.printedCost, 0);
     }
 }
-
-DontGetCocky.implemented = true;

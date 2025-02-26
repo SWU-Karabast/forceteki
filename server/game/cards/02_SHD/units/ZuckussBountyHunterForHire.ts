@@ -23,5 +23,3 @@ export default class ZuckussBountyHunterForHire extends NonLeaderUnitCard {
         });
     }
 }
-
-ZuckussBountyHunterForHire.implemented = true;

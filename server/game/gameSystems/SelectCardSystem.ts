@@ -69,10 +69,11 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         properties.innerSystem.setDefaultTargetFn(() => properties.target);
         if (!properties.selector) {
             const cardCondition = (card, context) =>
+                properties.cardCondition(card, context) &&
                 properties.innerSystem.allTargetsLegal(
                     context,
                     Object.assign({}, additionalProperties, properties.innerSystemProperties(card))
-                ) && properties.cardCondition(card, context);
+                );
             properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition }));
         }
 

@@ -17,5 +17,3 @@ export default class WarbirdStowaway extends NonLeaderUnitCard {
         });
     }
 }
-
-WarbirdStowaway.implemented = true;

@@ -26,5 +26,3 @@ export default class ColonelYularenIsbDirector extends NonLeaderUnitCard {
         });
     }
 }
-
-ColonelYularenIsbDirector.implemented = true;

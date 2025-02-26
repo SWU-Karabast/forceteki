@@ -51,5 +51,3 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
         return this.cardsPlayedThisPhaseWatcher.someCardPlayed((entry) => entry.playedBy === controller && entry.card.isEvent());
     }
 }
-
-AsajjVentressUnparalleledAdversary.implemented = true;

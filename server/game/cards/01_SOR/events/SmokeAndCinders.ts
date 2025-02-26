@@ -19,5 +19,3 @@ export default class SmokeAndCinders extends EventCard {
         });
     }
 }
-
-SmokeAndCinders.implemented = true;

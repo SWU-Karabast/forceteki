@@ -9,13 +9,15 @@ import type Player from '../Player';
 export enum DisplayCardSelectionState {
     Selectable = 'selectable',
     Selected = 'selected',
-    Unselectable = 'unselectable'
+    Unselectable = 'unselectable',
+    Invalid = 'invalid'
 }
 
 export interface IButton {
     text: string;
     arg: string;
     command?: string;
+    disabled?: boolean;
 }
 
 export interface IDisplayCard {
@@ -24,6 +26,7 @@ export interface IDisplayCard {
     internalName: string;
     selectionState: DisplayCardSelectionState;
     displayText?: string;
+    selectionOrder?: number;
 }
 
 export enum StatefulPromptType {
@@ -85,11 +88,28 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
 }
 
 export interface IDisplayCardPromptPropertiesBase extends IPromptPropertiesBase {
-    displayCards: Card[];
     source: string | OngoingEffectSource;
 }
 
 export interface IDisplayCardsWithButtonsPromptProperties extends IDisplayCardPromptPropertiesBase {
+    displayCards: Card[];
     onCardButton: (card: Card, arg: string) => boolean;
     perCardButtons: IButton[];
+}
+
+export interface ISelectableCard {
+    card: Card;
+    selectionState: DisplayCardSelectionState;
+}
+
+export interface IDisplayCardsSelectProperties extends IDisplayCardPromptPropertiesBase {
+    displayCards: Card[];
+    selectedCardsHandler: (cards: Card[]) => void;
+    validCardCondition: (card: Card) => boolean;
+    canChooseNothing?: boolean;
+    maxCards?: number;
+    multiSelectCondition?: (card: Card, currentlySelectedCards: Card[]) => boolean;
+    noSelectedCardsButtonText?: string;
+    selectedCardsButtonText?: string;
+    showSelectionOrder?: boolean;
 }

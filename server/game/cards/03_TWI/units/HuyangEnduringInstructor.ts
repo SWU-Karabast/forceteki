@@ -24,5 +24,3 @@ export default class HuyangEnduringInstructor extends NonLeaderUnitCard {
         });
     }
 }
-
-HuyangEnduringInstructor.implemented = true;

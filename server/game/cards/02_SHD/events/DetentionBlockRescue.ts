@@ -25,5 +25,3 @@ export default class DetentionBlockRescue extends EventCard {
         });
     }
 }
-
-DetentionBlockRescue.implemented = true;

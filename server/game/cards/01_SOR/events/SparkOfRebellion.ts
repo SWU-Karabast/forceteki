@@ -25,5 +25,3 @@ export default class SparkOfRebellion extends EventCard {
         });
     }
 }
-
-SparkOfRebellion.implemented = true;

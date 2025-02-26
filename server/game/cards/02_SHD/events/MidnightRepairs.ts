@@ -22,5 +22,3 @@ export default class MidnightRepairs extends EventCard {
         });
     }
 }
-
-MidnightRepairs.implemented = true;

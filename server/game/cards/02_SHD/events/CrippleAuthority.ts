@@ -31,5 +31,3 @@ export default class CrippleAuthority extends EventCard {
         });
     }
 }
-
-CrippleAuthority.implemented = true;

@@ -17,11 +17,15 @@ describe('Search Your Feelings', function() {
                 // Play card
                 context.player1.clickCard(context.searchYourFeelings);
                 expect(context.searchYourFeelings).toBeInZone('discard');
-                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine, context.cartelSpacer.title, context.cellBlockGuard.title,
-                    context.pykeSentinel.title, context.volunteerSoldier.title, 'Take nothing']);
+
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.battlefieldMarine, context.cartelSpacer, context.cellBlockGuard,
+                        context.pykeSentinel, context.volunteerSoldier],
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 // Choose card
-                context.player1.clickPrompt(context.battlefieldMarine.title);
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.battlefieldMarine).toBeInZone('hand');
                 expect(context.player1.deck.length).toBe(4);
@@ -33,8 +37,12 @@ describe('Search Your Feelings', function() {
                 // Play card
                 context.player1.clickCard(context.searchYourFeelings);
                 expect(context.searchYourFeelings).toBeInZone('discard');
-                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine, context.cartelSpacer.title, context.cellBlockGuard.title,
-                    context.pykeSentinel.title, context.volunteerSoldier.title, 'Take nothing']);
+
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.battlefieldMarine, context.cartelSpacer, context.cellBlockGuard,
+                        context.pykeSentinel, context.volunteerSoldier],
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 // Choose card
                 context.player1.clickPrompt('Take nothing');
@@ -51,10 +59,13 @@ describe('Search Your Feelings', function() {
                 // Play card
                 context.player1.clickCard(context.searchYourFeelings);
                 expect(context.searchYourFeelings).toBeInZone('discard');
-                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.battlefieldMarine],
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 // Choose card
-                context.player1.clickPrompt(context.battlefieldMarine.title);
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
                 expect(context.player2).toBeActivePlayer();
             });
 

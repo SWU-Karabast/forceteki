@@ -37,5 +37,3 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
             playedCardEntry.card !== card);
     }
 }
-
-RelentlessKonstantinesFolly.implemented = true;

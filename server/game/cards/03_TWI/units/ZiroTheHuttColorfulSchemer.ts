@@ -28,5 +28,3 @@ export default class ZiroTheHuttColorfulSchemer extends NonLeaderUnitCard {
         });
     }
 }
-
-ZiroTheHuttColorfulSchemer.implemented = true;

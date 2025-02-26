@@ -34,5 +34,3 @@ export default class ChimaeraFlagshipOfTheSeventhFleet extends NonLeaderUnitCard
         });
     }
 }
-
-ChimaeraFlagshipOfTheSeventhFleet.implemented = true;

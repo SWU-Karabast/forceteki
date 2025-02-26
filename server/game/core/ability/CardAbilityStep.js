@@ -21,11 +21,8 @@ class CardAbilityStep extends PlayerOrCardAbility {
         if (properties.initiateAttack) {
             AttackHelper.addInitiateAttackProperties(properties);
         }
-        super(properties, type);
+        super(game, card, properties, type);
 
-        this.game = game;
-        this.card = card;
-        this.properties = properties;
         this.handler = properties.handler || this.executeGameActions;
         this.cannotTargetFirst = false;
     }
@@ -34,16 +31,6 @@ class CardAbilityStep extends PlayerOrCardAbility {
     executeHandler(context) {
         this.handler(context);
         this.game.queueSimpleStep(() => this.game.resolveGameState(), 'resolveState');
-    }
-
-    createContext(player = this.card.controller, event = null) {
-        return new AbilityContext({
-            ability: this,
-            game: this.game,
-            player: player,
-            source: this.card,
-            stage: Stage.PreTarget
-        });
     }
 
     /** @override */

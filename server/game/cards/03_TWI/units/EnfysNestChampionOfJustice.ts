@@ -26,5 +26,3 @@ export default class EnfysNestChampionOfJustice extends NonLeaderUnitCard {
         });
     }
 }
-
-EnfysNestChampionOfJustice.implemented = true;

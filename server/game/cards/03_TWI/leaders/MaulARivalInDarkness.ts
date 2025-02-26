@@ -30,5 +30,3 @@ export default class MaulARivalInDarkness extends LeaderUnitCard {
         });
     }
 }
-
-MaulARivalInDarkness.implemented = true;

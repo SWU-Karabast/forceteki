@@ -21,5 +21,3 @@ export default class PiratedStarfighter extends NonLeaderUnitCard {
         });
     }
 }
-
-PiratedStarfighter.implemented = true;

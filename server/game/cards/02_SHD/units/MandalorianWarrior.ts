@@ -22,5 +22,3 @@ export default class MandalorianWarrior extends NonLeaderUnitCard {
         });
     }
 }
-
-MandalorianWarrior.implemented = true;

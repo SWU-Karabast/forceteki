@@ -37,5 +37,3 @@ export default class RuleWithRespect extends EventCard {
         });
     }
 }
-
-RuleWithRespect.implemented = true;

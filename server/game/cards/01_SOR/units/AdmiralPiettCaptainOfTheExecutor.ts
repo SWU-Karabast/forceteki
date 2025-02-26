@@ -19,5 +19,3 @@ export default class AdmiralPiettCaptainOfTheExecutor extends NonLeaderUnitCard 
         });
     }
 }
-
-AdmiralPiettCaptainOfTheExecutor.implemented = true;

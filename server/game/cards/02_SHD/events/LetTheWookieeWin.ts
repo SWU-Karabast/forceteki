@@ -37,5 +37,3 @@ export default class LetTheWookieeWin extends EventCard {
         });
     }
 }
-
-LetTheWookieeWin.implemented = true;

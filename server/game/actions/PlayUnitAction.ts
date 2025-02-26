@@ -4,6 +4,7 @@ import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { Card } from '../core/card/Card.js';
+import type Game from '../core/Game.js';
 
 export type IPlayUnitActionProperties = IPlayCardActionProperties & {
     entersReady?: boolean;
@@ -12,8 +13,8 @@ export type IPlayUnitActionProperties = IPlayCardActionProperties & {
 export class PlayUnitAction extends PlayCardAction {
     private entersReady: boolean;
 
-    public constructor(card: Card, properties: IPlayUnitActionProperties) {
-        super(card, properties);
+    public constructor(game: Game, card: Card, properties: IPlayUnitActionProperties) {
+        super(game, card, properties);
 
         // default to false
         this.entersReady = !!properties.entersReady;
@@ -49,7 +50,7 @@ export class PlayUnitAction extends PlayCardAction {
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
-        return new PlayUnitAction(this.card, { ...this.createdWithProperties, ...overrideProperties });
+        return new PlayUnitAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

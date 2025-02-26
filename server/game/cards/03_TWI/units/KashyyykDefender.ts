@@ -26,10 +26,8 @@ export default class KashyyykDefender extends NonLeaderUnitCard {
             }),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Deal that much damage to this unit.',
-                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: ifYouDoContext.events[0].damageRemoved }),
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: ifYouDoContext.events[0].totalDistributed }),
             })
         });
     }
 }
-
-KashyyykDefender.implemented = true;

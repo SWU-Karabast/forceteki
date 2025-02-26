@@ -25,5 +25,3 @@ export default class KoskaReeves extends NonLeaderUnitCard {
         });
     }
 }
-
-KoskaReeves.implemented = true;

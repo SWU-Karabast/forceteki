@@ -18,5 +18,3 @@ export default class PadawanStarFighter extends NonLeaderUnitCard {
         });
     }
 }
-
-PadawanStarFighter.implemented = true;

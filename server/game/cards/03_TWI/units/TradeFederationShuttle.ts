@@ -25,5 +25,3 @@ export default class TradeFederationShuttle extends NonLeaderUnitCard {
         });
     }
 }
-
-TradeFederationShuttle.implemented = true;

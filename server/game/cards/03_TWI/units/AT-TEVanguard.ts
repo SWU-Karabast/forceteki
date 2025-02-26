@@ -16,5 +16,3 @@ export default class AtTeVanguard extends NonLeaderUnitCard {
         });
     }
 }
-
-AtTeVanguard.implemented = true;

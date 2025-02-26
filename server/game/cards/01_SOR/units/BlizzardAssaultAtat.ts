@@ -32,5 +32,3 @@ export default class BlizzardAssaultAtat extends NonLeaderUnitCard {
         });
     }
 }
-
-BlizzardAssaultAtat.implemented = true;

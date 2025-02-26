@@ -21,5 +21,3 @@ export default class AggrievedParliamentarian extends NonLeaderUnitCard {
         });
     }
 }
-
-AggrievedParliamentarian.implemented = true;

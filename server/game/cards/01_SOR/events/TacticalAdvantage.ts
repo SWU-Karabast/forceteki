@@ -22,5 +22,3 @@ export default class TacticalAdvantage extends EventCard {
         });
     }
 }
-
-TacticalAdvantage.implemented = true;

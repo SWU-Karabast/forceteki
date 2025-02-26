@@ -16,5 +16,3 @@ export default class Resupply extends EventCard {
         });
     }
 }
-
-Resupply.implemented = true;

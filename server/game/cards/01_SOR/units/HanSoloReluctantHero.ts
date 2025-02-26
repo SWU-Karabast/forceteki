@@ -16,5 +16,3 @@ export default class HanSoloReluctantHero extends NonLeaderUnitCard {
         });
     }
 }
-
-HanSoloReluctantHero.implemented = true;

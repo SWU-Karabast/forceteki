@@ -21,5 +21,3 @@ export default class CargoJuggernaut extends NonLeaderUnitCard {
         });
     }
 }
-
-CargoJuggernaut.implemented = true;

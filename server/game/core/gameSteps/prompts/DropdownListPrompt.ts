@@ -34,8 +34,6 @@ export class DropdownListPrompt extends UiPrompt {
             properties.waitingPromptTitle = 'Waiting for opponent to choose an option for ' + properties.source.name;
         }
 
-        game.getPlayers().forEach((player) => player.clearSelectableCards());
-
         const menuTitle = 'Choose an option from the list';
 
         this._activePrompt = {

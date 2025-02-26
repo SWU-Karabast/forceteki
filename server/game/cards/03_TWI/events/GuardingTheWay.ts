@@ -31,5 +31,3 @@ export default class GuardingTheWay extends EventCard {
         });
     }
 }
-
-GuardingTheWay.implemented = true;

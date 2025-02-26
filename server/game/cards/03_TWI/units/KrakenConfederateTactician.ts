@@ -25,5 +25,3 @@ export default class KrakenConfederateTactician extends NonLeaderUnitCard {
         });
     }
 }
-
-KrakenConfederateTactician.implemented = true;

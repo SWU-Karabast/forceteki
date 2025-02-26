@@ -64,5 +64,3 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
         });
     }
 }
-
-BoKatanKryzePrincessInExile.implemented = true;

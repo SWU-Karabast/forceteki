@@ -36,5 +36,3 @@ export default class NuteGunrayVindictiveViceroy extends LeaderUnitCard {
         });
     }
 }
-
-NuteGunrayVindictiveViceroy.implemented = true;

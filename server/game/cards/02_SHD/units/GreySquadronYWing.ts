@@ -23,5 +23,3 @@ export default class GreySquadronYWing extends NonLeaderUnitCard {
         });
     }
 }
-
-GreySquadronYWing.implemented = true;

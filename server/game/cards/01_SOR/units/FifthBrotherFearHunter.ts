@@ -36,5 +36,3 @@ export default class FifthBrotherFearHunter extends NonLeaderUnitCard {
         });
     }
 }
-
-FifthBrotherFearHunter.implemented = true;

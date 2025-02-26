@@ -27,5 +27,3 @@ export default class SteadfastBattalion extends NonLeaderUnitCard {
         });
     }
 }
-
-SteadfastBattalion.implemented = true;

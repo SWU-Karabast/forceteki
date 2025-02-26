@@ -48,5 +48,3 @@ export default class LukeSkywalkerFaithfulFriend extends LeaderUnitCard {
         });
     }
 }
-
-LukeSkywalkerFaithfulFriend.implemented = true;

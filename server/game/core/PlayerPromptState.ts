@@ -78,6 +78,8 @@ export class PlayerPromptState {
         this.selectCard = false;
         this.menuTitle = '';
         this.buttons = [];
+        this.clearSelectableCards();
+        this.clearSelectedCards();
     }
 
     public getCardSelectionState(card: Card) {

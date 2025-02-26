@@ -38,5 +38,3 @@ export default class EnticingReward extends UpgradeCard {
         });
     }
 }
-
-EnticingReward.implemented = true;

@@ -32,5 +32,3 @@ export default class PalpatinesReturn extends EventCard {
         });
     }
 }
-
-PalpatinesReturn.implemented = true;

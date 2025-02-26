@@ -30,5 +30,3 @@ export default class K2SOCassiansCounterpart extends NonLeaderUnitCard {
         });
     }
 }
-
-K2SOCassiansCounterpart.implemented = true;

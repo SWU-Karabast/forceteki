@@ -18,5 +18,3 @@ export default class DuchesssChampion extends NonLeaderUnitCard {
         });
     }
 }
-
-DuchesssChampion.implemented = true;

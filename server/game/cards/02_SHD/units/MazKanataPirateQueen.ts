@@ -22,5 +22,3 @@ export default class MazKanataPirateQueen extends NonLeaderUnitCard {
         });
     }
 }
-
-MazKanataPirateQueen.implemented = true;

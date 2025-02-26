@@ -31,5 +31,3 @@ export default class ChirrutImweOneWithTheForce extends LeaderUnitCard {
         });
     }
 }
-
-ChirrutImweOneWithTheForce.implemented = true;

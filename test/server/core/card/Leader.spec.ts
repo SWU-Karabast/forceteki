@@ -74,7 +74,7 @@ describe('Leader cards', function() {
 
                 // on attack ability
                 expect(context.player1).toHavePrompt('Choose a card');
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.grandMoffTarkin.damage).toBe(4);
                 expect(context.wampa.damage).toBe(2);

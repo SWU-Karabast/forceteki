@@ -23,5 +23,3 @@ export default class ValiantAssaultShip extends NonLeaderUnitCard {
         });
     }
 }
-
-ValiantAssaultShip.implemented = true;

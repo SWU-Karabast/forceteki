@@ -30,5 +30,3 @@ export default class HardpointHeavyBlaster extends UpgradeCard {
         });
     }
 }
-
-HardpointHeavyBlaster.implemented = true;

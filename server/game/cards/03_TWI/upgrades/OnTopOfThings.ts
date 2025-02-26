@@ -20,5 +20,3 @@ export default class OnTopOfThings extends UpgradeCard {
         });
     }
 }
-
-OnTopOfThings.implemented = true;

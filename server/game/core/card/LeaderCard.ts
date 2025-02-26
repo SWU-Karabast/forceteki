@@ -36,9 +36,8 @@ export class LeaderCard extends InPlayCard<ILeaderCardState> {
     /**
      * Create card abilities for the leader (non-unit) side by calling subsequent methods with appropriate properties
      */
-    protected setupLeaderSideAbilities(sourceCard: this) {
-        this.state.hasImplementationFile = false;
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected setupLeaderSideAbilities(sourceCard: this) { }
 
     // TODO TYPE REFACTOR: separate out the Leader types from the playable types
     public override getPlayCardActions() {

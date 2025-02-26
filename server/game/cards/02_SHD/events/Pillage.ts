@@ -20,5 +20,3 @@ export default class Pillage extends EventCard {
         });
     }
 }
-
-Pillage.implemented = true;

@@ -21,5 +21,3 @@ export default class CassianAndorRebellionsAreBuiltOnHope extends NonLeaderUnitC
         });
     }
 }
-
-CassianAndorRebellionsAreBuiltOnHope.implemented = true;

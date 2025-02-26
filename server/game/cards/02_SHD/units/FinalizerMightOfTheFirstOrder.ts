@@ -67,5 +67,3 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
         return new Set(context.events.filter((event) => event.name === EventName.OnCardCaptured).map((event) => event.card));
     }
 }
-
-FinalizerMightOfTheFirstOrder.implemented = true;

@@ -27,5 +27,3 @@ export default class SlaversFreighter extends NonLeaderUnitCard {
         });
     }
 }
-
-SlaversFreighter.implemented = true;

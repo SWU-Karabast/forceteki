@@ -31,5 +31,3 @@ export default class JynErsoResistingOppression extends LeaderUnitCard {
         });
     }
 }
-
-JynErsoResistingOppression.implemented = true;

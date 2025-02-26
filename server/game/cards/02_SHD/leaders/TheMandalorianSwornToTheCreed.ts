@@ -44,5 +44,3 @@ export default class TheMandalorianSwornToTheCreed extends LeaderUnitCard {
         });
     }
 }
-
-TheMandalorianSwornToTheCreed.implemented = true;

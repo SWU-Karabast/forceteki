@@ -33,4 +33,3 @@ export default class GalacticAmbition extends EventCard {
         });
     }
 }
-GalacticAmbition.implemented = true;

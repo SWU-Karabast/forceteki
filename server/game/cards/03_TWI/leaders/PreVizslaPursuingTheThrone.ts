@@ -45,5 +45,3 @@ export default class PreVizslaPursuingTheThrone extends LeaderUnitCard {
         });
     }
 }
-
-PreVizslaPursuingTheThrone.implemented = true;

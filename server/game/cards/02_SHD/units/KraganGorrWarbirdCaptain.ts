@@ -23,5 +23,3 @@ export default class KraganGorrWarbirdCaptain extends NonLeaderUnitCard {
         });
     }
 }
-
-KraganGorrWarbirdCaptain.implemented = true;

@@ -1,6 +1,6 @@
 const { CardTargetResolver } = require('./abilityTargets/CardTargetResolver.js');
 const { SelectTargetResolver } = require('./abilityTargets/SelectTargetResolver.js');
-const { Stage, TargetMode, AbilityType } = require('../Constants.js');
+const { Stage, TargetMode, AbilityType, RelativePlayer } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
 const { GameSystem } = require('../gameSystem/GameSystem.js');
@@ -9,6 +9,7 @@ const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.
 const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTargetResolver.js');
 const { TriggerHandlingMode } = require('../event/EventWindow.js');
 const Helpers = require('../utils/Helpers.js');
+const { AbilityContext } = require('./AbilityContext.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -24,22 +25,8 @@ const Helpers = require('../utils/Helpers.js');
 class PlayerOrCardAbility {
     /**
      * Creates an ability.
-     *
-     * @param {Object} properties - An object with ability related properties.
-     * @param {Object|Array} [properties.cost] - optional property that specifies
-     * the cost for the ability. Can either be a cost object or an array of cost
-     * objects.
-     * @param {Object} [properties.target] - Optional property that specifies the target of the ability.
-     * @param {GameSystem} [properties.immediateEffect] - Optional GameSystem without a target resolver
-     * @param {any} [properties.targetResolver] - Optional target resolver
-     * @param {any} [properties.targetResolvers] - Optional target resolvers set
-     * @param {string} [properties.title] - Name to use for ability display and debugging
-     * @param {string} [properties.cardName] - Optional property that specifies the name of the card, if any
-     * @param {boolean} [properties.optional] - Optional property that indicates if resolution of the ability is optional and may be passed through
-     * @param {import('../event/EventWindow.js').TriggerHandlingMode} [properties.triggerHandlingMode] - Optional property that indicates whether triggers triggered during this
-     * ability should be resolved right after it, or passed back to the parent game event window
      */
-    constructor(properties, type = AbilityType.Action) {
+    constructor(game, card, properties, type = AbilityType.Action) {
         Contract.assertStringValue(properties.title);
 
         const hasImmediateEffect = properties.immediateEffect != null;
@@ -60,6 +47,18 @@ class PlayerOrCardAbility {
         this.immediateEffect = properties.immediateEffect;
         this.uuid = uuidv4();
         this.canResolveWithoutLegalTargets = false;
+        this.abilityController = properties.abilityController ?? RelativePlayer.Self;
+
+        Contract.assertFalse(
+            !this.optional && (properties.playerChoosingOptional || properties.optionalButtonTextOverride),
+            'Do not set playerChoosingOptional or optionalButtonTextOverride for non-optional abilities'
+        );
+        this.playerChoosingOptional = properties.playerChoosingOptional ?? RelativePlayer.Self;
+        this.optionalButtonTextOverride = properties.optionalButtonTextOverride;
+
+        this.game = game;
+        this.card = card;
+        this.properties = properties;
 
         // TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
 
@@ -288,6 +287,19 @@ class PlayerOrCardAbility {
         );
     }
 
+    createContext(player = this.card.controller, event) {
+        return new AbilityContext(this.getContextProperties(player, event));
+    }
+
+    getContextProperties(player, event) {
+        return {
+            ability: this,
+            game: this.game,
+            player,
+            source: this.card,
+            stage: Stage.PreTarget
+        };
+    }
 
     displayMessage(context) {}
 

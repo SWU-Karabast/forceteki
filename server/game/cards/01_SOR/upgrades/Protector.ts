@@ -15,5 +15,3 @@ export default class Protector extends UpgradeCard {
         });
     }
 }
-
-Protector.implemented = true;

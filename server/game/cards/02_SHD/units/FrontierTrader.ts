@@ -27,5 +27,3 @@ export default class FrontierTrader extends NonLeaderUnitCard {
         });
     }
 }
-
-FrontierTrader.implemented = true;

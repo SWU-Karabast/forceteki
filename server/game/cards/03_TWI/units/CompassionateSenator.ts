@@ -19,5 +19,3 @@ export default class CompassionateSenator extends NonLeaderUnitCard {
         });
     }
 }
-
-CompassionateSenator.implemented = true;

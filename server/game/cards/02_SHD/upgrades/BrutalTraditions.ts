@@ -27,5 +27,3 @@ export default class BrutalTraditions extends UpgradeCard {
         });
     }
 }
-
-BrutalTraditions.implemented = true;

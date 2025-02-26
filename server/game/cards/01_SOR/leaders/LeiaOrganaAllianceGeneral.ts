@@ -40,5 +40,3 @@ export default class LeiaOrganaAllianceGeneral extends LeaderUnitCard {
         });
     }
 }
-
-LeiaOrganaAllianceGeneral.implemented = true;

@@ -15,5 +15,3 @@ export default class InfiltratorsSkill extends UpgradeCard {
         });
     }
 }
-
-InfiltratorsSkill.implemented = true;

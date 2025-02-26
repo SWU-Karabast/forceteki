@@ -17,5 +17,3 @@ export default class Foundling extends UpgradeCard {
         });
     }
 }
-
-Foundling.implemented = true;

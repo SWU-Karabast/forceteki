@@ -20,5 +20,3 @@ export default class AcademyDefenseWalker extends NonLeaderUnitCard {
         });
     }
 }
-
-AcademyDefenseWalker.implemented = true;

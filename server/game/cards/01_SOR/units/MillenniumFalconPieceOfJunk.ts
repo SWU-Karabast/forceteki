@@ -38,5 +38,3 @@ export default class MillenniumFalconPieceOfJunk extends NonLeaderUnitCard {
         });
     }
 }
-
-MillenniumFalconPieceOfJunk.implemented = true;

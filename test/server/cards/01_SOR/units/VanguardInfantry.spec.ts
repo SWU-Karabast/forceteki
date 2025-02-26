@@ -44,7 +44,7 @@ describe('Vanguard Infantry', function() {
 
                 context.player1.clickCard(context.vanguardInfantry);
                 context.player1.clickCard(context.wampa);
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames([]);
                 expect(context.wampa).toHaveExactUpgradeNames([]);

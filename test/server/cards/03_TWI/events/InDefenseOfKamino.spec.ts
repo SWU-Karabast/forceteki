@@ -25,7 +25,6 @@ describe('In Defense of Kamino', function () {
             // Republic Arc-170 should Restore 2 damage from base and create a Clone Trooper when defeated
             context.player1.clickCard(context.republicArc170);
             context.player1.clickCard(context.gladiatorStarDestroyer);
-            context.player1.clickCard(context.p1Base);
 
             expect(context.republicArc170).toBeInZone('discard');
             expect(context.p1Base.damage).toBe(3);

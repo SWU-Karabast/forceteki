@@ -18,5 +18,3 @@ export default class RedThreeUnstoppable extends NonLeaderUnitCard {
         });
     }
 }
-
-RedThreeUnstoppable.implemented = true;

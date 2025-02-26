@@ -32,5 +32,3 @@ export default class NowThereAreTwoOfThem extends EventCard {
         });
     }
 }
-
-NowThereAreTwoOfThem.implemented = true;

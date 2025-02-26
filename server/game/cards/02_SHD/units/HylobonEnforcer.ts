@@ -16,5 +16,3 @@ export default class HylobonEnforcer extends NonLeaderUnitCard {
         });
     }
 }
-
-HylobonEnforcer.implemented = true;

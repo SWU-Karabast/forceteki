@@ -31,5 +31,3 @@ export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
         });
     }
 }
-
-CobbVanthTheMarshal.implemented = true;

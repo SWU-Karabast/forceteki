@@ -24,5 +24,3 @@ export default class EnfysNestMarauder extends NonLeaderUnitCard {
         });
     }
 }
-
-EnfysNestMarauder.implemented = true;

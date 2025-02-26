@@ -36,5 +36,3 @@ export default class AsajjVentressCountDookusAssassin extends NonLeaderUnitCard 
         });
     }
 }
-
-AsajjVentressCountDookusAssassin.implemented = true;

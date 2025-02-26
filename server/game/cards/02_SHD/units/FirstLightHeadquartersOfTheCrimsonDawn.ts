@@ -51,7 +51,7 @@ class FirstLightSmuggleAction extends PlayUnitAction {
     }
 
     public constructor(card: FirstLightHeadquartersOfTheCrimsonDawn, propertyOverrides: IPlayCardActionOverrides = {}) {
-        super(card, FirstLightSmuggleAction.generateProperties(propertyOverrides));
+        super(card.game, card, FirstLightSmuggleAction.generateProperties(propertyOverrides));
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
@@ -64,5 +64,3 @@ class FirstLightSmuggleAction extends PlayUnitAction {
         );
     }
 }
-
-FirstLightHeadquartersOfTheCrimsonDawn.implemented = true;

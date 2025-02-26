@@ -25,5 +25,3 @@ export default class OuterRimHeadhunter extends NonLeaderUnitCard {
         });
     }
 }
-
-OuterRimHeadhunter.implemented = true;

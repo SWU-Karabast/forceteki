@@ -21,5 +21,3 @@ export default class WookieeWarrior extends NonLeaderUnitCard {
         });
     }
 }
-
-WookieeWarrior.implemented = true;

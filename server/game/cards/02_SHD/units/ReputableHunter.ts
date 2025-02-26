@@ -17,5 +17,3 @@ export default class ReputableHunter extends NonLeaderUnitCard {
         });
     }
 }
-
-ReputableHunter.implemented = true;

@@ -27,5 +27,3 @@ export default class BoKatanKryzeDeathWatchLieutenant extends NonLeaderUnitCard 
         });
     }
 }
-
-BoKatanKryzeDeathWatchLieutenant.implemented = true;

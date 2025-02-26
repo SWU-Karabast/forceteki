@@ -16,5 +16,3 @@ export default class OutlawCorona extends NonLeaderUnitCard {
         });
     }
 }
-
-OutlawCorona.implemented = true;

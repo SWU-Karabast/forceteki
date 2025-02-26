@@ -26,5 +26,3 @@ export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
         });
     }
 }
-
-ChewbaccaWalkingCarpet.implemented = true;

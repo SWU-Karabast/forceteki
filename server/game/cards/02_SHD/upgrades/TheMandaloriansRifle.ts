@@ -33,5 +33,3 @@ export default class TheMandaloriansRifle extends UpgradeCard {
         });
     }
 }
-
-TheMandaloriansRifle.implemented = true;

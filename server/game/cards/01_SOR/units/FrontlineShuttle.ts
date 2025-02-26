@@ -20,5 +20,3 @@ export default class FrontlineShuttle extends NonLeaderUnitCard {
         });
     }
 }
-
-FrontlineShuttle.implemented = true;

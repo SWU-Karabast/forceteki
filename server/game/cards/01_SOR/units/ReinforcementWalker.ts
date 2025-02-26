@@ -40,5 +40,3 @@ export default class ReinforcementWalker extends NonLeaderUnitCard {
         });
     }
 }
-
-ReinforcementWalker.implemented = true;

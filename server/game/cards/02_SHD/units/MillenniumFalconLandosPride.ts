@@ -26,5 +26,3 @@ export default class MillenniumFalconLandosPride extends NonLeaderUnitCard {
         });
     }
 }
-
-MillenniumFalconLandosPride.implemented = true;

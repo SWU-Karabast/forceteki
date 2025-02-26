@@ -23,5 +23,3 @@ export default class TheMandalorianWhereverIGoHeGoes extends NonLeaderUnitCard {
         });
     }
 }
-
-TheMandalorianWhereverIGoHeGoes.implemented = true;

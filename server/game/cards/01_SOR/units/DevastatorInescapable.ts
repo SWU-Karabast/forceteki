@@ -21,5 +21,3 @@ export default class DevastatorInescapable extends NonLeaderUnitCard {
         });
     }
 }
-
-DevastatorInescapable.implemented = true;

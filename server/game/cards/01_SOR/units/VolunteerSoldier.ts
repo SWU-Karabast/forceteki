@@ -17,5 +17,3 @@ export default class VolunteerSoldier extends NonLeaderUnitCard {
         });
     }
 }
-
-VolunteerSoldier.implemented = true;

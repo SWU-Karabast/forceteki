@@ -16,11 +16,14 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
 
                 context.player1.clickCard(context.monMothma);
                 expect(context.player1).toHavePrompt('Select a card to reveal');
-                expect(context.player1).toHaveDisabledPromptButtons([context.cartelSpacer.title, context.cellBlockGuard.title, context.pykeSentinel.title, context.volunteerSoldier.title]);
-                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine.title, 'Take nothing']);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier],
+                    selectable: [context.battlefieldMarine]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 // Choose Battlefield Marine
-                context.player1.clickPrompt(context.battlefieldMarine.title);
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
                 expect(context.getChatLogs(2)).toContain('player1 takes Battlefield Marine');
                 expect(context.battlefieldMarine).toBeInZone('hand');
 
@@ -46,9 +49,13 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
 
                 context.player1.setDeck([context.battlefieldMarine, context.cellBlockGuard, context.cartelSpacer]);
                 context.player1.clickCard(context.monMothma);
-                expect(context.player1).toHaveEnabledPromptButtons([context.battlefieldMarine.title, 'Take nothing']);
-                expect(context.player1).toHaveDisabledPromptButtons([context.cartelSpacer.title, context.cellBlockGuard.title]);
-                context.player1.clickPrompt(context.battlefieldMarine.title);
+
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.battlefieldMarine],
+                    invalid: [context.cartelSpacer, context.cellBlockGuard],
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+                context.player1.clickCardInDisplayCardPrompt(context.battlefieldMarine);
 
                 // Ensure that cards have moved to bottom of deck
                 expect(context.player1.deck.length).toBe(2);
@@ -88,7 +95,9 @@ describe('Mon Mothma, Voice of the Rebellion', function() {
                 // No valid targets, all should be disabled
                 context.player1.clickCard(context.monMothma);
                 expect(context.player1).toHavePrompt('Select a card to reveal');
-                expect(context.player1).toHaveDisabledPromptButtons([context.academyDefenseWalker.title, context.cartelSpacer.title, context.cellBlockGuard.title, context.pykeSentinel.title, context.volunteerSoldier.title]);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.academyDefenseWalker, context.cartelSpacer, context.cellBlockGuard, context.pykeSentinel, context.volunteerSoldier]
+                });
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickPrompt('Take nothing');

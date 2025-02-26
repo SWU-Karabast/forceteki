@@ -25,5 +25,3 @@ export default class _501stLiberator extends NonLeaderUnitCard {
         });
     }
 }
-
-_501stLiberator.implemented = true;

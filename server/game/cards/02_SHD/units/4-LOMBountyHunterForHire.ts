@@ -23,5 +23,3 @@ export default class _4LOMBountyHunterForHire extends NonLeaderUnitCard {
         });
     }
 }
-
-_4LOMBountyHunterForHire.implemented = true;

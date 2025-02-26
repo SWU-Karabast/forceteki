@@ -34,5 +34,3 @@ export default class Restock extends EventCard {
         return true;
     }
 }
-
-Restock.implemented = true;

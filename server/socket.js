@@ -20,8 +20,19 @@ class Socket extends EventEmitter {
     }
 
     // Commands
+
+    removeEventsListeners(events) {
+        events.forEach((event) => {
+            this.socket.removeAllListeners(event);
+        });
+    }
+
     registerEvent(event, callback) {
         this.socket.on(event, this.onSocketEvent.bind(this, callback));
+    }
+
+    eventContainsListener(event) {
+        return this.socket.eventNames().indexOf(event) !== -1;
     }
 
     joinChannel(channelName) {

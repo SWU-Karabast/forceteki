@@ -46,5 +46,3 @@ export default class FinnThisIsARescue extends LeaderUnitCard {
         });
     }
 }
-
-FinnThisIsARescue.implemented = true;

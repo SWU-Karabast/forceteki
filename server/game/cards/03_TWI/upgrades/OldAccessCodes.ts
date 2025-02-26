@@ -20,5 +20,3 @@ export default class OldAccessCodes extends UpgradeCard {
         });
     }
 }
-
-OldAccessCodes.implemented = true;

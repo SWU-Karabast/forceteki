@@ -26,5 +26,3 @@ export default class SwordAndShieldManeuver extends EventCard {
         });
     }
 }
-
-SwordAndShieldManeuver.implemented = true;

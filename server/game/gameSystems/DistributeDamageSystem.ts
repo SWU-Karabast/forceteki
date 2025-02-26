@@ -28,4 +28,8 @@ export class DistributeDamageSystem<TContext extends AbilityContext = AbilityCon
     protected override canDistributeLessDefault(): boolean {
         return false;
     }
+
+    protected override getDistributedAmountFromEvent(event: any): number {
+        return event.damageDealt;
+    }
 }

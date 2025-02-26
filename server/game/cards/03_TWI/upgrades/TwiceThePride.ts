@@ -19,5 +19,3 @@ export default class TwiceThePride extends UpgradeCard {
         });
     }
 }
-
-TwiceThePride.implemented = true;

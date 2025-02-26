@@ -51,7 +51,7 @@ class PlayBamboozleAction extends PlayEventAction {
     }
 
     public constructor(card: Bamboozle, properties: IPlayCardActionProperties) {
-        super(card, PlayBamboozleAction.generateProperties(card, properties));
+        super(card.game, card, PlayBamboozleAction.generateProperties(card, properties));
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
@@ -65,5 +65,3 @@ class PlayBamboozleAction extends PlayEventAction {
         );
     }
 }
-
-Bamboozle.implemented = true;

@@ -38,7 +38,7 @@ export class EventCard extends EventCardParent {
     }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
-        return new PlayEventAction(this, properties);
+        return new PlayEventAction(this.game, this, properties);
     }
 
     public override isTokenOrPlayable(): this is TokenOrPlayableCard {

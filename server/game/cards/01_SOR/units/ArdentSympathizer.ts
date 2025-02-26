@@ -17,5 +17,3 @@ export default class ArdentSympathizer extends NonLeaderUnitCard {
         });
     }
 }
-
-ArdentSympathizer.implemented = true;

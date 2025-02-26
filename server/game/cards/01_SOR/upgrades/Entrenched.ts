@@ -16,5 +16,3 @@ export default class Entrenched extends UpgradeCard {
         });
     }
 }
-
-Entrenched.implemented = true;
