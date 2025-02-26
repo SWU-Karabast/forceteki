@@ -19,13 +19,15 @@ describe('Executor, Might of the Empire', function () {
 
                 expect(tieFighters.length).toBe(count);
                 expect(tieFighters).toAllBeInZone('spaceArena', player);
+                expect(tieFighters.every((tie) => tie.exhausted)).toBeTrue();
             }
 
             context.player1.clickCard(context.executor);
 
             expectTieFighters(context.player1, 3);
 
-            context.moveToNextActionPhase();
+            context.player2.passAction();
+            context.executor.ready();
             context.player1.clickCard(context.executor);
             context.player1.clickCard(context.tieBomber);
 
