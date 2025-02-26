@@ -366,6 +366,8 @@ describe('Bounty', function() {
 
             context.player1.clickCard(context.rivalsFall);
             context.player1.clickCard(context.asajjVentress);
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw 2 cards');
+            context.player1.clickPrompt('Collect Bounty: Draw 2 cards');
             expect(context.player1.handSize).toBe(2);
         });
     });
