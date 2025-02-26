@@ -39,6 +39,7 @@ const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayC
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
 const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
+const { GameObject } = require('./GameObject.js');
 
 class Game extends EventEmitter {
     /**
@@ -65,6 +66,8 @@ class Game extends EventEmitter {
         this.owner = details.owner;
         this.started = false;
         this.playStarted = false;
+        this.allGameObjects = [];
+        this.gameObjectMapping = new Map();
         this.createdAt = new Date();
         this.currentActionWindow = null;
 
@@ -351,6 +354,16 @@ class Game extends EventEmitter {
      */
     findAnyCardsInPlay(predicate = () => true) {
         return this.allArenas.getCards({ condition: predicate });
+    }
+
+    /**
+     *
+     * @template {GameObject} T
+     * @param {import('./GameObject.js').GameObjectRef<T>} gameObjectRef
+     * @returns {T}
+     */
+    findAnyGameObjectByUuid(gameObjectRef) {
+        return this.gameObjectMapping.get(gameObjectRef.uuid);
     }
 
     /**
@@ -1324,6 +1337,17 @@ class Game extends EventEmitter {
         this.filterCardFromList(token, player.decklist.tokens);
         this.filterCardFromList(token, player.decklist.allCards);
         token.removeFromGame();
+    }
+
+    /** @param {GameObject} gameObject */
+    registerGameObject(gameObject) {
+        this.allGameObjects.push(gameObject);
+        this.gameObjectMapping.set(gameObject.uuid, gameObject);
+    }
+
+    /** @param {GameObject[]} gameObjects */
+    registerGameObjects(gameObjects) {
+        gameObjects.forEach((gameObject) => this.registerGameObject(gameObject));
     }
 
     /**
