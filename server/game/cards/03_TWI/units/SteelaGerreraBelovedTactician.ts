@@ -20,7 +20,7 @@ export default class SteelaGerreraBelovedTactician extends NonLeaderUnitCard {
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 2,
-                target: context.source.controller.base
+                target: context.player.base
             })),
             ifYouDo: {
                 title: 'Search the top 8 cards of your deck for a Tactic card, reveal it, and draw it',

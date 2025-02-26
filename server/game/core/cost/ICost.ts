@@ -3,7 +3,7 @@ import type { GameSystem } from '../gameSystem/GameSystem';
 import type { GameEvent } from '../event/GameEvent';
 import type Player from '../Player.js';
 
-export interface Result {
+export interface ICostResult {
     canCancel?: boolean;
     cancelled?: boolean;
 }
@@ -25,8 +25,8 @@ export interface ICost<TContext extends AbilityContext = AbilityContext> {
     getActionName?(context: TContext): string;
     getCostMessage?(context: TContext): unknown[];
     hasTargetsChosenByInitiatingPlayer?(context: TContext): boolean;
-    queueGenerateEventGameSteps?(events: GameEvent[], context: TContext, result?: Result): void;
-    resolve?(context: TContext, result: Result): void;
+    queueGenerateEventGameSteps?(events: GameEvent[], context: TContext, result?: ICostResult): void;
+    resolve?(context: TContext, result: ICostResult): void;
     payEvents?(context: TContext): GameEvent[];
     pay?(context: TContext): void;
 }

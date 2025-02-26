@@ -1,4 +1,3 @@
-import type { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
@@ -7,7 +6,10 @@ import { WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
 import * as Contract from '../../core/utils/Contract';
-import { cardTypeMatches } from '../utils/EnumHelpers';
+import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
+import type { ICostResult } from './ICost';
+import type { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
+import * as EnumHelpers from '../utils/EnumHelpers';
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -18,7 +20,7 @@ export enum CostAdjustType {
 }
 
 // TODO: refactor so we can add TContext for attachTargetCondition
-interface ICostAdjusterPropertiesBase {
+export interface ICostAdjusterPropertiesBase {
 
     /** The type of cards that can be reduced */
     cardTypeFilter?: CardTypeFilter;
@@ -43,7 +45,7 @@ export interface IIncreaseOrDecreaseCostAdjusterProperties extends ICostAdjuster
     costAdjustType: CostAdjustType.Increase | CostAdjustType.Decrease;
 
     /** The amount to adjust the cost by */
-    amount?: number | ((card: Card, player: Player) => number);
+    amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
 }
 
 export interface IForFreeCostAdjusterProperties extends ICostAdjusterPropertiesBase {
@@ -70,7 +72,7 @@ export type ICostAdjusterProperties =
 export class CostAdjuster {
     public readonly costAdjustType: CostAdjustType;
     public readonly ignoredAspects: Aspect | Aspect[];
-    private amount?: number | ((card: Card, player: Player) => number);
+    private amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
     private match?: (card: Card, adjusterSource: Card) => boolean;
     private cardTypeFilter?: CardTypeFilter;
     private attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
@@ -108,11 +110,11 @@ export class CostAdjuster {
         }
     }
 
-    public isExploit(): this is ExploitPlayCardResourceCost {
+    public isExploit(): this is ExploitCostAdjuster {
         return false;
     }
 
-    public canAdjust(playingType: PlayType, card: Card, attachTarget?: Card, ignoredAspects?: Aspect): boolean {
+    public canAdjust(playingType: PlayType, card: Card, context: AbilityContext, attachTarget?: Card, ignoredAspects?: Aspect): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
         } else if (this.playingTypes && !this.playingTypes.includes(playingType)) {
@@ -120,12 +122,17 @@ export class CostAdjuster {
         } else if (this.ignoredAspects && this.ignoredAspects !== ignoredAspects) {
             return false;
         }
-        const context = this.game.getFrameworkContext(card.controller);
-        return cardTypeMatches(card.type, this.cardTypeFilter) && this.checkMatch(card) && this.checkAttachTargetCondition(context, attachTarget);
+
+        return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) &&
+          this.checkMatch(card) &&
+          this.checkAttachTargetCondition(context, attachTarget);
     }
 
-    public getAmount(card: Card, player: Player): number {
-        return typeof this.amount === 'function' ? this.amount(card, player) : this.amount;
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public queueGenerateEventGameSteps(events: any[], context: AbilityContext, resourceCost: PlayCardResourceCost, result?: ICostResult): void {}
+
+    public getAmount(card: Card, player: Player, context: AbilityContext): number {
+        return typeof this.amount === 'function' ? this.amount(card, player, context) : this.amount;
     }
 
     public markUsed(): void {

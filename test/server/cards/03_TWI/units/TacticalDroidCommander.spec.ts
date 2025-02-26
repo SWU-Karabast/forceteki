@@ -21,7 +21,7 @@ describe('Tactical Droid Commander', function() {
 
             // play Separatist unit, able to exhaust unit of same cost or less.
             context.player1.clickCard(context.providenceDestroyer);
-            context.player1.clickPrompt('Play Providence Destroyer');
+            context.player1.clickPrompt('Play without Exploit');
             expect(context.player1).toBeAbleToSelectExactly([context.tacticalDroidCommander, context.battlefieldMarine, context.droidCommando, context.lukeSkywalker, context.ploKoon, context.battleDroid, context.providenceDestroyer]);
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.battlefieldMarine.exhausted).toBeTrue();
@@ -38,7 +38,7 @@ describe('Tactical Droid Commander', function() {
 
             // Play a Separatist event, no trigger
             context.player1.clickCard(context.planetaryInvasion);
-            context.player1.clickPrompt('Play Planetary Invasion');
+            context.player1.clickPrompt('Play without Exploit');
             context.player1.clickPrompt('Done');
             expect(context.player2).toBeActivePlayer();
         });

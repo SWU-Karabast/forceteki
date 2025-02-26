@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -84,6 +84,7 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
         this.randomGenerator = seedrandom();
+        this.currentOpenPrompt = null;
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
 
@@ -243,6 +244,10 @@ class Game extends EventEmitter {
         return this.getPlayers().sort((a) => (a.hasInitiative() ? -1 : 1));
     }
 
+    getActivePlayer() {
+        return this.currentPhase === PhaseName.Action ? this.actionPhaseActivePlayer : this.initiativePlayer;
+    }
+
     /**
      * Get all players and spectators in the game
      * @returns {{[key: string]: Player | Spectator}} {name1: Player, name2: Player, name3: Spectator}
@@ -281,6 +286,7 @@ class Game extends EventEmitter {
      * Checks who the next legal active player for the action phase should be and updates @member {activePlayer}. If none available, sets it to null.
      */
     rotateActivePlayer() {
+        Contract.assertTrue(this.currentPhase === PhaseName.Action, `rotateActivePlayer can only be called during the action phase, instead called during ${this.currentPhase}`);
         if (!this.actionPhaseActivePlayer.opponent.passedActionPhase) {
             this.createEventAndOpenWindow(
                 EventName.OnPassActionPhasePriority,
