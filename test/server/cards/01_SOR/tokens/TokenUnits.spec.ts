@@ -1,8 +1,8 @@
 describe('Token units', function() {
     integration(function(contextRef) {
         describe('Token units', function() {
-            it('should enter exhausted by default and function in the arena like normal units', function () {
-                contextRef.setupTest({
+            it('should enter exhausted by default and async function in the arena like normal units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['drop-in', 'droid-deployment'],
@@ -53,8 +53,8 @@ describe('Token units', function() {
                 expect(cloneTroopers[0].exhausted).toBeTrue();
             });
 
-            it('should correctly register as defeated when defeated due to effects or damage, and then be moved outside the game', function () {
-                contextRef.setupTest({
+            it('should correctly register as defeated when defeated due to effects or damage, and then be moved outside the game', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['general-krell#heartless-tactician', 'battle-droid', 'battle-droid', 'battle-droid'],
@@ -101,8 +101,8 @@ describe('Token units', function() {
                 context.player1.clickPrompt('Draw a card');
             });
 
-            it('should be moved outside the game if they would be moved out of the arena, but not register as defeated', function () {
-                contextRef.setupTest({
+            it('should be moved outside the game if they would be moved out of the arena, but not register as defeated', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['general-krell#heartless-tactician', 'clone-trooper', 'clone-trooper'],

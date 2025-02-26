@@ -118,6 +118,10 @@ import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
 import { CreateTieFighterSystem } from './CreateTieFighterSystem';
 import type { IViewCardAndSelectSingleProperties, IViewCardWithPerCardButtonsProperties } from './ViewCardSystem';
 import { ViewCardInteractMode } from './ViewCardSystem';
+import type { IIndirectDamageToPlayerProperties } from './IndirectDamageToPlayerSystem';
+import { IndirectDamageToPlayerSystem } from './IndirectDamageToPlayerSystem';
+import type { ILoseGameProperties } from './LoseGameSystem';
+import { LoseGameSystem } from './LoseGameSystem';
 
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
@@ -166,7 +170,7 @@ export function createXWing<TContext extends AbilityContext = AbilityContext>(pr
 export function createTieFighter<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTieFighterProperties, TContext> = {}) {
     return new CreateTieFighterSystem<TContext>(propertyFactory);
 }
-export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IAbilityDamageProperties, 'type'>, TContext>) {
+export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IAbilityDamageProperties, 'type' | 'indirect'>, TContext>) {
     return new DamageSystem<TContext, IDamageProperties>(
         GameSystem.appendToPropertiesOrPropertyFactory<IAbilityDamageProperties, 'type'>(
             propertyFactory,
@@ -235,6 +239,9 @@ export function giveShield<TContext extends AbilityContext = AbilityContext>(pro
 }
 export function heal<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IHealProperties, TContext>) {
     return new HealSystem<TContext>(propertyFactory);
+}
+export function indirectDamageToPlayer<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IIndirectDamageToPlayerProperties, TContext>) {
+    return new IndirectDamageToPlayerSystem<TContext>(propertyFactory);
 }
 export function lookAt<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<ILookAtProperties, 'interactMode'>, TContext> = {}) {
     return new LookAtSystem<TContext>(
@@ -392,6 +399,15 @@ export function reveal<TContext extends AbilityContext = AbilityContext>(propert
         )
     );
 }
+export function revealAndChooseOption<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewCardWithPerCardButtonsProperties, 'interactMode'>, TContext>) {
+    return new RevealSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IRevealProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.PerCardButtons }
+        )
+    );
+}
+
 // export function sacrifice(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}) {
 //     return new DiscardFromPlayAction(propertyFactory, true);
 // }
@@ -522,6 +538,9 @@ export function delayedPlayerEffect<TContext extends AbilityContext = AbilityCon
             propertyFactory,
             { effectType: DelayedEffectType.Player }
         ));
+}
+export function loseGame<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILoseGameProperties, TContext>) {
+    return new LoseGameSystem<TContext>(propertyFactory);
 }
 export function takeControlOfResource<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ITakeControlOfResourceProperties, TContext> = {}) {
     return new TakeControlOfResourceSystem(propertyFactory);

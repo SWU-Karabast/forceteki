@@ -1,5 +1,6 @@
 import https from 'https';
 import http from 'http';
+import type { ISetCode } from './utils/cardData/CardDataInterfaces';
 
 export function escapeRegex(regex: string): string {
     return regex.replace(/[-[\]/{}()*+?.\\^$|]/g, '\\$&');
@@ -83,4 +84,8 @@ export function detectBinary(state: unknown, path = '', results = []): { path: s
     }
 
     return results;
+}
+
+export function setCodeToString(setCodeObj: ISetCode): string {
+    return `${setCodeObj.set}_${String(setCodeObj.number).padStart(3, '0')}`;
 }

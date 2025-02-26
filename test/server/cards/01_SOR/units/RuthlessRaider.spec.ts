@@ -2,7 +2,7 @@ describe('Ruthless Raider', function() {
     integration(function(contextRef) {
         describe('Ruthless Raider\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['inferno-four#unforgetting', 'system-patrol-craft'],

@@ -1,7 +1,7 @@
 describe('Ephant Mon, Hea of Security', function () {
     integration(function (contextRef) {
-        it('Ephant Mon\'s on attack ability should make a friendly unit to capture an enemy unit which attacked base this phase', function () {
-            contextRef.setupTest({
+        it('Ephant Mon\'s on attack ability should make a friendly unit to capture an enemy unit which attacked base this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine', 'ephant-mon#head-of-security'],

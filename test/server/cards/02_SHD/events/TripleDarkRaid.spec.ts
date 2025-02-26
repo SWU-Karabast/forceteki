@@ -2,7 +2,7 @@ describe('Triple Dark Raid', function () {
     integration(function (contextRef) {
         describe('Triple Dark Raid\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'jango-fett#concealing-the-conspiracy', deployed: true },

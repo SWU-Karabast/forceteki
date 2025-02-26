@@ -1,8 +1,8 @@
 describe('Clone Deserter', function() {
     integration(function(contextRef) {
         describe('Clone Deserter\'s Bounty ability', function() {
-            it('should draw a card', function () {
-                contextRef.setupTest({
+            it('should draw a card', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['clone-deserter']

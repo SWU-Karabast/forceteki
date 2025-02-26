@@ -1,7 +1,7 @@
 describe('A Fine Addition', function () {
     integration(function (contextRef) {
-        it('A Fine Addition\'s ability should play an upgrade from your hand or opponents discard, ignoring aspect penalty, if an enemy was defeated this phase', function () {
-            contextRef.setupTest({
+        it('A Fine Addition\'s ability should play an upgrade from your hand or opponents discard, ignoring aspect penalty, if an enemy was defeated this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['a-fine-addition', 'ahsokas-padawan-lightsaber'],

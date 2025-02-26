@@ -1,7 +1,7 @@
 describe('Republic Tactical Officer', function() {
     integration(function(contextRef) {
-        it('Republic Tactical Officer\'s ability should attack with a republic unit and give it +2 power', function () {
-            contextRef.setupTest({
+        it('Republic Tactical Officer\'s ability should attack with a republic unit and give it +2 power', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['republic-tactical-officer'],

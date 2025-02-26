@@ -15,7 +15,7 @@ export default class SavageOpressMonster extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional(
                 {
                     condition: (context) => {
-                        const player = context.source.controller;
+                        const player = context.player;
                         const opponent = player.opponent;
                         return player.getUnitsInPlay().length < opponent.getUnitsInPlay().length;
                     },

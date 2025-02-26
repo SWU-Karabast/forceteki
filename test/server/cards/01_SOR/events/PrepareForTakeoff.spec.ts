@@ -2,7 +2,7 @@ describe('Prepare for Takeoff', function () {
     integration(function (contextRef) {
         describe('Prepare for Takeoff\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['prepare-for-takeoff'],

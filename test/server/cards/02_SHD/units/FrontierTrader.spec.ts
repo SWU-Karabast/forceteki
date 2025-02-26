@@ -4,7 +4,7 @@ describe('Frontier Trader', function() {
     integration(function(contextRef) {
         describe('Frontier Trader\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['frontier-trader'],

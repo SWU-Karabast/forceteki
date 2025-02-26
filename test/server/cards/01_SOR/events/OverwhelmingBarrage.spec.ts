@@ -2,7 +2,7 @@ describe('Overwhelming Barrage', function() {
     integration(function(contextRef) {
         describe('Overwhelming Barrage\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['overwhelming-barrage'],
@@ -99,7 +99,7 @@ describe('Overwhelming Barrage', function() {
 
         describe('Overwhelming Barrage\'s ability, if there is only one target for damage,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['overwhelming-barrage'],

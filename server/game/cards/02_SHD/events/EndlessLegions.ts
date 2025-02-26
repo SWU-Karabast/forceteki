@@ -8,8 +8,6 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 
 export default class EndlessLegions extends EventCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '5576996578',
@@ -24,7 +22,10 @@ export default class EndlessLegions extends EventCard {
                 mode: TargetMode.Unlimited,
                 zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.reveal(),
+                immediateEffect: AbilityHelper.immediateEffects.reveal({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                }),
             },
             then: (context) => this.playRevealedCard([], context),
         });

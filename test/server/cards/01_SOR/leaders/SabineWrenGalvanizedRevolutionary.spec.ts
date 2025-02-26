@@ -2,7 +2,7 @@ describe('Sabine Wren, Galvanized Revolutionary', function() {
     integration(function(contextRef) {
         describe('Sabine\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'sabine-wren#galvanized-revolutionary'
@@ -23,7 +23,7 @@ describe('Sabine Wren, Galvanized Revolutionary', function() {
 
         describe('Sabine\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true }

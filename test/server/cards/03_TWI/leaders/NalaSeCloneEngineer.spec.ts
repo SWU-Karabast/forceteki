@@ -2,7 +2,7 @@ describe('Nala Se, Clone Engineer', function () {
     integration(function (contextRef) {
         describe('Nala Se\'s leader undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'nala-se#clone-engineer', deployed: true },
@@ -35,7 +35,7 @@ describe('Nala Se, Clone Engineer', function () {
 
         describe('Nala Se\'s leader deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'nala-se#clone-engineer', deployed: true },

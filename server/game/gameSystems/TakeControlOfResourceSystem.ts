@@ -21,7 +21,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
     public eventHandler(event): void {
         const card = event.card as Card;
-        Contract.assertTrue(card.canBeExhausted());
+        Contract.assertTrue(card.canBeExhausted() && card.canChangeController());
 
         const exhausted = card.exhausted;
         card.takeControl(event.newController);

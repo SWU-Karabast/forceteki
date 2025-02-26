@@ -2,7 +2,7 @@ describe('Jedi Lightsaber', function() {
     integration(function(contextRef) {
         describe('Jedi Lightsaber\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'grogu#irresistible', upgrades: ['jedi-lightsaber'] }],
@@ -74,7 +74,7 @@ describe('Jedi Lightsaber', function() {
 
         describe('Jedi Lightsaber\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['jedi-lightsaber'] }],
@@ -104,7 +104,7 @@ describe('Jedi Lightsaber', function() {
 
         describe('Jedi Lightsaber', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['jedi-lightsaber'],

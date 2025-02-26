@@ -2,7 +2,7 @@ describe('Privateer Crew', function() {
     integration(function(contextRef) {
         describe('Privateer Crew\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['privateer-crew'],
@@ -22,7 +22,7 @@ describe('Privateer Crew', function() {
 
         describe('Privateer Crew\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         resources: ['privateer-crew', 'battlefield-marine', 'echo-base-defender', 'tech#source-of-insight', 'daring-raid', 'krayt-dragon', 'atst', 'covert-strength', 'commission', 'hunting-nexu'],

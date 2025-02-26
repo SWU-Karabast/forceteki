@@ -2,7 +2,7 @@ describe('Mandalorian Warrior', function () {
     integration(function (contextRef) {
         describe('Mandalorian Warrior\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['mandalorian-warrior'],

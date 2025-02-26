@@ -2,7 +2,7 @@ describe('Keep Fighting', function () {
     integration(function (contextRef) {
         describe('Keep Fighting\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['keep-fighting'],

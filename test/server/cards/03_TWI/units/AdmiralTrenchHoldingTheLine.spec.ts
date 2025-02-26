@@ -1,7 +1,7 @@
 describe('Admiral Trench, Holding the Line', function () {
     integration(function (contextRef) {
-        beforeEach(function () {
-            contextRef.setupTest({
+        beforeEach(async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['superlaser-blast', 'pillage'],

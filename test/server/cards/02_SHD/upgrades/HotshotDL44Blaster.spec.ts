@@ -2,7 +2,7 @@ describe('Hotshot DL-44 Blaster', function() {
     integration(function(contextRef) {
         describe('Hotshot DL-44 Blaster\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -28,7 +28,7 @@ describe('Hotshot DL-44 Blaster', function() {
 
         describe('Hotshot DL-44 Blaster\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [],

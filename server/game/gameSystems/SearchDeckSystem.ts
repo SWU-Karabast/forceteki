@@ -284,7 +284,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
                 if (properties.chooseNothingImmediateEffect.hasLegalTarget(context)) {
                     properties.chooseNothingImmediateEffect.resolve(null, context);
                 }
-            });
+            }, 'Choose nothing');
         }
     }
 }

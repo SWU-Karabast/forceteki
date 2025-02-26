@@ -18,5 +18,3 @@ export default class Repair extends EventCard {
         });
     }
 }
-
-Repair.implemented = true;

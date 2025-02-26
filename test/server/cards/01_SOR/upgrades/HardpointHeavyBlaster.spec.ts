@@ -2,7 +2,7 @@ describe('Hardpoint Heavy Blaster', function() {
     integration(function(contextRef) {
         describe('Hardpoint Heavy Blaster\'s ability,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -63,7 +63,7 @@ describe('Hardpoint Heavy Blaster', function() {
 
         describe('Hardpoint Heavy Blaster', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['hardpoint-heavy-blaster'],

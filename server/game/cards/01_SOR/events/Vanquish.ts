@@ -20,5 +20,3 @@ export default class Vanquish extends EventCard {
         });
     }
 }
-
-Vanquish.implemented = true;

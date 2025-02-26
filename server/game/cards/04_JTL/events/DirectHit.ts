@@ -22,4 +22,3 @@ export default class DirectHit extends EventCard {
     }
 }
 
-DirectHit.implemented = true;

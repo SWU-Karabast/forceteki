@@ -226,17 +226,18 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     private promptForResolvePlayerOrder() {
-        this.game.promptWithHandlerMenu(this.game.actionPhaseActivePlayer, {
+        const activePlayer = this.game.getActivePlayer();
+        this.game.promptWithHandlerMenu(activePlayer, {
             activePromptTitle: 'Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:',
             waitingPromptTitle: 'Waiting for opponent to choose a player to resolve their triggers first',
             choices: ['You', 'Opponent'],
             handlers: [
                 () => {
-                    this.resolvePlayerOrder = [this.game.actionPhaseActivePlayer, this.game.actionPhaseActivePlayer.opponent];
+                    this.resolvePlayerOrder = [activePlayer, activePlayer.opponent];
                     this.promptUnresolvedAbilities();
                 },
                 () => {
-                    this.resolvePlayerOrder = [this.game.actionPhaseActivePlayer.opponent, this.game.actionPhaseActivePlayer];
+                    this.resolvePlayerOrder = [activePlayer.opponent, activePlayer];
                     this.promptUnresolvedAbilities();
                 }
             ]

@@ -1,7 +1,7 @@
 describe('Luminara Unduli, Soft Spoken Master', function() {
     integration(function(contextRef) {
-        it('Luminara Unduli\'s ability should heal a base equal to the number of units you control and coordinate ability should give grit', function () {
-            contextRef.setupTest({
+        it('Luminara Unduli\'s ability should heal a base equal to the number of units you control and coordinate ability should give grit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['luminara-unduli#softspoken-master'],

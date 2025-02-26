@@ -14,8 +14,8 @@ export default class RuggedSurvivors extends NonLeaderUnitCard {
             title: 'Draw a card if you control a leader unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.controller.leader.deployed,
-                onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller })),
+                condition: (context) => context.player.leader.deployed,
+                onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });

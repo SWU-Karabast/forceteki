@@ -15,7 +15,7 @@ export default class MazKanataPirateQueen extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) =>
                     event.card.isUnit() &&
-                    event.card.controller === context.source.controller &&
+                    event.card.controller === context.player &&
                     event.card !== context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.giveExperience()

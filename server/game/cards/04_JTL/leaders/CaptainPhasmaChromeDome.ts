@@ -57,7 +57,7 @@ export default class CaptainPhasmaChromeDome extends LeaderUnitCard {
 
     private firstOrderCardPlayedThisPhase(context): boolean {
         return this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
-            playedCardEntry.playedBy === context.source.controller &&
+            playedCardEntry.playedBy === context.player &&
             playedCardEntry.card.hasSomeTrait(Trait.FirstOrder)
         );
     }

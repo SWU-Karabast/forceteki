@@ -1,7 +1,7 @@
 describe('Jyn Erso, Stardust', function () {
     integration(function (contextRef) {
-        it('Jyn Erso\'s ability should give +1/+0 and saboteur while an enemy unit has been defeated this phase', function () {
-            contextRef.setupTest({
+        it('Jyn Erso\'s ability should give +1/+0 and saboteur while an enemy unit has been defeated this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: [{ card: 'jyn-erso#stardust', upgrades: ['experience', 'experience', 'experience'] }],

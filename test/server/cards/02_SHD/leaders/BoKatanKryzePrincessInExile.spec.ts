@@ -2,7 +2,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
     integration(function(contextRef) {
         describe('Bo-Katan\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['mandalorian-warrior', 'battlefield-marine'],
@@ -70,7 +70,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
 
         describe('Bo-Katan\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['mandalorian-warrior', 'battlefield-marine'],

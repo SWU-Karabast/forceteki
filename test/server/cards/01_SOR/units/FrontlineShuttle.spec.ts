@@ -2,7 +2,7 @@ describe('Frontline Shuttle', function() {
     integration(function(contextRef) {
         describe('Frontline Shuttle\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['frontline-shuttle'],
@@ -56,8 +56,8 @@ describe('Frontline Shuttle', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not attack base if enemy has no units', function () {
-                contextRef.setupTest({
+            it('should not attack base if enemy has no units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['frontline-shuttle'],

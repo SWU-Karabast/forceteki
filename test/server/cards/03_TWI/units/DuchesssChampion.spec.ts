@@ -2,7 +2,7 @@ describe('Duchess\'s Champion', function () {
     integration(function (contextRef) {
         describe('Duchess\'s Champion\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['duchesss-champion']
@@ -31,7 +31,7 @@ describe('Duchess\'s Champion', function () {
 
         describe('Duchess\'s Champion\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['duchesss-champion']

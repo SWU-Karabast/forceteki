@@ -1,8 +1,8 @@
 describe('U-Wing Reinforcement', function() {
     integration(function(contextRef) {
         describe('U-Wing\'s ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'hera-syndulla#spectre-two',
@@ -138,8 +138,8 @@ describe('U-Wing Reinforcement', function() {
             });
         });
 
-        it('U-Wing\'s ability should allow no more than 3 units to be played even if the total cost is less than 7', function () {
-            contextRef.setupTest({
+        it('U-Wing\'s ability should allow no more than 3 units to be played even if the total cost is less than 7', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'hera-syndulla#spectre-two',
@@ -241,8 +241,8 @@ describe('U-Wing Reinforcement', function() {
                 .toAllBeInBottomOfDeck(context.player1, 7);
         });
 
-        it('U-Wing\'s ability should play each card as a nested action (triggered abilities happen immediately)', function () {
-            contextRef.setupTest({
+        it('U-Wing\'s ability should play each card as a nested action (triggered abilities happen immediately)', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'hera-syndulla#spectre-two',

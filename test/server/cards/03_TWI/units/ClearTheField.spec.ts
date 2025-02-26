@@ -1,7 +1,7 @@
 describe('Clear the Field\'s ability', function () {
     integration(function (contextRef) {
-        it('should make all matching cards return to hand', function () {
-            contextRef.setupTest({
+        it('should make all matching cards return to hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['clear-the-field'],
@@ -35,8 +35,8 @@ describe('Clear the Field\'s ability', function () {
             expect(context.yoda).toBeInZone('groundArena');
         });
 
-        it('should only make unit return to hand and tokens go out of combat instead', function () {
-            contextRef.setupTest({
+        it('should only make unit return to hand and tokens go out of combat instead', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['clear-the-field'],
@@ -93,8 +93,8 @@ describe('Clear the Field\'s ability', function () {
             expect(droidToken2).toBeInZone('outsideTheGame');
         });
 
-        it('should return owned unit into the owner\'s hand', function () {
-            contextRef.setupTest({
+        it('should return owned unit into the owner\'s hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
 

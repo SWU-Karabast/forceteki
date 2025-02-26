@@ -13,7 +13,7 @@ export default class HomesteadMilitia extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addConstantAbility({
             title: 'While you control 6 or more resources, this unit gains Sentinel',
-            condition: (context) => context.source.controller.resources.length >= 6,
+            condition: (context) => context.player.resources.length >= 6,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
     }

@@ -1,7 +1,7 @@
 describe('Gold Leader, Fastest Ship In The Fleet', function () {
     integration(function (contextRef) {
-        it('Gold Leader, Fastest Ship In The Fleet\'s ability should create a tie fighter token', function () {
-            contextRef.setupTest({
+        it('Gold Leader, Fastest Ship In The Fleet\'s ability should create a tie fighter token', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['gold-leader#fastest-ship-in-the-fleet', 'alliance-xwing'],

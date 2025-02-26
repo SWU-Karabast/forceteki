@@ -29,7 +29,7 @@ export default class LukeSkywalkerFaithfulFriend extends LeaderUnitCard {
                         return false;
                     }
 
-                    const playedThisTurn = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) => playedCardEntry.playedBy === context.source.controller);
+                    const playedThisTurn = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) => playedCardEntry.playedBy === context.player);
                     return playedThisTurn.includes(card);
                 },
                 immediateEffect: AbilityHelper.immediateEffects.giveShield()

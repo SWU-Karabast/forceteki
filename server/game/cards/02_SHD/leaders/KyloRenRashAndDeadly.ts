@@ -32,7 +32,7 @@ export default class KyloRenRashAndDeadly extends LeaderUnitCard {
         this.addConstantAbility({
             title: 'This unit gets -1/-0 for each card in your hand.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target, context) => {
-                const powerDiff = -1 * context.source.controller.hand.length;
+                const powerDiff = -1 * context.player.hand.length;
                 return { power: powerDiff, hp: 0 };
             })
         });

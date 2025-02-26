@@ -1,8 +1,8 @@
 describe('Republic Attack Pod', function() {
     integration(function(contextRef) {
         describe('Republic Attack Pod\'s decrease cost ability', function() {
-            it('should cost 1 less if there is 3 friendly units', () => {
-                contextRef.setupTest({
+            it('should cost 1 less if there is 3 friendly units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['republic-attack-pod'],

@@ -1,8 +1,8 @@
 describe('No Good to Me Dead', function() {
     integration(function(contextRef) {
         describe('No Good to Me Dead\'s ability', function() {
-            it('should exhaust a unit and restrict it to be ready', function () {
-                contextRef.setupTest({
+            it('should exhaust a unit and restrict it to be ready', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['no-good-to-me-dead'],

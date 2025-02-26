@@ -1,8 +1,8 @@
 describe('Jyn Erso, Resisting Oppression', function() {
     integration(function(contextRef) {
         describe('Jyn Erso\'s leader ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['yoda#old-master'],
@@ -42,8 +42,8 @@ describe('Jyn Erso, Resisting Oppression', function() {
         });
 
         describe('Jyn Erso\'s leader unit ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['yoda#old-master', 'wilderness-fighter'],

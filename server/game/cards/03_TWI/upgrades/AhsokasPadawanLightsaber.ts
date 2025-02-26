@@ -27,5 +27,3 @@ export default class AhsokasPadawanLightsaber extends UpgradeCard {
         });
     }
 }
-
-AhsokasPadawanLightsaber.implemented = true;

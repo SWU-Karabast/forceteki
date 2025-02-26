@@ -2,7 +2,7 @@ describe('Finn, This is a Rescue', function () {
     integration(function (contextRef) {
         describe('Finn\'s undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'finn#this-is-a-rescue', deployed: false },
@@ -57,7 +57,7 @@ describe('Finn, This is a Rescue', function () {
 
         describe('Finn\'s deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'finn#this-is-a-rescue', deployed: true },

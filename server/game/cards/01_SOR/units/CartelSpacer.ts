@@ -17,7 +17,7 @@ export default class CartelSpacer extends NonLeaderUnitCard {
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
                 controller: RelativePlayer.Opponent,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.source.controller.isAspectInPlay(Aspect.Cunning, context.source),
+                    condition: (context) => context.player.isAspectInPlay(Aspect.Cunning, context.source),
                     onTrue: AbilityHelper.immediateEffects.exhaust(),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })

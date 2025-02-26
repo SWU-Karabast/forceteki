@@ -18,7 +18,7 @@ export default class TarffulKashyyykChieftain extends NonLeaderUnitCard {
                     event.type === DamageType.Combat &&
                     !event.willDefeat &&
                     event.card.hasSomeTrait(Trait.Wookiee) &&
-                    event.card.controller === context.source.controller
+                    event.card.controller === context.player
             },
             targetResolver: {
                 controller: RelativePlayer.Opponent,

@@ -1,7 +1,7 @@
 describe('Bamboozle', function () {
     integration(function (contextRef) {
-        it('Bamboozle should be played by discard a Cunning card, its ability should exhaust a unit and return each upgrades to owner hand', function () {
-            contextRef.setupTest({
+        it('Bamboozle should be played by discard a Cunning card, its ability should exhaust a unit and return each upgrades to owner hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['bamboozle', 'wampa', 'crafty-smuggler', 'lothal-insurgent'],
@@ -100,8 +100,8 @@ describe('Bamboozle', function () {
             expect(context.player1.exhaustedResourceCount).toBe(4);
         });
 
-        it('Bamboozle\'s play modes should be available even if it is played by another card\'s effect', function () {
-            contextRef.setupTest({
+        it('Bamboozle\'s play modes should be available even if it is played by another card\'s effect', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['bamboozle', 'wampa', 'crafty-smuggler', 'lothal-insurgent'],
@@ -180,8 +180,8 @@ describe('Bamboozle', function () {
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });
 
-        it('Bamboozle\'s alternate play mode should not be available when smuggled', function () {
-            contextRef.setupTest({
+        it('Bamboozle\'s alternate play mode should not be available when smuggled', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['wampa', 'crafty-smuggler', 'lothal-insurgent'],

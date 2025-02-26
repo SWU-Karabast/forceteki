@@ -2,7 +2,7 @@ describe('Lando Calrissian, Responsible Businessman', function() {
     integration(function(contextRef) {
         describe('Lando Calrissian\'s When Played ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'chopper-base',

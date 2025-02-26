@@ -1,12 +1,14 @@
 import type Player from '../Player';
+import type { ICardWithPrintedHpProperty } from './propertyMixins/PrintedHp';
 import { WithPrintedHp } from './propertyMixins/PrintedHp';
-import { WithCost } from './propertyMixins/Cost';
+import type { ICardWithCostProperty } from './propertyMixins/Cost';
+import type { IInPlayCard } from './baseClasses/InPlayCard';
 import { InPlayCard } from './baseClasses/InPlayCard';
+import type { ICardWithPrintedPowerProperty } from './propertyMixins/PrintedPower';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { AbilityType, CardType, ZoneName, WildcardRelativePlayer } from '../Constants';
-import type { TokenOrPlayableCard, UnitCard } from './CardTypes';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
 import type { Card } from './Card';
@@ -14,6 +16,9 @@ import OngoingEffectLibrary from '../../ongoingEffects/OngoingEffectLibrary';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
+import type { IUnitCard } from './propertyMixins/UnitProperties';
+import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
+import type { ICardCanChangeControllers } from './CardInterfaces';
 
 interface IGainCondition<TSource extends UpgradeCard> {
     gainCondition?: (context: AbilityContext<TSource>) => boolean;
@@ -27,10 +32,18 @@ type IActionAbilityPropsWithGainCondition<TSource extends UpgradeCard, TTarget e
 
 type IKeywordPropertiesWithGainCondition<TSource extends UpgradeCard> = IKeywordProperties & IGainCondition<TSource>;
 
-const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithCost(WithStandardAbilitySetup(InPlayCard))));
+const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
 
-export class UpgradeCard extends UpgradeCardParent {
-    protected _parentCard?: UnitCard = null;
+export interface IUpgradeCard extends IInPlayCard, ICardWithPrintedPowerProperty, ICardWithPrintedHpProperty, ICardWithCostProperty, ICardCanChangeControllers {
+    get parentCard(): IUnitCard;
+    attachTo(newParentCard: IUnitCard, newController?: Player);
+    isAttached(): boolean;
+    unattach();
+    canAttach(targetCard: Card, controller?: Player): boolean;
+}
+
+export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPlayableCard {
+    protected _parentCard?: IUnitCard = null;
 
     private attachCondition: (card: Card) => boolean;
 
@@ -39,7 +52,15 @@ export class UpgradeCard extends UpgradeCardParent {
         Contract.assertTrue([CardType.BasicUpgrade, CardType.TokenUpgrade].includes(this.printedType));
     }
 
-    public override isUpgrade(): this is UpgradeCard {
+    public override isUpgrade(): this is IUpgradeCard {
+        return true;
+    }
+
+    public override isPlayable(): this is IPlayableCard {
+        return true;
+    }
+
+    public override canChangeController(): this is ICardCanChangeControllers {
         return true;
     }
 
@@ -55,15 +76,11 @@ export class UpgradeCard extends UpgradeCardParent {
     }
 
     /** The card that this card is underneath */
-    public get parentCard(): UnitCard {
+    public get parentCard(): IUnitCard {
         Contract.assertNotNullLike(this._parentCard);
         Contract.assertTrue(this.isInPlay());
 
         return this._parentCard;
-    }
-
-    public override isTokenOrPlayable(): this is TokenOrPlayableCard {
-        return true;
     }
 
     public override moveTo(targetZoneName: MoveZoneDestination) {
@@ -73,7 +90,7 @@ export class UpgradeCard extends UpgradeCardParent {
         super.moveTo(targetZoneName);
     }
 
-    public attachTo(newParentCard: UnitCard, newController?: Player) {
+    public attachTo(newParentCard: IUnitCard, newController?: Player) {
         Contract.assertTrue(newParentCard.isUnit());
 
         // this assert needed for type narrowing or else the moveTo fails
@@ -134,7 +151,7 @@ export class UpgradeCard extends UpgradeCardParent {
      * Adds an "attached card gains [X]" ability, where X is a triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<this, UnitCard>) {
+    protected addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<this, IUnitCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
 
         this.addConstantAbilityTargetingAttached({
@@ -148,7 +165,7 @@ export class UpgradeCard extends UpgradeCardParent {
      * Adds an "attached card gains [X]" ability, where X is an action ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addGainActionAbilityTargetingAttached(properties: IActionAbilityPropsWithGainCondition<this, UnitCard>) {
+    protected addGainActionAbilityTargetingAttached(properties: IActionAbilityPropsWithGainCondition<this, IUnitCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
 
         this.addConstantAbilityTargetingAttached({
@@ -162,7 +179,7 @@ export class UpgradeCard extends UpgradeCardParent {
      * Adds an "attached card gains [X]" ability, where X is an "on attack" triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addGainOnAttackAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<this, UnitCard>) {
+    protected addGainOnAttackAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<this, IUnitCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const propsWithWhen = Object.assign(gainedAbilityProperties, { when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source } });
 
@@ -177,7 +194,7 @@ export class UpgradeCard extends UpgradeCardParent {
      * Adds an "attached card gains [X]" ability, where X is an "when defeated" triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
-    protected addGainWhenDefeatedAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<this, UnitCard>) {
+    protected addGainWhenDefeatedAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<this, IUnitCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
         const propsWithWhen = Object.assign(gainedAbilityProperties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
 

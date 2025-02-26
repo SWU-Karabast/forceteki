@@ -2,7 +2,7 @@ describe('This is the Way', function () {
     integration(function (contextRef) {
         describe('This is the Way\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['this-is-the-way'],

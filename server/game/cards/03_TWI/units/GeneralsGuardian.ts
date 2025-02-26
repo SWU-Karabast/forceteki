@@ -19,5 +19,3 @@ export default class GeneralsGuardian extends NonLeaderUnitCard {
         });
     }
 }
-
-GeneralsGuardian.implemented = true;

@@ -1,4 +1,4 @@
-import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
+import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { Card } from '../core/card/Card';
 import { StateWatcherName } from '../core/Constants';
 import type Player from '../core/Player';
@@ -6,7 +6,7 @@ import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 
 export interface CardLeftPlayEntry {
-    card: InPlayCard;
+    card: IInPlayCard;
     controlledBy: Player;
 }
 

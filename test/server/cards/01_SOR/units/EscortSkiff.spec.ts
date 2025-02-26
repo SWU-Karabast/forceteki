@@ -2,7 +2,7 @@ describe('Escort Skiff', function() {
     integration(function(contextRef) {
         describe('Escort Skiff\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['escort-skiff'],
@@ -33,7 +33,7 @@ describe('Escort Skiff', function() {
 
         describe('Escort Skiff\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['escort-skiff'],

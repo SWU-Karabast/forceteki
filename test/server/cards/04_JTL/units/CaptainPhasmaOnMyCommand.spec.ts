@@ -1,7 +1,7 @@
 describe('Captain Phasma', function () {
     integration(function (contextRef) {
-        it('Captain Phasma\'s ability should give another First Order unit +2/+2 on play and attack', function () {
-            contextRef.setupTest({
+        it('Captain Phasma\'s ability should give another First Order unit +2/+2 on play and attack', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['captain-phasma#on-my-command'],

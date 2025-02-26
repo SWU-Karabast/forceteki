@@ -15,5 +15,3 @@ export default class NamelessValor extends UpgradeCard {
         this.addGainKeywordTargetingAttached({ keyword: KeywordName.Overwhelm });
     }
 }
-
-NamelessValor.implemented = true;

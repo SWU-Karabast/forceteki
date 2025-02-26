@@ -2,7 +2,7 @@ describe('Draw system', function() {
     integration(function (contextRef) {
         describe('When a player draws cards', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['patrolling-vwing', 'mission-briefing'],

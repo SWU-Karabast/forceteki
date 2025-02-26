@@ -2,7 +2,7 @@ describe('Entrenched', function() {
     integration(function(contextRef) {
         describe('Entrenched\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'wampa', upgrades: ['entrenched'] }],
@@ -36,7 +36,7 @@ describe('Entrenched', function() {
 
         describe('Entrenched\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['entrenched'],

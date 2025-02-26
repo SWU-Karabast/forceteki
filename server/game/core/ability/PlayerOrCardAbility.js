@@ -3,14 +3,12 @@ const { SelectTargetResolver } = require('./abilityTargets/SelectTargetResolver.
 const { Stage, TargetMode, AbilityType, RelativePlayer } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
-const { GameSystem } = require('../gameSystem/GameSystem.js');
 const { v4: uuidv4 } = require('uuid');
 const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.js');
 const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTargetResolver.js');
 const { TriggerHandlingMode } = require('../event/EventWindow.js');
 const Helpers = require('../utils/Helpers.js');
 const { AbilityContext } = require('./AbilityContext.js');
-const Player = require('../Player.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -191,8 +189,6 @@ class PlayerOrCardAbility {
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = typeof this.cost === 'function' ? Helpers.asArray(this.cost(context)) : this.cost;
 
-        // TODO THIS PR: is the below line needed?
-
         costs = costs.map((a) => a);
 
         if (!playCosts) {
@@ -349,7 +345,7 @@ class PlayerOrCardAbility {
     }
 
     /** Return the controller of ability, can be different from card's controller (with bounty for exemple)
-     * @returns {Player} */
+     * @returns {import('../Player.js')} */
     get controller() {
         return this.canBeTriggeredBy === RelativePlayer.Self ? this.card.controller : this.card.controller.opponent;
     }

@@ -2,7 +2,7 @@ describe('General Rieekan, Defensive Strategist', function () {
     integration(function (contextRef) {
         describe('General Rieekan\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['general-rieekan#defensive-strategist'],

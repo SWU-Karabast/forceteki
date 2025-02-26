@@ -1,8 +1,8 @@
 describe('Jango Fett, Concealing the Conspiracy', function () {
     integration(function(contextRef) {
         describe('Jango Fett\'s undeployed leader ability', function() {
-            it('should exhaust an enemy unit when a friendly unit deals damage to it', function() {
-                contextRef.setupTest({
+            it('should exhaust an enemy unit when a friendly unit deals damage to it', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -191,8 +191,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.consularSecurityForce.exhausted).toBeTrue();
             });
 
-            it('should not trigger for specific scenarios', function() {
-                contextRef.setupTest({
+            it('should not trigger for specific scenarios', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -296,8 +296,8 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
         });
 
         describe('Jango Fett\'s deployed leader ability', function() {
-            it('should exhaust an enemy unit when a friendly unit deals damage to it', function() {
-                contextRef.setupTest({
+            it('should exhaust an enemy unit when a friendly unit deals damage to it', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -305,6 +305,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                             'overwhelming-barrage',
                             'strike-true',
                             'change-of-heart',
+                            'devastator#hunting-the-rebellion',
                         ],
                         groundArena: [
                             'crafty-smuggler',
@@ -327,6 +328,9 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 const { context } = contextRef;
 
                 const reset = () => {
+                    if (context.mandalorianWarrior.zone !== 'groundArena') {
+                        context.mandalorianWarrior.moveTo('groundArena');
+                    }
                     context.battlefieldMarine.damage = 0;
                     context.mandalorianWarrior.damage = 0;
                     context.fleetLieutenant.damage = 0;
@@ -474,12 +478,60 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
                 context.player1.clickPrompt('Exhaust the damaged enemy unit');
                 expect(context.consularSecurityForce.exhausted).toBeTrue();
+
+                // CASE 11: Trigger Jango's ability with indirect damage
+
+                context.moveToNextActionPhase();
+                reset();
+
+                // Play Devastator and distribute indirect damage
+                context.player1.clickCard(context.devastator);
+                context.player1.setDistributeIndirectDamagePromptState(new Map([
+                    [context.fleetLieutenant, 1],
+                    [context.battlefieldMarine, 1],
+                    [context.volunteerSoldier, 1],
+                    [context.p2Base, 1],
+                ]));
+
+                // Choose resolution order
+                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Exhaust the damaged enemy unit',
+                    'Exhaust the damaged enemy unit',
+                    'Exhaust the damaged enemy unit'
+                ]);
+
+                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+
+                // Exhaust Volunteer Soldier
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+                expect(context.volunteerSoldier.exhausted).toBeTrue();
+
+                // Choose resolution order again
+                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Exhaust the damaged enemy unit',
+                    'Exhaust the damaged enemy unit'
+                ]);
+
+                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+
+                // Exhaust Battlefield Marine
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+                expect(context.battlefieldMarine.exhausted).toBeTrue();
+
+                // Exhaust Fleet Lieutenant
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+                expect(context.fleetLieutenant.exhausted).toBeTrue();
             });
         });
 
         describe('Jango Fett\'s deployed leader ability', function() {
-            it('should not trigger from damage that is not dealt by a friendly unit', function() {
-                contextRef.setupTest({
+            it('should not trigger from damage that is not dealt by a friendly unit', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [

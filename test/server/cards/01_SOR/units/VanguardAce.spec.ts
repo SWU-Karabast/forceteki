@@ -2,7 +2,7 @@ describe('Vanguard Ace', function() {
     integration(function(contextRef) {
         describe('Vanguard Ace\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vanguard-ace', 'daring-raid', 'battlefield-marine', 'academy-training', 'frontier-atrt'],
@@ -60,8 +60,8 @@ describe('Vanguard Ace', function() {
             // TODO TAKE CONTROL: check that state watchers still work if the card is played by the opponent
         });
 
-        it('Vanguard Ace\'s ability counts a previous play of itself this phase', function () {
-            contextRef.setupTest({
+        it('Vanguard Ace\'s ability counts a previous play of itself this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['vanguard-ace'],

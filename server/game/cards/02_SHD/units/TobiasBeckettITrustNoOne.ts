@@ -14,7 +14,7 @@ export default class TobiasBeckettITrustNoOne extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Exhaust a unit that costs the same as or less than the non-unit card you played',
             when: {
-                onCardPlayed: (event, context) => event.card.controller === context.source.controller && !event.card.isUnit(),
+                onCardPlayed: (event, context) => event.card.controller === context.player && !event.card.isUnit(),
             },
             optional: true,
             limit: AbilityLimit.perRound(1),

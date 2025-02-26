@@ -1,7 +1,7 @@
 describe('I Have The High Ground', function () {
     integration(function (contextRef) {
-        it('I Have The High Ground\'s ability should modify attackers power by -4 when targetting the selected friendly unit for this phase', function () {
-            contextRef.setupTest({
+        it('I Have The High Ground\'s ability should modify attackers power by -4 when targetting the selected friendly unit for this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['i-have-the-high-ground'],

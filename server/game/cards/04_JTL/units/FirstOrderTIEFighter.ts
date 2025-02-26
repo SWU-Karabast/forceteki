@@ -13,7 +13,7 @@ export default class FirstOrderTIEFighter extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addConstantAbility({
             title: 'While you control a token unit, this unit gain Raid 1',
-            condition: (context) => context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.isTokenUnit()).length > 0,
+            condition: (context) => context.player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.isTokenUnit()).length > 0,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Raid, amount: 1 })
         });
     }

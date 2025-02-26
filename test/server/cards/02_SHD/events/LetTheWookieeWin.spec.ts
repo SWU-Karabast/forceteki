@@ -2,7 +2,7 @@ describe('Let The Wookiee Win', function() {
     integration(function(contextRef) {
         describe('Let The Wookiee Win\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'administrators-tower',

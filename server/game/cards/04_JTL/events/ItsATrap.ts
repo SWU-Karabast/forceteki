@@ -21,5 +21,3 @@ export default class ItsATrap extends EventCard {
         });
     }
 }
-
-ItsATrap.implemented = true;

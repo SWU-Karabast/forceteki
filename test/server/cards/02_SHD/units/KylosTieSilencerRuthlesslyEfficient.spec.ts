@@ -1,7 +1,7 @@
 describe('Kylo\'s TIE Silencer, Ruthless Efficient', function () {
     integration(function (contextRef) {
-        it('Kylo\'s TIE Silencer\'s can be played from the discard when it was discarded from hand or deck this phase', function () {
-            contextRef.setupTest({
+        it('Kylo\'s TIE Silencer\'s can be played from the discard when it was discarded from hand or deck this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['rogue-squadron-skirmisher'],

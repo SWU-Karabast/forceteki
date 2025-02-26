@@ -2,7 +2,7 @@ describe('Search Your Feelings', function() {
     integration(function(contextRef) {
         describe('Search Your Feelings\' ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['search-your-feelings'],
@@ -86,7 +86,7 @@ describe('Search Your Feelings', function() {
 
         describe('Search Your Feelings\' ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['search-your-feelings'],

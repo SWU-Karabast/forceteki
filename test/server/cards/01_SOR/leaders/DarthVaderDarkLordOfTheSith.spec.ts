@@ -2,7 +2,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
     integration(function(contextRef) {
         describe('Vader\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['tieln-fighter', 'swoop-racer'],
@@ -60,7 +60,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
 
         describe('Vader\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst'],

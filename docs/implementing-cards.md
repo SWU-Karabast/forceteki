@@ -296,7 +296,7 @@ Here is an example with the deployed Cassian leader ability:
 this.reaction({
     // When damage is dealt to an enemy base, draw a card
     when: {
-    	onDamageDealt: (event, context) => event.target.isBase() && event.target.controller !== context.source.controller
+    	onDamageDealt: (event, context) => event.target.isBase() && event.target.controller !== context.player
     },
     immediateEffect: AbilityHelper.immediateEffects.drawCard(),
     limit: AbilityHelper.limit.perRound(1)
@@ -421,7 +421,7 @@ If an attachment _effect_ has a condition - meaning that the effect is only acti
 this.addGainOnAttackAbilityTargetingAttached({
     title: 'Deal 1 damage to each ground unit the defending player controls',
     immediateEffect: AbilityHelper.immediateEffects.damage((context) => {
-        return { target: context.source.controller.opponent.getUnitsInPlay(Location.GroundArena), amount: 1 };
+        return { target: context.player.opponent.getUnitsInPlay(Location.GroundArena), amount: 1 };
     }),
     gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force)
 });
@@ -586,7 +586,7 @@ this.addOnAttackAbility({
     targetResolver: {
         cardCondition: (card) => (card.isUnit() && card.location === Location.GroundArena) || card.isBase(),
         immediateEffect: AbilityHelper.immediateEffects.conditional({
-            condition: (context) => context.source.controller.leader.deployed,
+            condition: (context) => context.player.leader.deployed,
             onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 }),
             onFalse: AbilityHelper.immediateEffects.noAction()
         })
@@ -628,7 +628,7 @@ this.setEventAbility({
         immediateEffect: AbilityHelper.immediateEffects.simultaneous([
             AbilityHelper.immediateEffects.giveExperience({ amount: 2 }),
             AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.controller.isTraitInPlay(Trait.Force),
+                condition: (context) => context.player.isTraitInPlay(Trait.Force),
                 onTrue: AbilityHelper.immediateEffects.giveShield({ amount: 1 }),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             }),

@@ -1,8 +1,8 @@
 describe('Legal Authority', function () {
     integration(function (contextRef) {
         describe('Legal Authority\'s ability', function () {
-            it('should make the attached unit capture a unit with less or equal power', function () {
-                contextRef.setupTest({
+            it('should make the attached unit capture a unit with less or equal power', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['legal-authority'],

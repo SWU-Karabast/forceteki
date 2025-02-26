@@ -1,7 +1,7 @@
 describe('Gar Saxon, Viceroy of Mandalore', function() {
     integration(function(contextRef) {
-        it('Gar Saxon\'s constant undeployed ability', function () {
-            contextRef.setupTest({
+        it('Gar Saxon\'s constant undeployed ability', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: [{ card: 'ig11#i-cannot-be-captured', upgrades: ['shield'] }, 'wampa'],
@@ -24,8 +24,8 @@ describe('Gar Saxon, Viceroy of Mandalore', function() {
             expect(context.rebelPathfinder.getHp()).toBe(3);
         });
 
-        it('Gar Saxon\'s constant deployeded ability', function () {
-            contextRef.setupTest({
+        it('Gar Saxon\'s constant deployeded ability', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: [{ card: 'ig11#i-cannot-be-captured', upgrades: ['shield', 'armed-to-the-teeth', 'roger-roger'] }, 'wampa', 'battle-droid'],

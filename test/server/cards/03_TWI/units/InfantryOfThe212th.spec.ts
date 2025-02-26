@@ -1,7 +1,7 @@
 describe('Infantry of the 212th', function () {
     integration(function (contextRef) {
-        it('should gain Sentinel keyword when Coordinate requirement is met', function () {
-            contextRef.setupTest({
+        it('should gain Sentinel keyword when Coordinate requirement is met', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['wampa'],

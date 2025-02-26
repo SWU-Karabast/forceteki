@@ -2,7 +2,7 @@ describe('Timely Intervention', function () {
     integration(function (contextRef) {
         describe('Timely Intervention\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'hera-syndulla#spectre-two',
@@ -39,7 +39,7 @@ describe('Timely Intervention', function () {
 
         describe('Timely Intervention\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'hera-syndulla#spectre-two',

@@ -2,7 +2,7 @@ describe('Migs Mayfeld, Triggerman', function() {
     integration(function(contextRef) {
         describe('Migs Mayfeld\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['pillage', 'forced-surrender', 'no-bargain', 'commission', 'fell-the-dragon'],

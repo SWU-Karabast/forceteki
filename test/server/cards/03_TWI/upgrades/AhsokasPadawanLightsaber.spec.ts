@@ -2,7 +2,7 @@ describe('Ahsoka\'s Padawan Lightsaber', function() {
     integration(function(contextRef) {
         describe('Ahsoka\'s Padawan Lightsaber\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['ahsokas-padawan-lightsaber'],

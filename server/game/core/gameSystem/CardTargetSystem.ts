@@ -8,9 +8,10 @@ import { GameEvent } from '../event/GameEvent';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
-import type { UnitCard } from '../card/CardTypes';
 import type { GameObject } from '../GameObject';
-import type { PlayableOrDeployableCard } from '../card/baseClasses/PlayableOrDeployableCard';
+import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
+import type { IPlayableOrDeployableCard } from '../card/baseClasses/PlayableOrDeployableCard';
+import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
@@ -179,6 +180,9 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
                 player: context.player,
                 card
             });
+
+            this.addLastKnownInformationToEvent(onCardLeavesPlayEvent, card);
+
             let contingentEvents = [onCardLeavesPlayEvent];
 
             if (card.isUnit()) {
@@ -218,7 +222,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         // };
     }
 
-    private generateUpgradeDefeatEvents(card: UnitCard, context: TContext, event: any): any[] {
+    private generateUpgradeDefeatEvents(card: IUnitCard, context: TContext, event: any): any[] {
         const defeatEvents = [];
 
         for (const upgrade of card.upgrades) {
@@ -235,7 +239,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return defeatEvents;
     }
 
-    private generateRescueEvents(card: UnitCard, context: TContext, event: any): any[] {
+    private generateRescueEvents(card: IUnitCard, context: TContext, event: any): any[] {
         const rescueEvents = [];
 
         for (const captured of card.capturedUnits) {
@@ -261,7 +265,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
      * @param context context
      * @param defaultMoveAction A handler that will move the card to its destination if none of the special cases apply
      */
-    protected leavesPlayEventHandler(card: PlayableOrDeployableCard, destination: ZoneName, context: TContext, defaultMoveAction: () => void): void {
+    protected leavesPlayEventHandler(card: IPlayableOrDeployableCard, destination: ZoneName, context: TContext, defaultMoveAction: () => void): void {
         // Attached upgrades should be unattached before move
         if (card.isUpgrade()) {
             Contract.assertTrue(card.isAttached(), `Attempting to unattach upgrade card ${card} due to leaving play but it is already unattached.`);
@@ -287,7 +291,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
      * @param card Resource card leaving play
      * @param context context
      */
-    protected leavesResourceZoneEventHandler(card: PlayableOrDeployableCard, context: TContext): void {
+    protected leavesResourceZoneEventHandler(card: IPlayableOrDeployableCard, context: TContext): void {
         Contract.assertTrue(card.zoneName === ZoneName.Resource);
         if (card.controller !== context.player) {
             return;
@@ -297,6 +301,56 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         if (!card.exhausted) {
             card.controller.swapResourceReadyState(card);
         }
+    }
+
+    protected addLastKnownInformationToEvent(event: any, card: Card): void {
+        // build last known information for the card before event window resolves to ensure that no state has yet changed
+        event.setPreResolutionEffect((event) => {
+            event.lastKnownInformation = this.buildLastKnownInformation(card);
+        });
+    }
+
+    private buildLastKnownInformation(card: Card): ILastKnownInformation {
+        Contract.assertTrue(
+            card.zoneName === ZoneName.GroundArena ||
+            card.zoneName === ZoneName.SpaceArena ||
+            card.zoneName === ZoneName.Resource
+        );
+
+        if (card.zoneName === ZoneName.Resource) {
+            return {
+                card,
+                controller: card.controller,
+                arena: card.zoneName
+            };
+        }
+        Contract.assertTrue(card.canBeInPlay());
+
+
+        if (card.isUnit()) {
+            return {
+                card,
+                power: card.getPower(),
+                hp: card.getHp(),
+                arena: card.zoneName,
+                controller: card.controller,
+                damage: card.damage,
+                upgrades: card.upgrades
+            };
+        }
+
+        if (card.isUpgrade()) {
+            return {
+                card,
+                power: card.getPower(),
+                hp: card.getHp(),
+                arena: card.zoneName,
+                controller: card.controller,
+                parentCard: card.parentCard
+            };
+        }
+
+        Contract.fail(`Unexpected card type: ${card.type}`);
     }
 
     /**

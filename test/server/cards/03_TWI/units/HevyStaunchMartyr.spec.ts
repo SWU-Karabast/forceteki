@@ -1,8 +1,8 @@
 describe('Hevy Staunch Martyr', function () {
     integration(function (contextRef) {
         describe('Hevy Staunch Martyr\'s ability', function () {
-            it('should attack for 6 with raid 2 on coordinate', function () {
-                contextRef.setupTest({
+            it('should attack for 6 with raid 2 on coordinate', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['specforce-soldier', 'luke-skywalker#jedi-knight', 'hevy#staunch-martyr'],

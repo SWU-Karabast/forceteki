@@ -2,7 +2,7 @@ describe('Viper Probe Droid', function() {
     integration(function(contextRef) {
         describe('Viper Probe Droid\'s Ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['viper-probe-droid']

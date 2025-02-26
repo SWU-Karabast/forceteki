@@ -1,7 +1,7 @@
 describe('Captain Rex Lead by Example', function() {
     integration(function(contextRef) {
-        it('Captain Rex\'s ability should create 3 Clone Tropper tokens when played', function () {
-            contextRef.setupTest({
+        it('Captain Rex\'s ability should create 3 Clone Tropper tokens when played', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['captain-rex#lead-by-example'],

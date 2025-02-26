@@ -1,7 +1,7 @@
 describe('Adelphi Patrol Wing', function () {
     integration(function (contextRef) {
-        it('Adelphi Patrol Wing\'s when played ability should allow to trigger a unit to attack and if has initiative give it +2 power', function () {
-            contextRef.setupTest({
+        it('Adelphi Patrol Wing\'s when played ability should allow to trigger a unit to attack and if has initiative give it +2 power', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine'],

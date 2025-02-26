@@ -2,7 +2,7 @@ describe('Jedha City', function() {
     integration(function(contextRef) {
         describe('Jedha City\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'jedha-city',

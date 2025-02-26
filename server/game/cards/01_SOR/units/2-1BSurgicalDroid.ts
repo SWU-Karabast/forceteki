@@ -23,5 +23,3 @@ export default class _21BSurgicalDroid extends NonLeaderUnitCard {
         });
     }
 }
-
-_21BSurgicalDroid.implemented = true;

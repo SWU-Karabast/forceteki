@@ -1,7 +1,7 @@
 describe('Qi\'ra, Playing Her Part', function () {
     integration(function (contextRef) {
-        it('should draw a card', function () {
-            contextRef.setupTest({
+        it('should draw a card', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['qira#playing-her-part', 'battlefield-marine'],

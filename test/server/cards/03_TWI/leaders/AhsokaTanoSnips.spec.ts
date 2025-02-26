@@ -2,8 +2,8 @@
 describe('Ahsoka Tano, Snips', function () {
     integration(function (contextRef) {
         describe('Ahsoka Tano\'s leader undeployed ability', function () {
-            it('should activate with coordinate and allow to attack with a unit with +1/+0', function () {
-                contextRef.setupTest({
+            it('should activate with coordinate and allow to attack with a unit with +1/+0', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['isb-agent'],
@@ -48,8 +48,8 @@ describe('Ahsoka Tano, Snips', function () {
                 expect(context.p2Base.damage).toBe(4);
             });
 
-            it('is unregistered when deployed and registered when undeployed', function () {
-                contextRef.setupTest({
+            it('is unregistered when deployed and registered when undeployed', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'crafty-smuggler', 'specforce-soldier'],
@@ -95,8 +95,8 @@ describe('Ahsoka Tano, Snips', function () {
         });
 
         describe('Ahsoka Tano\'s leader deployed ability', function () {
-            it('should activate with Coordinate and give her +2/+0', function () {
-                contextRef.setupTest({
+            it('should activate with Coordinate and give her +2/+0', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['isb-agent', 'battlefield-marine'],

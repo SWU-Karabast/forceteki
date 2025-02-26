@@ -2,7 +2,7 @@ describe('San Hill, Chairman of the Banking Clan', function () {
     integration(function (contextRef) {
         describe('San Hill\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'general-grievous#general-of-the-droid-armies',

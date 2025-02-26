@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 import { TargetMode, WildcardCardType } from '../../../core/Constants';
-import type { UnitCard } from '../../../core/card/CardTypes';
 
 export default class Aggression extends EventCard {
     protected override getImplementationId() {
@@ -26,7 +26,7 @@ export default class Aggression extends EventCard {
                     }),
                     ['Ready a unit with 3 or less power']: AbilityHelper.immediateEffects.selectCard({
                         cardTypeFilter: WildcardCardType.Unit,
-                        cardCondition: (card: UnitCard) => card.getPower() <= 3,
+                        cardCondition: (card: IUnitCard) => card.getPower() <= 3,
                         innerSystem: AbilityHelper.immediateEffects.ready()
                     }),
                     ['Deal 4 damage to a unit']: AbilityHelper.immediateEffects.selectCard({

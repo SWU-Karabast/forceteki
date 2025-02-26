@@ -1,7 +1,7 @@
 describe('Boba Fett\'s Armor', function () {
     integration(function (contextRef) {
-        it('Boba Fett\'s Armor prevents 2 damage', function () {
-            contextRef.setupTest({
+        it('Boba Fett\'s Armor prevents 2 damage', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine', { card: 'sabine-wren#explosives-artist', upgrades: ['boba-fetts-armor'] }],
@@ -63,8 +63,8 @@ describe('Boba Fett\'s Armor', function () {
             expect(context.bobaFettDaimyo.damage).toBe(1);
         });
 
-        it('Boba Fett\'s Armor prevents 2 damage with shield', function () {
-            contextRef.setupTest({
+        it('Boba Fett\'s Armor prevents 2 damage with shield', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine', 'sabine-wren#explosives-artist'],

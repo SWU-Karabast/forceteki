@@ -2,7 +2,7 @@ describe('Knight of the Republic', function() {
     integration(function(contextRef) {
         describe('Knight of the Republic\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['droid-commando', 'warrior-drone']

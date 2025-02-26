@@ -2,7 +2,7 @@ describe('Rose Tico, Dedicated to the Cause', function () {
     integration(function (contextRef) {
         describe('Rose Tico\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [

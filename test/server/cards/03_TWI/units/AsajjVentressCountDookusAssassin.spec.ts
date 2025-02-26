@@ -1,7 +1,7 @@
 describe('Asajj Ventress Count Doooku\'s Assassin', function() {
     integration(function(contextRef) {
-        it('Asajj Ventress Count Doooku\'s Assassin\'s ability on attack should get +3/0 if a separatist unit has attacked this phase', function () {
-            contextRef.setupTest({
+        it('Asajj Ventress Count Doooku\'s Assassin\'s ability on attack should get +3/0 if a separatist unit has attacked this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['keep-fighting'],

@@ -16,7 +16,7 @@ export class RestoreAbility extends TriggeredAbility {
             zoneFilter: WildcardZoneName.AnyArena,
             immediateEffect: GameSystemLibrary.heal((context) => ({
                 amount: restoreAmount,
-                target: context.source.controller.base
+                target: context.player.base
             }))
         };
     }

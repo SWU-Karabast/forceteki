@@ -1,7 +1,7 @@
 describe('General Draven, Doing What Must Be Done', function () {
     integration(function (contextRef) {
-        it('General Draven\'s ability should create a x-wing token', function () {
-            contextRef.setupTest({
+        it('General Draven\'s ability should create a x-wing token', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['general-draven#doing-what-must-be-done'],

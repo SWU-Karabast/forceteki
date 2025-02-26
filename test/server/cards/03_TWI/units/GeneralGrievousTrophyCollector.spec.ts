@@ -1,7 +1,7 @@
 describe('General Grievous, Trophy Collector', function () {
     integration(function (contextRef) {
-        it('General Grievous ability should ignore aspect penalty for Lightsaber you play on him and defeat 4 units if he has 4 or more Lightsaber', function () {
-            contextRef.setupTest({
+        it('General Grievous ability should ignore aspect penalty for Lightsaber you play on him and defeat 4 units if he has 4 or more Lightsaber', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['fallen-lightsaber', 'jedi-lightsaber', 'mace-windus-lightsaber', 'lukes-lightsaber', 'ahsokas-padawan-lightsaber', 'shadowed-intentions'],

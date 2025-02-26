@@ -1,8 +1,8 @@
 
 describe('MagnaGuard Wing Leader', function () {
     integration(function (contextRef) {
-        it('MagnaGuard Wing Leader\'s ability should allow to attack with a droid unit and then another droid unit', function () {
-            contextRef.setupTest({
+        it('MagnaGuard Wing Leader\'s ability should allow to attack with a droid unit and then another droid unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: [],
@@ -38,8 +38,8 @@ describe('MagnaGuard Wing Leader', function () {
             context.moveToNextActionPhase();
         });
 
-        it('MagnaGuard Wing Leader\'s ability can\'t be used if it would have no game state changing effect', function () {
-            contextRef.setupTest({
+        it('MagnaGuard Wing Leader\'s ability can\'t be used if it would have no game state changing effect', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: [],

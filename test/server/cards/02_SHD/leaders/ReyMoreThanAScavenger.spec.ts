@@ -2,7 +2,7 @@ describe('Rey, More Than a Scavenger', function () {
     integration(function (contextRef) {
         describe('Rey\'s undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'rey#more-than-a-scavenger',
@@ -34,7 +34,7 @@ describe('Rey, More Than a Scavenger', function () {
 
         describe('Rey\'s deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'rey#more-than-a-scavenger', deployed: true },
@@ -85,7 +85,7 @@ describe('Rey, More Than a Scavenger', function () {
             const { context } = contextRef;
 
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'rey#more-than-a-scavenger', deployed: true },

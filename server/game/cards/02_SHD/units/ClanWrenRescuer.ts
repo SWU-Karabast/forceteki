@@ -18,5 +18,3 @@ export default class ClanWrenRescuer extends NonLeaderUnitCard {
         });
     }
 }
-
-ClanWrenRescuer.implemented = true;

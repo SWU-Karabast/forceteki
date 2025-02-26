@@ -1,7 +1,7 @@
 describe('Blade Squadron B-Wing', function() {
     integration(function(contextRef) {
-        it('Blade Squadron B-Wing\'s ability should give shield to a unit if the opponent has at least 3 exhausted units', function () {
-            contextRef.setupTest({
+        it('Blade Squadron B-Wing\'s ability should give shield to a unit if the opponent has at least 3 exhausted units', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['blade-squadron-bwing'],
@@ -27,8 +27,8 @@ describe('Blade Squadron B-Wing', function() {
             expect(context.allianceXwing).toHaveExactUpgradeNames(['shield']);
         });
 
-        it('Blade Squadron B-Wing\'s ability should not be triggered as opponent does not have 3 or more exhausted units', function () {
-            contextRef.setupTest({
+        it('Blade Squadron B-Wing\'s ability should not be triggered as opponent does not have 3 or more exhausted units', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['blade-squadron-bwing'],

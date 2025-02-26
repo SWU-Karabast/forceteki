@@ -37,7 +37,7 @@ export default class PoeDameronQuickToImprovise extends NonLeaderUnitCard {
                         }),
                         ['An opponent discards a card from their hand.']: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                             amount: 1,
-                            target: context.source.controller.opponent,
+                            target: context.player.opponent,
                         })),
                     })
                 }),

@@ -17,9 +17,9 @@ export default class LetTheWookieeWin extends EventCard {
                 mode: TargetMode.Select,
                 choosingPlayer: RelativePlayer.Opponent,
                 choices: (context) => ({
-                    [`${context.source.controller.name} readies up to 6 resources`]:
+                    [`${context.player.name} readies up to 6 resources`]:
                         AbilityHelper.immediateEffects.readyResources({ amount: 6 }),
-                    [`${context.source.controller.name} readies a friendly unit. If it’s a Wookiee unit, they attack with it and it gets +2/+0 for this attack`]:
+                    [`${context.player.name} readies a friendly unit. If it’s a Wookiee unit, they attack with it and it gets +2/+0 for this attack`]:
                         AbilityHelper.immediateEffects.selectCard({
                             controller: RelativePlayer.Self,
                             cardTypeFilter: WildcardCardType.Unit,

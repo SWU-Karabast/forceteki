@@ -2,7 +2,7 @@ describe('Imperial Interceptor', function() {
     integration(function(contextRef) {
         describe('Imperial Interceptor\'s When Played ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['imperial-interceptor'],

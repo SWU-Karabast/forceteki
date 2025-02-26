@@ -2,7 +2,7 @@ describe('Ruthless Assassin', function() {
     integration(function(contextRef) {
         describe('Ruthless Assassin\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['ruthless-assassin'],

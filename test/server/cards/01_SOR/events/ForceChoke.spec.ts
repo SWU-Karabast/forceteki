@@ -2,7 +2,7 @@ describe('Force Choke', function() {
     integration(function(contextRef) {
         describe('Force Choke\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['force-choke'],

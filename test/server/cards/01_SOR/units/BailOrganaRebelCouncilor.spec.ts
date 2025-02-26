@@ -2,7 +2,7 @@ describe('Bail Organa', function () {
     integration(function (contextRef) {
         describe('Bail Organa\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['bail-organa#rebel-councilor', 'battlefield-marine'],

@@ -15,7 +15,7 @@ export default class CadBaneHeWhoNeedsNoIntroduction extends LeaderUnitCard {
             title: 'Exhaust this leader',
             optional: true,
             when: {
-                onCardPlayed: (event, context) => event.card.controller === context.source.controller && event.card.hasSomeTrait(Trait.Underworld)
+                onCardPlayed: (event, context) => event.card.controller === context.player && event.card.hasSomeTrait(Trait.Underworld)
             },
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: {
@@ -35,7 +35,7 @@ export default class CadBaneHeWhoNeedsNoIntroduction extends LeaderUnitCard {
             title: 'The opponent chooses a unit they control. Deal 2 damage to it.',
             optional: true,
             when: {
-                onCardPlayed: (event, context) => event.card.controller === context.source.controller && event.card.hasSomeTrait(Trait.Underworld)
+                onCardPlayed: (event, context) => event.card.controller === context.player && event.card.hasSomeTrait(Trait.Underworld)
             },
             limit: AbilityHelper.limit.perRound(1),
             targetResolver: {

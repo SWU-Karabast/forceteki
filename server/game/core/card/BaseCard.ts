@@ -2,18 +2,25 @@ import type Player from '../Player';
 import { Card } from './Card';
 import { CardType } from '../Constants';
 import * as Contract from '../utils/Contract';
+import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import { WithDamage } from './propertyMixins/Damage';
 import { ActionAbility } from '../ability/ActionAbility';
 import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { EpicActionLimit } from '../ability/AbilityLimit';
+import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
+import { WithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
+import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import type TriggeredAbility from '../ability/TriggeredAbility';
-import type { InPlayCard } from './baseClasses/InPlayCard';
 
-const BaseCardParent = WithDamage(WithStandardAbilitySetup(Card));
+const BaseCardParent = WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card))));
+
+export interface IBaseCard extends ICardWithDamageProperty, ICardWithTriggeredAbilities {
+    get epicActionSpent(): boolean;
+}
 
 /** A Base card (as in, the card you put in your base zone) */
-export class BaseCard extends BaseCardParent {
+export class BaseCard extends BaseCardParent implements IBaseCard {
     private _epicActionAbility: ActionAbility;
 
     public get epicActionSpent() {
@@ -26,7 +33,7 @@ export class BaseCard extends BaseCardParent {
         Contract.assertEqual(this.printedType, CardType.Base);
     }
 
-    public override isBase(): this is BaseCard {
+    public override isBase(): this is IBaseCard {
         return true;
     }
 
@@ -45,15 +52,19 @@ export class BaseCard extends BaseCardParent {
         return super.getActionAbilities();
     }
 
-    public override canRegisterTriggeredAbilities(): this is InPlayCard | BaseCard {
+    public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
         return true;
     }
 
-    // TODO TYPE REFACTOR: this method is duplicated
-    protected addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbilityProps<this> {
-        const ability = this.createConstantAbility(properties);
+    protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
+        const ability = super.addConstantAbility(properties);
         ability.registeredEffects = this.addEffectToEngine(ability);
-        this.constantAbilities.push(ability);
+        return ability;
+    }
+
+    protected override addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
+        const ability = super.addTriggeredAbility(properties);
+        ability.registerEvents();
         return ability;
     }
 
@@ -65,20 +76,6 @@ export class BaseCard extends BaseCardParent {
         });
 
         this._epicActionAbility = new ActionAbility(this.game, this, propertiesWithLimit);
-    }
-
-    protected addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
-        if (!this.triggeredAbilities) {
-            this.triggeredAbilities = [];
-        }
-        const ability = this.createTriggeredAbility(properties);
-        this.triggeredAbilities.push(ability);
-        ability.registerEvents();
-        return ability;
-    }
-
-    public getTriggeredAbilities(): TriggeredAbility[] {
-        return this.triggeredAbilities;
     }
 
     private epicActionSpentInternal(): boolean {

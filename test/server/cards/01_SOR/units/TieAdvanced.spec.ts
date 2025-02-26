@@ -2,7 +2,7 @@ describe('Tie Avanced', function() {
     integration(function(contextRef) {
         describe('Tie Avanced\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['tie-advanced'],

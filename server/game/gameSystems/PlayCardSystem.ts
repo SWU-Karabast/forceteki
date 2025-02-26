@@ -78,7 +78,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
-        if (!card.isTokenOrPlayable() || card.isToken()) {
+        if (!card.isPlayable()) {
             return false;
         }
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -97,7 +97,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
      * Generate a play card ability for the specified card.
      */
     private generateLegalPlayCardAbilities(card: Card, properties: IPlayCardProperties, context: TContext) {
-        Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
+        Contract.assertTrue(card.isPlayable());
 
         const overrideProperties = this.buildPlayActionProperties(card, properties, context);
 

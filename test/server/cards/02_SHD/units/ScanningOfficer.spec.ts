@@ -1,7 +1,7 @@
 describe('Scanning Officer', function () {
     integration(function (contextRef) {
-        it('should reveal and defeat enemy resources that have Smuggle', function () {
-            contextRef.setupTest({
+        it('should reveal and defeat enemy resources that have Smuggle', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['scanning-officer'],
@@ -26,8 +26,8 @@ describe('Scanning Officer', function () {
             expect(context.player2.readyResourceCount).toBe(1);
         });
 
-        it('should shuffle resources', function () {
-            contextRef.setupTest({
+        it('should shuffle resources', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['scanning-officer'],
@@ -58,8 +58,8 @@ describe('Scanning Officer', function () {
             expect(context.player2.readyResourceCount).toBe(4);
         });
 
-        it('should reveal and defeat all chosen resources if the opponent has Tech on the board', function () {
-            contextRef.setupTest({
+        it('should reveal and defeat all chosen resources if the opponent has Tech on the board', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['scanning-officer'],

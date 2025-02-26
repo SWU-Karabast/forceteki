@@ -2,7 +2,7 @@ describe('R2D2 - Ignoring Protocol', function() {
     integration(function(contextRef) {
         describe('R2D2 - Ignoring Protocol\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['r2d2#ignoring-protocol'],
@@ -51,7 +51,7 @@ describe('R2D2 - Ignoring Protocol', function() {
 
         describe('R2D2 - Ignoring Protocol\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['r2d2#ignoring-protocol'],

@@ -19,7 +19,7 @@ export default class KalaniAnalyticalGeneral extends NonLeaderUnitCard {
                 zoneFilter: WildcardZoneName.AnyArena,
                 cardCondition: (card, context) => card !== context.source,
                 canChooseNoCards: true,
-                numCardsFunc: (context) => (context.source.controller.hasInitiative() ? 2 : 1),
+                numCardsFunc: (context) => (context.player.hasInitiative() ? 2 : 1),
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                 })

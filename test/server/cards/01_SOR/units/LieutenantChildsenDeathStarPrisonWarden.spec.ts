@@ -2,8 +2,8 @@ describe('Lieutenant Childsen', function() {
     integration(function(contextRef) {
         describe('Lieutenant Childsen\'s When Played ability', function() {
             describe('when hand contains some Vigilance cards', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: [
@@ -87,8 +87,8 @@ describe('Lieutenant Childsen', function() {
             });
 
             describe('when hand does not contain any Vigilance card', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: [

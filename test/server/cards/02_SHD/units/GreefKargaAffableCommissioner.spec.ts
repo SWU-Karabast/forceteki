@@ -2,7 +2,7 @@ describe('Greef Karga, Affable Commissioner', function() {
     integration(function(contextRef) {
         describe('Greef Karga\'s Ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['greef-karga#affable-commissioner'],

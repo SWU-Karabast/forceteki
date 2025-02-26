@@ -18,5 +18,3 @@ export default class InfantryOfThe212th extends NonLeaderUnitCard {
         });
     }
 }
-
-InfantryOfThe212th.implemented = true;

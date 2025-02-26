@@ -1,7 +1,7 @@
 describe('Heavy Persuader Tank', function() {
     integration(function(contextRef) {
-        it('Heavy Persuader Tank\'s ability should optionally deal 2 damage to any ground unit when played', function() {
-            contextRef.setupTest({
+        it('Heavy Persuader Tank\'s ability should optionally deal 2 damage to any ground unit when played', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['heavy-persuader-tank'],

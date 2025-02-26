@@ -1,8 +1,8 @@
 describe('Hunter, Outcast Sergeant', function () {
     integration(function (contextRef) {
         describe('Hunter\'s leader undeployed ability', function () {
-            it('should reveal a resource and bring back to hand if it share a name with a friendly unit in play and resource the top card', function () {
-                contextRef.setupTest({
+            it('should reveal a resource and bring back to hand if it share a name with a friendly unit in play and resource the top card', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'echo#restored'],
@@ -40,8 +40,8 @@ describe('Hunter, Outcast Sergeant', function () {
         });
 
         describe('Hunter\'s leader deployed ability', function () {
-            it('should reveal a resource and bring back to hand if it share a name with a friendly unit in play and resource the top card', function () {
-                contextRef.setupTest({
+            it('should reveal a resource and bring back to hand if it share a name with a friendly unit in play and resource the top card', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'echo#restored'],

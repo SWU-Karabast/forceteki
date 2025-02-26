@@ -1,7 +1,7 @@
 describe('Planetary Invasion', function () {
     integration(function (contextRef) {
-        it('Planetary Invasion\'s ability should ready and give +1/+0 and Overwhelm (for the phase) to up to 3 units', function () {
-            contextRef.setupTest({
+        it('Planetary Invasion\'s ability should ready and give +1/+0 and Overwhelm (for the phase) to up to 3 units', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['planetary-invasion'],

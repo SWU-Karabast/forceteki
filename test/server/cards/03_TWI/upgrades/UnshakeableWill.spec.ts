@@ -2,7 +2,7 @@ describe('Unshakeable Will', function() {
     integration(function(contextRef) {
         describe('Unshakeable Will\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],

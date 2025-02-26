@@ -2,7 +2,7 @@ describe('Remnant Reserves', function () {
     integration(function (contextRef) {
         describe('Remnant Reserves\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['remnant-reserves'],

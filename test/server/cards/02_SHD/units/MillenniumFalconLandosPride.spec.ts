@@ -1,7 +1,7 @@
 describe('Millennium Falcon, Landos Pride', function() {
     integration(function(contextRef) {
-        it('Millennium Falcon\'s constant ability should give it Ambush if it is played from hand', function () {
-            contextRef.setupTest({
+        it('Millennium Falcon\'s constant ability should give it Ambush if it is played from hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['millennium-falcon#landos-pride', 'palpatines-return'],
@@ -33,8 +33,8 @@ describe('Millennium Falcon, Landos Pride', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Millennium Falcon\'s constant ability should not give it Ambush if it is Smuggled', function () {
-            contextRef.setupTest({
+        it('Millennium Falcon\'s constant ability should not give it Ambush if it is Smuggled', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'jyn-erso#resisting-oppression',

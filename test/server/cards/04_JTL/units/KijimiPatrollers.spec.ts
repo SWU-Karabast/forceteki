@@ -1,7 +1,7 @@
 describe('KijimiPatrollers', function () {
     integration(function (contextRef) {
-        it('KijimiPatrollers\'s ability should create a tie fighter token', function () {
-            contextRef.setupTest({
+        it('KijimiPatrollers\'s ability should create a tie fighter token', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['kijimi-patrollers'],

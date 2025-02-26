@@ -1,7 +1,7 @@
 describe('Strategic Analysis', function() {
     integration(function(contextRef) {
-        it('Strategic Analysis\' ability should draw 3 cards', function () {
-            contextRef.setupTest({
+        it('Strategic Analysis\' ability should draw 3 cards', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['strategic-analysis'],

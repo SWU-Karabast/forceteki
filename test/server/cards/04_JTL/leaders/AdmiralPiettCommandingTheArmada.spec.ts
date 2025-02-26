@@ -2,7 +2,7 @@ describe('Admiral Piett Commanding The Armada', function () {
     integration(function (contextRef) {
         describe('Admiral Piett\'s undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'admiral-piett#commanding-the-armada',
@@ -26,7 +26,7 @@ describe('Admiral Piett Commanding The Armada', function () {
 
         describe('Admiral Piett\'s deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'admiral-piett#commanding-the-armada', deployed: true },

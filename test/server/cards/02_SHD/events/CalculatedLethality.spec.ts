@@ -1,8 +1,8 @@
 describe('Calculated Lethality', function () {
     integration(function (contextRef) {
         describe('Calculated Lethality\'s ability', function () {
-            it('should defeat a unit that cost 3 or less and distribute experience equal to the number of upgrade on the defeated unit', function () {
-                contextRef.setupTest({
+            it('should defeat a unit that cost 3 or less and distribute experience equal to the number of upgrade on the defeated unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['calculated-lethality'],

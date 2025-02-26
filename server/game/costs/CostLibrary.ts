@@ -4,7 +4,6 @@ import type { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
 import { MetaActionCost } from '../core/cost/MetaActionCost';
-import type { CardWithDamageProperty } from '../core/card/CardTypes';
 import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
 import { DefeatCardSystem } from '../gameSystems/DefeatCardSystem';
 import { DiscardSpecificCardSystem } from '../gameSystems/DiscardSpecificCardSystem';
@@ -13,6 +12,7 @@ import { MoveCardSystem } from '../gameSystems/MoveCardSystem';
 import { ExhaustResourcesSystem } from '../gameSystems/ExhaustResourcesSystem';
 import { SelectCardSystem, type ISelectCardProperties } from '../gameSystems/SelectCardSystem';
 import { ExhaustSystem } from '../gameSystems/ExhaustSystem';
+import type { IAttackableCard } from '../core/card/CardInterfaces';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISelectCardProperties<TContext>, 'innerSystem'>;
@@ -84,7 +84,7 @@ export function dealDamage<TContext extends AbilityContext = AbilityContext>(amo
 /**
  * Cost that requires dealing the given amount of damage to the specified target.
  */
-export function dealDamageSpecific<TContext extends AbilityContext = AbilityContext>(amount: number, target: CardWithDamageProperty): ICost<TContext> {
+export function dealDamageSpecific<TContext extends AbilityContext = AbilityContext>(amount: number, target: IAttackableCard): ICost<TContext> {
     return new GameSystemCost<TContext>(new DamageSystem<TContext>({ type: DamageType.Ability, amount: amount, target, isCost: true }));
 }
 

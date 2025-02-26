@@ -2,7 +2,7 @@ describe('Replacement effect', function() {
     integration(function(contextRef) {
         describe('when a unit with one or more shields takes damage from a cost action', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'doctor-pershing#experimenting-with-life', upgrades: ['shield', 'shield'] }],

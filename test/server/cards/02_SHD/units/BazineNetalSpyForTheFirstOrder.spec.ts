@@ -1,8 +1,8 @@
 describe('Bazin Netal, Spy For The First Order', function() {
     integration(function(contextRef) {
         describe('Bazin Netal, Spy For The First Order\'s ability', function() {
-            it('should show Opponent\'s hand, player should be able to discard one card from it and Opponent\'s should draw a card', function () {
-                contextRef.setupTest({
+            it('should show Opponent\'s hand, player should be able to discard one card from it and Opponent\'s should draw a card', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bazine-netal#spy-for-the-first-order'],
@@ -65,8 +65,8 @@ describe('Bazin Netal, Spy For The First Order', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should be skipped as Opponent does not have any cards in hand', function () {
-                contextRef.setupTest({
+            it('should be skipped as Opponent does not have any cards in hand', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bazine-netal#spy-for-the-first-order'],

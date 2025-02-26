@@ -1,8 +1,8 @@
 describe('Emperor\'s Royal Guard', function () {
     integration(function (contextRef) {
         describe('Emperor\'s Royal Guard\'s constant ability', function () {
-            it('should gain 1 health when controlling Emperor Palpatine unit', function () {
-                contextRef.setupTest({
+            it('should gain 1 health when controlling Emperor Palpatine unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['emperor-palpatine#master-of-the-dark-side'],
@@ -16,8 +16,8 @@ describe('Emperor\'s Royal Guard', function () {
                 expect(context.emperorsRoyalGuard.getHp()).toBe(5);
             });
 
-            it('should gain 1 health when controlling Emperor Palpatine leader', function () {
-                contextRef.setupTest({
+            it('should gain 1 health when controlling Emperor Palpatine leader', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'emperor-palpatine#galactic-ruler',
@@ -29,8 +29,8 @@ describe('Emperor\'s Royal Guard', function () {
                 expect(context.emperorsRoyalGuard.getHp()).toBe(5);
             });
 
-            it('should gain Sentinel when controlling an Official', function () {
-                contextRef.setupTest({
+            it('should gain Sentinel when controlling an Official', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wartime-trade-official'],

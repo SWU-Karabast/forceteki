@@ -20,5 +20,3 @@ export default class OOMSeriesOfficer extends NonLeaderUnitCard {
         });
     }
 }
-
-OOMSeriesOfficer.implemented = true;

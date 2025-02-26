@@ -1,7 +1,7 @@
 describe('Foresight', function () {
     integration(function (contextRef) {
-        it('Foresight ability should give overwhelm to attached unit', function () {
-            contextRef.setupTest({
+        it('Foresight ability should give overwhelm to attached unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: [{ card: 'wampa', upgrades: ['foresight'] }],

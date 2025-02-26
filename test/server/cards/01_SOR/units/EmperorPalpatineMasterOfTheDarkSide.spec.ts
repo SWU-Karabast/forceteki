@@ -2,7 +2,7 @@ describe('Emperor Palpatine, Master of the Dark Side', function() {
     integration(function(contextRef) {
         describe('Palpatine\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['emperor-palpatine#master-of-the-dark-side'],
@@ -52,7 +52,7 @@ describe('Emperor Palpatine, Master of the Dark Side', function() {
 
         describe('Palpatine\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['emperor-palpatine#master-of-the-dark-side'],
@@ -84,7 +84,7 @@ describe('Emperor Palpatine, Master of the Dark Side', function() {
 
         describe('Palpatine\'s ability, if there is only one target,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['emperor-palpatine#master-of-the-dark-side'],
@@ -108,7 +108,7 @@ describe('Emperor Palpatine, Master of the Dark Side', function() {
 
         describe('Palpatine\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['emperor-palpatine#master-of-the-dark-side'],

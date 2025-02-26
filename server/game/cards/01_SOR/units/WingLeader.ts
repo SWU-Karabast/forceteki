@@ -21,5 +21,3 @@ export default class WingLeader extends NonLeaderUnitCard {
         });
     }
 }
-
-WingLeader.implemented = true;

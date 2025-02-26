@@ -1,8 +1,8 @@
 describe('Prisoner of War', function() {
     integration(function(contextRef) {
         describe('Prisoner of War\'s event ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['prisoner-of-war'],

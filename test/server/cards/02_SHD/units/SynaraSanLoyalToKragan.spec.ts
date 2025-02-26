@@ -1,8 +1,8 @@
 describe('Synara San, Loyal to Kragan', function() {
     integration(function(contextRef) {
         describe('Synara San\'s Bounty ability', function() {
-            it('should heal 5 damage from the opponent\'s base if the unit is exhausted', function () {
-                contextRef.setupTest({
+            it('should heal 5 damage from the opponent\'s base if the unit is exhausted', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'synara-san#loyal-to-kragan', exhausted: true }]
@@ -28,8 +28,8 @@ describe('Synara San, Loyal to Kragan', function() {
                 expect(context.p1Base.damage).toBe(5);
             });
 
-            it('should heal 5 damage from the opponent\'s base if the unit is exhausted by its own attack', function () {
-                contextRef.setupTest({
+            it('should heal 5 damage from the opponent\'s base if the unit is exhausted by its own attack', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['synara-san#loyal-to-kragan']
@@ -54,8 +54,8 @@ describe('Synara San, Loyal to Kragan', function() {
                 expect(context.p1Base.damage).toBe(5);
             });
 
-            it('should do nothing if the unit is not exhausted', function () {
-                contextRef.setupTest({
+            it('should do nothing if the unit is not exhausted', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['synara-san#loyal-to-kragan']

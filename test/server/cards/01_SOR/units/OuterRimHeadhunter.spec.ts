@@ -2,7 +2,7 @@ describe('Outer Rim Headhunter', function () {
     integration(function (contextRef) {
         describe('Outer Rim Headhunter\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['outer-rim-headhunter'],
@@ -36,7 +36,7 @@ describe('Outer Rim Headhunter', function () {
 
         describe('Outer Rim Headhunter\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['outer-rim-headhunter'],

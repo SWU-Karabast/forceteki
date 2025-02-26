@@ -8,7 +8,7 @@ describe('Cunning', function () {
 
         describe('Cunning\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['cunning'],

@@ -18,5 +18,3 @@ export default class VigilantHonorGuards extends NonLeaderUnitCard {
         });
     }
 }
-
-VigilantHonorGuards.implemented = true;

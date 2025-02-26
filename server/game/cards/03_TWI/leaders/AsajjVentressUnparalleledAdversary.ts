@@ -36,7 +36,7 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
         this.addOnAttackAbility({
             title: 'If you played an event this phase, this unit gets +1/+0 for this attack and deals combat damage before the defender',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => this.hasPlayedAnEventThisPhase(context.source.controller),
+                condition: (context) => this.hasPlayedAnEventThisPhase(context.player),
                 onTrue: AbilityHelper.immediateEffects.cardLastingEffect({
                     duration: Duration.UntilEndOfAttack,
                     effect: [AbilityHelper.ongoingEffects.dealsDamageBeforeDefender(),

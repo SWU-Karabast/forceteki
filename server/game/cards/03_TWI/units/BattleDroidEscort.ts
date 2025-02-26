@@ -20,5 +20,3 @@ export default class BattleDroidEscort extends NonLeaderUnitCard {
         });
     }
 }
-
-BattleDroidEscort.implemented = true;

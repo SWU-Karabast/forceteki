@@ -4,11 +4,11 @@ import { EventName, GameStateChangeRequired, WildcardCardType } from '../core/Co
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { ITriggeredAbilityBaseProps } from '../Interfaces';
 import { BountyAbility } from '../abilities/keyword/BountyAbility';
-import type { UnitCard } from '../core/card/CardTypes';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 export interface ICollectBountyProperties extends ICardTargetSystemProperties {
     bountyProperties: ITriggeredAbilityBaseProps;
-    bountySource?: UnitCard;
+    bountySource?: IUnitCard;
 }
 
 export class CollectBountySystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ICollectBountyProperties> {

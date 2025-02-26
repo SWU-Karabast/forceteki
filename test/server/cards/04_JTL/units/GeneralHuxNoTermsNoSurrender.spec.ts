@@ -1,7 +1,7 @@
 describe('General Hux, No Terms, No Surrender', function() {
     integration(function(contextRef) {
-        it('General Hux\'s ability should give Raid 1 to another first order unit and draw one card if a first order card was played this phase', function () {
-            contextRef.setupTest({
+        it('General Hux\'s ability should give Raid 1 to another first order unit and draw one card if a first order card was played this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['kijimi-patrollers'],

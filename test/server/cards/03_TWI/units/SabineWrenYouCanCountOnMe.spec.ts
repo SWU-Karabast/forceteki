@@ -1,7 +1,7 @@
 describe('Sabine Wren, You Can Count On Me', function () {
     integration(function (contextRef) {
-        it('Sabine Wren\'s on attack ability should discard the top card of deck to deal 2 damage to an enemy ground unit if the discarded card does not share an aspect with base and Sabine Wren should not be attacked while she\'s exhausted', function () {
-            contextRef.setupTest({
+        it('Sabine Wren\'s on attack ability should discard the top card of deck to deal 2 damage to an enemy ground unit if the discarded card does not share an aspect with base and Sabine Wren should not be attacked while she\'s exhausted', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['sabine-wren#you-can-count-on-me', 'wampa'],

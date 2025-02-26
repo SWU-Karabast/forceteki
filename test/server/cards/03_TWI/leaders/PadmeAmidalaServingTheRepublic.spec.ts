@@ -2,8 +2,8 @@
 describe('Padme Amidala, Serving the Republic', function () {
     integration(function (contextRef) {
         describe('Padme Amidala\'s undeployed ability', function () {
-            it('should search the top 3 cards for a Republic card, reveal it, and draw it', function () {
-                contextRef.setupTest({
+            it('should search the top 3 cards for a Republic card, reveal it, and draw it', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'padme-amidala#serving-the-republic',
@@ -50,8 +50,8 @@ describe('Padme Amidala, Serving the Republic', function () {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('should do nothing when the deck is empty', function () {
-                contextRef.setupTest({
+            it('should do nothing when the deck is empty', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'padme-amidala#serving-the-republic',
@@ -78,8 +78,8 @@ describe('Padme Amidala, Serving the Republic', function () {
         });
 
         describe('Padme Amidala\'s deployed ability', function () {
-            it('should search the top 3 cards for a Republic card, reveal it, and draw it', function () {
-                contextRef.setupTest({
+            it('should search the top 3 cards for a Republic card, reveal it, and draw it', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'padme-amidala#serving-the-republic', deployed: true },

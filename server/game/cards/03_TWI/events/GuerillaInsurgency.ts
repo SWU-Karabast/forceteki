@@ -39,5 +39,3 @@ export default class GuerillaInsurgency extends EventCard {
         });
     }
 }
-
-GuerillaInsurgency.implemented = true;

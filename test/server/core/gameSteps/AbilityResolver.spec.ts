@@ -1,7 +1,7 @@
 describe('Ability resolver', function() {
     integration(function(contextRef) {
-        it('Triggers during an "if you do" sub-step for an event ability should go in the same resolution window as triggers from the beginning of the ability', function() {
-            contextRef.setupTest({
+        it('Triggers during an "if you do" sub-step for an event ability should go in the same resolution window as triggers from the beginning of the ability', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['selfdestruct'],

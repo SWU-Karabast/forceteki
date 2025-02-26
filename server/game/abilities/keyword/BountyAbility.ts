@@ -1,6 +1,6 @@
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
-import type { UnitCard } from '../../core/card/CardTypes';
+import type { IUnitCard } from '../../core/card/propertyMixins/UnitProperties';
 import { EventName, KeywordName, RelativePlayer, WildcardZoneName } from '../../core/Constants';
 import { GameEvent } from '../../core/event/GameEvent';
 import type Game from '../../core/Game';
@@ -8,7 +8,7 @@ import * as Contract from '../../core/utils/Contract';
 import type { ITriggeredAbilityBaseProps } from '../../Interfaces';
 
 export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'canBeTriggeredBy'> & {
-    bountySource?: UnitCard;
+    bountySource?: IUnitCard;
 };
 
 /**

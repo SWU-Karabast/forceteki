@@ -2,7 +2,7 @@ describe('Kintan Intimidator', function () {
     integration(function (contextRef) {
         describe('Kintan Intimidator\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['kintan-intimidator']

@@ -21,5 +21,3 @@ export default class StarWingScout extends NonLeaderUnitCard {
         });
     }
 }
-
-StarWingScout.implemented = true;

@@ -1,7 +1,7 @@
 describe('Jar Jar Binks, Foolish Gungan', function () {
     integration(function (contextRef) {
-        it('Jar Jar Binks, Foolish Gungan\'s ability should deal damage to a random unit or base', function () {
-            contextRef.setupTest({
+        it('Jar Jar Binks, Foolish Gungan\'s ability should deal damage to a random unit or base', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['jar-jar-binks#foolish-gungan'],

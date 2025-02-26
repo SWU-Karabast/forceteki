@@ -1,8 +1,8 @@
 describe('Caught In The Crossfire', function() {
     integration(function(contextRef) {
         describe('Caught In The Crossfire\'s event ability', function() {
-            it('should allow to pick 2 enemy units in the same arena and those units will deal damage to each other', () => {
-                contextRef.setupTest({
+            it('should allow to pick 2 enemy units in the same arena and those units will deal damage to each other', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['caught-in-the-crossfire'],

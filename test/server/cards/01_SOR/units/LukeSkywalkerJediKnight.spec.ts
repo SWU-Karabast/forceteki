@@ -1,8 +1,8 @@
 describe('Luke Skywalker, Jedi Knight', function () {
     integration(function (contextRef) {
         describe('Luke Skywalker\'s ability', function () {
-            it('should give -3/-3 to an enemy unit because no friendly was defeated this phase', function () {
-                contextRef.setupTest({
+            it('should give -3/-3 to an enemy unit because no friendly was defeated this phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['luke-skywalker#jedi-knight', 'rivals-fall'],
@@ -29,8 +29,8 @@ describe('Luke Skywalker, Jedi Knight', function () {
                 expect(context.wampa.getHp()).toBe(2);
             });
 
-            it('should give -6/-6 to an enemy unit because a friendly unit was defeated this phase', function () {
-                contextRef.setupTest({
+            it('should give -6/-6 to an enemy unit because a friendly unit was defeated this phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['luke-skywalker#jedi-knight'],

@@ -2,7 +2,7 @@ describe('Smuggling Compartment', function() {
     integration(function(contextRef) {
         describe('Smuggling Compartment\'s on attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'atst', upgrades: ['smuggling-compartment'] }],
@@ -30,7 +30,7 @@ describe('Smuggling Compartment', function() {
 
         describe('Smuggling Compartment', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['smuggling-compartment'],

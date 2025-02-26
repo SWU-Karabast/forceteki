@@ -56,13 +56,13 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
 
     private friendlyHeroismCardDefeatedThisPhase(context): boolean {
         return this.unitsDefeatedThisPhaseWatcher.someUnitDefeatedThisPhase((defeatedUnitEntry) =>
-            defeatedUnitEntry.controlledBy === context.source.controller &&
+            defeatedUnitEntry.controlledBy === context.player &&
             defeatedUnitEntry.unit.hasSomeAspect(Aspect.Heroism));
     }
 
     private villainyCardPlayedThisPhase(context): boolean {
         return this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
-            playedCardEntry.playedBy === context.source.controller &&
+            playedCardEntry.playedBy === context.player &&
             playedCardEntry.card.hasSomeAspect(Aspect.Villainy)
         );
     }

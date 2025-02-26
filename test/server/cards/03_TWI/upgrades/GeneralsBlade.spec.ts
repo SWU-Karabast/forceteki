@@ -1,7 +1,7 @@
 describe('General\'s Blade', function () {
     integration(function (contextRef) {
-        it('General\'s Blade\'s ability should give a 2 cost reduction for the next unit we play', function () {
-            contextRef.setupTest({
+        it('General\'s Blade\'s ability should give a 2 cost reduction for the next unit we play', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['wampa', 'battlefield-marine', 'smugglers-aid', 'palpatines-return'],
@@ -59,8 +59,8 @@ describe('General\'s Blade', function () {
             expect(context.player1.exhaustedResourceCount).toBe(9);// (6+2) from palpatine's return + 3-2=1 from krayt dragon
         });
 
-        it('General\'s Blade\'s ability should give a 2 cost reduction for the next unit we play only for the phase', function () {
-            contextRef.setupTest({
+        it('General\'s Blade\'s ability should give a 2 cost reduction for the next unit we play only for the phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['wampa', 'battlefield-marine', 'smugglers-aid'],

@@ -13,7 +13,7 @@ export default class AnakinSkywalkerWhatItTakesToWin extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'Deal 2 damage to your base to attack with a unit. If it is attacking a unit, it gets +2 attack for the attack',
-            cost: (context) => [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.dealDamageSpecific(2, context.source.controller.base)],
+            cost: (context) => [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.dealDamageSpecific(2, context.player.base)],
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,

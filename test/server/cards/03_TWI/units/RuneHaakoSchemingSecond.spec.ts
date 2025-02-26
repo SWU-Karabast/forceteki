@@ -1,8 +1,8 @@
 describe('Rune Haako, Scheming Second', function () {
     integration(function (contextRef) {
         describe('Rune Haako\'s ability', function () {
-            it('should not give -1/-1 because no friendly was defeated this phase', function () {
-                contextRef.setupTest({
+            it('should not give -1/-1 because no friendly was defeated this phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['rune-haako#scheming-second', 'rivals-fall'],
@@ -28,8 +28,8 @@ describe('Rune Haako, Scheming Second', function () {
                 expect(context.battlefieldMarine.getHp()).toBe(3);
             });
 
-            it('should give -1/-1 to a unit because a friendly unit was defeated this phase', function () {
-                contextRef.setupTest({
+            it('should give -1/-1 to a unit because a friendly unit was defeated this phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['rune-haako#scheming-second'],

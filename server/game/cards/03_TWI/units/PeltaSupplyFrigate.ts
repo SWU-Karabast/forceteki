@@ -21,5 +21,3 @@ export default class PeltaSupplyFrigate extends NonLeaderUnitCard {
         });
     }
 }
-
-PeltaSupplyFrigate.implemented = true;
