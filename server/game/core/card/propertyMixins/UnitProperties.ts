@@ -92,7 +92,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             });
 
             // register listeners for on-defeat keyword abilities
-            game.on(EventName.OnCardDefeated, (event) => {
+            game.on(EventName.OnCardDefeated + ':preResolve', (event) => {
                 const card = event.card as Card;
                 if (card.zoneName !== ZoneName.Resource && card.isUnit()) {
                     card.checkRegisterWhenDefeatedKeywordAbilities(event);
