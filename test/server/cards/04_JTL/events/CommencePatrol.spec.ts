@@ -25,6 +25,7 @@ describe('Commence Patrol', function () {
                 expect(context.battlefieldMarine).toBeInBottomOfDeck(context.player1, 1);
                 const xwing = context.player1.findCardByName('xwing');
                 expect(xwing).toBeInZone('spaceArena');
+                expect(xwing.exhausted).toBeTrue();
             });
 
             it('should be able to return a enemy card from discard to bottom on deck and create a x-wing token', function () {
@@ -38,6 +39,7 @@ describe('Commence Patrol', function () {
                 expect(context.atst).toBeInBottomOfDeck(context.player2, 1);
                 const xwing = context.player1.findCardByName('xwing');
                 expect(xwing).toBeInZone('spaceArena');
+                expect(xwing.exhausted).toBeTrue();
             });
         });
 

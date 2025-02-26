@@ -75,7 +75,7 @@ describe('Admiral Ackbar, It\'s a Trap !', function () {
 
                 context.player1.clickCard(context.admiralAckbar);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.dqarCargoFrigate, context.atst]);
+                expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.dqarCargoFrigate, context.atst, context.sabineWren, context.admiralAckbar]);
 
                 context.player1.clickCard(context.dqarCargoFrigate);
                 expect(context.player1.exhaustedResourceCount).toBe(0);
@@ -88,7 +88,7 @@ describe('Admiral Ackbar, It\'s a Trap !', function () {
 
                 context.player1.clickCard(context.admiralAckbar);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.dqarCargoFrigate, context.atst]);
+                expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.dqarCargoFrigate, context.atst, context.sabineWren, context.admiralAckbar]);
 
                 context.player1.clickCard(context.poeDameron);
                 expect(context.player1.exhaustedResourceCount).toBe(0);
@@ -101,7 +101,7 @@ describe('Admiral Ackbar, It\'s a Trap !', function () {
 
                 context.player1.clickCard(context.admiralAckbar);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.dqarCargoFrigate, context.atst]);
+                expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.dqarCargoFrigate, context.atst, context.sabineWren, context.admiralAckbar]);
 
                 context.player1.clickCard(context.atst);
                 expect(context.player1.exhaustedResourceCount).toBe(0);

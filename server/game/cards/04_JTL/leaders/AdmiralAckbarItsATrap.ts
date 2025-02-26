@@ -30,7 +30,7 @@ export default class AdmiralAckbarItsATrap extends LeaderUnitCard {
             title: 'Exhaust a non-leader unit',
             optional: true,
             targetResolver: {
-                cardTypeFilter: WildcardCardType.NonLeaderUnit,
+                cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             },
             ifYouDo: (ifYouDoContext) => ({
