@@ -5,7 +5,7 @@ describe('Black One, Straight At Them', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['top-target']
+                        hand: ['top-target', 'bounty-hunters-quarry']
                     },
                     player2: {
                         spaceArena: ['black-one#straight-at-them']
@@ -31,14 +31,14 @@ describe('Black One, Straight At Them', function() {
                 context.player1.clickCard(context.topTarget);
                 context.player1.clickCard(context.blackOne);
 
-                expect(context.blackOne).toHaveExactUpgradeNames(['top-target']);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.bountyHuntersQuarry);
+                context.player1.clickCard(context.blackOne);
+
+                expect(context.blackOne).toHaveExactUpgradeNames(['top-target', 'bounty-hunters-quarry']);
                 expect(context.blackOne.getPower()).toBe(3);
-
-                context.player2.clickCard(context.blackOne);
-                context.player2.clickCard(context.p1Base);
-
-                expect(context.p1Base.damage).toBe(3);
-                expect(context.player1).toBeActivePlayer();
+                expect(context.blackOne.getHp()).toBe(3);
             });
         });
 
@@ -65,9 +65,9 @@ describe('Black One, Straight At Them', function() {
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.blackOne, context.deathStarStormtrooper, context.infernoFour]);
 
-                context.player1.clickCard(context.deathStarStormtrooper);
+                context.player1.clickCard(context.infernoFour);
 
-                expect(context.deathStarStormtrooper).toBeInZone('discard');
+                expect(context.infernoFour.damage).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
 
