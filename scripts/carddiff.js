@@ -1,8 +1,6 @@
 /* eslint no-console:0 */
 const { default: axios } = require('axios');
-const { default: axiosRetry } = require('axios-retry');
 const { Agent } = require('https');
-const { log } = require('console');
 
 function getConflicts(cards, flag = true) {
     if (cards.length > 0) {
@@ -24,7 +22,7 @@ function getConflicts(cards, flag = true) {
 
             verified[cardIdentifier][card.cardUid] = {
                 title: card.title,
-                subtitle: card.subtitle || "",
+                subtitle: card.subtitle || '',
                 arenas: [],
                 aspects: [],
                 cost: card.cost,
@@ -236,9 +234,8 @@ function getConflicts(cards, flag = true) {
                 console.log('Found some conflicts. Run `npm run card-diff` to see the specifics.');
             }
             return (verifiedResults.conflictingCount > 0);
-        } else {
-            return verifiedResults;
         }
+        return verifiedResults;
     }
     console.log('No cards found.');
 }
@@ -258,10 +255,10 @@ async function main() {
     var cards = [];
     if (totalPages > 0) {
         try {
-            cards = (await Promise.all([...Array(totalPages).keys()].map(i => axios.get(apiUrl + '?pagination[page]=' + (i + 1)).then(res => res.data.data)))).flat();
+            cards = (await Promise.all([...Array(totalPages).keys()].map((i) => axios.get(apiUrl + '?pagination[page]=' + (i + 1)).then((res) => res.data.data)))).flat();
         } catch (error) {
             console.error('Error getting card data:', error);
-        }            
+        }
     }
 
     const conflicts = getConflicts(cards, false);
