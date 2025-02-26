@@ -24,7 +24,7 @@ export default class LukeSkywalkerJediKnight extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Opponent,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.source.controller),
+                    condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
                     onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: -6, hp: -6 })
                     }),

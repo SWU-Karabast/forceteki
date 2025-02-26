@@ -26,7 +26,7 @@ export default class GalacticAmbition extends EventCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Deal damage to your base equal to the played unit\'s cost',
                 immediateEffect: AbilityHelper.immediateEffects.damage({
-                    target: ifYouDoContext.source.controller.base,
+                    target: ifYouDoContext.player.base,
                     amount: ifYouDoContext.target.printedCost
                 })
             })

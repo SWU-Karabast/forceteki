@@ -14,7 +14,7 @@ export default class GideonHaskRuthlessLoyalist extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Give an Experience token to a friendly unit',
             when: {
-                onCardDefeated: (event, context) => event.card.isUnit() && event.card.controller !== context.source.controller
+                onCardDefeated: (event, context) => event.card.isUnit() && event.card.controller !== context.player
             },
             targetResolver: {
                 controller: RelativePlayer.Self,

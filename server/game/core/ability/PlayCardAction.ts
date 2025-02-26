@@ -11,8 +11,8 @@ import type { CostAdjuster } from '../cost/CostAdjuster';
 import * as Helpers from '../utils/Helpers';
 import * as Contract from '../utils/Contract';
 import { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
-import { ExploitPlayCardResourceCost } from '../../abilities/keyword/ExploitPlayCardResourceCost';
 import { GameEvent } from '../event/GameEvent';
+import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type Game from '../Game';
 import type Player from '../Player';
 
@@ -53,7 +53,6 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly costAdjusters: CostAdjuster[];
     public readonly exploitValue?: number;
     public readonly playType: PlayType;
-    public readonly usesExploit: boolean;
     public readonly canPlayFromAnyZone: boolean;
 
     protected readonly createdWithProperties: IPlayCardActionProperties;
@@ -61,15 +60,25 @@ export abstract class PlayCardAction extends PlayerAction {
     public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
         Contract.assertTrue(card.hasCost());
 
-        const usesExploit = !!properties.exploitValue;
-
-        const propertiesWithDefaults = {
+        let propertiesWithDefaults = {
             title: `Play ${card.title}`,
             playType: PlayType.PlayFromHand,
             triggerHandlingMode: TriggerHandlingMode.ResolvesTriggers,
             additionalCosts: [],
-            ...properties
+            ...properties,
+            costAdjusters: Helpers.asArray(properties.costAdjusters)
         };
+
+        Contract.assertFalse(
+            Helpers.asArray(propertiesWithDefaults.costAdjusters).some(((adjuster) => adjuster && adjuster.isExploit())),
+            `PlayCardAction for ${card.internalName} has an exploit adjuster already included in properties`
+        );
+
+        if (!!properties.exploitValue) {
+            propertiesWithDefaults = Helpers.mergeArrayProperty(
+                propertiesWithDefaults, 'costAdjusters', [new ExploitCostAdjuster(card.game, card, { exploitKeywordAmount: properties.exploitValue })]
+            );
+        }
 
         let cost: number;
         let aspects: Aspect[];
@@ -83,14 +92,12 @@ export abstract class PlayCardAction extends PlayerAction {
             aspects = card.aspects;
         }
 
-        const playCost = usesExploit
-            ? new ExploitPlayCardResourceCost(card, properties.exploitValue, propertiesWithDefaults.playType, cost, aspects)
-            : new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
+        const playCost = new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
 
         super(
             game,
             card,
-            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, usesExploit, appendToTitle),
+            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, appendToTitle),
             propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
@@ -98,13 +105,12 @@ export abstract class PlayCardAction extends PlayerAction {
 
         this.playType = propertiesWithDefaults.playType;
         this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
-        this.usesExploit = usesExploit;
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
         this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
     }
 
-    private static getTitle(title: string, playType: PlayType, withExploit: boolean = false, appendToTitle: boolean = true): string {
+    private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true): string {
         let updatedTitle = title;
 
         switch (playType) {
@@ -119,10 +125,6 @@ export abstract class PlayCardAction extends PlayerAction {
                 break;
             default:
                 Contract.fail(`Unknown play type: ${playType}`);
-        }
-
-        if (withExploit) {
-            updatedTitle += ' using Exploit';
         }
 
         return updatedTitle;

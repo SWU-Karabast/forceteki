@@ -125,52 +125,6 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
         }
 
-        // build last known information for the card before event window resolves to ensure that no state has yet changed
-        event.setPreResolutionEffect((event) => {
-            event.lastKnownInformation = this.buildLastKnownInformation(card);
-        });
-    }
-
-    private buildLastKnownInformation(card: Card): ILastKnownInformation {
-        Contract.assertTrue(
-            card.zoneName === ZoneName.GroundArena ||
-            card.zoneName === ZoneName.SpaceArena ||
-            card.zoneName === ZoneName.Resource
-        );
-
-        if (card.zoneName === ZoneName.Resource) {
-            return {
-                card,
-                controller: card.controller,
-                arena: card.zoneName
-            };
-        }
-        Contract.assertTrue(card.canBeInPlay());
-
-
-        if (card.isUnit()) {
-            return {
-                card,
-                power: card.getPower(),
-                hp: card.getHp(),
-                arena: card.zoneName,
-                controller: card.controller,
-                damage: card.damage,
-                upgrades: card.upgrades
-            };
-        }
-
-        if (card.isUpgrade()) {
-            return {
-                card,
-                power: card.getPower(),
-                hp: card.getHp(),
-                arena: card.zoneName,
-                controller: card.controller,
-                parentCard: card.parentCard
-            };
-        }
-
-        Contract.fail(`Unexpected card type: ${card.type}`);
+        this.addLastKnownInformationToEvent(event, card);
     }
 }

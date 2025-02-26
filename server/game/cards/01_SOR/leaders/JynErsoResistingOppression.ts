@@ -26,7 +26,7 @@ export default class JynErsoResistingOppression extends LeaderUnitCard {
         this.addConstantAbility({
             title: 'While a friendly unit is attacking, the defender gets -1/-0.',
             targetController: RelativePlayer.Opponent,
-            matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isDefending() && card.activeAttack.attacker.controller === context.source.controller,
+            matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isDefending() && card.activeAttack.attacker.controller === context.player,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: 0 })
         });
     }

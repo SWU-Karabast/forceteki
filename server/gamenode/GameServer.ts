@@ -110,6 +110,14 @@ export class GameServer {
 
         this.setupAppRoutes(app);
 
+        app.use((err, req, res, next) => {
+            logger.error('Error in API route:', err);
+            res.status(err.status || 500).json({
+                success: false,
+                error: err.message || 'Server error.',
+            });
+        });
+
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
 
@@ -138,15 +146,15 @@ export class GameServer {
     }
 
     private setupAppRoutes(app: express.Application) {
-        app.post('/api/create-lobby', async (req, res) => {
+        app.post('/api/create-lobby', async (req, res, next) => {
+            const { user, deck, format, isPrivate } = req.body;
             try {
-                await this.processDeckValidation(req.body.deck, SwuGameFormat.Premier, res, async () => {
-                    await this.createLobby(req.body.user, req.body.deck, req.body.isPrivate);
+                await this.processDeckValidation(deck, format, res, async () => {
+                    await this.createLobby(user, deck, format, isPrivate);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
-                console.error(err);
-                res.status(500).json({ success: false, error: 'Server error.' });
+                next(err);
             }
         });
 
@@ -179,13 +187,17 @@ export class GameServer {
             return res.json(testSetupFilenames);
         });
 
-        app.post('/api/start-test-game', async (req, res) => {
+        app.post('/api/start-test-game', async (req, res, next) => {
             const { filename } = req.body;
-            await this.startTestGame(filename);
-            return res.status(200).json({ success: true });
+            try {
+                await this.startTestGame(filename);
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                next(err);
+            }
         });
 
-        app.post('/api/enter-queue', async (req, res) => {
+        app.post('/api/enter-queue', async (req, res, next) => {
             try {
                 await this.processDeckValidation(req.body.deck, SwuGameFormat.Premier, res, () => {
                     const { user, deck } = req.body;
@@ -196,8 +208,7 @@ export class GameServer {
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
-                console.error(err);
-                res.status(500).json({ success: false, error: 'Server error.' });
+                next(err);
             }
         });
 
@@ -241,7 +252,7 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(user: User | string, deck: Deck, isPrivate: boolean) {
+    private createLobby(user: User | string, deck: Deck, format: SwuGameFormat, isPrivate: boolean) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -251,7 +262,7 @@ export class GameServer {
 
         const lobby = new Lobby(
             isPrivate ? MatchType.Private : MatchType.Custom,
-            SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
+            format,
             this.cardDataGetter,
             this.deckValidator,
             this.testGameBuilder
@@ -270,7 +281,7 @@ export class GameServer {
     private async startTestGame(filename: string) {
         const lobby = new Lobby(
             MatchType.Custom,
-            SwuGameFormat.Premier, // TODO change this to a parameter based on the users decision.
+            SwuGameFormat.Open,
             this.cardDataGetter,
             this.deckValidator,
             this.testGameBuilder
