@@ -63,7 +63,6 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         return [];
     }
 
-    // TODO: add passHandler here so that player can potentially be prompted for pass earlier in the window
     protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const choices = Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
         const handlers = choices.map((choice) => {
@@ -71,6 +70,12 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
                 this.setTargetResult(context, choice);
             };
         });
+
+        if (passPrompt) {
+            choices.push(passPrompt.buttonText);
+            handlers.push(passPrompt.handler);
+            passPrompt.hasBeenShown = true;
+        }
 
         // TODO: figure out if we need these buttons
         /* if (player !== context.player.opponent && context.stage === Stage.PreTarget) {
