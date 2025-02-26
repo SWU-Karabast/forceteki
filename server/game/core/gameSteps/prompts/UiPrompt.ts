@@ -10,11 +10,15 @@ import type Game from '../../Game';
 export abstract class UiPrompt extends BaseStep {
     public completed = false;
     public uuid = uuid();
+    private previousPrompt?: UiPrompt;
 
     public constructor(game: Game) {
         super(game);
 
         this.clearPrompts();
+
+        this.previousPrompt = game.currentOpenPrompt;
+        game.currentOpenPrompt = this;
     }
 
     public abstract activePrompt(player: Player): IPlayerPromptStateProperties;
@@ -39,6 +43,7 @@ export abstract class UiPrompt extends BaseStep {
 
     public complete(): void {
         this.completed = true;
+        this.game.currentOpenPrompt = this.previousPrompt;
     }
 
     public override onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean {
