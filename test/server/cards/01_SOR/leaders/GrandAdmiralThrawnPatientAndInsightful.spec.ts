@@ -1,11 +1,11 @@
 describe('Grand Admiral Thrawn, Patient and Insightful', function () {
     integration(function (contextRef) {
         describe('Grand Admiral Thrawn\'s undeployed ability', function () {
-            it('should look at top deck of each player and should reveal top deck of a player to exhaust a unit which cost same or less than the revealed card', function () {
-                contextRef.setupTest({
+            it('should look at top deck of each player and should reveal top deck of a player to exhaust a unit which cost same or less than the revealed card', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        deck: ['takedown', 'vanquish', 'rivals-fall'],
+                        deck: ['takedown', 'vanquish', 'rivals-fall', 'cartel-spacer'],
                         groundArena: ['battlefield-marine'],
                         leader: 'grand-admiral-thrawn#patient-and-insightful',
                         resources: 3,
@@ -13,9 +13,17 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                     player2: {
                         groundArena: ['wampa'],
                         deck: ['atst', 'avenger#hunting-star-destroyer', 'specforce-soldier']
+                    },
+                    phaseTransitionHandler: (phase) => {
+                        if (phase === 'action') {
+                            contextRef.context.player1.clickPrompt('Done');
+                        }
                     }
                 });
+
                 const { context } = contextRef;
+
+                context.moveToNextActionPhase();
 
                 // thrawn ability reveal top deck of each player (happens at beginning of action phase)
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.rivalsFall, context.specforceSoldier]);
@@ -43,8 +51,8 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
         });
 
         describe('Grand Admiral Thrawn\'s deployed ability', function () {
-            it('should look at top deck of each player and on attack ability should reveal top deck of a player to exhaust a unit which cost same or less than the revealed card', function () {
-                contextRef.setupTest({
+            it('should look at top deck of each player and on attack ability should reveal top deck of a player to exhaust a unit which cost same or less than the revealed card', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         deck: ['takedown', 'vanquish', 'rivals-fall'],
@@ -54,9 +62,17 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                     player2: {
                         groundArena: ['wampa'],
                         deck: ['atst', 'avenger#hunting-star-destroyer', 'specforce-soldier']
+                    },
+                    phaseTransitionHandler: (phase) => {
+                        if (phase === 'action') {
+                            contextRef.context.player1.clickPrompt('Done');
+                        }
                     }
                 });
+
                 const { context } = contextRef;
+
+                context.moveToNextActionPhase();
 
                 // thrawn ability reveal top deck of each player (happens at beginning of action phase)
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.rivalsFall, context.specforceSoldier]);

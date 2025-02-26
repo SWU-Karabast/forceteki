@@ -1,3 +1,4 @@
+type PhaseName = import('../../server/game/core/Constants').PhaseName;
 type IBaseCard = import('../../server/game/core/card/BaseCard').IBaseCard;
 type ILeaderCard = import('../../server/game/core/card/propertyMixins/LeaderProperties').ILeaderCard;
 type Card = import('../../server/game/core/card/Card').Card;
@@ -65,6 +66,7 @@ interface SwuSetupTestOptions {
     player1?: SwuPlayerSetupOptions;
     player2?: SwuPlayerSetupOptions;
     autoSingleTarget?: boolean;
+    phaseTransitionHandler?: (phase: PhaseName) => void;
 
     [field: string]: any;
 }

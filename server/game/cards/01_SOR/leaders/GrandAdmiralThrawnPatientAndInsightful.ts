@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { PhaseName, TargetMode, WildcardCardType } from '../../../core/Constants';
-import type { UnitCard } from '../../../core/card/CardTypes';
+import { PhaseName, TargetMode } from '../../../core/Constants';
 
 export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -31,8 +30,7 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Exhaust a unit that costs the same as or less than the revealed card',
                 targetResolver: {
-                    cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card: UnitCard) => card.cost <= ifYouDoContext.events[0].card[0].cost,
+                    cardCondition: (card) => card.isUnit() && card.cost <= ifYouDoContext.events[0].card[0].cost,
                     immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 }
             })
@@ -59,8 +57,7 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Exhaust a unit that costs the same as or less than the revealed card',
                 targetResolver: {
-                    cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card: UnitCard) => card.cost <= ifYouDoContext.events[0].card[0].cost,
+                    cardCondition: (card) => card.isUnit() && card.cost <= ifYouDoContext.events[0].card[0].cost,
                     immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 }
             })
