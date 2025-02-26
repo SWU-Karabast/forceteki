@@ -36,7 +36,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
         return this._deployed;
     }
 
-    public override get type(): CardType {
+    public override getType(): CardType {
         return this._deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 

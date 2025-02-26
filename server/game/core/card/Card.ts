@@ -157,6 +157,11 @@ export class Card extends OngoingEffectSource {
     }
 
     public get type(): CardType {
+        return this.getType();
+    }
+
+    /** This method is needed due to a bug in TypeScript with mix-ins and getters */
+    protected getType(): CardType {
         return this.printedType;
     }
 

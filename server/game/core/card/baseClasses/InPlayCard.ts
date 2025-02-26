@@ -101,7 +101,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         return this._pendingDefeat;
     }
 
-    public override get type(): CardType {
+    public override getType(): CardType {
         // TODO: should we add a CardType.PilotUpgrade?
         return this.isAttached() ? CardType.BasicUpgrade : this.printedType;
     }
@@ -157,7 +157,8 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     public isAttached(): boolean {
-        this.assertIsUpgrade();
+        // TODO: I think we can't check this here because we need to be able to check if this is attached in some places like the getType method
+        // this.assertIsUpgrade();
         return !!this._parentCard;
     }
 
