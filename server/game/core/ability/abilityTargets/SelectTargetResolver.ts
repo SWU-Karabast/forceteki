@@ -26,6 +26,10 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
     }
 
     private isChoiceLegal(key: string, context: AbilityContext) {
+        if (this.properties.showUnresolvable) {
+            return true;
+        }
+
         const contextCopy = context.copy();
         this.setTargetResult(contextCopy, key);
         if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {

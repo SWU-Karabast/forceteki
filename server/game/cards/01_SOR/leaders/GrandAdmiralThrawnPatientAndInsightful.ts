@@ -18,6 +18,7 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
             cost: [AbilityHelper.costs.abilityResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 mode: TargetMode.Select,
+                showUnresolvable: true,
                 choices: {
                     ['Reveal the top card of your deck']: AbilityHelper.immediateEffects.reveal((context) => ({
                         target: context.source.controller.getTopCardOfDeck(),
@@ -45,6 +46,7 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
             optional: true,
             targetResolver: {
                 mode: TargetMode.Select,
+                showUnresolvable: true,
                 choices: {
                     ['Reveal the top card of your deck']: AbilityHelper.immediateEffects.reveal((context) => ({
                         target: context.source.controller.getTopCardOfDeck(),
