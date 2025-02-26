@@ -2,7 +2,6 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction';
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
-import type { IUpgradeCard } from '../core/card/CardInterfaces';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, KeywordName, PlayType, RelativePlayer } from '../core/Constants';
 import type Game from '../core/Game';
@@ -28,10 +27,11 @@ export class PlayUpgradeAction extends PlayCardAction {
         const isPilot = !isUpgrade && (context.source.isUnit() && context.source.hasSomeKeyword(KeywordName.Piloting));
 
         Contract.assertTrue(isUpgrade || isPilot);
+        Contract.assertTrue(context.source.canBeInPlay());
 
         const events = [
             new AttachUpgradeSystem({
-                upgrade: context.source as IUpgradeCard,
+                upgrade: context.source,
                 target: context.target,
                 newController: RelativePlayer.Self
             }).generateEvent(context),

@@ -7,11 +7,10 @@ import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constan
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import type { IUpgradeCard } from '../core/card/CardInterfaces';
-import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
+import type { IInPlayCard, InPlayCard } from '../core/card/baseClasses/InPlayCard';
 
 export interface IAttachUpgradeProperties extends ICardTargetSystemProperties {
-    upgrade?: IUpgradeCard;
+    upgrade?: IInPlayCard;
     newController?: RelativePlayer;
 }
 

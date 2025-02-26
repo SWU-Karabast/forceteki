@@ -3,7 +3,7 @@ import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
-import type { IPilotingCardActionProperties, IPlayCardActionProperties, IPlayCardActionPropertiesBase, ISmuggleCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
+import type { IAlternatePlayActionProperties, IPlayCardActionProperties, IPlayCardActionPropertiesBase, PlayCardAction } from '../../ability/PlayCardAction';
 import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
@@ -14,7 +14,6 @@ import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
 import { Card } from '../Card';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
-import type { IUnitCard } from '../propertyMixins/UnitProperties';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
@@ -60,9 +59,6 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
  */
 export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
     private _exhausted?: boolean = null;
-    protected _parentCard?: IUnitCard = null;
-
-    protected attachCondition: (card: Card) => boolean;
 
     public get exhausted(): boolean {
         this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
@@ -72,15 +68,6 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     public set exhausted(val: boolean) {
         this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         this._exhausted = val;
-    }
-
-    /** The card that this card is underneath */
-    public get parentCard(): IUnitCard {
-        Contract.assertNotNullLike(this._parentCard);
-        // TODO: move IsInPlay to be usable here
-        // Contract.assertTrue(this.isInPlay());
-
-        return this._parentCard;
     }
 
     // see Card constructor for list of expected args
@@ -148,11 +135,11 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         let defaultPlayAction: PlayCardAction = null;
         if (playType === PlayType.Piloting) {
             if (this.hasSomeKeyword(KeywordName.Piloting)) {
-                defaultPlayAction = this.buildCheapestPilotingAction(propertyOverrides);
+                defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Piloting, playType);
             }
         } else if (playType === PlayType.Smuggle) {
             if (this.hasSomeKeyword(KeywordName.Smuggle)) {
-                defaultPlayAction = this.buildCheapestSmuggleAction(propertyOverridesWithExploit);
+                defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Smuggle, playType);
             }
         } else {
             defaultPlayAction = this.buildPlayCardAction({ ...propertyOverridesWithExploit, playType });
@@ -168,47 +155,26 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         return actions;
     }
 
-    // TODO: Simplify this if it turns out there are no alternative ways to gain a Piloting cost
-    protected buildCheapestPilotingAction(propertyOverrides: IPlayCardActionOverrides = null) {
-        Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+    /** This will calculate the cheapest possible play action for alternate play costs such as Smuggle or Piloting */
+    protected buildCheapestAlternatePlayAction(propertyOverrides: IPlayCardActionOverrides = null, keyword: KeywordName, playType: PlayType) {
+        Contract.assertTrue(this.hasSomeKeyword(keyword));
 
-        // find all Piloting keywords, filtering out any with additional ability costs as those will be implemented manually
-        const pilotingKeywords = this.getKeywordsWithCostValues(KeywordName.Piloting)
+        // find all keywords, filtering out any with additional ability costs as those will be implemented manually (e.g. First Light)
+        const keywords = this.getKeywordsWithCostValues(keyword)
             .filter((keyword) => !keyword.additionalCosts);
 
-        const pilotingActions = pilotingKeywords.map((pilotingKeyword) => {
-            const pilotingActionProps: IPilotingCardActionProperties = {
+        const alternatePlayActions = keywords.map((keywordWithCostValue) => {
+            const alternateActionProps: IAlternatePlayActionProperties = {
                 ...propertyOverrides,
-                playType: PlayType.Piloting,
-                alternatePlayActionResourceCost: pilotingKeyword.cost,
-                alternatePlayActionAspects: pilotingKeyword.aspects
+                playType: playType,
+                alternatePlayActionResourceCost: keywordWithCostValue.cost,
+                alternatePlayActionAspects: keywordWithCostValue.aspects
             };
 
-            return this.buildPlayCardAction(pilotingActionProps);
+            return this.buildPlayCardAction(alternateActionProps);
         });
 
-        return KeywordHelpers.getCheapestPlayAction(PlayType.Piloting, pilotingActions);
-    }
-
-    protected buildCheapestSmuggleAction(propertyOverrides: IPlayCardActionOverrides = null) {
-        Contract.assertTrue(this.hasSomeKeyword(KeywordName.Smuggle));
-
-        // find all Smuggle keywords, filtering out any with additional ability costs as those will be implemented manually (e.g. First Light)
-        const smuggleKeywords = this.getKeywordsWithCostValues(KeywordName.Smuggle)
-            .filter((keyword) => !keyword.additionalCosts);
-
-        const smuggleActions = smuggleKeywords.map((smuggleKeyword) => {
-            const smuggleActionProps: ISmuggleCardActionProperties = {
-                ...propertyOverrides,
-                playType: PlayType.Smuggle,
-                alternatePlayActionResourceCost: smuggleKeyword.cost,
-                alternatePlayActionAspects: smuggleKeyword.aspects
-            };
-
-            return this.buildPlayCardAction(smuggleActionProps);
-        });
-
-        return KeywordHelpers.getCheapestPlayAction(PlayType.Smuggle, smuggleActions);
+        return KeywordHelpers.getCheapestPlayAction(playType, alternatePlayActions);
     }
 
     // can't do abstract due to mixins
@@ -232,8 +198,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     public override getSummary(activePlayer: Player) {
         return { ...super.getSummary(activePlayer),
-            exhausted: this._exhausted,
-            parentCardId: this._parentCard ? this._parentCard.uuid : null };
+            exhausted: this._exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {

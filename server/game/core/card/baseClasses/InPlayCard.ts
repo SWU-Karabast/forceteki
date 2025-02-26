@@ -26,6 +26,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get disableOngoingEffectsForDefeat(): boolean;
     get inPlayId(): number;
     get mostRecentInPlayId(): number;
+    get parentCard(): IUnitCard;
     get pendingDefeat(): boolean;
     isInPlay(): boolean;
     addGainedActionAbility(properties: IActionAbilityProps): string;
@@ -38,6 +39,10 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
     registerPendingUniqueDefeat();
     checkUnique();
+    attachTo(newParentCard: IUnitCard, newController?: Player);
+    isAttached(): boolean;
+    unattach();
+    canAttach(targetCard: Card, controller?: Player): boolean;
 }
 
 /**
@@ -52,9 +57,11 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
 export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     protected _disableOngoingEffectsForDefeat?: boolean = null;
     protected _mostRecentInPlayId = -1;
+    protected _parentCard?: IUnitCard = null;
     protected _pendingDefeat?: boolean = null;
     // protected triggeredAbilities: TriggeredAbility[] = [];
 
+    protected attachCondition: (card: Card) => boolean;
 
     /**
      * If true, then this card's ongoing effects are disabled in preparation for it to be defeated (usually due to unique rule).
@@ -88,6 +95,15 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         );
 
         return this._mostRecentInPlayId;
+    }
+
+    /** The card that this card is underneath */
+    public get parentCard(): IUnitCard {
+        Contract.assertNotNullLike(this._parentCard);
+        // TODO: move IsInPlay to be usable here
+        Contract.assertTrue(this.isInPlay());
+
+        return this._parentCard;
     }
 
     /**
@@ -181,6 +197,11 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         }
 
         return true;
+    }
+
+    public override getSummary(activePlayer: Player) {
+        return { ...super.getSummary(activePlayer),
+            parentCardId: this._parentCard ? this._parentCard.uuid : null };
     }
 
     // ********************************************* ABILITY SETUP *********************************************

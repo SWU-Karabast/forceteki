@@ -31,7 +31,7 @@ interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
     playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay;
 }
 
-interface IAlternatePlayActionProperties extends IPlayCardActionPropertiesBase {
+export interface IAlternatePlayActionProperties extends IPlayCardActionPropertiesBase {
     alternatePlayActionResourceCost: number;
     alternatePlayActionAspects: Aspect[];
     appendAlternatePlayActionKeywordToTitle?: boolean;
