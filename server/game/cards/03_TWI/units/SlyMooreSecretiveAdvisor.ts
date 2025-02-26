@@ -18,7 +18,7 @@ export default class SlyMooreSecretiveAdvisor extends NonLeaderUnitCard {
                 controller: RelativePlayer.Opponent,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
-                        newController: context.source.controller
+                        newController: context.player
                     })),
                     AbilityHelper.immediateEffects.ready((context) => ({
                         target: context.target
@@ -37,5 +37,3 @@ export default class SlyMooreSecretiveAdvisor extends NonLeaderUnitCard {
         });
     }
 }
-
-SlyMooreSecretiveAdvisor.implemented = true;

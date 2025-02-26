@@ -2,7 +2,7 @@ describe('Look the Other Way', function () {
     integration(function (contextRef) {
         describe('Look the Other Way\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['look-the-other-way'],
@@ -70,7 +70,7 @@ describe('Look the Other Way', function () {
 
         describe('Look the Other Way\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['look-the-other-way'],

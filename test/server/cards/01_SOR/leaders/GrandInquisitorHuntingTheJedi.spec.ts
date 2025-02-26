@@ -1,8 +1,8 @@
 describe('Grand Inquisitor, Hunting the Jedi', function() {
     integration(function(contextRef) {
         describe('Grand Inquisitor\'s leader undeployed ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-star-stormtrooper', 'scout-bike-pursuer', 'wampa'],
@@ -54,8 +54,8 @@ describe('Grand Inquisitor, Hunting the Jedi', function() {
         });
 
         describe('Grand Inquisitor\'s leader deployed ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-star-stormtrooper', 'scout-bike-pursuer', 'wampa'],

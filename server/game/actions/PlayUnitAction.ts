@@ -1,4 +1,4 @@
-import { AbilityRestriction, EffectName, PlayType, RelativePlayer } from '../core/Constants.js';
+import { AbilityRestriction, PlayType } from '../core/Constants.js';
 import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
@@ -29,14 +29,11 @@ export class PlayUnitAction extends PlayCardAction {
             context.source,
         );
 
-        // TODO TAKE CONTROL
-        const playForOpponentEffect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
-        const player = playForOpponentEffect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
 
         const events = [
             new PutIntoPlaySystem({
                 target: context.source,
-                controller: player,
+                controller: context.player,
                 entersReady: this.entersReady
             }).generateEvent(context),
             this.generateOnPlayEvent(context)

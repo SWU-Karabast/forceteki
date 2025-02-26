@@ -1,7 +1,7 @@
 describe('Captain Rex, Fighting for his Brothers', function () {
     integration(function (contextRef) {
-        beforeEach(function () {
-            contextRef.setupTest({
+        beforeEach(async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'captain-rex#fighting-for-his-brothers',

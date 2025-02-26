@@ -21,5 +21,3 @@ export default class MonMothmaVoiceoftheRebellion extends NonLeaderUnitCard {
         });
     }
 }
-
-MonMothmaVoiceoftheRebellion.implemented = true;

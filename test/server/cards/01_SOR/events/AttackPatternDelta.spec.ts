@@ -3,8 +3,8 @@ describe('Attack Pattern Delta', function() {
         describe('Attack Pattern Delta\'s ability', function() {
             it(
                 'should give a friendly unit +3/+3 for this phase, then give another friendly unit +2/+2 for this phase, the give a third friendly unit +1/+1 for this phase.',
-                function () {
-                    contextRef.setupTest({
+                async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['attack-pattern-delta'],
@@ -76,8 +76,8 @@ describe('Attack Pattern Delta', function() {
 
             it(
                 'should only give a friendly unit +3/+3 for this phase, then give another friendly unit +2/+2 for this phase when there are only 2 valid targets',
-                function () {
-                    contextRef.setupTest({
+                async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['attack-pattern-delta'],
@@ -105,8 +105,8 @@ describe('Attack Pattern Delta', function() {
 
             it(
                 'should only give a friendly unit +3/+3 for this phase when there is only 1 valid target',
-                function () {
-                    contextRef.setupTest({
+                async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['attack-pattern-delta'],

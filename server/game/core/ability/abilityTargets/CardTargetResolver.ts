@@ -97,7 +97,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         let choosingFromHidden = false;
         const choosingPlayer = typeof this.properties.choosingPlayer === 'function' ? this.properties.choosingPlayer(context) : this.properties.choosingPlayer;
         const zones = new Set<ZoneName>(legalTargets.map((card) => card.zoneName));
-        if ((!!this.properties.cardTypeFilter || !!this.properties.cardCondition) && CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)) {
+        if (!(this.properties.ignoreHiddenZoneRule ?? false) && (!!this.properties.cardTypeFilter || !!this.properties.cardCondition) && CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)) {
             this.properties.optional = true;
             this.selector.optional = true;
             this.selector.appendToDefaultTitle = CardTargetResolver.choosingFromHiddenPrompt;

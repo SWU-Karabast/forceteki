@@ -2,7 +2,7 @@ describe('Smoke and Cinders', function() {
     integration(function(contextRef) {
         describe('Smoke and Cinders\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['smoke-and-cinders', 'forced-surrender', 'yoda#old-master'],

@@ -1,7 +1,7 @@
 describe('Encouraging Leadership', function () {
     integration(function (contextRef) {
-        it('should give +1/+1 for this phase to allies when played', function () {
-            contextRef.setupTest({
+        it('should give +1/+1 for this phase to allies when played', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['wampa', 'encouraging-leadership'],

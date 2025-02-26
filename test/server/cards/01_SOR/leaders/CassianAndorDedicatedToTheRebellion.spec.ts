@@ -1,8 +1,8 @@
 describe('Cassian Andor, Dedicated to the Rebellion', function() {
     integration(function(contextRef) {
         describe('Cassian Andor\'s leader ability', function() {
-            it('should draw a card aftering dealing 3 damage to an enemy base with an attack', function() {
-                contextRef.setupTest({
+            it('should draw a card aftering dealing 3 damage to an enemy base with an attack', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['daring-raid', 'daring-raid'],
@@ -71,8 +71,8 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
         });
 
         describe('Cassian Andor\'s leader unit ability', function() {
-            it('should draw a card when you deal damage to an enemy base, but only once a round', function() {
-                contextRef.setupTest({
+            it('should draw a card when you deal damage to an enemy base, but only once a round', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         deck: ['k2so#cassians-counterpart', 'red-three#unstoppable'],

@@ -16,5 +16,3 @@ export default class DroidCohort extends UpgradeCard {
         });
     }
 }
-
-DroidCohort.implemented = true;

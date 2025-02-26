@@ -1,11 +1,11 @@
-import type { TokenOrPlayableCard } from '../card/CardTypes';
 import { ZoneName, RelativePlayer, KeywordName } from '../Constants';
 import type Player from '../Player';
 import { SimpleZone } from './SimpleZone';
 import * as Helpers from '../utils/Helpers.js';
 import type { AbilityContext } from '../ability/AbilityContext';
+import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 
-export class ResourceZone extends SimpleZone<TokenOrPlayableCard> {
+export class ResourceZone extends SimpleZone<IPlayableCard> {
     public override readonly hiddenForPlayers: RelativePlayer.Opponent;
     public override readonly name: ZoneName.Resource;
 

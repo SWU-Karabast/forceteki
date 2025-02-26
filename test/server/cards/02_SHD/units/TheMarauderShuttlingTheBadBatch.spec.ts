@@ -1,8 +1,8 @@
 describe('The Marauder, Shuttling The Bad Batch', function () {
     integration(function (contextRef) {
         describe('The Marauder\'s ability', function () {
-            it('can heal a target unit for the amount of damage it has', function () {
-                contextRef.setupTest({
+            it('can heal a target unit for the amount of damage it has', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-marauder#shuttling-the-bad-batch'],

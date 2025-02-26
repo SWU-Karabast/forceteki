@@ -1,7 +1,7 @@
 describe('501st Liberator', function() {
     integration(function(contextRef) {
-        it('501st Liberator\'s when played ability should restore 3 from base, if a friendly republic unit is in play', function () {
-            contextRef.setupTest({
+        it('501st Liberator\'s when played ability should restore 3 from base, if a friendly republic unit is in play', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['mace-windu#party-crasher'],

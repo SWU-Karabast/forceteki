@@ -36,7 +36,7 @@ export default class AFineAddition extends EventCard {
             targetResolver: {
                 cardTypeFilter: CardType.BasicUpgrade,
                 zoneFilter: [ZoneName.Discard, ZoneName.Hand],
-                cardCondition: (card, context) => this.wasEnemyUnitDefeatedThisPhaseForPlayer(context.source.controller.opponent) && this.checkZoneAndOwnershipOfCard(card, context.source.controller),
+                cardCondition: (card, context) => this.wasEnemyUnitDefeatedThisPhaseForPlayer(context.player.opponent) && this.checkZoneAndOwnershipOfCard(card, context.player),
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.target.zoneName === ZoneName.Discard,
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
@@ -52,4 +52,3 @@ export default class AFineAddition extends EventCard {
     }
 }
 
-AFineAddition.implemented = true;

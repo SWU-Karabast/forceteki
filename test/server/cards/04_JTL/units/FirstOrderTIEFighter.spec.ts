@@ -1,7 +1,7 @@
 describe('First Order TIE Fighter', function () {
     integration(function (contextRef) {
-        it('First Order TIE Fighter\'s ability should give RAID 1 to itself, if control a token unit', function () {
-            contextRef.setupTest({
+        it('First Order TIE Fighter\'s ability should give RAID 1 to itself, if control a token unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battle-droid', 'poggle-the-lesser#archduke-of-the-stalgasin-hive'],

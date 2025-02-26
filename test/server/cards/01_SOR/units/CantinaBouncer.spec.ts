@@ -1,8 +1,8 @@
 describe('Cantina Bouncer', function() {
     integration(function(contextRef) {
         describe('Cantina Bouncer\'s ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['cantina-bouncer'],

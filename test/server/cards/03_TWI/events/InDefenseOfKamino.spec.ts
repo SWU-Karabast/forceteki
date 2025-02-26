@@ -1,7 +1,7 @@
 describe('In Defense of Kamino', function () {
     integration(function (contextRef) {
-        it('In Defense of Kamino\'s ability should give each friendly Republic unit Restore 2 and: "When Defeated: Create a Clone Trooper token."', function () {
-            contextRef.setupTest({
+        it('In Defense of Kamino\'s ability should give each friendly Republic unit Restore 2 and: "When Defeated: Create a Clone Trooper token."', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     base: { card: 'echo-base', damage: 5 },

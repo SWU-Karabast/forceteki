@@ -1,8 +1,8 @@
 describe('Maul, Shadow Collective Visionary', function() {
     integration(function(contextRef) {
         describe('Maul\'s on attack ability', function() {
-            it('redirects combat damage to another friendly Underworld unit', function () {
-                contextRef.setupTest({
+            it('redirects combat damage to another friendly Underworld unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['heroic-sacrifice'],
@@ -161,8 +161,8 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.mercenaryCompany.damage).toBe(4);
             });
 
-            it('redirects combat damage to another friendly Underworld unit, handling shields correctly', function () {
-                contextRef.setupTest({
+            it('redirects combat damage to another friendly Underworld unit, handling shields and damage attribution correctly', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -171,7 +171,8 @@ describe('Maul, Shadow Collective Visionary', function() {
                         ]
                     },
                     player2: {
-                        groundArena: ['luminara-unduli#softspoken-master']
+                        groundArena: ['luminara-unduli#softspoken-master'],
+                        leader: 'jango-fett#concealing-the-conspiracy'
                     }
                 });
 
@@ -221,9 +222,56 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.maul.isUpgraded()).toBeFalse();
                 expect(context.luminaraUnduli.damage).toBe(7);
                 expect(context.mercenaryCompany.damage).toBe(0);
+
+                // CASE 3: Deflect damage to Mercenary Company, opponent is able to exhaust Mercenary Company with Jango Fett's ability
+
+                context.moveToNextActionPhase();
+
+                context.player1.clickCard(context.maul);
+                context.player1.clickCard(context.luminaraUnduli);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.mercenaryCompany]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.mercenaryCompany);
+
+                // Resolve Jango's ability
+                expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player2.clickPrompt('Exhaust this leader');
+
+                expect(context.mercenaryCompany.exhausted).toBeTrue();
+                expect(context.mercenaryCompany.damage).toBe(4);
+                expect(context.maul.damage).toBe(0);
+            });
+            // GitLab issue 619 (https://github.com/SWU-Karabast/forceteki/issues/619)
+            it('sends overwhelm damage to enemy base when ambush defeats a unit and there are multiple on-attack triggers', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['colonel-yularen#isb-director'],
+                        hand: ['maul#shadow-collective-visionary']
+                    },
+                    player2: {
+                        groundArena: ['colonel-yularen#isb-director'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const p2Yularen = context.player2.findCardByName('colonel-yularen#isb-director');
+
+                context.player1.clickCard(context.maul);
+                context.player1.clickPrompt('Heal 1 damage from your base'); // select yularen's heal on base
+
+                // Select opponents Yularen to be ambushed
+                context.player1.clickPrompt('Ambush');
+                context.player1.clickCard(p2Yularen);
+
+                expect(p2Yularen).toBeInZone('discard');
+                expect(context.maul.damage).toBe(2);
+
+                // Overwhelm damage should be on base
+                expect(context.p2Base.damage).toBe(4);
             });
         });
     });
-
-    // TODO: test with Jango leader for attribution
 });

@@ -15,7 +15,7 @@ export default class SalaciousCrumbObnoxiousPet extends NonLeaderUnitCard {
             title: 'Heal 1 damage from your base',
             immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
                 amount: 1,
-                target: context.source.controller.base
+                target: context.player.base
             }))
         });
 

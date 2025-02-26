@@ -1,8 +1,8 @@
 describe('Moff Gideon, Formidable Commander', function() {
     integration(function(contextRef) {
         describe('Moff Gideon, Formidable Commander\'s undeployed leader ability', function() {
-            it('should attack with a unit that costs 3 or less and it gains +1/+0', function() {
-                contextRef.setupTest({
+            it('should attack with a unit that costs 3 or less and it gains +1/+0', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['droid-commando', 'generals-guardian'],
@@ -38,8 +38,8 @@ describe('Moff Gideon, Formidable Commander', function() {
         });
 
         describe('Moff Gideon, Formidable Commander\'s leader deployed ability', function() {
-            it('should give Overwhelm to friendly unit that costs 3 or less when attacking a unit', function() {
-                contextRef.setupTest({
+            it('should give Overwhelm to friendly unit that costs 3 or less when attacking a unit', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-star-stormtrooper', 'zuckuss#bounty-hunter-for-hire', 'super-battle-droid', 'greedo#slow-on-the-draw'],

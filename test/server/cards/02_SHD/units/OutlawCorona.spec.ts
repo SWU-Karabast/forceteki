@@ -2,7 +2,7 @@ describe('Outlaw Corona', function() {
     integration(function(contextRef) {
         describe('Outlaw Corona\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['outlaw-corona'],

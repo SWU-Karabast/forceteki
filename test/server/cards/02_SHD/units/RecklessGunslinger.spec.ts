@@ -2,7 +2,7 @@ describe('Reckless Gunslinger', function () {
     integration(function (contextRef) {
         describe('Reckless Gunslinger\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reckless-gunslinger']

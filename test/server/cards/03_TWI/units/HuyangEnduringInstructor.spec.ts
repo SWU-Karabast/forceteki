@@ -1,7 +1,7 @@
 describe('Huyang, Enduring Instructor', function() {
     integration(function(contextRef) {
-        it('Huyang\'s ability gives another friendly unit +2/+2 until he leaves play', function () {
-            contextRef.setupTest({
+        it('Huyang\'s ability gives another friendly unit +2/+2 until he leaves play', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['huyang#enduring-instructor'],

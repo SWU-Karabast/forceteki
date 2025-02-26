@@ -1,7 +1,7 @@
 describe('Trade Federation Shuttle', function() {
     integration(function(contextRef) {
-        it('should create a Battle droid if there is a damaged friendly unit', function () {
-            contextRef.setupTest({
+        it('should create a Battle droid if there is a damaged friendly unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['trade-federation-shuttle'],

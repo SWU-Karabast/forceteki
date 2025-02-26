@@ -2,8 +2,8 @@
 describe('Anakin Skywalker, What It Takes To Win', function () {
     integration(function (contextRef) {
         describe('Anakin\'s undeployed ability', function () {
-            it('should deal 2 damage to his base and initiate an attack. The attacker should only get +2 attack if attacking a unit', function () {
-                contextRef.setupTest({
+            it('should deal 2 damage to his base and initiate an attack. The attacker should only get +2 attack if attacking a unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'anakin-skywalker#what-it-takes-to-win',
@@ -37,8 +37,8 @@ describe('Anakin Skywalker, What It Takes To Win', function () {
                 expect(context.p2Base.damage).toBe(4);
             });
 
-            it('should deal 2 damage to his base and lose the game before attack resolves that would heal base', function () {
-                contextRef.setupTest({
+            it('should deal 2 damage to his base and lose the game before attack resolves that would heal base', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'anakin-skywalker#what-it-takes-to-win',
@@ -64,8 +64,8 @@ describe('Anakin Skywalker, What It Takes To Win', function () {
         });
 
         describe('Anakin\'s deployed ability', function () {
-            it('Anakin gains attack and does Overwhelm damage', function () {
-                contextRef.setupTest({
+            it('Anakin gains attack and does Overwhelm damage', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'anakin-skywalker#what-it-takes-to-win', deployed: true },
@@ -97,8 +97,8 @@ describe('Anakin Skywalker, What It Takes To Win', function () {
                 expect(context.p2Base.damage).toBe(6);
             });
 
-            it('when the defender is defeated before damage resolution, all of Anakin\'s power should go to P2 Base', function () {
-                contextRef.setupTest({
+            it('when the defender is defeated before damage resolution, all of Anakin\'s power should go to P2 Base', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'anakin-skywalker#what-it-takes-to-win', deployed: true, upgrades: ['jedi-lightsaber'] },

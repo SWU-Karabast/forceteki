@@ -1,10 +1,8 @@
 import type Player from '../Player';
-import { LeaderCard } from './LeaderCard';
 import type { ZoneFilter } from '../Constants';
 import { AbilityType, CardType, ZoneName } from '../Constants';
-import { WithCost } from './propertyMixins/Cost';
+import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
-import type { UnitCard } from './CardTypes';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, IAbilityPropsWithType } from '../../Interfaces';
 import * as Helpers from '../utils/Helpers';
@@ -12,10 +10,23 @@ import * as Contract from '../utils/Contract';
 import { EpicActionLimit } from '../ability/AbilityLimit';
 import { DeployLeaderSystem } from '../../gameSystems/DeployLeaderSystem';
 import type { ActionAbility } from '../ability/ActionAbility';
+import type { ILeaderCard } from './propertyMixins/LeaderProperties';
+import { WithLeaderProperties } from './propertyMixins/LeaderProperties';
+import { InPlayCard } from './baseClasses/InPlayCard';
 
-const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
+const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
-export class LeaderUnitCard extends LeaderUnitCardParent {
+/** Represents a deployable leader in an undeployed state */
+export interface IDeployableLeaderCard extends ILeaderCard {
+    get deployed(): boolean;
+    deploy(): void;
+    undeploy(): void;
+}
+
+/** Represents a deployable leader in a deployed state (i.e., is also a unit) */
+export interface ILeaderUnitCard extends IDeployableLeaderCard, IUnitCard {}
+
+export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitCard {
     protected _deployed = false;
     protected setupLeaderUnitSide;
     private readonly epicActionAbility: ActionAbility;
@@ -38,21 +49,21 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         this.epicActionAbility = this.addActionAbility({
             title: `Deploy ${this.title}`,
             limit: new EpicActionLimit(),
-            condition: (context) => context.source.controller.resources.length >= context.source.cost,
+            condition: (context) => context.player.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
             immediateEffect: new DeployLeaderSystem({})
         });
     }
 
-    public override isUnit(): this is UnitCard {
+    public override isUnit(): this is IUnitCard {
         return this._deployed;
     }
 
-    public override isDeployableLeader(): this is LeaderUnitCard {
+    public override isDeployableLeader(): this is IDeployableLeaderCard {
         return true;
     }
 
-    public override isLeaderUnit(): this is LeaderUnitCard {
+    public override isLeaderUnit(): this is ILeaderUnitCard {
         return this._deployed;
     }
 

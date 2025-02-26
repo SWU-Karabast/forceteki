@@ -2,7 +2,7 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
     integration(function (contextRef) {
         describe('Fett\'s Firespray\'s When Played ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['fetts-firespray#pursuing-the-bounty'],
@@ -33,7 +33,7 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
 
         describe('Fett\'s Firespray\'s When Played ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['fetts-firespray#pursuing-the-bounty'],
@@ -64,7 +64,7 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
 
         describe('Fett\'s Firespray\'s When Played ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['fetts-firespray#pursuing-the-bounty'],
@@ -90,7 +90,7 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
 
         describe('Fett\'s Firespray\'s When Played ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['fetts-firespray#pursuing-the-bounty'],
@@ -117,7 +117,7 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
 
         describe('Fett\'s Firespray\'s When Played ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['fetts-firespray#pursuing-the-bounty'],
@@ -144,7 +144,7 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
 
         describe('Fett\'s Firespray\'s action ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['jango-fett#renowned-bounty-hunter', 'scout-bike-pursuer'],
@@ -191,7 +191,7 @@ describe('Fett\'s Firespray, Pursuing The Bounty', function () {
 
         describe('Fett\'s Firespray\'s action ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: [{ card: 'fetts-firespray#pursuing-the-bounty', exhausted: true }],

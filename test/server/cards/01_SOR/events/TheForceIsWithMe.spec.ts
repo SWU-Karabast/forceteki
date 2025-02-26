@@ -2,7 +2,7 @@ describe('The Force is With Me', function() {
     integration(function(contextRef) {
         describe('The Force is With Me\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-force-is-with-me'],
@@ -36,7 +36,7 @@ describe('The Force is With Me', function() {
 
         describe('The Force is With Me\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-force-is-with-me'],
@@ -80,7 +80,7 @@ describe('The Force is With Me', function() {
 
         describe('The Force is With Me\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-force-is-with-me'],

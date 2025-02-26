@@ -31,4 +31,3 @@ export default class ObiWansAetherspriteThisIsWhyIHateFlying extends NonLeaderUn
     }
 }
 
-ObiWansAetherspriteThisIsWhyIHateFlying.implemented = true;

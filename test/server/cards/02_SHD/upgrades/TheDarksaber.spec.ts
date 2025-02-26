@@ -2,7 +2,7 @@ describe('The Darksaber', function() {
     integration(function(contextRef) {
         describe('The Darksaber\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['the-darksaber'] }, 'supercommando-squad', 'clan-wren-rescuer', 'pyke-sentinel'],
@@ -39,7 +39,7 @@ describe('The Darksaber', function() {
 
         describe('The Darksaber\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-darksaber'],

@@ -1,7 +1,7 @@
 describe('Pre Vizsla, Pursuing the Throne', function () {
     integration(function (contextRef) {
-        it('Pre Vizsla\'s leader undeployed ability should deal damage to a unit equal to the number of cards drawn this phase', function () {
-            contextRef.setupTest({
+        it('Pre Vizsla\'s leader undeployed ability should deal damage to a unit equal to the number of cards drawn this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['mission-briefing', 'search-your-feelings'],
@@ -52,8 +52,8 @@ describe('Pre Vizsla, Pursuing the Throne', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Pre Vizsla\'s leader deployed abilityshould have Saboteur while we have 3 cards or more in hand and +2/+0 while we have 6 cards or more in hand', function () {
-            contextRef.setupTest({
+        it('Pre Vizsla\'s leader deployed abilityshould have Saboteur while we have 3 cards or more in hand and +2/+0 while we have 6 cards or more in hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['b1-security-team', 'battlefield-marine'],

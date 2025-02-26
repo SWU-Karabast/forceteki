@@ -2,7 +2,7 @@ describe('Fallen Lightsaber', function() {
     integration(function(contextRef) {
         describe('Fallen Lightsaber\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'guardian-of-the-whills', upgrades: ['fallen-lightsaber'] }, 'battlefield-marine'],
@@ -52,7 +52,7 @@ describe('Fallen Lightsaber', function() {
 
         describe('Fallen Lightsaber\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['fallen-lightsaber'] }, 'atst'],
@@ -85,7 +85,7 @@ describe('Fallen Lightsaber', function() {
 
         describe('Fallen Lightsaber', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['fallen-lightsaber'],

@@ -1,7 +1,7 @@
 describe('Planetary Invasion', function () {
     integration(function (contextRef) {
-        it('Planetary Invasion\'s ability should ready and give +1/+0 and Overwhelm (for the phase) to up to 3 units', function () {
-            contextRef.setupTest({
+        it('Planetary Invasion\'s ability should ready and give +1/+0 and Overwhelm (for the phase) to up to 3 units', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['planetary-invasion'],
@@ -19,7 +19,7 @@ describe('Planetary Invasion', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.planetaryInvasion);
-            context.player1.clickPrompt('Play Planetary Invasion');
+            context.player1.clickPrompt('Play without Exploit');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.battlefieldMarine,
                 context.wampa,

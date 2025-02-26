@@ -1,8 +1,8 @@
 describe('Gideon\'s Light Cruiser, Dark Troopers\' Station', function () {
     integration(function (contextRef) {
         describe('Gideon\'s Light Cruiser\'s ability', function () {
-            it('should not play a villainy unit from hand or discard as we do not control moff gideon', function () {
-                contextRef.setupTest({
+            it('should not play a villainy unit from hand or discard as we do not control moff gideon', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['gideons-light-cruiser#dark-troopers-station', 'scout-bike-pursuer'],
@@ -25,8 +25,8 @@ describe('Gideon\'s Light Cruiser, Dark Troopers\' Station', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should play a villainy unit from hand or discard as we control moff gideon (as leader)', function () {
-                contextRef.setupTest({
+            it('should play a villainy unit from hand or discard as we control moff gideon (as leader)', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['gideons-light-cruiser#dark-troopers-station', 'scout-bike-pursuer'],
@@ -70,8 +70,8 @@ describe('Gideon\'s Light Cruiser, Dark Troopers\' Station', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(16);
             });
 
-            it('should play a villainy unit from hand or discard as we control moff gideon (as unit)', function () {
-                contextRef.setupTest({
+            it('should play a villainy unit from hand or discard as we control moff gideon (as unit)', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['gideons-light-cruiser#dark-troopers-station', 'scout-bike-pursuer'],

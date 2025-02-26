@@ -1,8 +1,8 @@
 describe('Corner The Prey', function () {
     integration(function (contextRef) {
         describe('Corner The Prey\'s ability -', function () {
-            it('should attack with a unit getting +1 power for each damage on the defender before the attack', function () {
-                contextRef.setupTest({
+            it('should attack with a unit getting +1 power for each damage on the defender before the attack', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['corner-the-prey'],
@@ -36,8 +36,8 @@ describe('Corner The Prey', function () {
                 expect(context.consularSecurityForce.damage).toBe(9);
             });
 
-            it('should attack with a unit getting +0/+0 while attacking a unit with 0 damage', function () {
-                contextRef.setupTest({
+            it('should attack with a unit getting +0/+0 while attacking a unit with 0 damage', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['corner-the-prey', 'corner-the-prey'],

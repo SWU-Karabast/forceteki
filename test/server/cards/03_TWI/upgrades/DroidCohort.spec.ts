@@ -2,7 +2,7 @@ describe('Droid Cohort', function() {
     integration(function(contextRef) {
         describe('Droid Cohort\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['coruscant-guard']

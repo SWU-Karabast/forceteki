@@ -63,7 +63,7 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
     public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        let queueGenerateEventGameStepsFn: (gameSystem: GameSystem<TContext>) => void;
+        let queueGenerateEventGameStepsFn: (gameSystem: GameSystem<TContext>) => () => void;
         let generateStepName: (gameSystem: GameSystem<TContext>) => string;
 
         if (properties.ignoreTargetingRequirements) {

@@ -3,8 +3,8 @@ describe('Bounty hunter\'s quarry', function () {
         describe('Bounty hunter\'s quarry bounty ability', function () {
             const prompt = 'Collect Bounty: Search the top 5 cards of your deck, or 10 cards instead if this unit is unique, for a unit that costs 3 or less and play it for free.';
 
-            it('should prompt to choose a unit with a cost of 3 or less from the top 5 cards or top 10 cards (if unit is unique) and play it for free', function () {
-                contextRef.setupTest({
+            it('should prompt to choose a unit with a cost of 3 or less from the top 5 cards or top 10 cards (if unit is unique) and play it for free', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['scout-bike-pursuer', 'atst'],

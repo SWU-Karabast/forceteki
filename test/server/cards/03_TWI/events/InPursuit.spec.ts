@@ -1,8 +1,8 @@
 describe('In Pursuit', function() {
     integration(function(contextRef) {
         describe('In Pursuit\'s ability', function() {
-            it('should exhaust an enemy unit if you exhaust a friendly unit', function () {
-                contextRef.setupTest({
+            it('should exhaust an enemy unit if you exhaust a friendly unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['in-pursuit'],
@@ -28,8 +28,8 @@ describe('In Pursuit', function() {
                 expect(context.infernoFour.exhausted).toBe(true);
             });
 
-            it('should not exhaust an enemy unit if you select an already exhausted friendly unit', function () {
-                contextRef.setupTest({
+            it('should not exhaust an enemy unit if you select an already exhausted friendly unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['in-pursuit'],
@@ -51,8 +51,8 @@ describe('In Pursuit', function() {
                 expect(context.infernoFour.exhausted).toBe(false);
             });
 
-            it('should not exhaust an enemy unit if you can not exhaust a friendly unit', function () {
-                contextRef.setupTest({
+            it('should not exhaust an enemy unit if you can not exhaust a friendly unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['in-pursuit'],

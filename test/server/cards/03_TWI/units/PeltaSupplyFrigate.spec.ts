@@ -1,7 +1,7 @@
 describe('Pelta Supply Frigate', function() {
     integration(function(contextRef) {
-        it('Pelta Supply Frigate\'s ability should create a Clone Trooper token when Coordinate is active', function () {
-            contextRef.setupTest({
+        it('Pelta Supply Frigate\'s ability should create a Clone Trooper token when Coordinate is active', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['pelta-supply-frigate'],

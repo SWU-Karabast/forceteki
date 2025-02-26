@@ -1,8 +1,8 @@
 describe('Cartel Turncoat', function() {
     integration(function(contextRef) {
         describe('Cartel Turncoat\'s Bounty ability', function() {
-            it('should draw a card', function () {
-                contextRef.setupTest({
+            it('should draw a card', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['cartel-turncoat']

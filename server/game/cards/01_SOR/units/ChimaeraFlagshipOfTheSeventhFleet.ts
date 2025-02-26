@@ -4,8 +4,6 @@ import { TargetMode } from '../../../core/Constants';
 
 
 export default class ChimaeraFlagshipOfTheSeventhFleet extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '7728042035',
@@ -19,15 +17,18 @@ export default class ChimaeraFlagshipOfTheSeventhFleet extends NonLeaderUnitCard
             targetResolver: {
                 mode: TargetMode.DropdownList,
                 options: this.game.playableCardTitles,
-                condition: (context) => context.source.controller.opponent.hand.length > 0   // skip ability if opponent has no cards in hand
+                condition: (context) => context.player.opponent.hand.length > 0   // skip ability if opponent has no cards in hand
             },
             then: (thenContext) => ({
                 title: 'An opponent reveals their hand and discards a card with that name from it',
-                thenCondition: (context) => context.source.controller.opponent.hand.length > 0,   // skip ability if opponent has no cards in hand
+                thenCondition: (context) => context.player.opponent.hand.length > 0,   // skip ability if opponent has no cards in hand
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.reveal((context) => ({ target: context.source.controller.opponent.hand })),
+                    AbilityHelper.immediateEffects.reveal((context) => ({
+                        target: context.player.opponent.hand,
+                        useDisplayPrompt: true
+                    })),
                     AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
-                        target: context.source.controller.opponent,
+                        target: context.player.opponent,
                         cardCondition: (card, _context) => card.title === thenContext.select,
                         amount: 1
                     }))

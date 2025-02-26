@@ -2,7 +2,7 @@ describe('Distant Patroller', function () {
     integration(function (contextRef) {
         describe('Distant Patroller\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-trooper'],

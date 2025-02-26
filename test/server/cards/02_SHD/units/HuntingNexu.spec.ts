@@ -2,7 +2,7 @@ describe('Hunting Nexu', function() {
     integration(function(contextRef) {
         describe('Hunting Nexu\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['hunting-nexu'],
@@ -25,7 +25,7 @@ describe('Hunting Nexu', function() {
 
         describe('Hunting Nexu\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['hunting-nexu'],

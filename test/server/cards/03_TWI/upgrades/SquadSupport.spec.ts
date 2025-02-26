@@ -2,8 +2,8 @@
 describe('Squad Support', function() {
     integration(function(contextRef) {
         describe('Squad Support\'s ability', function() {
-            it('should give +1/+1 to the attached unit for each Trooper you control', function () {
-                contextRef.setupTest({
+            it('should give +1/+1 to the attached unit for each Trooper you control', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['squad-support'],
@@ -47,8 +47,8 @@ describe('Squad Support', function() {
             // TODO: test with Evidence of the Crime to confirm that the amount updates correctly
             });
 
-            it('should not give any bonus if there is no Trooper', function () {
-                contextRef.setupTest({
+            it('should not give any bonus if there is no Trooper', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['squad-support', 'battlefield-marine', 'advanced-recon-commando'],

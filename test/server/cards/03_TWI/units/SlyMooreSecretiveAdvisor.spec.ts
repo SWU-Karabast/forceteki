@@ -2,7 +2,7 @@ describe('Sly Moore Secretive Advisor', function() {
     integration(function(contextRef) {
         describe('Sly Moore\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['sly-moore#secretive-advisor'],

@@ -2,7 +2,7 @@ describe('Gamorrean Guards', function() {
     integration(function(contextRef) {
         describe('Gamorrean Guards\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['strafing-gunship'],

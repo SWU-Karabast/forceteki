@@ -2,7 +2,7 @@ describe('Supreme Leader Snoke, Shadow Ruler', function() {
     integration(function(contextRef) {
         describe('Snoke\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['supreme-leader-snoke#shadow-ruler'],

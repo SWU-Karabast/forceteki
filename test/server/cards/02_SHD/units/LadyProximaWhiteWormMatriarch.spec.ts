@@ -2,7 +2,7 @@ describe('Lady Proxima, White Worm Matriarch', function() {
     integration(function(contextRef) {
         describe('Lady Proxima\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['greedo#slow-on-the-draw', 'death-star-stormtrooper'],

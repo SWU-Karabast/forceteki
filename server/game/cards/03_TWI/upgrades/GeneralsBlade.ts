@@ -29,4 +29,3 @@ export default class GeneralsBlade extends UpgradeCard {
     }
 }
 
-GeneralsBlade.implemented = true;

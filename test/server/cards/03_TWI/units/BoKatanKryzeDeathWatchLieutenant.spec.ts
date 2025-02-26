@@ -1,8 +1,8 @@
 describe('Bo-Katan Kryze, Death Watch Lieutenant', function () {
     integration(function (contextRef) {
         describe('Bo-Katan Kryze\'s ability', function () {
-            it('should get +1/+0 as we control a trooper unit', function () {
-                contextRef.setupTest({
+            it('should get +1/+0 as we control a trooper unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['bokatan-kryze#death-watch-lieutenant', 'battlefield-marine'],
@@ -26,8 +26,8 @@ describe('Bo-Katan Kryze, Death Watch Lieutenant', function () {
                 expect(context.bokatanKryze.getPower()).toBe(2);
             });
 
-            it('should get saboteur and overwhelm as we control a mandalorian unit', function () {
-                contextRef.setupTest({
+            it('should get saboteur and overwhelm as we control a mandalorian unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['bokatan-kryze#death-watch-lieutenant'],

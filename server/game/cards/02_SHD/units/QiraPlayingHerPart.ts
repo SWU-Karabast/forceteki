@@ -4,8 +4,6 @@ import { Duration, TargetMode } from '../../../core/Constants';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class QiraPlayingHerPart extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '7964782056',
@@ -18,6 +16,7 @@ export default class QiraPlayingHerPart extends NonLeaderUnitCard {
             title: 'Look at an opponent\'s hand',
             immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
                 target: context.player.opponent.hand,
+                useDisplayPrompt: true
             })),
             then: {
                 title: 'Name a card',

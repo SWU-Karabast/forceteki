@@ -7,7 +7,7 @@ import { cardCannot } from './CardCannot';
 // const { copyCard } = require('./Effects/Library/copyCard');
 // const { gainAllAbilities } = require('./Effects/Library/GainAllAbilities');
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
-import { modifyCost } from './ModifyCost';
+import { addExploit, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import type { KeywordName } from '../core/Constants';
 import { EffectName } from '../core/Constants';
@@ -19,6 +19,7 @@ import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterPrope
 import { CostAdjustType } from '../core/cost/CostAdjuster';
 import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
+import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import { playerCannot } from './PlayerCannot';
 
 /* Types of effect
@@ -28,6 +29,7 @@ import { playerCannot } from './PlayerCannot';
 */
 
 export = {
+    assignIndirectDamageDealtToOpponents: () => OngoingEffectBuilder.player.static(EffectName.AssignIndirectDamageDealtToOpponents),
     // Card effects
     // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
     // addTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.AddTrait, trait),
@@ -93,7 +95,6 @@ export = {
     // doesNotBow: () => OngoingEffectBuilder.card.static(EffectName.DoesNotBow),
     // doesNotReady: () => OngoingEffectBuilder.card.static(EffectName.DoesNotReady),
     // entersPlayWithStatus: (status) => OngoingEffectBuilder.card.static(EffectName.EntersPlayWithStatus, status),
-    // entersPlayForOpponent: () => OngoingEffectBuilder.card.static(EffectName.EntersPlayForOpponent),
     // fateCostToAttack: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
@@ -235,6 +236,7 @@ export = {
     forFree: (properties: Omit<IForFreeCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Free, ...properties }),
     ignoreAllAspectPenalties: (properties: Omit<IIgnoreAllAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreAllAspects, ...properties }),
     ignoreSpecificAspectPenalties: (properties: Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreSpecificAspects, ...properties }),
+    addExploit: (properties: IExploitCostAdjusterProperties) => addExploit(properties),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>

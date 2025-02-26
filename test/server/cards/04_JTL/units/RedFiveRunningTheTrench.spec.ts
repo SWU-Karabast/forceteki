@@ -1,7 +1,7 @@
 describe('Red Five, Running The Trench', function() {
     integration(function(contextRef) {
-        it('Red Five, Running The Trench\'s ability should deal damage to a damaged unit', function () {
-            contextRef.setupTest({
+        it('Red Five, Running The Trench\'s ability should deal damage to a damaged unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['red-five#running-the-trench'],
