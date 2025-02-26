@@ -346,5 +346,29 @@ describe('Bounty', function() {
                 expect(context.jangoFett.exhausted).toBe(true);
             });
         });
+
+        it('When a leader with a Bounty ability gained from an effect is defeated, the ability should resolve under the opponent\'s control', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['rivals-fall']
+                },
+                player2: {
+                    leader: {
+                        card: 'asajj-ventress#unparalleled-adversary',
+                        deployed: true,
+                        upgrades: ['death-mark']
+                    }
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.rivalsFall);
+            context.player1.clickCard(context.asajjVentress);
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw 2 cards');
+            context.player1.clickPrompt('Collect Bounty: Draw 2 cards');
+            expect(context.player1.handSize).toBe(2);
+        });
     });
 });

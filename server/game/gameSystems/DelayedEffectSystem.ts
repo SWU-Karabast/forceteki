@@ -1,6 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { IAbilityLimit } from '../core/ability/AbilityLimit';
-import { perGame } from '../core/ability/AbilityLimit';
+import { PerGameAbilityLimit, type IAbilityLimit } from '../core/ability/AbilityLimit';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Duration, EventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -35,7 +34,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         title: null,
         when: null,
         duration: Duration.Persistent,
-        limit: perGame(1),
+        limit: null,
         immediateEffect: null,
         effectType: null
     };
@@ -79,7 +78,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
                 title,
                 when,
                 immediateEffect,
-                limit
+                limit: limit ?? new PerGameAbilityLimit(1)
             }) };
 
         event.effectProperties = effectProperties;
