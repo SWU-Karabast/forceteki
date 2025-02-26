@@ -1,7 +1,7 @@
 describe('Finn, On the Run', function () {
     integration(function (contextRef) {
-        it('Finn\'s ability should prevent 1 damage from any source to a unique unit', function () {
-            contextRef.setupTest({
+        it('Finn\'s ability should prevent 1 damage from any source to a unique unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['moment-of-peace', 'tarfful#kashyyyk-chieftain', 'change-of-heart'],
@@ -133,7 +133,7 @@ describe('Finn, On the Run', function () {
             context.player1.clickCard(context.maul);
 
             context.player2.passAction();
-            context.player2.moveCard(context.battlefieldMarine, 'groundArena')
+            context.player2.moveCard(context.battlefieldMarine, 'groundArena');
 
             // maul attack battlefield marine, should take 2 damage (3-1) and redirect it to an underworld unit
             context.player1.clickCard(context.maul);
@@ -145,8 +145,8 @@ describe('Finn, On the Run', function () {
                 'For this phase, if damage would be dealt to that unit, prevent 1 of that damage',
                 'Redirect combat damage to another Underworld unit',
             ]);
-            // context.player1.clickPrompt('For this phase, if damage would be dealt to that unit, prevent 1 of that damage');
-            context.player1.clickPrompt('Redirect combat damage to another Underworld unit');
+            context.player1.clickPrompt('For this phase, if damage would be dealt to that unit, prevent 1 of that damage');
+            // context.player1.clickPrompt('Redirect combat damage to another Underworld unit');
 
             expect(context.syndicateLackeys.damage).toBe(2);
         });

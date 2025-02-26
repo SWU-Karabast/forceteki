@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, WildcardCardType } from '../../../core/Constants';
+import { AbilityType, DamageType, WildcardCardType } from '../../../core/Constants';
 
 export default class FinnOnTheRun extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -27,10 +27,19 @@ export default class FinnOnTheRun extends NonLeaderUnitCard {
                             onDamageDealt: (event, context) => event.card === context.source
                         },
                         replaceWith: {
-                            replacementImmediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                                target: context.source,
-                                amount: () => (Math.max(context.event.amount - 1, 0)),
-                                source: context.event.damageSource.damageDealtBy,
+                            replacementImmediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
+                                condition: () => context.event.type === DamageType.Combat,
+                                onTrue: AbilityHelper.immediateEffects.combatDamage((context) => ({
+                                    target: context.source,
+                                    amount: this.getReducedDamage(context.event.amount),
+                                    sourceAttack: context.event.damageSource.attack,
+                                    source: context.event.damageSource.damageDealtBy
+                                })),
+                                onFalse: AbilityHelper.immediateEffects.damage((context) => ({
+                                    target: context.source,
+                                    amount: this.getReducedDamage(context.event.amount),
+                                    source: context.event.damageSource.damageDealtBy,
+                                }))
                             }))
                         },
                         effect: 'Finn\'s ability prevents 1 damage to {1}',
@@ -39,5 +48,9 @@ export default class FinnOnTheRun extends NonLeaderUnitCard {
                 })
             }
         });
+    }
+
+    private getReducedDamage(amount) {
+        return Math.max(amount - 1, 0);
     }
 }
