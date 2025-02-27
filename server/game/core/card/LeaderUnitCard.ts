@@ -16,6 +16,10 @@ import { InPlayCard } from './baseClasses/InPlayCard';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
+export interface ILeaderUnitCardState extends ILeaderCardState {
+    deployed: boolean;
+}
+
 /** Represents a deployable leader in an undeployed state */
 export interface IDeployableLeaderCard extends ILeaderCard {
     get deployed(): boolean;
@@ -26,7 +30,7 @@ export interface IDeployableLeaderCard extends ILeaderCard {
 /** Represents a deployable leader in a deployed state (i.e., is also a unit) */
 export interface ILeaderUnitCard extends IDeployableLeaderCard, IUnitCard {}
 
-export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitCard {
+export class LeaderUnitCardInternal extends LeaderUnitCardParent implements ILeaderUnitCard {
     protected _deployed = false;
     protected setupLeaderUnitSide;
     private readonly epicActionAbility: ActionAbility;
@@ -171,4 +175,8 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
             epicActionSpent: this.epicActionAbility.limit.isAtMax(this.owner)
         };
     }
+}
+
+export class LeaderUnitCard extends LeaderUnitCardInternal {
+    protected override state: never;
 }
