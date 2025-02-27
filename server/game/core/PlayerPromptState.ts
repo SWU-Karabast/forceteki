@@ -1,6 +1,6 @@
 import type { Card } from './card/Card';
 import type { PromptType } from './Constants';
-import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData } from './gameSteps/PromptInterfaces';
+import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData, SelectCardMode } from './gameSteps/PromptInterfaces';
 import type Player from './Player';
 
 export interface IPlayerPromptStateProperties {
@@ -10,7 +10,7 @@ export interface IPlayerPromptStateProperties {
     promptTitle?: string;
     promptType?: PromptType;
 
-    selectCard?: boolean;
+    selectCardMode?: SelectCardMode;
     selectOrder?: boolean;
     distributeAmongTargets?: IDistributeAmongTargetsPromptData;
     dropdownListOptions?: string[];
@@ -19,7 +19,7 @@ export interface IPlayerPromptStateProperties {
 }
 
 export class PlayerPromptState {
-    public selectCard = false;
+    public selectCardMode? = null;
     public selectOrder = false;
     public distributeAmongTargets?: IDistributeAmongTargetsPromptData = null;
     public menuTitle = '';
@@ -63,7 +63,7 @@ export class PlayerPromptState {
     public setPrompt(prompt: IPlayerPromptStateProperties) {
         this.promptTitle = prompt.promptTitle;
         this.promptType = prompt.promptType;
-        this.selectCard = prompt.selectCard ?? false;
+        this.selectCardMode = prompt.selectCardMode;
         this.selectOrder = prompt.selectOrder ?? false;
         this.menuTitle = prompt.menuTitle ?? '';
         this.distributeAmongTargets = prompt.distributeAmongTargets;
@@ -75,7 +75,7 @@ export class PlayerPromptState {
     }
 
     public cancelPrompt() {
-        this.selectCard = false;
+        this.selectCardMode = null;
         this.menuTitle = '';
         this.buttons = [];
         this.clearSelectableCards();
@@ -88,7 +88,7 @@ export class PlayerPromptState {
         const result = {
             selected: index !== -1,
             selectable: selectable,
-            unselectable: this.selectCard && !selectable
+            unselectable: this.selectCardMode && !selectable
         };
 
         if (index !== -1 && this.selectOrder) {
@@ -100,7 +100,7 @@ export class PlayerPromptState {
 
     public getState() {
         return {
-            selectCard: this.selectCard,
+            selectCardMode: this.selectCardMode,
             selectOrder: this.selectOrder,
             distributeAmongTargets: this.distributeAmongTargets,
             dropdownListOptions: this.dropdownListOptions,
