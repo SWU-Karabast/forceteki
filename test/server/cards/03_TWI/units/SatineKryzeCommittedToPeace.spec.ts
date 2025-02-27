@@ -1,8 +1,8 @@
 
 describe('Satine Kryze, Committed To Peace', function () {
     integration(function (contextRef) {
-        it('Satine Kryze\'s ability', function () {
-            contextRef.setupTest({
+        it('Satine Kryze\'s ability', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['daring-raid'],

@@ -1,8 +1,8 @@
 
 describe('Malevolence, Grievous\'s Secret Weapon', function () {
     integration(function (contextRef) {
-        it('Malevolence\'s ability', function () {
-            contextRef.setupTest({
+        it('Malevolence\'s ability', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['malevolence#grievouss-secret-weapon']
