@@ -16,10 +16,6 @@ import { InPlayCard } from './baseClasses/InPlayCard';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
-export interface ILeaderUnitCardState extends ILeaderCardState {
-    deployed: boolean;
-    setupLeaderUnitSide: boolean;
-}
 
 /** Represents a deployable leader in an undeployed state */
 export interface IDeployableLeaderCard extends ILeaderCard {
@@ -32,22 +28,20 @@ export interface IDeployableLeaderCard extends ILeaderCard {
 export interface ILeaderUnitCard extends IDeployableLeaderCard, IUnitCard {}
 
 export class LeaderUnitCardInternal extends LeaderUnitCardParent implements ILeaderUnitCard {
-    protected _deployed = false;
-    protected setupLeaderUnitSide;
     private readonly epicActionAbility: ActionAbility;
 
     public get deployed() {
-        return this._deployed;
+        return this.state.deployed;
     }
 
     public override get type(): CardType {
-        return this._deployed ? CardType.LeaderUnit : CardType.Leader;
+        return this.state.deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
-        this.setupLeaderUnitSide = true;
+        this.state.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities(this);
 
         // add deploy leader action
@@ -61,7 +55,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements ILea
     }
 
     public override isUnit(): this is IUnitCard {
-        return this._deployed;
+        return this.state.deployed;
     }
 
     public override isDeployableLeader(): this is IDeployableLeaderCard {
@@ -69,7 +63,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements ILea
     }
 
     public override isLeaderUnit(): this is ILeaderUnitCard {
-        return this._deployed;
+        return this.state.deployed;
     }
 
     public override initializeForStartZone(): void {
@@ -82,17 +76,17 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements ILea
 
     /** Deploy the leader to the arena. Handles the move operation and state changes. */
     public deploy() {
-        Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
+        Contract.assertFalse(this.state.deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
 
-        this._deployed = true;
+        this.state.deployed = true;
         this.moveTo(this.defaultArena);
     }
 
     /** Return the leader from the arena to the base zone. Handles the move operation and state changes. */
     public undeploy() {
-        Contract.assertTrue(this._deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`);
+        Contract.assertTrue(this.state.deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`);
 
-        this._deployed = false;
+        this.state.deployed = false;
         this.moveTo(ZoneName.Base);
     }
 
@@ -138,7 +132,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements ILea
     }
 
     private getAbilityZonesForSide(propertyZone: ZoneFilter | ZoneFilter[]) {
-        const abilityZone = this.setupLeaderUnitSide ? this.defaultArena : ZoneName.Base;
+        const abilityZone = this.state.setupLeaderUnitSide ? this.defaultArena : ZoneName.Base;
 
         return propertyZone
             ? Helpers.asArray(propertyZone).concat([abilityZone])
@@ -151,7 +145,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements ILea
         switch (this.zoneName) {
             case ZoneName.GroundArena:
             case ZoneName.SpaceArena:
-                this._deployed = true;
+                this.state.deployed = true;
                 this.setDamageEnabled(true);
                 this.setActiveAttackEnabled(true);
                 this.setUpgradesEnabled(true);
@@ -160,7 +154,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements ILea
                 break;
 
             case ZoneName.Base:
-                this._deployed = false;
+                this.state.deployed = false;
                 this.setDamageEnabled(false);
                 this.setActiveAttackEnabled(false);
                 this.setUpgradesEnabled(false);

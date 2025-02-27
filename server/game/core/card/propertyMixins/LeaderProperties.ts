@@ -28,7 +28,7 @@ export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCard
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);
-            Contract.assertEqual(this.state.printedType, CardType.Leader);
+            Contract.assertEqual(this.printedType, CardType.Leader);
 
             this.setupLeaderSideAbilities(this);
         }
