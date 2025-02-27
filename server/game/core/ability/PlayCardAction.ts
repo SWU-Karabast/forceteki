@@ -1,7 +1,7 @@
 import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
-import type { Aspect } from '../Constants';
+import type { Aspect, CardType } from '../Constants';
 import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
@@ -219,10 +219,16 @@ export abstract class PlayCardAction extends PlayerAction {
                         context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
             onPlayCardSource: context.onPlayCardSource,
             playType: context.playType,
+            cardTypeWhenPlayed: this.getCardTypeWhenPlayed(context.source, context.playType),
             costs: context.costs,
             ...additionalProps,
             handler
         });
+    }
+
+    /** This is used for overriding the play type of cards with alternate play modes like Pilots */
+    protected getCardTypeWhenPlayed(card: Card, playType: PlayType): CardType {
+        return card.type;
     }
 
     private logPlayCardEvent(context: any): void {

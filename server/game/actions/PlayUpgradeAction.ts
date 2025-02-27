@@ -3,7 +3,7 @@ import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction';
 import type { Card } from '../core/card/Card';
 import type { UpgradeCard } from '../core/card/UpgradeCard';
-import { AbilityRestriction, KeywordName, PlayType, RelativePlayer } from '../core/Constants';
+import { AbilityRestriction, CardType, KeywordName, PlayType, RelativePlayer } from '../core/Constants';
 import type Game from '../core/Game';
 import * as Contract from '../core/utils/Contract';
 import { AttachUpgradeSystem } from '../gameSystems/AttachUpgradeSystem';
@@ -43,6 +43,11 @@ export class PlayUpgradeAction extends PlayCardAction {
         }
 
         context.game.openEventWindow(events);
+    }
+
+    protected override getCardTypeWhenPlayed(card: Card, playType: PlayType): CardType {
+        // We need to override this method to ensure Pilots are marked as upgrades in the onCardPlayed event
+        return playType === PlayType.Piloting && card.isUnit() ? CardType.BasicUpgrade : card.type;
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {

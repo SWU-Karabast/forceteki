@@ -196,7 +196,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override isUnit(): this is IUnitCard {
-            return true;
+            return this._parentCard === null;
         }
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
@@ -239,8 +239,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         // ***************************************** ABILITY HELPERS *****************************************
         public override getActions() {
-            return super.getActions()
-                .concat(this.attackAction);
+            let actions = super.getActions();
+            // If this is an attached Pilot, we do not attach the Attack action
+            if (this.isUnit()) {
+                actions = actions.concat(this.attackAction);
+            }
+            return actions;
         }
 
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
