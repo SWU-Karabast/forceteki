@@ -1,38 +1,37 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
-import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
-import type { CardTypeFilter, MetaEventName, RelativePlayerFilter, ZoneFilter } from '../core/Constants';
+import type { MetaEventName } from '../core/Constants';
 import { EffectName, GameStateChangeRequired, RelativePlayer, TargetMode } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
-import type { AggregateSystem } from '../core/gameSystem/AggregateSystem';
+import type { ICardTargetsResolver } from '../TargetInterfaces';
 
-export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
-    activePromptTitle?: string;
-    player?: RelativePlayer;
-    cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
-    controller?: RelativePlayerFilter;
-    zoneFilter?: ZoneFilter | ZoneFilter[];
-    cardCondition?: (card: Card, context: TContext) => boolean;
-    checkTarget?: boolean;
-    message?: string;
-    manuallyRaiseEvent?: boolean;
-    messageArgs?: (card: Card, properties: ISelectCardProperties<TContext>) => any[];
-    innerSystem: CardTargetSystem<TContext> | AggregateSystem<TContext>;
-    selector?: BaseCardSelector;
-    mode?: TargetMode;
-    numCards?: number;
-    numCardsFunc?: (context: TContext) => number;
-    canChooseNoCards?: boolean;
-    innerSystemProperties?: (card: Card) => any;
-    cancelHandler?: () => void;
-    effect?: string;
-    effectArgs?: (context) => string[];
-    optional?: boolean;
-}
+export type ISelectCardProperties<TContext extends AbilityContext = AbilityContext> = ICardTargetSystemProperties & ICardTargetsResolver<TContext> & {
+    targetName?: string;
+    // activePromptTitle?: string;
+    // player?: RelativePlayer;
+    // cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
+    // controller?: RelativePlayerFilter;
+    // zoneFilter?: ZoneFilter | ZoneFilter[];
+    // cardCondition?: (card: Card, context: TContext) => boolean;
+    // checkTarget?: boolean;
+    // message?: string;
+    // manuallyRaiseEvent?: boolean;
+    // messageArgs?: (card: Card, properties: ISelectCardProperties<TContext>) => any[];
+    // innerSystem: CardTargetSystem<TContext> | AggregateSystem<TContext>;
+    // selector?: BaseCardSelector;
+    // mode?: TargetMode;
+    // numCards?: number;
+    // numCardsFunc?: (context: TContext) => number;
+    // canChooseNoCards?: boolean;
+    // innerSystemProperties?: (card: Card) => any;
+    // cancelHandler?: () => void;
+    // effect?: string;
+    // effectArgs?: (context) => string[];
+    // optional?: boolean;
+};
 
 /**
  * A wrapper system for adding a target selection prompt around the execution the wrapped system.
@@ -42,12 +41,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     public override readonly name: string = 'selectCard';
     protected override readonly eventName: MetaEventName.SelectCard;
     protected override readonly defaultProperties: ISelectCardProperties<TContext> = {
-        cardCondition: () => true,
-        innerSystem: null,
-        innerSystemProperties: (card) => ({ target: card }),
-        checkTarget: false,
-        manuallyRaiseEvent: false,
-        optional: false
+        targetName: 'target',
     };
 
     public constructor(properties: ISelectCardProperties<TContext> | ((context: TContext) => ISelectCardProperties<TContext>)) {
@@ -57,45 +51,47 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public eventHandler(event): void { }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const { target, effect, effectArgs } = this.generatePropertiesFromContext(context);
-        if (effect) {
-            return [effect, effectArgs(context) || []];
-        }
-        return ['choose a target for {0}', [target]];
-    }
+    // public override getEffectMessage(context: TContext): [string, any[]] {
+    //     const { target, effect, effectArgs } = this.generatePropertiesFromContext(context);
+    //     if (effect) {
+    //         return [effect, effectArgs(context) || []];
+    //     }
+    //     return ['choose a target for {0}', [target]];
+    // }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
-        properties.innerSystem.setDefaultTargetFn(() => properties.target);
-        if (!properties.selector) {
-            const cardCondition = (card, context) =>
-                properties.cardCondition(card, context) &&
-                properties.innerSystem.allTargetsLegal(
-                    context,
-                    Object.assign({}, additionalProperties, properties.innerSystemProperties(card))
-                );
-            properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition }));
-        }
+    // public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+    //     const properties = super.generatePropertiesFromContext(context, additionalProperties);
+    //     properties.innerSystem.setDefaultTargetFn(() => properties.target);
+    //     if (!properties.selector) {
+    //         const cardCondition = (card, context) =>
+    //             properties.cardCondition(card, context) &&
+    //             properties.innerSystem.allTargetsLegal(
+    //                 context,
+    //                 Object.assign({}, additionalProperties, properties.innerSystemProperties(card))
+    //             );
+    //         properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition }));
+    //     }
 
-        if (properties.mode === TargetMode.UpTo || properties.mode === TargetMode.UpToVariable) {
-            properties.canChooseNoCards = properties.canChooseNoCards ?? true;
-        } else {
-            if (properties.canChooseNoCards != null) {
-                Contract.fail('Cannot use canChooseNoCards if mode is not UpTo or UpToVariable');
-            }
-        }
+    //     if (properties.mode === TargetMode.UpTo || properties.mode === TargetMode.UpToVariable) {
+    //         properties.canChooseNoCards = properties.canChooseNoCards ?? true;
+    //     } else {
+    //         if (properties.canChooseNoCards != null) {
+    //             Contract.fail('Cannot use canChooseNoCards if mode is not UpTo or UpToVariable');
+    //         }
+    //     }
 
-        return properties;
+    //     return properties;
+    // }
+
+    private buildTargetResolver(context: TContext, properties: ISelectCardProperties<TContext>, additionalProperties = {}): CardTargetResolver {
+        return new CardTargetResolver(properties.targetName, properties, context.ability);
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const player =
-            (properties.checkTarget && context.choosingPlayerOverride) ||
-            (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
-            context.player;
-        return properties.selector.canTarget(card, context, player);
+        const targetResolver = this.buildTargetResolver(context, properties, additionalProperties);
+
+        return targetResolver.canAffect;
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {

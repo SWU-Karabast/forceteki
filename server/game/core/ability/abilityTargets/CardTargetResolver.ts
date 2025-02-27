@@ -17,6 +17,8 @@ import type { GameSystem } from '../../gameSystem/GameSystem';
  */
 export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<AbilityContext>> {
     private immediateEffect: GameSystem;
+
+    // TODO: set type to BaseCardSelector and fix any bugs
     private selector: any;
 
     private static choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';

@@ -1,9 +1,7 @@
 const { UiPrompt } = require('./prompts/UiPrompt.js');
-const { RelativePlayer, WildcardZoneName, PromptType } = require('../Constants.js');
+const { RelativePlayer, PromptType } = require('../Constants.js');
 const EnumHelpers = require('../utils/EnumHelpers.js');
 const Contract = require('../utils/Contract');
-const KeywordHelpers = require('../ability/KeywordHelpers.js');
-const { cardCannot } = require('../../ongoingEffects/CardCannot.js');
 
 class ActionWindow extends UiPrompt {
     constructor(game, title, windowName, prevPlayerPassed, setPassStatus, activePlayer = null) {
