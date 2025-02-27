@@ -30,19 +30,6 @@ export default class AidFromTheInnocent extends EventCard {
                     }))
                 ])
             })
-            // , TODO: remove if not needed
-            // then: {
-            //     title: 'If this unit isn’t unique, discard a card from your hand',
-            //     immediateEffect: AbilityHelper.immediateEffects.conditional({
-            //         condition: (context) => !context.source.unique,
-            //         onTrue: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
-            //             cardTypeFilter: WildcardCardType.Any,
-            //             target: context.player,
-            //             amount: 1
-            //         })),
-            //         onFalse: AbilityHelper.immediateEffects.noAction()
-            //     })
-            // }
         });
     }
 }
