@@ -4,11 +4,11 @@ import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ResourcePrompt } from '../prompts/ResourcePrompt';
 import { MulliganPrompt } from '../prompts/MulliganPrompt';
-import { PromptType } from '../../Constants';
+import { PhaseName, PromptType } from '../../Constants';
 
 export class SetupPhase extends Phase {
     public constructor(game: Game) {
-        const name = 'setup';
+        const name = PhaseName.Setup;
         super(game, name);
         this.game.currentPhase = name;
         this.pipeline.initialise([

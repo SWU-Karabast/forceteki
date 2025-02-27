@@ -1,4 +1,4 @@
-import type { PhaseName } from '../../Constants';
+import { PhaseName } from '../../Constants';
 import { EventName } from '../../Constants';
 import type Game from '../../Game';
 import { BaseStepWithPipeline } from '../BaseStepWithPipeline';
@@ -11,7 +11,7 @@ export abstract class Phase extends BaseStepWithPipeline {
 
     public constructor(
         game: Game,
-        private name: PhaseName | 'setup'
+        private name: PhaseName
     ) {
         super(game);
     }
@@ -34,7 +34,7 @@ export abstract class Phase extends BaseStepWithPipeline {
     protected startPhase(): void {
         this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => {
             this.game.currentPhase = this.name;
-            if (this.name !== 'setup') {
+            if (this.name !== PhaseName.Setup) {
                 this.game.addAlert('endofround', 'turn: {0} - {1} phase', this.game.roundNumber, this.name);
             }
         });

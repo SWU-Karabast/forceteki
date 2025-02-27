@@ -142,6 +142,7 @@ export enum TargetMode {
 }
 
 export enum PhaseName {
+    Setup = 'setup',
     Action = 'action',
     Regroup = 'regroup'
 }

@@ -1,3 +1,4 @@
+type PhaseName = import('../../server/game/core/Constants').PhaseName;
 type IBaseCard = import('../../server/game/core/card/BaseCard').IBaseCard;
 type ILeaderCard = import('../../server/game/core/card/propertyMixins/LeaderProperties').ILeaderCard;
 type Card = import('../../server/game/core/card/Card').Card;
@@ -65,6 +66,7 @@ interface SwuSetupTestOptions {
     player1?: SwuPlayerSetupOptions;
     player2?: SwuPlayerSetupOptions;
     autoSingleTarget?: boolean;
+    phaseTransitionHandler?: (phase: PhaseName) => void;
 
     [field: string]: any;
 }
@@ -119,7 +121,7 @@ declare namespace jasmine {
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
         toHaveExactDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedPromptState: ICardDisplaySelectionState): boolean;
         toHaveExactSelectableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: Card[]): boolean;
-        toHaveExactViewableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: Card[]): boolean;
+        toHaveExactViewableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: (Card | { card: Card; displayText: string })[]): boolean;
         toHaveExactDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
         toHaveExactEnabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
         toHaveExactDisabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
