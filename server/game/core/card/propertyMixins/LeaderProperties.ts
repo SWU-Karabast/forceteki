@@ -2,8 +2,8 @@ import type { ZoneName } from '../../Constants';
 import { CardType } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import type Player from '../../Player';
-import type { PlayableOrDeployableCardConstructor, IPlayableOrDeployableCardState } from '../baseClasses/PlayableOrDeployableCard';
-import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
+import type { PlayableOrDeployableCardConstructor, IPlayableOrDeployableCardState, ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
+import { PlayableOrDeployableCard } from '../baseClasses/PlayableOrDeployableCard';
 
 export const LeaderPropertiesCard = WithLeaderProperties(PlayableOrDeployableCard);
 
