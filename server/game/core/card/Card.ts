@@ -105,7 +105,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected constantAbilities: IConstantAbility[] = [];
 
     private nextAbilityIdx = 0;
-    // TODO: How do we store the zone in state?
+    // STATE TODO: How do we store the zone in state?
     private _zone: Zone;
     protected movedFromZone?: ZoneName = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
