@@ -52,7 +52,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         if (card.zoneName === ZoneName.Resource) {
             this.leavesResourceZoneEventHandler(card, event.context);
         } else if (card.isUpgrade()) {
-            card.unattach();
+            card.unattach(event);
         }
 
         if (card.isToken()) {
@@ -100,6 +100,9 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
             event.isDefeatedByAttackerDamage =
                 eventDefeatSource.type === DamageSourceType.Attack &&
                 eventDefeatSource.damageDealtBy === eventDefeatSource.attack.attacker;
+            if (eventDefeatSource?.type === DamageSourceType.Attack) {
+                eventDefeatSource.player = eventDefeatSource.damageDealtBy.controller;
+            }
         } else {
             eventDefeatSource = this.buildDefeatSourceForType(defeatSource, event, context);
         }
