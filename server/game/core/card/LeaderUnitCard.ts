@@ -18,6 +18,7 @@ const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard)
 
 export interface ILeaderUnitCardState extends ILeaderCardState {
     deployed: boolean;
+    setupLeaderUnitSide: boolean;
 }
 
 /** Represents a deployable leader in an undeployed state */
