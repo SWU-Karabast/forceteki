@@ -43,10 +43,10 @@ class FirstLightSmuggleAction extends PlayUnitAction {
             title: 'Play First Light with Smuggle by dealing 4 damage to a friendly unit',
             ...properties,
             playType: PlayType.Smuggle,
-            smuggleAspects: [Aspect.Vigilance, Aspect.Villainy],
-            smuggleResourceCost: 7,
+            alternatePlayActionAspects: [Aspect.Vigilance, Aspect.Villainy],
+            alternatePlayActionResourceCost: 7,
             additionalCosts: [damageCost],
-            appendSmuggleToTitle: false
+            appendAlternatePlayActionKeywordToTitle: false
         };
     }
 

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { AbilityType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { AbilityType, RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class GarSaxonViceroyofMandalore extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -34,7 +34,6 @@ export default class GarSaxonViceroyofMandalore extends LeaderUnitCard {
                         onCardDefeated: (event, context) => event.card === context.source
                     },
                     targetResolver: {
-                        cardTypeFilter: WildcardCardType.Upgrade,
                         zoneFilter: ZoneName.Discard,
                         cardCondition: (card, context) => context.event?.lastKnownInformation?.upgrades.includes(card),
                         immediateEffect: AbilityHelper.immediateEffects.returnToHand()

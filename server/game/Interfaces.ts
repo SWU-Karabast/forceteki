@@ -178,6 +178,7 @@ export type IKeywordProperties =
   | IBountyKeywordProperties
   | IGritKeywordProperties
   | IOverwhelmKeywordProperties
+  | IPilotingKeywordProperties
   | IRaidKeywordProperties
   | IRestoreKeywordProperties
   | ISaboteurKeywordProperties
@@ -305,6 +306,11 @@ interface INumericKeywordProperties extends IKeywordPropertiesBase {
     amount: number;
 }
 
+interface IKeywordWithCostProperties extends IKeywordPropertiesBase {
+    cost: number;
+    aspects: Aspect[];
+}
+
 interface IKeywordWithAbilityDefinitionProperties<TSource extends Card = Card> extends IKeywordPropertiesBase {
     ability: IAbilityPropsWithSystems<AbilityContext<TSource>>;
 }
@@ -326,6 +332,10 @@ interface IOverwhelmKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Overwhelm;
 }
 
+interface IPilotingKeywordProperties extends IKeywordWithCostProperties {
+    keyword: KeywordName.Piloting;
+}
+
 interface IRaidKeywordProperties extends INumericKeywordProperties {
     keyword: KeywordName.Raid;
 }
@@ -342,10 +352,8 @@ interface ISentinelKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Sentinel;
 }
 
-interface ISmuggleKeywordProperties extends IKeywordPropertiesBase {
+interface ISmuggleKeywordProperties extends IKeywordWithCostProperties {
     keyword: KeywordName.Smuggle;
-    cost: number;
-    aspects: Aspect[];
 }
 
 interface IShieldedKeywordProperties extends IKeywordPropertiesBase {

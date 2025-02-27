@@ -4,6 +4,7 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type Player from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 // TODO: add a "defeatedBy: Player" field here.
 export interface DefeatedUnitEntry {
@@ -72,10 +73,16 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
         // on card played, add the card to the player's list of cards played this phase
         this.addUpdater({
             when: {
-                onCardDefeated: (context) => context.card.isUnit(),
+                // This doesn't actually work for some reason, so I had to add the below workaround for now
+                onCardDefeated: (event) => EnumHelpers.isUnit(event.lastKnownInformation.type),
             },
-            update: (currentState: IUnitsDefeatedThisPhase, event: any) =>
-                currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.card.controller })
+            update: (currentState: IUnitsDefeatedThisPhase, event: any) => {
+                // This is sort of a workaround, since no matter what I do above, I can't seem to get upgrade pilots excluded from being called here
+                if (EnumHelpers.isUnit(event.lastKnownInformation.type)) {
+                    return currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.card.controller });
+                }
+                return currentState;
+            }
         });
     }
 

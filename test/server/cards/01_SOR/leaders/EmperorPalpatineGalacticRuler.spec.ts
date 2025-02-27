@@ -49,6 +49,28 @@ describe('Emperor Palpatine, Galactic Ruler', function() {
             expect(context.emperorPalpatine).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
 
+        it('Palpatine\'s undeployed ability cannot be used to sacrifice a Pilot upgrade', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'emperor-palpatine#galactic-ruler',
+                    spaceArena: [{ card: 'tie-advanced', upgrades: ['dagger-squadron-pilot'] }],
+                    resources: 5
+                },
+                player2: {
+                    groundArena: ['wampa', 'atst'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.emperorPalpatine);
+            expect(context.player1).toBeAbleToSelectExactly([context.tieAdvanced]);
+            context.player1.clickCard(context.tieAdvanced);
+            context.player1.clickCard(context.atst);
+            expect(context.tieAdvanced).toBeInZone('discard');
+        });
+
         it('Palpatine\'s on-deploy ability should take control of a damaged unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
