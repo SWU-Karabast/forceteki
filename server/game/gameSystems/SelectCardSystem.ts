@@ -9,6 +9,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
 import type { AggregateSystem } from '../core/gameSystem/AggregateSystem';
+import { PlayerTargetSystem } from "../core/gameSystem/PlayerTargetSystem";
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     activePromptTitle?: string;
@@ -21,7 +22,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     message?: string;
     manuallyRaiseEvent?: boolean;
     messageArgs?: (card: Card, properties: ISelectCardProperties<TContext>) => any[];
-    innerSystem: CardTargetSystem<TContext> | AggregateSystem<TContext>;
+    innerSystem: CardTargetSystem<TContext> | AggregateSystem<TContext> | PlayerTargetSystem<TContext>;
     selector?: BaseCardSelector;
     mode?: TargetMode;
     numCards?: number;
