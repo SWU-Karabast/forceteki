@@ -29,6 +29,7 @@ export interface ILastKnownInformation {
     arena: ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Resource;
     power?: number;
     hp?: number;
+    type?: CardType;
     damage?: number;
     parentCard?: IUnitCard;
     upgrades?: IUpgradeCard[];
