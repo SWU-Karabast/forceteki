@@ -23,5 +23,3 @@ export default class MigsMayfeldTriggerman extends NonLeaderUnitCard {
         });
     }
 }
-
-MigsMayfeldTriggerman.implemented = true;

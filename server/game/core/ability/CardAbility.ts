@@ -1,5 +1,5 @@
 import type { ZoneFilter } from '../Constants';
-import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName } from '../Constants';
+import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as Contract from '../utils/Contract';
 import CardAbilityStep from './CardAbilityStep';
 import * as AbilityLimit from './AbilityLimit';
@@ -7,7 +7,6 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
 
 export abstract class CardAbility extends CardAbilityStep {
-    public readonly abilityController: RelativePlayer;
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;
     public readonly zoneFilter: ZoneFilter | ZoneFilter[];
@@ -21,11 +20,10 @@ export abstract class CardAbility extends CardAbilityStep {
         this.limit.ability = this;
 
         this.title = properties.title;
-        this.printedAbility = properties.printedAbility !== false;
+        this.printedAbility = properties.printedAbility ?? true;
         this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
         this.gainAbilitySource = properties.gainAbilitySource;
-        this.abilityController = properties.abilityController ?? RelativePlayer.Self;
 
         // if an ability name wasn't provided, assume this ability was created for some one-off purpose and not attached to the card
         this.abilityIdentifier = properties.abilityIdentifier || `${this.card.internalName}_anonymous`;
@@ -55,20 +53,21 @@ export abstract class CardAbility extends CardAbilityStep {
         Contract.fail(`Unknown card type for card: ${card.internalName}`);
     }
 
-    public override meetsRequirements(context, ignoredRequirements = [], thisStepOnly = false) {
-        let canPlayerTrigger: boolean;
-        switch (this.abilityController) {
+    protected controllerMeetsRequirements(context) {
+        switch (this.canBeTriggeredBy) {
+            case WildcardRelativePlayer.Any:
+                return true;
             case RelativePlayer.Self:
-                canPlayerTrigger = context.player === context.source.controller;
-                break;
+                return context.player === context.source.controller;
             case RelativePlayer.Opponent:
-                canPlayerTrigger = context.player === context.source.controller.opponent;
-                break;
+                return context.player === context.source.controller.opponent;
             default:
-                Contract.fail(`Unexpected value for relative player: ${this.abilityController}`);
+                Contract.fail(`Unexpected value for relative player: ${this.canBeTriggeredBy}`);
         }
+    }
 
-        if (!ignoredRequirements.includes('player') && !canPlayerTrigger) {
+    public override meetsRequirements(context, ignoredRequirements: string[] = [], thisStepOnly = false) {
+        if (!ignoredRequirements.includes('player') && !this.controllerMeetsRequirements(context)) {
             return 'player';
         }
 

@@ -14,7 +14,7 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
         this.addIgnoreSpecificAspectPenaltyAbility({
             title: 'While playing this unit, ignore her Heroism aspect penalty if you control Kylo Ren',
             ignoredAspects: Aspect.Heroism,
-            condition: (context) => context.source.controller.controlsLeaderOrUnitWithTitle('Kylo Ren')
+            condition: (context) => context.player.controlsLeaderOrUnitWithTitle('Kylo Ren')
         });
 
         this.addOnAttackAbility({
@@ -35,5 +35,3 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
         });
     }
 }
-
-ReyKeepingThePast.implemented = true;

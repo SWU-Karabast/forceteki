@@ -1,7 +1,7 @@
 describe('Soulless One, Customized for Grievous', function () {
     integration(function (contextRef) {
-        it('Soulless One\'s ability should exhaust a friendly droid unit or a friendly general grievous to get +2/+0 for this attack', function () {
-            contextRef.setupTest({
+        it('Soulless One\'s ability should exhaust a friendly droid unit or a friendly general grievous to get +2/+0 for this attack', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['general-grievous#trophy-collector', 'atst', 'viper-probe-droid'],
@@ -33,7 +33,7 @@ describe('Soulless One, Customized for Grievous', function () {
             expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid, grievousLeader, grievousUnit]);
             expect(context.player1).toHavePassAbilityButton();
 
-            context.player1.clickPrompt('Pass ability');
+            context.player1.clickPrompt('Pass');
 
             // we pass, no power boost
             expect(context.player2).toBeActivePlayer();

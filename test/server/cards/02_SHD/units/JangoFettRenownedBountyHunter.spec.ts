@@ -1,8 +1,8 @@
 describe('Jango Fett, Renowned Bounty Hunter', function() {
     integration(function(contextRef) {
         describe('Jango Fett\'s Bounty ability', function() {
-            it('should get +3/+0 and overwhelm while attacking enemy unit and draw when killing enemy units', function () {
-                contextRef.setupTest({
+            it('should get +3/+0 and overwhelm while attacking enemy unit and draw when killing enemy units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['jango-fett#renowned-bounty-hunter']

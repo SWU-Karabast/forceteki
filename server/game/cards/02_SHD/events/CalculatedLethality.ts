@@ -30,5 +30,3 @@ export default class CalculatedLethality extends EventCard {
         });
     }
 }
-
-CalculatedLethality.implemented = true;

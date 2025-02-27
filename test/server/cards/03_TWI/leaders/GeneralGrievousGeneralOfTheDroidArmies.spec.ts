@@ -1,8 +1,8 @@
 
 describe('General Grievous, General Of The Droid Armies', function () {
     integration(function (contextRef) {
-        it('undeployed ability should Sentinel to a Droid unit for this phase', function () {
-            contextRef.setupTest({
+        it('undeployed ability should Sentinel to a Droid unit for this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['droid-deployment'],
@@ -52,8 +52,8 @@ describe('General Grievous, General Of The Droid Armies', function () {
             context.player2.clickCard(battleDroids[0]);
         });
 
-        it('deployed ability should give a Droid unit +1/+0 and Sentinel for the phase', function () {
-            contextRef.setupTest({
+        it('deployed ability should give a Droid unit +1/+0 and Sentinel for the phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['devastating-gunship'],

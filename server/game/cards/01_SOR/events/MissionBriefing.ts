@@ -20,5 +20,3 @@ export default class MissionBriefing extends EventCard {
         });
     }
 }
-
-MissionBriefing.implemented = true;

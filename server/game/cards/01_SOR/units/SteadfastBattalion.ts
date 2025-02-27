@@ -17,7 +17,7 @@ export default class SteadfastBattalion extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.source.controller.leader.deployed,
+                    condition: (context) => context.player.leader.deployed,
                     onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                     }),
@@ -27,5 +27,3 @@ export default class SteadfastBattalion extends NonLeaderUnitCard {
         });
     }
 }
-
-SteadfastBattalion.implemented = true;

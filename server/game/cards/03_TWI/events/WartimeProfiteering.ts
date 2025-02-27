@@ -28,5 +28,3 @@ export default class WartimeProfiteering extends EventCard {
         });
     }
 }
-
-WartimeProfiteering.implemented = true;

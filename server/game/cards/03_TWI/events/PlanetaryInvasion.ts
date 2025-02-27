@@ -30,5 +30,3 @@ export default class PlanetaryInvasion extends EventCard {
         });
     }
 }
-
-PlanetaryInvasion.implemented = true;

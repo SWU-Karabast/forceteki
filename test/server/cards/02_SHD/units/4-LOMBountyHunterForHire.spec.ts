@@ -2,7 +2,7 @@ describe('4-LOM, Bounty Hunter for Hire', function () {
     integration(function (contextRef) {
         describe('4-LOM\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['zuckuss#bounty-hunter-for-hire', 'battlefield-marine'],
@@ -42,7 +42,7 @@ describe('4-LOM, Bounty Hunter for Hire', function () {
 
         describe('4-LOM\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['4lom#bounty-hunter-for-hire'],

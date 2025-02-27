@@ -2,7 +2,7 @@ describe('Resupply', function() {
     integration(function(contextRef) {
         describe('Resupply\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['resupply'],

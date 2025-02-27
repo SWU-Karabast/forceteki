@@ -17,7 +17,10 @@ export default class ISBAgent extends NonLeaderUnitCard {
                 cardTypeFilter: CardType.Event,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                immediateEffect: AbilityHelper.immediateEffects.reveal()
+                immediateEffect: AbilityHelper.immediateEffects.reveal({
+                    useDisplayPrompt: true,
+                    promptedPlayer: RelativePlayer.Opponent
+                })
             },
             ifYouDo: {
                 title: 'Deal 1 damage to a unit',
@@ -29,5 +32,3 @@ export default class ISBAgent extends NonLeaderUnitCard {
         });
     }
 }
-
-ISBAgent.implemented = true;

@@ -39,5 +39,3 @@ export default class EmboStoicAndResolute extends NonLeaderUnitCard {
         });
     }
 }
-
-EmboStoicAndResolute.implemented = true;

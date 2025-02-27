@@ -19,5 +19,3 @@ export default class Electrostaff extends UpgradeCard {
         });
     }
 }
-
-Electrostaff.implemented = true;

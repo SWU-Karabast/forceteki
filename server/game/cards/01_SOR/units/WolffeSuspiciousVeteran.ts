@@ -19,10 +19,8 @@ export default class WolffeSuspiciousVeteran extends NonLeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeHealed),
-                target: [context.source.controller.base, context.source.controller.opponent.base],
+                target: [context.player.base, context.player.opponent.base],
             }))
         });
     }
 }
-
-WolffeSuspiciousVeteran.implemented = true;

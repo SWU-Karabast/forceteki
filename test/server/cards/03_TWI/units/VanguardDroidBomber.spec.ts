@@ -1,8 +1,8 @@
 describe('Vanguard Droid Bomber', function () {
     integration(function (contextRef) {
         describe('Vanguard Droid Bomber\'s ability', function () {
-            it('should deal 2 damage to the opponent base because there is another friendly separatist unit', function () {
-                contextRef.setupTest({
+            it('should deal 2 damage to the opponent base because there is another friendly separatist unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vanguard-droid-bomber'],
@@ -22,8 +22,8 @@ describe('Vanguard Droid Bomber', function () {
                 expect(context.warriorDrone.damage).toBe(0);
             });
 
-            it('should not deal 2 damage to the opponent base because there is not another friendly separatist unit', function () {
-                contextRef.setupTest({
+            it('should not deal 2 damage to the opponent base because there is not another friendly separatist unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vanguard-droid-bomber'],

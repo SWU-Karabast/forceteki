@@ -2,7 +2,7 @@ describe('Privateer Scyk', function() {
     integration(function(contextRef) {
         describe('Privateer Scyk\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['privateer-scyk'],
@@ -23,7 +23,7 @@ describe('Privateer Scyk', function() {
 
         describe('Privateer Scyk\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['privateer-scyk'],

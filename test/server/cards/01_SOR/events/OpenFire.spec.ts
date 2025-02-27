@@ -2,7 +2,7 @@ describe('Open Fire', function() {
     integration(function(contextRef) {
         describe('Open Fire\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['open-fire'],

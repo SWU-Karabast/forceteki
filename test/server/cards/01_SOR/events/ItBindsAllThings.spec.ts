@@ -2,7 +2,7 @@ describe('It Binds All Things', function() {
     integration(function(contextRef) {
         describe('It Binds All Things\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['it-binds-all-things'],
@@ -30,8 +30,8 @@ describe('It Binds All Things', function() {
                 ]));
 
                 // select target for damage since yoda is a force user.
-                expect(context.player1).toHaveEnabledPromptButton('Pass ability');
-                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter, context.hanSolo, context.yoda]);
+                expect(context.player1).toHaveEnabledPromptButton('Pass');
+                expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter, context.hanSolo, context.yoda, context.leiaOrgana]);
                 context.player1.clickCard(context.atst);
 
                 // check board state
@@ -59,7 +59,7 @@ describe('It Binds All Things', function() {
 
         describe('It binds all thing\'s ability, when no force user is present', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['it-binds-all-things'],

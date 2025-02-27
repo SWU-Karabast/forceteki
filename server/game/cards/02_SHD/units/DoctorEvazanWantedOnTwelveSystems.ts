@@ -18,5 +18,3 @@ export default class DoctorEvazanWantedOnTwelveSystems extends NonLeaderUnitCard
         });
     }
 }
-
-DoctorEvazanWantedOnTwelveSystems.implemented = true;

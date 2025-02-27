@@ -54,5 +54,3 @@ export default class MaximumFirePower extends EventCard {
         });
     }
 }
-
-MaximumFirePower.implemented = true;

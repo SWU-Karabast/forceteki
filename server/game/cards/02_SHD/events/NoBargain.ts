@@ -14,10 +14,8 @@ export default class NoBargain extends EventCard {
             title: 'Each opponent discards a card from their hand. Draw a card.',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({ target: context.player.opponent, amount: 1 })),
-                AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller }))
+                AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
             ]),
         });
     }
 }
-
-NoBargain.implemented = true;

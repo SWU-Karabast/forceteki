@@ -28,5 +28,3 @@ export default class TheDarksaber extends UpgradeCard {
         });
     }
 }
-
-TheDarksaber.implemented = true;

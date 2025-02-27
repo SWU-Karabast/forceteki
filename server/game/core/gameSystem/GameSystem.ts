@@ -22,6 +22,9 @@ export interface IGameSystemProperties {
 
     /** If this system is for a contingent event, provide the source event it is contingent on */
     contingentSourceEvent?: any;
+
+    /** If the game system is a replacement effect */
+    replacementEffect?: boolean;
 }
 
 // TODO: see which base classes can be made abstract
@@ -277,6 +280,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         const { contingentSourceEvent } = this.generatePropertiesFromContext(context, additionalProperties);
 
         event.contingentSourceEvent = contingentSourceEvent;
+        event.player = context.player;
     }
 
     /**

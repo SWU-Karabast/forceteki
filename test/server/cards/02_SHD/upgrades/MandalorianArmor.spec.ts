@@ -1,7 +1,7 @@
 describe('Mandalorian Armor', function() {
     integration(function(contextRef) {
-        it('Mandalorian Armor\'s attached ability should give a Shield token to attached card if it has Mandalorian trait', function () {
-            contextRef.setupTest({
+        it('Mandalorian Armor\'s attached ability should give a Shield token to attached card if it has Mandalorian trait', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['ketsu-onyo#old-friend', 'the-mandalorian#wherever-i-go-he-goes', 'battlefield-marine'],

@@ -23,5 +23,3 @@ export default class PrepareForTakeoff extends EventCard {
         });
     }
 }
-
-PrepareForTakeoff.implemented = true;

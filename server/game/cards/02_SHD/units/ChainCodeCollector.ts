@@ -27,5 +27,3 @@ export default class ChainCodeCollector extends NonLeaderUnitCard {
         });
     }
 }
-
-ChainCodeCollector.implemented = true;

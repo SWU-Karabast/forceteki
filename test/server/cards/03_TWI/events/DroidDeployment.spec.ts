@@ -1,7 +1,7 @@
 describe('Droid Deployment', function () {
     integration(function (contextRef) {
-        it('Droid Deployment\'s ability should create two Battle Droid tokens for the controller', function () {
-            contextRef.setupTest({
+        it('Droid Deployment\'s ability should create two Battle Droid tokens for the controller', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['droid-deployment'],

@@ -2,12 +2,12 @@ describe('Bib Fortuna', function() {
     integration(function(contextRef) {
         describe('Bib Fortuna\'s activated ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['bib-fortuna#jabbas-majordomo', 'jawa-scavenger'],
                         hand: ['repair', 'confiscate', 'swoop-racer', 'surprise-strike'],
-                        base: 'capital-city',
+                        base: { card: 'capital-city', damage: 8 },
                         leader: 'grand-inquisitor#hunting-the-jedi',
                     },
                 });

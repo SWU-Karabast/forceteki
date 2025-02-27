@@ -14,7 +14,7 @@ export default class ForceChoke extends EventCard {
         this.addDecreaseCostAbility({
             title: 'If you control a Force unit, this costs 1 resource less to play',
             amount: 1,
-            condition: (context) => context.source.controller.isTraitInPlay(Trait.Force)
+            condition: (context) => context.player.isTraitInPlay(Trait.Force)
         });
 
         this.setEventAbility({
@@ -30,5 +30,3 @@ export default class ForceChoke extends EventCard {
         });
     }
 }
-
-ForceChoke.implemented = true;

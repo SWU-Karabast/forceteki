@@ -16,7 +16,7 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
     protected override readonly targetTypeFilter = [CardType.Leader];
 
     public eventHandler(event): void {
-        Contract.assertTrue(event.card.isLeader());
+        Contract.assertTrue(event.card.isDeployableLeader());
         event.card.deploy();
     }
 
@@ -26,7 +26,7 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
-        if (!card.isLeader() || card.deployed) {
+        if (!card.isLeader() || card.isDeployableLeader() && card.deployed) {
             return false;
         }
         return super.canAffect(card, context);

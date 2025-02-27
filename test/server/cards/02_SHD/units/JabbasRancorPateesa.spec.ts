@@ -1,8 +1,8 @@
 describe('Jabba\'s Rancor, Pateesa', function () {
     integration(function (contextRef) {
         describe('Jabba\'s Rancor\'s abilities', function () {
-            it('should not decrease cost because we do not control Jabba the Hutt', function () {
-                contextRef.setupTest({
+            it('should not decrease cost because we do not control Jabba the Hutt', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['jabbas-rancor#pateesa'],
@@ -15,8 +15,8 @@ describe('Jabba\'s Rancor, Pateesa', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(8);
             });
 
-            it('should decrease the cost because we control Jabba the Hutt as leader', function () {
-                contextRef.setupTest({
+            it('should decrease the cost because we control Jabba the Hutt as leader', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['jabbas-rancor#pateesa'],
@@ -29,8 +29,8 @@ describe('Jabba\'s Rancor, Pateesa', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(7);
             });
 
-            it('should decrease the cost because we control Jabba the Hutt as unit and should deal 3 damage to an another friendly ground unit and an enemy ground unit ', function () {
-                contextRef.setupTest({
+            it('should decrease the cost because we control Jabba the Hutt as unit and should deal 3 damage to an another friendly ground unit and an enemy ground unit ', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['jabbas-rancor#pateesa'],
@@ -82,8 +82,8 @@ describe('Jabba\'s Rancor, Pateesa', function () {
                 expect(context.partisanInsurgent.damage).toBe(3);
             });
 
-            it('should deal 3 damage to an another friendly ground unit (enemy does not control ground unit)', function () {
-                contextRef.setupTest({
+            it('should deal 3 damage to an another friendly ground unit (enemy does not control ground unit)', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['jabbas-rancor#pateesa'],
@@ -105,8 +105,8 @@ describe('Jabba\'s Rancor, Pateesa', function () {
                 expect(context.jabbaTheHutt.damage).toBe(3);
             });
 
-            it('should deal 3 damage to an enemy ground unit (we do not control another ground unit)', function () {
-                contextRef.setupTest({
+            it('should deal 3 damage to an enemy ground unit (we do not control another ground unit)', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['jabbas-rancor#pateesa'],

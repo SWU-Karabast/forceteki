@@ -2,7 +2,7 @@ describe('Power of the Dark Side', function() {
     integration(function(contextRef) {
         describe('Power of the Dark Side\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['power-of-the-dark-side'],
@@ -29,7 +29,7 @@ describe('Power of the Dark Side', function() {
 
         describe('Power of the Dark Side\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['power-of-the-dark-side'],

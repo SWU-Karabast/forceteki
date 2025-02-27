@@ -18,7 +18,7 @@ export class PlayEventAction extends PlayCardAction {
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
-        return new PlayEventAction(this.card, { ...this.createdWithProperties, ...overrideProperties });
+        return new PlayEventAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
@@ -40,7 +40,7 @@ export class PlayEventAction extends PlayCardAction {
         const events = [cardPlayedEvent];
 
         if (context.playType === PlayType.Smuggle) {
-            events.push(this.generateSmuggleEvent(context));
+            this.addSmuggleEvent(events, context);
         }
 
         context.game.openEventWindow(events);

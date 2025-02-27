@@ -29,5 +29,3 @@ export default class LegalAuthority extends UpgradeCard {
         });
     }
 }
-
-LegalAuthority.implemented = true;

@@ -35,5 +35,3 @@ export default class Traitorous extends UpgradeCard {
         });
     }
 }
-
-Traitorous.implemented = true;

@@ -2,8 +2,8 @@ describe('Recruit', function () {
     integration(function (contextRef) {
         describe('Recruit\'s ability - ', function () {
             describe('when there is one valid option,', function () {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
@@ -17,10 +17,13 @@ describe('Recruit', function () {
 
                     context.player1.clickCard(context.recruit);
                     expect(context.player1).toHavePrompt('Select a card to reveal');
-                    expect(context.player1).toHaveDisabledPromptButtons([context.confiscate.title, context.iAmYourFather.title, context.surpriseStrike.title, context.vanquish.title]);
-                    expect(context.player1).toHaveEnabledPromptButtons([context.viperProbeDroid.title, 'Take nothing']);
+                    expect(context.player1).toHaveExactDisplayPromptCards({
+                        selectable: [context.viperProbeDroid],
+                        invalid: [context.confiscate, context.iAmYourFather, context.surpriseStrike, context.vanquish]
+                    });
+                    expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                    context.player1.clickPrompt(context.viperProbeDroid.title);
+                    context.player1.clickCardInDisplayCardPrompt(context.viperProbeDroid);
                     expect(context.getChatLogs(2)).toContain('player1 takes Viper Probe Droid');
                     expect(context.viperProbeDroid).toBeInZone('hand');
 
@@ -44,18 +47,22 @@ describe('Recruit', function () {
 
                     context.player1.setDeck([context.viperProbeDroid, context.confiscate, context.iAmYourFather]);
                     context.player1.clickCard(context.recruit);
-                    expect(context.player1).toHaveEnabledPromptButtons([context.viperProbeDroid.title, 'Take nothing']);
-                    expect(context.player1).toHaveDisabledPromptButtons([context.confiscate.title, context.iAmYourFather.title]);
-                    context.player1.clickPrompt(context.viperProbeDroid.title);
 
+                    expect(context.player1).toHaveExactDisplayPromptCards({
+                        selectable: [context.viperProbeDroid],
+                        invalid: [context.confiscate, context.iAmYourFather]
+                    });
+                    expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                    context.player1.clickCardInDisplayCardPrompt(context.viperProbeDroid);
                     expect(context.player1.deck.length).toBe(2);
                     expect([context.confiscate, context.iAmYourFather]).toAllBeInBottomOfDeck(context.player1, 2);
                 });
             });
 
             describe('when the deck is empty,', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
@@ -78,8 +85,8 @@ describe('Recruit', function () {
             });
 
             describe('when there are no valid options,', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
@@ -93,9 +100,10 @@ describe('Recruit', function () {
 
                     context.player1.clickCard(context.recruit);
                     expect(context.player1).toHavePrompt('Select a card to reveal');
-                    expect(context.player1).toHaveDisabledPromptButtons([context.disarm.title, context.confiscate.title, context.iAmYourFather.title, context.surpriseStrike.title, context.vanquish.title]);
+                    expect(context.player1).toHaveExactDisplayPromptCards({
+                        invalid: [context.disarm, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.vanquish]
+                    });
                     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
-
                     context.player1.clickPrompt('Take nothing');
 
                     expect([context.disarm, context.confiscate, context.iAmYourFather, context.surpriseStrike, context.vanquish]).toAllBeInBottomOfDeck(context.player1, 5);
@@ -104,8 +112,8 @@ describe('Recruit', function () {
 
 
             describe('when there are multiple valid options,', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['recruit'],
@@ -119,10 +127,13 @@ describe('Recruit', function () {
 
                     context.player1.clickCard(context.recruit);
                     expect(context.player1).toHavePrompt('Select a card to reveal');
-                    expect(context.player1).toHaveDisabledPromptButtons([context.confiscate.title, context.iAmYourFather.title, context.surpriseStrike.title]);
-                    expect(context.player1).toHaveEnabledPromptButtons([context.viperProbeDroid.title, context.cellBlockGuard.title, 'Take nothing']);
+                    expect(context.player1).toHaveExactDisplayPromptCards({
+                        selectable: [context.viperProbeDroid, context.cellBlockGuard],
+                        invalid: [context.confiscate, context.iAmYourFather, context.surpriseStrike]
+                    });
+                    expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
-                    context.player1.clickPrompt(context.cellBlockGuard.title);
+                    context.player1.clickCardInDisplayCardPrompt(context.cellBlockGuard);
                     expect(context.getChatLogs(2)).toContain('player1 takes Cell Block Guard');
                     expect(context.cellBlockGuard).toBeInZone('hand');
 

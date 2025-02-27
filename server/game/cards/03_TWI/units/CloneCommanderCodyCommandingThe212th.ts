@@ -22,5 +22,3 @@ export default class CloneCommanderCodyCommandingThe212th extends NonLeaderUnitC
         });
     }
 }
-
-CloneCommanderCodyCommandingThe212th.implemented = true;

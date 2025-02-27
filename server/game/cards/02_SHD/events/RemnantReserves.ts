@@ -23,5 +23,3 @@ export default class RemnantReserves extends EventCard {
         });
     }
 }
-
-RemnantReserves.implemented = true;

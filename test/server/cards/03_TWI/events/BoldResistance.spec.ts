@@ -1,8 +1,8 @@
 describe('Bold Resistance', function() {
     integration(function(contextRef) {
         describe('Bold Resistance\'s ability', function() {
-            it('should apply +2/+0 for up to 3 units that share the same Trait this phase', function () {
-                contextRef.setupTest({
+            it('should apply +2/+0 for up to 3 units that share the same Trait this phase', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bold-resistance', 'snowspeeder'],

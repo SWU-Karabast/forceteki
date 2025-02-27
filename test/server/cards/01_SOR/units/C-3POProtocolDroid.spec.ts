@@ -2,7 +2,7 @@ describe('C-3PO, Protocol Droid', function() {
     integration(function(contextRef) {
         describe('C-3PO\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['c3po#protocol-droid'],
@@ -14,22 +14,29 @@ describe('C-3PO, Protocol Droid', function() {
                 });
             });
 
-            it('should prompt to choose a Rebel from the top 5 cards, reveal it, draw it, and move the rest to the bottom of the deck', function () {
+            it('should prompt to choose a number, allowing the controller to reveal and draw the top card of their deck if its cost matches the number', function () {
                 const { context } = contextRef;
 
-                // CASE 1: threepio is played, we guess the number right
+                // CASE 1: threepio is played, we guess the number right and draw the card
                 context.player1.clickCard(context.c3po);
 
                 // should have prompt options from 0 to 20
                 expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
                 context.player1.chooseListOption('4');
 
-                // TODO: we need a 'look at' prompt for secretly revealing, currently chat logs go to all players
-                expect(context.getChatLogs(1)).toContain('C-3PO sees Wampa');
-                expect(context.player1).toHavePassAbilityPrompt('Reveal and draw Wampa from the top of your deck');
+                // P1 sees the top card of their deck
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.wampa]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Reveal and Draw', 'Leave on Top']);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.wampa.title);  // confirm that there is no chat message for the cards
 
-                context.player1.clickPrompt('Reveal and draw Wampa from the top of your deck');
-                expect(context.getChatLogs(1)).toContain('player1 reveals Wampa due to C-3PO');
+                context.player1.clickDisplayCardPromptButton(context.wampa.uuid, 'reveal-draw');
+
+                // P1 draws the card and it is revealed to P2
+                expect(context.player2).toHaveExactViewableDisplayPromptCards([context.wampa]);
+                expect(context.player2).toHaveEnabledPromptButton('Done');
+                context.player2.clickPrompt('Done');
+                expect(context.getChatLogs(1)[0]).toContain(context.wampa.title); // confirm that there is a chat message for the card
+
                 expect(context.wampa).toBeInZone('hand');
 
                 // CASE 2: threepio attacks, we guess the number wrong
@@ -40,7 +47,31 @@ describe('C-3PO, Protocol Droid', function() {
                 expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
                 context.player1.chooseListOption('0');
 
-                expect(context.getChatLogs(1)).toContain('C-3PO sees Battlefield Marine');
+                // P1 sees the top card of their deck
+                expect(context.player1).toHaveExactViewableDisplayPromptCards([context.battlefieldMarine]);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                expect(context.getChatLogs(1)[0]).not.toContain(context.battlefieldMarine.title);
+
+                context.player1.clickPrompt('Done');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toBeInZone('deck');
+
+                // CASE 3: threepio is played, we guess the number right and leave the card on top
+                context.c3po.exhausted = false;
+                context.player2.passAction();
+                context.player1.clickCard(context.c3po);
+
+                expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
+                context.player1.chooseListOption('2');
+
+                // P1 sees the top card of their deck
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Reveal and Draw', 'Leave on Top']);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.battlefieldMarine.title);
+
+                context.player1.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'leave');
+
                 expect(context.player2).toBeActivePlayer();
                 expect(context.battlefieldMarine).toBeInZone('deck');
             });
@@ -48,7 +79,7 @@ describe('C-3PO, Protocol Droid', function() {
 
         describe('C-3PO\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['c3po#protocol-droid'],

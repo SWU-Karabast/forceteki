@@ -31,5 +31,3 @@ export default class HelloThere extends EventCard {
         });
     }
 }
-
-HelloThere.implemented = true;

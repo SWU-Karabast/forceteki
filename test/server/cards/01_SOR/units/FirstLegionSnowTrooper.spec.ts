@@ -2,7 +2,7 @@ describe('First Legion Snow Trooper', function() {
     integration(function(contextRef) {
         describe('First Legion Snow Trooper\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['first-legion-snowtrooper'],
@@ -33,7 +33,7 @@ describe('First Legion Snow Trooper', function() {
 
         describe('First Legion Snow Troopers ability with a damaged unit.', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'first-legion-snowtrooper' }],

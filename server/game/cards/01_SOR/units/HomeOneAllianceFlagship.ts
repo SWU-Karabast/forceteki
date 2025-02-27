@@ -26,10 +26,8 @@ export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
 
         this.addConstantAbility({
             title: 'Each other friendly unit gains Restore 1.',
-            matchTarget: (card, context) => card.isUnit() && card.controller === context.source.controller,
+            matchTarget: (card, context) => card.isUnit() && card.controller === context.player,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Restore, amount: 1 })
         });
     }
 }
-
-HomeOneAllianceFlagship.implemented = true;

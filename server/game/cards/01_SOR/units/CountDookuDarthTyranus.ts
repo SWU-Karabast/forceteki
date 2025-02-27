@@ -20,5 +20,3 @@ export default class CountDookuDarthTyranus extends NonLeaderUnitCard {
         });
     }
 }
-
-CountDookuDarthTyranus.implemented = true;

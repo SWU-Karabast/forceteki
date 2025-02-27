@@ -1,8 +1,8 @@
 describe('Covetous Rivals', function() {
     integration(function(contextRef) {
         describe('Covetous Rivals\'s ability', function() {
-            it('should deal 2 damage to a unit with a Bounty', function () {
-                contextRef.setupTest({
+            it('should deal 2 damage to a unit with a Bounty', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['covetous-rivals'],

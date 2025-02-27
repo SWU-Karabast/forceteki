@@ -23,5 +23,3 @@ export default class GuildTarget extends UpgradeCard {
         });
     }
 }
-
-GuildTarget.implemented = true;

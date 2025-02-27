@@ -2,7 +2,7 @@ describe('Steadfast Battalion', function () {
     integration(function (contextRef) {
         describe('Steadfast Battalion\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['steadfast-battalion', 'battlefield-marine'],
@@ -30,7 +30,7 @@ describe('Steadfast Battalion', function () {
 
         describe('Steadfast Battalion\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['steadfast-battalion', 'battlefield-marine'],

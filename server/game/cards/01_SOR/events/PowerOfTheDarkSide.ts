@@ -22,5 +22,3 @@ export default class PowerOfTheDarkSide extends EventCard {
         });
     }
 }
-
-PowerOfTheDarkSide.implemented = true;

@@ -1,8 +1,8 @@
 describe('41st Elite Corps', function() {
     integration(function(contextRef) {
         describe('41st Elite Corps\'s ability', function () {
-            it('should give +0/+3 when Coordinate is active', function () {
-                contextRef.setupTest({
+            it('should give +0/+3 when Coordinate is active', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['republic-commando'],

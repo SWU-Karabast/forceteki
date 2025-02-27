@@ -25,10 +25,8 @@ export default class MaulARivalInDarkness extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities() {
         this.addConstantAbility({
             title: 'Each other friendly unit gains Overwhelm',
-            matchTarget: (card, context) => card.isUnit() && card.controller === context.source.controller && card !== context.source,
+            matchTarget: (card, context) => card.isUnit() && card.controller === context.player && card !== context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Overwhelm })
         });
     }
 }
-
-MaulARivalInDarkness.implemented = true;

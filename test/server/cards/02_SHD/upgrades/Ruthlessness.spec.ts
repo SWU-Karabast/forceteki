@@ -2,7 +2,7 @@ describe('Ruthlessness', function () {
     integration(function (contextRef) {
         describe('Ruthlessness\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['ruthlessness'] }, 'wampa'],
@@ -69,7 +69,7 @@ describe('Ruthlessness', function () {
 
         describe('Ruthlessness\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['ruthlessness'] }],
@@ -97,7 +97,7 @@ describe('Ruthlessness', function () {
 
         // describe('Ruthlessness\'s ability', function () {
         //     beforeEach(function () {
-        //         contextRef.setupTest({
+        //         await contextRef.setupTestAsync({
         //             phase: 'action',
         //             player1: {
         //                 groundArena: [{ card: 'guardian-of-the-whills', upgrades: ['ruthlessness', 'fallen-lightsaber'] }],

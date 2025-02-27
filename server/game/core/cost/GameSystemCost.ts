@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { ICost, Result } from './ICost';
+import type { ICost, ICostResult } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { GameEvent } from '../event/GameEvent';
 
@@ -31,7 +31,7 @@ export class GameSystemCost<TContext extends AbilityContext = AbilityContext> im
         return this.ifPossible || this.gameSystem.hasLegalTarget(context);
     }
 
-    public queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: Result): void {
+    public queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: ICostResult): void {
         // if the game system has no target but payment is optional, just return
         if (!this.gameSystem.hasLegalTarget(context) && this.ifPossible) {
             return;

@@ -29,5 +29,3 @@ export default class ValLoyalToTheEnd extends NonLeaderUnitCard {
         });
     }
 }
-
-ValLoyalToTheEnd.implemented = true;

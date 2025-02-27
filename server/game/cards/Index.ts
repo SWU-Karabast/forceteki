@@ -40,10 +40,6 @@ for (const filepath of allJsFiles(__dirname)) {
         throw Error(`Import card class with duplicate class name: ${card.name}`);
     }
 
-    if (!card.implemented) {
-        console.warn(`Warning: Loading partially implemented card '${cardId.internalName}'`);
-    }
-
     cardsMap.set(cardId.id, card);
     cardClassNames.add(card.name);
 }

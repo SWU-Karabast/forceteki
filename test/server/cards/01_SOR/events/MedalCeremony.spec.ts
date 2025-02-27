@@ -2,7 +2,7 @@ describe('Medal Ceremony', function() {
     integration(function(contextRef) {
         describe('Medal Ceremony\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['medal-ceremony'],

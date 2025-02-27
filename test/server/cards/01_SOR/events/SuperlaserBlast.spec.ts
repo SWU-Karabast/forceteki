@@ -3,8 +3,8 @@ describe('Superlaser Blast', function() {
         describe('Superlaser Blast', function() {
             integration(function(contextRef) {
                 describe('Superlaser Blast\' ability', function() {
-                    beforeEach(function () {
-                        contextRef.setupTest({
+                    beforeEach(async function () {
+                        await contextRef.setupTestAsync({
                             phase: 'action',
                             player1: {
                                 hand: ['superlaser-blast'],

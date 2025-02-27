@@ -13,7 +13,7 @@ export default class BoKatanKryzeDeathWatchLieutenant extends NonLeaderUnitCard 
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'While you control another Mandalorian unit, this unit gains Overwhelm and Saboteur',
-            condition: (context) => context.source.controller.isTraitInPlay(Trait.Mandalorian, context.source),
+            condition: (context) => context.player.isTraitInPlay(Trait.Mandalorian, context.source),
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm),
                 AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur)
@@ -22,10 +22,8 @@ export default class BoKatanKryzeDeathWatchLieutenant extends NonLeaderUnitCard 
 
         this.addConstantAbility({
             title: 'While you control another Trooper unit, this unit gets +1/+0',
-            condition: (context) => context.source.controller.isTraitInPlay(Trait.Trooper, context.source),
+            condition: (context) => context.player.isTraitInPlay(Trait.Trooper, context.source),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
         });
     }
 }
-
-BoKatanKryzeDeathWatchLieutenant.implemented = true;

@@ -2,8 +2,8 @@ describe('Star Wing Scout', function () {
     integration(function (contextRef) {
         describe('Star Wing Scout\'s ability', function () {
             describe('when the player has initiative', function () {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             spaceArena: ['star-wing-scout'],
@@ -35,8 +35,8 @@ describe('Star Wing Scout', function () {
             });
 
             describe('when the player does not have initiative', function () {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             spaceArena: ['star-wing-scout']

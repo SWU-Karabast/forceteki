@@ -31,5 +31,3 @@ export default class RebelAssault extends EventCard {
         });
     }
 }
-
-RebelAssault.implemented = true;

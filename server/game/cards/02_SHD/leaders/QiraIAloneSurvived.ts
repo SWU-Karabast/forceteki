@@ -48,5 +48,3 @@ export default class QiraIAloneSuvived extends LeaderUnitCard {
         });
     }
 }
-
-QiraIAloneSuvived.implemented = true;

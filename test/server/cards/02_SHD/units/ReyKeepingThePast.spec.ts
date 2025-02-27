@@ -1,8 +1,8 @@
 describe('Rey, Keeping the Past', function() {
     integration(function(contextRef) {
         describe('Rey\'s Ability', function() {
-            it('ignores Heroism aspect penalty when unit Kylo unit is controlled', function () {
-                contextRef.setupTest({
+            it('ignores Heroism aspect penalty when unit Kylo unit is controlled', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['rey#keeping-the-past'],
@@ -20,8 +20,8 @@ describe('Rey, Keeping the Past', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(5);
             });
 
-            it('heals 2 and gives Shield token to a non-heroism unit', function () {
-                contextRef.setupTest({
+            it('heals 2 and gives Shield token to a non-heroism unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['rey#keeping-the-past', 'pyke-sentinel', 'battlefield-marine']
@@ -74,8 +74,8 @@ describe('Rey, Keeping the Past', function() {
                 expect(context.mandalorianWarrior).toHaveExactUpgradeNames(['shield']);
             });
 
-            it('ignores Heroism aspect penalty when Kylo Ren is the leader', function () {
-                contextRef.setupTest({
+            it('ignores Heroism aspect penalty when Kylo Ren is the leader', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['rey#keeping-the-past'],

@@ -25,5 +25,3 @@ export default class BenduTheOneInTheMiddle extends NonLeaderUnitCard {
         });
     }
 }
-
-BenduTheOneInTheMiddle.implemented = true;

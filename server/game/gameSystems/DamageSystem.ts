@@ -7,10 +7,10 @@ import * as Contract from '../core/utils/Contract';
 import type { Attack } from '../core/attack/Attack';
 import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
 import { DamageSourceType } from '../IDamageOrDefeatSource';
-import type { UnitCard } from '../core/card/CardTypes';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
-    type?: DamageType;
+    type: DamageType;
 }
 
 export interface ICombatDamageProperties extends IDamagePropertiesBase {
@@ -19,15 +19,21 @@ export interface ICombatDamageProperties extends IDamagePropertiesBase {
 
     /** The attack that is the source of the damage */
     sourceAttack: Attack;
+
+    /** The source of the damage, if different from the attacker / defender card (e.g. Maul1 unit ability) */
+    source?: Card;
 }
 
 /** Used for when an ability is directly dealing damage to a target (most common case for card implementations) */
 export interface IAbilityDamageProperties extends IDamagePropertiesBase {
-    type?: DamageType.Ability;    // this is optional so it can be the default property type
-    amount: number | ((card: UnitCard) => number);
+    type: DamageType.Ability;
+    amount: number | ((card: IUnitCard) => number);
 
     /** The source of the damage, if different from the card that triggered the ability */
     source?: Card;
+
+    /** Whether this damage is indirect damage or not */
+    isIndirect?: boolean;
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -73,7 +79,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     protected override defaultProperties: IAbilityDamageProperties = {
         amount: null,
-        type: DamageType.Ability
+        type: DamageType.Ability,
+        isIndirect: false
     };
 
     public eventHandler(event): void {
@@ -103,14 +110,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
-
-        // short-circuits to pass targeting if damage amount is set at 0 either directly or via a resolved source event
-        if (
-            'amount' in properties && properties.amount === 0 ||
-            'sourceEventForExcessDamage' in properties && properties.sourceEventForExcessDamage.availableExcessDamage === 0
-        ) {
-            return false;
-        }
         if (
             properties.type === DamageType.Overwhelm && 'contingentSourceEvent' in properties &&
             properties.contingentSourceEvent.availableExcessDamage === 0
@@ -121,9 +120,32 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         if (!EnumHelpers.isAttackableZone(card.zoneName)) {
             return false;
         }
-        if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {
-            return false;
+
+        // check cases where a game state change is required
+        if (properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) {
+            if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context) && (properties.type !== DamageType.Ability || !properties.isIndirect)) {
+                return false;
+            }
+
+            if ('amount' in properties) {
+                if (typeof properties.amount === 'function') {
+                    Contract.assertTrue(card.isUnit());
+
+                    if (properties.amount(card) === 0) {
+                        return false;
+                    }
+                }
+
+                if (properties.amount === 0) {
+                    return false;
+                }
+            }
+
+            if ('sourceEventForExcessDamage' in properties && properties.sourceEventForExcessDamage.availableExcessDamage === 0) {
+                return false;
+            }
         }
+
         return super.canAffect(card, context);
     }
 
@@ -163,9 +185,12 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         Contract.assertTrue(context.source.isUnit());
         Contract.assertNotNullLike(card);
 
-        let damageDealtBy: UnitCard;
+        let damageDealtBy: IUnitCard;
 
-        if (event.isOverwhelmDamage) {
+        if (properties.source) {
+            Contract.assertTrue(properties.source.isUnit());
+            damageDealtBy = properties.source;
+        } else if (event.isOverwhelmDamage) {
             damageDealtBy = properties.sourceAttack.attacker;
         } else {
             switch (card) {
@@ -184,7 +209,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         const attackDamageSource: IDamagedOrDefeatedByAttack = {
             type: DamageSourceType.Attack,
             attack: properties.sourceAttack,
-            player: context.source.controller,
+            player: context.player,
             damageDealtBy,
             isOverwhelmDamage: false,
             event
@@ -208,7 +233,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         const overwhelmDamageSource: IDamagedOrDefeatedByAttack = {
             type: DamageSourceType.Attack,
             attack: properties.sourceAttack,
-            player: context.source.controller,
+            player: context.player,
             damageDealtBy: properties.sourceAttack.attacker,
             isOverwhelmDamage: true,
             event
@@ -229,7 +254,6 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         event.sourceEventForExcessDamage = properties.sourceEventForExcessDamage;
     }
 
-    // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
     private addAbilityDamagePropertiesToEvent(event: any, card: Card, context: TContext, properties: IAbilityDamageProperties): void {
         const abilityDamageSource: IDamagedOrDefeatedByAbility = {
             type: DamageSourceType.Ability,
@@ -238,6 +262,14 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             event
         };
 
+        if (context.isTriggered() && context.event.name === EventName.OnCardDefeated) {
+            // For the case where a stolen card is defeated, the card.controller has already reverted back
+            // to the card's owner. We need to use the last known information to get the correct controller
+            // for damage attribution (e.g. for Jango's ability)
+            abilityDamageSource.controller = context.event.lastKnownInformation.controller;
+        }
+
+        event.isIndirect = properties.isIndirect;
         event.damageSource = abilityDamageSource;
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
     }

@@ -1,8 +1,8 @@
 describe('Count Dooku, Fallen Jedi', function() {
     integration(function(contextRef) {
         describe('Count Dooku\'s when played ability', function () {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['count-dooku#fallen-jedi'],
@@ -20,7 +20,7 @@ describe('Count Dooku, Fallen Jedi', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.countDooku);
-                context.player1.clickPrompt('Play Count Dooku using Exploit');
+                context.player1.clickPrompt('Trigger exploit');
 
                 // choose exploit targets
                 context.player1.clickCard(context.wampa);
@@ -45,7 +45,7 @@ describe('Count Dooku, Fallen Jedi', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.countDooku);
-                context.player1.clickPrompt('Play Count Dooku using Exploit');
+                context.player1.clickPrompt('Trigger exploit');
 
                 // choose exploit targets
                 context.player1.clickCard(context.wampa);
@@ -69,7 +69,7 @@ describe('Count Dooku, Fallen Jedi', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.countDooku);
-                context.player1.clickPrompt('Play Count Dooku using Exploit');
+                context.player1.clickPrompt('Trigger exploit');
 
                 // choose exploit targets
                 context.player1.clickCard(context.wampa);
@@ -93,7 +93,7 @@ describe('Count Dooku, Fallen Jedi', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.countDooku);
-                context.player1.clickPrompt('Play Count Dooku using Exploit');
+                context.player1.clickPrompt('Trigger exploit');
 
                 // choose only one exploit target
                 context.player1.clickCard(context.wampa);
@@ -112,7 +112,7 @@ describe('Count Dooku, Fallen Jedi', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.countDooku);
-                context.player1.clickPrompt('Play Count Dooku');
+                context.player1.clickPrompt('Play without Exploit');
 
                 expect(context.player2).toBeActivePlayer();
             });

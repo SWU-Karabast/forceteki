@@ -1,8 +1,8 @@
 describe('Reinforcement Walker', function() {
     integration(function(contextRef) {
         describe('Reinforcement Walker\'s ability', function() {
-            it('should let the play draw a card when played and on attack', function () {
-                contextRef.setupTest({
+            it('should let the play draw a card when played and on attack', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reinforcement-walker'],
@@ -18,42 +18,31 @@ describe('Reinforcement Walker', function() {
                 // Case 1: The player is able to look at the top card of their deck when Reinforcement Walker is played
                 context.player1.clickCard(context.reinforcementWalker);
 
-                expect(context.getChatLogs(1)[0]).toEqual('Reinforcement Walker sees Alliance X-Wing');
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.allianceXwing]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Draw', 'Discard']);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.allianceXwing.title);  // confirm that there is no chat message for the cards
 
-                // Case 2: The player can choose to either draw or discard the card
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Draw',
-                    'Discard',
-                ]);
-
-                // Case 3: The user is able to draw the card when they click 'Draw'
-                context.player1.clickPrompt('Draw');
-
+                context.player1.clickDisplayCardPromptButton(context.allianceXwing.uuid, 'draw');
                 expect(context.allianceXwing).toBeInZone('hand');
                 expect(context.player2).toBeActivePlayer();
 
                 context.moveToNextActionPhase();
 
-                // Case 4: The player is able to look at the top card of their deck when Reinforcement Walker attacks
+                // Case 2: The player is able to look at the top card of their deck when Reinforcement Walker attacks
                 context.player1.clickCard(context.reinforcementWalker);
 
-                expect(context.getChatLogs(1)[0]).toEqual('Reinforcement Walker sees Battlefield Marine');
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Draw', 'Discard']);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.battlefieldMarine.title);  // confirm that there is no chat message for the cards
 
-                // Case 5: The player can choose to either draw or discard the card
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Draw',
-                    'Discard',
-                ]);
-
-                // Case 6: The user is able to draw the card when they click 'Draw'
-                context.player1.clickPrompt('Draw');
+                context.player1.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'draw');
                 expect(context.battlefieldMarine).toBeInZone('hand');
                 expect(context.player2).toBeActivePlayer();
             });
 
             it('should let the play discard a card and heal 3 damage from their base on attack when played and on attack',
-                function () {
-                    contextRef.setupTest({
+                async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['reinforcement-walker'],
@@ -70,8 +59,11 @@ describe('Reinforcement Walker', function() {
                     /* Case 1: The user is able to discard the card and heal 3 damage from their base when they play
                     Reinforcement Walker and click 'Discard' */
                     context.player1.clickCard(context.reinforcementWalker);
-                    context.player1.clickPrompt('Discard');
+                    expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.allianceXwing]);
+                    expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Draw', 'Discard']);
+                    expect(context.getChatLogs(1)[0]).not.toContain(context.allianceXwing.title);  // confirm that there is no chat message for the cards
 
+                    context.player1.clickDisplayCardPromptButton(context.allianceXwing.uuid, 'discard');
                     expect(context.allianceXwing).toBeInZone('discard');
                     expect(context.p1Base.damage).toEqual(7);
                     expect(context.player2).toBeActivePlayer();
@@ -81,20 +73,19 @@ describe('Reinforcement Walker', function() {
                     /* Case 2: The user is able to discard the card and heal 3 damage from their base when they attack
                     with Reinforcement Walker and click 'Discard' */
                     context.player1.clickCard(context.reinforcementWalker);
-                    expect(context.player1).toHaveExactPromptButtons([
-                        'Draw',
-                        'Discard',
-                    ]);
+                    expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.battlefieldMarine]);
+                    expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Draw', 'Discard']);
+                    expect(context.getChatLogs(1)[0]).not.toContain(context.battlefieldMarine.title);  // confirm that there is no chat message for the cards
 
-                    context.player1.clickPrompt('Discard');
+                    context.player1.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'discard');
                     expect(context.battlefieldMarine).toBeInZone('discard');
                     expect(context.p1Base.damage).toEqual(4);
                     expect(context.player2).toBeActivePlayer();
                 }
             );
 
-            it('should skip abilities when the deck is empty', function () {
-                contextRef.setupTest({
+            it('should skip abilities when the deck is empty', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reinforcement-walker'],
@@ -119,8 +110,8 @@ describe('Reinforcement Walker', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should trigger abilities twice when played with Ambush', function () {
-                contextRef.setupTest({
+            it('should trigger abilities twice when played with Ambush', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reinforcement-walker'],
@@ -137,7 +128,7 @@ describe('Reinforcement Walker', function() {
 
                 const { context } = contextRef;
 
-                // Case 1: The player can choose to resolve the ability or Ambush first.
+                // The player can choose to resolve the ability or Ambush first.
                 context.player1.clickCard(context.reinforcementWalker);
 
                 expect(context.player1).toHaveExactPromptButtons([
@@ -145,20 +136,17 @@ describe('Reinforcement Walker', function() {
                     'Look at the top card of your deck. Draw it or discard it and heal 3 damage from your base.',
                 ]);
 
-                // Case 2: The ability from on played resolves successfully.
+                // The ability from on played resolves successfully.
                 context.player1.clickPrompt('Look at the top card of your deck. Draw it or discard it and heal 3 damage from your base.');
 
-                expect(context.getChatLogs(1)[0]).toEqual('Reinforcement Walker sees Alliance X-Wing');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Draw',
-                    'Discard',
-                ]);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.allianceXwing]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Draw', 'Discard']);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.allianceXwing.title);  // confirm that there is no chat message for the cards
 
-                context.player1.clickPrompt('Draw');
-
+                context.player1.clickDisplayCardPromptButton(context.allianceXwing.uuid, 'draw');
                 expect(context.allianceXwing).toBeInZone('hand');
 
-                // Case 3: The on attack ability from Ambush resolved successfully.
+                // The on attack ability from Ambush resolved successfully.
                 expect(context.player1).toHaveExactPromptButtons([
                     'Ambush',
                     'Pass',
@@ -166,14 +154,11 @@ describe('Reinforcement Walker', function() {
 
                 context.player1.clickPrompt('Ambush');
 
-                expect(context.getChatLogs(1)[0]).toEqual('Reinforcement Walker sees Echo Base Defender');
-                expect(context.player1).toHaveExactPromptButtons([
-                    'Draw',
-                    'Discard',
-                ]);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.echoBaseDefender]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Draw', 'Discard']);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.echoBaseDefender.title);  // confirm that there is no chat message for the cards
 
-                context.player1.clickPrompt('Draw');
-
+                context.player1.clickDisplayCardPromptButton(context.echoBaseDefender.uuid, 'draw');
                 expect(context.echoBaseDefender).toBeInZone('hand');
                 expect(context.player2).toBeActivePlayer();
             });

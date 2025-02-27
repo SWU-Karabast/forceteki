@@ -22,5 +22,3 @@ export default class JedhaCity extends BaseCard {
         });
     }
 }
-
-JedhaCity.implemented = true;

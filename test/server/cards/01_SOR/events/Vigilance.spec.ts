@@ -2,7 +2,7 @@ describe('Vigilance', function() {
     integration(function(contextRef) {
         describe('Vigilance\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vigilance'],
@@ -95,7 +95,7 @@ describe('Vigilance', function() {
         });
         describe('Vigilance\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vigilance'],
@@ -132,7 +132,7 @@ describe('Vigilance', function() {
 
                     // heal 0 damage from base
                     context.player1.clickPrompt('Heal 5 damage from a base.');
-                    context.player1.clickCard(context.p1Base);
+                    // both base are not damaged, no base selectable
                     expect(context.p1Base.damage).toEqual(0);
                     expect(context.player2).toBeActivePlayer();
                 });

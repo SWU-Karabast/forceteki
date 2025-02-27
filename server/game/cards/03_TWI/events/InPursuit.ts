@@ -29,5 +29,3 @@ export default class InPursuit extends EventCard {
         });
     }
 }
-
-InPursuit.implemented = true;

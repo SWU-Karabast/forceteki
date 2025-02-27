@@ -1,8 +1,8 @@
 describe('Enforced Loyalty', function() {
     integration(function(contextRef) {
         describe('Enforced Loyalty\'s ability', function() {
-            it('should defeat a friendly unit and draw 2 cards', function () {
-                contextRef.setupTest({
+            it('should defeat a friendly unit and draw 2 cards', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['enforced-loyalty'],
@@ -29,8 +29,8 @@ describe('Enforced Loyalty', function() {
             });
         });
 
-        it('should do nothing if there are no friendly units', function () {
-            contextRef.setupTest({
+        it('should do nothing if there are no friendly units', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['enforced-loyalty']
@@ -50,8 +50,8 @@ describe('Enforced Loyalty', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should draw 1 card and damage base for 3 if only 1 card in deck', function () {
-            contextRef.setupTest({
+        it('should draw 1 card and damage base for 3 if only 1 card in deck', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['enforced-loyalty'],
@@ -71,8 +71,8 @@ describe('Enforced Loyalty', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should draw no cards and damage base for 6 if no cards in deck', function () {
-            contextRef.setupTest({
+        it('should draw no cards and damage base for 6 if no cards in deck', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['enforced-loyalty'],

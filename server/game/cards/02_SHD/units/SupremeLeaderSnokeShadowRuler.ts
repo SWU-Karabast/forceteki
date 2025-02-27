@@ -19,5 +19,3 @@ export default class SupremeLeaderSnokeShadowRuler extends NonLeaderUnitCard {
         });
     }
 }
-
-SupremeLeaderSnokeShadowRuler.implemented = true;

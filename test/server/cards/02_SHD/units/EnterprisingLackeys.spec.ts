@@ -2,7 +2,7 @@ describe('Enterprising Lackeys', function() {
     integration(function(contextRef) {
         describe('Enterprising Lackeys\'s when defeated ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['enterprising-lackeys'],
@@ -28,7 +28,7 @@ describe('Enterprising Lackeys', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
 
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNoTargetButton();
 
                 context.player1.clickCard(context.superlaserTechnician);
 
@@ -52,9 +52,9 @@ describe('Enterprising Lackeys', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
 
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNoTargetButton();
 
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 // as we pass nothing happen
                 expect(context.enterprisingLackeys).toBeInZone('discard');

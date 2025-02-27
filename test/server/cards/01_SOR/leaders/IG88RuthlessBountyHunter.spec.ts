@@ -2,7 +2,7 @@ describe('IG-88, Ruthless Bounty Hunter', function () {
     integration(function (contextRef) {
         describe('IG-88\'s leader undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-star-stormtrooper', 'battlefield-marine'],
@@ -28,7 +28,7 @@ describe('IG-88, Ruthless Bounty Hunter', function () {
 
         describe('IG-88\'s leader undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-star-stormtrooper', 'battlefield-marine'],
@@ -55,7 +55,7 @@ describe('IG-88, Ruthless Bounty Hunter', function () {
 
         describe('IG-88\'s leader ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['death-star-stormtrooper', 'battlefield-marine'],

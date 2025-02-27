@@ -20,10 +20,8 @@ export default class CreativeThinking extends EventCard {
                     cardCondition: (card) => !card.unique,
                     innerSystem: AbilityHelper.immediateEffects.exhaust(),
                 }),
-                AbilityHelper.immediateEffects.createCloneTrooper((context) => ({ target: context.source.controller })),
+                AbilityHelper.immediateEffects.createCloneTrooper((context) => ({ target: context.player })),
             ])
         });
     }
 }
-
-CreativeThinking.implemented = true;

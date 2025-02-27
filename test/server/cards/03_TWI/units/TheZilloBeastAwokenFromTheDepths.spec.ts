@@ -1,7 +1,7 @@
 describe('The Zillo Beast, Awoken from the Depths', function() {
     integration(function(contextRef) {
-        it('The Zillo Beast\'s when played ability should give all enemy ground units -5/-0 for the phase', function () {
-            contextRef.setupTest({
+        it('The Zillo Beast\'s when played ability should give all enemy ground units -5/-0 for the phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['the-zillo-beast#awoken-from-the-depths'],
@@ -37,8 +37,8 @@ describe('The Zillo Beast, Awoken from the Depths', function() {
             expect(context.atatSuppressor.getPower()).toBe(8);
         });
 
-        it('The Zillo Beast\'s triggered ability should heal 5 damage from itself at the start of the regroup phase', function () {
-            contextRef.setupTest({
+        it('The Zillo Beast\'s triggered ability should heal 5 damage from itself at the start of the regroup phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['the-zillo-beast#awoken-from-the-depths']

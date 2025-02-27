@@ -100,6 +100,15 @@ export class GamePipeline {
         return step.onMenuCommand(player, arg, uuid, method) !== false;
     }
 
+    public handlePerCardMenuCommand(player: Player, arg: string, cardUuid: string, uuid: string, method: string) {
+        if (this.pipeline.length === 0) {
+            return false;
+        }
+
+        const step = this.getCurrentStep();
+        return step.onPerCardMenuCommand(player, arg, cardUuid, uuid, method) !== false;
+    }
+
     public handleStatefulPromptResults(player: Player, results: IStatefulPromptResults, uuid: string) {
         if (this.pipeline.length === 0) {
             return false;

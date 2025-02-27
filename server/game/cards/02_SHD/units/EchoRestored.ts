@@ -16,7 +16,7 @@ export default class EchoRestored extends NonLeaderUnitCard {
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                 cardTypeFilter: WildcardCardType.Any,
-                target: context.source.controller,
+                target: context.player,
                 amount: 1
             })),
             ifYouDo: (context) => ({
@@ -30,5 +30,3 @@ export default class EchoRestored extends NonLeaderUnitCard {
         });
     }
 }
-
-EchoRestored.implemented = true;

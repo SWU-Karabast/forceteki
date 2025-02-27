@@ -24,5 +24,3 @@ export default class ObedientVanguard extends NonLeaderUnitCard {
         });
     }
 }
-
-ObedientVanguard.implemented = true;

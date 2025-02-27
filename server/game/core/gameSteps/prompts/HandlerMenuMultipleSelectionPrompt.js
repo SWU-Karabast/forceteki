@@ -44,7 +44,7 @@ class HandlerMenuMultipleSelectionPrompt extends HandlerMenuPrompt {
     activePrompt() {
         let buttons = [];
         buttons = buttons.concat(this.properties.choices.map((choice, index) => {
-            return { text: choice, arg: index };
+            return { text: choice, arg: index, selected: this.selectedOptions.includes(choice) };
         }));
         if (this.game.manualMode && (!this.properties.choices || this.properties.choices.every((choice) => choice !== 'Cancel'))) {
             buttons = buttons.concat({ text: 'Cancel Prompt', arg: 'cancel' });

@@ -41,5 +41,3 @@ export default class GeneralGrievousGeneralOfTheDroidArmies extends LeaderUnitCa
         });
     }
 }
-
-GeneralGrievousGeneralOfTheDroidArmies.implemented = true;

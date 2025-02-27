@@ -1,7 +1,7 @@
 describe('Clone Dive Trooper', function() {
     integration(function(contextRef) {
-        it('Clone Dive Trooper\'s constant Coordinate ability should give -2/0 to target when attacking a unit', function () {
-            contextRef.setupTest({
+        it('Clone Dive Trooper\'s constant Coordinate ability should give -2/0 to target when attacking a unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['clone-dive-trooper', 'battlefield-marine', 'compassionate-senator'],

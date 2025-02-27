@@ -2,7 +2,7 @@ describe('General\'s Guardian', function() {
     integration(function(contextRef) {
         describe('General\'s Guardian\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['coruscant-guard', 'advanced-recon-commando']

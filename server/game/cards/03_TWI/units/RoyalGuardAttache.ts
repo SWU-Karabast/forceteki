@@ -13,11 +13,9 @@ export default class RoyalGuardAttache extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Deal 2 damage to this unit.',
             when: {
-                onCardPlayed: (event, context) => event.card.controller === context.source.controller
+                onCardPlayed: (event, context) => event.card.controller === context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 }),
         });
     }
 }
-
-RoyalGuardAttache.implemented = true;

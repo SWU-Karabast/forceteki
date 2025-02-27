@@ -26,5 +26,3 @@ export default class StrafingGunship extends NonLeaderUnitCard {
         });
     }
 }
-
-StrafingGunship.implemented = true;

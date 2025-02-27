@@ -2,13 +2,14 @@ describe('A New Adventure', function() {
     integration(function(contextRef) {
         describe('A New Adventure\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['a-new-adventure'],
                         groundArena: ['salacious-crumb#obnoxious-pet', 'atat-suppressor'],
                         spaceArena: ['cartel-spacer'],
-                        base: { card: 'echo-base', damage: 2 }
+                        leader: 'asajj-ventress#unparalleled-adversary',
+                        base: { card: 'jedha-city', damage: 2 }
                     },
                     player2: {
                         groundArena: ['wampa'],
@@ -45,19 +46,20 @@ describe('A New Adventure', function() {
 
                 context.player1.clickPrompt('Play Salacious Crumb for free');
                 expect(context.salaciousCrumb).toBeInZone('groundArena');
-                expect(context.player1.exhaustedResourceCount).toBe(6); // just the cost of A New Adventure (with aspect penalties)
+                expect(context.player1.exhaustedResourceCount).toBe(2); // just the cost of A New Adventure
                 expect(context.p1Base.damage).toBe(1);   // from Crumb ability
             });
         });
 
-        it('A New Adventure\'s ability should return a friendly-owned unit controlled by the opponent to hand and then the onwer can play it for free', function () {
-            contextRef.setupTest({
+        it('A New Adventure\'s ability should return a friendly-owned unit controlled by the opponent to hand and then the onwer can play it for free', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['a-new-adventure'],
                     groundArena: ['atat-suppressor'],
                     spaceArena: ['cartel-spacer'],
-                    base: { card: 'echo-base', damage: 2 }
+                    leader: 'asajj-ventress#unparalleled-adversary',
+                    base: { card: 'jedha-city', damage: 2 }
                 },
                 player2: {
                     groundArena: ['wampa', { card: 'salacious-crumb#obnoxious-pet', owner: 'player1' }],
@@ -79,7 +81,7 @@ describe('A New Adventure', function() {
 
             context.player1.clickPrompt('Play Salacious Crumb for free');
             expect(context.salaciousCrumb).toBeInZone('groundArena');
-            expect(context.player1.exhaustedResourceCount).toBe(6); // just the cost of A New Adventure (with aspect penalties)
+            expect(context.player1.exhaustedResourceCount).toBe(2); // just the cost of A New Adventure
             expect(context.p1Base.damage).toBe(1);   // from Crumb ability
         });
     });

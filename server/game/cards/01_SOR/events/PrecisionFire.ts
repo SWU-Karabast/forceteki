@@ -25,5 +25,3 @@ export default class PrecisionFire extends EventCard {
         });
     }
 }
-
-PrecisionFire.implemented = true;

@@ -2,7 +2,7 @@ describe('Black One', function() {
     integration(function(contextRef) {
         describe('Black One\'s When Played and When Defeated ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['black-one#scourge-of-starkiller-base'],

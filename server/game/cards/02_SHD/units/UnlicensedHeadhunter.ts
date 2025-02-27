@@ -26,5 +26,3 @@ export default class UnlicensedHeadhunter extends NonLeaderUnitCard {
         });
     }
 }
-
-UnlicensedHeadhunter.implemented = true;

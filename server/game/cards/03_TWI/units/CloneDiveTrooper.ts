@@ -21,5 +21,3 @@ export default class CloneDiveTrooper extends NonLeaderUnitCard {
         });
     }
 }
-
-CloneDiveTrooper.implemented = true;

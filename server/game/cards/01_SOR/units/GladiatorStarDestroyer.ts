@@ -22,5 +22,3 @@ export default class GladiatorStarDestroyer extends NonLeaderUnitCard {
         });
     }
 }
-
-GladiatorStarDestroyer.implemented = true;

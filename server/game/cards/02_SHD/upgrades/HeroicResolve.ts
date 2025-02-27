@@ -30,5 +30,3 @@ export default class HeroicResolve extends UpgradeCard {
         });
     }
 }
-
-HeroicResolve.implemented = true;

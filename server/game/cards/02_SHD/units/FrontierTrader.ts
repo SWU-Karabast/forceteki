@@ -22,10 +22,8 @@ export default class FrontierTrader extends NonLeaderUnitCard {
             ifYouDo: (context) => ({
                 title: 'Put the top card of your deck into play as a resource.',
                 optional: true,
-                immediateEffect: AbilityHelper.immediateEffects.resourceCard({ target: context.source.controller.getTopCardOfDeck() })
+                immediateEffect: AbilityHelper.immediateEffects.resourceCard({ target: context.player.getTopCardOfDeck() })
             })
         });
     }
 }
-
-FrontierTrader.implemented = true;

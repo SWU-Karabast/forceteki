@@ -2,7 +2,7 @@ describe('Alliance Dispatcher', function() {
     integration(function(contextRef) {
         describe('Alliance Dispatcher\'s activated ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['alliance-dispatcher'],

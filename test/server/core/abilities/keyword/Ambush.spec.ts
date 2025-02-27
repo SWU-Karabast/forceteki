@@ -2,7 +2,7 @@ describe('Ambush keyword', function() {
     integration(function(contextRef) {
         describe('When a unit with the Ambush keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['syndicate-lackeys'],
@@ -39,7 +39,7 @@ describe('Ambush keyword', function() {
 
         describe('When a unit with the Ambush keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['syndicate-lackeys'],
@@ -72,7 +72,7 @@ describe('Ambush keyword', function() {
 
         describe('When a unit with the Ambush keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['syndicate-lackeys'],
@@ -97,7 +97,7 @@ describe('Ambush keyword', function() {
         });
         describe('When a unit with the Ambush keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'syndicate-lackeys']

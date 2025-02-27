@@ -1,7 +1,7 @@
 describe('Wolf Pack Escort', function () {
     integration(function (contextRef) {
-        it('should return card to hand when played', function () {
-            contextRef.setupTest({
+        it('should return card to hand when played', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['wolf-pack-escort'],

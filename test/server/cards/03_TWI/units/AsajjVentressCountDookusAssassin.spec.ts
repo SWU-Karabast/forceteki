@@ -1,7 +1,7 @@
 describe('Asajj Ventress Count Doooku\'s Assassin', function() {
     integration(function(contextRef) {
-        it('Asajj Ventress Count Doooku\'s Assassin\'s ability on attack should get +3/0 if a separatist unit has attacked this phase', function () {
-            contextRef.setupTest({
+        it('Asajj Ventress Count Doooku\'s Assassin\'s ability on attack should get +3/0 if a separatist unit has attacked this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['keep-fighting'],
@@ -47,7 +47,7 @@ describe('Asajj Ventress Count Doooku\'s Assassin', function() {
             context.player2.clickCard(context.waylay);
             context.player2.clickCard(context.asajjVentress);
             context.player1.clickCard(context.asajjVentress);
-            context.player1.clickPrompt('Play Asajj Ventress');
+            context.player1.clickPrompt('Play without Exploit');
             context.player2.passAction();
             context.player1.clickCard(context.keepFighting);
             context.player1.clickCard(context.asajjVentress);

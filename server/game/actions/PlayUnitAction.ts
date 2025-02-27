@@ -1,9 +1,10 @@
-import { AbilityRestriction, EffectName, PlayType, RelativePlayer } from '../core/Constants.js';
+import { AbilityRestriction, PlayType } from '../core/Constants.js';
 import { PutIntoPlaySystem } from '../gameSystems/PutIntoPlaySystem.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { Card } from '../core/card/Card.js';
+import type Game from '../core/Game.js';
 
 export type IPlayUnitActionProperties = IPlayCardActionProperties & {
     entersReady?: boolean;
@@ -12,8 +13,8 @@ export type IPlayUnitActionProperties = IPlayCardActionProperties & {
 export class PlayUnitAction extends PlayCardAction {
     private entersReady: boolean;
 
-    public constructor(card: Card, properties: IPlayUnitActionProperties) {
-        super(card, properties);
+    public constructor(game: Game, card: Card, properties: IPlayUnitActionProperties) {
+        super(game, card, properties);
 
         // default to false
         this.entersReady = !!properties.entersReady;
@@ -28,28 +29,25 @@ export class PlayUnitAction extends PlayCardAction {
             context.source,
         );
 
-        // TODO TAKE CONTROL
-        const playForOpponentEffect = context.source.getOngoingEffectValues(EffectName.EntersPlayForOpponent);
-        const player = playForOpponentEffect.length > 0 ? RelativePlayer.Opponent : RelativePlayer.Self;
 
         const events = [
             new PutIntoPlaySystem({
                 target: context.source,
-                controller: player,
+                controller: context.player,
                 entersReady: this.entersReady
             }).generateEvent(context),
             this.generateOnPlayEvent(context)
         ];
 
         if (context.playType === PlayType.Smuggle) {
-            events.push(this.generateSmuggleEvent(context));
+            this.addSmuggleEvent(events, context);
         }
 
         context.game.openEventWindow(events);
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
-        return new PlayUnitAction(this.card, { ...this.createdWithProperties, ...overrideProperties });
+        return new PlayUnitAction(this.game, this.card, { ...this.createdWithProperties, ...overrideProperties });
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {

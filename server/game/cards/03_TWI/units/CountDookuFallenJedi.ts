@@ -28,5 +28,3 @@ export default class CountDookuFallenJedi extends NonLeaderUnitCard {
         });
     }
 }
-
-CountDookuFallenJedi.implemented = true;

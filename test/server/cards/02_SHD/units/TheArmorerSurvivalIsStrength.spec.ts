@@ -2,7 +2,7 @@ describe('The Armorer, Survival Is Strength', function () {
     integration(function (contextRef) {
         describe('The Armorer\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-armorer#survival-is-strength'],

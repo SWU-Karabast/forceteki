@@ -2,7 +2,7 @@ describe('Energy Conversion Lab', function() {
     integration(function(contextRef) {
         describe('Energy Conversion Lab\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'energy-conversion-lab',

@@ -24,5 +24,3 @@ export default class PublicEnemy extends UpgradeCard {
         });
     }
 }
-
-PublicEnemy.implemented = true;

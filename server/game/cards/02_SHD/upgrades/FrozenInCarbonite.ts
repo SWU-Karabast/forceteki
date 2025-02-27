@@ -27,5 +27,3 @@ export default class FrozenInCarbonite extends UpgradeCard {
         });
     }
 }
-
-FrozenInCarbonite.implemented = true;

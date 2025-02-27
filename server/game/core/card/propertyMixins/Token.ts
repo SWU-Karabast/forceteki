@@ -1,7 +1,11 @@
-import type { InPlayCardConstructor } from '../baseClasses/InPlayCard';
-import type { TokenCard } from '../CardTypes';
+import type { IInPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import * as Contract from '../../utils/Contract';
 import { ZoneName } from '../../Constants';
+import type { IPlayableCard } from '../baseClasses/PlayableOrDeployableCard';
+
+export interface ITokenCard extends IInPlayCard {
+    removeFromGame(): void;
+}
 
 /** Mixin function that creates a version of the base class that is a Token. */
 export function AsToken<TBaseClass extends InPlayCardConstructor>(BaseClass: TBaseClass) {
@@ -13,8 +17,12 @@ export function AsToken<TBaseClass extends InPlayCardConstructor>(BaseClass: TBa
             this.zone = null;
         }
 
-        public override isToken(): this is TokenCard {
+        public override isToken(): this is ITokenCard {
             return true;
+        }
+
+        public override isPlayable(): this is IPlayableCard {
+            return false;
         }
     };
 }

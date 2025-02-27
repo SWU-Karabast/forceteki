@@ -18,5 +18,3 @@ export default class CoruscantGuard extends NonLeaderUnitCard {
         });
     }
 }
-
-CoruscantGuard.implemented = true;

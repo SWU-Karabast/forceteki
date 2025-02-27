@@ -35,5 +35,3 @@ export default class AdmiralOzzelOverconfident extends NonLeaderUnitCard {
         });
     }
 }
-
-AdmiralOzzelOverconfident.implemented = true;

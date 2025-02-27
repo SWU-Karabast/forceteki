@@ -2,7 +2,7 @@ describe('Change of Heart', function() {
     integration(function(contextRef) {
         describe('Change of Heart\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['change-of-heart'],

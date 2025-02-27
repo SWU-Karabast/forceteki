@@ -21,5 +21,3 @@ export default class DistantPatroller extends NonLeaderUnitCard {
         });
     }
 }
-
-DistantPatroller.implemented = true;

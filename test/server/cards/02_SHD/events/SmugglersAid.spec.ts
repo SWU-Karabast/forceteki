@@ -2,7 +2,7 @@ describe('Smuggler\'s Aid', function() {
     integration(function(contextRef) {
         describe('Smuggler\'s Aid\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['smugglers-aid']
@@ -22,7 +22,7 @@ describe('Smuggler\'s Aid', function() {
 
         describe('Smuggler\'s Aid\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [],

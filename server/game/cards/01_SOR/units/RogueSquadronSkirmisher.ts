@@ -22,5 +22,3 @@ export default class RogueSquadronSkirmisher extends NonLeaderUnitCard {
         });
     }
 }
-
-RogueSquadronSkirmisher.implemented = true;

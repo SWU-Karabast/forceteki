@@ -2,7 +2,7 @@ describe('Tobias Beckett, I Trust No One', function () {
     integration(function (contextRef) {
         describe('Tobias Beckett\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['daring-raid', 'battlefield-marine', 'entrenched', 'vanquish', 'rivals-fall'],
@@ -30,7 +30,7 @@ describe('Tobias Beckett, I Trust No One', function () {
 
                 expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.deathStarStormtrooper]);
                 expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 // enemy play an event card, nothing happen
                 context.player2.clickCard(context.tacticalAdvantage);
@@ -72,7 +72,7 @@ describe('Tobias Beckett, I Trust No One', function () {
 
         describe('Tobias Beckett\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['tobias-beckett#i-trust-no-one'],
@@ -105,7 +105,7 @@ describe('Tobias Beckett, I Trust No One', function () {
 
         describe('Tobias Beckett\'s smuggle cost', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'jabbas-palace',

@@ -16,5 +16,3 @@ export default class GuavianAntagonizer extends NonLeaderUnitCard {
         });
     }
 }
-
-GuavianAntagonizer.implemented = true;

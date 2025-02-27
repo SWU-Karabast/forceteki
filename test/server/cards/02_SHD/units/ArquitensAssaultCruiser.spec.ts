@@ -2,7 +2,7 @@ describe('Arquitens Assault Cruiser', function() {
     integration(function(contextRef) {
         describe('Arquitens Assault Cruiser\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['arquitens-assault-cruiser'],
@@ -71,7 +71,7 @@ describe('Arquitens Assault Cruiser', function() {
 
         // describe('Mace\'s triggered ability', function() {
         //     beforeEach(function () {
-        //         contextRef.setupTest({
+        //         await contextRef.setupTestAsync({
         //             phase: 'action',
         //             player1: {
         //                 groundArena: [{ card: 'mace-windu#party-crasher', upgrades: ['fallen-lightsaber'] }]

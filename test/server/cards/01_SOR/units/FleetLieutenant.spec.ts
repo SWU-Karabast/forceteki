@@ -2,7 +2,7 @@ describe('Fleet Lieutenant', function() {
     integration(function(contextRef) {
         describe('Fleet lieutenant\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['fleet-lieutenant'],
@@ -57,7 +57,7 @@ describe('Fleet Lieutenant', function() {
                 context.player1.clickCard(context.fleetLieutenant);
                 expect(context.fleetLieutenant).toBeInZone('groundArena');
 
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
                 expect(context.player2).toBeActivePlayer();
             });
 

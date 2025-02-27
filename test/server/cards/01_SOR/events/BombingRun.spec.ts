@@ -2,8 +2,8 @@ describe('Bombing Run', function() {
     integration(function(contextRef) {
         describe('Bombing Run\'s ability', function() {
             describe('when at least one arena is not empty', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['bombing-run'],
@@ -68,8 +68,8 @@ describe('Bombing Run', function() {
             });
 
             describe('when each arena is empty', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['bombing-run'],

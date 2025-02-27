@@ -22,5 +22,3 @@ export default class GroguIrresistible extends NonLeaderUnitCard {
         });
     }
 }
-
-GroguIrresistible.implemented = true;

@@ -41,5 +41,3 @@ export default class XanaduBloodCadBanesReward extends NonLeaderUnitCard {
         });
     }
 }
-
-XanaduBloodCadBanesReward.implemented = true;

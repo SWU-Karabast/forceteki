@@ -15,11 +15,9 @@ export default class AggrievedParliamentarian extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'Your opponent shuffle their discard pile and put it on the bottom of their deck',
             immediateEffect: AbilityHelper.immediateEffects.moveToBottomOfDeck((context) => ({
-                target: context.source.controller.opponent.getCardsInZone(ZoneName.Discard),
+                target: context.player.opponent.getCardsInZone(ZoneName.Discard),
                 shuffleMovedCards: true,
             }))
         });
     }
 }
-
-AggrievedParliamentarian.implemented = true;

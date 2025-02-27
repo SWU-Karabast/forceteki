@@ -30,5 +30,3 @@ export default class SabineWrenGalvanizedRevolutionary extends LeaderUnitCard {
         });
     }
 }
-
-SabineWrenGalvanizedRevolutionary.implemented = true;

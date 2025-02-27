@@ -20,5 +20,3 @@ export default class AdmiralYularenAdvisingCaution extends NonLeaderUnitCard {
         });
     }
 }
-
-AdmiralYularenAdvisingCaution.implemented = true;

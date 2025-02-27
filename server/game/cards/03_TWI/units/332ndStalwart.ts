@@ -18,5 +18,3 @@ export default class _332ndStalwart extends NonLeaderUnitCard {
         });
     }
 }
-
-_332ndStalwart.implemented = true;

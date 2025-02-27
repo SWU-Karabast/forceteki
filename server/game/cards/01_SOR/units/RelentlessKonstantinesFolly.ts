@@ -29,6 +29,7 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
         });
     }
 
+    // TODO: fix this to use "context.source" instead of "this"
     private isFirstEventPlayedByThisOpponentThisPhase(card) {
         return card.controller !== this.controller && card.type === CardType.Event && !this.cardsPlayedThisPhaseWatcher.someCardPlayed((playedCardEntry) =>
             playedCardEntry.playedBy === card.controller &&
@@ -36,5 +37,3 @@ export default class RelentlessKonstantinesFolly extends NonLeaderUnitCard {
             playedCardEntry.card !== card);
     }
 }
-
-RelentlessKonstantinesFolly.implemented = true;

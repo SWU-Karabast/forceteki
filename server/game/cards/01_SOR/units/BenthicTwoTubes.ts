@@ -23,5 +23,3 @@ export default class BenthicTwoTubes extends NonLeaderUnitCard {
         });
     }
 }
-
-BenthicTwoTubes.implemented = true;

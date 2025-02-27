@@ -16,5 +16,3 @@ export default class Devotion extends UpgradeCard {
         });
     }
 }
-
-Devotion.implemented = true;

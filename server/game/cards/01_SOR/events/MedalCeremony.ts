@@ -34,5 +34,3 @@ export default class MedalCeremony extends EventCard {
         });
     }
 }
-
-MedalCeremony.implemented = true;

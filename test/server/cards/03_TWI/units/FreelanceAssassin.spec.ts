@@ -1,8 +1,8 @@
 describe('Freelance Assassin', function () {
     integration(function (contextRef) {
         describe('Freelance Assassin\'s ability', function () {
-            it('should pay 2 resources to deal 2 damage to a unit', function () {
-                contextRef.setupTest({
+            it('should pay 2 resources to deal 2 damage to a unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['freelance-assassin'],
@@ -31,8 +31,8 @@ describe('Freelance Assassin', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(5);
             });
 
-            it('should pass the ability', function () {
-                contextRef.setupTest({
+            it('should pass the ability', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['freelance-assassin'],

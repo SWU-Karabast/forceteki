@@ -21,5 +21,3 @@ export default class RuthlessAssassin extends NonLeaderUnitCard {
         });
     }
 }
-
-RuthlessAssassin.implemented = true;

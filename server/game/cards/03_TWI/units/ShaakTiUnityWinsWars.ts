@@ -24,5 +24,3 @@ export default class ShaakTiUnityWinsWars extends NonLeaderUnitCard {
         });
     }
 }
-
-ShaakTiUnityWinsWars.implemented = true;

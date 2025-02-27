@@ -1,7 +1,7 @@
 describe('Wartime Trade Official', function () {
     integration(function (contextRef) {
-        it('should create a Battle Droid token when defeated', function () {
-            contextRef.setupTest({
+        it('should create a Battle Droid token when defeated', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['wartime-trade-official'],

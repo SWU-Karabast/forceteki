@@ -1,8 +1,8 @@
 describe('Kihraxz Heavy Fighter', function () {
     integration(function (contextRef) {
         describe('Kihraxz Heavy Fighter\'s ability', function() {
-            it('should gain +3 on attack if you exhaust another friendly unit and self is not selectable', function () {
-                contextRef.setupTest({
+            it('should gain +3 on attack if you exhaust another friendly unit and self is not selectable', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'pyke-sentinel'],
@@ -42,8 +42,8 @@ describe('Kihraxz Heavy Fighter', function () {
                 expect(context.devastatorInescapable.damage).toBe(3);
             });
 
-            it('should not be able to exhaust another friendly unit if all are already exhausted', function () {
-                contextRef.setupTest({
+            it('should not be able to exhaust another friendly unit if all are already exhausted', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', exhausted: true }, {

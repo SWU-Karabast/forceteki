@@ -1,7 +1,7 @@
 describe('Shaak Ti Unity Wins Wars', function() {
     integration(function(contextRef) {
-        it('Shaak Ti\'s ability should should create 1 Clone Tropper token when attack and Clone Troppers must have +1 power', function () {
-            contextRef.setupTest({
+        it('Shaak Ti\'s ability should should create 1 Clone Tropper token when attack and Clone Troppers must have +1 power', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['shaak-ti#unity-wins-wars']

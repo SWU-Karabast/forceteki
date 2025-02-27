@@ -2,7 +2,7 @@ describe('Nute Gunray, Vindictive Viceroy', function () {
     integration(function (contextRef) {
         describe('Nute Gunray\'s leader undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'rogue-squadron-skirmisher'],
@@ -57,7 +57,7 @@ describe('Nute Gunray, Vindictive Viceroy', function () {
 
         describe('Nute Gunray\'s leader deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'nute-gunray#vindictive-viceroy', deployed: true },

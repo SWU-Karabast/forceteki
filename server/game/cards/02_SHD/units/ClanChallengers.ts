@@ -18,5 +18,3 @@ export default class ClanChallengers extends NonLeaderUnitCard {
         });
     }
 }
-
-ClanChallengers.implemented = true;

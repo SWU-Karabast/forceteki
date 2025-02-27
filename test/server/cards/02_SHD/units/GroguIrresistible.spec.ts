@@ -2,7 +2,7 @@ describe('Grogu, Irresistible', function() {
     integration(function(contextRef) {
         describe('Grogu\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['grogu#irresistible', 'wampa'],
@@ -38,7 +38,7 @@ describe('Grogu, Irresistible', function() {
 
         describe('Grogu\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['grogu#irresistible'],

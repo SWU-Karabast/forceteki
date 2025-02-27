@@ -28,5 +28,3 @@ export default class LomPykeDealerInTruths extends NonLeaderUnitCard {
         });
     }
 }
-
-LomPykeDealerInTruths.implemented = true;

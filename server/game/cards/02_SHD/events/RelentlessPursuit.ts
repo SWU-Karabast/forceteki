@@ -37,5 +37,3 @@ export default class RelentlessPursuit extends EventCard {
         });
     }
 }
-
-RelentlessPursuit.implemented = true;

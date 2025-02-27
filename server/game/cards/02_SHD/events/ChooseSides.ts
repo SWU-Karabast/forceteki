@@ -41,5 +41,3 @@ export default class ChooseSides extends EventCard {
         });
     }
 }
-
-ChooseSides.implemented = true;

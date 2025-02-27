@@ -2,7 +2,7 @@ describe('Gideon Hask, Ruthless Loyalist', function () {
     integration(function (contextRef) {
         describe('Gideon Hask\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine', 'blizzard-assault-atat'],

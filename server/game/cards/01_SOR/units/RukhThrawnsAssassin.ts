@@ -24,5 +24,3 @@ export default class RukhThrawnsAssassin extends NonLeaderUnitCard {
         });
     }
 }
-
-RukhThrawnsAssassin.implemented = true;

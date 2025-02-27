@@ -2,7 +2,7 @@ describe('Armed to the teeth', function () {
     integration(function (contextRef) {
         describe('Armed to the teeth\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'bokatan-kryze#fighting-for-mandalore', upgrades: ['armed-to-the-teeth'] }, 'freetown-backup'],

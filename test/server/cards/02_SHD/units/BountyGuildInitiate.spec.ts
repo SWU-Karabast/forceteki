@@ -2,7 +2,7 @@ describe('Bounty Guild Initiate', function() {
     integration(function(contextRef) {
         describe('Bounty Guild Initiate\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bounty-guild-initiate'],
@@ -29,7 +29,7 @@ describe('Bounty Guild Initiate', function() {
 
         describe('Bounty Guild Initiate\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bounty-guild-initiate'],

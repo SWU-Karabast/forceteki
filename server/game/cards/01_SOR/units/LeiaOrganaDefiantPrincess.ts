@@ -26,5 +26,3 @@ export default class LeiaOrganaDefiantPrincess extends NonLeaderUnitCard {
         });
     }
 }
-
-LeiaOrganaDefiantPrincess.implemented = true;

@@ -2,7 +2,7 @@ describe('Mystic Reflection', function() {
     integration(function(contextRef) {
         describe('Mystic Reflection\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['mystic-reflection'],
@@ -34,7 +34,7 @@ describe('Mystic Reflection', function() {
 
         describe('Mystic Reflection\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['mystic-reflection'],

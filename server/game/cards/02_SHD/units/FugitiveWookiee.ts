@@ -20,5 +20,3 @@ export default class FugitiveWookiee extends NonLeaderUnitCard {
         });
     }
 }
-
-FugitiveWookiee.implemented = true;

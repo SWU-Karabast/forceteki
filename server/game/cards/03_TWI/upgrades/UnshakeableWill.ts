@@ -13,5 +13,3 @@ export default class UnshakeableWill extends UpgradeCard {
         this.addGainKeywordTargetingAttached({ keyword: KeywordName.Sentinel });
     }
 }
-
-UnshakeableWill.implemented = true;

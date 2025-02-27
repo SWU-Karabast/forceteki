@@ -7,18 +7,20 @@ import { cardCannot } from './CardCannot';
 // const { copyCard } = require('./Effects/Library/copyCard');
 // const { gainAllAbilities } = require('./Effects/Library/GainAllAbilities');
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
-import { modifyCost } from './ModifyCost';
+import { addExploit, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
 import type { KeywordName } from '../core/Constants';
-import { EffectName, PlayType } from '../core/Constants';
+import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import type { IAbilityPropsWithType, IKeywordProperties, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import * as KeywordHelpers from '../core/ability/KeywordHelpers';
-import type { IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
+import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
 import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
+import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
+import { playerCannot } from './PlayerCannot';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -27,6 +29,7 @@ import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/Dy
 */
 
 export = {
+    assignIndirectDamageDealtToOpponents: () => OngoingEffectBuilder.player.static(EffectName.AssignIndirectDamageDealtToOpponents),
     // Card effects
     // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
     // addTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.AddTrait, trait),
@@ -44,23 +47,23 @@ export = {
     blankEventCard: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     // calculatePrintedMilitarySkill: (func) => OngoingEffectBuilder.card.static(EffectName.CalculatePrintedMilitarySkill, func),
 
-    /** @deprected This has not yet been tested */
-    canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>
-        OngoingEffectBuilder.card.flexible(
-            EffectName.CanPlayFromOutOfPlay,
-            Object.assign({ player: player, playType: playType })
-        ),
+    // canPlayFromOutOfPlay: (player, playType = PlayType.PlayFromHand) =>
+    //    OngoingEffectBuilder.card.flexible(
+    //        EffectName.CanPlayFromOutOfPlay,
+    //        Object.assign({ player: player, playType: playType })
+    //    ),
 
-    /** @deprected This has not yet been tested */
-    registerToPlayFromOutOfPlay: () =>
-        OngoingEffectBuilder.card.detached(EffectName.CanPlayFromOutOfPlay, {
-            apply: (card) => {
-                for (const triggeredAbility of card.getTriggeredAbilities()) {
-                    triggeredAbility.registerEvents();
-                }
-            },
-            unapply: () => true
-        }),
+    // registerToPlayFromOutOfPlay: () =>
+    //    OngoingEffectBuilder.card.detached(EffectName.CanPlayFromDiscard, {
+    //        apply: (card) => {
+    //            for (const triggeredAbility of card.getTriggeredAbilities()) {
+    //                triggeredAbility.registerEvents();
+    //            }
+    //        },
+    //        unapply: () => true
+    //    }),
+
+    canPlayFromDiscard: () => OngoingEffectBuilder.card.static(EffectName.CanPlayFromDiscard),
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>
@@ -76,6 +79,7 @@ export = {
     cannotAttackBase: () => OngoingEffectBuilder.card.static(EffectName.CannotAttackBase),
     dealsDamageBeforeDefender: () => OngoingEffectBuilder.card.static(EffectName.DealsDamageBeforeDefender),
     cardCannot,
+    playerCannot,
     // changeContributionFunction: (func) => OngoingEffectBuilder.card.static(EffectName.ChangeContributionFunction, func),
     // changeType: (type) => OngoingEffectBuilder.card.static(EffectName.ChangeType, type),
     // characterProvidesAdditionalConflict: (type) =>
@@ -91,7 +95,6 @@ export = {
     // doesNotBow: () => OngoingEffectBuilder.card.static(EffectName.DoesNotBow),
     // doesNotReady: () => OngoingEffectBuilder.card.static(EffectName.DoesNotReady),
     // entersPlayWithStatus: (status) => OngoingEffectBuilder.card.static(EffectName.EntersPlayWithStatus, status),
-    // entersPlayForOpponent: () => OngoingEffectBuilder.card.static(EffectName.EntersPlayForOpponent),
     // fateCostToAttack: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToAttack, amount),
     // cardCostToAttackMilitary: (amount = 1) => OngoingEffectBuilder.card.flexible(EffectName.CardCostToAttackMilitary, amount),
     // fateCostToTarget: (properties) => OngoingEffectBuilder.card.flexible(EffectName.FateCostToTarget, properties),
@@ -161,6 +164,7 @@ export = {
     // mustBeDeclaredAsAttackerIfType: (type = 'both') =>
     //     OngoingEffectBuilder.card.static(EffectName.MustBeDeclaredAsAttackerIfType, type),
     // mustBeDeclaredAsDefender: (type = 'both') => OngoingEffectBuilder.card.static(EffectName.MustBeDeclaredAsDefender, type),
+    cannotBeDefeatedByDamage: () => OngoingEffectBuilder.card.static(EffectName.CannotBeDefeatedByDamage),
     // setBaseDash: (type) => OngoingEffectBuilder.card.static(EffectName.SetBaseDash, type),
     // setBaseMilitarySkill: (value) => OngoingEffectBuilder.card.static(EffectName.SetBaseMilitarySkill, value),
     // setBasePoliticalSkill: (value) => OngoingEffectBuilder.card.static(EffectName.SetBasePoliticalSkill, value),
@@ -229,8 +233,10 @@ export = {
     //         unapply: (player) => (player.actionPhasePriority = false)
     //     }),
     increaseCost: (properties: Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Increase, ...properties }),
+    forFree: (properties: Omit<IForFreeCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Free, ...properties }),
     ignoreAllAspectPenalties: (properties: Omit<IIgnoreAllAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreAllAspects, ...properties }),
     ignoreSpecificAspectPenalties: (properties: Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreSpecificAspects, ...properties }),
+    addExploit: (properties: IExploitCostAdjusterProperties) => addExploit(properties),
     // modifyCardsDrawnInDrawPhase: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.ModifyCardsDrawnInDrawPhase, amount),
     // playerCannot: (properties) =>

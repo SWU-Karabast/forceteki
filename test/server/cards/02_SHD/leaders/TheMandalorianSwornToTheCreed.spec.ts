@@ -2,7 +2,7 @@ describe('The Mandalorian, Sworn To The Creed', function () {
     integration(function (contextRef) {
         describe('The Mandalorian\'s leader undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['academy-training', 'waylay', 'devotion'],
@@ -69,7 +69,7 @@ describe('The Mandalorian, Sworn To The Creed', function () {
 
         describe('The Mandalorian\'s leader deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['academy-training', 'devotion', 'waylay'],

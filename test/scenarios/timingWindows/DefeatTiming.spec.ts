@@ -2,7 +2,7 @@ describe('Defeat timing', function() {
     integration(function(contextRef) {
         describe('When a unit enters play with a constant ability that defeats other units,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['supreme-leader-snoke#shadow-ruler'],
@@ -29,7 +29,7 @@ describe('Defeat timing', function() {
 
                 // vanguard on-defeat trigger happens next automatically
                 expect(context.player2).toBeAbleToSelectExactly([context.mazKanata, context.supremeLeaderSnoke]);
-                context.player2.clickPrompt('Pass ability');
+                context.player2.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
             });
@@ -38,7 +38,7 @@ describe('Defeat timing', function() {
         // TODO: add a similar test for Dodonna and units leaving the field due to a +hp modifier going away
         describe('When a unit enters play and is immediately defeated by a constant ability,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['supreme-leader-snoke#shadow-ruler'],
@@ -64,7 +64,7 @@ describe('Defeat timing', function() {
                 expect(context.vanguardInfantry).toBeInZone('discard');
 
                 context.player2.clickPrompt('Give an Experience token to a unit');
-                context.player2.clickPrompt('Pass ability');
+                context.player2.clickPrompt('Pass');
 
                 // maz kanata on-play trigger happens next automatically
                 expect(context.mazKanata).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
@@ -74,7 +74,7 @@ describe('Defeat timing', function() {
 
         describe('When a unit enters play and is immediately defeated by a constant ability,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['supreme-leader-snoke#shadow-ruler'],
@@ -97,13 +97,14 @@ describe('Defeat timing', function() {
 
                 expect(context.lieutenantChildsen).toBeInZone('discard');
                 context.player2.clickPrompt('Reveal up to 4 Vigilance cards from your hand -> Vanquish');
+                context.player1.clickPrompt('Done');
                 expect(context.player1).toBeActivePlayer();
             });
         });
 
         describe('When multiple units are defeated simultaneously,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['superlaser-blast'],
@@ -169,6 +170,37 @@ describe('Defeat timing', function() {
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(1);
                 expect(context.superlaserTechnician).toBeInZone('resource');
+            });
+        });
+
+        describe('When a unit not controlled by the owner is defeated,', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['change-of-heart'],
+                        groundArena: ['wampa', 'super-battle-droid'],
+                    },
+                    player2: {
+                        groundArena: ['vanguard-infantry', 'battlefield-marine', 'patrolling-aat'],
+                    },
+                });
+            });
+
+            it('"when defeated" triggers should be resolved by the controller', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.vanguardInfantry);
+                expect(context.vanguardInfantry).toBeInZone('groundArena', context.player1);
+
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.vanguardInfantry);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toHaveExactUpgradeNames(['experience']);
+
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });

@@ -2,7 +2,7 @@ describe('Bo-KatanKryze', function () {
     integration(function (contextRef) {
         describe('Bo-KatanKryze on defeated ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['bokatan-kryze#fighting-for-mandalore'],

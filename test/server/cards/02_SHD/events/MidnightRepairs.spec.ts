@@ -2,7 +2,7 @@ describe('Midnight Repairs', function () {
     integration(function (contextRef) {
         describe('Midnight Repairs\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['midnight-repairs'],
@@ -73,7 +73,7 @@ describe('Midnight Repairs', function () {
 
         describe('Midnight Repairs\'s ability, if there is only one target for healing,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['midnight-repairs'],

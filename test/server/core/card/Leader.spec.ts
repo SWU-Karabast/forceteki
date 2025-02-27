@@ -2,7 +2,7 @@ describe('Leader cards', function() {
     integration(function(contextRef) {
         describe('Undeployed leaders', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'battlefield-marine'],
@@ -74,7 +74,7 @@ describe('Leader cards', function() {
 
                 // on attack ability
                 expect(context.player1).toHavePrompt('Choose a card');
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.grandMoffTarkin.damage).toBe(4);
                 expect(context.wampa.damage).toBe(2);
@@ -101,7 +101,7 @@ describe('Leader cards', function() {
 
         describe('Deployed leaders', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'battlefield-marine'],

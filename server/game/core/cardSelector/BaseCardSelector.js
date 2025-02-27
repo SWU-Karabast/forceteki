@@ -22,7 +22,7 @@ class BaseCardSelector {
     }
 
     get hasAnyCardFilter() {
-        return this.cardTypeFilter || this.cardCondition || this.multiSelectCardCondition;
+        return !!this.cardTypeFilter || !!this.cardCondition || !!this.multiSelectCardCondition;
     }
 
     buildZoneFilter(property) {

@@ -18,5 +18,3 @@ export default class PloKoonKohtoyah extends NonLeaderUnitCard {
         });
     }
 }
-
-PloKoonKohtoyah.implemented = true;

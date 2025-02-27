@@ -2,7 +2,7 @@ describe('Kragan Gorr, Warbird Captain', function () {
     integration(function (contextRef) {
         describe('Kragan Gorr\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['kragan-gorr#warbird-captain', 'battlefield-marine', 'vanguard-infantry'],

@@ -22,5 +22,3 @@ export default class Snowspeeder extends NonLeaderUnitCard {
         });
     }
 }
-
-Snowspeeder.implemented = true;

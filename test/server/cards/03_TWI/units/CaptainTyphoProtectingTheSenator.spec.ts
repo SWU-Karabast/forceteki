@@ -1,8 +1,8 @@
 describe('Captain Typho, Protecting The Senator', function () {
     integration(function (contextRef) {
         describe('Captain Typho, Protecting The Senator\'s ability', function () {
-            it('should give Sentinel to a friendly unit when played and on attack', function () {
-                contextRef.setupTest({
+            it('should give Sentinel to a friendly unit when played and on attack', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['captain-typho#protecting-the-senator'],

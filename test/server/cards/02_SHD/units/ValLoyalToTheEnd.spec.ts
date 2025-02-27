@@ -2,7 +2,7 @@ describe('Val, Loyal To The End', function() {
     integration(function(contextRef) {
         describe('Val, Loyal To The End\'s Bounty ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['val#loyal-to-the-end', 'battlefield-marine'],

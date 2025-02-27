@@ -38,5 +38,3 @@ export default class Vigilance extends EventCard {
         });
     }
 }
-
-Vigilance.implemented = true;

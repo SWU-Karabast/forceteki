@@ -21,5 +21,3 @@ export default class AnakinSkywalkerMaverickMentor extends NonLeaderUnitCard {
         });
     }
 }
-
-AnakinSkywalkerMaverickMentor.implemented = true;

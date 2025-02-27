@@ -20,5 +20,3 @@ export default class RivalsFall extends EventCard {
         });
     }
 }
-
-RivalsFall.implemented = true;

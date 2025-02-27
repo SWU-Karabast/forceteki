@@ -28,5 +28,3 @@ export default class HoldoutBlaster extends UpgradeCard {
         });
     }
 }
-
-HoldoutBlaster.implemented = true;

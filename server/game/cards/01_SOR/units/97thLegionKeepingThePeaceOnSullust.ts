@@ -19,5 +19,3 @@ export default class _97thLegionKeepingThePeaceOnSullust extends NonLeaderUnitCa
         });
     }
 }
-
-_97thLegionKeepingThePeaceOnSullust.implemented = true;

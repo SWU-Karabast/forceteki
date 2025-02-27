@@ -17,11 +17,9 @@ export default class SynchronizedStrike extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Opponent,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: context.source.controller.getUnitsInPlay(context.target.zoneName).length,
+                    amount: context.player.getUnitsInPlay(context.target.zoneName).length,
                 }))
             }
         });
     }
 }
-
-SynchronizedStrike.implemented = true;

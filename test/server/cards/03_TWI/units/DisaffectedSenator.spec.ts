@@ -1,7 +1,7 @@
 describe('Disaffected Senator', function () {
     integration(function (contextRef) {
-        it('abitily should deal 2 damage to a base', function () {
-            contextRef.setupTest({
+        it('abitily should deal 2 damage to a base', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['disaffected-senator'],

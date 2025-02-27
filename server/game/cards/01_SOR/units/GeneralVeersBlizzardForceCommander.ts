@@ -19,5 +19,3 @@ export default class GeneralVeersBlizzardForceCommander extends NonLeaderUnitCar
         });
     }
 }
-
-GeneralVeersBlizzardForceCommander.implemented = true;

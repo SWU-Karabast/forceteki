@@ -2,7 +2,7 @@ describe('Valiant Assault Ship', function () {
     integration(function (contextRef) {
         describe('Valiant Assault Ship\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['valiant-assault-ship']

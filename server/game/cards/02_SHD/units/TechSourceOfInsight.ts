@@ -24,5 +24,3 @@ export default class TechSourceOfInsight extends NonLeaderUnitCard {
         });
     }
 }
-
-TechSourceOfInsight.implemented = true;

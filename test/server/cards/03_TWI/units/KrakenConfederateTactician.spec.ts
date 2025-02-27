@@ -1,7 +1,7 @@
 describe('Kraken Confederate Tactician', function () {
     integration(function (contextRef) {
-        it('Kraken Confederate Tactician\'s ability create 2 battle droid tokens when played and should give +1/+1 to friendly tokens unit on attack', function () {
-            contextRef.setupTest({
+        it('Kraken Confederate Tactician\'s ability create 2 battle droid tokens when played and should give +1/+1 to friendly tokens unit on attack', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['drop-in', 'kraken#confederate-tactician'],

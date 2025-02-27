@@ -2,7 +2,7 @@ describe('AT-TE Vanguard', function() {
     integration(function(contextRef) {
         describe('AT-TE Vanguard\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['power-of-the-dark-side']

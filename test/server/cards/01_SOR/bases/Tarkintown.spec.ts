@@ -2,7 +2,7 @@ describe('Tarkintown', function() {
     integration(function(contextRef) {
         describe('Tarkintown\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'tarkintown',

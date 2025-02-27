@@ -21,5 +21,3 @@ export default class DisablingFangFighter extends NonLeaderUnitCard {
         });
     }
 }
-
-DisablingFangFighter.implemented = true;

@@ -26,5 +26,3 @@ export default class AllianceDispatcher extends NonLeaderUnitCard {
         });
     }
 }
-
-AllianceDispatcher.implemented = true;

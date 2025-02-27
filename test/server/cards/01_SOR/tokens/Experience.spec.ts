@@ -2,7 +2,7 @@ describe('Experience', function() {
     integration(function(contextRef) {
         describe('Experience\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: [{ card: 'cartel-spacer', upgrades: ['experience'] }]
@@ -47,7 +47,7 @@ describe('Experience', function() {
 
         describe('Experience', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['confiscate'],
@@ -72,7 +72,7 @@ describe('Experience', function() {
 
         describe('When an experience token is created', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['clan-wren-rescuer']

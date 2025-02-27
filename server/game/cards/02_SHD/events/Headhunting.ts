@@ -35,5 +35,3 @@ export default class Headhunting extends EventCard {
         });
     }
 }
-
-Headhunting.implemented = true;

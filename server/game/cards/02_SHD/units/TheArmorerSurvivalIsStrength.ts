@@ -22,5 +22,3 @@ export default class TheArmorerSurvivalIsStrength extends NonLeaderUnitCard {
         });
     }
 }
-
-TheArmorerSurvivalIsStrength.implemented = true;

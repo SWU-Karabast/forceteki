@@ -31,5 +31,3 @@ export default class ReyMoreThanAScavenger extends LeaderUnitCard {
         });
     }
 }
-
-ReyMoreThanAScavenger.implemented = true;

@@ -2,7 +2,7 @@ describe('Moment of Glory', function () {
     integration(function (contextRef) {
         describe('Moment of Glory\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['moment-of-glory'],

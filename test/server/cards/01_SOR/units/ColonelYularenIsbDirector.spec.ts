@@ -2,7 +2,7 @@ describe('Colonel Yularen, ISB Director', function() {
     integration(function(contextRef) {
         describe('Yularen\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['colonel-yularen#isb-director', 'battlefield-marine'],

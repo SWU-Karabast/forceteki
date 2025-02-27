@@ -43,5 +43,3 @@ export default class GuardianOfTheWhills extends NonLeaderUnitCard {
         });
     }
 }
-
-GuardianOfTheWhills.implemented = true;

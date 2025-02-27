@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import { WildcardZoneName, RelativePlayer } from '../Constants';
-import type { ICost, Result } from './ICost';
+import type { ICost, ICostResult } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { ISelectCardProperties } from '../../gameSystems/SelectCardSystem';
 import { randomItem } from '../utils/Helpers';
@@ -25,11 +25,12 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
         return this.gameSystem.hasLegalTarget(context);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: Result): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: ICostResult): void {
         const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
         if (properties.checkTarget && context.choosingPlayerOverride) {
             context.costs[properties.innerSystem.name] = randomItem(
-                properties.selector.getAllLegalTargets(context, context.player)
+                properties.selector.getAllLegalTargets(context, context.player),
+                context.game.randomGenerator
             );
             context.costs[properties.innerSystem.name + 'StateWhenChosen'] =
                 context.costs[properties.innerSystem.name].createSnapshot();

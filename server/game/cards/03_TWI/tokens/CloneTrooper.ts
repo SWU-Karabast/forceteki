@@ -8,5 +8,3 @@ export default class CloneTrooper extends TokenUnitCard {
         };
     }
 }
-
-CloneTrooper.implemented = true;

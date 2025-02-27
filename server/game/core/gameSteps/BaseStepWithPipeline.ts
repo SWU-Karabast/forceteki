@@ -33,6 +33,10 @@ export abstract class BaseStepWithPipeline extends BaseStep implements IStep {
         return this.pipeline.handleMenuCommand(player, arg, uuid, method);
     }
 
+    public override onPerCardMenuCommand(player: Player, arg: string, cardUuid: string, uuid: string, method: string) {
+        return this.pipeline.handlePerCardMenuCommand(player, arg, cardUuid, uuid, method);
+    }
+
     public override onStatefulPromptResults(player: Player, results: IStatefulPromptResults, uuid: string) {
         return this.pipeline.handleStatefulPromptResults(player, results, uuid);
     }

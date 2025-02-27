@@ -2,7 +2,7 @@ describe('Asteroid Sanctuary', function() {
     integration(function(contextRef) {
         describe('Asteroid Sanctuary\'s ability -', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['asteroid-sanctuary'],

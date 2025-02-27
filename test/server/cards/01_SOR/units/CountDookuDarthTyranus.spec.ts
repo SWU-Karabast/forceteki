@@ -2,7 +2,7 @@ describe('Count Dooku, Darth Tyranus', function () {
     integration(function (contextRef) {
         describe('Count Dooku\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['count-dooku#darth-tyranus'],

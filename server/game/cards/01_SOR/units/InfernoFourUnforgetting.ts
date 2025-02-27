@@ -21,5 +21,3 @@ export default class InfernoFourUnforgetting extends NonLeaderUnitCard {
         });
     }
 }
-
-InfernoFourUnforgetting.implemented = true;

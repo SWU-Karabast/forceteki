@@ -20,9 +20,7 @@ export default class DoctorPershing extends NonLeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit
                 })
             ],
-            immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller }))
+            immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
         });
     }
 }
-
-DoctorPershing.implemented = true;

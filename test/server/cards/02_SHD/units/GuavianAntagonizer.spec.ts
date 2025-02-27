@@ -1,8 +1,8 @@
 describe('Guavian Antagonizer', function() {
     integration(function(contextRef) {
         describe('Guavian Antagonizer\'s Bounty ability', function() {
-            it('should draw a card', function () {
-                contextRef.setupTest({
+            it('should draw a card', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['guavian-antagonizer']

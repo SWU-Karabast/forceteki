@@ -2,7 +2,7 @@ describe('Admiral Piett, Captain of the Executor\'s Folly', function() {
     integration(function(contextRef) {
         describe('Admiral Piett\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['relentless#konstantines-folly', 'battlefield-marine', 'clan-saxon-gauntlet'],

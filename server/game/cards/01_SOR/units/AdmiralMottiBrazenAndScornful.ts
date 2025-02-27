@@ -22,5 +22,3 @@ export default class AdmiralMottiBrazenAndScornful extends NonLeaderUnitCard {
         });
     }
 }
-
-AdmiralMottiBrazenAndScornful.implemented = true;

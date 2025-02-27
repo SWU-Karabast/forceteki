@@ -20,5 +20,3 @@ export default class Waylay extends EventCard {
         });
     }
 }
-
-Waylay.implemented = true;

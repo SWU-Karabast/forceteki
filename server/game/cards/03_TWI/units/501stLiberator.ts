@@ -17,7 +17,7 @@ export default class _501stLiberator extends NonLeaderUnitCard {
             targetResolver: {
                 zoneFilter: ZoneName.Base,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.source.controller.isTraitInPlay(Trait.Republic, context.source),
+                    condition: (context) => context.player.isTraitInPlay(Trait.Republic, context.source),
                     onTrue: AbilityHelper.immediateEffects.heal({ amount: 3 }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 }),
@@ -25,5 +25,3 @@ export default class _501stLiberator extends NonLeaderUnitCard {
         });
     }
 }
-
-_501stLiberator.implemented = true;

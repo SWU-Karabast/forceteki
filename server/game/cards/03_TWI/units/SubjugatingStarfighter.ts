@@ -13,11 +13,9 @@ export default class SubjugatingStarfighter extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Create a Battle Droid token.',
             when: {
-                onCardPlayed: (event, context) => context.source.controller.hasInitiative(),
+                onCardPlayed: (event, context) => context.player.hasInitiative(),
             },
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()
         });
     }
 }
-
-SubjugatingStarfighter.implemented = true;

@@ -18,5 +18,3 @@ export default class EchoValiantArcTrooper extends NonLeaderUnitCard {
         });
     }
 }
-
-EchoValiantArcTrooper.implemented = true;

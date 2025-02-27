@@ -21,7 +21,6 @@ class MenuPrompt extends UiPrompt {
             properties.waitingPromptTitle = 'Waiting for opponent to use ' + properties.source.name;
         }
         this.properties = properties;
-        game.getPlayers().forEach((player) => player.clearSelectableCards());
     }
 
     /** @override */

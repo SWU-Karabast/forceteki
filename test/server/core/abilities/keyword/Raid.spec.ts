@@ -2,7 +2,7 @@ describe('Raid keyword', function() {
     integration(function(contextRef) {
         describe('When a unit with the Raid keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['cantina-braggart'],
@@ -66,7 +66,7 @@ describe('Raid keyword', function() {
 
         describe('When a unit with the Raid keyword and a gained Raid ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['red-three#unstoppable', 'green-squadron-awing']

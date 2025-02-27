@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { ICardWithExhaustProperty } from '../core/card/baseClasses/PlayableOrDeployableCard';
 import type { Card } from '../core/card/Card';
 import { AbilityRestriction, EventName, GameStateChangeRequired } from '../core/Constants';
-import type { CardWithExhaustProperty } from '../core/card/CardTypes';
 import type { IExhaustOrReadyProperties } from './ExhaustOrReadySystem';
 import { ExhaustOrReadySystem } from './ExhaustOrReadySystem';
 
@@ -30,7 +30,7 @@ export class ReadySystem<TContext extends AbilityContext = AbilityContext> exten
         const { isCost } = this.generatePropertiesFromContext(context);
 
         // can safely cast here b/c the type was checked in super.canAffect
-        if ((isCost || mustChangeGameState !== GameStateChangeRequired.None) && !(card as CardWithExhaustProperty).exhausted) {
+        if ((isCost || mustChangeGameState !== GameStateChangeRequired.None) && !(card as ICardWithExhaustProperty).exhausted) {
             return false;
         }
 
