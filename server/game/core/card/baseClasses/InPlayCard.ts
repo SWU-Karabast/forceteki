@@ -103,6 +103,10 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         return this.state.pendingDefeat;
     }
 
+    public set pendingDefeat(value) {
+        this.state.pendingDefeat = value;
+    }
+
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
