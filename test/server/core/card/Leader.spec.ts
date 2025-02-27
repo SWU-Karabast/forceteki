@@ -73,7 +73,7 @@ describe('Leader cards', function() {
                 context.player1.clickCard(context.wampa);
 
                 // on attack ability
-                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePrompt('Give an experience token to another Imperial unit');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.grandMoffTarkin.damage).toBe(4);

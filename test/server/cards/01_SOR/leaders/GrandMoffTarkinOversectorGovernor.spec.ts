@@ -79,7 +79,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
                 context.player1.clickCard(context.grandMoffTarkin);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePrompt('Give an experience token to another Imperial unit');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter]);
                 context.player1.clickCard(context.tielnFighter);

@@ -85,7 +85,7 @@ describe('Rose Tico, Saving What We Love', function() {
                 context.player1.clickCard(context.roseTico);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePrompt('Heal 2 damage from a Vehicle unit');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.lowAltitudeGunship, context.atst]); // Only the Vehicle units
                 context.player1.clickCard(context.lowAltitudeGunship);

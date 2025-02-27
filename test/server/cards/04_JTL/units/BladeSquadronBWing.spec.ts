@@ -20,7 +20,7 @@ describe('Blade Squadron B-Wing', function() {
             context.player1.clickCard(context.bladeSquadronBwing);
 
             // Assert ability Give shield to a unit if the opponent has at least 3 exhausted units
-            expect(context.player1).toHavePrompt('Choose a unit');
+            expect(context.player1).toHavePrompt('Give a Shield token to a unit');
             expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.wampa, context.tielnFighter, context.tieAdvanced, context.imperialInterceptor, context.bladeSquadronBwing, context.atst]);
             context.player1.clickCard(context.allianceXwing);
 

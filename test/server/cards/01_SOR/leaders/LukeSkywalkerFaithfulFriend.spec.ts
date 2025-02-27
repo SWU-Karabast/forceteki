@@ -83,7 +83,7 @@ describe('Luke Skywalker, Faithful Friend', function() {
                 context.player1.clickCard(context.lukeSkywalker);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePrompt('Give a shield token to another unit');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter, context.wampa, context.tieAdvanced]);
                 context.player1.clickCard(context.tielnFighter);
