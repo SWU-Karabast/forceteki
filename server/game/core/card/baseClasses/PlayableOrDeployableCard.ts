@@ -13,6 +13,7 @@ import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
 import { Card } from '../Card';
+import type { ICardState } from '../Card';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
@@ -52,22 +53,24 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
     buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
 }
 
+export interface IPlayableOrDeployableCardState extends ICardState {
+    exhausted: boolean | null;
+}
+
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
-    private _exhausted?: boolean = null;
-
+export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> extends Card<T> {
     public get exhausted(): boolean {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        return this._exhausted;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        return this.state.exhausted;
     }
 
     public set exhausted(val: boolean) {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = val;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = val;
     }
 
     // see Card constructor for list of expected args
@@ -81,6 +84,10 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     public override getActions(): PlayerOrCardAbility[] {
         return super.getActions()
             .concat(this.getPlayCardActions());
+    }
+
+    protected override onSetupDefaultState(): void {
+        this.state.exhausted = null;
     }
 
     /**
@@ -173,13 +180,13 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     }
 
     public exhaust() {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = true;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = true;
     }
 
     public ready() {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = false;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = false;
     }
 
     public override canBeExhausted(): this is IPlayableOrDeployableCard {
@@ -187,11 +194,11 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     }
 
     public override getSummary(activePlayer: Player) {
-        return { ...super.getSummary(activePlayer), exhausted: this._exhausted };
+        return { ...super.getSummary(activePlayer), exhausted: this.state.exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {
-        this._exhausted = enabledStatus ? true : null;
+        this.state.exhausted = enabledStatus ? true : null;
     }
 
     /**
@@ -225,7 +232,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             return;
         }
 
-        this._controller = newController;
+        this.controller = newController;
 
         const moveDestination = moveTo || this.zone.name;
 
