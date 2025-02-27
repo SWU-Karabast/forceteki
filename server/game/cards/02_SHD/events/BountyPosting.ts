@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
+import type { ICardWithCostProperty } from '../../../core/card/propertyMixins/Cost';
 import { Trait } from '../../../core/Constants';
 
 export default class BountyPosting extends EventCard {
@@ -12,27 +13,22 @@ export default class BountyPosting extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Search your deck for a Bounty upgrade, reveal it, and draw it. (Shuffle your deck.)',
+            title: 'Search your deck for a Bounty upgrade, reveal it, and draw it (shuffle your deck)',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 cardCondition: (card) => card.isUpgrade() && card.hasSomeTrait(Trait.Bounty),
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard(),
                 shuffleWhenDone: true
             }),
-            ifYouDo: (context) => ({
-                title: 'Play that upgrade (paying its cost).',
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'Play that upgrade (paying its cost)',
+                ifYouDoCondition: () =>
+                    ifYouDoContext.selectedPromptCards.length === 1 &&
+                    ifYouDoContext.player.readyResourceCount >= (ifYouDoContext.selectedPromptCards[0] as ICardWithCostProperty).cost,
                 optional: true,
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: () =>
-                        context.targets.length === 1 &&
-                        context.source.controller.readyResourceCount >= context.targets[0].cost,
-                    onTrue: AbilityHelper.immediateEffects.playCardFromHand({
-                        target: context.targets[0]
-                    }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
+                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
+                    target: ifYouDoContext.selectedPromptCards[0]
                 })
             })
         });
     }
 }
-
-BountyPosting.implemented = true;

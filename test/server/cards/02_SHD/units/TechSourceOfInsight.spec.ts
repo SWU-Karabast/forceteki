@@ -1,7 +1,7 @@
 describe('Tech, Source of Insight', function () {
     integration(function (contextRef) {
-        it('Tech\'s ability should give Smuggle to all cards in the resource zone', function () {
-            contextRef.setupTest({
+        it('Tech\'s ability should give Smuggle to all cards in the resource zone', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: { card: 'boba-fett#daimyo', deployed: true },
@@ -97,8 +97,8 @@ describe('Tech, Source of Insight', function () {
         });
 
 
-        it('Tech\'s ability should give Smuggle to all cards in the resource zone and handle alternate costs correctly', function () {
-            contextRef.setupTest({
+        it('Tech\'s ability should give Smuggle to all cards in the resource zone and handle alternate costs correctly', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'asajj-ventress#unparalleled-adversary',
@@ -125,12 +125,8 @@ describe('Tech, Source of Insight', function () {
 
             // test smuggle + exploit
             context.player1.clickCard(context.infiltratingDemolisher);
-            expect(context.player1).toHaveExactPromptButtons([
-                'Play Infiltrating Demolisher with Smuggle',
-                'Play Infiltrating Demolisher with Smuggle using Exploit',
-                'Cancel'
-            ]);
-            context.player1.clickPrompt('Play Infiltrating Demolisher with Smuggle using Exploit');
+            expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
+            context.player1.clickPrompt('Trigger Exploit');
 
             expect(context.player1).toBeAbleToSelectExactly([context.tech, context.tobiasBeckett]);
             context.player1.clickCard(context.tobiasBeckett);

@@ -2,7 +2,7 @@ describe('Luke Skywalker, Faithful Friend', function() {
     integration(function(contextRef) {
         describe('Luke\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['battlefield-marine', 'cartel-spacer', 'alliance-xwing'],
@@ -60,7 +60,7 @@ describe('Luke Skywalker, Faithful Friend', function() {
 
         describe('Luke\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst'],

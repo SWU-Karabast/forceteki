@@ -2,7 +2,7 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
     integration(function (contextRef) {
         describe('Hondo Ohnaka\'s leader undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['alliance-xwing'],
@@ -62,7 +62,7 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
 
         describe('Hondo Ohnaka\'s leader deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wampa'],

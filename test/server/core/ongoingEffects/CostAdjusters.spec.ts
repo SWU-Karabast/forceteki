@@ -2,7 +2,7 @@ describe('Cost adjusters', function() {
     integration(function(contextRef) {
         describe('Cost adjusters for playing cards', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['moment-of-peace'],

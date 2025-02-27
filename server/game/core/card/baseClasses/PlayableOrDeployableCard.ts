@@ -11,7 +11,9 @@ import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, 
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
+import * as Helpers from '../../utils/Helpers';
 import { Card } from '../Card';
+import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
@@ -34,12 +36,28 @@ export interface IIgnoreSpecificAspectPenaltyProps<TSource extends Card = Card> 
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
 
+export interface ICardWithExhaustProperty extends Card {
+    get exhausted(): boolean;
+    set exhausted(value: boolean);
+    exhaust();
+    ready();
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty {}
+
+export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
+    getPlayCardActions(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction[];
+    getPlayCardFromOutOfPlayActions(propertyOverrides?: IPlayCardActionOverrides);
+    buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
+}
+
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-export class PlayableOrDeployableCard extends Card {
+export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
     private _exhausted?: boolean = null;
 
     public get exhausted(): boolean {
@@ -72,19 +90,21 @@ export class PlayableOrDeployableCard extends Card {
      * If using an ability to grant an out-of-play action, use `getPlayCardFromOutOfPlayActions` which will generate the appropriate actions.
      */
     public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
+        let playCardActions: PlayCardAction[] = [];
+
         if (this.zoneName === ZoneName.Hand) {
-            return this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
+            playCardActions = this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
         }
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            return this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
+            playCardActions = this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
         }
 
         if (this.zoneName === ZoneName.Discard && this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
-            return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+            playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
         }
 
-        return [];
+        return playCardActions;
     }
 
     /**
@@ -103,13 +123,17 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
+        // add this card's Exploit amount onto any that come from the property overrides
+        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
+        const propertyOverridesWithExploit = Helpers.mergeNumericProperty(propertyOverrides, 'exploitValue', exploitValue);
+
         let defaultPlayAction: PlayCardAction = null;
         if (playType === PlayType.Smuggle) {
             if (this.hasSomeKeyword(KeywordName.Smuggle)) {
-                defaultPlayAction = this.buildCheapestSmuggleAction(propertyOverrides);
+                defaultPlayAction = this.buildCheapestSmuggleAction(propertyOverridesWithExploit);
             }
         } else {
-            defaultPlayAction = this.buildPlayCardAction({ ...propertyOverrides, playType });
+            defaultPlayAction = this.buildPlayCardAction({ ...propertyOverridesWithExploit, playType });
         }
 
         // if there's not a basic play action available for the requested play type, return nothing
@@ -118,12 +142,6 @@ export class PlayableOrDeployableCard extends Card {
         }
 
         const actions: PlayCardAction[] = [defaultPlayAction];
-
-        // generate "play with exploit" action from default action
-        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
-        if (exploitValue) {
-            actions.push(defaultPlayAction.clone({ exploitValue }));
-        }
 
         return actions;
     }
@@ -164,7 +182,7 @@ export class PlayableOrDeployableCard extends Card {
         this._exhausted = false;
     }
 
-    public override canBeExhausted(): this is PlayableOrDeployableCard {
+    public override canBeExhausted(): this is IPlayableOrDeployableCard {
         return true;
     }
 

@@ -2,8 +2,8 @@ describe('Stolen Landspeeder', function () {
     integration(function (contextRef) {
         const bountyPrompt = 'Collect Bounty: If you own this unit, play it from your discard pile for free and give an Experience token to it';
 
-        it('Stolen Landspeeder\'s ability should allow opponent to take control of it when played from hand and to play it for free when collecting the bounty', function () {
-            contextRef.setupTest({
+        it('Stolen Landspeeder\'s ability should allow opponent to take control of it when played from hand and to play it for free when collecting the bounty', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['stolen-landspeeder'],
@@ -46,8 +46,8 @@ describe('Stolen Landspeeder', function () {
             expect(context.stolenLandspeeder).toBeInZone('discard', context.player1);
         });
 
-        it('Stolen Landspeeder\'s ability should not allow opponent to take control of it when played from out of hand', function () {
-            contextRef.setupTest({
+        it('Stolen Landspeeder\'s ability should not allow opponent to take control of it when played from out of hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: [],

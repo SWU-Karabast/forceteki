@@ -2,7 +2,7 @@ describe('Bendu, The One in the Middle', function() {
     integration(function(contextRef) {
         describe('Bendu\'s on-attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [

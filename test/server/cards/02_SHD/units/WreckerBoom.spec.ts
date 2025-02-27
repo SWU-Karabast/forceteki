@@ -2,7 +2,7 @@ describe('Wrecker, Boom!', function() {
     integration(function(contextRef) {
         describe('Wrecker\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wrecker#boom'],

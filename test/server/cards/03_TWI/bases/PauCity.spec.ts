@@ -1,7 +1,7 @@
 describe('Pau City', function () {
     integration(function (contextRef) {
-        it('Pau City\'s ability should give +0/+1 to leader unit you control', function () {
-            contextRef.setupTest({
+        it('Pau City\'s ability should give +0/+1 to leader unit you control', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine'],
@@ -28,8 +28,8 @@ describe('Pau City', function () {
             expect(context.nalaSe.getHp()).toBe(7);
         });
 
-        it('Pau City\'s ability should not crash if there is not leader', function () {
-            contextRef.setupTest({
+        it('Pau City\'s ability should not crash if there is not leader', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine'],

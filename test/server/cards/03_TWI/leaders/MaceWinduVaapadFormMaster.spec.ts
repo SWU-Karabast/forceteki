@@ -1,8 +1,8 @@
 describe('Mace Windu, Vaapad Form Master', function () {
     integration(function (contextRef) {
         describe('Mace Windu\'s leader undeployed ability', function () {
-            it('should deal 1 damage to a damaged enemy unit, if it has 5 damage on him, deal 1 damage more', function () {
-                contextRef.setupTest({
+            it('should deal 1 damage to a damaged enemy unit, if it has 5 damage on him, deal 1 damage more', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', damage: 1 }],
@@ -46,8 +46,8 @@ describe('Mace Windu, Vaapad Form Master', function () {
         });
 
         describe('Mace Windu\'s leader deployed ability', function () {
-            it('should deal 2 damage to each damaged enemy unit', function () {
-                contextRef.setupTest({
+            it('should deal 2 damage to each damaged enemy unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', damage: 1 }],

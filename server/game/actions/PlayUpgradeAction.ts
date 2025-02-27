@@ -35,7 +35,7 @@ export class PlayUpgradeAction extends PlayCardAction {
         ];
 
         if (context.playType === PlayType.Smuggle) {
-            events.push(this.generateSmuggleEvent(context));
+            this.addSmuggleEvent(events, context);
         }
 
         context.game.openEventWindow(events);
@@ -52,6 +52,11 @@ export class PlayUpgradeAction extends PlayCardAction {
         ) {
             return 'restriction';
         }
+
+        if (!this.hasSomeLegalTarget(context)) {
+            return 'attachTarget';
+        }
+
         return super.meetsRequirements(context, ignoredRequirements);
     }
 

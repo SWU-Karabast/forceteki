@@ -2,7 +2,7 @@ describe('Desperate Attack', function() {
     integration(function(contextRef) {
         describe('Desperate Attack\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['desperate-attack'],

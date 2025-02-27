@@ -1,8 +1,8 @@
 describe('Consortium Star Viper', function () {
     integration(function (contextRef) {
         describe('Consortium Star Viper\'s ability', function () {
-            it('should grant restore 2 while you have initiative', function () {
-                contextRef.setupTest({
+            it('should grant restore 2 while you have initiative', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['consortium-starviper'],

@@ -1,7 +1,7 @@
 describe('Disruptive Burst', function() {
     integration(function(contextRef) {
-        it('Disruptive Burst\'s ability should apply -1/-1 to all enemy units for this phase', function () {
-            contextRef.setupTest({
+        it('Disruptive Burst\'s ability should apply -1/-1 to all enemy units for this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['disruptive-burst'],

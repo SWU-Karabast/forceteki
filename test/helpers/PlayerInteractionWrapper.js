@@ -34,7 +34,7 @@ class PlayerInteractionWrapper {
         this.player.handZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
         this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     get hand() {
@@ -110,6 +110,10 @@ class PlayerInteractionWrapper {
             if (leaderOptions.upgrades) {
                 this.setCardUpgrades(leaderCard, leaderOptions.upgrades);
             }
+
+            if (leaderOptions.capturedUnits) {
+                this.setCapturedUnits(leaderCard, leaderOptions.capturedUnits);
+            }
         } else {
             if (leaderOptions.deployed === false) {
                 if (leaderCard.deployed === true) {
@@ -130,7 +134,7 @@ class PlayerInteractionWrapper {
             leaderCard.exhausted = leaderOptions.exhausted || false;
         }
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     setBaseStatus(baseOptions) {
@@ -152,7 +156,7 @@ class PlayerInteractionWrapper {
         var baseCard = this.player.base;
         baseCard.damage = baseOptions.damage || 0;
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     /**
@@ -247,12 +251,16 @@ class PlayerInteractionWrapper {
                 this.setCardUpgrades(card, options.upgrades, prevZones);
             }
 
+            if (options.capturedUnits) {
+                this.setCapturedUnits(card, options.capturedUnits, prevZones);
+            }
+
             if (options.damage !== undefined) {
                 card.damage = options.damage;
             }
         });
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     setCardUpgrades(card, upgrades, prevZones = 'any') {
@@ -266,6 +274,20 @@ class PlayerInteractionWrapper {
             }
 
             upgradeCard.attachTo(card);
+        }
+    }
+
+    setCapturedUnits(card, capturedUnits, prevZones = 'any') {
+        for (const capturedUnit of capturedUnits) {
+            const capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
+            const side = (capturedUnit.hasOwnProperty('owner') && capturedUnit.owner === this.player.nameField) ? 'self' : 'opponent';
+            let capturedUnitCard;
+            if (Util.isTokenUnit(capturedUnitName)) {
+                throw new TestSetupError(`Attempting to add token unit ${capturedUnitName} to ${card}`);
+            } else {
+                capturedUnitCard = this.findCardByName(capturedUnitName, prevZones, side);
+            }
+            capturedUnitCard.moveToCaptureZone(card.captureZone);
         }
     }
 
@@ -392,6 +414,10 @@ class PlayerInteractionWrapper {
         return this.game.actionPhaseActivePlayer;
     }
 
+    get activePlayer() {
+        return this.game.getActivePlayer();
+    }
+
     get opponent() {
         return this.player.opponent;
     }
@@ -485,7 +511,7 @@ class PlayerInteractionWrapper {
 
     exhaustResources(number) {
         this.player.exhaustResources(number);
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     hasPrompt(title) {
@@ -536,6 +562,10 @@ class PlayerInteractionWrapper {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeDamage');
     }
 
+    setDistributeIndirectDamagePromptState(cardDistributionMap) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeIndirectDamage');
+    }
+
     setDistributeHealingPromptState(cardDistributionMap) {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeHealing');
     }
@@ -547,8 +577,13 @@ class PlayerInteractionWrapper {
     setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
         var currentPrompt = this.player.currentPrompt();
 
+        const cardDistributionArray = [...cardDistributionMap].map(([card, amount]) => ({
+            uuid: card.uuid,
+            amount
+        }));
+
         const promptResults = {
-            valueDistribution: cardDistributionMap,
+            valueDistribution: cardDistributionArray,
             type
         };
 

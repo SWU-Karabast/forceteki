@@ -2,7 +2,7 @@ describe('Basic attack', function() {
     integration(function(contextRef) {
         describe('When a unit attacks', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     // TODO: helper function for automatically selecting a leader and / or base that match the aspects of the card under test
                     phase: 'action',
                     player1: {

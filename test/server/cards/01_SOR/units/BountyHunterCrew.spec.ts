@@ -2,7 +2,7 @@ describe('Bounty Hunter Crew', function () {
     integration(function (contextRef) {
         describe('Bounty Hunter Crew\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['bounty-hunter-crew'],

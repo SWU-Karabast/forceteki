@@ -2,13 +2,13 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameStateChangeRequired, ZoneName, WildcardCardType, EventName, AbilityRestriction } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import type { UnitCard } from '../core/card/CardTypes';
 import * as Contract from '../core/utils/Contract';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 export interface ICaptureProperties extends ICardTargetSystemProperties {
 
     /** Defaults to context.source, if used in an event must be provided explicitly */
-    captor?: UnitCard;
+    captor?: IUnitCard;
 }
 
 /**

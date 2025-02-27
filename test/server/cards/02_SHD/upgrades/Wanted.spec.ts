@@ -1,8 +1,8 @@
 describe('Wanted', function() {
     integration(function(contextRef) {
         describe('Wanted\'s Bounty ability', function() {
-            it('should ready 2 resources', function () {
-                contextRef.setupTest({
+            it('should ready 2 resources', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['wanted'] }]
@@ -21,8 +21,8 @@ describe('Wanted', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should ready 1 resource if only 1 is exhausted', function () {
-                contextRef.setupTest({
+            it('should ready 1 resource if only 1 is exhausted', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['wanted'] }]

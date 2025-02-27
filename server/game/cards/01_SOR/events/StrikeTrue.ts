@@ -33,5 +33,3 @@ export default class StrikeTrue extends EventCard {
         });
     }
 }
-
-StrikeTrue.implemented = true;

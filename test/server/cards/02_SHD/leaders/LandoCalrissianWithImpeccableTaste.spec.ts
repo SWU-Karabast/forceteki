@@ -1,7 +1,7 @@
 describe('Lando Calrissian With Impeccable Taste', function () {
     integration(function (contextRef) {
-        it('Lando Calrissian\'s undeployed ability plays card and defeats resource', function () {
-            contextRef.setupTest({
+        it('Lando Calrissian\'s undeployed ability plays card and defeats resource', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: 'lando-calrissian#with-impeccable-taste',
@@ -39,8 +39,8 @@ describe('Lando Calrissian With Impeccable Taste', function () {
             context.player1.clickCard(context.p2Base);
         });
 
-        it('Lando Calrissian\'s deployed ability plays card and defeats resource', function () {
-            contextRef.setupTest({
+        it('Lando Calrissian\'s deployed ability plays card and defeats resource', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: { card: 'lando-calrissian#with-impeccable-taste', deployed: true },
@@ -76,8 +76,8 @@ describe('Lando Calrissian With Impeccable Taste', function () {
             expect(context.player1.readyResourceCount).toBe(1);
         });
 
-        it('Lando Calrissian\'s deployed ability as a soft pass', function () {
-            contextRef.setupTest({
+        it('Lando Calrissian\'s deployed ability as a soft pass', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     leader: { card: 'lando-calrissian#with-impeccable-taste', deployed: true },

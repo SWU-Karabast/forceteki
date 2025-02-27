@@ -7,7 +7,8 @@ import { DisplayCardSelectionState, type IButton, type IDisplayCardsWithButtonsP
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCardsWithButtonsPromptProperties> {
-    private readonly onCardButton: (card: Card, arg: string) => boolean;
+    private readonly onCardButton: (card: Card, arg: string) => void;
+    private readonly onComplete: () => void;
     private readonly perCardButtons: Omit<IButton, 'command'>[];
 
     private displayCards: Card[];
@@ -26,6 +27,7 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
         }
 
         this.perCardButtons = properties.perCardButtons;
+        this.onComplete = properties.onComplete || (() => undefined);
     }
 
     protected override defaultProperties() {
@@ -66,6 +68,11 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
         }
 
         return false;
+    }
+
+    public override complete() {
+        super.complete();
+        this.onComplete();
     }
 
     public override menuCommand(_player: Player, arg: string, _uuid: string): boolean {

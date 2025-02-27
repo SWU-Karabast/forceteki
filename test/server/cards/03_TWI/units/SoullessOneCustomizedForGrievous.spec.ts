@@ -1,7 +1,7 @@
 describe('Soulless One, Customized for Grievous', function () {
     integration(function (contextRef) {
-        it('Soulless One\'s ability should exhaust a friendly droid unit or a friendly general grievous to get +2/+0 for this attack', function () {
-            contextRef.setupTest({
+        it('Soulless One\'s ability should exhaust a friendly droid unit or a friendly general grievous to get +2/+0 for this attack', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['general-grievous#trophy-collector', 'atst', 'viper-probe-droid'],

@@ -1,8 +1,8 @@
 describe('Rich Reward', function() {
     integration(function(contextRef) {
         describe('Rich Reward\'s Bounty ability', function() {
-            it('should give Experience token up to two units', function () {
-                contextRef.setupTest({
+            it('should give Experience token up to two units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -36,8 +36,8 @@ describe('Rich Reward', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should give Experience token to one unit', function () {
-                contextRef.setupTest({
+            it('should give Experience token to one unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -65,8 +65,8 @@ describe('Rich Reward', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should automatically pass if there is no other units', function () {
-                contextRef.setupTest({
+            it('should automatically pass if there is no other units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine']

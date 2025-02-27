@@ -2,7 +2,7 @@ describe('Security Complex', function() {
     integration(function(contextRef) {
         describe('Security Complex\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         base: 'security-complex',

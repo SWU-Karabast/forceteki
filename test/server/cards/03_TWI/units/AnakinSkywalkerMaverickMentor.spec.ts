@@ -1,7 +1,7 @@
 describe('Anakin Skywalker, Maverick Mentor', function() {
     integration(function(contextRef) {
-        it('Anakin\'s on attack Coordinate ability should draw a card', function () {
-            contextRef.setupTest({
+        it('Anakin\'s on attack Coordinate ability should draw a card', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['anakin-skywalker#maverick-mentor', 'battlefield-marine'],

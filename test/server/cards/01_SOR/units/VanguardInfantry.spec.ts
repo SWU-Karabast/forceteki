@@ -2,7 +2,7 @@ describe('Vanguard Infantry', function() {
     integration(function(contextRef) {
         describe('Vanguard Infantry\'s when defeated ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vanquish'],

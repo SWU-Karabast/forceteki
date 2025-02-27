@@ -1,8 +1,8 @@
 
 describe('Tactical Droid Commander', function() {
     integration(function(contextRef) {
-        it('should be able to exhaust a unit that costs the same or less than the played separatist', function () {
-            contextRef.setupTest({
+        it('should be able to exhaust a unit that costs the same or less than the played separatist', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['providence-destroyer', 'morgan-elsbeth#keeper-of-many-secrets', 'planetary-invasion'],
@@ -21,7 +21,7 @@ describe('Tactical Droid Commander', function() {
 
             // play Separatist unit, able to exhaust unit of same cost or less.
             context.player1.clickCard(context.providenceDestroyer);
-            context.player1.clickPrompt('Play Providence Destroyer');
+            context.player1.clickPrompt('Play without Exploit');
             expect(context.player1).toBeAbleToSelectExactly([context.tacticalDroidCommander, context.battlefieldMarine, context.droidCommando, context.lukeSkywalker, context.ploKoon, context.battleDroid, context.providenceDestroyer]);
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.battlefieldMarine.exhausted).toBeTrue();
@@ -38,7 +38,7 @@ describe('Tactical Droid Commander', function() {
 
             // Play a Separatist event, no trigger
             context.player1.clickCard(context.planetaryInvasion);
-            context.player1.clickPrompt('Play Planetary Invasion');
+            context.player1.clickPrompt('Play without Exploit');
             context.player1.clickPrompt('Done');
             expect(context.player2).toBeActivePlayer();
         });

@@ -20,5 +20,3 @@ export default class BloodSport extends EventCard {
         });
     }
 }
-
-BloodSport.implemented = true;

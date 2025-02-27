@@ -2,7 +2,7 @@ describe('General Tagge, Concerned Commander', function () {
     integration(function (contextRef) {
         describe('General Tagge\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['general-tagge#concerned-commander'],
@@ -57,7 +57,7 @@ describe('General Tagge, Concerned Commander', function () {
 
         describe('General Tagge\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['general-tagge#concerned-commander'],

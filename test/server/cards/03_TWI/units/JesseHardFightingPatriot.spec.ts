@@ -2,7 +2,7 @@ describe('Jesse, Hard-Fighting Patriot', function () {
     integration(function (contextRef) {
         describe('Jesse\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['jesse#hardfighting-patriot']

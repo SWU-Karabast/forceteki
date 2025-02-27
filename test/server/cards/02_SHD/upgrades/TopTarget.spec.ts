@@ -1,8 +1,8 @@
 describe('Top Target', function() {
     integration(function(contextRef) {
         describe('Top Target\'s Bounty ability', function() {
-            it('should heal 4 damage from a unit or base if the attached unit is not unique', function () {
-                contextRef.setupTest({
+            it('should heal 4 damage from a unit or base if the attached unit is not unique', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -27,8 +27,8 @@ describe('Top Target', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should heal 6 damage from a unit or base if the attached unit is unique', function () {
-                contextRef.setupTest({
+            it('should heal 6 damage from a unit or base if the attached unit is unique', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'colonel-yularen#isb-director', upgrades: ['top-target'] }],

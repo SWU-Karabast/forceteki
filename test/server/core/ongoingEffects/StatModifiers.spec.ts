@@ -2,7 +2,7 @@ describe('Stat modifying effects', function() {
     integration(function(contextRef) {
         describe('Power modifying effects', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['disarm'],
@@ -51,7 +51,7 @@ describe('Stat modifying effects', function() {
 
         describe('HP increasing effects', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', damage: 3 }, 'general-dodonna#massassi-group-commander'],
@@ -76,7 +76,7 @@ describe('Stat modifying effects', function() {
 
         describe('HP modifying effects', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['benthic-two-tubes#partisan-lieutenant', 'alliance-dispatcher', 'jedha-agitator'],

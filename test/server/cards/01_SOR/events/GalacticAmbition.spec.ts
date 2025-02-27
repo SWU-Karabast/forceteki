@@ -2,7 +2,7 @@ describe('Galactic Ambition', function () {
     integration(function (contextRef) {
         describe('Galactic Ambition\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['galactic-ambition', 'supreme-leader-snoke#shadow-ruler', 'redemption#medical-frigate', 'bounty-guild-initiate', 'i-am-your-father'],

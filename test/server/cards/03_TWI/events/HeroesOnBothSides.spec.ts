@@ -1,7 +1,7 @@
 describe('Heroes on Both Sides', function () {
     integration(function (contextRef) {
-        it('Heroes on Both Sides\'s ability should give +2/+2 and Saboteur for the phase', function () {
-            contextRef.setupTest({
+        it('Heroes on Both Sides\'s ability should give +2/+2 and Saboteur for the phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['heroes-on-both-sides'],

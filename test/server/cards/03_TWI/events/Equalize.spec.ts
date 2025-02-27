@@ -1,7 +1,7 @@
 describe('Equalize', function () {
     integration(function (contextRef) {
-        it('Equalize\'s ability should give -2/-2 to a unit and -2/-2 to another unit if opponent control more card than controller', function () {
-            contextRef.setupTest({
+        it('Equalize\'s ability should give -2/-2 to a unit and -2/-2 to another unit if opponent control more card than controller', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['equalize'],

@@ -2,7 +2,7 @@ describe('K-2SO', function() {
     integration(function(contextRef) {
         describe('K-2SO\'s When Defeated ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['k2so#cassians-counterpart'],

@@ -2,7 +2,7 @@ describe('Academy Defense Walker', function () {
     integration(function (contextRef) {
         describe('Academy Defense Walker\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['academy-defense-walker'],

@@ -22,7 +22,7 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
     }
 
     protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
-        const options = this.properties.options;
+        const options = typeof this.properties.options === 'function' ? this.properties.options(context) : this.properties.options;
         if (options.length === 0) {
             return;
         }

@@ -1,6 +1,6 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage, AbilityType, RelativePlayer } = require('../Constants.js');
+const { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer } = require('../Constants.js');
 const AttackHelper = require('../attack/AttackHelpers.js');
 const Helpers = require('../utils/Helpers.js');
 const Contract = require('../utils/Contract.js');
@@ -114,9 +114,8 @@ class CardAbilityStep extends PlayerOrCardAbility {
             if (eventsToResolve.length > 0) {
                 let window = this.openEventWindow(eventsToResolve);
                 window.setSubAbilityStep(() => this.getSubAbilityStepContext(context, eventsToResolve));
-            // if no events for the current step, skip directly to the "then" step (if any)
+                // if no events for the current step, skip directly to the "then" step (if any)
             } else {
-                // TODO THIS PR: make sure that this part also passes triggers to parent window?
                 const subAbilityStep = this.getSubAbilityStepContext(context, []);
                 if (!!subAbilityStep) {
                     this.game.resolveAbility(subAbilityStep);
@@ -144,9 +143,9 @@ class CardAbilityStep extends PlayerOrCardAbility {
     getSubAbilityStepContext(context, resolvedAbilityEvents = []) {
         if (this.properties.then) {
             const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
-            const abilityController = this.getAbilityController(then, context);
+            const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
             if (!then.thenCondition || then.thenCondition(context)) {
-                return this.buildSubAbilityStepContext(then, abilityController);
+                return this.buildSubAbilityStepContext(then, canBeTriggeredBy);
             }
 
             return null;
@@ -160,7 +159,6 @@ class CardAbilityStep extends PlayerOrCardAbility {
             if (resolvedAbilityEvents.length === 0) {
                 return null;
             }
-
             ifAbility = this.properties.ifYouDo;
             effectShouldResolve = true;
         } else if (this.properties.ifYouDoNot) {
@@ -179,14 +177,16 @@ class CardAbilityStep extends PlayerOrCardAbility {
         }
 
         const concreteIfAbility = this.getConcreteSubAbilityStepProperties(ifAbility, context);
-        const abilityController = this.getAbilityController(concreteIfAbility, context);
+        const canBeTriggeredBy = this.getCanBeTriggeredBy(concreteIfAbility, context);
 
         // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
         const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
 
-        return conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve
-            ? this.buildSubAbilityStepContext(concreteIfAbility, abilityController)
-            : null;
+        if (conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
+            return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+        }
+
+        return null;
     }
 
     getConcreteSubAbilityStepProperties(subAbilityStep, context) {
@@ -196,17 +196,18 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return { ...properties, triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
     }
 
-    buildSubAbilityStepContext(subAbilityStepProps, abilityController) {
-        return this.buildSubAbilityStep(subAbilityStepProps).createContext(abilityController);
+    buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy) {
+        return this.buildSubAbilityStep(subAbilityStepProps).createContext(canBeTriggeredBy);
     }
 
     buildSubAbilityStep(subAbilityStepProps) {
         return new CardAbilityStep(this.game, this.card, subAbilityStepProps, this.type);
     }
 
-    getAbilityController(subAbilityStep, context) {
-        if (subAbilityStep.abilityController) {
-            return subAbilityStep.abilityController === RelativePlayer.Self ? context.player : context.player.opponent;
+    getCanBeTriggeredBy(subAbilityStep, context) {
+        Contract.assertFalse(subAbilityStep.canBeTriggeredBy === WildcardRelativePlayer.Any, 'Cannot use WildcardRelativePlayer.Any in a then/ifYouDo');
+        if (subAbilityStep.canBeTriggeredBy) {
+            return subAbilityStep.canBeTriggeredBy === RelativePlayer.Self ? context.player : context.player.opponent;
         }
 
         return context.player;

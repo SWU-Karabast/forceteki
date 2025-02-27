@@ -2,7 +2,7 @@ describe('Cartel Spacer', function () {
     integration(function (contextRef) {
         describe('Cartel Spacer\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['cartel-spacer'],
@@ -28,7 +28,7 @@ describe('Cartel Spacer', function () {
 
         describe('Cartel Spacer\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['cartel-spacer'],

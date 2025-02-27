@@ -1,14 +1,14 @@
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
-import type { UnitCard } from '../../core/card/CardTypes';
+import type { IUnitCard } from '../../core/card/propertyMixins/UnitProperties';
 import { EventName, KeywordName, RelativePlayer, WildcardZoneName } from '../../core/Constants';
 import { GameEvent } from '../../core/event/GameEvent';
 import type Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import type { ITriggeredAbilityBaseProps } from '../../Interfaces';
 
-export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'abilityController'> & {
-    bountySource?: UnitCard;
+export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'canBeTriggeredBy'> & {
+    bountySource?: IUnitCard;
 };
 
 /**
@@ -24,7 +24,7 @@ export class BountyAbility extends TriggeredAbility {
     public constructor(
         game: Game,
         card: Card,
-        properties: Omit<ITriggeredAbilityBaseProps, 'abilityController'>,
+        properties: Omit<ITriggeredAbilityBaseProps, 'canBeTriggeredBy'>,
     ) {
         Contract.assertTrue(card.isUnit());
 
@@ -40,7 +40,7 @@ export class BountyAbility extends TriggeredAbility {
                 onCardDefeated: (event, context) => event.card === context.source,
                 onCardCaptured: (event, context) => event.card === context.source
             },
-            abilityController: RelativePlayer.Opponent,
+            canBeTriggeredBy: RelativePlayer.Opponent,
             zoneFilter: WildcardZoneName.AnyArena
         };
 

@@ -2,7 +2,7 @@ describe('On Top of Things', function() {
     integration(function(contextRef) {
         describe('On Top of Things\' ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['on-top-of-things'],

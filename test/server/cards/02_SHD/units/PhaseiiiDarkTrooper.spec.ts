@@ -2,7 +2,7 @@ describe('Phase-iii Dark Trooper', function () {
     integration(function (contextRef) {
         describe('Phase-iii Dark Trooper\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['phaseiii-dark-trooper'],

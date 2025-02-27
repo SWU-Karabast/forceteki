@@ -1,7 +1,7 @@
 describe('Calculating MagnaGuard', function () {
     integration(function (contextRef) {
-        it('Calculating MagnaGuard\'s ability should gain sentinel when played or when a friendly unit is defeated', function () {
-            contextRef.setupTest({
+        it('Calculating MagnaGuard\'s ability should gain sentinel when played or when a friendly unit is defeated', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['calculating-magnaguard'],

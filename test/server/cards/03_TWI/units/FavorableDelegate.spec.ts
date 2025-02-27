@@ -1,8 +1,8 @@
 describe('Favorable Delegate\'s', function () {
     integration(function (contextRef) {
         describe('abilities', function () {
-            it('should draw a card when played and discard when defeated', function () {
-                contextRef.setupTest({
+            it('should draw a card when played and discard when defeated', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['favorable-delegate']
@@ -26,8 +26,8 @@ describe('Favorable Delegate\'s', function () {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('should discard nothing if empty hand', function () {
-                contextRef.setupTest({
+            it('should discard nothing if empty hand', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['favorable-delegate']

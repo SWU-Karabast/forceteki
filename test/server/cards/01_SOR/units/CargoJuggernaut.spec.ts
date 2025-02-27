@@ -2,7 +2,7 @@ describe('Cargo Juggernaut', function () {
     integration(function (contextRef) {
         describe('Cargo Juggernaut\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['cargo-juggernaut'],
@@ -29,7 +29,7 @@ describe('Cargo Juggernaut', function () {
 
         describe('Cargo Juggernaut\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['cargo-juggernaut'],

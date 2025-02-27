@@ -1,8 +1,8 @@
 describe('Obi-Wan Kenobi, Patient Mentor', function () {
     integration(function (contextRef) {
         describe('Obi-Wan Kenobi\'s leader undeployed  ability', function () {
-            it('should heal 1 damage from unit', function () {
-                contextRef.setupTest({
+            it('should heal 1 damage from unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -30,8 +30,8 @@ describe('Obi-Wan Kenobi, Patient Mentor', function () {
         });
 
         describe('Obi-Wan Kenobi\'s leader deployed ability', function () {
-            it('should heal 1 damage from a unit and if we do, deal 1 damage to a different unit', function () {
-                contextRef.setupTest({
+            it('should heal 1 damage from a unit and if we do, deal 1 damage to a different unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [

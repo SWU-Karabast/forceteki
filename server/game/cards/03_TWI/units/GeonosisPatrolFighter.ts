@@ -20,5 +20,3 @@ export default class GeonosisPatrolFighter extends NonLeaderUnitCard {
         });
     }
 }
-
-GeonosisPatrolFighter.implemented = true;

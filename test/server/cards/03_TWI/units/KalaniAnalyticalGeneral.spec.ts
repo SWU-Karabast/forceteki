@@ -1,7 +1,7 @@
 describe('Kalani Analytical General ability\'s', function() {
     integration(function(contextRef) {
-        it('Should, on attack, give +2/+2 to other units', function () {
-            contextRef.setupTest({
+        it('Should, on attack, give +2/+2 to other units', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['yoda#old-master'],

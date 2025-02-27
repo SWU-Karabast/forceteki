@@ -1,17 +1,20 @@
 import type Player from '../Player';
-import { WithCost } from './propertyMixins/Cost';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
 import { CardType, ZoneName } from '../Constants';
+import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import type { TokenOrPlayableCard } from './CardTypes';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
+import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
+import type { ICardCanChangeControllers } from './CardInterfaces';
 
-const NonLeaderUnitCardParent = WithUnitProperties(WithCost(WithStandardAbilitySetup(InPlayCard)));
+const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
-export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
+export interface INonLeaderUnitCard extends IUnitCard, IPlayableCard {}
+
+export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLeaderUnitCard, ICardCanChangeControllers {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
@@ -19,7 +22,11 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         Contract.assertFalse(this.printedType === CardType.Leader);
     }
 
-    public override isNonLeaderUnit(): this is NonLeaderUnitCard {
+    public override isNonLeaderUnit(): this is INonLeaderUnitCard {
+        return true;
+    }
+
+    public override canChangeController(): this is ICardCanChangeControllers {
         return true;
     }
 
@@ -27,7 +34,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent {
         return new PlayUnitAction(this.game, this, properties);
     }
 
-    public override isTokenOrPlayable(): this is TokenOrPlayableCard {
+    public override isPlayable(): this is IPlayableCard {
         return true;
     }
 

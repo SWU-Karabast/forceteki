@@ -2,8 +2,8 @@ describe('Regroup phase', function() {
     integration(function(contextRef) {
         describe('Regroup phase', function() {
             it('should let both players draw 2 cards, choose what to put into resources and ready all exhausted units.',
-                function () {
-                    contextRef.setupTest({
+                async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             resources: ['smugglers-aid', 'atst', 'atst', 'atst'],
@@ -114,8 +114,8 @@ describe('Regroup phase', function() {
             );
 
             it('should end all "for this phase" abilities',
-                function () {
-                    contextRef.setupTest({
+                async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['attack-pattern-delta'],
@@ -162,6 +162,73 @@ describe('Regroup phase', function() {
                     expect(context.allianceXwing.getPower()).toBe(2);
                 }
             );
+        });
+
+        describe('trigger windows in the regroup phase should select the initiative player as choosing player for resolution of player order', function() {
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['millennium-falcon#piece-of-junk']
+                    },
+                    player2: {
+                        hand: ['millennium-falcon#piece-of-junk']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.p1Falcon = context.player1.findCardByName('millennium-falcon#piece-of-junk');
+                context.p2Falcon = context.player2.findCardByName('millennium-falcon#piece-of-junk');
+            });
+
+            it('when initiative doesn\'t change hands during the action phase', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.p1Falcon);
+                context.player2.clickCard(context.p2Falcon);
+
+                // player1 retains initiative
+                context.moveToRegroupPhase();
+
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+
+                expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+                context.player1.clickPrompt('You');
+
+                expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
+                context.player1.clickPrompt('Return this unit to her owner\'s hand');
+                expect(context.p1Falcon).toBeInZone('hand');
+
+                expect(context.player2).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
+                context.player2.clickPrompt('Pay 1 resource');
+                expect(context.player2.exhaustedResourceCount).toBe(1);
+            });
+
+            it('when initiative changes hands during the action phase', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.p1Falcon);
+                context.player2.clickCard(context.p2Falcon);
+
+                context.player1.passAction();
+                context.player2.claimInitiative();
+
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+
+                expect(context.player2).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+                context.player2.clickPrompt('You');
+
+                expect(context.player2).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
+                context.player2.clickPrompt('Return this unit to her owner\'s hand');
+                expect(context.p2Falcon).toBeInZone('hand');
+
+                expect(context.player1).toHaveEnabledPromptButtons(['Pay 1 resource', 'Return this unit to her owner\'s hand']);
+                context.player1.clickPrompt('Pay 1 resource');
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
         });
     });
 });

@@ -42,5 +42,3 @@ export default class Outmaneuver extends EventCard {
         }));
     }
 }
-
-Outmaneuver.implemented = true;

@@ -2,7 +2,7 @@ describe('The Mandalorian, Wherever I Go He Goes', function () {
     integration(function (contextRef) {
         describe('The Mandalorian\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-mandalorian#wherever-i-go-he-goes'],

@@ -1,8 +1,8 @@
 describe('Boba Fett, Collecting the Bounty', function() {
     integration(function(contextRef) {
         describe('Boba Fett\'s leader ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['rivals-fall', 'waylay'],
@@ -76,8 +76,8 @@ describe('Boba Fett, Collecting the Bounty', function() {
         });
 
         describe('Boba Fett\'s leader unit ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wampa'],

@@ -2,7 +2,7 @@ describe('Electrostaff', function() {
     integration(function(contextRef) {
         describe('Electrostaff\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['electrostaff'] }, 'consular-security-force']

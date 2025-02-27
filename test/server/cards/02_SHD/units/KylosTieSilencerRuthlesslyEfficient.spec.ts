@@ -1,7 +1,7 @@
 describe('Kylo\'s TIE Silencer, Ruthless Efficient', function () {
     integration(function (contextRef) {
-        it('Kylo\'s TIE Silencer\'s can be played from the discard when it was discarded from hand or deck this phase', function () {
-            contextRef.setupTest({
+        it('Kylo\'s TIE Silencer\'s can be played from the discard when it was discarded from hand or deck this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['rogue-squadron-skirmisher'],
@@ -50,7 +50,7 @@ describe('Kylo\'s TIE Silencer, Ruthless Efficient', function () {
 
             // Player 2 discards Kylo's TIE Silencer from hand using Spark of Rebellion
             context.player2.clickCard(context.sparkOfRebellion);
-            context.player2.clickCard(context.kylosTieSilencer);
+            context.player2.clickCardInDisplayCardPrompt(context.kylosTieSilencer);
             expect(context.kylosTieSilencer).toBeInZone('discard', context.player1);
 
             // Player 1 plays Kylo's TIE Silencer from the discard
