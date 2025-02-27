@@ -13,6 +13,8 @@ export interface ILeaderCard extends ICardWithExhaustProperty {}
 export interface ILeaderPropertiesCardState extends IPlayableOrDeployableCardState {
     deployed: boolean;
     setupLeaderUnitSide: boolean;
+    onStartingSide: boolean;
+    setupLeaderBackSide: boolean;
 }
 
 /**
@@ -23,7 +25,7 @@ export interface ILeaderPropertiesCardState extends IPlayableOrDeployableCardSta
  * - the {@link InitiateAttackAction} ability so that the card can attack
  * - the ability to have attached upgrades
  */
-export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCardConstructor, TState extends IPlayableOrDeployableCardState>(BaseClass: TBaseClass) {
+export function WithLeaderProperties<TState extends IPlayableOrDeployableCardState, TBaseClass extends PlayableOrDeployableCardConstructor = PlayableOrDeployableCardConstructor>(BaseClass: TBaseClass) {
     return class AsLeader extends (BaseClass as typeof BaseClass & PlayableOrDeployableCardConstructor<TState & ILeaderPropertiesCardState>) implements ILeaderCard {
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
