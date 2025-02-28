@@ -6,7 +6,7 @@ import * as EnumHelpers from '../../game/core/utils/EnumHelpers';
 import type { IDecklistInternal, ISwuDbCardEntry } from './DeckInterfaces';
 import { DeckValidationFailureReason, type IDeckValidationFailures, type ISwuDbDecklist } from './DeckInterfaces';
 import { SwuGameFormat } from '../../SwuGameFormat';
-import type { ICardDataJson } from '../cardData/CardDataInterfaces';
+import type { ICardDataJson, ISetCode } from '../cardData/CardDataInterfaces';
 
 enum SwuSet {
     SOR = 'sor',
@@ -22,6 +22,7 @@ const bannedCards = new Map([
 ]);
 
 interface ICardCheckData {
+    setId: ISetCode;
     titleAndSubtitle: string;
     type: CardType;
     set: SwuSet;
@@ -52,6 +53,7 @@ export class DeckValidator {
 
         for (const cardData of allCardsData) {
             const cardCheckData: ICardCheckData = {
+                setId: cardData.setId,
                 titleAndSubtitle: `${cardData.title}${cardData.subtitle ? `, ${cardData.subtitle}` : ''}`,
                 type: Card.buildTypeFromPrinted(cardData.types),
                 set: EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0],
@@ -70,16 +72,16 @@ export class DeckValidator {
         }
     }
 
-    public getUnimplementedCards(): { set: string; titleAndSubtitle: string }[] {
-        const unimplementedCards: { set: string; titleAndSubtitle: string }[] = [];
+    public getUnimplementedCards(): { id: string; setId: ISetCode; types: string; titleAndSubtitle: string }[] {
+        const unimplementedCards: { id: string; setId: ISetCode; types: string; titleAndSubtitle: string }[] = [];
 
         for (const [cardId, cardData] of this.cardData) {
             if (!cardData.implemented) {
-                unimplementedCards.push({ set: cardData.set, titleAndSubtitle: cardData.titleAndSubtitle });
+                unimplementedCards.push({ id: cardId, setId: cardData.setId, types: cardData.type, titleAndSubtitle: cardData.titleAndSubtitle });
             }
         }
 
-        unimplementedCards.sort((a, b) => a.set.localeCompare(b.set) || a.titleAndSubtitle.localeCompare(b.titleAndSubtitle));
+        unimplementedCards.sort((a, b) => a.setId.set.localeCompare(b.setId.set) || a.titleAndSubtitle.localeCompare(b.titleAndSubtitle));
 
         return unimplementedCards;
     }
