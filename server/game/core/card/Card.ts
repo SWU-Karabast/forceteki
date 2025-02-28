@@ -32,6 +32,7 @@ import type { INonLeaderUnitCard } from './NonLeaderUnitCard';
 import type { ICardCanChangeControllers, IUpgradeCard } from './CardInterfaces';
 import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
+import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -44,29 +45,35 @@ export type CardConstructor = new (...args: any[]) => Card;
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
 export class Card extends OngoingEffectSource {
-    public static checkHasNonKeywordAbilityText(abilityText?: string) {
-        if (abilityText == null) {
-            return false;
+    public static checkHasNonKeywordAbilityText(cardData: ICardDataJson) {
+        if (cardData.types.includes('leader')) {
+            return true;
         }
 
-        const abilityLines = abilityText.split('\n');
-
-        // bounty and coordinate keywords always require explicit implementation so we omit them from here
-        const keywords = Object.values(KeywordName)
-            .filter((keyword) => keyword !== KeywordName.Bounty && keyword !== KeywordName.Coordinate);
-
-        for (const abilityLine of abilityLines) {
-            if (abilityLine.trim().length === 0) {
+        for (const abilityText of [cardData.text, cardData.pilotText]) {
+            if (abilityText == null) {
                 continue;
             }
 
-            const lowerCaseAbilityLine = abilityLine.toLowerCase();
+            const abilityLines = abilityText.split('\n');
 
-            if (keywords.some((keyword) => lowerCaseAbilityLine.startsWith(keyword))) {
-                continue;
+            // bounty and coordinate keywords always require explicit implementation so we omit them from here
+            const keywords = Object.values(KeywordName)
+                .filter((keyword) => keyword !== KeywordName.Bounty && keyword !== KeywordName.Coordinate);
+
+            for (const abilityLine of abilityLines) {
+                if (abilityLine.trim().length === 0) {
+                    continue;
+                }
+
+                const lowerCaseAbilityLine = abilityLine.toLowerCase();
+
+                if (keywords.some((keyword) => lowerCaseAbilityLine.startsWith(keyword))) {
+                    continue;
+                }
+
+                return true;
             }
-
-            return true;
         }
 
         return false;
@@ -192,7 +199,7 @@ export class Card extends OngoingEffectSource {
             this.validateImplementationId(implementationId, cardData);
         }
 
-        this.hasNonKeywordAbilityText = this.isLeader() || Card.checkHasNonKeywordAbilityText(cardData.text);
+        this.hasNonKeywordAbilityText = this.isLeader() || Card.checkHasNonKeywordAbilityText(cardData);
 
         this._aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
         this._backSideAspects = cardData.backSideAspects;
