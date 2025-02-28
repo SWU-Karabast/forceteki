@@ -1,10 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { WildcardZoneName, ZoneName } from '../../../core/Constants';
+import { WildcardZoneName, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class UnexpectedEscape extends EventCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '1973545191',
@@ -14,10 +12,11 @@ export default class UnexpectedEscape extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Exhaust a unit. You may rescue a captured card guarded by that unit.',
+            title: 'Choose a unit to exhaust',
             targetResolvers: {
                 exhaust: {
                     zoneFilter: WildcardZoneName.AnyArena,
+                    cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 },
                 rescue: {

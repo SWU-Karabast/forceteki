@@ -270,6 +270,7 @@ export enum MetaEventName {
     InitiateAttack = 'initiateAttack',
     GameLost = 'gameLost',
     NoAction = 'noAction',
+    PayCardPrintedCost = 'payCardPrintedCost',
     PlayCard = 'playCard',
     ReplacementEffect = 'replacementEffect',
     SelectCard = 'selectCard',

@@ -9,7 +9,7 @@ describe('Unexpected Escape', function() {
                         spaceArena: [{ card: 'tieln-fighter', capturedUnits: ['wing-leader'] }]
                     },
                     player2: {
-                        groundArena: ['pyke-sentinel', { card: 'discerning-veteran', capturedUnits: ['wampa', 'atst'] }],
+                        groundArena: [{ card: 'pyke-sentinel', upgrades: ['experience'] }, { card: 'discerning-veteran', capturedUnits: ['wampa', 'atst'] }],
                     },
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code

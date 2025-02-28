@@ -122,6 +122,8 @@ import type { IIndirectDamageToPlayerProperties } from './IndirectDamageToPlayer
 import { IndirectDamageToPlayerSystem } from './IndirectDamageToPlayerSystem';
 import type { ILoseGameProperties } from './LoseGameSystem';
 import { LoseGameSystem } from './LoseGameSystem';
+import type { IPayCardPrintedCostProperties } from './PayCardPrintedCostSystem';
+import { PayCardPrintedCostSystem } from './PayCardPrintedCostSystem';
 
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
@@ -295,6 +297,10 @@ export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext
             { destination: DeckZoneDestination.DeckTop }
         )
     );
+}
+
+export function payCardPrintedCost<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPayCardPrintedCostProperties, TContext>) {
+    return new PayCardPrintedCostSystem<TContext>(propertyFactory);
 }
 
 /**

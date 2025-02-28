@@ -261,6 +261,29 @@ export class Lobby {
         this.lobbyOwnerId = id;
     }
 
+    public getGamePreview() {
+        if (!this.game) {
+            return null;
+        }
+        try {
+            if (this.users.length !== 2) {
+                return null;
+            }
+            const player1 = this.users[0];
+            const player2 = this.users[1];
+
+            return {
+                player1Leader: player1.deck.leader,
+                player1Base: player1.deck.base,
+                player2Leader: player2.deck.leader,
+                player2Base: player2.deck.base,
+            };
+        } catch (error) {
+            logger.error(`Error retrieving lobby game data ${this.id}:`, error);
+            return null;
+        }
+    }
+
     public getUserState(id: string): string {
         const user = this.users.find((u) => u.id === id);
         return user ? user.state : null;
