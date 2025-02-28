@@ -7,6 +7,8 @@ describe('Pre Vizsla, Power Hungry', function() {
                     player1: {
                         hand: ['pre-vizsla#power-hungry'],
                         groundArena: [{ card: 'boba-fett#disintegrator', upgrades: ['boba-fetts-armor'] }],
+                        base: 'spice-mines',
+                        leader: 'darth-vader#dark-lord-of-the-sith',
                     },
                     player2: {
                         groundArena: [
@@ -61,6 +63,21 @@ describe('Pre Vizsla, Power Hungry', function() {
                 expect(context.preVizsla).toHaveExactUpgradeNames([]);
                 expect(context.namelessValor).toBeInZone('discard');
             });
+
+            it('should not allow to take control of an upgrade that cannot be afforded', function () {
+                const { context } = contextRef;
+
+                context.player1.setResourceCount(8);
+
+                context.player1.clickCard(context.preVizsla);
+                expect(context.player1.readyResourceCount).toBe(1);
+                expect(context.player1).toBeAbleToSelectExactly([context.namelessValor, context.shield]);
+
+                context.player1.clickCard(context.namelessValor);
+
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.namelessValor).toBeInZone('discard');
+            });
         });
 
         describe('Pre Vizsla\'s on attack ability', function() {
@@ -72,6 +89,8 @@ describe('Pre Vizsla, Power Hungry', function() {
                             'pre-vizsla#power-hungry',
                             { card: 'boba-fett#disintegrator', upgrades: ['boba-fetts-armor'] },
                         ],
+                        base: 'spice-mines',
+                        leader: 'darth-vader#dark-lord-of-the-sith',
                     },
                     player2: {
                         groundArena: [
@@ -132,6 +151,22 @@ describe('Pre Vizsla, Power Hungry', function() {
                 expect(context.preVizsla).toHaveExactUpgradeNames([]);
                 expect(context.namelessValor).toBeInZone('discard');
                 expect(context.p2Base.damage).toBe(8);
+            });
+
+            it('should not allow to take control of an upgrade that cannot be afforded', function () {
+                const { context } = contextRef;
+
+                context.player1.setResourceCount(1);
+
+                context.player1.clickCard(context.preVizsla);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1.readyResourceCount).toBe(1);
+                expect(context.player1).toBeAbleToSelectExactly([context.namelessValor, context.shield]);
+
+                context.player1.clickCard(context.namelessValor);
+
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.namelessValor).toBeInZone('discard');
             });
         });
     });
