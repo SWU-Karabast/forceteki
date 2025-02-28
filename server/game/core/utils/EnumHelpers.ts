@@ -127,6 +127,7 @@ export const isUpgrade = (cardType: CardTypeFilter) => {
         case WildcardCardType.Upgrade:
         case CardType.BasicUpgrade:
         case CardType.TokenUpgrade:
+        case CardType.UnitUpgrade:
             return true;
         default:
             return false;

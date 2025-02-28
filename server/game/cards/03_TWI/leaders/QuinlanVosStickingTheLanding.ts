@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) =>
                     event.card.controller === context.player &&
-                    event.card.isUnit(),
+                    event.cardTypeWhenInPlay === CardType.BasicUnit,
             },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),

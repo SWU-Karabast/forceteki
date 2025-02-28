@@ -37,9 +37,10 @@ export type ZoneFilter = ZoneName | WildcardZoneName;
 export type Arena = ZoneName.GroundArena | ZoneName.SpaceArena;
 
 export enum PlayType {
+    Piloting = 'piloting',
     PlayFromHand = 'playFromHand',
-    Smuggle = 'smuggle',
     PlayFromOutOfPlay = 'playFromOutOfPlay',
+    Smuggle = 'smuggle',
 }
 
 export enum StatType {
@@ -159,6 +160,7 @@ export enum CardType {
     LeaderUnit = 'leaderUnit',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
+    UnitUpgrade = 'unitUpgrade',
 }
 
 export enum WildcardCardType {
@@ -269,6 +271,7 @@ export enum MetaEventName {
     InitiateAttack = 'initiateAttack',
     GameLost = 'gameLost',
     NoAction = 'noAction',
+    PayCardPrintedCost = 'payCardPrintedCost',
     PlayCard = 'playCard',
     ReplacementEffect = 'replacementEffect',
     SelectCard = 'selectCard',
@@ -303,7 +306,7 @@ export enum KeywordName {
     Overwhelm = 'overwhelm',
     Raid = 'raid',
     Restore = 'restore',
-    /** @deprecated not implemented yet */
+    /** @deprecated not fully implemented yet */
     Piloting = 'piloting',
     Saboteur = 'saboteur',
     Sentinel = 'sentinel',
