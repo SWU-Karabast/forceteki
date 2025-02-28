@@ -506,5 +506,6 @@ describe('Defeat attribution', function () {
 
         // TODO add test for 'A Fine Addition'
         // TODO Add test case for Huyang
+        // TODO add more tests around Jango potentially
     });
 });
