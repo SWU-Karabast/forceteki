@@ -20,7 +20,7 @@ export abstract class ExhaustOrReadySystem<TContext extends AbilityContext = Abi
             return false;
         }
 
-        if (!card.canBeExhausted()) {
+        if (!card.canBeExhausted() || card.isUpgrade()) {
             return false;
         }
 
