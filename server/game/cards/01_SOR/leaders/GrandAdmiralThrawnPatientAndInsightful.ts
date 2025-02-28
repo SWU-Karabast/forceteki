@@ -21,10 +21,10 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
                 showUnresolvable: true,
                 choices: {
                     ['Reveal the top card of your deck']: AbilityHelper.immediateEffects.reveal((context) => ({
-                        target: context.source.controller.getTopCardOfDeck(),
+                        target: context.player.getTopCardOfDeck(),
                     })),
                     ['Reveal the top card of the opponent\'s deck']: AbilityHelper.immediateEffects.reveal((context) => ({
-                        target: context.source.controller.opponent.getTopCardOfDeck(),
+                        target: context.player.opponent.getTopCardOfDeck(),
                     }))
                 }
             },
@@ -49,10 +49,10 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
                 showUnresolvable: true,
                 choices: {
                     ['Reveal the top card of your deck']: AbilityHelper.immediateEffects.reveal((context) => ({
-                        target: context.source.controller.getTopCardOfDeck(),
+                        target: context.player.getTopCardOfDeck(),
                     })),
                     ['Reveal the top card of the opponent\'s deck']: AbilityHelper.immediateEffects.reveal((context) => ({
-                        target: context.source.controller.opponent.getTopCardOfDeck(),
+                        target: context.player.opponent.getTopCardOfDeck(),
                     }))
                 }
             },
@@ -73,8 +73,8 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
                 onPhaseStarted: (event) => event.phase === PhaseName.Action
             },
             immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => {
-                const ownTopCard = context.source.controller.getTopCardOfDeck();
-                const opponentTopCard = context.source.controller.opponent.getTopCardOfDeck();
+                const ownTopCard = context.player.getTopCardOfDeck();
+                const opponentTopCard = context.player.opponent.getTopCardOfDeck();
 
                 const target = [];
                 const displayTextByCardUuid = new Map<string, string>();
