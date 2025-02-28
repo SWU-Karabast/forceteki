@@ -58,7 +58,7 @@ export class DeckValidator {
                 type: Card.buildTypeFromPrinted(cardData.types),
                 set: EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0],
                 banned: bannedCards.has(cardData.id),
-                implemented: !Card.checkHasNonKeywordAbilityText(cardData.text) || implementedCardIds.has(cardData.id)
+                implemented: !Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id)
             };
 
             this.cardData.set(cardData.id, cardCheckData);
