@@ -75,7 +75,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
 
                 context.player2.passAction();
 
-                // Check that Palpatine flipped correctly
+                // Check that Palpatine did not flip
                 context.player1.clickCard(context.chancellorPalpatine);
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.chancellorPalpatine.onStartingSide).toBe(true);

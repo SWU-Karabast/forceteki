@@ -143,7 +143,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     public checkIsAttachable(): void {
-        throw new Error('Card may not be attached');
+        throw new Error(`Card ${this.internalName} may not be attached`);
     }
 
     public assertIsUpgrade(): void {

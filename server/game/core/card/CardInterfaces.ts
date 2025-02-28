@@ -15,5 +15,4 @@ export interface ICardCanChangeControllers {
 
 /** IUpgradeCard definition (exists here to prevent import loops) */
 export interface IUpgradeCard extends IInPlayCard, ICardWithPrintedHpProperty, ICardWithPrintedPowerProperty, ICardWithCostProperty, ICardCanChangeControllers {
-    // Now that this is empty, can it be removed?
 }

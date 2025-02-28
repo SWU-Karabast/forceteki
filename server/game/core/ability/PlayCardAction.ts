@@ -219,15 +219,15 @@ export abstract class PlayCardAction extends PlayerAction {
                         context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
             onPlayCardSource: context.onPlayCardSource,
             playType: context.playType,
-            cardTypeWhenPlayed: this.getCardTypeWhenPlayed(context.source, context.playType),
+            cardTypeWhenInPlay: this.getCardTypeWhenInPlay(context.source, context.playType),
             costs: context.costs,
             ...additionalProps,
             handler
         });
     }
 
-    /** This is used for overriding the play type of cards with alternate play modes like Pilots */
-    protected getCardTypeWhenPlayed(card: Card, playType: PlayType): CardType {
+    /** This is used for overriding a card's type when it hits the board, such as Pilots played as upgrades */
+    protected getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
         return card.type;
     }
 

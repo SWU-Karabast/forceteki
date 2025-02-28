@@ -74,7 +74,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
         this.addUpdater({
             when: {
                 // This doesn't actually work for some reason, so I had to add the below workaround for now
-                onCardDefeated: (event) => EnumHelpers.isUnit(event.lastKnownInformation.type),
+                onCardDefeated: (context) => EnumHelpers.isUnit(context.event.lastKnownInformation.type),
             },
             update: (currentState: IUnitsDefeatedThisPhase, event: any) => {
                 // This is sort of a workaround, since no matter what I do above, I can't seem to get upgrade pilots excluded from being called here
