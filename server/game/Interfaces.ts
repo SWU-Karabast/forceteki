@@ -24,6 +24,7 @@ import type { GroundArenaZone } from './core/zone/GroundArenaZone';
 import type { SpaceArenaZone } from './core/zone/SpaceArenaZone';
 import type { CaptureZone } from './core/zone/CaptureZone';
 import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
+import type { DelayedEffectType } from './gameSystems/DelayedEffectSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -61,6 +62,7 @@ export interface IOngoingEffectProps {
     target?: (Player | Card) | (Player | Card)[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
+    delayedEffectType?: DelayedEffectType;
 }
 
 export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
