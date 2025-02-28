@@ -39,6 +39,44 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.deck[0]).toBe(context.kraytDragon);
             });
 
+            it('can draw a card then put a card on top/bottom of deck when an enemy leader has left play', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'yoda#sensing-darkness',
+                        hand: ['wampa', 'krayt-dragon', 'rivals-fall'],
+                        deck: ['entrenched', 'r2d2#ignoring-protocol'],
+                        resources: 7,
+                    },
+                    player2: {
+                        leader: { card: 'jango-fett#concealing-the-conspiracy', deployed: true }
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Defeat unit
+                context.player1.clickCard(context.rivalsFall);
+                context.player1.clickCard(context.jangoFett);
+                context.player2.passAction();
+
+                // Yoda Leader ability should activate
+                context.player1.clickCard(context.yoda);
+                expect(context.player1).toHaveEnabledPromptButtons(['Deploy Yoda', 'If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.']);
+                context.player1.clickPrompt('If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.');
+                expect(context.player1.handSize).toBe(3);
+                expect(context.entrenched).toBeInZone('hand');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.kraytDragon, context.entrenched]);
+                expect(context.player1).not.toHaveChooseNoTargetButton();
+
+                // Select Card, Then Choose Top
+                context.player1.clickCard(context.kraytDragon);
+                expect(context.player1).toHaveExactPromptButtons(['Top', 'Bottom']);
+                context.player1.clickPrompt('Top');
+                expect(context.kraytDragon).toBeInZone('deck');
+                expect(context.player1.deck[0]).toBe(context.kraytDragon);
+            });
+
             it('can draw a card then put a card on top/bottom of deck when a friendly unit has left play', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

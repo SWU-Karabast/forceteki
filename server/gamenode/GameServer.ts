@@ -146,6 +146,14 @@ export class GameServer {
     }
 
     private setupAppRoutes(app: express.Application) {
+        app.get('/api/get-unimplemented', (req, res) => {
+            return res.json(this.deckValidator.getUnimplementedCards());
+        });
+
+        app.get('/api/ongoing-games', (_, res) => {
+            return res.json(this.getOngoingGamesData());
+        });
+
         app.post('/api/create-lobby', async (req, res, next) => {
             const { user, deck, format, isPrivate } = req.body;
             try {
@@ -233,6 +241,25 @@ export class GameServer {
             return;
         }
         await onValid();
+    }
+
+    private getOngoingGamesData() {
+        const ongoingGames = [];
+
+        // Loop through all lobbies and check if they have an ongoing game
+        for (const lobby of this.lobbies.values()) {
+            if (lobby.hasOngoingGame()) {
+                const gameState = lobby.getGamePreview();
+                if (gameState) {
+                    ongoingGames.push(gameState);
+                }
+            }
+        }
+
+        return {
+            numberOfOngoingGames: ongoingGames.length,
+            ongoingGames
+        };
     }
 
     private lobbiesWithOpenSeat() {

@@ -21,7 +21,7 @@ export default class UnnaturalLife extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Play a unit that was defeated this phase from your discard pile. It costs 2 less and enters play ready.',
+            title: 'Choose a unit to play that was defeated this phase from your discard pile. It costs 2 less and enters play ready.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Discard,
