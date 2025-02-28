@@ -327,7 +327,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         Contract.assertTrue(card.canBeInPlay());
 
 
-        if (card.isUnit()) {
+        if (card.isUnit() && !card.isAttached()) {
             return {
                 card,
                 power: card.getPower(),
