@@ -1,20 +1,23 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { EventCard } from '../../../core/card/EventCard';
+import { Aspect, TargetMode } from '../../../core/Constants';
 
-export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
-    protected override getImplementationId () {
+export default class AidFromTheInnocent extends EventCard {
+    protected override getImplementationId() {
         return {
-            id: '9151673075',
-            internalName: 'cobb-vanth#the-marshal'
+            id: '7510418786',
+            internalName: 'aid-from-the-innocent',
         };
     }
 
-    public override setupCardAbilities () {
-        this.addWhenDefeatedAbility({
-            title: 'Search the top 10 cards of your deck for a unit that costs 2 or less and discard it. For this phase, you may play that card from your discard pile for free.',
+    public override setupCardAbilities() {
+        this.setEventAbility({
+            title: 'Search the top 10 cards of your deck for 2 Heroism non-unit cards and discard them. For this phase, you may play the discarded cards, and they each cost 2 less.',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
+                targetMode: TargetMode.UpTo,
+                selectCount: 2,
                 searchCount: 10,
-                cardCondition: (card) => card.isUnit() && card.cost <= 2,
+                cardCondition: (card) => !card.isUnit() && card.hasSomeAspect(Aspect.Heroism),
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.discardSpecificCard(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect((deckSearchContext) => ({
@@ -24,8 +27,8 @@ export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
                                 match: (card) => deckSearchContext.selectedPromptCards.includes(card) // note cost adjusters are attached to player, so have to refilter
                             })
                         ]
-                    })),
-                ]),
+                    }))
+                ])
             })
         });
     }
