@@ -136,41 +136,36 @@ class GameFlowWrapper {
 
     /**
      * Moves to the next phase of the game
-     * @return {number} value of phase change.
-     * regroup -> dynasty value is 4
-     * all other changes is -1
      */
-    nextPhase() {
-        var phaseChange = 0;
+    nextPhase(transitionHandler = () => undefined) {
         switch (this.game.currentPhase) {
             case 'setup':
                 this.skipSetupPhase();
                 break;
             case 'action':
                 this.moveToRegroupPhase();
-                phaseChange = -1;
                 break;
             case 'regroup':
                 this.skipRegroupPhase();
-                phaseChange = 4; // New turn
                 break;
             default:
-                break;
+                throw new TestSetupError(`Unknown current phase: ${this.game.currentPhase}`);
         }
-        return phaseChange;
+
+        transitionHandler(this.game.currentPhase);
     }
 
     /**
      * Moves through phases, until a certain one is reached
      * @param {String} endphase - phase in which to end
      */
-    advancePhases(endphase) {
+    advancePhases(endphase, transitionHandler = () => undefined) {
         if (!endphase) {
             return;
         }
 
         while (this.game.currentPhase !== endphase) {
-            this.nextPhase();
+            this.nextPhase(transitionHandler);
         }
     }
 

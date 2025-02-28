@@ -59,7 +59,8 @@ function formatSelectableDisplayCardsPromptData(prompt) {
     let result = '';
     for (const displayCard of prompt.displayCards) {
         const selectionOrderStr = displayCard.selectionOrder ? `, selectionOrder: ${displayCard.selectionOrder}` : '';
-        result += `[${displayCard.selectionState}${selectionOrderStr}]${displayCard.internalName}\n`;
+        const displayTextStr = displayCard.displayText ? `, displayText: '${displayCard.displayText}'` : '';
+        result += `[${displayCard.selectionState}${selectionOrderStr}${displayTextStr}]${displayCard.internalName}\n`;
     }
     return result;
 }
