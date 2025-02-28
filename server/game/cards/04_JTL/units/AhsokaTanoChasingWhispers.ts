@@ -18,15 +18,15 @@ export default class AhsokaTanoChasingWhispers extends NonLeaderUnitCard {
                 amount: 1,
                 target: context.player.opponent
             })),
-            ifYouDo: (ifYouDoContext) => ({
+            ifYouDo: {
                 title: 'Exhaust a unit',
-                ifYouDoCondition: () => EnumHelpers.isUnit(ifYouDoContext.events[0]?.card?.type),
+                ifYouDoCondition: (context) => EnumHelpers.isUnit(context.events[0]?.card?.type),
                 optional: true,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.exhaust()
                 }
-            })
+            }
         });
     }
 }
