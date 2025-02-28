@@ -61,7 +61,7 @@ describe('Black One, Straight At Them', function() {
                 context.player1.clickCard(context.blackOne);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit.');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.blackOne, context.deathStarStormtrooper, context.infernoFour]);
 
@@ -89,7 +89,7 @@ describe('Black One, Straight At Them', function() {
                 context.player1.clickCard(context.blackOne);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit.');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.blackOne, context.poeDameron, context.deathStarStormtrooper, context.infernoFour]);
 

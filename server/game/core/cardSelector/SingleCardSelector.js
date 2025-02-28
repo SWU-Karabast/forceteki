@@ -1,5 +1,5 @@
 const BaseCardSelector = require('./BaseCardSelector.js');
-const { CardType, WildcardCardType } = require('../Constants.js');
+const { WildcardCardType } = require('../Constants.js');
 
 class SingleCardSelector extends BaseCardSelector {
     constructor(properties) {
@@ -10,10 +10,7 @@ class SingleCardSelector extends BaseCardSelector {
 
 
     /** @override */
-    defaultPromptString(context) {
-        if (context.ability?.title) {
-            return context.ability.title;
-        }
+    defaultPromptString() {
         if (this.cardTypeFilter.length === 1 && this.cardTypeFilter[0] !== WildcardCardType.Any) {
             if (this.cardTypeFilter[0] === WildcardCardType.Upgrade) {
                 return 'Choose an upgrade';
