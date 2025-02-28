@@ -208,6 +208,7 @@ export class Card extends OngoingEffectSource {
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
+        // TODO: add validation that if the card has the Piloting trait, the right cardData properties are set
         this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
             this.internalName, cardData.pilotText);
