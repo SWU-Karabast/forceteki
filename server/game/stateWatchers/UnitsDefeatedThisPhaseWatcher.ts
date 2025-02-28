@@ -70,18 +70,12 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     }
 
     protected override setupWatcher() {
-        // on card played, add the card to the player's list of cards played this phase
         this.addUpdater({
             when: {
-                // This doesn't actually work for some reason, so I had to add the below workaround for now
-                onCardDefeated: (context) => EnumHelpers.isUnit(context.event.lastKnownInformation.type),
+                onCardDefeated: (event) => EnumHelpers.isUnit(event.lastKnownInformation.type)
             },
             update: (currentState: IUnitsDefeatedThisPhase, event: any) => {
-                // This is sort of a workaround, since no matter what I do above, I can't seem to get upgrade pilots excluded from being called here
-                if (EnumHelpers.isUnit(event.lastKnownInformation.type)) {
-                    return currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.card.controller });
-                }
-                return currentState;
+                return currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.card.controller });
             }
         });
     }
