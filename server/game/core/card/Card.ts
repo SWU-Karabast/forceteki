@@ -387,7 +387,7 @@ export class Card extends OngoingEffectSource {
     }
 
     public isUpgrade(): this is IUpgradeCard {
-        return this.type === CardType.BasicUpgrade || this.type === CardType.TokenUpgrade;
+        return this.type === CardType.BasicUpgrade || this.type === CardType.TokenUpgrade || this.type === CardType.UnitUpgrade;
     }
 
     public isBase(): this is IBaseCard {

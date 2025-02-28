@@ -199,6 +199,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this._parentCard === null;
         }
 
+        protected override getType(): CardType {
+            return this.isAttached() ? CardType.UnitUpgrade : this.printedType;
+        }
+
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
             this._captureZone = enabledStatus ? new CaptureZone(this.owner, this) : null;
         }

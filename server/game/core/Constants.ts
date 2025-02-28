@@ -160,6 +160,7 @@ export enum CardType {
     LeaderUnit = 'leaderUnit',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
+    UnitUpgrade = 'unitUpgrade',
 }
 
 export enum WildcardCardType {

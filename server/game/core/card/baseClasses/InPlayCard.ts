@@ -117,11 +117,6 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         return this._pendingDefeat;
     }
 
-    public override getType(): CardType {
-        // TODO: should we add a CardType.PilotUpgrade?
-        return this.isAttached() ? CardType.BasicUpgrade : this.printedType;
-    }
-
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
