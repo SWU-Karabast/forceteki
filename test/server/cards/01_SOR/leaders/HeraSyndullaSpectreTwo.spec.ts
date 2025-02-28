@@ -125,7 +125,7 @@ describe('Hera Syndulla, Spectre Two', function() {
 
                 context.player1.clickCard(context.heraSyndulla);
 
-                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePrompt('Give an experience token to another unique unit');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.yoda, context.chopper, context.rey]);
                 context.player1.clickCard(context.chopper);
