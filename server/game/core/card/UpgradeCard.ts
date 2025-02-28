@@ -38,7 +38,7 @@ export interface IUpgradeCard extends IInPlayCard, ICardWithPrintedPowerProperty
     get parentCard(): IUnitCard;
     attachTo(newParentCard: IUnitCard, newController?: Player);
     isAttached(): boolean;
-    unattach();
+    unattach(event?);
     canAttach(targetCard: Card, controller?: Player): boolean;
 }
 
@@ -114,10 +114,10 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         return !!this._parentCard;
     }
 
-    public unattach() {
+    public unattach(event = null) {
         Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
 
-        this.parentCard.unattachUpgrade(this);
+        this.parentCard.unattachUpgrade(this, event);
         this._parentCard = null;
     }
 

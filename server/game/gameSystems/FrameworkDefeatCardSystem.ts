@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { EventName, WildcardCardType } from '../core/Constants';
+import { EventName, PhaseName, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
@@ -49,8 +49,20 @@ export class FrameworkDefeatCardSystem<TContext extends AbilityContext = Ability
             case DefeatSourceType.UniqueRule:
                 return { type: DefeatSourceType.UniqueRule, player: card.controller };
             case DefeatSourceType.FrameworkEffect:
-                // TODO: this is a workaround until we get comp rules 3.0
-                return null;
+                let responsiblePlayer = null;
+                // 1.18.1.D If the above does not apply, and a unit is defeated by having 0 remaining HP,
+                // the most recent player whose ability or effect changed the remaining HP of that unit is considered to have defeated that unit.
+                if (card?.isUnit && card.isUnit()) {
+                    responsiblePlayer = card.lastPlayerToModifyHp;
+                }
+                // 1.18.1.D If the above does not apply, the active player is considered to have defeated that unit.
+                if (responsiblePlayer === null && context.game.currentPhase === PhaseName.Action) {
+                    responsiblePlayer = context.game.actionPhaseActivePlayer;
+                }
+                // 1.18.1.C If the above does not apply, and a unit is defeated during the regroup phase or when a lasting effect expires,
+                // no player is considered to have defeated that unit.
+                return { type: DefeatSourceType.FrameworkEffect, player: responsiblePlayer };
+
             default:
                 Contract.fail(`Unexpected value for framework defeat source: ${defeatSourceType}`);
         }
