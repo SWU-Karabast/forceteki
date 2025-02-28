@@ -2,7 +2,7 @@ describe('Chopper, Metal Menace', function() {
     integration(function(contextRef) {
         describe('Chopper\'s On Attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['chopper#metal-menace'],
@@ -36,7 +36,7 @@ describe('Chopper, Metal Menace', function() {
 
         describe('Chopper\'s On Attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['chopper#metal-menace', 'sabine-wren#explosives-artist'],
@@ -69,7 +69,7 @@ describe('Chopper, Metal Menace', function() {
 
         describe('Chopper\'s On Attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['chopper#metal-menace']

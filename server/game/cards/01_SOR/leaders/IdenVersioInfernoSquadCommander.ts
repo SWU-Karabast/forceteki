@@ -22,9 +22,9 @@ export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
             title: 'Heal 1 from base if an opponent\'s unit was defeated this phase',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.source.controller.opponent),
+                condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player.opponent),
                 onTrue: AbilityHelper.immediateEffects.heal((context) => {
-                    return { amount: 1, target: context.source.controller.base };
+                    return { amount: 1, target: context.player.base };
                 }),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
@@ -35,13 +35,11 @@ export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
         this.addTriggeredAbility({
             title: 'When an opponent\'s unit is defeated, heal 1 from base',
             when: {
-                onCardDefeated: (event, context) => event.card.controller !== context.source.controller
+                onCardDefeated: (event, context) => event.card.controller !== context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.heal((context) => {
-                return { amount: 1, target: context.source.controller.base };
+                return { amount: 1, target: context.player.base };
             }),
         });
     }
 }
-
-IdenVersioInfernoSquadCommander.implemented = true;

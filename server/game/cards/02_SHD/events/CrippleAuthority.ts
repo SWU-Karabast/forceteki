@@ -15,13 +15,13 @@ export default class CrippleAuthority extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous(
                 (context) => [
                     AbilityHelper.immediateEffects.draw({
-                        target: context.source.controller,
+                        target: context.player,
                         amount: 1
                     }),
                     AbilityHelper.immediateEffects.conditional({
-                        condition: context.source.controller.opponent.resources.length > context.source.controller.resources.length,
+                        condition: context.player.opponent.resources.length > context.player.resources.length,
                         onTrue: AbilityHelper.immediateEffects.discardCardsFromOwnHand({
-                            target: context.source.controller.opponent,
+                            target: context.player.opponent,
                             amount: 1
                         }),
                         onFalse: AbilityHelper.immediateEffects.noAction()
@@ -31,5 +31,3 @@ export default class CrippleAuthority extends EventCard {
         });
     }
 }
-
-CrippleAuthority.implemented = true;

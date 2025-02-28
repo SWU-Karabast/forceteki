@@ -1,8 +1,8 @@
 describe('Reckless Torrent', function() {
     integration(function(contextRef) {
         describe('Reckless Torrent\'s when played Coordinate ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -47,8 +47,8 @@ describe('Reckless Torrent', function() {
             });
         });
 
-        it('should do nothing if the Coordinate condition is not met', function () {
-            contextRef.setupTest({
+        it('should do nothing if the Coordinate condition is not met', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine'],

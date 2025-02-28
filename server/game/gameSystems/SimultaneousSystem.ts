@@ -63,7 +63,7 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
     public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        let queueGenerateEventGameStepsFn: (gameSystem: GameSystem<TContext>) => void;
+        let queueGenerateEventGameStepsFn: (gameSystem: GameSystem<TContext>) => () => void;
         let generateStepName: (gameSystem: GameSystem<TContext>) => string;
 
         if (properties.ignoreTargetingRequirements) {
@@ -81,7 +81,16 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         }
 
         for (const gameSystem of properties.gameSystems) {
-            context.game.queueSimpleStep(queueGenerateEventGameStepsFn(gameSystem), generateStepName(gameSystem));
+            // If it's a replacement effect, just add them to events and let the ReplacementEffectSystem handle them
+            if (properties.replacementEffect === true) {
+                gameSystem.queueGenerateEventGameSteps(
+                    events,
+                    context,
+                    { ...additionalProperties, replacementEffect: true }
+                );
+            } else {
+                context.game.queueSimpleStep(queueGenerateEventGameStepsFn(gameSystem), generateStepName(gameSystem));
+            }
         }
     }
 

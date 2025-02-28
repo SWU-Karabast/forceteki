@@ -20,5 +20,3 @@ export default class YodaOldMaster extends NonLeaderUnitCard {
         });
     }
 }
-
-YodaOldMaster.implemented = true;

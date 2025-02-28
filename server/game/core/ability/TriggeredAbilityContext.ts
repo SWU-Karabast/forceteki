@@ -1,16 +1,21 @@
 import type { Card } from '../card/Card';
 import { AbilityContext, type IAbilityContextProperties } from './AbilityContext';
 
-interface ITriggeredAbilityContextProperties extends IAbilityContextProperties {
+export interface ITriggeredAbilityContextProperties extends IAbilityContextProperties {
+    // TODO: rename this to "triggeringEvent"
     event: any;
 }
 
 export class TriggeredAbilityContext<TSource extends Card = Card> extends AbilityContext<TSource> {
-    public event: any;
+    public readonly event: any;
 
     public constructor(properties: ITriggeredAbilityContextProperties) {
         super(properties);
         this.event = properties.event;
+    }
+
+    public override isTriggered(): this is TriggeredAbilityContext<TSource> {
+        return true;
     }
 
     public override createCopy(newProps: unknown) {

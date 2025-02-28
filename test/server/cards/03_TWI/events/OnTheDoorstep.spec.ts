@@ -1,7 +1,7 @@
 describe('On the Doorstep', function () {
     integration(function (contextRef) {
-        it('On the Doorstep\'s ability should create three Battle Droid tokens for the controller and ready them', function () {
-            contextRef.setupTest({
+        it('On the Doorstep\'s ability should create three Battle Droid tokens for the controller and ready them', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['on-the-doorstep'],

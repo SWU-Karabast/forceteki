@@ -2,9 +2,21 @@ import type { Attack } from '../../attack/Attack';
 import * as Contract from '../../utils/Contract';
 import type { Card, CardConstructor } from '../Card';
 import type Player from '../../Player';
-import type { CardWithDamageProperty } from '../CardTypes';
+import type { ICardWithPrintedHpProperty } from './PrintedHp';
 import { WithPrintedHp } from './PrintedHp';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';
+import { EffectName } from '../../Constants';
+
+export interface ICardWithDamageProperty extends ICardWithPrintedHpProperty {
+    setActiveAttack(attack: Attack);
+    unsetActiveAttack();
+    isDefending(): boolean;
+    get activeAttack(): Attack;
+    get damage(): number;
+    get remainingHp(): number;
+    addDamage(amount: number, source: IDamageSource): number;
+    removeDamage(amount: number): number;
+}
 
 /**
  * Mixin function that adds the `damage` property and corresponding methods to a base class.
@@ -13,19 +25,19 @@ import type { IDamageSource } from '../../../IDamageOrDefeatSource';
 export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     const HpClass = WithPrintedHp(BaseClass);
 
-    return class WithDamage extends HpClass {
+    return class WithDamage extends HpClass implements ICardWithDamageProperty {
         private _activeAttack?: Attack = null;
         private attackEnabled = false;
         private _damage?: number;
 
         public setActiveAttack(attack: Attack) {
             Contract.assertNotNullLike(attack);
-            this.assertPropertyEnabledBoolean(this.attackEnabled, 'activeAttack');
+            this.assertPropertyEnabledForZoneBoolean(this.attackEnabled, 'activeAttack');
             this._activeAttack = attack;
         }
 
         public unsetActiveAttack() {
-            this.assertPropertyEnabledBoolean(this.attackEnabled, 'activeAttack');
+            this.assertPropertyEnabledForZoneBoolean(this.attackEnabled, 'activeAttack');
             if (this._activeAttack !== null) {
                 this._activeAttack = null;
             }
@@ -36,26 +48,26 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         }
 
         public get activeAttack() {
-            this.assertPropertyEnabledBoolean(this.attackEnabled, 'activeAttack');
+            this.assertPropertyEnabledForZoneBoolean(this.attackEnabled, 'activeAttack');
             return this._activeAttack;
         }
 
         public get damage(): number {
-            this.assertPropertyEnabled(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this._damage, 'damage');
             return this._damage;
         }
 
         protected set damage(value: number) {
-            this.assertPropertyEnabled(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this._damage, 'damage');
             this._damage = value;
         }
 
         public get remainingHp(): number {
-            this.assertPropertyEnabled(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this._damage, 'damage');
             return Math.max(0, this.getHp() - this.damage);
         }
 
-        public override canBeDamaged(): this is CardWithDamageProperty {
+        public override canBeDamaged(): this is ICardWithDamageProperty {
             return true;
         }
 
@@ -69,13 +81,17 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             // damage source is only needed for tracking cause of defeat on units but we should enforce that it's provided consistently
             Contract.assertNotNullLike(source);
 
-            this.assertPropertyEnabled(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this._damage, 'damage');
 
             if (amount === 0) {
                 return 0;
             }
+            // if a card can't be defeated by damage (e.g. Chirrut) we consider all damage to have been
+            // applied to the card, even if it goes above max hp (important for overwhelm calculation)
+            const damageToAdd = this.hasOngoingEffect(EffectName.CannotBeDefeatedByDamage)
+                ? amount
+                : Math.min(amount, this.remainingHp);
 
-            const damageToAdd = Math.min(amount, this.remainingHp);
             this.damage += damageToAdd;
 
             return damageToAdd;
@@ -84,7 +100,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         /** @returns The amount of damage actually removed */
         public removeDamage(amount: number): number {
             Contract.assertNonNegative(amount);
-            this.assertPropertyEnabled(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this._damage, 'damage');
 
             if (amount === 0 || this.damage === 0) {
                 return 0;
@@ -100,8 +116,8 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             this._damage = enabledStatus ? 0 : null;
         }
 
-        public override getSummary(activePlayer: Player, hideWhenFaceup: boolean) {
-            return { ...super.getSummary(activePlayer, hideWhenFaceup), damage: this._damage };
+        public override getSummary(activePlayer: Player) {
+            return { ...super.getSummary(activePlayer), damage: this._damage };
         }
 
         protected setActiveAttackEnabled(enabledStatus: boolean) {

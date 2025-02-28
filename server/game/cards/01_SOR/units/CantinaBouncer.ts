@@ -21,5 +21,3 @@ export default class CantinaBouncer extends NonLeaderUnitCard {
         });
     }
 }
-
-CantinaBouncer.implemented = true;

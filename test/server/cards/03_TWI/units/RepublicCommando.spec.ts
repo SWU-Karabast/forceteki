@@ -1,8 +1,8 @@
 describe('Republic Commando', function() {
     integration(function(contextRef) {
         describe('Republic Commando\'s ability', function () {
-            it('should grant Saboteur when Coordinate active', function () {
-                contextRef.setupTest({
+            it('should grant Saboteur when Coordinate active', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['332nd-stalwart'],

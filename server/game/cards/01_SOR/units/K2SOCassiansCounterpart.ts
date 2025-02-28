@@ -19,16 +19,14 @@ export default class K2SOCassiansCounterpart extends NonLeaderUnitCard {
                 choices: {
                     ['Deal 3 damage to opponent\'s base']: AbilityHelper.immediateEffects.damage((context) => ({
                         amount: 3,
-                        target: context.source.controller.opponent.base,
+                        target: context.player.opponent.base,
                     })),
                     ['The opponent discards a card']: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                         amount: 1,
-                        target: context.source.controller.opponent,
+                        target: context.player.opponent,
                     })),
                 }
             }
         });
     }
 }
-
-K2SOCassiansCounterpart.implemented = true;

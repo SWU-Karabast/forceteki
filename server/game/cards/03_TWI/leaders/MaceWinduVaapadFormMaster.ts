@@ -38,11 +38,9 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                target: context.source.controller.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.isUnit() && card.damage > 0),
+                target: context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.isUnit() && card.damage > 0),
                 amount: 2
             })),
         });
     }
 }
-
-MaceWinduVaapadFormMaster.implemented = true;

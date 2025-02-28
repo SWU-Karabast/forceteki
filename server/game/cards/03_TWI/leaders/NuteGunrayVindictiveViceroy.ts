@@ -22,7 +22,7 @@ export default class NuteGunrayVindictiveViceroy extends LeaderUnitCard {
             title: 'Create a Battle Droid token.',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.source.controller).length >= 2,
+                condition: (context) => this.unitsDefeatedThisPhaseWatcher.getDefeatedUnitsControlledByPlayer(context.player).length >= 2,
                 onTrue: AbilityHelper.immediateEffects.createBattleDroid(),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
@@ -36,5 +36,3 @@ export default class NuteGunrayVindictiveViceroy extends LeaderUnitCard {
         });
     }
 }
-
-NuteGunrayVindictiveViceroy.implemented = true;

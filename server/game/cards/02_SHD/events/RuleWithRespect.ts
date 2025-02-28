@@ -29,13 +29,11 @@ export default class RuleWithRespect extends EventCard {
                     captor: context.target,
                     target: this.attacksThisPhaseWatcher.getAttackersInPlay((attack) =>
                         attack.target.isBase() &&
-                        attack.defendingPlayer === context.source.controller &&
-                        attack.attackingPlayer !== context.source.controller &&
-                        attack.attacker.controller !== context.source.controller)
+                        attack.defendingPlayer === context.player &&
+                        attack.attackingPlayer !== context.player &&
+                        attack.attacker.controller !== context.player)
                 }))
             }
         });
     }
 }
-
-RuleWithRespect.implemented = true;

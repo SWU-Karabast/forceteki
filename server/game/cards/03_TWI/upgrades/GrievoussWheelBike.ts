@@ -22,5 +22,3 @@ export default class GrievoussWheelBike extends UpgradeCard {
         });
     }
 }
-
-GrievoussWheelBike.implemented = true;

@@ -23,7 +23,7 @@ export default class VanguardAce extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => {
                 const otherFriendlyCardsPlayedThisPhase = this.cardsPlayedThisWatcher.getCardsPlayed(
                     (cardPlay) =>
-                        cardPlay.playedBy === context.source.controller &&
+                        cardPlay.playedBy === context.player &&
                         (cardPlay.card !== context.source || cardPlay.inPlayId !== context.source.inPlayId)
                 );
 
@@ -32,5 +32,3 @@ export default class VanguardAce extends NonLeaderUnitCard {
         });
     }
 }
-
-VanguardAce.implemented = true;

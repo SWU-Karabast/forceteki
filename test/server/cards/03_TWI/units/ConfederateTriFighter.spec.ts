@@ -1,8 +1,8 @@
 describe('Confederate Tri-Fighter', function () {
     integration(function (contextRef) {
         describe('Confederate Tri-Fighter\'s ability', function () {
-            it('should cancel heal on bases', function () {
-                contextRef.setupTest({
+            it('should cancel heal on bases', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['repair'],
@@ -48,8 +48,6 @@ describe('Confederate Tri-Fighter', function () {
 
                 // play repair
                 context.player1.clickCard(context.repair);
-                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base, context.admiralAckbar, context.yoda, context.confederateTrifighter, context.corellianFreighter]);
-                context.player1.clickCard(context.p1Base);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p1Base.damage).toBe(5);
 

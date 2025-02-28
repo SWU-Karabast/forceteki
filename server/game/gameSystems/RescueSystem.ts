@@ -36,6 +36,6 @@ export class RescueSystem<TContext extends AbilityContext = AbilityContext, TPro
         super.updateEvent(event, card, context, additionalProperties);
 
         // add contingent event for putting the rescued unit back into play
-        event.setContingentEventsGenerator((event) => [new PutIntoPlaySystem({ target: card }).generateEvent(event.context)]);
+        event.setContingentEventsGenerator((event) => [new PutIntoPlaySystem({ target: card, controller: card.owner }).generateEvent(event.context)]);
     }
 }

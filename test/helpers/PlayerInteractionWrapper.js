@@ -17,15 +17,10 @@ class PlayerInteractionWrapper {
         this.game = game;
         this.player = player;
         this.testContext = testContext;
-
-        player.noTimer = true;
-        player.user = {
-            settings: {}
-        };
     }
 
     get name() {
-        return this.player.name;
+        return this.player.user.username;
     }
 
     /**
@@ -39,7 +34,7 @@ class PlayerInteractionWrapper {
         this.player.handZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
         this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     get hand() {
@@ -115,6 +110,10 @@ class PlayerInteractionWrapper {
             if (leaderOptions.upgrades) {
                 this.setCardUpgrades(leaderCard, leaderOptions.upgrades);
             }
+
+            if (leaderOptions.capturedUnits) {
+                this.setCapturedUnits(leaderCard, leaderOptions.capturedUnits);
+            }
         } else {
             if (leaderOptions.deployed === false) {
                 if (leaderCard.deployed === true) {
@@ -128,10 +127,14 @@ class PlayerInteractionWrapper {
                 throw new TestSetupError('Leader should not have upgrades when not deployed');
             }
 
+            if (leaderOptions.flipped) {
+                leaderCard.flipLeader();
+            }
+
             leaderCard.exhausted = leaderOptions.exhausted || false;
         }
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     setBaseStatus(baseOptions) {
@@ -153,7 +156,7 @@ class PlayerInteractionWrapper {
         var baseCard = this.player.base;
         baseCard.damage = baseOptions.damage || 0;
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     /**
@@ -220,7 +223,9 @@ class PlayerInteractionWrapper {
                 card = this.findCardByName(options.card, prevZones, opponentControlled ? 'opponent' : null);
             }
 
-            if (card.isUnit() && card.defaultArena !== arenaName) {
+            if (!card.isUnit()) {
+                throw new TestSetupError(`Attempting to add non-unit card ${card.internalName} to ${arenaName}`);
+            } else if (card.defaultArena !== arenaName) {
                 throw new TestSetupError(`Attempting to place ${card.internalName} in invalid arena '${arenaName}'`);
             }
 
@@ -246,12 +251,16 @@ class PlayerInteractionWrapper {
                 this.setCardUpgrades(card, options.upgrades, prevZones);
             }
 
+            if (options.capturedUnits) {
+                this.setCapturedUnits(card, options.capturedUnits, prevZones);
+            }
+
             if (options.damage !== undefined) {
                 card.damage = options.damage;
             }
         });
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     setCardUpgrades(card, upgrades, prevZones = 'any') {
@@ -265,6 +274,20 @@ class PlayerInteractionWrapper {
             }
 
             upgradeCard.attachTo(card);
+        }
+    }
+
+    setCapturedUnits(card, capturedUnits, prevZones = 'any') {
+        for (const capturedUnit of capturedUnits) {
+            const capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
+            const side = (capturedUnit.hasOwnProperty('owner') && capturedUnit.owner === this.player.nameField) ? 'self' : 'opponent';
+            let capturedUnitCard;
+            if (Util.isTokenUnit(capturedUnitName)) {
+                throw new TestSetupError(`Attempting to add token unit ${capturedUnitName} to ${card}`);
+            } else {
+                capturedUnitCard = this.findCardByName(capturedUnitName, prevZones, side);
+            }
+            capturedUnitCard.moveToCaptureZone(card.captureZone);
         }
     }
 
@@ -293,7 +316,9 @@ class PlayerInteractionWrapper {
     }
 
     setDeck(newContents = [], prevZones = ['any']) {
-        this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
+        this.player.deckZone.cards.forEach(
+            (card) => this.moveCard(card, 'outsideTheGame')
+        );
         newContents.reverse().forEach((nameOrCard) => {
             var card = typeof nameOrCard === 'string' ? this.findCardByName(nameOrCard, prevZones) : nameOrCard;
             this.moveCard(card, 'deck');
@@ -329,7 +354,8 @@ class PlayerInteractionWrapper {
         });
         // Move cards to the resource area in reverse order
         // (helps with referring to cards by index)
-        newContents.reverse().forEach((name) => {
+        newContents.reverse().forEach((resource) => {
+            const name = typeof resource === 'string' ? resource : resource.card;
             var card = this.findCardByName(name, prevZones);
             this.moveCard(card, 'resource');
             card.exhausted = false;
@@ -386,6 +412,10 @@ class PlayerInteractionWrapper {
 
     get actionPhaseActivePlayer() {
         return this.game.actionPhaseActivePlayer;
+    }
+
+    get activePlayer() {
+        return this.game.getActivePlayer();
     }
 
     get opponent() {
@@ -481,7 +511,7 @@ class PlayerInteractionWrapper {
 
     exhaustResources(number) {
         this.player.exhaustResources(number);
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     hasPrompt(title) {
@@ -510,7 +540,7 @@ class PlayerInteractionWrapper {
             );
         }
 
-        this.game.menuButton(this.player.name, promptButton.arg, promptButton.uuid, promptButton.method);
+        this.game.menuButton(this.player.id, promptButton.arg, promptButton.uuid, promptButton.method);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
@@ -523,13 +553,17 @@ class PlayerInteractionWrapper {
             );
         }
 
-        this.game.menuButton(this.player.name, text, currentPrompt.promptUuid);
+        this.game.menuButton(this.player.id, text, currentPrompt.promptUuid);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
 
     setDistributeDamagePromptState(cardDistributionMap) {
         this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeDamage');
+    }
+
+    setDistributeIndirectDamagePromptState(cardDistributionMap) {
+        this.setDistributeAmongTargetsPromptState(cardDistributionMap, 'distributeIndirectDamage');
     }
 
     setDistributeHealingPromptState(cardDistributionMap) {
@@ -543,57 +577,48 @@ class PlayerInteractionWrapper {
     setDistributeAmongTargetsPromptState(cardDistributionMap, type) {
         var currentPrompt = this.player.currentPrompt();
 
+        const cardDistributionArray = [...cardDistributionMap].map(([card, amount]) => ({
+            uuid: card.uuid,
+            amount
+        }));
+
         const promptResults = {
-            valueDistribution: cardDistributionMap,
+            valueDistribution: cardDistributionArray,
             type
         };
 
-        this.game.statefulPromptResults(this.player.name, promptResults, currentPrompt.promptUuid);
+        this.game.statefulPromptResults(this.player.id, promptResults, currentPrompt.promptUuid);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
 
-    clickPromptButtonIndex(index) {
+    clickDisplayCardPromptButton(cardUuid, arg) {
         var currentPrompt = this.player.currentPrompt();
 
-        if (currentPrompt.buttons.length <= index) {
-            throw new TestSetupError(
-                `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
-            );
-        }
-
-        var promptButton = currentPrompt.buttons[index];
-
-        if (!promptButton || promptButton.disabled) {
-            throw new TestSetupError(
-                `Couldn't click on Button '${index}' for ${this.player.name
-                }. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
-            );
-        }
-
-        this.game.menuButton(this.player.name, promptButton.arg, promptButton.uuid, promptButton.method);
+        this.game.perCardMenuButton(this.player.id, arg, cardUuid, currentPrompt.promptUuid);
         this.game.continue();
-        // this.checkUnserializableGameState();
     }
 
-    chooseCardInPrompt(cardName, controlName) {
+    clickCardInDisplayCardPrompt(card, allowClickUnselectable = false) {
+        Util.checkNullCard(card);
+
         var currentPrompt = this.player.currentPrompt();
 
-        let promptControl = currentPrompt.controls.find(
-            (control) => control.name.toLowerCase() === controlName.toLowerCase()
+        var clickingCard = currentPrompt.displayCards.find(
+            (cardEntry) => cardEntry.cardUuid === card.uuid
         );
 
-        if (!promptControl) {
+        if (!clickingCard || (!allowClickUnselectable && (clickingCard.selectionState === 'unselectable' || clickingCard.selectionState === 'invalid'))) {
             throw new TestSetupError(
-                `Couldn't click card '${cardName}' for ${this.player.name
-                } - unable to find control '${controlName}'. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
+                `Couldn't click on '${card.internalName}' in card display prompt for ${this.player.name}. Current prompt is:\n${Util.formatBothPlayerPrompts(this.testContext)}`
             );
         }
 
-        this.game.menuButton(this.player.name, cardName, promptControl.uuid, promptControl.method);
+        this.game.menuButton(this.player.id, card.uuid, currentPrompt.promptUuid, 'menuButton');
         this.game.continue();
+
         // this.checkUnserializableGameState();
+        return card;
     }
 
     // click any N of the selectable cards available
@@ -606,7 +631,7 @@ class PlayerInteractionWrapper {
         }
 
         for (let i = 0; i < nCardsToChoose; i++) {
-            this.game.cardClicked(this.player.name, availableCards[i].uuid);
+            this.game.cardClicked(this.player.id, availableCards[i].uuid);
         }
 
         // this.checkUnserializableGameState();
@@ -617,7 +642,7 @@ class PlayerInteractionWrapper {
     }
 
     clickCard(card, zone = 'any', side = 'self', expectChange = true) {
-        Util.checkNullCard(card, this.testContext);
+        Util.checkNullCard(card);
 
         if (typeof card === 'string') {
             card = this.findCardByName(card, zone, side);
@@ -628,7 +653,7 @@ class PlayerInteractionWrapper {
             beforeClick = Util.getPlayerPromptState(this.player);
         }
 
-        this.game.cardClicked(this.player.name, card.uuid);
+        this.game.cardClicked(this.player.id, card.uuid);
         this.game.continue();
 
         if (expectChange) {
@@ -653,7 +678,7 @@ class PlayerInteractionWrapper {
             throw new TestSetupError(`Card ${card.name} does not have a menu item '${menuText}'`);
         }
 
-        this.game.menuItemClick(this.player.name, card.uuid, items[0]);
+        this.game.menuItemClick(this.player.id, card.uuid, items[0]);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
@@ -667,7 +692,7 @@ class PlayerInteractionWrapper {
     }
 
     dragCard(card, targetZone) {
-        this.game.drop(this.player.name, card.uuid, card.zoneName, targetZone);
+        this.game.drop(this.player.id, card.uuid, card.zoneName, targetZone);
         this.game.continue();
         // this.checkUnserializableGameState();
     }
@@ -788,7 +813,7 @@ class PlayerInteractionWrapper {
     }
 
     // checkUnserializableGameState() {
-    //     let state = this.game.getState(this.player.name);
+    //     let state = this.game.getState(this.player.id);
     //     let results = detectBinary(state);
     //     if (results.length !== 0) {
     //         throw new TestSetupError('Unable to serialize game state back to client:\n' + JSON.stringify(results));

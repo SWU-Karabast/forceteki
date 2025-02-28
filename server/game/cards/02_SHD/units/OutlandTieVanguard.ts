@@ -20,5 +20,3 @@ export default class OutlandTieVanguard extends NonLeaderUnitCard {
         });
     }
 }
-
-OutlandTieVanguard.implemented = true;

@@ -29,5 +29,3 @@ export default class VadersLightsaber extends UpgradeCard {
         });
     }
 }
-
-VadersLightsaber.implemented = true;

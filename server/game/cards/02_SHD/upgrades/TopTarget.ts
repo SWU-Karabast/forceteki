@@ -24,5 +24,3 @@ export default class TopTarget extends UpgradeCard {
         });
     }
 }
-
-TopTarget.implemented = true;

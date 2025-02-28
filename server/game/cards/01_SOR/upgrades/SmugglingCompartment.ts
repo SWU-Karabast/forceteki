@@ -17,11 +17,9 @@ export default class SmugglingCompartment extends UpgradeCard {
         this.addGainOnAttackAbilityTargetingAttached({
             title: 'Ready a resource',
             immediateEffect: AbilityHelper.immediateEffects.readyResources((context) => ({
-                target: context.source.controller,
+                target: context.player,
                 amount: 1
             }))
         });
     }
 }
-
-SmugglingCompartment.implemented = true;

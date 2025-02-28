@@ -1,8 +1,8 @@
 describe('Omega, Part of the Squad', function() {
     integration(function(contextRef) {
         describe('Omega\'s Ability', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['omega#part-of-the-squad', 'omega#part-of-the-squad'],
@@ -22,9 +22,13 @@ describe('Omega, Part of the Squad', function() {
 
                 context.player1.clickCard(context.firstOmega);
                 expect(context.player1).toHavePrompt('Select a card to reveal');
-                expect(context.player1).toHaveEnabledPromptButton(context.crosshair.title);
-                expect(context.player1).toHaveDisabledPromptButtons([context.atst.title, context.battlefieldMarine.title, context.cartelSpacer.title, context.pykeSentinel.title]);
-                context.player1.clickPrompt(context.crosshair.title);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.crosshair],
+                    invalid: [context.atst, context.battlefieldMarine, context.cartelSpacer, context.pykeSentinel]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                context.player1.clickCardInDisplayCardPrompt(context.crosshair);
                 expect(context.crosshair).toBeInZone('hand');
                 expect(context.getChatLogs(2)).toContain('player1 takes Crosshair');
 
@@ -50,7 +54,7 @@ describe('Omega, Part of the Squad', function() {
 
         describe('Omega\'s Ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['omega#part-of-the-squad'],

@@ -16,7 +16,7 @@ export default class SoullessOneCustomizedForGrievous extends NonLeaderUnitCard 
             optional: true,
             targetResolver: {
                 cardCondition: (card, context) =>
-                    card.controller === context.source.controller &&
+                    card.controller === context.player &&
                     (card.hasSomeTrait(Trait.Droid) || card.title === 'General Grievous'),
                 immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             },
@@ -29,5 +29,3 @@ export default class SoullessOneCustomizedForGrievous extends NonLeaderUnitCard 
         });
     }
 }
-
-SoullessOneCustomizedForGrievous.implemented = true;

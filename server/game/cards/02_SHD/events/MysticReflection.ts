@@ -17,7 +17,7 @@ export default class MysticReflection extends EventCard {
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.source.controller.isTraitInPlay(Trait.Force),
+                    condition: (context) => context.player.isTraitInPlay(Trait.Force),
                     onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 })
                     }),
@@ -29,5 +29,3 @@ export default class MysticReflection extends EventCard {
         });
     }
 }
-
-MysticReflection.implemented = true;

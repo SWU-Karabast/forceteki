@@ -1,8 +1,8 @@
 describe('Clone Commander Cody, Commanding the 212th', function () {
     integration(function (contextRef) {
         describe('Clone Commander Cody\'s coordinate ability', function () {
-            it('should give +1/+1 and overwhelm to other friendly units', function () {
-                contextRef.setupTest({
+            it('should give +1/+1 and overwhelm to other friendly units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['echo-base-defender', 'clone-commander-cody#commanding-the-212th'],

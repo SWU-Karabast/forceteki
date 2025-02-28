@@ -17,6 +17,7 @@ jobs:
         - run: npm install
 
         - run: npx eslint --quiet
+  
   test:
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
@@ -28,13 +29,20 @@ jobs:
             cache: 'npm'
         - run: npm install
 
+        - name: check that card data json version file exists
+          uses: andstor/file-existence-action@v3
+          with:
+            files: "${{ github.workspace }}/card-data-version.txt"
+            fail: true
+        - name: get card data json cache version
+          id: card-data-version
+          run: echo "version=$(cat ${GITHUB_WORKSPACE}/card-data-version.txt)" >> $GITHUB_OUTPUT
         - name: cache card data json files
           id: cache-card-data
           uses: actions/cache@v3
           with:
             path: ./test/json
-            # IMPORTANT: if you change the cache key name below, also change it in update-cache.yml
-            key: sor-shd-twi-manual-v10-shield
+            key: ${{ steps.card-data-version.outputs.version }}
         - if: ${{ steps.cache-card-data.outputs.cache-hit != 'true' }}
           run: npm run get-cards
 

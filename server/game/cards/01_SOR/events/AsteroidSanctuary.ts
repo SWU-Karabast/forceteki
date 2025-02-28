@@ -28,5 +28,3 @@ export default class AsteroidSanctuary extends EventCard {
         });
     }
 }
-
-AsteroidSanctuary.implemented = true;

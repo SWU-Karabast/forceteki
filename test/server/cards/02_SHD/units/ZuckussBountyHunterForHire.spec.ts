@@ -2,7 +2,7 @@ describe('Zuckuss, Bounty Hunter for Hire', function() {
     integration(function(contextRef) {
         describe('Zuckuss\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['4lom#bounty-hunter-for-hire'],
@@ -41,7 +41,7 @@ describe('Zuckuss, Bounty Hunter for Hire', function() {
 
         describe('Zuckuss\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['zuckuss#bounty-hunter-for-hire', 'pyke-sentinel'],

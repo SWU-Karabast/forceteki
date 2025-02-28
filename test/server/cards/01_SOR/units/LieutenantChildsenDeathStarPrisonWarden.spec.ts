@@ -2,8 +2,8 @@ describe('Lieutenant Childsen', function() {
     integration(function(contextRef) {
         describe('Lieutenant Childsen\'s When Played ability', function() {
             describe('when hand contains some Vigilance cards', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: [
@@ -45,10 +45,9 @@ describe('Lieutenant Childsen', function() {
                     context.player1.clickCard(context.pykeSentinel);
                     context.player1.clickPrompt('Done');
 
-                    expect(context.getChatLogs(2)).toEqual([
-                        'player1 uses Lieutenant Childsen to reveal a card',
-                        'player1 reveals Pyke Sentinel due to Lieutenant Childsen',
-                    ]);
+                    expect(context.player2).toHaveExactViewableDisplayPromptCards([context.pykeSentinel]);
+                    expect(context.getChatLogs(1)[0]).toContain(context.pykeSentinel.title);
+                    context.player2.clickPrompt('Done');
 
                     expect(context.lieutenantChildsen).toHaveExactUpgradeNames(['experience']);
                     expect(context.player2).toBeActivePlayer();
@@ -65,10 +64,12 @@ describe('Lieutenant Childsen', function() {
                     context.player1.clickCardNonChecking(context.systemPatrolCraft);
                     context.player1.clickPrompt('Done');
 
-                    expect(context.getChatLogs(2)).toEqual([
-                        'player1 uses Lieutenant Childsen to reveal 4 cards',
-                        'player1 reveals Cargo Juggernaut, Vanquish, Resilient, Pyke Sentinel due to Lieutenant Childsen',
-                    ]);
+                    expect(context.player2).toHaveExactViewableDisplayPromptCards([context.cargoJuggernaut, context.vanquish, context.resilient, context.pykeSentinel]);
+                    expect(context.getChatLogs(1)[0]).toContain(context.cargoJuggernaut.title);
+                    expect(context.getChatLogs(1)[0]).toContain(context.vanquish.title);
+                    expect(context.getChatLogs(1)[0]).toContain(context.resilient.title);
+                    expect(context.getChatLogs(1)[0]).toContain(context.pykeSentinel.title);
+                    context.player2.clickPrompt('Done');
 
                     expect(context.lieutenantChildsen).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience']);
                     expect(context.player2).toBeActivePlayer();
@@ -86,8 +87,8 @@ describe('Lieutenant Childsen', function() {
             });
 
             describe('when hand does not contain any Vigilance card', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: [
@@ -110,7 +111,7 @@ describe('Lieutenant Childsen', function() {
 
                     context.player1.clickCard(context.lieutenantChildsen);
 
-                    expect(context.lieutenantChildsen).toHaveExactUpgradeNames([]);
+                    expect(context.lieutenantChildsen.isUpgraded()).toBeFalse();
                     expect(context.player2).toBeActivePlayer();
                 });
             });

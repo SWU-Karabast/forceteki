@@ -1,13 +1,17 @@
 import type { CardTypeFilter, ZoneFilter, MoveZoneDestination } from '../Constants';
 import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
+import type Player from '../Player';
+import * as Helpers from './Helpers';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value
-export function checkConvertToEnum<T>(values: string[], enumObj: T): T[keyof T][] {
+export function checkConvertToEnum<T>(values: string | string[], enumObj: T): T[keyof T][] {
     const result: T[keyof T][] = [];
 
-    for (const value of values) {
-        if (Object.values(enumObj).indexOf(value.toLowerCase()) >= 0) {
-            result.push(value as T[keyof T]);
+    const enumValues = Object.values(enumObj);
+    for (const value of Helpers.asArray(values)) {
+        const matchingValue = enumValues.find((enumValue) => enumValue.toLowerCase() === value.toLowerCase());
+        if (matchingValue) {
+            result.push(matchingValue as T[keyof T]);
         } else {
             throw new Error(`Invalid value for enum: ${value}`);
         }
@@ -45,11 +49,12 @@ export const isAttackableZone = (zone: ZoneFilter) => {
     }
 };
 
-export const isHidden = (zone: ZoneFilter, controller: RelativePlayer) => {
+export const isHiddenFromOpponent = (zone: ZoneFilter, zoneController: RelativePlayer) => {
     switch (zone) {
         case ZoneName.Hand:
         case ZoneName.Resource:
-            return controller !== RelativePlayer.Opponent;
+            // TODO: switching this to be 'zoneController === RelativePlayer.Self' breaks a lot of tests for some reason
+            return zoneController !== RelativePlayer.Opponent;
         case ZoneName.Deck:
             return true;
         default:
@@ -86,6 +91,11 @@ export const asConcreteZone = (zoneName: ZoneName | MoveZoneDestination): ZoneNa
 
 export const isDeckMoveZone = (zoneName: MoveZoneDestination): boolean => {
     return zoneName === DeckZoneDestination.DeckBottom || zoneName === DeckZoneDestination.DeckTop;
+};
+
+export const zoneMoveRequiresControllerReset = (prevZone: ZoneName, nextZone: MoveZoneDestination): boolean => {
+    const nextZoneName = asConcreteZone(nextZone);
+    return (isArena(prevZone) || prevZone === ZoneName.Resource) && !(isArena(nextZoneName) || nextZoneName === ZoneName.Resource);
 };
 
 export const isUnit = (cardType: CardTypeFilter) => {
@@ -189,4 +199,17 @@ export const getCardTypesForFilter = (cardTypeFilter: CardTypeFilter): CardType[
         default:
             return [cardTypeFilter];
     }
+};
+
+export const asConcretePlayer = (player: Player | RelativePlayer, contextPlayer: Player): Player => {
+    if (player === RelativePlayer.Self) {
+        return contextPlayer;
+    } else if (player === RelativePlayer.Opponent) {
+        return contextPlayer.opponent;
+    }
+    return player;
+};
+
+export const asRelativePlayer = (player: Player, otherPlayer: Player): RelativePlayer => {
+    return player === otherPlayer ? RelativePlayer.Self : RelativePlayer.Opponent;
 };

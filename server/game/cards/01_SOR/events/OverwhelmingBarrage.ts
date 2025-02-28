@@ -27,11 +27,10 @@ export default class OverwhelmingBarrage extends EventCard {
                     canChooseNoTargets: true,
                     controller: WildcardRelativePlayer.Any,
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card) => card !== thenContext.target
+                    cardCondition: (card) => card !== thenContext.target,
+                    source: thenContext.target
                 })
             })
         });
     }
 }
-
-OverwhelmingBarrage.implemented = true;

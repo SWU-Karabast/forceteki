@@ -2,7 +2,7 @@ describe('Finn, This is a Rescue', function () {
     integration(function (contextRef) {
         describe('Finn\'s undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'finn#this-is-a-rescue', deployed: false },
@@ -57,7 +57,7 @@ describe('Finn, This is a Rescue', function () {
 
         describe('Finn\'s deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'finn#this-is-a-rescue', deployed: true },
@@ -90,7 +90,7 @@ describe('Finn, This is a Rescue', function () {
                 context.player1.clickCard(context.finn);
                 expect(context.player1).toBeAbleToSelectExactly([context.jediLightsaber, context.entrenched]);
                 expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['jedi-lightsaber', 'top-target']);
                 expect(context.pykeSentinel).toBeInZone('discard', context.player2);

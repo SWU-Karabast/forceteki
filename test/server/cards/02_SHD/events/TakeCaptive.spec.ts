@@ -1,8 +1,8 @@
 describe('Take Captive', function() {
     integration(function(contextRef) {
         describe('Take Captive\'s event ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['take-captive'],
@@ -20,7 +20,7 @@ describe('Take Captive', function() {
                 });
             });
 
-            it('should allow a friendly ground unit to capture an enemy ground non-leader unit', () => {
+            it('should allow a friendly ground unit to capture an enemy ground non-leader unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.takeCaptive);
@@ -32,7 +32,7 @@ describe('Take Captive', function() {
                 expect(context.wampa).toBeCapturedBy(context.battlefieldMarine);
             });
 
-            it('should allow a friendly space unit to capture an enemy space non-leader unit', () => {
+            it('should allow a friendly space unit to capture an enemy space non-leader unit', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.takeCaptive);
@@ -43,8 +43,8 @@ describe('Take Captive', function() {
             });
         });
 
-        it('Take Captive\'s event ability should only allow targeting friendly units that have legal capture targets', () => {
-            contextRef.setupTest({
+        it('Take Captive\'s event ability should only allow targeting friendly units that have legal capture targets', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['take-captive'],

@@ -25,5 +25,3 @@ export default class EnforcedLoyalty extends EventCard {
         });
     }
 }
-
-EnforcedLoyalty.implemented = true;

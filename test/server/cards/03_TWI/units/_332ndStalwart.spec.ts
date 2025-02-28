@@ -1,8 +1,8 @@
 describe('332nd Stalwart', function() {
     integration(function(contextRef) {
         describe('332nd Stalwart\'s ability', function () {
-            it('should give +1/+1 when Coordinate active', function () {
-                contextRef.setupTest({
+            it('should give +1/+1 when Coordinate active', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['republic-commando'],

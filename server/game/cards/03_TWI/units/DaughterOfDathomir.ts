@@ -18,5 +18,3 @@ export default class DaughterOfDathomir extends NonLeaderUnitCard {
         });
     }
 }
-
-DaughterOfDathomir.implemented = true;

@@ -1,8 +1,8 @@
 describe('Death by Droids', function () {
     integration(function (contextRef) {
         describe('Death by Droids ability', function () {
-            it('should defeat a unit that cost 3 or less and create 2 Battle Droid tokens', function () {
-                contextRef.setupTest({
+            it('should defeat a unit that cost 3 or less and create 2 Battle Droid tokens', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['death-by-droids'],
@@ -29,8 +29,8 @@ describe('Death by Droids', function () {
                 expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
             });
 
-            it('should only create 2 Battle Droid tokens as there is no elegible units in play to defeat', function () {
-                contextRef.setupTest({
+            it('should only create 2 Battle Droid tokens as there is no elegible units in play to defeat', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['death-by-droids'],

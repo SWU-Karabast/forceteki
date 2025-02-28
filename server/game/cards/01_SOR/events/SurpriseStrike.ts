@@ -20,5 +20,3 @@ export default class SurpriseStrike extends EventCard {
         });
     }
 }
-
-SurpriseStrike.implemented = true;

@@ -17,7 +17,7 @@ export default class BountyGuildInitiate extends NonLeaderUnitCard {
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.source.controller.isTraitInPlay(Trait.BountyHunter, context.source),
+                    condition: (context) => context.player.isTraitInPlay(Trait.BountyHunter, context.source),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 }),
                     onFalse: AbilityHelper.immediateEffects.noAction()
                 })
@@ -25,5 +25,3 @@ export default class BountyGuildInitiate extends NonLeaderUnitCard {
         });
     }
 }
-
-BountyGuildInitiate.implemented = true;

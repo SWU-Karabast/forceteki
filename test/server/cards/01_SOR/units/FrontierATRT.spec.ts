@@ -2,7 +2,7 @@ describe('Frontier AT-RT', function() {
     integration(function(contextRef) {
         describe('Frontier AT-RT\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['frontier-atrt'],
@@ -33,7 +33,7 @@ describe('Frontier AT-RT', function() {
 
         describe('Frontier AT-RT\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['frontier-atrt'],

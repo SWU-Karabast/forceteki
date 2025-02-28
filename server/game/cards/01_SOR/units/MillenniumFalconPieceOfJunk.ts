@@ -27,7 +27,7 @@ export default class MillenniumFalconPieceOfJunk extends NonLeaderUnitCard {
                 mode: TargetMode.Select,
                 choices: (context) => ({
                     ['Pay 1 resource']: AbilityHelper.immediateEffects.payResourceCost({
-                        target: context.source.controller,
+                        target: context.player,
                         amount: 1
                     }),
                     ['Return this unit to her owner\'s hand']: AbilityHelper.immediateEffects.returnToHand({
@@ -38,5 +38,3 @@ export default class MillenniumFalconPieceOfJunk extends NonLeaderUnitCard {
         });
     }
 }
-
-MillenniumFalconPieceOfJunk.implemented = true;

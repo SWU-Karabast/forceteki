@@ -2,7 +2,7 @@ describe('Play event from hand', function() {
     integration(function(contextRef) {
         describe('When an event is played', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['daring-raid', 'repair'],

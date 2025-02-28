@@ -4,7 +4,7 @@ describe('Foundling\'s', function () {
     integration(function (contextRef) {
         describe('Foundling', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['foundling', 'mandalorian-warrior'],

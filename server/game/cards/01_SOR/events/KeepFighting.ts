@@ -19,5 +19,3 @@ export default class KeepFighting extends EventCard {
         });
     }
 }
-
-KeepFighting.implemented = true;

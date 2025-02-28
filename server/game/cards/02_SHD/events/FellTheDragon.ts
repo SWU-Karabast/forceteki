@@ -19,5 +19,3 @@ export default class FellTheDragon extends EventCard {
         });
     }
 }
-
-FellTheDragon.implemented = true;

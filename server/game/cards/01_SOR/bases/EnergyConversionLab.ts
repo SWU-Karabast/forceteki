@@ -26,5 +26,3 @@ export default class EnergyConversionLab extends BaseCard {
         });
     }
 }
-
-EnergyConversionLab.implemented = true;

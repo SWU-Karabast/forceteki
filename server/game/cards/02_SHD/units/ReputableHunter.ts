@@ -12,10 +12,8 @@ export default class ReputableHunter extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addDecreaseCostAbility({
             title: 'While an enemy unit has a Bounty, this unit costs 1 less to play',
-            condition: (context) => context.source.controller.opponent.isKeywordInPlay(KeywordName.Bounty),
+            condition: (context) => context.player.opponent.isKeywordInPlay(KeywordName.Bounty),
             amount: 1
         });
     }
 }
-
-ReputableHunter.implemented = true;

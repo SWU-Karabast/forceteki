@@ -1,8 +1,8 @@
 describe('Merciless Contest', function() {
     integration(function(contextRef) {
         describe('Merciless Contest\'s event ability', function() {
-            it('should defeat a non-leader unit picked by each player', () => {
-                contextRef.setupTest({
+            it('should defeat a non-leader unit picked by each player', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['merciless-contest'],

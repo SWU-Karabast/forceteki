@@ -18,7 +18,7 @@ export default class PunishingOne extends NonLeaderUnitCard {
                     event.card.isUnit() &&
                     event.card.isInPlay() &&
                     event.card.isUpgraded() &&
-                    event.card.controller !== context.source.controller,
+                    event.card.controller !== context.player,
             },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.ready(),
@@ -26,5 +26,3 @@ export default class PunishingOne extends NonLeaderUnitCard {
         });
     }
 }
-
-PunishingOne.implemented = true;

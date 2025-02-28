@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType } from '../core/Constants';
+import { CardType, EffectName, EventName, ZoneName, RelativePlayer, WildcardCardType, GameStateChangeRequired } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -30,23 +30,14 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         // event.cardStateWhenMoved = card.createSnapshot();
 
         const card = event.card as Card;
-        Contract.assertTrue(card.isTokenOrPlayable());
-        Contract.assertFalse(card.isToken());
+        Contract.assertTrue(card.isPlayable());
 
         if (event.resourceControllingPlayer !== card.controller) {
+            Contract.assertTrue(card.canChangeController(), `Card ${card.internalName} cannot change controller`);
             card.takeControl(event.resourceControllingPlayer, ZoneName.Resource);
         } else {
             card.moveTo(ZoneName.Resource);
         }
-    }
-
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): IResourceCardProperties {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties);
-
-        if (Array.isArray(properties.target)) {
-            Contract.assertTrue(properties.target.length <= 1, 'Resourcing more than 1 card is not yet supported');
-        }
-        return properties;
     }
 
     public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: any): void {
@@ -84,10 +75,18 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         event.resourceControllingPlayer = this.getResourceControllingPlayer(properties, context);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { targetPlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
 
         const resourceControllingPlayer = this.getResourceControllingPlayer({ targetPlayer }, context);
+
+        // if the card is already resourced by the target player, no game state change will occur
+        if (
+            mustChangeGameState !== GameStateChangeRequired.None &&
+            card.controller === resourceControllingPlayer && card.zoneName === ZoneName.Resource
+        ) {
+            return false;
+        }
 
         if (resourceControllingPlayer !== card.controller && card.hasRestriction(EffectName.TakeControl, context)) {
             return false;

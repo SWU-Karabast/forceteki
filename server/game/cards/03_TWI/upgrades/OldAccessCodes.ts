@@ -13,12 +13,10 @@ export default class OldAccessCodes extends UpgradeCard {
         this.addWhenPlayedAbility({
             title: 'Draw a card',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.controller.getUnitsInPlay().length < context.player.opponent.getUnitsInPlay().length,
+                condition: (context) => context.player.getUnitsInPlay().length < context.player.opponent.getUnitsInPlay().length,
                 onTrue: AbilityHelper.immediateEffects.draw(),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }
 }
-
-OldAccessCodes.implemented = true;

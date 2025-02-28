@@ -1,8 +1,8 @@
 describe('Han Solo, Worth the Risk', function () {
     integration(function (contextRef) {
         describe('Han Solo\'s leader undeployed ability', function () {
-            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
-                contextRef.setupTest({
+            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['cantina-braggart', 'vanguard-infantry', 'green-squadron-awing', 'devotion'],
@@ -53,8 +53,8 @@ describe('Han Solo, Worth the Risk', function () {
         });
 
         describe('Han Solo\'s leader deployed ability', function () {
-            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', function () {
-                contextRef.setupTest({
+            it('should play a unit from our hand, it costs 1 resource less and take 2 damage', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['cantina-braggart', 'vanguard-infantry', 'green-squadron-awing', 'devotion'],
@@ -112,8 +112,8 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('should not play a unit from our hand if hand is empty (as first action)', function () {
-                contextRef.setupTest({
+            it('should not play a unit from our hand if hand is empty (as first action)', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'han-solo#worth-the-risk', deployed: true },

@@ -2,7 +2,7 @@ describe('Strafing Gunship', function () {
     integration(function (contextRef) {
         describe('Strafing Gunship\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['strafing-gunship'],

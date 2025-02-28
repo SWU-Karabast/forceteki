@@ -1,8 +1,8 @@
 describe('Guild Target', function() {
     integration(function(contextRef) {
         describe('Guild Target\'s Bounty ability', function() {
-            it('should deal 2 damage to a base if the attached unit is not unique', function () {
-                contextRef.setupTest({
+            it('should deal 2 damage to a base if the attached unit is not unique', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['guild-target'] }, 'atst']
@@ -24,8 +24,8 @@ describe('Guild Target', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should heal 3 damage to a base if the attached unit is unique', function () {
-                contextRef.setupTest({
+            it('should heal 3 damage to a base if the attached unit is unique', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'colonel-yularen#isb-director', upgrades: ['guild-target'] }],

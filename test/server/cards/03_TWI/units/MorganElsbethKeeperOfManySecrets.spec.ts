@@ -1,8 +1,8 @@
 describe('Morgan Elsbeth, Keeper of Many Secrets', function () {
     integration(function (contextRef) {
         describe('Morgan Elsbeth\'s ability', function () {
-            it('should defeat another friendly unit and draw a card.', function () {
-                contextRef.setupTest({
+            it('should defeat another friendly unit and draw a card.', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['morgan-elsbeth#keeper-of-many-secrets', 'atst', 'wampa'],

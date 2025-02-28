@@ -2,8 +2,8 @@ describe('Choose Sides', function() {
     integration(function(contextRef) {
         describe('Choose Sides\'s event ability', function() {
             describe('when there are no enemy non-leader units in play', function() {
-                beforeEach(function() {
-                    contextRef.setupTest({
+                beforeEach(async function() {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['choose-sides'],
@@ -27,8 +27,8 @@ describe('Choose Sides', function() {
             });
 
             describe('when there are no friendly non-leader units in play', function() {
-                beforeEach(function() {
-                    contextRef.setupTest({
+                beforeEach(async function() {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['choose-sides'],
@@ -52,8 +52,8 @@ describe('Choose Sides', function() {
             });
 
             describe('when there are friendly and enemy non-leader units in play', function() {
-                beforeEach(function() {
-                    contextRef.setupTest({
+                beforeEach(async function() {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['choose-sides'],

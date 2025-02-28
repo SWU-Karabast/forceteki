@@ -15,7 +15,7 @@ export default class _4LOMBountyHunterForHire extends NonLeaderUnitCard {
             title: 'Each friendly unit named Zuckuss gets +1/+1 and gains Ambush',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
-            matchTarget: (card, context) => card.controller === context.source.controller && card.title === 'Zuckuss',
+            matchTarget: (card, context) => card.controller === context.player && card.title === 'Zuckuss',
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 }),
                 AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush),
@@ -23,5 +23,3 @@ export default class _4LOMBountyHunterForHire extends NonLeaderUnitCard {
         });
     }
 }
-
-_4LOMBountyHunterForHire.implemented = true;

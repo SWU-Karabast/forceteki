@@ -19,5 +19,3 @@ export default class JesseHardFightingPatriot extends NonLeaderUnitCard {
         });
     }
 }
-
-JesseHardFightingPatriot.implemented = true;

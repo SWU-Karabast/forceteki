@@ -22,5 +22,3 @@ export default class SpecForceSoldier extends NonLeaderUnitCard {
         });
     }
 }
-
-SpecForceSoldier.implemented = true;

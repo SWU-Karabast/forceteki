@@ -22,5 +22,3 @@ export default class GentleGiant extends NonLeaderUnitCard {
         });
     }
 }
-
-GentleGiant.implemented = true;

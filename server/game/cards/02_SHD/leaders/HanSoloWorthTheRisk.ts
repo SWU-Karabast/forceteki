@@ -52,5 +52,3 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
         });
     }
 }
-
-HanSoloWorthTheRisk.implemented = true;

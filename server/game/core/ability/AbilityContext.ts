@@ -6,12 +6,15 @@ import type Game from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type Player from '../Player';
 import type { Card } from '../card/Card';
+import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
+import type { IOngoingEffectProps } from '../../Interfaces';
 
 export interface IAbilityContextProperties {
     game: Game;
     source?: any;
     player?: Player;
     ability?: PlayerOrCardAbility;
+    ongoingEffect?: IOngoingEffectProps;
     costs?: any;
     costAspects?: Aspect[];
     targets?: any;
@@ -21,6 +24,7 @@ export interface IAbilityContextProperties {
     stage?: Stage;
     targetAbility?: any;
     playType?: PlayType;
+    selectedPromptCards?: Card[];
 }
 
 /**
@@ -32,7 +36,8 @@ export class AbilityContext<TSource extends Card = Card> {
     public game: Game;
     public source: TSource;
     public player: Player;
-    public ability: PlayerOrCardAbility;
+    public ability?: PlayerOrCardAbility;
+    public ongoingEffect?: IOngoingEffectProps;
     public costs: any;
     public costAspects: Aspect[];
     public targets: any;
@@ -47,23 +52,30 @@ export class AbilityContext<TSource extends Card = Card> {
     public gameActionsResolutionChain: GameSystem[] = [];
     public playType?: PlayType;
     public cardStateWhenInitiated: any = null;
+    public selectedPromptCards: Card[] = [];
 
     public constructor(properties: IAbilityContextProperties) {
         this.game = properties.game;
         this.source = properties.source || new OngoingEffectSource(this.game);
         this.player = properties.player;
-        this.ability = properties.ability || null;
+        this.ability = properties.ability;
         this.costs = properties.costs || {};
         this.costAspects = properties.costAspects || [];
+        this.ongoingEffect = properties.ongoingEffect;
         this.targets = properties.targets || {};
         this.selects = properties.selects || {};
         this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
+        this.selectedPromptCards = properties.selectedPromptCards || [];
         // const zone = this.player && this.player.playableZones.find(zone => zone.contains(this.source));
 
         this.playType = this.ability?.isPlayCardAbility()
             ? properties.playType ?? (this.player && this.player.findPlayType(this.source))
             : null;
+    }
+
+    public isTriggered(): this is TriggeredAbilityContext<TSource> {
+        return false;
     }
 
     public copy(newProps: Partial<IAbilityContextProperties> = {}): AbilityContext<TSource> {
@@ -88,6 +100,7 @@ export class AbilityContext<TSource extends Card = Card> {
             source: this.source,
             player: this.player,
             ability: this.ability,
+            ongoingEffect: this.ongoingEffect,
             costs: Object.assign({}, this.costs),
             costAspects: this.costAspects,
             targets: Object.assign({}, this.targets),
@@ -95,7 +108,8 @@ export class AbilityContext<TSource extends Card = Card> {
             events: this.events,
             stage: this.stage,
             targetAbility: this.targetAbility,
-            playType: this.playType
+            playType: this.playType,
+            selectedPromptCards: this.selectedPromptCards,
         };
     }
 }

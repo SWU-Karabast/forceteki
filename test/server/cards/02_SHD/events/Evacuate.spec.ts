@@ -1,8 +1,8 @@
 describe('Evacuate', function() {
     integration(function(contextRef) {
         describe('Evacuate\'s ability', function() {
-            it('should return all unit cards to hand and discard upgrades and ignore deployed leaders', function () {
-                contextRef.setupTest({
+            it('should return all unit cards to hand and discard upgrades and ignore deployed leaders', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['evacuate'],

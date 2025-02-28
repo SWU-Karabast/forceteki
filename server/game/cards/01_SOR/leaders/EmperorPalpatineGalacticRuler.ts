@@ -27,7 +27,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 })
                 }),
-                AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller }))
+                AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
             ])
         });
     }
@@ -40,7 +40,7 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
             },
             targetResolver: {
                 cardCondition: (card) => card.isNonLeaderUnit() && card.damage > 0,
-                immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({ newController: context.source.controller }))
+                immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({ newController: context.player }))
             }
         });
 
@@ -60,11 +60,9 @@ export default class EmperorPalpatineGalacticRuler extends LeaderUnitCard {
                         cardTypeFilter: WildcardCardType.Unit,
                         innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 })
                     }),
-                    AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller }))
+                    AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
                 ])
             }
         });
     }
 }
-
-EmperorPalpatineGalacticRuler.implemented = true;

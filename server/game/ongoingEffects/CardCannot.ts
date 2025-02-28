@@ -5,7 +5,7 @@ import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder
 import { Restriction } from '../core/ongoingEffect/effectImpl/Restriction';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 
-type CardCannotProperties =
+type ICardCannotProperties =
   | string
   | {
       cannot: string;
@@ -14,7 +14,7 @@ type CardCannotProperties =
       source?: Card;
   };
 
-export function cardCannot(properties: CardCannotProperties) {
+export function cardCannot(properties: ICardCannotProperties) {
     return OngoingEffectBuilder.card.static(
         EffectName.AbilityRestrictions,
         new Restriction(

@@ -1,7 +1,7 @@
 describe('Petranaki Arena', function () {
     integration(function (contextRef) {
-        it('Petranaki Arena\'s ability should give +1/+0 to leader unit you control', function () {
-            contextRef.setupTest({
+        it('Petranaki Arena\'s ability should give +1/+0 to leader unit you control', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine'],

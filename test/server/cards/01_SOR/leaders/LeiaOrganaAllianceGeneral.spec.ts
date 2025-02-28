@@ -2,7 +2,7 @@ describe('Leia Organa, Alliance General', function() {
     integration(function(contextRef) {
         describe('Leia\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist', 'atst', 'battlefield-marine', 'fleet-lieutenant', { card: 'rebel-pathfinder', exhausted: true }],
@@ -60,7 +60,7 @@ describe('Leia Organa, Alliance General', function() {
                 expect(context.player1).toBeActivePlayer();
                 expect(context.player1).toBeAbleToSelectExactly([context.sabineWren, context.fleetLieutenant, context.allianceXwing]);
                 expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickPrompt('Pass ability');
+                context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.leiaOrgana.exhausted).toBe(true);
@@ -119,7 +119,7 @@ describe('Leia Organa, Alliance General', function() {
 
         describe('Leia\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', { card: 'rebel-pathfinder', exhausted: true }],
@@ -147,7 +147,7 @@ describe('Leia Organa, Alliance General', function() {
 
         describe('Leia\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'fleet-lieutenant', { card: 'battlefield-marine', exhausted: true }],

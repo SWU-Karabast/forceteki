@@ -41,5 +41,3 @@ export default class CaughtInTheCrossfire extends EventCard {
         });
     }
 }
-
-CaughtInTheCrossfire.implemented = true;

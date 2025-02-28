@@ -25,7 +25,7 @@ export default class PreVizslaPursuingTheThrone extends LeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: this.cardsDrawnThisPhaseWatcher.drawnCardsAmount(context.source.controller)
+                    amount: this.cardsDrawnThisPhaseWatcher.drawnCardsAmount(context.player)
                 }))
             }
         });
@@ -34,16 +34,14 @@ export default class PreVizslaPursuingTheThrone extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities() {
         this.addConstantAbility({
             title: 'While you have 3 or more cards in your hand, this unit gains Saboteur',
-            condition: (context) => context.source.controller.hand.length >= 3,
+            condition: (context) => context.player.hand.length >= 3,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur)
         });
 
         this.addConstantAbility({
             title: 'While you have 6 or more cards in your hand, this unit gets +2/+0',
-            condition: (context) => context.source.controller.hand.length >= 6,
+            condition: (context) => context.player.hand.length >= 6,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
         });
     }
 }
-
-PreVizslaPursuingTheThrone.implemented = true;

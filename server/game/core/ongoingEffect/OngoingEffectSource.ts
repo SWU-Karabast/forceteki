@@ -43,6 +43,15 @@ export class OngoingEffectSource extends GameObject {
     }
 
     /**
+     * Applies an effect which lasts while the source card of the effect is in play.
+     */
+    public whileSourceInPlay(propertyFactory) {
+        const properties = propertyFactory();
+        this.addEffectToEngine(Object.assign({ duration: Duration.WhileSourceInPlay, zoneFilter: WildcardZoneName.Any }, properties));
+    }
+
+
+    /**
      * Applies a 'lasting effect' (SWU 7.7.3) which lasts until an event contained in the `until` property for the effect has occurred.
      */
     public lastingEffect(propertyFactory) {

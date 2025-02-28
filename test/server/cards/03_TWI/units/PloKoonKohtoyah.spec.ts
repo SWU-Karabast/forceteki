@@ -1,8 +1,8 @@
 describe('Plo Koon Kohtoyah', function () {
     integration(function (contextRef) {
         describe('Plo Koon Kohtoyah\'s ability', function () {
-            it('should ambush attack for 6 and defend for 3', function () {
-                contextRef.setupTest({
+            it('should ambush attack for 6 and defend for 3', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['plo-koon#kohtoyah'],
@@ -30,8 +30,8 @@ describe('Plo Koon Kohtoyah', function () {
                 expect(context.wampa.damage).toBe(3);
             });
 
-            it('should not active coordinate', function () {
-                contextRef.setupTest({
+            it('should not active coordinate', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['plo-koon#kohtoyah'],

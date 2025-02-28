@@ -28,7 +28,7 @@ export default class Shield extends TokenUpgradeCard {
         this.addReplacementEffectAbility({
             title: 'Defeat shield to prevent attached unit from taking damage',
             when: {
-                onDamageDealt: (event, context) => event.card === context.source.parentCard
+                onDamageDealt: (event, context) => event.card === context.source.parentCard && !event.isIndirect,
             },
             replaceWith: {
                 target: this,
@@ -39,5 +39,3 @@ export default class Shield extends TokenUpgradeCard {
         });
     }
 }
-
-Shield.implemented = true;

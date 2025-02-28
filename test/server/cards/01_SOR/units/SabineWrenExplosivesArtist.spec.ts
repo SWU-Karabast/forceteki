@@ -2,7 +2,7 @@ describe('Sabine Wren, Explosives Artist', function() {
     integration(function(contextRef) {
         describe('Sabine', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist', 'battlefield-marine'],
@@ -57,7 +57,7 @@ describe('Sabine Wren, Explosives Artist', function() {
 
         describe('Sabine\'s active ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist', 'battlefield-marine'],

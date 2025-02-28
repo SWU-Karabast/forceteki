@@ -38,5 +38,3 @@ export default class IG88RuthlessBountyHunter extends LeaderUnitCard {
         });
     }
 }
-
-IG88RuthlessBountyHunter.implemented = true;

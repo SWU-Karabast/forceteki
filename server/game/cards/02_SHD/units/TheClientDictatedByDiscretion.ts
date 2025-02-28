@@ -32,5 +32,3 @@ export default class TheClientDictatedByDiscretion extends NonLeaderUnitCard {
         });
     }
 }
-
-TheClientDictatedByDiscretion.implemented = true;

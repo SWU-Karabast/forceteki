@@ -22,5 +22,3 @@ export default class GrandMoffTarkinDeathStarOverseer extends NonLeaderUnitCard 
         });
     }
 }
-
-GrandMoffTarkinDeathStarOverseer.implemented = true;

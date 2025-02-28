@@ -25,5 +25,3 @@ export default class FreetownBackup extends NonLeaderUnitCard {
         });
     }
 }
-
-FreetownBackup.implemented = true;

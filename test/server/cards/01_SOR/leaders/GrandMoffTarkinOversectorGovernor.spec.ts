@@ -2,7 +2,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
     integration(function(contextRef) {
         describe('Tarkin\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'battlefield-marine'],
@@ -32,7 +32,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
 
         describe('Tarkin\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -59,7 +59,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
 
         describe('Tarkin\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'battlefield-marine'],
@@ -79,7 +79,7 @@ describe('Grand Moff Tarkin, Oversector Governor', function() {
                 context.player1.clickCard(context.grandMoffTarkin);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePrompt('Give an experience token to another Imperial unit');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter]);
                 context.player1.clickCard(context.tielnFighter);

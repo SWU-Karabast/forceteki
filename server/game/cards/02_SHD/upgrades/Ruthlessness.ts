@@ -20,10 +20,8 @@ export default class Ruthlessness extends UpgradeCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 2,
-                target: context.source.controller.opponent.base
+                target: context.player.opponent.base
             }))
         });
     }
 }
-
-Ruthlessness.implemented = true;

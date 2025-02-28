@@ -1,7 +1,7 @@
 describe('Nameless Valor', function() {
     integration(function(contextRef) {
-        it('should only attach to token unit and give it Overwhelm', function() {
-            contextRef.setupTest({
+        it('should only attach to token unit and give it Overwhelm', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: [{ card: 'battlefield-marine', damage: 1 }, 'battle-droid'],

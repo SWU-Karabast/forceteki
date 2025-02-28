@@ -27,5 +27,3 @@ export default class HotshotDL44Blaster extends UpgradeCard {
         });
     }
 }
-
-HotshotDL44Blaster.implemented = true;

@@ -1,20 +1,42 @@
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
-import TriggeredAbility from '../../ability/TriggeredAbility';
+import type TriggeredAbility from '../../ability/TriggeredAbility';
 import type { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
-import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
-import type { Card } from '../Card';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
+import type { ICardWithCostProperty } from '../propertyMixins/Cost';
+import { WithCost } from '../propertyMixins/Cost';
+import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
+import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
+
+const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
+
+export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithTriggeredAbilities {
+    get disableOngoingEffectsForDefeat(): boolean;
+    get inPlayId(): number;
+    get mostRecentInPlayId(): number;
+    get pendingDefeat(): boolean;
+    isInPlay(): boolean;
+    addGainedActionAbility(properties: IActionAbilityProps): string;
+    removeGainedActionAbility(removeAbilityUuid: string): void;
+    addGainedConstantAbility(properties: IConstantAbilityProps): string;
+    removeGainedConstantAbility(removeAbilityUuid: string): void;
+    addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string;
+    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string;
+    removeGainedTriggeredAbility(removeAbilityUuid: string): void;
+    removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
+    registerPendingUniqueDefeat();
+    checkUnique();
+}
 
 /**
  * Subclass of {@link Card} (via {@link PlayableOrDeployableCard}) that adds properties for cards that
@@ -25,13 +47,12 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 2. Defeat state management
  * 3. Uniqueness management
  */
-export class InPlayCard extends PlayableOrDeployableCard {
+export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     protected _disableOngoingEffectsForDefeat?: boolean = null;
     protected _mostRecentInPlayId = -1;
     protected _pendingDefeat?: boolean = null;
-    protected triggeredAbilities: TriggeredAbility[] = [];
+    // protected triggeredAbilities: TriggeredAbility[] = [];
 
-    private movedFromZone?: ZoneName = null;
 
     /**
      * If true, then this card's ongoing effects are disabled in preparation for it to be defeated (usually due to unique rule).
@@ -40,7 +61,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
      * Can only be true if pendingDefeat is also true.
      */
     public get disableOngoingEffectsForDefeat() {
-        this.assertPropertyEnabled(this._disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
+        this.assertPropertyEnabledForZone(this._disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
         return this._disableOngoingEffectsForDefeat;
     }
 
@@ -50,7 +71,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
      * If the card is no longer in play, this property is not available and {@link mostRecentInPlayId} should be used instead.
      */
     public get inPlayId() {
-        this.assertPropertyEnabledBoolean(EnumHelpers.isArena(this.zoneName), 'inPlayId');
+        this.assertPropertyEnabledForZoneBoolean(EnumHelpers.isArena(this.zoneName), 'inPlayId');
         return this._mostRecentInPlayId;
     }
 
@@ -59,7 +80,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
      * This is used to determine e.g. if a card in the discard pile was defeated this phase.
      */
     public get mostRecentInPlayId() {
-        this.assertPropertyEnabledBoolean(
+        this.assertPropertyEnabledForZoneBoolean(
             !EnumHelpers.isArena(this.zoneName) && this.zone.hiddenForPlayers == null,
             'mostRecentInPlayId'
         );
@@ -74,7 +95,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
      * When this is true, most systems cannot target the card.
      */
     public get pendingDefeat() {
-        this.assertPropertyEnabled(this._pendingDefeat, 'pendingDefeat');
+        this.assertPropertyEnabledForZone(this._pendingDefeat, 'pendingDefeat');
         return this._pendingDefeat;
     }
 
@@ -89,7 +110,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return EnumHelpers.isArena(this.zoneName);
     }
 
-    public override canBeInPlay(): this is InPlayCard {
+    public override canBeInPlay(): this is IInPlayCard {
         return true;
     }
 
@@ -98,79 +119,40 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this._disableOngoingEffectsForDefeat = enabledStatus ? false : null;
     }
 
-    // ********************************************** ABILITY GETTERS **********************************************
-    /**
-     * `SWU 7.6.1`: Triggered abilities have bold text indicating their triggering condition, starting with the word
-     * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”
-     * “When Defeated,” and “On Attack” abilities
-     */
-    public getTriggeredAbilities(): TriggeredAbility[] {
-        return this.triggeredAbilities;
-    }
-
-    public override canRegisterConstantAbilities(): this is InPlayCard {
-        return true;
-    }
-
-    public override canRegisterTriggeredAbilities(): this is InPlayCard {
-        return true;
-    }
-
 
     // ********************************************* ABILITY SETUP *********************************************
-    protected addActionAbility(properties: IActionAbilityProps<this>) {
-        this.actionAbilities.push(this.createActionAbility(properties));
-    }
-
-    protected addConstantAbility(properties: IConstantAbilityProps<this>): void {
-        const ability = this.createConstantAbility(properties);
+    protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
+        const ability = super.addConstantAbility(properties);
         // This check is necessary to make sure on-play cost-reduction effects are registered
         if (ability.sourceZoneFilter === WildcardZoneName.Any) {
             ability.registeredEffects = this.addEffectToEngine(ability);
         }
-        this.constantAbilities.push(ability);
+        return ability;
     }
 
-    protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): void {
-        // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
-        this.triggeredAbilities.push(this.createReplacementEffectAbility(properties));
-    }
-
-    protected addTriggeredAbility(properties: ITriggeredAbilityProps<this>): void {
-        this.triggeredAbilities.push(this.createTriggeredAbility(properties));
-    }
-
-    protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>): void {
+    protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
         const triggeredProperties = Object.assign(properties, { when: { onCardPlayed: (event, context) => event.card === context.source } });
-        this.addTriggeredAbility(triggeredProperties);
+        return this.addTriggeredAbility(triggeredProperties);
     }
 
-    protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): void {
+    protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
         const triggeredProperties = Object.assign(properties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
-        this.addTriggeredAbility(triggeredProperties);
-    }
-
-    public createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
-        return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
-    }
-
-    public createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
-        return new TriggeredAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('triggered'), properties));
+        return this.addTriggeredAbility(triggeredProperties);
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
-    protected addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>): void {
-        this.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
+    protected addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>): IConstantAbilityProps<this> {
+        return this.addConstantAbility(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
     }
 
     /** Add a constant ability on the card that ignores all aspect penalties under the given condition */
-    protected addIgnoreAllAspectPenaltiesAbility(properties: IIgnoreAllAspectPenaltiesProps<this>): void {
-        this.addConstantAbility(this.createConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties)));
+    protected addIgnoreAllAspectPenaltiesAbility(properties: IIgnoreAllAspectPenaltiesProps<this>): IConstantAbilityProps<this> {
+        return this.addConstantAbility(this.createConstantAbility(this.generateIgnoreAllAspectPenaltiesAbilityProps(properties)));
     }
 
     /** Add a constant ability on the card that ignores specific aspect penalties under the given condition */
-    protected addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreSpecificAspectPenaltyProps<this>): void {
-        this.addConstantAbility(this.createConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties)));
+    protected addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreSpecificAspectPenaltyProps<this>): IConstantAbilityProps<this> {
+        return this.addConstantAbility(this.createConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties)));
     }
 
     // ******************************************** ABILITY STATE MANAGEMENT ********************************************
@@ -250,6 +232,19 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return addedAbility.uuid;
     }
 
+    /**
+     * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+     *
+     * @returns The uuid of the created triggered ability
+     */
+    public addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string {
+        const addedAbility = this.createReplacementEffectAbility(properties);
+        this.triggeredAbilities.push(addedAbility);
+        addedAbility.registerEvents();
+
+        return addedAbility.uuid;
+    }
+
     /** Removes a dynamically gained triggered ability and unregisters its effects */
     public removeGainedTriggeredAbility(removeAbilityUuid: string): void {
         let abilityToRemove: TriggeredAbility = null;
@@ -275,15 +270,10 @@ export class InPlayCard extends PlayableOrDeployableCard {
         abilityToRemove.unregisterEvents();
     }
 
-    public override resolveAbilitiesForNewZone() {
-        // TODO: do we need to consider a case where a card is moved from one arena to another,
-        // where we maybe wouldn't reset events / effects / limits?
-        this.updateTriggeredAbilityEvents(this.movedFromZone, this.zoneName);
-        this.updateConstantAbilityEffects(this.movedFromZone, this.zoneName);
-        this.updateKeywordAbilityEffects(this.movedFromZone, this.zoneName);
-
-        this.movedFromZone = null;
+    public removeGainedReplacementEffectAbility(removeAbilityUuid: string): void {
+        this.removeGainedTriggeredAbility(removeAbilityUuid);
     }
+
 
     public override registerMove(movedFromZone: ZoneName): void {
         super.registerMove(movedFromZone);
@@ -303,54 +293,14 @@ export class InPlayCard extends PlayableOrDeployableCard {
             }
         } else {
             this.setPendingDefeatEnabled(false);
-        }
-    }
 
-    /** Register / un-register the event triggers for any triggered abilities */
-    private updateTriggeredAbilityEvents(from: ZoneName, to: ZoneName, reset: boolean = true) {
-        if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
-            this.resetLimits();
-        }
-
-        for (const triggeredAbility of this.triggeredAbilities) {
-            if (EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && !EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
-                triggeredAbility.registerEvents();
-            } else if (!EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
-                triggeredAbility.unregisterEvents();
+            // if we're moving from a visible zone (discard, capture) to a hidden zone, increment the in-play id to represent the loss of information (card becomes a new copy)
+            if (EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self) && !EnumHelpers.isHiddenFromOpponent(prevZone, RelativePlayer.Self)) {
+                this._mostRecentInPlayId += 1;
             }
         }
     }
 
-    /** Register / un-register the effect registrations for any constant abilities */
-    private updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
-        // removing any lasting effects from ourself
-        if (EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
-            this.removeLastingEffects();
-        }
-
-        // check to register / unregister any effects that we are the source of
-        for (const constantAbility of this.constantAbilities) {
-            if (constantAbility.sourceZoneFilter === WildcardZoneName.Any) {
-                continue;
-            }
-            if (
-                !EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
-                EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
-            ) {
-                constantAbility.registeredEffects = this.addEffectToEngine(constantAbility);
-            } else if (
-                EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
-                !EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
-            ) {
-                this.removeEffectFromEngine(constantAbility.registeredEffects);
-                constantAbility.registeredEffects = [];
-            }
-        }
-    }
-
-    /** Register / un-register the effects for any abilities from keywords */
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected updateKeywordAbilityEffects(from: ZoneName, to: ZoneName) { }
 
     protected override resetLimits() {
         super.resetLimits();
@@ -389,11 +339,12 @@ export class InPlayCard extends PlayableOrDeployableCard {
         const chooseDuplicateToDefeatPromptProperties = {
             activePromptTitle: `Choose which copy of ${unitDisplayName} to defeat`,
             waitingPromptTitle: `Waiting for opponent to choose which copy of ${unitDisplayName} to defeat`,
+            source: 'Unique rule',
             zoneFilter: WildcardZoneName.AnyArena,
             controller: RelativePlayer.Self,
             cardCondition: (card: InPlayCard) =>
                 card.unique && card.title === this.title && card.subtitle === this.subtitle && !card.pendingDefeat,
-            onSelect: (player, card) => this.resolveUniqueDefeat(card)
+            onSelect: (card) => this.resolveUniqueDefeat(card)
         };
         this.game.promptForSelect(this.controller, chooseDuplicateToDefeatPromptProperties);
     }

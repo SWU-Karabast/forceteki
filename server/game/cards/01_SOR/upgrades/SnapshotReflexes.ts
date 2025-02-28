@@ -19,5 +19,3 @@ export default class SnapshotReflexes extends UpgradeCard {
         });
     }
 }
-
-SnapshotReflexes.implemented = true;

@@ -1,8 +1,8 @@
 describe('Rich Reward', function() {
     integration(function(contextRef) {
         describe('Rich Reward\'s Bounty ability', function() {
-            it('should give Experience token up to two units', function () {
-                contextRef.setupTest({
+            it('should give Experience token up to two units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -24,7 +24,7 @@ describe('Rich Reward', function() {
 
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.atst, context.yoda, context.concordDawnInterceptors]);
                 expect(context.player2).toHavePassAbilityButton();
-                expect(context.player2).toHavePrompt('Select 2 cards');
+                expect(context.player2).toHavePrompt('Collect Bounty: Give an Experience token to each of up to 2 units');
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.concordDawnInterceptors);
@@ -36,8 +36,8 @@ describe('Rich Reward', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should give Experience token to one unit', function () {
-                contextRef.setupTest({
+            it('should give Experience token to one unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -56,7 +56,7 @@ describe('Rich Reward', function() {
 
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.atst, context.yoda, context.concordDawnInterceptors]);
                 expect(context.player2).toHavePassAbilityButton();
-                expect(context.player2).toHavePrompt('Select 2 cards');
+                expect(context.player2).toHavePrompt('Collect Bounty: Give an Experience token to each of up to 2 units');
 
                 context.player2.clickCard(context.yoda);
                 context.player2.clickPrompt('Done');
@@ -65,8 +65,8 @@ describe('Rich Reward', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should automatically pass if there is no other units', function () {
-                contextRef.setupTest({
+            it('should automatically pass if there is no other units', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine']

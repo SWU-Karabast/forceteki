@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardZoneName } from '../../../core/Constants';
 
 export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,9 +14,8 @@ export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
             title: 'If you control Boba Fett or Jango Fett (as a leader or unit), ready this unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
-                    context.source.controller.leader.title === 'Boba Fett' ||
-                    context.source.controller.leader.title === 'Jango Fett' ||
-                    context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.title === 'Boba Fett' || card.title === 'Jango Fett').length > 0,
+                    context.player.controlsLeaderOrUnitWithTitle('Boba Fett') ||
+                    context.player.controlsLeaderOrUnitWithTitle('Jango Fett'),
                 onTrue: AbilityHelper.immediateEffects.ready((context) => ({ target: context.source })),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
@@ -33,5 +31,3 @@ export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
         });
     }
 }
-
-FettsFiresprayPursuingTheBounty.implemented = true;

@@ -16,7 +16,7 @@ export default class LadyProximaWhiteWormMatriarch extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) =>
                     event.card.hasSomeTrait(Trait.Underworld) &&
-                    event.card.controller === context.source.controller &&
+                    event.card.controller === context.player &&
                     event.card !== context.source
             },
             optional: true,
@@ -27,5 +27,3 @@ export default class LadyProximaWhiteWormMatriarch extends NonLeaderUnitCard {
         });
     }
 }
-
-LadyProximaWhiteWormMatriarch.implemented = true;

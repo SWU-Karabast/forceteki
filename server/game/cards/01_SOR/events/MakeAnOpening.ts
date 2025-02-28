@@ -20,10 +20,8 @@ export default class MakeAnOpening extends EventCard {
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 }),
                     }),
                 }),
-                AbilityHelper.immediateEffects.heal((context) => ({ amount: 2, target: context.source.controller.base }))
+                AbilityHelper.immediateEffects.heal((context) => ({ amount: 2, target: context.player.base }))
             ])
         });
     }
 }
-
-MakeAnOpening.implemented = true;

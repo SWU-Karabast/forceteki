@@ -2,7 +2,7 @@ describe('Boba Fett, Daimyo', function () {
     integration(function (contextRef) {
         describe('Boba Fett\'s leader ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['green-squadron-awing', 'cantina-braggart'],
@@ -72,7 +72,7 @@ describe('Boba Fett, Daimyo', function () {
 
         describe('Boba Fett\'s leader ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['alliance-xwing'],
@@ -106,7 +106,7 @@ describe('Boba Fett, Daimyo', function () {
 
         describe('Boba Fett\'s leader ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['hunting-nexu'],
@@ -133,7 +133,7 @@ describe('Boba Fett, Daimyo', function () {
 
         describe('Boba Fett\'s leader unit ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['red-three#unstoppable', 'green-squadron-awing'],

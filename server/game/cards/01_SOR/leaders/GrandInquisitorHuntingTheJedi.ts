@@ -42,5 +42,3 @@ export default class GrandInquisitorHuntingTheJedi extends LeaderUnitCard {
         });
     }
 }
-
-GrandInquisitorHuntingTheJedi.implemented = true;

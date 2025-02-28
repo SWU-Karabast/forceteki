@@ -2,7 +2,7 @@ describe('Jedha Agitator', function() {
     integration(function(contextRef) {
         describe('Jedha Agitator\'s on attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['jedha-agitator'],
@@ -27,7 +27,7 @@ describe('Jedha Agitator', function() {
 
         describe('Jedha Agitator\'s on attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['jedha-agitator', 'battlefield-marine'],
@@ -87,7 +87,7 @@ describe('Jedha Agitator', function() {
 
         describe('Jedha Agitator\'s on attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['jedha-agitator', 'battlefield-marine'],

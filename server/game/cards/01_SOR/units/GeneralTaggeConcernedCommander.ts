@@ -22,5 +22,3 @@ export default class GeneralTaggeConcernedCommander extends NonLeaderUnitCard {
         });
     }
 }
-
-GeneralTaggeConcernedCommander.implemented = true;

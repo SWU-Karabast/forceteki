@@ -3,13 +3,15 @@ const childProcess = require('child_process');
 
 const envPath = '.env';
 
-async function createEnvFile() {
+function createEnvFile() {
     const defaultEnvFields = {
         GAME_NODE_HOST: 'localhost',
         GAME_NODE_NAME: 'test1',
         GAME_NODE_SOCKET_IO_PORT: '9500',
         ENVIRONMENT: 'development',
-        SECRET: 'verysecret'
+        SECRET: 'verysecret',
+        // set this to "true" to force the local client to pull card data jsons from AWS instead of local folder
+        FORCE_REMOTE_CARD_DATA: 'false',
     };
     return fs.writeFile(
         envPath,

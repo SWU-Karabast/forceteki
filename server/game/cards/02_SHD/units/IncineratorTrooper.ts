@@ -16,5 +16,3 @@ export default class IncineratorTrooper extends NonLeaderUnitCard {
         });
     }
 }
-
-IncineratorTrooper.implemented = true;

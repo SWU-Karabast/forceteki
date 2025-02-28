@@ -22,5 +22,3 @@ export default class MaceWinduPartyCrasher extends NonLeaderUnitCard {
         });
     }
 }
-
-MaceWinduPartyCrasher.implemented = true;

@@ -5,13 +5,15 @@ import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import type { IPlayCardActionProperties, IPlayCardActionPropertiesBase, ISmuggleCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
 import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
-import type { Aspect, MoveZoneDestination } from '../../Constants';
-import { CardType, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
+import type { Aspect } from '../../Constants';
+import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
 import { CostAdjustType } from '../../cost/CostAdjuster';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
+import * as Helpers from '../../utils/Helpers';
 import { Card } from '../Card';
+import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
@@ -34,21 +36,37 @@ export interface IIgnoreSpecificAspectPenaltyProps<TSource extends Card = Card> 
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
 
+export interface ICardWithExhaustProperty extends Card {
+    get exhausted(): boolean;
+    set exhausted(value: boolean);
+    exhaust();
+    ready();
+}
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IPlayableOrDeployableCard extends ICardWithExhaustProperty {}
+
+export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostProperty {
+    getPlayCardActions(propertyOverrides?: IPlayCardActionOverrides): PlayCardAction[];
+    getPlayCardFromOutOfPlayActions(propertyOverrides?: IPlayCardActionOverrides);
+    buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
+}
+
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-export class PlayableOrDeployableCard extends Card {
+export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
     private _exhausted?: boolean = null;
 
     public get exhausted(): boolean {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         return this._exhausted;
     }
 
     public set exhausted(val: boolean) {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         this._exhausted = val;
     }
 
@@ -72,15 +90,21 @@ export class PlayableOrDeployableCard extends Card {
      * If using an ability to grant an out-of-play action, use `getPlayCardFromOutOfPlayActions` which will generate the appropriate actions.
      */
     public getPlayCardActions(propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
+        let playCardActions: PlayCardAction[] = [];
+
         if (this.zoneName === ZoneName.Hand) {
-            return this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
+            playCardActions = this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
         }
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
-            return this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
+            playCardActions = this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
         }
 
-        return [];
+        if (this.zoneName === ZoneName.Discard && this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
+            playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+        }
+
+        return playCardActions;
     }
 
     /**
@@ -99,13 +123,17 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
+        // add this card's Exploit amount onto any that come from the property overrides
+        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
+        const propertyOverridesWithExploit = Helpers.mergeNumericProperty(propertyOverrides, 'exploitValue', exploitValue);
+
         let defaultPlayAction: PlayCardAction = null;
         if (playType === PlayType.Smuggle) {
             if (this.hasSomeKeyword(KeywordName.Smuggle)) {
-                defaultPlayAction = this.buildCheapestSmuggleAction(propertyOverrides);
+                defaultPlayAction = this.buildCheapestSmuggleAction(propertyOverridesWithExploit);
             }
         } else {
-            defaultPlayAction = this.buildPlayCardAction({ ...propertyOverrides, playType });
+            defaultPlayAction = this.buildPlayCardAction({ ...propertyOverridesWithExploit, playType });
         }
 
         // if there's not a basic play action available for the requested play type, return nothing
@@ -115,19 +143,16 @@ export class PlayableOrDeployableCard extends Card {
 
         const actions: PlayCardAction[] = [defaultPlayAction];
 
-        // generate "play with exploit" action from default action
-        const exploitValue = this.getNumericKeywordSum(KeywordName.Exploit);
-        if (exploitValue) {
-            actions.push(defaultPlayAction.clone({ exploitValue }));
-        }
-
         return actions;
     }
 
     protected buildCheapestSmuggleAction(propertyOverrides: IPlayCardActionOverrides = null) {
         Contract.assertTrue(this.hasSomeKeyword(KeywordName.Smuggle));
 
-        const smuggleKeywords = this.getKeywordsWithCostValues(KeywordName.Smuggle);
+        // find all Smuggle keywords, filtering out any with additional ability costs as those will be implemented manually (e.g. First Light)
+        const smuggleKeywords = this.getKeywordsWithCostValues(KeywordName.Smuggle)
+            .filter((keyword) => !keyword.additionalSmuggleCosts);
+
         const smuggleActions = smuggleKeywords.map((smuggleKeyword) => {
             const smuggleActionProps: ISmuggleCardActionProperties = {
                 ...propertyOverrides,
@@ -148,31 +173,21 @@ export class PlayableOrDeployableCard extends Card {
     }
 
     public exhaust() {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         this._exhausted = true;
     }
 
     public ready() {
-        this.assertPropertyEnabled(this._exhausted, 'exhausted');
+        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
         this._exhausted = false;
     }
 
-    public override moveTo(targetZone: MoveZoneDestination, resetController?: boolean): void {
-        // If this card is a resource and it is ready, try to ready another resource instead
-        // and exhaust this one. This should be the desired behavior for most cases.
-        if (this.zoneName === ZoneName.Resource && !this.exhausted) {
-            this.controller.swapResourceReadyState(this);
-        }
-
-        super.moveTo(targetZone, resetController);
-    }
-
-    public override canBeExhausted(): this is PlayableOrDeployableCard {
+    public override canBeExhausted(): this is IPlayableOrDeployableCard {
         return true;
     }
 
-    public override getSummary(activePlayer: Player, hideWhenFaceup?: boolean) {
-        return { ...super.getSummary(activePlayer, hideWhenFaceup), exhausted: this._exhausted };
+    public override getSummary(activePlayer: Player) {
+        return { ...super.getSummary(activePlayer), exhausted: this._exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {
@@ -194,6 +209,7 @@ export class PlayableOrDeployableCard extends Card {
 
         return keywordValueTotal > 0 ? keywordValueTotal : null;
     }
+
 
     /**
      * The passed player takes control of this card. If `moveTo` is provided, the card will be moved to that zone under the
@@ -225,7 +241,7 @@ export class PlayableOrDeployableCard extends Card {
             // register this transition with the engine so it can do uniqueness check if needed
             this.registerMove(this.zone.name);
         } else {
-            this.moveTo(moveDestination, false);
+            this.moveTo(moveDestination);
         }
 
         // update the context of all constant abilities so they are aware of the new controller

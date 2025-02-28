@@ -1,13 +1,13 @@
-import { EventName, PhaseName } from '../../Constants';
+import { AbilityRestriction, EventName, PhaseName, WildcardZoneName, ZoneName } from '../../Constants';
 import type Game from '../../Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { VariableResourcePrompt } from '../prompts/VariableResourcePrompt';
-import type { CardWithExhaustProperty } from '../../card/CardTypes';
 import { GameEvent } from '../../event/GameEvent';
 import * as GameSystemLibrary from '../../../gameSystems/GameSystemLibrary';
 import { DrawSystem } from '../../../gameSystems/DrawSystem';
 import { TriggerHandlingMode } from '../../event/EventWindow';
+import type { ICardWithExhaustProperty } from '../../card/baseClasses/PlayableOrDeployableCard';
 
 export class RegroupPhase extends Phase {
     public constructor(game: Game) {
@@ -32,13 +32,13 @@ export class RegroupPhase extends Phase {
     }
 
     private readyAllCards() {
-        const cardsToReady: CardWithExhaustProperty[] = [];
+        const cardsToReady: ICardWithExhaustProperty[] = [];
 
         for (const player of this.game.getPlayers()) {
-            cardsToReady.push(...player.getUnitsInPlay() as CardWithExhaustProperty[]);
+            cardsToReady.push(...player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => !card.hasRestriction(AbilityRestriction.DoesNotReadyDuringRegroup)));
             cardsToReady.push(...player.resources);
 
-            if (!(player.leader.deployed)) {
+            if (player.leader.zoneName === ZoneName.Base) {
                 cardsToReady.push(player.leader);
             }
         }

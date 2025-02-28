@@ -18,5 +18,3 @@ export default class RepublicCommando extends NonLeaderUnitCard {
         });
     }
 }
-
-RepublicCommando.implemented = true;

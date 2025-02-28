@@ -14,11 +14,9 @@ export default class DisruptiveBurst extends EventCard {
             title: 'Give each enemy unit -1/-1 for this phase',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 effect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 }),
-                target: context.source.controller.opponent.getUnitsInPlay(),
+                target: context.player.opponent.getUnitsInPlay(),
             })
             ),
         });
     }
 }
-
-DisruptiveBurst.implemented = true;

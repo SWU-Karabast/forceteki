@@ -18,7 +18,7 @@ export default class TheForceIsWithMe extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.giveExperience({ amount: 2 }),
                     AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => context.source.controller.isTraitInPlay(Trait.Force),
+                        condition: (context) => context.player.isTraitInPlay(Trait.Force),
                         onTrue: AbilityHelper.immediateEffects.giveShield({ amount: 1 }),
                         onFalse: AbilityHelper.immediateEffects.noAction()
                     }),
@@ -28,5 +28,3 @@ export default class TheForceIsWithMe extends EventCard {
         });
     }
 }
-
-TheForceIsWithMe.implemented = true;

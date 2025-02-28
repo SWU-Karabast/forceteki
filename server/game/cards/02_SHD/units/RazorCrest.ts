@@ -23,5 +23,3 @@ export default class RazorCrest extends NonLeaderUnitCard {
         });
     }
 }
-
-RazorCrest.implemented = true;

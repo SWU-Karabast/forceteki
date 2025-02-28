@@ -25,5 +25,3 @@ export default class DirectorKrennicAspiringToAuthority extends LeaderUnitCard {
         this.addConstantAbility(this.buildKrennicAbilityProperties());
     }
 }
-
-DirectorKrennicAspiringToAuthority.implemented = true;

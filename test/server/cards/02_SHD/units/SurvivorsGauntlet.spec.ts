@@ -1,8 +1,8 @@
 describe('Survivors Gauntlet', function() {
     integration(function(contextRef) {
         describe('Survivors Gauntle\'s ability', function() {
-            it('should allow to attach an upgrade to another eligible unit controlled by the same player', function () {
-                contextRef.setupTest({
+            it('should allow to attach an upgrade to another eligible unit controlled by the same player', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['survivors-gauntlet'],
@@ -13,7 +13,7 @@ describe('Survivors Gauntlet', function() {
                     player2: {
                         groundArena: ['wampa', { card: 'hylobon-enforcer', upgrades: ['legal-authority', 'shield'] }],
                         spaceArena: ['cartel-spacer'],
-                        leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
+                        leader: { card: 'finn#this-is-a-rescue', deployed: true },
                     }
                 });
 
@@ -49,13 +49,19 @@ describe('Survivors Gauntlet', function() {
                 expect(context.player1).toHaveChooseNoTargetButton();
 
                 context.player1.clickCard(context.legalAuthority);
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.lukeSkywalker]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.finn]);
 
                 context.player1.clickCard(context.wampa);
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.wampa).toHaveExactUpgradeNames(['legal-authority']);
                 expect(context.hylobonEnforcer).toHaveExactUpgradeNames(['shield']);
+
+                // check that the upgrade is still controlled by the opponent
+                context.player2.clickCard(context.finn);
+                context.player2.clickCard(context.p1Base);
+                expect(context.player2).toBeAbleToSelectExactly([context.legalAuthority, context.shield]);
+                context.player2.clickPrompt('Pass');
 
                 context.moveToNextActionPhase();
 

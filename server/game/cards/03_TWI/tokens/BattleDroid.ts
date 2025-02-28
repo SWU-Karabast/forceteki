@@ -8,5 +8,3 @@ export default class BattleDroid extends TokenUnitCard {
         };
     }
 }
-
-BattleDroid.implemented = true;

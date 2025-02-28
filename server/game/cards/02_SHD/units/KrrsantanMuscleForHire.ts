@@ -15,7 +15,7 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
             title: 'Ready this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.controller.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.hasSomeKeyword(KeywordName.Bounty)).length > 0,
+                condition: (context) => context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.hasSomeKeyword(KeywordName.Bounty)).length > 0,
                 onTrue: AbilityHelper.immediateEffects.ready(),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
@@ -27,7 +27,6 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,
                 cardTypeFilter: WildcardCardType.Unit,
-                condition: (context) => context.source.damage > 0,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                     amount: context.source.damage
                 }))
@@ -35,5 +34,3 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
         });
     }
 }
-
-KrrsantanMuscleForHire.implemented = true;

@@ -18,6 +18,9 @@ export interface IPlayCardProperties extends ICardTargetSystemProperties {
     entersReady?: boolean;
     playType?: PlayType;
     adjustCost?: ICostAdjusterProperties;
+    nested?: boolean;
+    canPlayFromAnyZone?: boolean;
+    exploitValue?: number;
     // TODO: implement a "nested" property that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
 }
 
@@ -33,7 +36,9 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         ignoredRequirements: [],
         optional: false,
         entersReady: false,
-        playType: PlayType.PlayFromHand
+        playType: PlayType.PlayFromHand,
+        nested: false,
+        canPlayFromAnyZone: false,
     };
 
     public eventHandler(event, additionalProperties): void {
@@ -55,7 +60,8 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
     private resolvePlayCardAbility(ability: PlayCardAction, event: any) {
         const newContext = ability.createContext(event.player);
-        event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional));
+
+        event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional, false));
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -73,7 +79,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
-        if (!card.isTokenOrPlayable() || card.isToken()) {
+        if (!card.isPlayable()) {
             return false;
         }
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -92,7 +98,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
      * Generate a play card ability for the specified card.
      */
     private generateLegalPlayCardAbilities(card: Card, properties: IPlayCardProperties, context: TContext) {
-        Contract.assertTrue(card.isTokenOrPlayable() && !card.isToken());
+        Contract.assertTrue(card.isPlayable());
 
         const overrideProperties = this.buildPlayActionProperties(card, properties, context);
 
@@ -116,9 +122,11 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return {
             card,
             playType: properties.playType,
-            triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow,
+            triggerHandlingMode: properties.nested ? TriggerHandlingMode.ResolvesTriggers : TriggerHandlingMode.PassesTriggersToParentWindow,
             costAdjusters,
-            entersReady: properties.entersReady
+            entersReady: properties.entersReady,
+            canPlayFromAnyZone: properties.canPlayFromAnyZone,
+            exploitValue: properties.exploitValue
         };
     }
 }

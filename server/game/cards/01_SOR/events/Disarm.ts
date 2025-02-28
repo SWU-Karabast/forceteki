@@ -23,5 +23,3 @@ export default class Disarm extends EventCard {
         });
     }
 }
-
-Disarm.implemented = true;

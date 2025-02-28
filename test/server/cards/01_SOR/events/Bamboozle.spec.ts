@@ -1,7 +1,7 @@
 describe('Bamboozle', function () {
     integration(function (contextRef) {
-        it('Bamboozle should be played by discard a Cunning card, its ability should exhaust a unit and return each upgrades to owner hand', function () {
-            contextRef.setupTest({
+        it('Bamboozle should be played by discard a Cunning card, its ability should exhaust a unit and return each upgrades to owner hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['bamboozle', 'wampa', 'crafty-smuggler', 'lothal-insurgent'],
@@ -86,10 +86,22 @@ describe('Bamboozle', function () {
 
             // no resource exhausted since the last action
             expect(context.player1.exhaustedResourceCount).toBe(2);
+
+            reset();
+
+            // alternate play mode should no longer be available since no cunning card in hand
+            context.player1.clickCard(context.bamboozle);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.sawGerrera]);
+            context.player1.clickCard(context.greenSquadronAwing);
+
+            expect(context.bamboozle).toBeInZone('discard');
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p1Base.damage).toBe(2);
+            expect(context.player1.exhaustedResourceCount).toBe(4);
         });
 
-        it('Bamboozle\'s play modes should be available even if it is played by another card\'s effect', function () {
-            contextRef.setupTest({
+        it('Bamboozle\'s play modes should be available even if it is played by another card\'s effect', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['bamboozle', 'wampa', 'crafty-smuggler', 'lothal-insurgent'],
@@ -168,8 +180,8 @@ describe('Bamboozle', function () {
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });
 
-        it('Bamboozle\'s alternate play mode should not be available when smuggled', function () {
-            contextRef.setupTest({
+        it('Bamboozle\'s alternate play mode should not be available when smuggled', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['wampa', 'crafty-smuggler', 'lothal-insurgent'],

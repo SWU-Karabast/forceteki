@@ -2,7 +2,7 @@ describe('97th Legion Keeping the Peace on Sullust', function() {
     integration(function(contextRef) {
         describe('97th Legion\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['97th-legion#keeping-the-peace-on-sullust', 'wampa'],
@@ -33,7 +33,7 @@ describe('97th Legion Keeping the Peace on Sullust', function() {
 
         describe('97th Legion\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: '97th-legion#keeping-the-peace-on-sullust', damage: 5 }],
@@ -58,7 +58,6 @@ describe('97th Legion Keeping the Peace on Sullust', function() {
                 // select a resource to defeat by wreckers ability
                 expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.devotion);
 
                 // select a ground unit to deal 5 damage, 97th legion should be in discard pile already

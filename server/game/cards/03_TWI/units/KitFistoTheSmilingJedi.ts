@@ -26,5 +26,3 @@ export default class KitFistoTheSmilingJedi extends NonLeaderUnitCard {
         });
     }
 }
-
-KitFistoTheSmilingJedi.implemented = true;

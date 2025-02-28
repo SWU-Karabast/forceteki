@@ -8,5 +8,3 @@ export default class Experience extends TokenUpgradeCard {
         };
     }
 }
-
-Experience.implemented = true;

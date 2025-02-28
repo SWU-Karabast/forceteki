@@ -2,16 +2,18 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import {
     AbilityRestriction, EffectName,
     EventName,
-    KeywordName,
+    PlayType,
     RelativePlayer,
     WildcardCardType,
     ZoneName
 } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { Card } from '../core/card/Card';
+import type Player from '../core/Player';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {
-    controller?: RelativePlayer;
+    controller?: Player | RelativePlayer;
     overrideZone?: ZoneName;
     entersReady?: boolean;
 }
@@ -29,14 +31,13 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
     };
 
     public eventHandler(event, additionalProperties = {}): void {
-        event.card.moveTo(event.card.defaultArena);
-
-        // TODO TAKE CONTROL
-        if (event.controller !== RelativePlayer.Self) {
-            throw new Error(`Attempting to put ${event.card.internalName} into play for opponent, which is not implemented yet`);
+        if (event.newController && event.newController !== event.card.controller) {
+            event.card.takeControl(event.newController, event.card.defaultArena);
+        } else {
+            event.card.moveTo(event.card.defaultArena);
         }
 
-        if (event.status === 'ready') {
+        if (event.entersReady) {
             event.card.ready();
         } else {
             event.card.exhaust();
@@ -55,7 +56,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
             return false;
         } else if (!card.canBeInPlay() || card.isInPlay()) {
             return false;
-        } else if (card.zoneName === ZoneName.Resource && !card.hasSomeKeyword(KeywordName.Smuggle)) {
+        } else if (
+            card.zoneName === ZoneName.Resource &&
+            !(context.playType === PlayType.Smuggle || context.playType === PlayType.PlayFromOutOfPlay)
+        ) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;
@@ -74,7 +78,8 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.controller = controller;
         event.originalZone = overrideZone || card.zoneName;
-        event.status = entersReady || context.source.hasOngoingEffect(EffectName.EntersPlayReady) ? 'ready' : event.status;
+        event.entersReady = entersReady || card.hasOngoingEffect(EffectName.EntersPlayReady);
+        event.newController = EnumHelpers.asConcretePlayer(controller, context.player);
     }
 
     private getPutIntoPlayPlayer(context: AbilityContext, card: Card) {

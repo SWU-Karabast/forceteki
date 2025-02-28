@@ -2,7 +2,7 @@ describe('Agent Kallus, Seeking the Rebels', function() {
     integration(function(contextRef) {
         describe('Kallus\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [

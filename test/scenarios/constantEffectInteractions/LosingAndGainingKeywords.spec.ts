@@ -1,8 +1,8 @@
 describe('Losing and gaining keywords', function() {
     integration(function(contextRef) {
         describe('If a unit has a keyword given by a source, then loses that keyword due to an ability,', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['specforce-soldier', 'specforce-soldier'],

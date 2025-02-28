@@ -1,80 +1,37 @@
-const defaultWindows = {
-    dynasty: true,
-    draw: false,
-    preConflict: true,
-    conflict: true,
-    fate: false,
-    regroup: false
-};
+import type { PhaseName } from './game/core/Constants';
 
-const defaultOptionSettings = {
-    markCardsUnselectable: true,
-    cancelOwnAbilities: false,
-    orderForcedAbilities: false,
-    confirmOneClick: false,
-    disableCardStats: false,
-    showStatusInSidebar: false,
-    sortHandByName: false
+const defaultWindows = {
+    action: true,
+    regroup: true
 };
 
 const defaultSettings = {
-    disableGravatar: false,
-    windowTimer: 10,
-    background: 'BG1'
+    optionSettings: {
+        autoSingleTarget: true
+    },
 };
 
-const defaultTimerSettings = {
-    events: true,
-    eventsInDeck: false
-};
-
-interface User {
+export interface User {
     username: string;
-    email: string;
-    emailHash: string;
     id: string;
-    admin: boolean;
-    permissions: unknown;
     blockList: string[];
-    promptedActionWindows: {
-        dynasty: boolean;
-        draw: boolean;
-        preConflict: boolean;
-        conflict: boolean;
-        fate: boolean;
-        regroup: boolean;
-    };
+    promptedActionWindows: { [key in PhaseName]: boolean };
     settings: Partial<{
-        disableGravatar: boolean;
-        windowTimer: number;
-        background: string;
         optionSettings: Partial<{
-            markCardsUnselectable: boolean;
-            cancelOwnAbilities: boolean;
-            orderForcedAbilities: boolean;
-            confirmOneClick: boolean;
-            disableCardStats: boolean;
-            showStatusInSidebar: boolean;
-            sortHandByName: boolean;
-        }>;
-        timerSettings: Partial<{
-            events: boolean;
-            eventsInDeck: boolean;
+            autoSingleTarget: boolean;
         }>;
     }>;
 }
 
-export function getUserWithDefaultsSet(user?: Partial<User> & Pick<User, 'username' | 'id'>) {
+export function getUserWithDefaultsSet(user?: Partial<User> & Pick<User, 'username' | 'id'>): User | undefined {
     if (!user) {
         return undefined;
     }
 
-    user.blockList = Array.isArray(user.blockList) ? user.blockList : [];
-    user.settings = Object.assign({}, defaultSettings, user.settings);
-    user.settings.optionSettings = Object.assign({}, defaultOptionSettings, user.settings.optionSettings);
-    user.settings.timerSettings = Object.assign({}, defaultTimerSettings, user.settings.timerSettings);
-    user.permissions = Object.assign({}, user.permissions);
-    user.promptedActionWindows = Object.assign({}, defaultWindows, user.promptedActionWindows);
-
-    return user;
+    return {
+        blockList: [],
+        settings: defaultSettings,
+        promptedActionWindows: defaultWindows,
+        ...user
+    };
 }

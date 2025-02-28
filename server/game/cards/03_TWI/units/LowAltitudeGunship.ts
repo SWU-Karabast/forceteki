@@ -17,11 +17,9 @@ export default class LowAltitudeGunship extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Opponent,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: context.source.controller.getArenaUnits({ trait: Trait.Republic }).length
+                    amount: context.player.getArenaUnits({ trait: Trait.Republic }).length
                 }))
             }
         });
     }
 }
-
-LowAltitudeGunship.implemented = true;

@@ -25,7 +25,7 @@ export default class RuneHaakoSchemingSecond extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.source.controller),
+                    condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
                     onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 })
                     }),
@@ -35,5 +35,3 @@ export default class RuneHaakoSchemingSecond extends NonLeaderUnitCard {
         });
     }
 }
-
-RuneHaakoSchemingSecond.implemented = true;

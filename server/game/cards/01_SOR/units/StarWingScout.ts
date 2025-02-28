@@ -13,12 +13,11 @@ export default class StarWingScout extends NonLeaderUnitCard {
         this.addWhenDefeatedAbility({
             title: 'Draw 2 cards',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.controller.hasInitiative(),
+                // context.player is always the player resolving the ability
+                condition: (context) => context.player.hasInitiative(),
                 onTrue: AbilityHelper.immediateEffects.draw({ amount: 2 }),
                 onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }
 }
-
-StarWingScout.implemented = true;

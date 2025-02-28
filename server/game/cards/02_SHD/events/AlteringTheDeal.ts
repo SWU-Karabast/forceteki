@@ -3,6 +3,8 @@ import { EventCard } from '../../../core/card/EventCard';
 import { ZoneName } from '../../../core/Constants';
 
 export default class AlteringTheDeal extends EventCard {
+    protected override readonly overrideNotImplemented: boolean = true;
+
     protected override getImplementationId() {
         return {
             id: '6425029011',
@@ -15,11 +17,9 @@ export default class AlteringTheDeal extends EventCard {
             title: 'Discard a captured card guarded by a friendly unit',
             targetResolver: {
                 zoneFilter: ZoneName.Capture,
-                capturedByFilter: (context) => context.source.controller.getArenaUnits(),
+                capturedByFilter: (context) => context.player.getArenaUnits(),
                 immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard()
             }
         });
     }
 }
-
-AlteringTheDeal.implemented = true;

@@ -19,5 +19,3 @@ export default class ChewbaccaLoyalCompanion extends NonLeaderUnitCard {
         });
     }
 }
-
-ChewbaccaLoyalCompanion.implemented = true;

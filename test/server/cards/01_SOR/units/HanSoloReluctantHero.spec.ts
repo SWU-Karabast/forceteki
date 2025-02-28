@@ -2,7 +2,7 @@ describe('Han Solo Reluctant Hero', function() {
     integration(function(contextRef) {
         describe('Han Solo Reluctant Hero\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['han-solo#reluctant-hero'],

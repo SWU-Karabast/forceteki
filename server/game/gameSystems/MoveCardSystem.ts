@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MoveZoneDestination } from '../core/Constants';
+import { AbilityRestriction } from '../core/Constants';
 import {
     CardType,
     DeckZoneDestination,
@@ -44,14 +45,17 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     };
 
     public eventHandler(event: any, additionalProperties = {}): void {
-        // Check if the card is leaving play
-        if (EnumHelpers.isArena(event.card.zoneName) && !EnumHelpers.isArena(event.destination)) {
-            this.leavesPlayEventHandler(event.card, event.destination, event.context, () => event.card.moveTo(event.destination));
-        } else {
-            // TODO: remove this completely if determined we don't need card snapshots
-            // event.cardStateWhenMoved = card.createSnapshot();
-            const card = event.card as Card;
+        const card = event.card as Card;
+        Contract.assertTrue(card.canBeExhausted());
 
+        if (card.zoneName === ZoneName.Resource) {
+            this.leavesResourceZoneEventHandler(card, event.context);
+        }
+
+        // Check if the card is leaving play
+        if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
+            this.leavesPlayEventHandler(card, event.destination, event.context, () => card.moveTo(event.destination));
+        } else {
             card.moveTo(event.destination);
 
             // TODO: use ShuffleDeckSystem instead
@@ -103,7 +107,8 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { destination } = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
+        const { destination } = properties;
 
         if (card.isToken()) {
             Contract.assertTrue(destination !== ZoneName.Base, `${destination} is not a valid zone for a token card`);
@@ -121,15 +126,19 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
                 [ZoneName.Discard, ZoneName.Resource].includes(card.zoneName) || EnumHelpers.isArena(card.zoneName),
                 `Cannot use MoveCardSystem to return a card to hand from ${card.zoneName}`
             );
+
+            if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.ReturnToHand, context)) {
+                return false;
+            }
         }
 
         // Call the super implementation
         return super.canAffect(card, context, additionalProperties, mustChangeGameState);
     }
 
-    protected override processTargets(target: Card | Card[]) {
+    protected override processTargets(target: Card | Card[], context: TContext) {
         if (this.properties?.shuffleMovedCards && Array.isArray(target)) {
-            Helpers.shuffleArray(target);
+            Helpers.shuffleArray(target, context.game.randomGenerator);
         }
         return target;
     }

@@ -1,8 +1,8 @@
 describe('Enfys Nest, Champion of Justice', function () {
     integration(function (contextRef) {
         describe('Enfys Nest\'s ability', function () {
-            it('can return an enemy non-leader unit with less power than this unit to its owner\'s hand', function () {
-                contextRef.setupTest({
+            it('can return an enemy non-leader unit with less power than this unit to its owner\'s hand', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['enfys-nest#champion-of-justice', 'academy-training'],

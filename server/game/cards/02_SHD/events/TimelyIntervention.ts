@@ -27,5 +27,3 @@ export default class TimelyIntervention extends EventCard {
         });
     }
 }
-
-TimelyIntervention.implemented = true;

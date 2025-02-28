@@ -16,5 +16,3 @@ export default class MultitroopTransport extends NonLeaderUnitCard {
         });
     }
 }
-
-MultitroopTransport.implemented = true;

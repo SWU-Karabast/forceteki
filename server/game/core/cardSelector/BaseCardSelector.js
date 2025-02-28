@@ -22,7 +22,7 @@ class BaseCardSelector {
     }
 
     get hasAnyCardFilter() {
-        return this.cardTypeFilter || this.cardCondition || this.multiSelectCardCondition;
+        return !!this.cardTypeFilter || !!this.cardCondition || !!this.multiSelectCardCondition;
     }
 
     buildZoneFilter(property) {
@@ -159,7 +159,13 @@ class BaseCardSelector {
     }
 
     defaultActivePromptTitle(context) {
-        return this.defaultPromptString(context) + (this.appendToDefaultTitle ? ' ' + this.appendToDefaultTitle : '');
+        // TODO: figure out a better way to handle cases where we want to override the ability title.
+        // The current checks are to account for playing upgrades, exploiting, and using modal card options
+        const defaultTitle =
+            context.ability?.title && !context.ability.title.startsWith('Play') && !context.ability.title.includes('modal')
+                ? context.ability.title
+                : this.defaultPromptString(context);
+        return defaultTitle + (this.appendToDefaultTitle ? ' ' + this.appendToDefaultTitle : '');
     }
 
     defaultPromptString(context) {

@@ -2,7 +2,7 @@ describe('Padawan Star Fighter', function () {
     integration(function (contextRef) {
         describe('Padawan Star Fighter\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['padawan-starfighter'],

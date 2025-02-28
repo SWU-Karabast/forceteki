@@ -23,5 +23,3 @@ export default class ArquitensAssaultCruiser extends NonLeaderUnitCard {
         });
     }
 }
-
-ArquitensAssaultCruiser.implemented = true;

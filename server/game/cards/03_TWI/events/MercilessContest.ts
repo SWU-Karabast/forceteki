@@ -32,5 +32,3 @@ export default class MercilessContest extends EventCard {
         });
     }
 }
-
-MercilessContest.implemented = true;

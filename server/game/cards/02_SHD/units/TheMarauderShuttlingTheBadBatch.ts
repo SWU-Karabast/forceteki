@@ -18,7 +18,7 @@ export default class TheMarauderShuttlingTheBadBatch extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Discard,
                 cardCondition: (card, context) => {
-                    const unitTitles = new Set(context.source.controller.getUnitsInPlay().map((c) => c.title));
+                    const unitTitles = new Set(context.player.getUnitsInPlay().map((c) => c.title));
                     return unitTitles.has(card.title);
                 },
                 immediateEffect: AbilityHelper.immediateEffects.resourceCard()
@@ -26,5 +26,3 @@ export default class TheMarauderShuttlingTheBadBatch extends NonLeaderUnitCard {
         });
     }
 }
-
-TheMarauderShuttlingTheBadBatch.implemented = true;

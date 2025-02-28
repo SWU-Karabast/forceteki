@@ -20,5 +20,3 @@ export default class DeathMark extends UpgradeCard {
         });
     }
 }
-
-DeathMark.implemented = true;

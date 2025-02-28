@@ -1,7 +1,7 @@
 describe('Low Altitude Gunship', function () {
     integration(function (contextRef) {
-        it('Low Altitude Gunship\'s ability should deal damage to a enemy unit equal to the number of republic friendly unit', function () {
-            contextRef.setupTest({
+        it('Low Altitude Gunship\'s ability should deal damage to a enemy unit equal to the number of republic friendly unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['low-altitude-gunship'],

@@ -30,5 +30,3 @@ export default class WreckerBoom extends NonLeaderUnitCard {
         });
     }
 }
-
-WreckerBoom.implemented = true;

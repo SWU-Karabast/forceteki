@@ -20,5 +20,3 @@ export default class SecurityComplex extends BaseCard {
         });
     }
 }
-
-SecurityComplex.implemented = true;

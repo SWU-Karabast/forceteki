@@ -18,5 +18,3 @@ export default class MomentOfPeace extends EventCard {
         });
     }
 }
-
-MomentOfPeace.implemented = true;
