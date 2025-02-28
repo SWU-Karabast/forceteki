@@ -114,7 +114,7 @@ export class OngoingEffectEngine {
                     if (
                         Helpers.asArray(effect.targets).includes(card) &&
                         effect.duration !== Duration.WhileSourceInPlay &&
-                        effect.ongoingEffect.effectType !== DelayedEffectType.Player
+                        effect.ongoingEffect.delayedEffectType !== DelayedEffectType.Player
                     ) {
                         return true;
                     }

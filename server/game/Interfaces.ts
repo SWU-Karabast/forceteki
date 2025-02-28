@@ -62,7 +62,7 @@ export interface IOngoingEffectProps {
     target?: (Player | Card) | (Player | Card)[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
-    effectType?: DelayedEffectType;
+    delayedEffectType?: DelayedEffectType;
 }
 
 export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
