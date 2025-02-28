@@ -17,18 +17,19 @@ class QueueHandler {
     private queues: Map<SwuGameFormat, QueuedPlayer[]>;
 
     public constructor() {
-        // Initialize empty queues for each format
+        this.queues = new Map<SwuGameFormat, QueuedPlayer[]>();
+
         Object.values(SwuGameFormat).forEach((format) => {
             this.queues.set(format, []);
         });
     }
 
-    // Add a player to the correct queue
+
     public addPlayer(format: SwuGameFormat, player: QueuedPlayer) {
         this.queues.get(format)?.push(player);
     }
 
-    // Remove a player from all queues
+
     public removePlayer(userId: string) {
         for (const queue of this.queues.values()) {
             const index = queue.findIndex((p) => p.user.id === userId);
@@ -39,7 +40,7 @@ class QueueHandler {
         }
     }
 
-    // Check if a player is already in any queue
+
     public findPlayerInQueue(userId: string): QueuedPlayer | null {
         for (const queue of this.queues.values()) {
             const player = queue.find((p) => p.user.id === userId);
