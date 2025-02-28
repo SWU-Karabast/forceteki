@@ -4,6 +4,7 @@ import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherReg
 import type Player from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 // TODO: add a "defeatedBy: Player" field here.
 export interface DefeatedUnitEntry {
@@ -75,10 +76,9 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     }
 
     protected override setupWatcher() {
-        // on card played, add the card to the player's list of cards played this phase
         this.addUpdater({
             when: {
-                onCardDefeated: (context) => context.card.isUnit(),
+                onCardDefeated: (event) => EnumHelpers.isUnit(event.lastKnownInformation.type)
             },
             update: (currentState: IUnitsDefeatedThisPhase, event: any) =>
                 currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.card.controller, defeatedBy: event.defeatSource.player })

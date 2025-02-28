@@ -3,8 +3,6 @@ import AbilityHelper from '../../../AbilityHelper';
 import { ZoneName } from '../../../core/Constants';
 
 export default class L337DroidRevolutionary extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '9552605383',

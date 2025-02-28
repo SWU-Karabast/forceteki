@@ -191,6 +191,7 @@ export class EventWindow extends BaseStepWithPipeline {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution
             event.checkCondition();
             if (event.canResolve) {
+                this.game.emit(event.name + ':preResolve', event);
                 event.executeHandler();
                 this.game.emit(event.name, event);
 

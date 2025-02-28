@@ -320,7 +320,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param additionalProperties Any additional properties to extend the default ones with
      * @returns The default target(s) of this {@link GameSystem}
      */
-    private targets(context: TContext, additionalProperties: any = {}) {
+    protected targets(context: TContext, additionalProperties: any = {}) {
         this.validateContext(context);
 
         return Helpers.asArray(this.generatePropertiesFromContext(context, additionalProperties).target);
@@ -330,7 +330,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return `'GameSystem: ${this.name}'`;
     }
 
-    private validateContext(context: TContext) {
+    protected validateContext(context: TContext) {
         Contract.assertTrue(context instanceof AbilityContext, `context must be an AbilityContext, instead found ${context}`);
     }
 }

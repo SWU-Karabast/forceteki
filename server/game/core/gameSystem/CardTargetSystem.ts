@@ -327,11 +327,12 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         Contract.assertTrue(card.canBeInPlay());
 
 
-        if (card.isUnit()) {
+        if (card.isUnit() && !card.isAttached()) {
             return {
                 card,
                 power: card.getPower(),
                 hp: card.getHp(),
+                type: card.type,
                 arena: card.zoneName,
                 controller: card.controller,
                 damage: card.damage,
@@ -344,6 +345,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
                 card,
                 power: card.getPower(),
                 hp: card.getHp(),
+                type: card.type,
                 arena: card.zoneName,
                 controller: card.controller,
                 parentCard: card.parentCard

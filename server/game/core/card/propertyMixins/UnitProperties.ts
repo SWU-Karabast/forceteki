@@ -1,6 +1,6 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena } from '../../Constants';
-import { CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
+import { CardType, EffectName, EventName, KeywordName, StatType, Trait, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -11,7 +11,6 @@ import { WithDamage } from './Damage';
 import type { ICardWithPrintedPowerProperty } from './PrintedPower';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import type { IUpgradeCard } from '../UpgradeCard';
 import type { Card } from '../Card';
 import type { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
@@ -31,6 +30,7 @@ import { CaptureZone } from '../../zone/CaptureZone';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type Player from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
+import type { IUpgradeCard } from '../CardInterfaces';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -56,8 +56,8 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenDefeatedKeywords();
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
-    canPlayOn(card);
     unattachUpgrade(upgrade, event);
+    canAttachPilot(): boolean;
     attachUpgrade(upgrade);
     getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
 }
@@ -93,7 +93,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             });
 
             // register listeners for on-defeat keyword abilities
-            game.on(EventName.OnCardDefeated, (event) => {
+            game.on(EventName.OnCardDefeated + ':preResolve', (event) => {
                 const card = event.card as Card;
                 if (card.zoneName !== ZoneName.Resource && card.isUnit()) {
                     card.checkRegisterWhenDefeatedKeywordAbilities(event);
@@ -161,6 +161,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this.upgrades.some((card) => card.isShield());
         }
 
+        public override isUpgrade(): this is IUpgradeCard {
+            return this._parentCard !== null;
+        }
+
         // ****************************************** CONSTRUCTOR ******************************************
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
@@ -194,7 +198,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override isUnit(): this is IUnitCard {
-            return true;
+            return this._parentCard === null;
+        }
+
+        protected override getType(): CardType {
+            return this.isAttached() ? CardType.UnitUpgrade : this.printedType;
         }
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
@@ -237,8 +245,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         // ***************************************** ABILITY HELPERS *****************************************
         public override getActions() {
-            return super.getActions()
-                .concat(this.attackAction);
+            let actions = super.getActions();
+            // If this is an attached Pilot, we do not attach the Attack action
+            if (this.isUnit()) {
+                actions = actions.concat(this.attackAction);
+            }
+            return actions;
         }
 
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
@@ -646,12 +658,39 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return wrappedStatsModifiers;
         }
 
-        // *************************************** UPGRADE HELPERS ***************************************
+
+        public override checkIsAttachable(): void {
+            Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+        }
+
         /**
-         * Checks whether an attachment can be played on a given card.  Intended to be
-         * used by cards inheriting this class
+         *  This should only be called if a unit is a Pilot or has some other ability that lets it attach as an upgrade
+         * @param {Card} targetCard The card that this would be attached to
+         * @param {Player} controller The controller of this card
+         * @returns True if this is allowed to attach to the targetCard; false otherwise
          */
-        public canPlayOn(card) {
+        public override canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+            Contract.assertTrue(this.canBeUpgrade);
+            if (this.hasSomeKeyword(KeywordName.Piloting) && targetCard.isUnit()) {
+                return targetCard.canAttachPilot() && targetCard.controller === controller;
+            }
+            // TODO: Handle Phantom II and Sidon Ithano
+            return false;
+        }
+
+        /**
+         * Checks if a pilot can be attached to this unit
+         * @returns True if a Pilot can be attached to this unit; false otherwise
+         */
+        public canAttachPilot(): boolean {
+            if (!this.hasSomeTrait(Trait.Vehicle)) {
+                return false;
+            }
+
+            // TODO: we need logic for cards that override the pilot limit
+            if (this.upgrades.length > 0) {
+                return !this.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot));
+            }
             return true;
         }
 

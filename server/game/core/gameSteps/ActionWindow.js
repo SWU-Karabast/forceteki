@@ -11,9 +11,11 @@ class ActionWindow extends UiPrompt {
 
         this.title = title;
         this.windowName = windowName;
-        this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
         this.activePlayerConsecutiveActions = 0;
         this.opportunityCounter = 0;
+
+        this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
+        Contract.assertNotNullLike(this.activePlayer);
 
         // whether the previous player passed their action
         this.prevPlayerPassed = prevPlayerPassed;
@@ -200,7 +202,15 @@ class ActionWindow extends UiPrompt {
             this.activePlayer.handZone.cards,
             this.activePlayer.baseZone.cards
         );
-        this.activePlayer.setSelectableCards(allPossibleCards.filter((card) => this.getCardLegalActions(card, this.activePlayer).length > 0));
+
+        const cardsWithLegalActions = [];
+        for (const card of allPossibleCards) {
+            if (this.getCardLegalActions(card, this.activePlayer).length > 0) {
+                cardsWithLegalActions.push(card);
+            }
+        }
+
+        this.activePlayer.setSelectableCards(cardsWithLegalActions);
         this.activePlayer.opponent.setSelectableCards([]);
     }
 
