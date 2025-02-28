@@ -73,13 +73,16 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
 
         const { title, when, limit, immediateEffect, ...otherProperties } = properties;
 
-        const effectProperties = { ...otherProperties, ongoingEffect:
-            OngoingEffectLibrary.delayedEffect({
+        const effectProperties = {
+            ...otherProperties,
+            matchTarget: properties.effectType === DelayedEffectType.Card ? event.sourceCard : null,
+            ongoingEffect: OngoingEffectLibrary.delayedEffect({
                 title,
                 when,
                 immediateEffect,
-                limit: limit ?? new PerGameAbilityLimit(1)
-            }) };
+                limit: limit ?? new PerGameAbilityLimit(1),
+            })
+        };
 
         event.effectProperties = effectProperties;
         event.immediateEffect = properties.immediateEffect;
