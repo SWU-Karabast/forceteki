@@ -146,6 +146,10 @@ export class GameServer {
     }
 
     private setupAppRoutes(app: express.Application) {
+        app.get('/api/get-unimplemented', (req, res) => {
+            return res.json(this.deckValidator.getUnimplementedCards());
+        });
+
         app.post('/api/create-lobby', async (req, res, next) => {
             const { user, deck, format, isPrivate } = req.body;
             try {
