@@ -196,20 +196,6 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             return;
         }
 
-        // // if there are legal targets but this wouldn't have a gamestate-changing effect on any of them, we can just shortcut and skip selection
-        // if (
-        //     properties.innerSystem &&
-        //     !properties.innerSystem.hasLegalTarget(this.getContextCopy(), properties.innerSystemProperties(legalTargets), GameStateChangeRequired.MustFullyOrPartiallyResolve)
-        //     // !legalTargets.some((target) => properties.innerSystem.canAffect(
-        //     //     target,
-        //     //     this.getContextCopy(target, context, properties.name),
-        //     //     {},
-        //     //     GameStateChangeRequired.MustFullyOrPartiallyResolve
-        //     // ))
-        // ) {
-        //     return;
-        // }
-
         const finalProperties = Object.assign(defaultProperties, properties);
         if (player.autoSingleTarget) {
             if (legalTargets.length === 1) {
