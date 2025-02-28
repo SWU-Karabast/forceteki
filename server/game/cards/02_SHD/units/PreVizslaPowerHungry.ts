@@ -17,11 +17,11 @@ export default class PreVizslaPowerHungry extends NonLeaderUnitCard {
                 onCardPlayed: (event, context) => event.card === context.source,
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source,
             },
+            optional: true,
             targetResolver: {
                 activePromptTitle: 'Choose an upgrade to pay the cost of',
                 controller: WildcardRelativePlayer.Any,
                 cardTypeFilter: WildcardCardType.Upgrade,
-                canChooseNoCards: true,
                 cardCondition: (card, context) => card.isUpgrade() && card.parentCard !== context.source && !card.parentCard.hasSomeTrait(Trait.Vehicle),
                 immediateEffect: AbilityHelper.immediateEffects.payCardPrintedCost((context) => ({
                     player: context.player,

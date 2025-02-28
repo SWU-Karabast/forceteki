@@ -22,7 +22,7 @@ describe('Pre Vizsla, Power Hungry', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.preVizsla);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.bobaFettsArmor, context.namelessValor, context.shield]);
 
                 const readyResources = context.player1.readyResourceCount;
@@ -88,7 +88,7 @@ describe('Pre Vizsla, Power Hungry', function() {
 
                 context.player1.clickCard(context.preVizsla);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.bobaFettsArmor, context.namelessValor, context.shield]);
 
                 const readyResources = context.player1.readyResourceCount;
