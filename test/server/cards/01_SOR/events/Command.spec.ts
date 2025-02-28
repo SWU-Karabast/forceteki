@@ -2,7 +2,7 @@ describe('Command', function() {
     integration(function(contextRef) {
         describe('Command\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['command'],
@@ -31,7 +31,6 @@ describe('Command', function() {
                 context.player1.clickPrompt('A friendly unit deals damage equal to its power to a non-unique enemy unit.');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.restoredArc170]);
                 context.player1.clickCard(context.battlefieldMarine);
-                expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid]);
                 expect(context.player1).toBeAbleToSelectExactly([context.viperProbeDroid]);
                 context.player1.clickCard(context.viperProbeDroid);
 
