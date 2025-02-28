@@ -24,7 +24,6 @@ export default class Command extends EventCard {
                             amount: 2
                         })
                     }),
-                    // TODO how to do this within a modal?
                     ['A friendly unit deals damage equal to its power to a non-unique enemy unit.']: AbilityHelper.immediateEffects.selectCard({
                         controller: RelativePlayer.Self,
                         cardTypeFilter: WildcardCardType.Unit,
