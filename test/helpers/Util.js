@@ -133,6 +133,15 @@ function isTokenUpgrade(cardName) {
     return ['shield', 'experience'].includes(cardName);
 }
 
+function refreshGameState(game) {
+    game.resolveGameState(true);
+
+    // if there is currently a prompt open, update the list of selectable cards in case it was changed
+    if (game.currentOpenPrompt) {
+        game.currentOpenPrompt.highlightSelectableCards();
+    }
+}
+
 module.exports = {
     checkNullCard,
     formatPrompt,
@@ -142,5 +151,6 @@ module.exports = {
     formatBothPlayerPrompts,
     isTokenUnit,
     isTokenUpgrade,
+    refreshGameState,
     cardNamesToString
 };
