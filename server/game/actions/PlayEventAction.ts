@@ -2,9 +2,11 @@ import { AbilityRestriction, ZoneName, PlayType } from '../core/Constants.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
-import type { IEventCard } from '../core/card/EventCard.js';
+import AbilityResolver from '../core/gameSteps/AbilityResolver.js';
 
 export class PlayEventAction extends PlayCardAction {
+    private earlyTargetResults?: any;
+
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isEvent());
 
@@ -15,7 +17,16 @@ export class PlayEventAction extends PlayCardAction {
         );
 
         this.moveEventToDiscard(context);
-        context.game.resolveAbility(this.getEventAbilityContext(context.source));
+
+        const abilityContext = context.source.getEventAbility().createContext();
+        if (this.earlyTargetResults) {
+            abilityContext.target = context.target;
+            abilityContext.targets = context.targets;
+            abilityContext.select = context.select;
+            abilityContext.selects = context.selects;
+        }
+
+        context.game.queueStep(new AbilityResolver(context.game, abilityContext, false, null, this.earlyTargetResults));
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
@@ -32,9 +43,12 @@ export class PlayEventAction extends PlayCardAction {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
-    // public override resolveEarlyTargets(context, passHandler = null, canCancel = false) {
-    //     this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
-    // }
+    public override resolveEarlyTargets(context, passHandler = null, canCancel = false) {
+        Contract.assertTrue(context.source.isEvent());
+
+        this.earlyTargetResults = context.source.getEventAbility().resolveEarlyTargets(context, passHandler, canCancel);
+        return this.earlyTargetResults;
+    }
 
     public moveEventToDiscard(context: PlayCardContext) {
         const cardPlayedEvent = this.generateOnPlayEvent(context, {
@@ -49,9 +63,5 @@ export class PlayEventAction extends PlayCardAction {
         }
 
         context.game.openEventWindow(events);
-    }
-
-    private getEventAbilityContext(eventCard: IEventCard) {
-        return eventCard.getEventAbility().createContext();
     }
 }
