@@ -36,14 +36,14 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get parentCard(): IUnitCard;
     get pendingDefeat(): boolean;
     isInPlay(): boolean;
-    addGainedActionAbility(properties: IActionAbilityProps): string;
-    removeGainedActionAbility(removeAbilityUuid: string): void;
-    addGainedConstantAbility(properties: IConstantAbilityProps): string;
-    removeGainedConstantAbility(removeAbilityUuid: string): void;
-    addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string;
-    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string;
-    removeGainedTriggeredAbility(removeAbilityUuid: string): void;
-    removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
+    addGainedActionAbility(properties: IActionAbilityProps): number;
+    removeGainedActionAbility(removeAbilityUuid: number): void;
+    addGainedConstantAbility(properties: IConstantAbilityProps): number;
+    removeGainedConstantAbility(removeAbilityUuid: number): void;
+    addGainedTriggeredAbility(properties: ITriggeredAbilityProps): number;
+    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): number;
+    removeGainedTriggeredAbility(removeAbilityUuid: number): void;
+    removeGainedReplacementEffectAbility(removeAbilityUuid: number): void;
     registerPendingUniqueDefeat();
     checkUnique();
     attachTo(newParentCard: IUnitCard, newController?: Player);
@@ -254,7 +254,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      *
      * @returns The uuid of the created action ability
      */
-    public addGainedActionAbility(properties: IActionAbilityProps): string {
+    public addGainedActionAbility(properties: IActionAbilityProps): number {
         const addedAbility = this.createActionAbility(properties);
         this.actionAbilities.push(addedAbility);
 
@@ -262,7 +262,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     /** Removes a dynamically gained action ability */
-    public removeGainedActionAbility(removeAbilityUuid: string): void {
+    public removeGainedActionAbility(removeAbilityUuid: number): void {
         const updatedAbilityList = this.actionAbilities.filter((ability) => ability.uuid !== removeAbilityUuid);
         Contract.assertEqual(updatedAbilityList.length, this.actionAbilities.length - 1, `Expected to find one instance of gained action ability to remove but instead found ${this.actionAbilities.length - updatedAbilityList.length}`);
 
@@ -274,7 +274,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      *
      * @returns The uuid of the created triggered ability
      */
-    public addGainedConstantAbility(properties: IConstantAbilityProps): string {
+    public addGainedConstantAbility(properties: IConstantAbilityProps): number {
         const addedAbility = this.createConstantAbility(properties);
         this.constantAbilities.push(addedAbility);
         addedAbility.registeredEffects = this.addEffectToEngine(addedAbility);
@@ -283,7 +283,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     /** Removes a dynamically gained constant ability and unregisters its effects */
-    public removeGainedConstantAbility(removeAbilityUuid: string): void {
+    public removeGainedConstantAbility(removeAbilityUuid: number): void {
         let abilityToRemove: IConstantAbility = null;
         const remainingAbilities: IConstantAbility[] = [];
 
@@ -314,7 +314,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      *
      * @returns The uuid of the created triggered ability
      */
-    public addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string {
+    public addGainedTriggeredAbility(properties: ITriggeredAbilityProps): number {
         const addedAbility = this.createTriggeredAbility(properties);
         this.triggeredAbilities.push(addedAbility);
         addedAbility.registerEvents();
@@ -327,7 +327,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      *
      * @returns The uuid of the created triggered ability
      */
-    public addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string {
+    public addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): number {
         const addedAbility = this.createReplacementEffectAbility(properties);
         this.triggeredAbilities.push(addedAbility);
         addedAbility.registerEvents();
@@ -336,7 +336,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     /** Removes a dynamically gained triggered ability and unregisters its effects */
-    public removeGainedTriggeredAbility(removeAbilityUuid: string): void {
+    public removeGainedTriggeredAbility(removeAbilityUuid: number): void {
         let abilityToRemove: TriggeredAbility = null;
         const remainingAbilities: TriggeredAbility[] = [];
 
@@ -360,7 +360,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         abilityToRemove.unregisterEvents();
     }
 
-    public removeGainedReplacementEffectAbility(removeAbilityUuid: string): void {
+    public removeGainedReplacementEffectAbility(removeAbilityUuid: number): void {
         this.removeGainedTriggeredAbility(removeAbilityUuid);
     }
 
