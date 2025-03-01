@@ -22,7 +22,7 @@ export default class WarJuggernaut extends NonLeaderUnitCard {
         });
 
         this.addWhenPlayedAbility({
-            title: 'Deal 1 damage to each of any numbered units.',
+            title: 'Deal 1 damage to each of any number of units.',
             targetResolver: {
                 mode: TargetMode.Unlimited,
                 canChooseNoCards: true,
