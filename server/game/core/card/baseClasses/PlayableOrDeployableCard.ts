@@ -19,7 +19,7 @@ import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
 // required for mixins to be based on this class
-export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
+export type PlayableOrDeployableCardConstructor<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> = new (...args: any[]) => PlayableOrDeployableCard<T>;
 
 export interface IDecreaseCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;

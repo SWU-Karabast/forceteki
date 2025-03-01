@@ -4,7 +4,7 @@ import { CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
-import type { IInPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import type { IInPlayCard, InPlayCardConstructor, IInPlayCardState } from '../baseClasses/InPlayCard';
 import { InPlayCard } from '../baseClasses/InPlayCard';
 import type { ICardWithDamageProperty } from './Damage';
 import { WithDamage } from './Damage';
@@ -33,6 +33,11 @@ import type Player from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
+
+export interface IUnitPropertiesCardState extends IInPlayCardState {
+    // placeholder code, not used.
+    defaultArenaInternal: Arena;
+}
 
 export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty {
     get defaultArena(): Arena;
@@ -69,11 +74,11 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
  * - the {@link InitiateAttackAction} ability so that the card can attack
  * - the ability to have attached upgrades
  */
-export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(BaseClass: TBaseClass) {
+export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TState>, TState extends IInPlayCardState>(BaseClass: TBaseClass) {
     // create a "base" class that has the damage, hp, and power properties from other mixins
     const StatsAndDamageClass = WithDamage(WithPrintedPower(BaseClass));
 
-    return class AsUnit extends StatsAndDamageClass implements IUnitCard {
+    return class AsUnit extends (StatsAndDamageClass as typeof StatsAndDamageClass & InPlayCardConstructor<TState & IUnitPropertiesCardState>) implements IUnitCard {
         public static registerRulesListeners(game: Game) {
             // register listeners for when-played keyword abilities (see comment in EventWindow.ts for explanation of 'postResolve')
             game.on(EventName.OnUnitEntersPlay + ':postResolve', (event) => {
@@ -108,6 +113,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         // ************************************* FIELDS AND PROPERTIES *************************************
+
         public readonly defaultArena: Arena;
 
         protected _captureZone?: CaptureZone = null;
@@ -589,7 +595,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return;
             }
 
-            if (this.damage >= this.getHp() && !this._pendingDefeat) {
+            if (this.damage >= this.getHp() && !this.pendingDefeat) {
                 // add defeat event to window
                 this.game.addSubwindowEvents(
                     new FrameworkDefeatCardSystem({ target: this, defeatSource: source })
@@ -597,7 +603,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 );
 
                 // mark that this unit has a defeat pending so that other effects targeting it will not resolve
-                this._pendingDefeat = true;
+                this.pendingDefeat = true;
             }
         }
 

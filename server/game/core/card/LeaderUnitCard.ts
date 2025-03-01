@@ -16,6 +16,7 @@ import { InPlayCard } from './baseClasses/InPlayCard';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
+
 /** Represents a deployable leader in an undeployed state */
 export interface IDeployableLeaderCard extends ILeaderCard {
     get deployed(): boolean;
@@ -26,23 +27,21 @@ export interface IDeployableLeaderCard extends ILeaderCard {
 /** Represents a deployable leader in a deployed state (i.e., is also a unit) */
 export interface ILeaderUnitCard extends IDeployableLeaderCard, IUnitCard {}
 
-export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitCard {
-    protected _deployed = false;
-    protected setupLeaderUnitSide;
+export class LeaderUnitCardInternal extends LeaderUnitCardParent implements ILeaderUnitCard {
     private readonly epicActionAbility: ActionAbility;
 
     public get deployed() {
-        return this._deployed;
+        return this.state.deployed;
     }
 
     public override get type(): CardType {
-        return this._deployed ? CardType.LeaderUnit : CardType.Leader;
+        return this.state.deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
-        this.setupLeaderUnitSide = true;
+        this.state.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities(this);
 
         // add deploy leader action
@@ -56,7 +55,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
     }
 
     public override isUnit(): this is IUnitCard {
-        return this._deployed;
+        return this.state.deployed;
     }
 
     public override isDeployableLeader(): this is IDeployableLeaderCard {
@@ -64,7 +63,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
     }
 
     public override isLeaderUnit(): this is ILeaderUnitCard {
-        return this._deployed;
+        return this.state.deployed;
     }
 
     public override initializeForStartZone(): void {
@@ -77,17 +76,17 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
 
     /** Deploy the leader to the arena. Handles the move operation and state changes. */
     public deploy() {
-        Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
+        Contract.assertFalse(this.state.deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
 
-        this._deployed = true;
+        this.state.deployed = true;
         this.moveTo(this.defaultArena);
     }
 
     /** Return the leader from the arena to the base zone. Handles the move operation and state changes. */
     public undeploy() {
-        Contract.assertTrue(this._deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`);
+        Contract.assertTrue(this.state.deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`);
 
-        this._deployed = false;
+        this.state.deployed = false;
         this.moveTo(ZoneName.Base);
     }
 
@@ -133,7 +132,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
     }
 
     private getAbilityZonesForSide(propertyZone: ZoneFilter | ZoneFilter[]) {
-        const abilityZone = this.setupLeaderUnitSide ? this.defaultArena : ZoneName.Base;
+        const abilityZone = this.state.setupLeaderUnitSide ? this.defaultArena : ZoneName.Base;
 
         return propertyZone
             ? Helpers.asArray(propertyZone).concat([abilityZone])
@@ -146,7 +145,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
         switch (this.zoneName) {
             case ZoneName.GroundArena:
             case ZoneName.SpaceArena:
-                this._deployed = true;
+                this.state.deployed = true;
                 this.setDamageEnabled(true);
                 this.setActiveAttackEnabled(true);
                 this.setUpgradesEnabled(true);
@@ -155,7 +154,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
                 break;
 
             case ZoneName.Base:
-                this._deployed = false;
+                this.state.deployed = false;
                 this.setDamageEnabled(false);
                 this.setActiveAttackEnabled(false);
                 this.setUpgradesEnabled(false);
@@ -171,4 +170,8 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
             epicActionSpent: this.epicActionAbility.limit.isAtMax(this.owner)
         };
     }
+}
+
+export class LeaderUnitCard extends LeaderUnitCardInternal {
+    protected override state: never;
 }

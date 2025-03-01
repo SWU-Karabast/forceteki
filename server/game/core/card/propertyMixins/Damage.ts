@@ -1,6 +1,6 @@
 import type { Attack } from '../../attack/Attack';
 import * as Contract from '../../utils/Contract';
-import type { Card, CardConstructor } from '../Card';
+import type { Card, CardConstructor, ICardState } from '../Card';
 import type Player from '../../Player';
 import type { ICardWithPrintedHpProperty } from './PrintedHp';
 import { WithPrintedHp } from './PrintedHp';
@@ -18,26 +18,33 @@ export interface ICardWithDamageProperty extends ICardWithPrintedHpProperty {
     removeDamage(amount: number): number;
 }
 
+export interface IWithDamageState extends ICardState {
+    attackEnabled: boolean;
+    damage?: number;
+    // TODO: This is the idea, but I don't know how attack IDs will work.
+    activeAttackUuid?: any;
+}
+
+
 /**
  * Mixin function that adds the `damage` property and corresponding methods to a base class.
  * This is effectively a subclass of the mixin {@link WithPrintedHp}.
  */
-export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
+export function WithDamage<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
     const HpClass = WithPrintedHp(BaseClass);
 
-    return class WithDamage extends HpClass implements ICardWithDamageProperty {
+    return class WithDamage extends (HpClass as typeof HpClass & CardConstructor<TState & IWithDamageState>) implements ICardWithDamageProperty {
+        // STATE TODO: How do we handle full objects? This would need to be saved as a activeAttackRef (likely it's UUID)
         private _activeAttack?: Attack = null;
-        private attackEnabled = false;
-        private _damage?: number;
 
         public setActiveAttack(attack: Attack) {
             Contract.assertNotNullLike(attack);
-            this.assertPropertyEnabledForZoneBoolean(this.attackEnabled, 'activeAttack');
+            this.assertPropertyEnabledForZoneBoolean(this.state.attackEnabled, 'activeAttack');
             this._activeAttack = attack;
         }
 
         public unsetActiveAttack() {
-            this.assertPropertyEnabledForZoneBoolean(this.attackEnabled, 'activeAttack');
+            this.assertPropertyEnabledForZoneBoolean(this.state.attackEnabled, 'activeAttack');
             if (this._activeAttack !== null) {
                 this._activeAttack = null;
             }
@@ -48,22 +55,22 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         }
 
         public get activeAttack() {
-            this.assertPropertyEnabledForZoneBoolean(this.attackEnabled, 'activeAttack');
+            this.assertPropertyEnabledForZoneBoolean(this.state.attackEnabled, 'activeAttack');
             return this._activeAttack;
         }
 
         public get damage(): number {
-            this.assertPropertyEnabledForZone(this._damage, 'damage');
-            return this._damage;
+            this.assertPropertyEnabledForZone(this.state.damage, 'damage');
+            return this.state.damage;
         }
 
         protected set damage(value: number) {
-            this.assertPropertyEnabledForZone(this._damage, 'damage');
-            this._damage = value;
+            this.assertPropertyEnabledForZone(this.state.damage, 'damage');
+            this.state.damage = value;
         }
 
         public get remainingHp(): number {
-            this.assertPropertyEnabledForZone(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this.state.damage, 'damage');
             return Math.max(0, this.getHp() - this.damage);
         }
 
@@ -81,7 +88,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
             // damage source is only needed for tracking cause of defeat on units but we should enforce that it's provided consistently
             Contract.assertNotNullLike(source);
 
-            this.assertPropertyEnabledForZone(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this.state.damage, 'damage');
 
             if (amount === 0) {
                 return 0;
@@ -100,7 +107,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         /** @returns The amount of damage actually removed */
         public removeDamage(amount: number): number {
             Contract.assertNonNegative(amount);
-            this.assertPropertyEnabledForZone(this._damage, 'damage');
+            this.assertPropertyEnabledForZone(this.state.damage, 'damage');
 
             if (amount === 0 || this.damage === 0) {
                 return 0;
@@ -113,11 +120,11 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
         }
 
         protected setDamageEnabled(enabledStatus: boolean) {
-            this._damage = enabledStatus ? 0 : null;
+            this.state.damage = enabledStatus ? 0 : null;
         }
 
         public override getSummary(activePlayer: Player) {
-            return { ...super.getSummary(activePlayer), damage: this._damage };
+            return { ...super.getSummary(activePlayer), damage: this.state.damage };
         }
 
         protected setActiveAttackEnabled(enabledStatus: boolean) {
@@ -129,7 +136,7 @@ export function WithDamage<TBaseClass extends CardConstructor>(BaseClass: TBaseC
                 Contract.assertIsNullLike(this._activeAttack, `Moved ${this.internalName} to ${this.zoneName} but it has an active attack set`);
             }
 
-            this.attackEnabled = enabledStatus;
+            this.state.attackEnabled = enabledStatus;
         }
     };
 }
