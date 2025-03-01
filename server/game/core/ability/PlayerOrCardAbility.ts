@@ -3,14 +3,13 @@ import { SelectTargetResolver } from './abilityTargets/SelectTargetResolver.js';
 import { Stage, TargetMode, AbilityType, RelativePlayer } from '../Constants.js';
 import { GameEvent } from '../event/GameEvent.js';
 import * as Contract from '../utils/Contract.js';
-import { v4 as uuidv4 } from 'uuid';
 import { PlayerTargetResolver } from './abilityTargets/PlayerTargetResolver.js';
 import { DropdownListTargetResolver } from './abilityTargets/DropdownListTargetResolver.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import * as Helpers from '../utils/Helpers.js';
 import { AbilityContext } from './AbilityContext.js';
 import { GameObjectBase } from '../GameObjectBase.js';
-import { Card } from '../card/Card.js';
+import type { Card } from '../card/Card.js';
 
 // TODO: convert to TS and make this abstract
 /**
@@ -41,11 +40,12 @@ export default class PlayerOrCardAbility extends GameObjectBase {
     public nonDependentTargets: any;
     public targetResolvers: any;
     public toStringName: string;
+
     /**
      * Creates an ability.
      */
-    constructor(game, card: Card, properties, type = AbilityType.Action) {
-        super(game)
+    public constructor(game, card: Card, properties, type = AbilityType.Action) {
+        super(game);
         Contract.assertStringValue(properties.title);
 
         const hasImmediateEffect = properties.immediateEffect != null;
@@ -105,7 +105,7 @@ export default class PlayerOrCardAbility extends GameObjectBase {
             : `'Ability: ${this.title}'`;
     }
 
-    override toString() {
+    public override toString() {
         return this.toStringName;
     }
 
@@ -199,7 +199,7 @@ export default class PlayerOrCardAbility extends GameObjectBase {
      * @returns {Boolean}
      */
     public canPayCosts(context) {
-        let contextCopy = context.copy({ stage: Stage.Cost });
+        const contextCopy = context.copy({ stage: Stage.Cost });
         return this.getCosts(context).every((cost) => cost.canPay(contextCopy));
     }
 
@@ -217,7 +217,7 @@ export default class PlayerOrCardAbility extends GameObjectBase {
     }
 
     public resolveCosts(context, results) {
-        for (let cost of this.getCosts(context, results.playCosts, results.triggerCosts)) {
+        for (const cost of this.getCosts(context, results.playCosts, results.triggerCosts)) {
             context.game.queueSimpleStep(() => {
                 if (!results.cancelled) {
                     if (cost.queueGenerateEventGameSteps) {
@@ -228,7 +228,7 @@ export default class PlayerOrCardAbility extends GameObjectBase {
                         }
                         context.game.queueSimpleStep(() => {
                             if (!results.cancelled) {
-                                let newEvents = cost.payEvents
+                                const newEvents = cost.payEvents
                                     ? cost.payEvents(context)
                                     : [new GameEvent('payCost', context, {}, () => cost.pay(context))];
 
@@ -253,15 +253,16 @@ export default class PlayerOrCardAbility extends GameObjectBase {
     /**
      * Prompts the current player to choose each target defined for the ability.
      */
-    public resolveTargets(context, passHandler = null) {
-        let targetResults = {
+    public resolveTargets(context, passHandler = null, canCancel = false) {
+        const targetResults = {
             canIgnoreAllCosts:
                 context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,
             cancelled: false,
             payCostsFirst: false,
-            delayTargeting: null
+            delayTargeting: null,
+            canCancel
         };
-        for (let target of this.targetResolvers) {
+        for (const target of this.targetResolvers) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
         }
         return targetResults;
@@ -273,7 +274,7 @@ export default class PlayerOrCardAbility extends GameObjectBase {
         if (targets.slice(0, index).every((target) => target.checkTarget(context))) {
             targets = targets.slice(index);
         }
-        let targetResults = {};
+        const targetResults = {};
         for (const target of targets) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
         }
@@ -364,7 +365,7 @@ export default class PlayerOrCardAbility extends GameObjectBase {
 
     /** Return the controller of ability, can be different from card's controller (with bounty for exemple)
      * @returns {import('../Player.js')} */
-     public get controller() {
+    public get controller() {
         return this.canBeTriggeredBy === RelativePlayer.Self ? this.card.controller : this.card.controller.opponent;
     }
 }

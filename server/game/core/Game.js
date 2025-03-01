@@ -93,6 +93,9 @@ class Game extends EventEmitter {
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
 
+        /** @type {AbilityResolver | null} */
+        this.currentAbilityResolver = null;
+
         this.initialiseTokens(this.cardDataGetter.tokenData);
 
         /** @type {import('../Interfaces').IClientUIProperties} */
