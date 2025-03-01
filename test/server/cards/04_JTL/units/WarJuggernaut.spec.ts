@@ -77,7 +77,7 @@ describe('War Juggernaut', function() {
                 expect(context.warJuggernaut.getHp()).toBe(7);
                 expect(context.warJuggernaut.damage).toBe(0);
 
-                expect(context.player1).toHavePrompt('Deal 1 damage to each of any numbered units.');
+                expect(context.player1).toHavePrompt('Deal 1 damage to each of any number of units.');
                 expect(context.player1).toHaveChooseNoTargetButton();
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.warJuggernaut,
@@ -116,7 +116,7 @@ describe('War Juggernaut', function() {
                 expect(context.warJuggernaut.getHp()).toBe(7);
                 expect(context.warJuggernaut.damage).toBe(0);
 
-                expect(context.player1).toHavePrompt('Deal 1 damage to each of any numbered units.');
+                expect(context.player1).toHavePrompt('Deal 1 damage to each of any number of units.');
                 expect(context.player1).toHaveChooseNoTargetButton();
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.warJuggernaut,
