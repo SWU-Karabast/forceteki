@@ -121,6 +121,31 @@ describe('Basic attack', function() {
                 context.allowTestToEndWithOpenPrompt = true;
             });
         });
+
+        it('When a unit attacks as part of an ability, it should not have a cancel button', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['fleet-lieutenant'],
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.fleetLieutenant);
+            expect(context.fleetLieutenant).toBeInZone('groundArena');
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+
+            context.player1.clickCard(context.wampa);
+            expect(context.player1).toBeAbleToSelectExactly([context.p2Base]);
+            expect(context.player1).not.toHaveEnabledPromptButton('Cancel');
+
+            context.player1.clickCard(context.p2Base);
+            expect(context.wampa.exhausted).toBe(true);
+            expect(context.wampa.damage).toBe(0);
+            expect(context.p2Base.damage).toBe(4);
+        });
     });
 });
 
