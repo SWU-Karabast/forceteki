@@ -33,6 +33,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         } else {
             this.passButtonText = this.context.ability.isAttackAction() ? 'Pass attack' : 'Pass';
         }
+
         this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
             buttonText: this.passButtonText,
             arg: 'passAbility',
@@ -85,7 +86,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             // if the opponent is the one choosing whether to pass or not, we don't include the pass handler in the target resolver
             const passAbilityHandler = this.passAbilityHandler?.playerChoosing === this.context.player ? this.passAbilityHandler : null;
 
-            this.targetResults = this.context.ability.resolveTargets(this.context, passAbilityHandler);
+            this.targetResults = this.context.ability.resolveTargets(this.context, passAbilityHandler, true);
         }
     }
 
