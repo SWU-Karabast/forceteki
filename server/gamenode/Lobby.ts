@@ -294,6 +294,14 @@ export class Lobby {
     }
 
     public removeUser(id: string): void {
+        const user = this.users.find((u) => u.id === id);
+        if (user) {
+            this.gameChat.addMessage(`${user.username} has left the lobby`);
+        }
+        if (this.game) {
+            this.game.addMessage(`${user.username} has left the game`);
+            this.sendGameState(this.game);
+        }
         this.users = this.users.filter((u) => u.id !== id);
         this.sendLobbyState();
     }

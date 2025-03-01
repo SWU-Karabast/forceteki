@@ -379,7 +379,7 @@ export class GameServer {
             lobby.addLobbyUser(user, socket);
 
             socket.send('connectedUser', user.id);
-            socket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
+            socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
             return;
         }
 
@@ -406,7 +406,7 @@ export class GameServer {
                 const newUser = { username: 'Player2', id: user.id };
                 lobby.addLobbyUser(newUser, socket);
                 this.userLobbyMap.set(newUser.id, lobby.id);
-                socket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
+                socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
                 return;
             }
 
@@ -420,14 +420,14 @@ export class GameServer {
             queuedPlayer.socket = new Socket(ioSocket);
 
             // handle queue-specific events and add lobby disconnect
-            ioSocket.on('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
+            queuedPlayer.socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
 
             await this.matchmakeAllQueues();
             return;
         }
 
         // A user should not get here
-        ioSocket.send('connection_error', 'Error connecting to lobby/game');
+        ioSocket.emit('connection_error', 'Error connecting to lobby/game');
         ioSocket.disconnect();
         // this can happen when someone tries to reconnect to the game but are out of the mapping TODO make a notification for the player
         logger.info(`Error state when connecting to lobby/game ${user.id} disconnecting`);
@@ -496,12 +496,12 @@ export class GameServer {
         const socket2 = p2.socket ? p2.socket : null;
         if (socket1) {
             lobby.addLobbyUser(p1.user, socket1);
-            socket1.on('disconnect', () => this.onSocketDisconnected(socket1.socket, p1.user.id));
+            socket1.registerEvent('disconnect', () => this.onSocketDisconnected(socket1.socket, p1.user.id));
             socket1.registerEvent('requeue', () => this.requeueUser(socket1, format, p1.user, p1.deck));
         }
         if (socket2) {
             lobby.addLobbyUser(p2.user, socket2);
-            socket2.on('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.id));
+            socket2.registerEvent('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.id));
             socket2.registerEvent('requeue', () => this.requeueUser(socket2, format, p2.user, p2.deck));
         }
 
