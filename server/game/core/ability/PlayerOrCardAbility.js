@@ -235,13 +235,14 @@ class PlayerOrCardAbility {
     /**
      * Prompts the current player to choose each target defined for the ability.
      */
-    resolveTargets(context, passHandler = null) {
+    resolveTargets(context, passHandler = null, canCancel = false) {
         let targetResults = {
             canIgnoreAllCosts:
                 context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,
             cancelled: false,
             payCostsFirst: false,
-            delayTargeting: null
+            delayTargeting: null,
+            canCancel
         };
         for (let target of this.targetResolvers) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);

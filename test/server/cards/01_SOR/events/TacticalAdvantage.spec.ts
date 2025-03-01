@@ -22,6 +22,12 @@ describe('Tactical Advantage', function () {
                 context.player1.clickCard(context.tacticalAdvantage);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa]);
 
+                context.player1.clickPrompt('Cancel');
+                expect(context.player1).toBeActivePlayer();
+
+                context.player1.clickCard(context.tacticalAdvantage);
+                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa]);
+
                 context.player1.clickCard(context.pykeSentinel);
                 expect(context.pykeSentinel.getPower()).toBe(4);
                 expect(context.pykeSentinel.getHp()).toBe(5);
