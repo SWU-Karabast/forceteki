@@ -413,6 +413,7 @@ export class GameServer {
 
             lobby.addLobbyUser(user, socket);
             this.userLobbyMap.set(user.id, lobby.id);
+            socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
             return;
         }
         // 3. if they are not in the lobby they could be in a queue
