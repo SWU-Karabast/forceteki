@@ -75,6 +75,21 @@ function populateMissingData(attributes, id) {
                 data: []
             };
             break;
+        case '5683908835': // Count Dooku - Face of the Confederacy
+            attributes.keywords = {
+                data: [{
+                    attributes: {
+                        name: 'Overwhelm'
+                    }
+                },
+                {
+                    attributes: {
+                        name: 'Exploit'
+                    }
+                }]
+            };
+        case '0754286363': // The Mandalorian's Rifle
+            attributes.unique = true;
     }
 }
 
@@ -98,15 +113,16 @@ function filterValues(card) {
         return null;
     }
 
+    const id = card.attributes.cardId || card.attributes.cardUid;
+    populateMissingData(card.attributes, id);
+
     // hacky way to strip the object down to just the attributes we want
     const filterAttributes = ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints, upgradePower, upgradeHp }) =>
         ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints, upgradePower, upgradeHp });
 
     let filteredObj = filterAttributes(card.attributes);
 
-    filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
-
-    populateMissingData(card.attributes, filteredObj.id);
+    filteredObj.id = id;
 
     filteredObj.text = card.attributes.text;
 
