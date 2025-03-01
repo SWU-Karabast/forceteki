@@ -21,6 +21,7 @@ export interface ICardDataJson {
     hp?: number;
     power?: number;
     text?: string;
+    pilotText?: string;
     deployBox?: string;
     epicAction?: string;
     unique: boolean;

@@ -1,6 +1,6 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena } from '../../Constants';
-import { CardType, EffectName, EventName, KeywordName, StatType, ZoneName } from '../../Constants';
+import { CardType, EffectName, EventName, KeywordName, StatType, Trait, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -11,7 +11,6 @@ import { WithDamage } from './Damage';
 import type { ICardWithPrintedPowerProperty } from './PrintedPower';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import type { IUpgradeCard } from '../UpgradeCard';
 import type { Card } from '../Card';
 import type { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
@@ -31,6 +30,7 @@ import { CaptureZone } from '../../zone/CaptureZone';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type Player from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
+import type { IUpgradeCard } from '../CardInterfaces';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -43,6 +43,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     get defaultArena(): Arena;
     get capturedUnits(): IUnitCard[];
     get captureZone(): CaptureZone;
+    get lastPlayerToModifyHp(): Player;
     readonly upgrades: IUpgradeCard[];
     getCaptor(): IUnitCard | null;
     isAttacking(): boolean;
@@ -60,8 +61,8 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenDefeatedKeywords();
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
-    canPlayOn(card);
-    unattachUpgrade(upgrade);
+    unattachUpgrade(upgrade, event);
+    canAttachPilot(): boolean;
     attachUpgrade(upgrade);
     getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
 }
@@ -125,6 +126,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenPlayedKeywordAbilities?: TriggeredAbility[] = null;
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
+        private _lastPlayerToModifyHp?: Player;
 
         public get capturedUnits() {
             this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
@@ -165,6 +167,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return this.upgrades.some((card) => card.isShield());
         }
 
+        public override isUpgrade(): this is IUpgradeCard {
+            return this._parentCard !== null;
+        }
+
         // ****************************************** CONSTRUCTOR ******************************************
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
@@ -198,7 +204,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override isUnit(): this is IUnitCard {
-            return true;
+            return this._parentCard === null;
+        }
+
+        protected override getType(): CardType {
+            return this.isAttached() ? CardType.UnitUpgrade : this.printedType;
         }
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
@@ -241,8 +251,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         // ***************************************** ABILITY HELPERS *****************************************
         public override getActions() {
-            return super.getActions()
-                .concat(this.attackAction);
+            let actions = super.getActions();
+            // If this is an attached Pilot, we do not attach the Attack action
+            if (this.isUnit()) {
+                actions = actions.concat(this.attackAction);
+            }
+            return actions;
         }
 
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
@@ -650,12 +664,39 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return wrappedStatsModifiers;
         }
 
-        // *************************************** UPGRADE HELPERS ***************************************
+
+        public override checkIsAttachable(): void {
+            Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+        }
+
         /**
-         * Checks whether an attachment can be played on a given card.  Intended to be
-         * used by cards inheriting this class
+         *  This should only be called if a unit is a Pilot or has some other ability that lets it attach as an upgrade
+         * @param {Card} targetCard The card that this would be attached to
+         * @param {Player} controller The controller of this card
+         * @returns True if this is allowed to attach to the targetCard; false otherwise
          */
-        public canPlayOn(card) {
+        public override canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+            Contract.assertTrue(this.canBeUpgrade);
+            if (this.hasSomeKeyword(KeywordName.Piloting) && targetCard.isUnit()) {
+                return targetCard.canAttachPilot() && targetCard.controller === controller;
+            }
+            // TODO: Handle Phantom II and Sidon Ithano
+            return false;
+        }
+
+        /**
+         * Checks if a pilot can be attached to this unit
+         * @returns True if a Pilot can be attached to this unit; false otherwise
+         */
+        public canAttachPilot(): boolean {
+            if (!this.hasSomeTrait(Trait.Vehicle)) {
+                return false;
+            }
+
+            // TODO: we need logic for cards that override the pilot limit
+            if (this.upgrades.length > 0) {
+                return !this.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot));
+            }
             return true;
         }
 
@@ -663,9 +704,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
          * Removes an upgrade from this card's upgrade list
          * @param {UpgradeCard} upgrade
          */
-        public unattachUpgrade(upgrade) {
+        public unattachUpgrade(upgrade, event = null) {
             this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
             this._upgrades = this._upgrades.filter((card) => card.uuid !== upgrade.uuid);
+            if (upgrade.printedHp !== 0) {
+                this._lastPlayerToModifyHp = event?.context?.ability ? event.context.ability.controller : upgrade.owner;
+            }
         }
 
         /**
@@ -677,6 +721,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             Contract.assertTrue(this.zone.hasCard(upgrade));
 
             this._upgrades.push(upgrade);
+
+            if (upgrade.printedHp !== 0) {
+                this._lastPlayerToModifyHp = upgrade.controller;
+            }
         }
 
         public override getSummary(activePlayer: Player) {
@@ -701,6 +749,18 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 ...super.getSummary(activePlayer),
                 parentCardId: this.getCaptor()?.uuid,
             };
+        }
+
+        public override addOngoingEffect(ongoingEffect: IOngoingCardEffect): void {
+            if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
+                this._lastPlayerToModifyHp = ongoingEffect.context.source.controller;
+            }
+            super.addOngoingEffect(ongoingEffect);
+        }
+
+        public get lastPlayerToModifyHp() {
+            Contract.assertTrue(this.isInPlay());
+            return this._lastPlayerToModifyHp;
         }
     };
 }

@@ -1,7 +1,7 @@
 import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
-import type { Aspect } from '../Constants';
+import type { Aspect, CardType } from '../Constants';
 import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
@@ -31,14 +31,21 @@ interface IStandardPlayActionProperties extends IPlayCardActionPropertiesBase {
     playType: PlayType.PlayFromHand | PlayType.PlayFromOutOfPlay;
 }
 
-export interface ISmuggleCardActionProperties extends IPlayCardActionPropertiesBase {
-    playType: PlayType.Smuggle;
-    smuggleResourceCost: number;
-    smuggleAspects: Aspect[];
-    appendSmuggleToTitle?: boolean;
+export interface IAlternatePlayActionProperties extends IPlayCardActionPropertiesBase {
+    alternatePlayActionResourceCost: number;
+    alternatePlayActionAspects: Aspect[];
+    appendAlternatePlayActionKeywordToTitle?: boolean;
 }
 
-export type IPlayCardActionProperties = IStandardPlayActionProperties | ISmuggleCardActionProperties;
+export interface IPilotingCardActionProperties extends IAlternatePlayActionProperties {
+    playType: PlayType.Piloting;
+}
+
+export interface ISmuggleCardActionProperties extends IAlternatePlayActionProperties {
+    playType: PlayType.Smuggle;
+}
+
+export type IPlayCardActionProperties = IStandardPlayActionProperties | IPilotingCardActionProperties | ISmuggleCardActionProperties;
 
 export type PlayCardContext = AbilityContext & { onPlayCardSource: any };
 
@@ -75,11 +82,11 @@ export abstract class PlayCardAction extends PlayerAction {
 
         let cost: number;
         let aspects: Aspect[];
-        let appendSmuggleToTitle: boolean = null;
-        if (properties.playType === PlayType.Smuggle) {
-            cost = properties.smuggleResourceCost;
-            aspects = properties.smuggleAspects;
-            appendSmuggleToTitle = properties.appendSmuggleToTitle;
+        let appendToTitle: boolean = null;
+        if (properties.playType === PlayType.Piloting || properties.playType === PlayType.Smuggle) {
+            cost = properties.alternatePlayActionResourceCost;
+            aspects = properties.alternatePlayActionAspects;
+            appendToTitle = properties.appendAlternatePlayActionKeywordToTitle;
         } else {
             cost = card.cost;
             aspects = card.aspects;
@@ -90,7 +97,7 @@ export abstract class PlayCardAction extends PlayerAction {
         super(
             game,
             card,
-            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, appendSmuggleToTitle),
+            PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, appendToTitle),
             propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
             propertiesWithDefaults.triggerHandlingMode
@@ -107,6 +114,9 @@ export abstract class PlayCardAction extends PlayerAction {
         let updatedTitle = title;
 
         switch (playType) {
+            case PlayType.Piloting:
+                updatedTitle += appendToTitle ? ' with Piloting' : '';
+                break;
             case PlayType.Smuggle:
                 updatedTitle += appendToTitle ? ' with Smuggle' : '';
                 break;
@@ -140,6 +150,9 @@ export abstract class PlayCardAction extends PlayerAction {
             !context.source.canPlay(context, this.playType)
         ) {
             return 'cannotTrigger';
+        }
+        if (PlayType.Piloting === this.playType && !context.source.hasSomeKeyword(KeywordName.Piloting)) {
+            return 'pilotingKeyword';
         }
         if (PlayType.Smuggle === this.playType && !context.source.hasSomeKeyword(KeywordName.Smuggle)) {
             return 'smuggleKeyword';
@@ -206,10 +219,16 @@ export abstract class PlayCardAction extends PlayerAction {
                         context.player && context.player.drawDeck && context.player.drawDeck[0] === context.source,
             onPlayCardSource: context.onPlayCardSource,
             playType: context.playType,
+            cardTypeWhenInPlay: this.getCardTypeWhenInPlay(context.source, context.playType),
             costs: context.costs,
             ...additionalProps,
             handler
         });
+    }
+
+    /** This is used for overriding a card's type when it hits the board, such as Pilots played as upgrades */
+    protected getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
+        return card.type;
     }
 
     private logPlayCardEvent(context: any): void {

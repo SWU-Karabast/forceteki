@@ -30,6 +30,10 @@ export class StateWatcherRegistrar {
 
             // build a handler that will use the listener's update handler to generate a new state value and then store it
             const stateUpdateHandler = (event) => {
+                if (!listener.when[event.name](event)) {
+                    return;
+                }
+
                 const currentStateValue = this.getStateValue(watcherKey);
                 const updatedStateValue = listener.update(currentStateValue, event);
                 this.setStateValue(watcherKey, updatedStateValue);

@@ -654,8 +654,11 @@ class Player extends GameObject {
         /** @type {PlayableZone[]} */
         this.playableZones = [
             new PlayableZone(PlayType.PlayFromHand, this.handZone),
+            new PlayableZone(PlayType.Piloting, this.handZone),
             new PlayableZone(PlayType.Smuggle, this.resourceZone),
+            new PlayableZone(PlayType.Piloting, this.deckZone), // TODO: interaction with Ezra
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
+            new PlayableZone(PlayType.Piloting, this.discardZone), // TODO: interactions with Fine Addition
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 

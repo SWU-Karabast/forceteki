@@ -57,6 +57,30 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
             });
 
+            it('is not activated by a Heroic Pilot upgrade being defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'chancellor-palpatine#playing-both-sides',
+                        spaceArena: [{ card: 'concord-dawn-interceptors', upgrades: ['dagger-squadron-pilot'] }],
+                        hand: ['confiscate']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Enable and trigger Heroism flip
+                context.player1.clickCard(context.confiscate);
+                context.player1.clickCard(context.daggerSquadronPilot);
+
+                context.player2.passAction();
+
+                // Check that Palpatine did not flip
+                context.player1.clickCard(context.chancellorPalpatine);
+                expect(context.chancellorPalpatine.exhausted).toBe(true);
+                expect(context.chancellorPalpatine.onStartingSide).toBe(true);
+            });
+
             it('only exhausts and no other abilities trigger if no friendly Heroism unit has died', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

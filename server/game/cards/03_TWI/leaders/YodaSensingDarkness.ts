@@ -23,13 +23,13 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
             title: 'If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ filter: (entry) => entry.card.isUnit() }),
+                condition: () => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({}),
                 onFalse: AbilityHelper.immediateEffects.noAction(),
                 onTrue: AbilityHelper.immediateEffects.draw({ amount: 1 })
             }),
             then: {
                 title: 'Select a card from your hand to put on the top or bottom of your deck',
-                thenCondition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ filter: (entry) => entry.card.isUnit() }),
+                thenCondition: () => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({}),
                 targetResolver: {
                     activePromptTitle: 'Select a card to put on the top or bottom of your deck',
                     controller: RelativePlayer.Self,

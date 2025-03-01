@@ -21,7 +21,6 @@ import TriggeredAbility from '../ability/TriggeredAbility';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import type { IEventCard } from './EventCard';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
-import type { IUpgradeCard } from './UpgradeCard';
 import type { IBaseCard } from './BaseCard';
 import type { IDeployableLeaderCard, ILeaderUnitCard } from './LeaderUnitCard';
 import type { IDoubleSidedLeaderCard } from './DoubleSidedLeaderCard';
@@ -31,10 +30,11 @@ import type { ITokenUnitCard, ITokenUpgradeCard } from './TokenCards';
 import type { IInPlayCard } from './baseClasses/InPlayCard';
 import type { ICardWithCostProperty } from './propertyMixins/Cost';
 import type { INonLeaderUnitCard } from './NonLeaderUnitCard';
-import type { ICardCanChangeControllers } from './CardInterfaces';
+import type { ICardCanChangeControllers, IUpgradeCard } from './CardInterfaces';
 import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import type { GameObjectRef } from '../GameObjectBase';
+import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -60,29 +60,35 @@ export interface ICardState extends IOngoingEffectSourceState {
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
 export class Card<T extends ICardState = ICardState> extends OngoingEffectSource<T> {
-    public static checkHasNonKeywordAbilityText(abilityText?: string) {
-        if (abilityText == null) {
-            return false;
+    public static checkHasNonKeywordAbilityText(cardData: ICardDataJson) {
+        if (cardData.types.includes('leader')) {
+            return true;
         }
 
-        const abilityLines = abilityText.split('\n');
-
-        // bounty and coordinate keywords always require explicit implementation so we omit them from here
-        const keywords = Object.values(KeywordName)
-            .filter((keyword) => keyword !== KeywordName.Bounty && keyword !== KeywordName.Coordinate);
-
-        for (const abilityLine of abilityLines) {
-            if (abilityLine.trim().length === 0) {
+        for (const abilityText of [cardData.text, cardData.pilotText]) {
+            if (abilityText == null) {
                 continue;
             }
 
-            const lowerCaseAbilityLine = abilityLine.toLowerCase();
+            const abilityLines = abilityText.split('\n');
 
-            if (keywords.some((keyword) => lowerCaseAbilityLine.startsWith(keyword))) {
-                continue;
+            // bounty and coordinate keywords always require explicit implementation so we omit them from here
+            const keywords = Object.values(KeywordName)
+                .filter((keyword) => keyword !== KeywordName.Bounty && keyword !== KeywordName.Coordinate);
+
+            for (const abilityLine of abilityLines) {
+                if (abilityLine.trim().length === 0) {
+                    continue;
+                }
+
+                const lowerCaseAbilityLine = abilityLine.toLowerCase();
+
+                if (keywords.some((keyword) => lowerCaseAbilityLine.startsWith(keyword))) {
+                    continue;
+                }
+
+                return true;
             }
-
-            return true;
         }
 
         return false;
@@ -96,6 +102,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly _title: string;
     protected readonly _unique: boolean;
 
+    protected readonly canBeUpgrade: boolean;
     protected readonly hasNonKeywordAbilityText: boolean;
     protected readonly hasImplementationFile: boolean;
     protected readonly overrideNotImplemented: boolean = false;
@@ -188,6 +195,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public get type(): CardType {
+        return this.getType();
+    }
+
+    /** This method is needed due to a bug in TypeScript with mix-ins and getters */
+    protected getType(): CardType {
         return this.printedType;
     }
 
@@ -218,7 +230,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             this.validateImplementationId(implementationId, cardData);
         }
 
-        this.hasNonKeywordAbilityText = this.isLeader() || Card.checkHasNonKeywordAbilityText(cardData.text);
+        this.hasNonKeywordAbilityText = this.isLeader() || Card.checkHasNonKeywordAbilityText(cardData);
 
         this._aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
         this._backSideAspects = cardData.backSideAspects;
@@ -230,18 +242,21 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
         this.controller = owner;
         this.state.id = cardData.id;
+        this.canBeUpgrade = cardData.upgradeHp !== null && cardData.upgradePower !== null; // TODO: Check if this is working
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
+        // TODO: add validation that if the card has the Piloting trait, the right cardData properties are set
         this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
-            this.internalName);
+            this.internalName, cardData.pilotText);
         if (this.printedType === CardType.Leader) {
             this.printedKeywords.push(
                 ...KeywordHelpers.parseKeywords(
                     cardData.keywords,
                     cardData.text,
-                    this.internalName
+                    this.internalName,
+                    cardData.pilotText
                 )
             );
         }
@@ -420,7 +435,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public isUpgrade(): this is IUpgradeCard {
-        return this.type === CardType.BasicUpgrade || this.type === CardType.TokenUpgrade;
+        return this.type === CardType.BasicUpgrade || this.type === CardType.TokenUpgrade || this.type === CardType.UnitUpgrade;
     }
 
     public isBase(): this is IBaseCard {

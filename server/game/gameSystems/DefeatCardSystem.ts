@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import type { IUpgradeCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
-import type { IUpgradeCard } from '../core/card/UpgradeCard';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type Player from '../core/Player';
@@ -29,6 +29,7 @@ export interface ILastKnownInformation {
     arena: ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Resource;
     power?: number;
     hp?: number;
+    type?: CardType;
     damage?: number;
     parentCard?: IUnitCard;
     upgrades?: IUpgradeCard[];
@@ -51,13 +52,13 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         if (card.zoneName === ZoneName.Resource) {
             this.leavesResourceZoneEventHandler(card, event.context);
         } else if (card.isUpgrade()) {
-            card.unattach();
+            card.unattach(event);
         }
 
         if (card.isToken()) {
             // move the token out of the play area so that effect cleanup happens, then remove it from all card lists
             card.moveTo(ZoneName.OutsideTheGame);
-        } else if (card.isLeaderUnit()) {
+        } else if (card.isDeployableLeader() && card.deployed) {
             card.undeploy();
         } else {
             card.moveTo(ZoneName.Discard);
@@ -99,6 +100,9 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
             event.isDefeatedByAttackerDamage =
                 eventDefeatSource.type === DamageSourceType.Attack &&
                 eventDefeatSource.damageDealtBy === eventDefeatSource.attack.attacker;
+            if (eventDefeatSource?.type === DamageSourceType.Attack) {
+                eventDefeatSource.player = eventDefeatSource.damageDealtBy.controller;
+            }
         } else {
             eventDefeatSource = this.buildDefeatSourceForType(defeatSource, event, context);
         }

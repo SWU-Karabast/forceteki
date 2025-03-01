@@ -1,6 +1,7 @@
 import type { PhaseName } from './game/core/Constants';
 
 const defaultWindows = {
+    setup: true,
     action: true,
     regroup: true
 };
