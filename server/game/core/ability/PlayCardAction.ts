@@ -184,7 +184,7 @@ export abstract class PlayCardAction extends PlayerAction {
 
         const smuggleEvent = resourceCard({
             target: context.player.getTopCardOfDeck(),
-            readyResource: !this.card.exhausted,
+            readyResource: !this.card.canBeExhausted() || !this.card.exhausted,
         }).generateEvent(context);
 
         events.push(smuggleEvent);

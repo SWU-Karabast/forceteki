@@ -1,11 +1,13 @@
-const { AbilityContext } = require('./AbilityContext.js');
-const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage, PhaseName } = require('../Constants.js');
-const { TriggerHandlingMode } = require('../event/EventWindow.js');
+import { AbilityContext } from './AbilityContext.js';
+import PlayerOrCardAbility from './PlayerOrCardAbility.js';
+import { Stage, PhaseName } from '../Constants.js';
+import { TriggerHandlingMode } from '../event/EventWindow.js';
 
-class PlayerAction extends PlayerOrCardAbility {
+export default class PlayerAction extends PlayerOrCardAbility {
+    cannotBeCancelled: boolean;
+
     constructor(game, card, title, costs = [], targetResolver, triggerHandlingMode = TriggerHandlingMode.ResolvesTriggers) {
-        let properties = { cost: costs, title, triggerHandlingMode };
+        let properties = { cost: costs, title, triggerHandlingMode, targetResolver: undefined };
         if (targetResolver) {
             properties.targetResolver = targetResolver;
         }
@@ -13,8 +15,7 @@ class PlayerAction extends PlayerOrCardAbility {
         this.cannotBeCancelled = true;
     }
 
-    /** @override */
-    meetsRequirements(context, ignoredRequirements = []) {
+    public override meetsRequirements(context: AbilityContext, ignoredRequirements: string[] = []) {
         if (
             !ignoredRequirements.includes('phase') &&
             context.game.currentPhase !== PhaseName.Action
@@ -30,5 +31,3 @@ class PlayerAction extends PlayerOrCardAbility {
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 }
-
-module.exports = PlayerAction;

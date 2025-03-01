@@ -4,6 +4,7 @@ import type Player from '../Player';
 import type { IStatefulPromptResults } from './PromptInterfaces';
 
 export interface IStep {
+    setSubAbilityStep(arg0: () => import("../ability/AbilityContext").AbilityContext<Card<import("../card/Card").ICardState>>): unknown;
     onCardClicked(player: Player, card: Card): boolean;
     onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean;
     onPerCardMenuCommand(player: Player, arg: string, cardUuid: string, uuid: string, method: string): boolean;

@@ -34,7 +34,7 @@ import type { INonLeaderUnitCard } from './NonLeaderUnitCard';
 import type { ICardCanChangeControllers } from './CardInterfaces';
 import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
-import type { GameObjectRef } from '../GameObject';
+import type { GameObjectRef } from '../GameObjectBase';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -48,6 +48,8 @@ export interface ICardState extends IOngoingEffectSourceState {
     hiddenForOpponent: boolean;
 
     controllerRef: GameObjectRef<Player>;
+
+    movedFromZone: ZoneName | null;
 }
 
 /**
@@ -105,9 +107,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected constantAbilities: IConstantAbility[] = [];
 
     private nextAbilityIdx = 0;
-    // TODO: How do we store the zone in state?
+    // STATE TODO: How do we store the zone in state?
     private _zone: Zone;
-    protected movedFromZone?: ZoneName = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
     // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
@@ -119,6 +120,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.state.hiddenForOpponent;
     }
 
+    protected get movedFromZone() {
+        return this.state.movedFromZone;
+    }
+
+    protected set movedFromZone(value: ZoneName | null) {
+        this.state.movedFromZone = value;
+    }
 
     // ******************************************** PROPERTY GETTERS ********************************************
     public get aspects(): Aspect[] {
@@ -247,6 +255,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.facedown = true;
         this.state.hiddenForController = false;
         this.state.hiddenForOpponent = false;
+        this.state.movedFromZone = null;
     }
 
 

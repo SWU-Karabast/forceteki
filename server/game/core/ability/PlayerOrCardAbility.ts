@@ -1,14 +1,16 @@
-const { CardTargetResolver } = require('./abilityTargets/CardTargetResolver.js');
-const { SelectTargetResolver } = require('./abilityTargets/SelectTargetResolver.js');
-const { Stage, TargetMode, AbilityType, RelativePlayer } = require('../Constants.js');
-const { GameEvent } = require('../event/GameEvent.js');
-const Contract = require('../utils/Contract.js');
-const { v4: uuidv4 } = require('uuid');
-const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.js');
-const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTargetResolver.js');
-const { TriggerHandlingMode } = require('../event/EventWindow.js');
-const Helpers = require('../utils/Helpers.js');
-const { AbilityContext } = require('./AbilityContext.js');
+import { CardTargetResolver } from './abilityTargets/CardTargetResolver.js';
+import { SelectTargetResolver } from './abilityTargets/SelectTargetResolver.js';
+import { Stage, TargetMode, AbilityType, RelativePlayer } from '../Constants.js';
+import { GameEvent } from '../event/GameEvent.js';
+import * as Contract from '../utils/Contract.js';
+import { v4 as uuidv4 } from 'uuid';
+import { PlayerTargetResolver } from './abilityTargets/PlayerTargetResolver.js';
+import { DropdownListTargetResolver } from './abilityTargets/DropdownListTargetResolver.js';
+import { TriggerHandlingMode } from '../event/EventWindow.js';
+import * as Helpers from '../utils/Helpers.js';
+import { AbilityContext } from './AbilityContext.js';
+import { GameObjectBase } from '../GameObjectBase.js';
+import { Card } from '../card/Card.js';
 
 // TODO: convert to TS and make this abstract
 /**
@@ -21,11 +23,29 @@ const { AbilityContext } = require('./AbilityContext.js');
  * `player` that is executing the action, and the `source` card object that the
  * ability is generated from.
  */
-class PlayerOrCardAbility {
+export default class PlayerOrCardAbility extends GameObjectBase {
+    public title: any;
+    public limit: any;
+    public keyword: any;
+    public type: AbilityType;
+    public optional: boolean;
+    public immediateEffect: any;
+    public canResolveWithoutLegalTargets: boolean;
+    public canBeTriggeredBy: any;
+    public playerChoosingOptional: any;
+    public optionalButtonTextOverride: any;
+    public card: Card;
+    public properties: any;
+    public triggerHandlingMode: any;
+    public cost: any;
+    public nonDependentTargets: any;
+    public targetResolvers: any;
+    public toStringName: string;
     /**
      * Creates an ability.
      */
-    constructor(game, card, properties, type = AbilityType.Action) {
+    constructor(game, card: Card, properties, type = AbilityType.Action) {
+        super(game)
         Contract.assertStringValue(properties.title);
 
         const hasImmediateEffect = properties.immediateEffect != null;
@@ -44,7 +64,6 @@ class PlayerOrCardAbility {
         this.type = type;
         this.optional = !!properties.optional;
         this.immediateEffect = properties.immediateEffect;
-        this.uuid = uuidv4();
         this.canResolveWithoutLegalTargets = false;
         this.canBeTriggeredBy = properties.canBeTriggeredBy ?? RelativePlayer.Self;
 
@@ -55,7 +74,6 @@ class PlayerOrCardAbility {
         this.playerChoosingOptional = properties.playerChoosingOptional ?? RelativePlayer.Self;
         this.optionalButtonTextOverride = properties.optionalButtonTextOverride;
 
-        this.game = game;
         this.card = card;
         this.properties = properties;
 
@@ -87,11 +105,11 @@ class PlayerOrCardAbility {
             : `'Ability: ${this.title}'`;
     }
 
-    toString() {
+    override toString() {
         return this.toStringName;
     }
 
-    buildCost(cost) {
+    public buildCost(cost) {
         if (typeof cost !== 'function') {
             return Helpers.asArray(cost);
         }
@@ -99,7 +117,7 @@ class PlayerOrCardAbility {
         return cost;
     }
 
-    buildTargetResolvers(properties) {
+    public buildTargetResolvers(properties) {
         this.targetResolvers = [];
         if (properties.targetResolver) {
             this.targetResolvers.push(this.buildTargetResolver('target', properties.targetResolver));
@@ -110,7 +128,7 @@ class PlayerOrCardAbility {
         }
     }
 
-    buildTargetResolver(name, properties) {
+    public buildTargetResolver(name, properties) {
         switch (properties.mode) {
             case TargetMode.Select:
                 return new SelectTargetResolver(name, properties, this);
@@ -139,7 +157,7 @@ class PlayerOrCardAbility {
      * @param {*} context
      * @returns {String}
      */
-    meetsRequirements(context, ignoredRequirements = [], thisStepOnly = false) {
+    public meetsRequirements(context: AbilityContext, ignoredRequirements: string[] = [], thisStepOnly = false): string {
         // check legal targets exist
         // check costs can be paid
         // check for potential to change game state
@@ -167,11 +185,11 @@ class PlayerOrCardAbility {
         return '';
     }
 
-    hasAnyLegalEffects(context, includeSubSteps = false) {
+    public hasAnyLegalEffects(context, includeSubSteps = false) {
         return true;
     }
 
-    checkGameActionsForPotential(context) {
+    public checkGameActionsForPotential(context) {
         return this.immediateEffect.hasLegalTarget(context);
     }
 
@@ -180,13 +198,13 @@ class PlayerOrCardAbility {
      *
      * @returns {Boolean}
      */
-    canPayCosts(context) {
+    public canPayCosts(context) {
         let contextCopy = context.copy({ stage: Stage.Cost });
         return this.getCosts(context).every((cost) => cost.canPay(contextCopy));
     }
 
 
-    getCosts(context, playCosts = true, triggerCosts = true) {
+    public getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = typeof this.cost === 'function' ? Helpers.asArray(this.cost(context)) : this.cost;
 
         costs = costs.map((a) => a);
@@ -198,7 +216,7 @@ class PlayerOrCardAbility {
         return costs;
     }
 
-    resolveCosts(context, results) {
+    public resolveCosts(context, results) {
         for (let cost of this.getCosts(context, results.playCosts, results.triggerCosts)) {
             context.game.queueSimpleStep(() => {
                 if (!results.cancelled) {
@@ -228,14 +246,14 @@ class PlayerOrCardAbility {
      *
      * @returns {Boolean}
      */
-    canResolveSomeTarget(context) {
+    public canResolveSomeTarget(context) {
         return this.nonDependentTargets.some((target) => target.canResolve(context));
     }
 
     /**
      * Prompts the current player to choose each target defined for the ability.
      */
-    resolveTargets(context, passHandler = null) {
+    public resolveTargets(context, passHandler = null) {
         let targetResults = {
             canIgnoreAllCosts:
                 context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,
@@ -249,7 +267,7 @@ class PlayerOrCardAbility {
         return targetResults;
     }
 
-    resolveRemainingTargets(context, nextTarget, passHandler = null) {
+    public resolveRemainingTargets(context, nextTarget, passHandler = null) {
         const index = this.targetResolvers.indexOf(nextTarget);
         let targets = this.targetResolvers.slice();
         if (targets.slice(0, index).every((target) => target.checkTarget(context))) {
@@ -262,19 +280,19 @@ class PlayerOrCardAbility {
         return targetResults;
     }
 
-    hasTargets() {
+    public hasTargets() {
         return this.nonDependentTargets.length > 0;
     }
 
-    hasSomeLegalTarget(context) {
+    public hasSomeLegalTarget(context) {
         return this.nonDependentTargets.some((target) => target.hasLegalTarget(context));
     }
 
-    checkAllTargets(context) {
+    public checkAllTargets(context) {
         return this.nonDependentTargets.every((target) => target.checkTarget(context));
     }
 
-    hasTargetsChosenByInitiatingPlayer(context) {
+    public hasTargetsChosenByInitiatingPlayer(context) {
         return (
             this.targetResolvers.some((target) => target.hasTargetsChosenByInitiatingPlayer(context)) ||
             this.immediateEffect.hasTargetsChosenByInitiatingPlayer(context) ||
@@ -284,11 +302,11 @@ class PlayerOrCardAbility {
         );
     }
 
-    createContext(player = this.card.controller, event) {
+    public createContext(player = this.card.controller, event?) {
         return new AbilityContext(this.getContextProperties(player, event));
     }
 
-    getContextProperties(player, event) {
+    public getContextProperties(player, event?) {
         return {
             ability: this,
             game: this.game,
@@ -298,7 +316,7 @@ class PlayerOrCardAbility {
         };
     }
 
-    displayMessage(context) {}
+    public displayMessage(context) {}
 
     /**
      * Executes the ability once all costs have been paid. Inheriting classes
@@ -306,13 +324,13 @@ class PlayerOrCardAbility {
      * does nothing.
      */
 
-    executeHandler(context) {}
+    public executeHandler(context) {}
 
-    isAction() {
+    public isAction() {
         return this.type === AbilityType.Action;
     }
 
-    isTriggeredAbility() {
+    public isTriggeredAbility() {
         return this.type === AbilityType.Triggered || this.type === AbilityType.ReplacementEffect;
     }
 
@@ -321,34 +339,32 @@ class PlayerOrCardAbility {
      * Indicates whether a card is played as part of the resolution this ability
      * @returns {this is import('./PlayCardAction.js').PlayCardAction}
      */
-    isPlayCardAbility() {
+    public isPlayCardAbility() {
         return false;
     }
 
     /** Indicates whether this ability is an ability from card text as opposed to other types of actions like playing a card */
-    isCardAbility() {
+    public isCardAbility() {
         return false;
     }
 
     /** Indicates whether this ability is an "activated" ability on a card, as opposed to a constant ability */
-    isActivatedAbility() {
+    public isActivatedAbility() {
         return false;
     }
 
-    isKeywordAbility() {
+    public isKeywordAbility() {
         return false;
     }
 
     /** @returns {this is import('../../actions/InitiateAttackAction.js').InitiateAttackAction} */
-    isAttackAction() {
+    public isAttackAction() {
         return false;
     }
 
     /** Return the controller of ability, can be different from card's controller (with bounty for exemple)
      * @returns {import('../Player.js')} */
-    get controller() {
+     public get controller() {
         return this.canBeTriggeredBy === RelativePlayer.Self ? this.card.controller : this.card.controller.opponent;
     }
 }
-
-module.exports = PlayerOrCardAbility;

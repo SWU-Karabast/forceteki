@@ -5,6 +5,7 @@ import CardAbilityStep from './CardAbilityStep';
 import * as AbilityLimit from './AbilityLimit';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
+import { AbilityContext } from './AbilityContext';
 
 export abstract class CardAbility extends CardAbilityStep {
     public readonly abilityIdentifier: string;
@@ -66,7 +67,7 @@ export abstract class CardAbility extends CardAbilityStep {
         }
     }
 
-    public override meetsRequirements(context, ignoredRequirements: string[] = [], thisStepOnly = false) {
+    public override meetsRequirements(context: AbilityContext, ignoredRequirements: string[] = [], thisStepOnly = false) {
         if (!ignoredRequirements.includes('player') && !this.controllerMeetsRequirements(context)) {
             return 'player';
         }
@@ -93,7 +94,7 @@ export abstract class CardAbility extends CardAbilityStep {
         return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
     }
 
-    public getAdjustedCost(context) {
+    public getAdjustedCost(context: AbilityContext) {
         const resourceCost = this.getCosts(context).find((cost) => cost.getAdjustedCost);
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }

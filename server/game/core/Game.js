@@ -40,6 +40,7 @@ const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBas
 const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 const { GameObject } = require('./GameObject.js');
+const { GameObjectBase } = require('./GameObjectBase.js');
 
 class Game extends EventEmitter {
     /**
@@ -53,6 +54,7 @@ class Game extends EventEmitter {
         validateGameConfiguration(details);
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
+        this.state = { nextId: 1 };
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
@@ -359,7 +361,7 @@ class Game extends EventEmitter {
     /**
      *
      * @template {GameObject} T
-     * @param {import('./GameObject.js').GameObjectRef<T>} gameObjectRef
+     * @param {import('./GameObjectBase.js').GameObjectRef<T>} gameObjectRef
      * @returns {T}
      */
     findAnyGameObjectByUuid(gameObjectRef) {
@@ -1339,13 +1341,15 @@ class Game extends EventEmitter {
         token.removeFromGame();
     }
 
-    /** @param {GameObject} gameObject */
+    /** @param {GameObjectBase} gameObject */
     registerGameObject(gameObject) {
+        gameObject.uuid = this.state.nextId;
+        this.state.nextId += 1;
         this.allGameObjects.push(gameObject);
         this.gameObjectMapping.set(gameObject.uuid, gameObject);
     }
 
-    /** @param {GameObject[]} gameObjects */
+    /** @param {GameObjectBase[]} gameObjects */
     registerGameObjects(gameObjects) {
         gameObjects.forEach((gameObject) => this.registerGameObject(gameObject));
     }

@@ -1,18 +1,23 @@
-const { AbilityContext } = require('./AbilityContext.js');
-const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer } = require('../Constants.js');
-const AttackHelper = require('../attack/AttackHelpers.js');
-const Helpers = require('../utils/Helpers.js');
-const Contract = require('../utils/Contract.js');
-const { TriggerHandlingMode } = require('../event/EventWindow.js');
+import { AbilityContext } from './AbilityContext.js';
+import PlayerOrCardAbility from './PlayerOrCardAbility.js';
+import { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer } from '../Constants.js';
+import * as AttackHelper from '../attack/AttackHelpers.js';
+import * as Helpers from '../utils/Helpers.js';
+import * as Contract from '../utils/Contract.js';
+import { TriggerHandlingMode } from '../event/EventWindow.js';
+import { Card } from '../card/Card.js';
+import Game from '../Game.js';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
-class CardAbilityStep extends PlayerOrCardAbility {
-    /** @param {import('../card/Card').Card} card - The card this ability is attached to */
-    constructor(game, card, properties, type = AbilityType.Action) {
+export default class CardAbilityStep extends PlayerOrCardAbility {
+    handler: any;
+    cannotTargetFirst: boolean;
+
+    /** @param card - The card this ability is attached to */
+    constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         Contract.assertFalse(
             properties.targetResolvers != null && properties.initiateAttack != null,
             'Cannot create ability with targetResolvers and initiateAttack properties'
@@ -28,13 +33,13 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** @override */
-    executeHandler(context) {
+    override executeHandler(context) {
         this.handler(context);
         this.game.queueSimpleStep(() => this.game.resolveGameState(), 'resolveState');
     }
 
     /** @override */
-    hasAnyLegalEffects(context, includeSubSteps = false) {
+    override hasAnyLegalEffects(context, includeSubSteps = false) {
         if (this.immediateEffect && this.checkGameActionsForPotential(context)) {
             return true;
         }
@@ -51,8 +56,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return false;
     }
 
-    /** @override */
-    meetsRequirements(context, ignoredRequirements = [], thisStepOnly = false) {
+    public override meetsRequirements(context: AbilityContext, ignoredRequirements: string[] = [], thisStepOnly = false) {
         // if there is an ifYouDoNot clause, then lack of game state change just means we go down the "if you do not" path
         // (unless thisStepOnly is true, in which case we ignore sub-steps)
         if (this.properties.ifYouDoNot && !thisStepOnly) {
@@ -63,7 +67,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** @override */
-    checkGameActionsForPotential(context) {
+    override checkGameActionsForPotential(context) {
         if (super.checkGameActionsForPotential(context)) {
             return true;
         } else if (this.immediateEffect.isOptional(context) && this.properties.then) {
@@ -76,7 +80,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** @override */
-    displayMessage(context) {
+    override displayMessage(context) {
         let message = this.properties.message;
         if (typeof message === 'function') {
             message = message(context);
@@ -214,9 +218,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** @override */
-    isCardAbility() {
+    override isCardAbility() {
         return true;
     }
 }
-
-module.exports = CardAbilityStep;
