@@ -1,3 +1,4 @@
+
 describe('Dorsal Turret\'s attached triggered ability', function() {
     integration(function(contextRef) {
         it('will defeat a unit if it deals combat damage while attacking', async function () {
@@ -91,7 +92,6 @@ describe('Dorsal Turret\'s attached triggered ability', function() {
             expect(context.frontierAtrt).toBeInZone('groundArena');
         });
 
-        // TODO: Finish the test when Tie Bomber is implemented
         it('not combat damage should not defeat the target', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -106,10 +106,25 @@ describe('Dorsal Turret\'s attached triggered ability', function() {
             const { context } = contextRef;
             context.player1.clickCard(context.tieBomber);
             context.player1.clickCard(context.brightHope);
+
+            context.player1.clickPrompt('Deal 2 damage to a target in the defender\'s arena');
             context.player1.clickCard(context.brightHope);
+
             expect(context.brightHope.damage).toBe(2);
+            expect(context.tieBomber.damage).toBe(0);
+
+            expect(context.player2).toHavePrompt('Distribute 3 indirect damage among targets');
+            expect(context.player2).toBeAbleToSelectExactly([context.brightHope, context.p2Base]);
+
+            context.player2.setDistributeIndirectDamagePromptState(new Map([
+                [context.brightHope, 1],
+                [context.p2Base, 2],
+            ]));
+
+            expect(context.brightHope.damage).toBe(3);
             expect(context.tieBomber.damage).toBe(2);
-            // TODO: The 3 indirect damages should not defeat Bright Hope is one if assigned to it
+            expect(context.p2Base.damage).toBe(2);
+            expect(context.player2).toBeActivePlayer();
         });
     });
 });
