@@ -304,6 +304,10 @@ export class Lobby {
         }
         if (this.game) {
             this.game.addMessage(`${user.username} has left the game`);
+            const winner = this.users.find((u) => u.id !== id);
+            if (winner) {
+                this.game.endGame(this.game.getPlayerById(winner.id), `${user.username} has conceded`);
+            }
             this.sendGameState(this.game);
         }
         this.users = this.users.filter((u) => u.id !== id);
