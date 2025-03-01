@@ -1,6 +1,6 @@
 describe('Resupply Carrier', function() {
     integration(function(contextRef) {
-        it('Resupply Carrier\s ability should add the top deck card as a resource', async function () {
+        it('Resupply Carrier\'s ability should add the top deck card as a resource', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
