@@ -16,12 +16,12 @@ export default class StolenATHauler extends NonLeaderUnitCard {
         };
     }
 
-    private ongoingEffect(): IOngoingEffectGenerator {
-        function toto(game: Game, source: Card, props: IOngoingCardEffectProps) {
+    private canPlayFromOpponentDiscard(): IOngoingEffectGenerator {
+        function createOngoingCardEffect(game: Game, source: Card, props: IOngoingCardEffectProps) {
             props.targetController = RelativePlayer.Opponent;
             return new OngoingCardEffect(game, source, props, new StaticOngoingEffectImpl(EffectName.CanPlayFromDiscard, null));
         }
-        return toto;
+        return createOngoingCardEffect;
     }
 
     public override setupCardAbilities () {
@@ -29,7 +29,7 @@ export default class StolenATHauler extends NonLeaderUnitCard {
             title: 'Choose an opponent. For this phase, they may play this unit from its owner\'s discard pile for free.',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 effect: [
-                    this.ongoingEffect(),
+                    this.canPlayFromOpponentDiscard(),
                     OngoingEffectLibrary.forFree({ match: (card) => card === context.source })
                 ]
             }))
