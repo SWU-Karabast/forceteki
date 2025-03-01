@@ -167,9 +167,10 @@ export class GameServer {
         });
 
         app.get('/api/available-lobbies', (_, res) => {
-            const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, _]) => ({
+            const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, lobby]) => ({
                 id,
                 name: `Game #${id}`,
+                format: lobby.format,
             }));
             return res.json(availableLobbies);
         });

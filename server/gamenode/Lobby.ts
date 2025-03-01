@@ -78,6 +78,10 @@ export class Lobby {
         return this._id;
     }
 
+    public get format(): SwuGameFormat {
+        return this.gameFormat;
+    }
+
     public getLobbyState(): any {
         return {
             id: this._id,
