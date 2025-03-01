@@ -232,11 +232,27 @@ class PlayerOrCardAbility {
         return this.nonDependentTargets.some((target) => target.canResolve(context));
     }
 
+    resolveEarlyTargets(context, passHandler = null, canCancel = false) {
+        return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
+    }
+
     /**
      * Prompts the current player to choose each target defined for the ability.
      */
     resolveTargets(context, passHandler = null, canCancel = false) {
-        let targetResults = {
+        return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
+    }
+
+    resolveTargetsInner(targetResolvers, context, passHandler, canCancel) {
+        let targetResults = this.getDefaultTargetResults(context, canCancel);
+        for (let target of targetResolvers) {
+            context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
+        }
+        return targetResults;
+    }
+
+    getDefaultTargetResults(context, canCancel) {
+        return {
             canIgnoreAllCosts:
                 context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,
             cancelled: false,
@@ -244,10 +260,6 @@ class PlayerOrCardAbility {
             delayTargeting: null,
             canCancel
         };
-        for (let target of this.targetResolvers) {
-            context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
-        }
-        return targetResults;
     }
 
     resolveRemainingTargets(context, nextTarget, passHandler = null) {

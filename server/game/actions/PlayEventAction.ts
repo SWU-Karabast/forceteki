@@ -2,6 +2,7 @@ import { AbilityRestriction, ZoneName, PlayType } from '../core/Constants.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
+import type { IEventCard } from '../core/card/EventCard.js';
 
 export class PlayEventAction extends PlayCardAction {
     public override executeHandler(context: PlayCardContext): void {
@@ -14,7 +15,7 @@ export class PlayEventAction extends PlayCardAction {
         );
 
         this.moveEventToDiscard(context);
-        context.game.resolveAbility(context.source.getEventAbility().createContext());
+        context.game.resolveAbility(this.getEventAbilityContext(context.source));
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
@@ -31,6 +32,10 @@ export class PlayEventAction extends PlayCardAction {
         return super.meetsRequirements(context, ignoredRequirements);
     }
 
+    // public override resolveEarlyTargets(context, passHandler = null, canCancel = false) {
+    //     this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
+    // }
+
     public moveEventToDiscard(context: PlayCardContext) {
         const cardPlayedEvent = this.generateOnPlayEvent(context, {
             resolver: this,
@@ -44,5 +49,9 @@ export class PlayEventAction extends PlayCardAction {
         }
 
         context.game.openEventWindow(events);
+    }
+
+    private getEventAbilityContext(eventCard: IEventCard) {
+        return eventCard.getEventAbility().createContext();
     }
 }

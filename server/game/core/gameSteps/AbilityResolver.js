@@ -96,7 +96,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             // if the opponent is the one choosing whether to pass or not, we don't include the pass handler in the target resolver
             const passAbilityHandler = this.passAbilityHandler?.playerChoosing === this.context.player ? this.passAbilityHandler : null;
 
-            this.targetResults = this.context.ability.resolveTargets(this.context, passAbilityHandler, this.canCancel);
+            this.targetResults = this.context.ability.resolveEarlyTargets(this.context, passAbilityHandler, this.canCancel);
         }
     }
 
