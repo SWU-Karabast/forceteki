@@ -156,6 +156,14 @@ export class GameServer {
 
         app.post('/api/create-lobby', async (req, res, next) => {
             const { user, deck, format, isPrivate } = req.body;
+            // Check if the user is already in a lobby
+            const userId = typeof user === 'string' ? user : user.id;
+            if (this.userLobbyMap.has(userId)) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'User is already in a lobby'
+                });
+            }
             try {
                 await this.processDeckValidation(deck, format, res, async () => {
                     await this.createLobby(user, deck, format, isPrivate);
@@ -207,8 +215,16 @@ export class GameServer {
         });
 
         app.post('/api/enter-queue', async (req, res, next) => {
+            const { format, user, deck } = req.body;
+            // check if user is already in a lobby
+            const userId = typeof user === 'string' ? user : user.id;
+            if (this.userLobbyMap.has(userId)) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'User is already in a lobby'
+                });
+            }
             try {
-                const { format, user, deck } = req.body;
                 await this.processDeckValidation(deck, format, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
@@ -288,6 +304,12 @@ export class GameServer {
             throw new Error('User must be provided for public lobbies');
         }
 
+        // set default user if anonymous user is supplied for private lobbies
+        if (typeof user === 'string') {
+            user = { id: user, username: 'Player1' };
+        }
+
+
         const lobby = new Lobby(
             isPrivate ? MatchType.Private : MatchType.Custom,
             format,
@@ -296,10 +318,6 @@ export class GameServer {
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
-        // set default user if anonymous user is supplied for private lobbies
-        if (typeof user === 'string') {
-            user = { id: user, username: 'Player1' };
-        }
 
         lobby.createLobbyUser(user, deck);
         lobby.setLobbyOwner(user.id);
@@ -364,11 +382,11 @@ export class GameServer {
             return;
         }
 
+
         // 1. If user is already in a lobby
         if (this.userLobbyMap.has(user.id)) {
             const lobbyId = this.userLobbyMap.get(user.id);
             const lobby = this.lobbies.get(lobbyId);
-
             if (!lobby) {
                 logger.info('No lobby for', ioSocket.data.user.username, 'disconnecting');
                 ioSocket.disconnect();
@@ -378,7 +396,6 @@ export class GameServer {
             // we get the user from the lobby since this way we can be sure it's the correct one.
             const socket = new Socket(ioSocket);
             lobby.addLobbyUser(user, socket);
-
             socket.send('connectedUser', user.id);
             socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
             return;
@@ -413,6 +430,7 @@ export class GameServer {
 
             lobby.addLobbyUser(user, socket);
             this.userLobbyMap.set(user.id, lobby.id);
+            socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
             return;
         }
         // 3. if they are not in the lobby they could be in a queue
@@ -554,8 +572,6 @@ export class GameServer {
         }
         const lobbyId = this.userLobbyMap.get(id);
         const lobby = this.lobbies.get(lobbyId);
-
-
         const wasManualDisconnect = !!socket?.data?.manualDisconnect;
         if (wasManualDisconnect) {
             this.userLobbyMap.delete(id);
