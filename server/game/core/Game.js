@@ -1343,7 +1343,7 @@ class Game extends EventEmitter {
 
     /** @param {GameObjectBase} gameObject */
     registerGameObject(gameObject) {
-        gameObject.uuid = this.state.nextId;
+        gameObject.uuid = "GameObject_" + this.state.nextId;
         this.state.nextId += 1;
         this.allGameObjects.push(gameObject);
         this.gameObjectMapping.set(gameObject.uuid, gameObject);

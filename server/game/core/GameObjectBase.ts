@@ -2,12 +2,12 @@ import Game from "./Game";
 import * as Contract from './utils/Contract';
 
 export interface IGameObjectBaseState {
-    uuid: number;
+    uuid: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
 export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
-    uuid: number;
+    uuid: string;
 }
 
 
