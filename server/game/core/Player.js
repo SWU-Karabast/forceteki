@@ -1200,6 +1200,12 @@ class Player extends GameObject {
         let isActivePlayer = activePlayer === this;
         let promptState = isActivePlayer ? this.promptState.getState() : {};
         let { ...safeUser } = this.user;
+
+        let isActionPhaseActivePlayer = null;
+        if (this.game.actionPhaseActivePlayer != null) {
+            isActionPhaseActivePlayer = this.game.actionPhaseActivePlayer === this;
+        }
+
         let state = {
             cardPiles: {
                 hand: this.getSummaryForZone(ZoneName.Hand, activePlayer),
@@ -1225,6 +1231,7 @@ class Player extends GameObject {
             // stats: this.getStats(),
             user: safeUser,
             promptState: promptState,
+            isActionPhaseActivePlayer
         };
 
         // if (this.showDeck) {
