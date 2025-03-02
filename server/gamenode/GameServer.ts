@@ -521,7 +521,7 @@ export class GameServer {
             lobby.addLobbyUser(p2.user, socket2);
             socket2.registerEvent('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.id));
             if (!socket2.eventContainsListener('requeue')) {
-                socket2.registerEvent('requeue', () => this.requeueUser(socket1, format, p1.user, p1.deck));
+                socket2.registerEvent('requeue', () => this.requeueUser(socket2, format, p2.user, p2.deck));
             }
         }
 
