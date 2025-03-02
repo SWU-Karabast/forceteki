@@ -492,6 +492,7 @@ export class GameServer {
      * Matchmake two users in a queue
      */
     private matchmakeQueuePlayers(format: SwuGameFormat, [p1, p2]: [QueuedPlayer, QueuedPlayer]): void {
+        Contract.assertFalse(p1.user.id === p2.user.id, 'Cannot matchmake the same user');
         // Create a new Lobby
         const lobby = new Lobby(
             MatchType.Quick,
