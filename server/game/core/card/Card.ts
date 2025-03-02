@@ -751,7 +751,7 @@ export class Card extends OngoingEffectSource {
         this.updateConstantAbilityEffectsInternal(this.constantAbilities, from, to);
     }
 
-    protected updateConstantAbilityEffectsInternal(constantAbilities: IConstantAbility[], from: ZoneName, to: ZoneName) {
+    protected updateConstantAbilityEffectsInternal(constantAbilities: IConstantAbility[], from: ZoneName, to: ZoneName, allowIdempotentUnregistration = false) {
         if (!EnumHelpers.isArena(to) || from === ZoneName.Discard || from === ZoneName.Capture) {
             this.removeLastingEffects();
         }
@@ -769,6 +769,12 @@ export class Card extends OngoingEffectSource {
                 EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
                 !EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
             ) {
+                const registeredEffects = constantAbility.registeredEffects;
+                if (!registeredEffects) {
+                    Contract.assertTrue(allowIdempotentUnregistration, `Attempting to unregister effects for constant ability ${constantAbility.title} on ${this.internalName} but it is not registered`);
+                    continue;
+                }
+
                 this.removeEffectFromEngine(constantAbility.registeredEffects);
                 constantAbility.registeredEffects = [];
             }

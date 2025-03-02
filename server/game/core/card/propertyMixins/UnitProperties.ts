@@ -351,6 +351,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             });
         }
 
+        public addPilotingGainAbilityTargetingAttached(properties: IAbilityPropsWithType<this>) {
+            this.addPilotingConstantAbilityTargetingAttached({
+                title: 'Give ability to the attached card',
+                ongoingEffect: OngoingEffectLibrary.gainAbility(properties)
+            });
+        }
+
         public override getTriggeredAbilities(): TriggeredAbility[] {
             let triggeredAbilities = this.getType() === CardType.UnitUpgrade ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
 
@@ -413,7 +420,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 abilitiesToUpdate = this.pilotingConstantAbilities.concat(this.constantAbilities);
             }
 
-            super.updateConstantAbilityEffectsInternal(abilitiesToUpdate, from, to);
+            super.updateConstantAbilityEffectsInternal(abilitiesToUpdate, from, to, true);
         }
 
         /** Register / un-register the effects for any abilities from keywords */
