@@ -5,12 +5,13 @@ describe('Survivors Gauntlet', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['survivors-gauntlet'],
+                        hand: ['survivors-gauntlet', 'entrenched', 'vanquish'],
                         groundArena: ['fugitive-wookiee', 'battlefield-marine', { card: 'atst', exhausted: true, upgrades: ['frozen-in-carbonite'] }],
                         spaceArena: [{ card: 'avenger#hunting-star-destroyer', upgrades: ['experience'] }],
                         leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
                     },
                     player2: {
+                        hand: ['electrostaff'],
                         groundArena: ['wampa', { card: 'hylobon-enforcer', upgrades: ['legal-authority', 'shield'] }],
                         spaceArena: ['cartel-spacer'],
                         leader: { card: 'finn#this-is-a-rescue', deployed: true },
@@ -97,6 +98,46 @@ describe('Survivors Gauntlet', function() {
                 expect(context.atst).toHaveExactUpgradeNames(['frozen-in-carbonite']);
                 expect(context.hylobonEnforcer).toHaveExactUpgradeNames(['legal-authority', 'shield']);
                 expect(context.avenger).toHaveExactUpgradeNames(['experience']);
+            });
+
+            it('should not allow to move an upgrade on a unit controlled by another player than the upgrade controller', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.entrenched);
+                context.player1.clickCard(context.wampa);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.survivorsGauntlet);
+                expect(context.player1).toBeAbleToSelectExactly([context.frozenInCarbonite, context.legalAuthority, context.shield, context.experience, context.entrenched]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.entrenched);
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.hylobonEnforcer, context.finn]);
+                context.player1.clickCard(context.cartelSpacer);
+            });
+
+            it('should respect the upgrade attachment conditions', function () {
+                const { context } = contextRef;
+
+                // We clean player 2 board expect Finn and cartel Spacer
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.hylobonEnforcer);
+                context.player1.clickPrompt('Collect Bounty: Draw a card');
+                context.player1.clickPrompt('Pass');
+
+                context.player2.clickCard(context.electrostaff);
+                context.player2.clickCard(context.finn);
+
+                context.player1.clickCard(context.avenger);
+                context.player1.clickCard(context.p2Base);
+                context.player2.clickCard(context.wampa);
+                context.player2.passAction();
+
+
+                context.player1.clickCard(context.survivorsGauntlet);
+                // We can't select the Electrostaff because there is no eligible unit to attach it to
+                expect(context.player1).toBeAbleToSelectExactly([context.frozenInCarbonite, context.experience]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Pass');
             });
         });
     });
