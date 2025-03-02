@@ -1,6 +1,6 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena } from '../../Constants';
-import { AbilityType, CardType, EffectName, EventName, KeywordName, StatType, Trait, ZoneName } from '../../Constants';
+import { AbilityType, CardType, EffectName, EventName, KeywordName, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -12,7 +12,7 @@ import type { ICardWithPrintedPowerProperty } from './PrintedPower';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
@@ -332,6 +332,23 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 default:
                     Contract.fail(`Unsupported ability type ${properties.type}`);
             }
+        }
+
+        protected addPilotingConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'matchTarget' | 'ongoingEffect'>) {
+            this.addPilotingAbility({
+                type: AbilityType.Constant,
+                title: properties.title,
+                matchTarget: (card, context) => card === context.source.parentCard,
+                targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
+                ongoingEffect: properties.ongoingEffect
+            });
+        }
+
+        public addPilotingGainKeywordTargetingAttached(properties: IKeywordProperties) {
+            this.addPilotingConstantAbilityTargetingAttached({
+                title: 'Give keyword to the attached card',
+                ongoingEffect: OngoingEffectLibrary.gainKeyword(properties)
+            });
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
