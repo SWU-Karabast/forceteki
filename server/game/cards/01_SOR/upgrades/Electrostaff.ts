@@ -1,6 +1,7 @@
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { RelativePlayer } from '../../../core/Constants';
+import { RelativePlayer, Trait } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
+import type { Card } from '../../../core/card/Card';
 
 export default class Electrostaff extends UpgradeCard {
     protected override getImplementationId() {
@@ -11,6 +12,8 @@ export default class Electrostaff extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
+        this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
+
         this.addConstantAbility({
             title: 'While attached unit is defending, the attacker gets -1/-0',
             targetController: RelativePlayer.Opponent,
