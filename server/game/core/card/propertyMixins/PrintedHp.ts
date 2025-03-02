@@ -3,9 +3,7 @@ import type { Card, CardConstructor } from '../Card';
 
 export interface ICardWithPrintedHpProperty extends Card {
     readonly printedHp: number;
-    readonly upgradeHp?: number;
     getHp(): number;
-    getUpgradeHp(): number;
 }
 
 /**
@@ -15,7 +13,6 @@ export interface ICardWithPrintedHpProperty extends Card {
 export function WithPrintedHp<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithPrintedHp extends BaseClass implements ICardWithPrintedHpProperty {
         public readonly printedHp: number;
-        public readonly upgradeHp?: number;
 
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
@@ -24,22 +21,10 @@ export function WithPrintedHp<TBaseClass extends CardConstructor>(BaseClass: TBa
 
             Contract.assertNotNullLike(cardData.hp);
             this.printedHp = cardData.hp;
-
-            if (this.isUpgrade()) {
-                Contract.assertNotNullLike(cardData.upgradeHp);
-            }
-
-            if (cardData.upgradeHp != null) {
-                this.upgradeHp = cardData.upgradeHp;
-            }
         }
 
         public getHp(): number {
             return this.printedHp;
-        }
-
-        public getUpgradeHp(): number {
-            return this.upgradeHp;
         }
     };
 }

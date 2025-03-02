@@ -55,6 +55,9 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
  * 3. Uniqueness management
  */
 export class InPlayCard extends InPlayCardParent implements IInPlayCard {
+    public readonly upgradeHp?: number;
+    public readonly upgradePower?: number;
+
     protected _disableOngoingEffectsForDefeat?: boolean = null;
     protected _mostRecentInPlayId = -1;
     protected _parentCard?: IUnitCard = null;
@@ -122,6 +125,20 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
         Contract.assertFalse(this.printedType === CardType.Event);
+
+        if (this.isUpgrade()) {
+            Contract.assertNotNullLike(cardData.upgradePower);
+        }
+
+        const hasUpgradeStats = cardData.upgradePower != null && cardData.upgradeHp != null;
+
+        Contract.assertTrue(hasUpgradeStats ||
+          (cardData.upgradePower == null && cardData.upgradeHp == null));
+
+        if (hasUpgradeStats) {
+            this.upgradePower = cardData.upgradePower;
+            this.upgradeHp = cardData.upgradeHp;
+        }
     }
 
     public isInPlay(): boolean {
@@ -144,6 +161,14 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     public assertIsUpgrade(): void {
         Contract.assertTrue(this.isUpgrade());
         Contract.assertNotNullLike(this.parentCard);
+    }
+
+    public getUpgradeHp(): number {
+        return this.upgradeHp;
+    }
+
+    public getUpgradePower(): number {
+        return this.upgradePower;
     }
 
     public attachTo(newParentCard: IUnitCard, newController?: Player) {

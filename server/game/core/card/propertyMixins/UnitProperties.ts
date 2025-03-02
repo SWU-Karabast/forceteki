@@ -185,6 +185,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                     Contract.fail(`Unknown arena type in card data: ${cardData.arena}`);
             }
 
+            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                Contract.assertNotNullLike(cardData.upgradeHp, `Card ${this.internalName} is missing upgradeHp`);
+                Contract.assertNotNullLike(cardData.upgradePower, `Card ${this.internalName} is missing upgradePower`);
+            }
+
             this.attackAction = new InitiateAttackAction(this.game, this);
         }
 
