@@ -1,6 +1,6 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer } = require('../Constants.js');
+const { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck } = require('../Constants.js');
 const AttackHelper = require('../attack/AttackHelpers.js');
 const Helpers = require('../utils/Helpers.js');
 const Contract = require('../utils/Contract.js');
@@ -34,7 +34,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** @override */
-    hasAnyLegalEffects(context, includeSubSteps = false) {
+    hasAnyLegalEffects(context, includeSubSteps = SubStepCheck.None) {
         if (this.immediateEffect && this.checkGameActionsForPotential(context)) {
             return true;
         }
@@ -43,7 +43,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
             return true;
         }
 
-        if (includeSubSteps) {
+        if (includeSubSteps == SubStepCheck.All || (includeSubSteps == SubStepCheck.ThenIfYouDo && (this.properties.then || this.properties.ifYouDo))) {
             const subAbilityStepContext = this.getSubAbilityStepContext(context);
             return subAbilityStepContext && subAbilityStepContext.ability.hasAnyLegalEffects(subAbilityStepContext);
         }

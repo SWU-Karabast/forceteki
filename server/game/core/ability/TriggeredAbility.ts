@@ -9,6 +9,7 @@ import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/Triggere
 import * as Contract from '../utils/Contract';
 import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
 import type { ICardWithTriggeredAbilities } from '../card/propertyMixins/TriggeredAbilityRegistration';
+import CardAbilityStep from './CardAbilityStep';
 
 interface IEventRegistration {
     name: string;

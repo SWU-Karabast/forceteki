@@ -32,11 +32,13 @@ export class GamePipeline {
         while (this.pipeline.length > 0) {
             const currentStep = this.getCurrentStep();
 
-            // Explicitly check for a return of false - if no return values is
-            // defined then just continue to the next step.
-            if(game.debug.pipeline) {
+            if(game.isDebugPipeline) {
+                // Intended to be used when manually testing a single unit test. 
+                // Can be used to determine when a pipeline has an unexpected branch. 
                 console.log(currentStep.getDebugInfo());
             }
+            // Explicitly check for a return of false - if no return values is
+            // defined then just continue to the next step.
             if (currentStep.continue() === false) {
                 if (this.stepsQueuedDuringCurrentStep.length === 0) {
                     return false;
