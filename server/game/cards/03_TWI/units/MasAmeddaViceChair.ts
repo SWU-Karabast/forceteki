@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class MasAmeddaViceChair extends NonLeaderUnitCard {
     protected override getImplementationId() {
