@@ -12,15 +12,15 @@ describe('Mas Amedda, Vice Chair', function() {
                     player2: {
                         groundArena: ['mas-amedda#vice-chair'],
                         hand: ['superlaser-technician'],
-                        deck: ['price-on-your-head', 'merciless-contest', 'overwhelming-barrage', 'public-enemy', 'gentle-giant', 'cargo-juggernaut',]
+                        deck: ['price-on-your-head', 'merciless-contest', 'overwhelming-barrage', 'public-enemy', 'gentle-giant', 'cargo-juggernaut']
                     }
                 });
-           });
+            });
 
             it('should prompt to choose up to 1 unit from the top 4 cards, reveal chosen, draw it, and put the rest on the bottom of the deck', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.frontierAtrt)
+                context.player1.clickCard(context.frontierAtrt);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Exhaust this unit\' or pass');
                 expect(context.player1).toHaveEnabledPromptButton('Exhaust this unit');
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
@@ -47,8 +47,8 @@ describe('Mas Amedda, Vice Chair', function() {
 
             it('should be able to choose no cards', function() {
                 const { context } = contextRef;
-                
-                context.player1.clickCard(context.frontierAtrt)
+
+                context.player1.clickCard(context.frontierAtrt);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Exhaust this unit\' or pass');
                 expect(context.player1).toHaveEnabledPromptButton('Exhaust this unit');
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
@@ -62,24 +62,24 @@ describe('Mas Amedda, Vice Chair', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Take nothing');
 
                 context.player1.clickPrompt('Take nothing');
- 
-                expect([context.systemPatrolCraft, context.clanWrenRescuer, context.concordDawnInterceptors, context.bountyPosting]).toAllBeInBottomOfDeck(context.player1, 4);                
+
+                expect([context.systemPatrolCraft, context.clanWrenRescuer, context.concordDawnInterceptors, context.bountyPosting]).toAllBeInBottomOfDeck(context.player1, 4);
                 expect(context.player2).toBeActivePlayer();
             });
 
             it('should be able to not activate ability', function() {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.frontierAtrt)
+                context.player1.clickCard(context.frontierAtrt);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Exhaust this unit\' or pass');
                 expect(context.player1).toHaveEnabledPromptButton('Exhaust this unit');
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
 
-                context.player1.clickPrompt('Pass');            
+                context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();
-            })
-                
+            });
+
 
             it('no cards matching criteria', function() {
                 const { context } = contextRef;
@@ -91,7 +91,7 @@ describe('Mas Amedda, Vice Chair', function() {
                 expect(context.player2).toHaveEnabledPromptButton('Exhaust this unit');
                 expect(context.player2).toHaveEnabledPromptButton('Pass');
 
-                context.player2.clickPrompt('Exhaust this unit');            
+                context.player2.clickPrompt('Exhaust this unit');
 
                 expect(context.player2).toHaveExactDisplayPromptCards({
                     invalid: [context.priceOnYourHead, context.mercilessContest, context.overwhelmingBarrage, context.publicEnemy]
@@ -99,7 +99,7 @@ describe('Mas Amedda, Vice Chair', function() {
                 expect(context.player2).toHaveEnabledPromptButton('Take nothing');
 
                 context.player2.clickPrompt('Take nothing');
- 
+
                 // Check that top 5 cards are now on the bottom of the deck
                 expect([context.priceOnYourHead, context.mercilessContest, context.overwhelmingBarrage, context.publicEnemy]).toAllBeInBottomOfDeck(context.player2, 4);
                 expect(context.player1).toBeActivePlayer();

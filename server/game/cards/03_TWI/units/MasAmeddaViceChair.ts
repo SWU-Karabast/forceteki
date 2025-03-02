@@ -13,7 +13,7 @@ export default class MasAmeddaViceChair extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Exhaust this unit',
             when: {
-                onCardPlayed: (event, context) => 
+                onCardPlayed: (event, context) =>
                     event.card.isUnit() &&
                     event.card.controller === context.player &&
                     event.card !== context.source
@@ -28,7 +28,7 @@ export default class MasAmeddaViceChair extends NonLeaderUnitCard {
                     cardCondition: (card) => card.isUnit(),
                     selectedCardsImmediateEffect: AbilityHelper.immediateEffects.drawSpecificCard()
                 })
-            }        
+            }
         });
     }
 }
