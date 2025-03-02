@@ -21,6 +21,11 @@ const bannedCards = new Map([
     ['4626028465', 'boba-fett#collecting-the-bounty']
 ]);
 
+const minDeckSizeModifier = new Map([
+    ['4301437393', -5], // Thermal Oscillator
+    ['4028826022', 10], // Data Vault
+]);
+
 interface ICardCheckData {
     setId: ISetCode;
     titleAndSubtitle: string;
@@ -28,6 +33,7 @@ interface ICardCheckData {
     set: SwuSet;
     banned: boolean;
     implemented: boolean;
+    minDeckSizeModifier?: number;
 }
 
 export class DeckValidator {
@@ -58,7 +64,8 @@ export class DeckValidator {
                 type: Card.buildTypeFromPrinted(cardData.types),
                 set: EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0],
                 banned: bannedCards.has(cardData.id),
-                implemented: !Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id)
+                implemented: !Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id),
+                minDeckSizeModifier: minDeckSizeModifier.get(cardData.id)
             };
 
             this.cardData.set(cardData.id, cardCheckData);
@@ -86,9 +93,8 @@ export class DeckValidator {
         return unimplementedCards;
     }
 
-    // TODO: account for new bases that modify these values
-    public getMinimumSideboardedDeckSize(_deck: IDecklistInternal | ISwuDbDecklist): number {
-        return 50;
+    public getMinimumSideboardedDeckSize(baseData: ICardCheckData): number {
+        return 50 + (baseData.minDeckSizeModifier ?? 0);
     }
 
     public getUnimplementedCardsInDeck(deck: IDecklistInternal | ISwuDbDecklist): { id: string; name: string }[] {
@@ -154,7 +160,8 @@ export class DeckValidator {
             // Combine main deck and sideboard cards.
             const deckCards: ISwuDbCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
 
-            const minBoardedSize = this.getMinimumSideboardedDeckSize(deck);
+            const baseData = this.getCardCheckData(deck.base.id);
+            const minBoardedSize = this.getMinimumSideboardedDeckSize(baseData);
             const decklistCardsCount = this.getTotalCardCount(deckCards);
             const boardedCardsCount = this.getTotalCardCount(deck.deck);
             const sideboardCardsCount = deck.sideboard ? this.getTotalCardCount(deck.sideboard) : 0;
@@ -173,19 +180,13 @@ export class DeckValidator {
                 };
             }
 
-            if (sideboardCardsCount > DeckValidator.MaxSideboardSize) {
-                failures[DeckValidationFailureReason.MaxSideboardSizeExceeded] = {
-                    maxSideboardSize: DeckValidator.MaxSideboardSize,
-                    actualSideboardSize: sideboardCardsCount
-                };
-            }
+            this.checkMaxSideboardSize(sideboardCardsCount, format, failures);
 
             // Validate leader.
             const leaderData = this.getCardCheckData(deck.leader.id);
             this.checkFormatLegality(leaderData, format, failures);
 
             // Validate base.
-            const baseData = this.getCardCheckData(deck.base.id);
             this.checkFormatLegality(baseData, format, failures);
 
             // Validate each card in the deck (and sideboard).
@@ -244,6 +245,20 @@ export class DeckValidator {
                 maxCopies: 3,
                 actualCopies: card.count
             });
+        }
+    }
+
+    protected checkMaxSideboardSize(sideboardCardsCount: number, format: SwuGameFormat, failures: IDeckValidationFailures) {
+        // sideboard is only restricted in Premier
+        if (format === SwuGameFormat.Open || format === SwuGameFormat.NextSetPreview) {
+            return;
+        }
+
+        if (sideboardCardsCount > DeckValidator.MaxSideboardSize) {
+            failures[DeckValidationFailureReason.MaxSideboardSizeExceeded] = {
+                maxSideboardSize: DeckValidator.MaxSideboardSize,
+                actualSideboardSize: sideboardCardsCount
+            };
         }
     }
 
