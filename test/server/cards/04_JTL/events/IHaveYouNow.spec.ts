@@ -135,12 +135,12 @@ describe('I Have You Now', function() {
             context.player1.clickCard(context.imperialInterceptor);
             context.player1.clickCard(context.rhokaiGunship);
 
-            // Rhokai Gunship's ability triggers and targets Imperial Interceptor, damage should be dealt as unit is not longer attacking
+            // Rhokai Gunship's ability triggers and targets Imperial Interceptor, damage should be prevented
             expect(context.player2).toBeAbleToSelectExactly([context.atst, context.pykeSentinel, context.imperialInterceptor, context.p1Base, context.p2Base]);
             context.player2.clickCard(context.imperialInterceptor);
 
             // Assert prevented damage
-            expect(context.imperialInterceptor.damage).toBe(1);
+            expect(context.imperialInterceptor.damage).toBe(0);
         });
     });
 });
