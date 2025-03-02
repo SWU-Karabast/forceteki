@@ -60,8 +60,8 @@ export default class StatsModifierWrapper {
         const description = card.isUpgrade() ? `${card.name} bonus` : `${card.name} base`;
 
         return new this({
-            hp: card.printedHp,
-            power: card.printedPower
+            hp: card.isUpgrade() ? card.upgradeHp : card.printedHp,
+            power: card.isUpgrade() ? card.upgradePower : card.printedPower
         },
         description,
         overrides,
