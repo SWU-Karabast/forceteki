@@ -23,6 +23,7 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 context.player1.clickCard(context.chimaera);
                 expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
                 context.player1.chooseListOption('Millennium Falcon');
+                expect(context.getChatLogs(3)).toContain('player1 names Millennium Falcon using Chimaera');
 
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.vanquish, falcon1, falcon2, context.wampa]);
                 expect(context.getChatLogs(1)[0]).toContain(context.vanquish.title);

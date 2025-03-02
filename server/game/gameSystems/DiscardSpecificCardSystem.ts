@@ -13,6 +13,7 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
 
     public eventHandler(event): void {
         event.card.moveTo(ZoneName.Discard);
+        event.context.game.addMessage(`${event.card.owner.name} discards ${event.card.name}`);
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties: Record<string, any> = {}): boolean {
