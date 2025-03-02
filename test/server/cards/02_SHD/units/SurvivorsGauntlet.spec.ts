@@ -1,8 +1,8 @@
 describe('Survivors Gauntlet', function() {
     integration(function(contextRef) {
         describe('Survivors Gauntle\'s ability', function() {
-            it('should allow to attach an upgrade to another eligible unit controlled by the same player', async function () {
-                await contextRef.setupTestAsync({
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['survivors-gauntlet'],
@@ -16,13 +16,15 @@ describe('Survivors Gauntlet', function() {
                         leader: { card: 'finn#this-is-a-rescue', deployed: true },
                     }
                 });
+            });
 
+            it('should allow to attach an upgrade to another eligible unit controlled by the same player', function () {
                 const { context } = contextRef;
 
                 // Scenario 1: Choose a friendly upgrade
                 context.player1.clickCard(context.survivorsGauntlet);
                 expect(context.player1).toBeAbleToSelectExactly([context.frozenInCarbonite, context.legalAuthority, context.shield, context.experience]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.frozenInCarbonite);
                 expect(context.player1).toBeAbleToSelectExactly([context.fugitiveWookiee, context.battlefieldMarine, context.avenger, context.survivorsGauntlet]);
@@ -46,7 +48,7 @@ describe('Survivors Gauntlet', function() {
                 context.player1.clickCard(context.survivorsGauntlet);
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1).toBeAbleToSelectExactly([context.frozenInCarbonite, context.legalAuthority, context.shield, context.experience]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.legalAuthority);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.finn]);
@@ -70,7 +72,7 @@ describe('Survivors Gauntlet', function() {
                 context.player1.clickCard(context.survivorsGauntlet);
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1).toBeAbleToSelectExactly([context.frozenInCarbonite, context.legalAuthority, context.shield, context.experience]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(context.experience);
                 expect(context.player1).toBeAbleToSelectExactly([context.fugitiveWookiee, context.battlefieldMarine, context.atst, context.survivorsGauntlet, context.idenVersio]);
@@ -80,6 +82,21 @@ describe('Survivors Gauntlet', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.survivorsGauntlet).toHaveExactUpgradeNames(['experience']);
                 expect(context.p2Base.damage).toBe(p2BaseDamageBeforeAction + 4 /* Survivors Gauntlet printed power */ + 1 /* experience token */);
+            });
+
+            it('should allow to not move any upgrade', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.survivorsGauntlet);
+                expect(context.player1).toBeAbleToSelectExactly([context.frozenInCarbonite, context.legalAuthority, context.shield, context.experience]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Pass');
+                expect(context.player2).toBeActivePlayer();
+
+                // No updates should have moved
+                expect(context.atst).toHaveExactUpgradeNames(['frozen-in-carbonite']);
+                expect(context.hylobonEnforcer).toHaveExactUpgradeNames(['legal-authority', 'shield']);
+                expect(context.avenger).toHaveExactUpgradeNames(['experience']);
             });
         });
     });
