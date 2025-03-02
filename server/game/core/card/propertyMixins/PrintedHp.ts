@@ -25,7 +25,11 @@ export function WithPrintedHp<TBaseClass extends CardConstructor>(BaseClass: TBa
             Contract.assertNotNullLike(cardData.hp);
             this.printedHp = cardData.hp;
 
-            if (cardData.upgradeHp) {
+            if (this.isUpgrade()) {
+                Contract.assertNotNullLike(cardData.upgradeHp);
+            }
+
+            if (cardData.upgradeHp != null) {
                 this.upgradeHp = cardData.upgradeHp;
             }
         }

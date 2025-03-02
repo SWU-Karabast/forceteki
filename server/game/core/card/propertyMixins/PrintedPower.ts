@@ -21,7 +21,12 @@ export function WithPrintedPower<TBaseClass extends CardConstructor>(BaseClass: 
 
             Contract.assertNotNullLike(cardData.power);
             this.printedPower = cardData.power;
-            if (cardData.upgradePower) {
+
+            if (this.isUpgrade()) {
+                Contract.assertNotNullLike(cardData.upgradePower);
+            }
+
+            if (cardData.upgradePower != null) {
                 this.upgradePower = cardData.upgradePower;
             }
         }
