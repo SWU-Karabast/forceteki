@@ -68,7 +68,7 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
     protected override setupWatcher() {
         this.addUpdater({
             when: {
-                onCardLeavesPlay: (context) => context.card.isUnit() || context.card.isUpgrade()
+                onCardLeavesPlay: () => true
             },
             update: (currentState, event) => currentState.concat({ card: event.card, controlledBy: event.card.controller, cardType: event.lastKnownInformation.type })
         });

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { ZoneName } from '../../../core/Constants';
+import { RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class R2D2FullofSolutions extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -15,6 +15,7 @@ export default class R2D2FullofSolutions extends NonLeaderUnitCard {
             title: 'Discard a card from your hand. If you do, search the top 3 cards of your deck for a card and draw it.',
             optional: true,
             targetResolver: {
+                controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard()
             },
