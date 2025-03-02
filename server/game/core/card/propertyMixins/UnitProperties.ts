@@ -120,11 +120,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         private readonly attackAction: InitiateAttackAction;
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
+        private _lastPlayerToModifyHp?: Player;
         private _whenCapturedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenPlayedKeywordAbilities?: TriggeredAbility[] = null;
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
-        private _lastPlayerToModifyHp?: Player;
 
         public get capturedUnits() {
             this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
@@ -368,31 +368,30 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return constantAbilities;
         }
 
-        protected override updateActionAbilitiesForZone(from: ZoneName, to: ZoneName) {
-            // if not piloting, just use default behavior
-            if (!this.isUpgrade()) {
-                super.updateActionAbilitiesForZone(from, to);
-            }
-
-            super.updateActionAbilitiesForZoneInternal(this.pilotingActionAbilities, from, to);
-        }
-
         protected override updateTriggeredAbilitiesForZone(from: ZoneName, to: ZoneName) {
+            let abilitiesToUpdate: TriggeredAbility[];
+
             // if not piloting, just use default behavior
-            if (!this.isUpgrade()) {
-                super.updateTriggeredAbilitiesForZone(from, to);
+            if (EnumHelpers.isArena(to)) {
+                abilitiesToUpdate = this.getType() === CardType.UnitUpgrade ? this.pilotingTriggeredAbilities : this.triggeredAbilities;
+            } else {
+                abilitiesToUpdate = this.pilotingTriggeredAbilities.concat(this.triggeredAbilities);
             }
 
-            super.updateTriggeredAbilityEventsInternal(this.pilotingTriggeredAbilities, from, to);
+            super.updateTriggeredAbilityEventsInternal(abilitiesToUpdate, from, to);
         }
 
         protected override updateConstantAbilityEffects(from: ZoneName, to: ZoneName): void {
+            let abilitiesToUpdate: IConstantAbility[];
+
             // if not piloting, just use default behavior
-            if (!this.isUpgrade()) {
-                super.updateConstantAbilityEffects(from, to);
+            if (EnumHelpers.isArena(to)) {
+                abilitiesToUpdate = this.getType() === CardType.UnitUpgrade ? this.pilotingConstantAbilities : this.constantAbilities;
+            } else {
+                abilitiesToUpdate = this.pilotingConstantAbilities.concat(this.constantAbilities);
             }
 
-            super.updateConstantAbilityEffectsInternal(this.pilotingConstantAbilities, from, to);
+            super.updateConstantAbilityEffectsInternal(abilitiesToUpdate, from, to);
         }
 
         /** Register / un-register the effects for any abilities from keywords */

@@ -711,7 +711,7 @@ export class Card extends OngoingEffectSource {
     }
 
     protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbility[], from: ZoneName, to: ZoneName) {
-        if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
+        if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const action of actionAbilities) {
                 if (action.limit) {
                     action.limit.reset();
@@ -725,7 +725,7 @@ export class Card extends OngoingEffectSource {
     }
 
     protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbility[], from: ZoneName, to: ZoneName) {
-        if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
+        if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const triggeredAbility of triggeredAbilities) {
                 if (triggeredAbility.limit) {
                     triggeredAbility.limit.reset();
@@ -751,7 +751,7 @@ export class Card extends OngoingEffectSource {
             this.removeLastingEffects();
         }
 
-        for (const constantAbility of this.constantAbilities) {
+        for (const constantAbility of constantAbilities) {
             if (constantAbility.sourceZoneFilter === WildcardZoneName.Any) {
                 continue;
             }
