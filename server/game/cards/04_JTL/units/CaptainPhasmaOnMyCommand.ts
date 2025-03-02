@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { WildcardCardType, WildcardZoneName, Trait } from '../../../core/Constants';
 
-export default class CaptainPhasma extends NonLeaderUnitCard {
+export default class CaptainPhasmaOnMyCommand extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
             id: '3427170256',

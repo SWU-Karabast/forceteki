@@ -16,7 +16,7 @@ export default class DevastatorInescapable extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({ amount: context.source.controller.resources.length }))
+                immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({ amount: context.player.resources.length }))
             },
         });
     }

@@ -36,7 +36,7 @@ export default class BosskHuntingHisPrey extends LeaderUnitCard {
             title: 'Collect the Bounty again',
             optional: true,
             when: {
-                onBountyCollected: (event, context) => event.context.player === context.source.controller
+                onBountyCollected: (event, context) => event.context.player === context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.collectBounty((context) => ({
                 bountyProperties: context.event.bountyProperties,

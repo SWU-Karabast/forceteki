@@ -19,7 +19,7 @@ describe('Planetary Invasion', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.planetaryInvasion);
-            context.player1.clickPrompt('Play Planetary Invasion');
+            context.player1.clickPrompt('Play without Exploit');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.battlefieldMarine,
                 context.wampa,

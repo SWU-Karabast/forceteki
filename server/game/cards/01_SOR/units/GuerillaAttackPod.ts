@@ -13,7 +13,7 @@ export default class GuerillaAttackPod extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'If a base has 15 or more damage on it, ready this unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.controller.base.damage >= 15 || context.source.controller.opponent.base.damage >= 15,
+                condition: (context) => context.player.base.damage >= 15 || context.player.opponent.base.damage >= 15,
                 onTrue: AbilityHelper.immediateEffects.ready((context) => ({ target: context.source })),
                 onFalse: AbilityHelper.immediateEffects.noAction(),
             })

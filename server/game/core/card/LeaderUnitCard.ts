@@ -1,6 +1,7 @@
 import type Player from '../Player';
 import type { ZoneFilter } from '../Constants';
-import { AbilityType, CardType, ZoneName } from '../Constants';
+import { CardType } from '../Constants';
+import { AbilityType, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import * as EnumHelpers from '../utils/EnumHelpers';
@@ -35,7 +36,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
         return this._deployed;
     }
 
-    public override get type(): CardType {
+    public override getType(): CardType {
         return this._deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
@@ -49,7 +50,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
         this.epicActionAbility = this.addActionAbility({
             title: `Deploy ${this.title}`,
             limit: new EpicActionLimit(),
-            condition: (context) => context.source.controller.resources.length >= context.source.cost,
+            condition: (context) => context.player.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
             immediateEffect: new DeployLeaderSystem({})
         });

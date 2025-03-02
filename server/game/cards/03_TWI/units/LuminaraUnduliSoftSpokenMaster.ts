@@ -22,7 +22,7 @@ export default class LuminaraUnduliSoftSpokenMaster extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: CardType.Base,
                 immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
-                    amount: context.source.controller.getUnitsInPlay().length,
+                    amount: context.player.getUnitsInPlay().length,
                 }))
             }
         });

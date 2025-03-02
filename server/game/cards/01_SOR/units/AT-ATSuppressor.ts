@@ -14,8 +14,8 @@ export default class AtAtSuppressor extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'Exhaust all ground units',
             immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => {
-                const opponentGroundUnits = context.source.controller.opponent.getUnitsInPlay(ZoneName.GroundArena);
-                const friendlyGroundUnits = context.source.controller.getUnitsInPlay(ZoneName.GroundArena);
+                const opponentGroundUnits = context.player.opponent.getUnitsInPlay(ZoneName.GroundArena);
+                const friendlyGroundUnits = context.player.getUnitsInPlay(ZoneName.GroundArena);
 
                 return { target: opponentGroundUnits.concat(friendlyGroundUnits) };
             })

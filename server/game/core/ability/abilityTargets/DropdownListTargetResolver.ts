@@ -43,6 +43,8 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
         if (this.name === 'target') {
             context.select = choice;
         }
+        const abilitySource = context.ability.gainAbilitySource != null ? context.ability.gainAbilitySource : context.source;
+        context.game.addMessage(`${context.player.name} names ${choice} using ${abilitySource.title}`);
     }
 
     protected override checkTarget(context: AbilityContext): boolean {

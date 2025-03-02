@@ -209,7 +209,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         const attackDamageSource: IDamagedOrDefeatedByAttack = {
             type: DamageSourceType.Attack,
             attack: properties.sourceAttack,
-            player: context.source.controller,
+            player: context.player,
             damageDealtBy,
             isOverwhelmDamage: false,
             event
@@ -233,7 +233,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         const overwhelmDamageSource: IDamagedOrDefeatedByAttack = {
             type: DamageSourceType.Attack,
             attack: properties.sourceAttack,
-            player: context.source.controller,
+            player: context.player,
             damageDealtBy: properties.sourceAttack.attacker,
             isOverwhelmDamage: true,
             event
@@ -271,6 +271,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         event.isIndirect = properties.isIndirect;
         event.damageSource = abilityDamageSource;
+
+        Contract.assertNotNullLike(properties.amount);
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
     }
 

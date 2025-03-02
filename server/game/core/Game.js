@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -37,6 +37,7 @@ const { SelectCardPrompt } = require('./gameSteps/prompts/SelectCardPrompt.js');
 const { DisplayCardsWithButtonsPrompt } = require('./gameSteps/prompts/DisplayCardsWithButtonsPrompt.js');
 const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayCardsForSelectionPrompt.js');
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
+const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 
 class Game extends EventEmitter {
@@ -83,8 +84,12 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
         this.randomGenerator = seedrandom();
+        this.currentOpenPrompt = null;
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
+
+        /** @type {AbilityResolver | null} */
+        this.currentAbilityResolver = null;
 
         this.initialiseTokens(this.cardDataGetter.tokenData);
 
@@ -242,6 +247,10 @@ class Game extends EventEmitter {
         return this.getPlayers().sort((a) => (a.hasInitiative() ? -1 : 1));
     }
 
+    getActivePlayer() {
+        return this.currentPhase === PhaseName.Action ? this.actionPhaseActivePlayer : this.initiativePlayer;
+    }
+
     /**
      * Get all players and spectators in the game
      * @returns {{[key: string]: Player | Spectator}} {name1: Player, name2: Player, name3: Spectator}
@@ -280,6 +289,7 @@ class Game extends EventEmitter {
      * Checks who the next legal active player for the action phase should be and updates @member {activePlayer}. If none available, sets it to null.
      */
     rotateActivePlayer() {
+        Contract.assertTrue(this.currentPhase === PhaseName.Action, `rotateActivePlayer can only be called during the action phase, instead called during ${this.currentPhase}`);
         if (!this.actionPhaseActivePlayer.opponent.passedActionPhase) {
             this.createEventAndOpenWindow(
                 EventName.OnPassActionPhasePriority,
@@ -353,6 +363,41 @@ class Game extends EventEmitter {
      */
     isTraitInPlay(trait) {
         return this.getPlayers().some((player) => player.isTraitInPlay(trait));
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasZoneCardFilterProperties} filter
+     */
+    getArenaCards(filter = {}) {
+        return this.allArenas.getCards(filter);
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
+     */
+    getArenaUnits(filter = {}) {
+        return this.allArenas.getUnitCards(filter);
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
+     */
+    getArenaUpgrades(filter = {}) {
+        return this.allArenas.getUpgradeCards(filter);
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasZoneCardFilterProperties} filter
+     */
+    hasSomeArenaCard(filter) {
+        return this.allArenas.hasSomeCard(filter);
+    }
+
+    /**
+     * @param {import('./zone/AllArenasZone').IAllArenasSpecificTypeCardFilterProperties} filter
+     */
+    hasSomeArenaUnit(filter) {
+        return this.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit });
     }
 
     // createToken(card, token = undefined) {
@@ -587,47 +632,47 @@ class Game extends EventEmitter {
         }
     }
 
-    // /**
-    //  * This function is called by the client every time a player enters a chat message
-    //  * @param {String} playerName
-    //  * @param {String} message
-    //  */
-    // chat(playerName, message) {
-    //     var player = this.playersAndSpectators[playerName];
-    //     var args = message.split(' ');
+    /**
+     * This function is called by the client every time a player enters a chat message
+     * @param {String} playerId
+     * @param {String} message
+     */
+    chat(playerId, message) {
+        var player = this.getPlayerById(playerId);
+        var args = message.split(' ');
 
-    //     if (!player) {
-    //         return;
-    //     }
+        if (!player) {
+            return;
+        }
 
-    //     if (!this.isSpectator(player)) {
-    //         if (this.chatCommands.executeCommand(player, args[0], args)) {
-    //             this.resolveGameState(true);
-    //             return;
-    //         }
+        // if (!this.isSpectator(player)) {
+        //     if (this.chatCommands.executeCommand(player, args[0], args)) {
+        //         this.resolveGameState(true);
+        //         return;
+        //     }
 
-    //         let card = _.find(this.shortCardData, (c) => {
-    //             return c.name.toLowerCase() === message.toLowerCase() || c.id.toLowerCase() === message.toLowerCase();
-    //         });
+        //     let card = _.find(this.shortCardData, (c) => {
+        //         return c.name.toLowerCase() === message.toLowerCase() || c.id.toLowerCase() === message.toLowerCase();
+        //     });
 
-    //         if (card) {
-    //             this.gameChat.addChatMessage(player, { message: this.gameChat.formatMessage('{0}', [card]) });
+        //     if (card) {
+        //         this.gameChat.addChatMessage(player, { message: this.gameChat.formatMessage('{0}', [card]) });
 
-    //             return;
-    //         }
-    //     }
+        //         return;
+        //     }
+        // }
 
-    //     if (!this.isSpectator(player) || !this.spectatorSquelch) {
-    //         this.gameChat.addChatMessage(player, message);
-    //     }
-    // }
+        if (!this.isSpectator(player)) {
+            this.gameChat.addChatMessage(player, message);
+        }
+    }
 
     /**
      * This is called by the client when a player clicks 'Concede'
      * @param {String} playerId
      */
     concede(playerId) {
-        var player = this.getPlayerByName(playerId);
+        var player = this.getPlayerById(playerId);
 
         if (!player) {
             return;

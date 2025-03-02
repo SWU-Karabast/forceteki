@@ -71,7 +71,7 @@ describe('A Fine Addition', function () {
             context.player2.clickCard(context.finnThisIsARescue);
             context.player2.clickCard(context.p1Base);
 
-            expect(context.player2).toHavePrompt('Choose an upgrade');
+            expect(context.player2).toHavePrompt('Defeat a friendly upgrade on a unit');
             expect(context.player2).toBeAbleToSelectExactly([context.resilient]);
 
             context.player2.clickCard(context.resilient);

@@ -13,7 +13,7 @@ export default class ShootFirst extends EventCard {
         this.setEventAbility({
             title: 'Attack with a unit. It gets +1/+0 for this attack and deals its combat damage before the defender.',
             initiateAttack: {
-                attackerCondition: (card, context) => card.controller === context.source.controller,
+                attackerCondition: (card, context) => card.controller === context.player,
                 attackerLastingEffects: [
                     { effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 }) },
                     { effect: AbilityHelper.ongoingEffects.dealsDamageBeforeDefender() },

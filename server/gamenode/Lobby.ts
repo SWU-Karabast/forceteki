@@ -9,6 +9,8 @@ import { GameChat } from '../game/core/chat/GameChat';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
+import type { SwuGameFormat } from '../SwuGameFormat';
+import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { getUserWithDefaultsSet, type User } from '../Settings';
 import { GameMode } from '../GameMode';
@@ -20,6 +22,8 @@ interface LobbyUser {
     ready: boolean;
     socket?: Socket;
     deck?: Deck;
+    deckValidationErrors?: IDeckValidationFailures;
+    importDeckValidationErrors?: IDeckValidationFailures;
 }
 export enum MatchType {
     Custom = 'Custom',
@@ -45,10 +49,12 @@ export class Lobby {
     private users: LobbyUser[] = [];
     private lobbyOwnerId: string;
     private gameType: MatchType;
+    private gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
 
     public constructor(
         lobbyGameType: MatchType,
+        lobbyGameFormat: SwuGameFormat,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
         testGameBuilder?: any
@@ -65,10 +71,15 @@ export class Lobby {
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
+        this.gameFormat = lobbyGameFormat;
     }
 
     public get id(): string {
         return this._id;
+    }
+
+    public get format(): SwuGameFormat {
+        return this.gameFormat;
     }
 
     public getLobbyState(): any {
@@ -80,6 +91,9 @@ export class Lobby {
                 state: u.state,
                 ready: u.ready,
                 deck: u.deck?.getDecklist(),
+                deckErrors: u.deckValidationErrors,
+                importDeckErrors: u.importDeckValidationErrors,
+                unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist())
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
@@ -87,6 +101,7 @@ export class Lobby {
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
             gameType: this.gameType,
+            gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
         };
     }
@@ -111,6 +126,7 @@ export class Lobby {
             state: null,
             ready: false,
             socket: null,
+            deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck
         }));
     }
@@ -152,9 +168,14 @@ export class Lobby {
     }
 
     private sendChatMessage(socket: Socket, ...args) {
-        // we need to get the player and message
+        const existingUser = this.users.find((u) => u.id === socket.user.id);
+        Contract.assertNotNullLike(existingUser, `Unable to find user with id ${socket.user.id} in lobby ${this.id}`);
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
-        this.gameChat.addChatMessage(socket.user, args[0]);
+        if (!existingUser) {
+            return;
+        }
+
+        this.gameChat.addChatMessage(existingUser, args[0]);
         this.sendLobbyState();
     }
 
@@ -191,9 +212,17 @@ export class Lobby {
 
     private changeDeck(socket: Socket, ...args) {
         const activeUser = this.users.find((u) => u.id === socket.user.id);
-        Contract.assertTrue(args[0] !== null);
-        Contract.assertTrue(args[1] !== null);
-        activeUser.deck = new Deck(args[1], this.cardDataGetter);
+
+        // we check if the deck is valid.
+        activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], this.gameFormat);
+
+        // if the deck doesn't have any errors set it as active.
+        if (Object.keys(activeUser.importDeckValidationErrors).length === 0) {
+            activeUser.deck = new Deck(args[0], this.cardDataGetter);
+            activeUser.deckValidationErrors = this.deckValidator.validateInternalDeck(activeUser.deck.getDecklist(),
+                this.gameFormat);
+            activeUser.importDeckValidationErrors = null;
+        }
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -209,6 +238,10 @@ export class Lobby {
         } else {
             userDeck.moveToDeck(cardId);
         }
+        // check deck for deckValidationErrors
+        this.getUser(socket.user.id).deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
+        // we need to clear any importDeckValidation errors otherwise they can persist
+        this.getUser(socket.user.id).importDeckValidationErrors = null;
     }
 
     private getUser(id: string) {
@@ -232,6 +265,29 @@ export class Lobby {
         this.lobbyOwnerId = id;
     }
 
+    public getGamePreview() {
+        if (!this.game) {
+            return null;
+        }
+        try {
+            if (this.users.length !== 2) {
+                return null;
+            }
+            const player1 = this.users[0];
+            const player2 = this.users[1];
+
+            return {
+                player1Leader: player1.deck.leader,
+                player1Base: player1.deck.base,
+                player2Leader: player2.deck.leader,
+                player2Base: player2.deck.base,
+            };
+        } catch (error) {
+            logger.error(`Error retrieving lobby game data ${this.id}:`, error);
+            return null;
+        }
+    }
+
     public getUserState(id: string): string {
         const user = this.users.find((u) => u.id === id);
         return user ? user.state : null;
@@ -242,6 +298,18 @@ export class Lobby {
     }
 
     public removeUser(id: string): void {
+        const user = this.users.find((u) => u.id === id);
+        if (user) {
+            this.gameChat.addMessage(`${user.username} has left the lobby`);
+        }
+        if (this.game) {
+            this.game.addMessage(`${user.username} has left the game`);
+            const winner = this.users.find((u) => u.id !== id);
+            if (winner) {
+                this.game.endGame(this.game.getPlayerById(winner.id), `${user.username} has conceded`);
+            }
+            this.sendGameState(this.game);
+        }
         this.users = this.users.filter((u) => u.id !== id);
         this.sendLobbyState();
     }
@@ -260,6 +328,9 @@ export class Lobby {
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
 
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
+        if (setupData.autoSingleTarget == null) {
+            setupData.autoSingleTarget = false;
+        }
 
         Contract.assertNotNullLike(this.testGameBuilder, `Attempting to start a test game from file ${filename} but local test tools were not found`);
 
@@ -280,7 +351,6 @@ export class Lobby {
 
     private async onStartGameAsync() {
         this.rematchRequest = null;
-
         const game = new Game(this.buildGameSettings(), { router: this });
         this.game = game;
         game.started = true;
@@ -304,7 +374,7 @@ export class Lobby {
                 username: user.username,
                 settings: {
                     optionSettings: {
-                        autoSingleTarget: true,
+                        autoSingleTarget: false,
                     }
                 }
             })
@@ -321,18 +391,16 @@ export class Lobby {
         };
     }
 
-    private onLobbyMessage(socket: Socket, command: string, ...args): void {
+    private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         if (!this[command] || typeof this[command] !== 'function') {
             throw new Error(`Incorrect command or command format expected function but got: ${command}`);
         }
 
-        this.runLobbyFuncAndCatchErrors(() => {
-            this[command](socket, ...args);
-            this.sendLobbyState();
-        });
+        await this[command](socket, ...args);
+        this.sendLobbyState();
     }
 
-    private onGameMessage(socket: Socket, command: string, ...args): void {
+    private async onGameMessage(socket: Socket, command: string, ...args): Promise<void> {
         if (!this.game) {
             return;
         }
@@ -345,34 +413,14 @@ export class Lobby {
             return;
         }
 
-        this.runAndCatchErrors(this.game, () => {
-            this.game.stopNonChessClocks();
-            this.game[command](socket.user.id, ...args);
+        this.game.stopNonChessClocks();
+        await this.game[command](socket.user.id, ...args);
 
-            this.game.continue();
+        this.game.continue();
 
-            this.sendGameState(this.game);
-        });
+        this.sendGameState(this.game);
     }
 
-    private runAndCatchErrors(game: Game, func: () => void) {
-        try {
-            func();
-        } catch (e) {
-            this.handleError(game, e);
-            this.sendGameState(game);
-        }
-    }
-
-    // might just use the top function at some point?
-    private runLobbyFuncAndCatchErrors(func: () => void) {
-        try {
-            func();
-        } catch (e) {
-            logger.error(e);
-            this.sendLobbyState();
-        }
-    }
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, e: Error) {

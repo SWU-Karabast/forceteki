@@ -13,7 +13,7 @@ export default class DroidManufactory extends BaseCard {
         this.addTriggeredAbility({
             title: 'Create 2 Battle Droid tokens.',
             when: {
-                onLeaderDeployed: (event, context) => event.card.controller === context.source.controller
+                onLeaderDeployed: (event, context) => event.card.controller === context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid({ amount: 2 }),
         });
