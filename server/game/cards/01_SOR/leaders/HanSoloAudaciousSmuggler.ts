@@ -43,6 +43,7 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
     }
 
     private buildHanDelayedEffect(): GameSystem<TriggeredAbilityContext<this>> {
+        const defaultActivePromptTitle = 'Choose a resource to defeat';
         return AbilityHelper.immediateEffects.delayedPlayerEffect({
             title: 'Defeat a resource you control',
             when: {
@@ -51,7 +52,7 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.selectCard({
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
-                activePromptTitle: () => (this.controller.exhaustedResourceCount === 0 ? 'Choose a resource to defeat' : 'The resource you choose will automatically be switched to exhausted before it is defeated (you will not lose any ready resources).'),
+                activePromptTitle: () => (this.controller.exhaustedResourceCount === 0 ? defaultActivePromptTitle : `${defaultActivePromptTitle}. The resource you choose will automatically be switched to exhausted before it is defeated (you will not lose any ready resources).`),
                 innerSystem: AbilityHelper.immediateEffects.defeat()
             })
         });
