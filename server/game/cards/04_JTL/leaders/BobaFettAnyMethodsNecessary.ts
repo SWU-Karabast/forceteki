@@ -1,12 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { Trait, WildcardCardType } from '../../../core/Constants';
-import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
 
 export default class BobaFettAnyMethodsNecessary extends LeaderUnitCard {
-    private attacksThisPhaseWatcher: AttacksThisPhaseWatcher;
-
     protected override getImplementationId() {
         return {
             id: '9831674351',
@@ -14,34 +9,30 @@ export default class BobaFettAnyMethodsNecessary extends LeaderUnitCard {
         };
     }
 
-    protected override setupStateWatchers(registrar: StateWatcherRegistrar) {
-        this.attacksThisPhaseWatcher = AbilityHelper.stateWatchers.attacksThisPhase(registrar, this);
-    }
-
     protected override setupLeaderSideAbilities() {
-        this.addActionAbility({
-            title: 'Heal 2 damage from a Vehicle unit that attacked this phase',
-            cost: AbilityHelper.costs.exhaustSelf(),
-            targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 2 }),
-                cardCondition: (card, context) => {
-                    const vehicleUnitsAttackedThisPhase = this.attacksThisPhaseWatcher.getAttackersInPlay((attack) => attack.attacker.hasSomeTrait(Trait.Vehicle));
-                    return vehicleUnitsAttackedThisPhase.includes(card);
-                }
-            }
+        this.addTriggeredAbility({
+            title: 'Exhaust leader and exhaust the damaged enemy unit',
+            optional: true,
+            when: {
+                onDamageDealt: (event, context) => event.source !== context.source,
+            },
+            immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
+                amount: 1,
+                target: context.player.opponent.base
+            }))
         });
     }
 
     protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
-            title: 'Heal 2 damage from a Vehicle unit',
-            optional: true,
-            targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle),
-                immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 2 })
-            }
+        this.addTriggeredAbility({
+            title: 'Deal up to 4 damage divided as you choose among any number of units.',
+            when: {
+                onLeaderDeployed: (event, context) => event.card === context.source
+            },
+            immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
+                amount: 4,
+                target: context.player.opponent.base
+            }))
         });
     }
 }

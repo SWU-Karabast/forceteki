@@ -1,13 +1,15 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import type { DeployType } from '../core/Constants';
+import { DeployType } from '../core/Constants';
 import { CardType, EventName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import { GameEvent } from '../core/event/GameEvent';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 export interface IDeployLeaderProperties extends ICardTargetSystemProperties {
     deployType: DeployType;
+    parentCard?: IUnitCard;
 }
 
 export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDeployLeaderProperties> {
@@ -18,8 +20,13 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
     protected override readonly targetTypeFilter = [CardType.Leader];
 
     public eventHandler(event): void {
+        Contract.assertNotNullLike(event.deployType);
         Contract.assertTrue(event.card.isDeployableLeader());
-        event.card.deploy();
+
+        if (event.deployType === DeployType.LeaderUpgrade) {
+            Contract.assertNotNullLike(event.parentCard);
+        }
+        event.card.deploy(event.deployType, event.parentCard);
     }
 
     public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
@@ -32,6 +39,13 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
             return false;
         }
         return super.canAffect(card, context);
+    }
+
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+        const properties = this.generatePropertiesFromContext(context);
+        super.addPropertiesToEvent(event, card, context, additionalProperties);
+        event.deployType = properties.deployType;
+        event.parentCard = properties.parentCard;
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {
