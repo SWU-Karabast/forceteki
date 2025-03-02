@@ -43,8 +43,13 @@ describe('Home One', function () {
 
                 // enemy units shouldn't have restore 1, p2 base damage should still be 3
                 expect(context.p2Base.damage).toBe(3);
+                expect(context.p1Base.damage).toBe(10);
 
                 expect(context.player1).toBeActivePlayer();
+
+                // Home should not benefit from the +1 restore
+                context.player1.clickCard(context.homeOne);
+                expect(context.p1Base.damage).toBe(8);
             });
         });
 
