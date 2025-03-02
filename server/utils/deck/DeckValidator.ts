@@ -249,8 +249,8 @@ export class DeckValidator {
     }
 
     protected checkMaxSideboardSize(sideboardCardsCount: number, format: SwuGameFormat, failures: IDeckValidationFailures) {
-        // no sideboard restriction in Open format
-        if (format === SwuGameFormat.Open) {
+        // sideboard is only restricted in Premier
+        if (format === SwuGameFormat.Open || format === SwuGameFormat.NextSetPreview) {
             return;
         }
 
