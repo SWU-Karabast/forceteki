@@ -1,6 +1,6 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena } from '../../Constants';
-import { CardType, EffectName, EventName, KeywordName, StatType, Trait, ZoneName } from '../../Constants';
+import { AbilityType, CardType, EffectName, EventName, KeywordName, StatType, Trait, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -31,6 +31,7 @@ import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type Player from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
 import type { IUpgradeCard } from '../CardInterfaces';
+import type { ActionAbility } from '../../ability/ActionAbility';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -113,6 +114,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         protected _captureZone?: CaptureZone = null;
         protected _upgrades?: IUpgradeCard[] = null;
+        protected pilotingActionAbilities: ActionAbility[] = [];
+        protected pilotingConstantAbilities: IConstantAbility[] = [];
+        protected pilotingTriggeredAbilities: TriggeredAbility[] = [];
 
         private readonly attackAction: InitiateAttackAction;
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
@@ -299,6 +303,27 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             coordinateAbilityToAssign.setAbilityProps(properties);
         }
 
+        protected addPilotingAbility(properties: IAbilityPropsWithType<this>): void {
+            Contract.assertTrue(
+                this.printedKeywords.some((keyword) => keyword.name === KeywordName.Piloting),
+                `Attempting to add a piloting ability '${properties.title}' to ${this.internalName} but it has no printed instances of the Piloting keyword`
+            );
+
+            switch (properties.type) {
+                case AbilityType.Action:
+                    this.pilotingActionAbilities.push(this.createActionAbility(properties));
+                    break;
+                case AbilityType.Constant:
+                    this.pilotingConstantAbilities.push(this.createConstantAbility(properties));
+                    break;
+                case AbilityType.Triggered:
+                    this.pilotingTriggeredAbilities.push(this.createTriggeredAbility(properties));
+                    break;
+                default:
+                    Contract.fail(`Unsupported ability type ${properties.type}`);
+            }
+        }
+
         public override getTriggeredAbilities(): TriggeredAbility[] {
             let triggeredAbilities = super.getTriggeredAbilities();
 
@@ -336,6 +361,33 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
 
             return constantAbilities;
+        }
+
+        protected override updateActionAbilitiesForZone(from: ZoneName, to: ZoneName) {
+            // if not piloting, just use default behavior
+            if (!this.isUpgrade()) {
+                super.updateActionAbilitiesForZone(from, to);
+            }
+
+            super.updateActionAbilitiesForZoneInternal(this.pilotingActionAbilities, from, to);
+        }
+
+        protected override updateTriggeredAbilitiesForZone(from: ZoneName, to: ZoneName) {
+            // if not piloting, just use default behavior
+            if (!this.isUpgrade()) {
+                super.updateTriggeredAbilitiesForZone(from, to);
+            }
+
+            super.updateTriggeredAbilityEventsInternal(this.pilotingTriggeredAbilities, from, to);
+        }
+
+        protected override updateConstantAbilityEffects(from: ZoneName, to: ZoneName): void {
+            // if not piloting, just use default behavior
+            if (!this.isUpgrade()) {
+                super.updateConstantAbilityEffects(from, to);
+            }
+
+            super.updateConstantAbilityEffectsInternal(this.pilotingConstantAbilities, from, to);
         }
 
         /** Register / un-register the effects for any abilities from keywords */

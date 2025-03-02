@@ -102,11 +102,11 @@ export class Card extends OngoingEffectSource {
     protected _facedown = true;
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
+    protected movedFromZone?: ZoneName = null;
+    protected triggeredAbilities: TriggeredAbility[] = [];
 
     private nextAbilityIdx = 0;
     private _zone: Zone;
-    protected movedFromZone?: ZoneName = null;
-    protected triggeredAbilities: TriggeredAbility[] = [];
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
@@ -698,19 +698,42 @@ export class Card extends OngoingEffectSource {
     public resolveAbilitiesForNewZone() {
         // TODO: do we need to consider a case where a card is moved from one arena to another,
         // where we maybe wouldn't reset events / effects / limits?
-        this.updateTriggeredAbilityEvents(this.movedFromZone, this.zoneName);
+        this.updateActionAbilitiesForZone(this.movedFromZone, this.zoneName);
+        this.updateTriggeredAbilitiesForZone(this.movedFromZone, this.zoneName);
         this.updateConstantAbilityEffects(this.movedFromZone, this.zoneName);
         this.updateKeywordAbilityEffects(this.movedFromZone, this.zoneName);
 
         this.movedFromZone = null;
     }
 
-    private updateTriggeredAbilityEvents(from: ZoneName, to: ZoneName, reset: boolean = true) {
+    protected updateActionAbilitiesForZone(from: ZoneName, to: ZoneName) {
+        this.updateActionAbilitiesForZoneInternal(this.actionAbilities, from, to);
+    }
+
+    protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbility[], from: ZoneName, to: ZoneName) {
         if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
-            this.resetLimits();
+            for (const action of actionAbilities) {
+                if (action.limit) {
+                    action.limit.reset();
+                }
+            }
+        }
+    }
+
+    protected updateTriggeredAbilitiesForZone(from: ZoneName, to: ZoneName) {
+        this.updateTriggeredAbilityEventsInternal(this.triggeredAbilities, from, to);
+    }
+
+    protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbility[], from: ZoneName, to: ZoneName) {
+        if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
+            for (const triggeredAbility of triggeredAbilities) {
+                if (triggeredAbility.limit) {
+                    triggeredAbility.limit.reset();
+                }
+            }
         }
 
-        for (const triggeredAbility of this.triggeredAbilities) {
+        for (const triggeredAbility of triggeredAbilities) {
             if (EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && !EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
                 triggeredAbility.registerEvents();
             } else if (!EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
@@ -719,7 +742,11 @@ export class Card extends OngoingEffectSource {
         }
     }
 
-    private updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
+    protected updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
+        this.updateConstantAbilityEffectsInternal(this.constantAbilities, from, to);
+    }
+
+    protected updateConstantAbilityEffectsInternal(constantAbilities: IConstantAbility[], from: ZoneName, to: ZoneName) {
         if (!EnumHelpers.isArena(to) || from === ZoneName.Discard || from === ZoneName.Capture) {
             this.removeLastingEffects();
         }
@@ -816,14 +843,6 @@ export class Card extends OngoingEffectSource {
 
     private buildPropertyDisabledForZoneStr(propertyName: string) {
         return `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in zone '${this.zoneName}' where the property does not apply`;
-    }
-
-    protected resetLimits() {
-        for (const action of this.actionAbilities) {
-            if (action.limit) {
-                action.limit.reset();
-            }
-        }
     }
 
     public isResource() {

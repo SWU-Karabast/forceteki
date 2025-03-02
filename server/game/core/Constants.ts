@@ -307,7 +307,6 @@ export enum KeywordName {
     Overwhelm = 'overwhelm',
     Raid = 'raid',
     Restore = 'restore',
-    /** @deprecated not fully implemented yet */
     Piloting = 'piloting',
     Saboteur = 'saboteur',
     Sentinel = 'sentinel',

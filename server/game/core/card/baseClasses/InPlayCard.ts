@@ -59,7 +59,6 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     protected _mostRecentInPlayId = -1;
     protected _parentCard?: IUnitCard = null;
     protected _pendingDefeat?: boolean = null;
-    // protected triggeredAbilities: TriggeredAbility[] = [];
 
     protected attachCondition: (card: Card) => boolean;
 
@@ -376,17 +375,6 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             // if we're moving from a visible zone (discard, capture) to a hidden zone, increment the in-play id to represent the loss of information (card becomes a new copy)
             if (EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self) && !EnumHelpers.isHiddenFromOpponent(prevZone, RelativePlayer.Self)) {
                 this._mostRecentInPlayId += 1;
-            }
-        }
-    }
-
-
-    protected override resetLimits() {
-        super.resetLimits();
-
-        for (const triggeredAbility of this.triggeredAbilities) {
-            if (triggeredAbility.limit) {
-                triggeredAbility.limit.reset();
             }
         }
     }
