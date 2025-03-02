@@ -231,6 +231,7 @@ export class Card extends OngoingEffectSource {
         }
 
         this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
+        this.initializeStateForAbilitySetup();
     }
 
 
@@ -346,6 +347,10 @@ export class Card extends OngoingEffectSource {
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected setupStateWatchers(registrar: StateWatcherRegistrar) {
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected initializeStateForAbilitySetup() {
     }
 
     // ******************************************* ABILITY HELPERS *******************************************

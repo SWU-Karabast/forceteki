@@ -114,9 +114,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         protected _captureZone?: CaptureZone = null;
         protected _upgrades?: IUpgradeCard[] = null;
-        protected pilotingActionAbilities: ActionAbility[] = [];
-        protected pilotingConstantAbilities: IConstantAbility[] = [];
-        protected pilotingTriggeredAbilities: TriggeredAbility[] = [];
+        protected pilotingActionAbilities: ActionAbility[];
+        protected pilotingConstantAbilities: IConstantAbility[];
+        protected pilotingTriggeredAbilities: TriggeredAbility[];
 
         private readonly attackAction: InitiateAttackAction;
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
@@ -197,6 +197,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.attackAction = new InitiateAttackAction(this.game, this);
         }
 
+        protected override initializeStateForAbilitySetup() {
+            this.pilotingActionAbilities = [];
+            this.pilotingConstantAbilities = [];
+            this.pilotingTriggeredAbilities = [];
+        }
+
         // ****************************************** PROPERTY HELPERS ******************************************
         public override getHp(): number {
             return this.getModifiedStatValue(StatType.Hp);
@@ -254,12 +260,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         // ***************************************** ABILITY HELPERS *****************************************
         public override getActions() {
-            let actions = super.getActions();
-            // If this is an attached Pilot, we do not attach the Attack action
-            if (this.isUnit()) {
-                actions = actions.concat(this.attackAction);
+            if (this.getType() === CardType.UnitUpgrade) {
+                return this.pilotingActionAbilities;
             }
-            return actions;
+
+            return super.getActions().concat(this.attackAction);
         }
 
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
@@ -330,7 +335,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
-            let triggeredAbilities = super.getTriggeredAbilities();
+            let triggeredAbilities = this.getType() === CardType.UnitUpgrade ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
             if (this._attackKeywordAbilities !== null) {
@@ -350,7 +355,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override getConstantAbilities(): IConstantAbility[] {
-            let constantAbilities = super.getConstantAbilities();
+            let constantAbilities = this.getType() === CardType.UnitUpgrade ? this.pilotingConstantAbilities : super.getConstantAbilities();
 
             // add any temporarily registered attack abilities from keywords
             if (this._attackKeywordAbilities !== null) {
