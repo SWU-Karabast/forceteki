@@ -1,6 +1,6 @@
 describe('Qi\'ra, Playing Her Part', function () {
     integration(function (contextRef) {
-        it('should draw a card', async function () {
+        it('should view the opponents hand, name a card, and increase that card\'s cost to play.', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -21,7 +21,11 @@ describe('Qi\'ra, Playing Her Part', function () {
             const marine2 = context.player2.findCardByName('battlefield-marine');
 
             // play qira and increase cost of Battlefield Marine
+            //console.log();
+            //console.log('Hand Check');
+            //context.game.debug.pipeline = true;
             context.player1.clickCard(context.qira);
+            context.game.debug.pipeline = false;
 
             // Cards are not revealed in chat
             expect(context.getChatLogs(1)[0]).not.toContain(marine2.title);
@@ -101,6 +105,38 @@ describe('Qi\'ra, Playing Her Part', function () {
             // player 2 marine should cost 2 as qira was defeated
             context.player2.clickCard(marine2);
             expect(context.player2.exhaustedResourceCount).toBe(9); // 7 from vanquish with penaly aspect + 2 from marine
+        });
+
+        it('when the opponents hand is empty, should skip viewing the opponents hand, name a card, and increase that card\'s cost to play.', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['qira#playing-her-part', 'battlefield-marine'],
+                    leader: 'padme-amidala#serving-the-republic',
+                    base: 'jabbas-palace'
+                },
+                player2: {
+                    hand: [],
+                    leader: 'leia-organa#alliance-general',
+                    base: 'level-1313'
+                }
+            });
+
+            const { context } = contextRef;
+
+            //const marine1 = context.player1.findCardByName('battlefield-marine');
+            //const marine2 = context.player2.findCardByName('battlefield-marine');
+
+            // play qira and increase cost of Battlefield Marine
+            
+            //console.log();
+            //console.log('No Hand Check');
+            //context.game.debug.pipeline = true;
+            context.player1.clickCard(context.qira);
+            context.game.debug.pipeline = false;
+
+            expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
+            context.player1.chooseListOption('Battlefield Marine');
         });
     });
 });

@@ -67,6 +67,7 @@ class Game extends EventEmitter {
         this.playStarted = false;
         this.createdAt = new Date();
         this.currentActionWindow = null;
+        this.debug = { pipeline: false }
 
         /** @type { EventWindow } */
         this.currentEventWindow = null;
@@ -1264,7 +1265,7 @@ class Game extends EventEmitter {
     }
 
     continue() {
-        this.pipeline.continue();
+        this.pipeline.continue(this);
     }
 
     /**

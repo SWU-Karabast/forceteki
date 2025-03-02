@@ -1,3 +1,4 @@
+import Game from './Game';
 import type Player from './Player';
 import type { Card } from './card/Card';
 import type { IStep } from './gameSteps/IStep';
@@ -25,7 +26,7 @@ export class GamePipeline {
      * Resolve all steps in the pipeline (including any new ones added during resolution)
      * @returns {boolean} True if the pipeline has completed, false if it has been paused with steps still queued
      */
-    public continue() {
+    public continue(game: Game) {
         this.queueNewStepsIntoPipeline();
 
         while (this.pipeline.length > 0) {
@@ -33,6 +34,9 @@ export class GamePipeline {
 
             // Explicitly check for a return of false - if no return values is
             // defined then just continue to the next step.
+            if(game.debug.pipeline) {
+                console.log(currentStep.getDebugInfo());
+            }
             if (currentStep.continue() === false) {
                 if (this.stepsQueuedDuringCurrentStep.length === 0) {
                     return false;

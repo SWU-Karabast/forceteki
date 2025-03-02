@@ -160,7 +160,7 @@ class PlayerOrCardAbility {
             }
         }
 
-        if (!ignoredRequirements.includes('gameStateChange') && !this.hasAnyLegalEffects(context)) {
+        if (!ignoredRequirements.includes('gameStateChange') && !this.hasAnyLegalEffects(context, true)) {
             return 'gameStateChange';
         }
 
