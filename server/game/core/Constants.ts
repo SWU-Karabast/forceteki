@@ -469,7 +469,7 @@ export enum PromptType {
     DistributeAmongTargets = 'distributeAmongTargets',
 }
 
-export enum SubStepCheck { 
+export enum SubStepCheck {
     None = 'none',
     /** ifYouDoNot is a special case which needs to ignore SubStep checks, but then and ifYouDo will do this check. */
     ThenIfYouDo = 'thenIfYouDo',

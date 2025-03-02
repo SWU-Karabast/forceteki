@@ -70,7 +70,7 @@ class Game extends EventEmitter {
         this.createdAt = new Date();
         this.currentActionWindow = null;
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
-        this.#debug = { pipeline: false }
+        this.#debug = { pipeline: false };
 
         /** @type { EventWindow } */
         this.currentEventWindow = null;
@@ -1466,8 +1466,7 @@ class Game extends EventEmitter {
         this.#debug = settings;
         try {
             fcn();
-        }
-        finally {
+        } finally {
             this.#debug = currDebug;
         }
     }
@@ -1480,8 +1479,7 @@ class Game extends EventEmitter {
         this.#debug.pipeline = true;
         try {
             fcn();
-        }
-        finally {
+        } finally {
             this.#debug.pipeline = false;
         }
     }

@@ -43,7 +43,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
             return true;
         }
 
-        if (includeSubSteps == SubStepCheck.All || (includeSubSteps == SubStepCheck.ThenIfYouDo && (this.properties.then || this.properties.ifYouDo))) {
+        if (includeSubSteps === SubStepCheck.All || (includeSubSteps === SubStepCheck.ThenIfYouDo && (this.properties.then || this.properties.ifYouDo))) {
             const subAbilityStepContext = this.getSubAbilityStepContext(context);
             return subAbilityStepContext && subAbilityStepContext.ability.hasAnyLegalEffects(subAbilityStepContext);
         }
