@@ -23,6 +23,24 @@ describe('Basic attack', function() {
 
                 context.player1.clickCard(context.wampa);
                 expect(context.player1).toHavePrompt('Choose a target for attack');
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
+
+                // can target opponent's ground units and base but not space units
+                expect(context.player1).toBeAbleToSelectExactly([context.frontierAtrt, context.enfysNest, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+            });
+
+            it('the player should be able to cancel the attack and then trigger it again', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toHavePrompt('Choose a target for attack');
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
+
+                context.player1.clickPrompt('Cancel');
+                expect(context.player1).toBeActivePlayer();
+                context.player1.clickCard(context.wampa);
+                expect(context.player1).toHavePrompt('Choose a target for attack');
 
                 // can target opponent's ground units and base but not space units
                 expect(context.player1).toBeAbleToSelectExactly([context.frontierAtrt, context.enfysNest, context.p2Base]);
@@ -104,6 +122,31 @@ describe('Basic attack', function() {
 
                 context.allowTestToEndWithOpenPrompt = true;
             });
+        });
+
+        it('When a unit attacks as part of an ability, it should not have a cancel button', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['fleet-lieutenant'],
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.fleetLieutenant);
+            expect(context.fleetLieutenant).toBeInZone('groundArena');
+            expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+
+            context.player1.clickCard(context.wampa);
+            expect(context.player1).toBeAbleToSelectExactly([context.p2Base]);
+            expect(context.player1).not.toHaveEnabledPromptButton('Cancel');
+
+            context.player1.clickCard(context.p2Base);
+            expect(context.wampa.exhausted).toBe(true);
+            expect(context.wampa.damage).toBe(0);
+            expect(context.p2Base.damage).toBe(4);
         });
     });
 });

@@ -24,6 +24,7 @@ import type { GroundArenaZone } from './core/zone/GroundArenaZone';
 import type { SpaceArenaZone } from './core/zone/SpaceArenaZone';
 import type { CaptureZone } from './core/zone/CaptureZone';
 import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
+import type { DelayedEffectType } from './gameSystems/DelayedEffectSystem';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -61,6 +62,7 @@ export interface IOngoingEffectProps {
     target?: (Player | Card) | (Player | Card)[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
+    delayedEffectType?: DelayedEffectType;
 }
 
 export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
@@ -178,6 +180,7 @@ export type IKeywordProperties =
   | IBountyKeywordProperties
   | IGritKeywordProperties
   | IOverwhelmKeywordProperties
+  | IPilotingKeywordProperties
   | IRaidKeywordProperties
   | IRestoreKeywordProperties
   | ISaboteurKeywordProperties
@@ -305,6 +308,11 @@ interface INumericKeywordProperties extends IKeywordPropertiesBase {
     amount: number;
 }
 
+interface IKeywordWithCostProperties extends IKeywordPropertiesBase {
+    cost: number;
+    aspects: Aspect[];
+}
+
 interface IKeywordWithAbilityDefinitionProperties<TSource extends Card = Card> extends IKeywordPropertiesBase {
     ability: IAbilityPropsWithSystems<AbilityContext<TSource>>;
 }
@@ -326,6 +334,10 @@ interface IOverwhelmKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Overwhelm;
 }
 
+interface IPilotingKeywordProperties extends IKeywordWithCostProperties {
+    keyword: KeywordName.Piloting;
+}
+
 interface IRaidKeywordProperties extends INumericKeywordProperties {
     keyword: KeywordName.Raid;
 }
@@ -342,10 +354,8 @@ interface ISentinelKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Sentinel;
 }
 
-interface ISmuggleKeywordProperties extends IKeywordPropertiesBase {
+interface ISmuggleKeywordProperties extends IKeywordWithCostProperties {
     keyword: KeywordName.Smuggle;
-    cost: number;
-    aspects: Aspect[];
 }
 
 interface IShieldedKeywordProperties extends IKeywordPropertiesBase {

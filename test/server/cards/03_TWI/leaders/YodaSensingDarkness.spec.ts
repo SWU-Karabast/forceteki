@@ -232,6 +232,32 @@ describe('Yoda, Sensing Darkness', function () {
                 context.player1.clickPrompt('Pass');
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('does not work when a Pilot has been defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'yoda#sensing-darkness',
+                        hand: ['confiscate'],
+                        deck: ['entrenched', 'r2d2#ignoring-protocol']
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'concord-dawn-interceptors', upgrades: ['dagger-squadron-pilot'] }]
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.confiscate);
+                context.player1.clickCard(context.daggerSquadronPilot);
+                context.player2.passAction();
+
+                // Yoda Leader ability should not activate
+                context.player1.clickCard(context.yoda);
+                context.player1.clickPrompt('If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.');
+                expect(context.yoda.exhausted).toBe(true);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

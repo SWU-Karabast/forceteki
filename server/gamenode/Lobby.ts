@@ -78,6 +78,10 @@ export class Lobby {
         return this._id;
     }
 
+    public get format(): SwuGameFormat {
+        return this.gameFormat;
+    }
+
     public getLobbyState(): any {
         return {
             id: this._id,
@@ -294,6 +298,18 @@ export class Lobby {
     }
 
     public removeUser(id: string): void {
+        const user = this.users.find((u) => u.id === id);
+        if (user) {
+            this.gameChat.addMessage(`${user.username} has left the lobby`);
+        }
+        if (this.game) {
+            this.game.addMessage(`${user.username} has left the game`);
+            const winner = this.users.find((u) => u.id !== id);
+            if (winner) {
+                this.game.endGame(this.game.getPlayerById(winner.id), `${user.username} has conceded`);
+            }
+            this.sendGameState(this.game);
+        }
         this.users = this.users.filter((u) => u.id !== id);
         this.sendLobbyState();
     }
@@ -312,6 +328,9 @@ export class Lobby {
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
 
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
+        if (setupData.autoSingleTarget == null) {
+            setupData.autoSingleTarget = false;
+        }
 
         Contract.assertNotNullLike(this.testGameBuilder, `Attempting to start a test game from file ${filename} but local test tools were not found`);
 
@@ -355,7 +374,7 @@ export class Lobby {
                 username: user.username,
                 settings: {
                     optionSettings: {
-                        autoSingleTarget: true,
+                        autoSingleTarget: false,
                     }
                 }
             })

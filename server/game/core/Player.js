@@ -654,8 +654,11 @@ class Player extends GameObject {
         /** @type {PlayableZone[]} */
         this.playableZones = [
             new PlayableZone(PlayType.PlayFromHand, this.handZone),
+            new PlayableZone(PlayType.Piloting, this.handZone),
             new PlayableZone(PlayType.Smuggle, this.resourceZone),
+            new PlayableZone(PlayType.Piloting, this.deckZone), // TODO: interaction with Ezra
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.deckZone),
+            new PlayableZone(PlayType.Piloting, this.discardZone), // TODO: interactions with Fine Addition
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
@@ -1197,6 +1200,12 @@ class Player extends GameObject {
         let isActivePlayer = activePlayer === this;
         let promptState = isActivePlayer ? this.promptState.getState() : {};
         let { ...safeUser } = this.user;
+
+        let isActionPhaseActivePlayer = null;
+        if (this.game.actionPhaseActivePlayer != null) {
+            isActionPhaseActivePlayer = this.game.actionPhaseActivePlayer === this;
+        }
+
         let state = {
             cardPiles: {
                 hand: this.getSummaryForZone(ZoneName.Hand, activePlayer),
@@ -1222,6 +1231,7 @@ class Player extends GameObject {
             // stats: this.getStats(),
             user: safeUser,
             promptState: promptState,
+            isActionPhaseActivePlayer
         };
 
         // if (this.showDeck) {
