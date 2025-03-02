@@ -49,11 +49,11 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     }
 
     public override getHp(): number {
-        return this.upgradeHp;
+        return this.printedUpgradeHp;
     }
 
     public override getPower(): number {
-        return this.upgradePower;
+        return this.printedUpgradePower;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

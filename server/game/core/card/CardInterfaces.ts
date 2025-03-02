@@ -15,8 +15,8 @@ export interface ICardCanChangeControllers {
 
 /** IUpgradeCard definition (exists here to prevent import loops) */
 export interface IUpgradeCard extends IInPlayCard, ICardWithPrintedHpProperty, ICardWithPrintedPowerProperty, ICardWithCostProperty, ICardCanChangeControllers {
-    readonly upgradeHp?: number;
-    readonly upgradePower?: number;
+    readonly printedUpgradeHp: number;
+    readonly printedUpgradePower: number;
     getUpgradeHp(): number;
     getUpgradePower(): number;
 }

@@ -55,8 +55,8 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
  * 3. Uniqueness management
  */
 export class InPlayCard extends InPlayCardParent implements IInPlayCard {
-    public readonly upgradeHp?: number;
-    public readonly upgradePower?: number;
+    public readonly printedUpgradeHp: number;
+    public readonly printedUpgradePower: number;
 
     protected _disableOngoingEffectsForDefeat?: boolean = null;
     protected _mostRecentInPlayId = -1;
@@ -127,6 +127,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         Contract.assertFalse(this.printedType === CardType.Event);
 
         if (this.isUpgrade()) {
+            Contract.assertNotNullLike(cardData.upgradeHp);
             Contract.assertNotNullLike(cardData.upgradePower);
         }
 
@@ -136,8 +137,8 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
           (cardData.upgradePower == null && cardData.upgradeHp == null));
 
         if (hasUpgradeStats) {
-            this.upgradePower = cardData.upgradePower;
-            this.upgradeHp = cardData.upgradeHp;
+            this.printedUpgradePower = cardData.upgradePower;
+            this.printedUpgradeHp = cardData.upgradeHp;
         }
     }
 
@@ -164,11 +165,11 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     public getUpgradeHp(): number {
-        return this.upgradeHp;
+        return this.printedUpgradeHp;
     }
 
     public getUpgradePower(): number {
-        return this.upgradePower;
+        return this.printedUpgradePower;
     }
 
     public attachTo(newParentCard: IUnitCard, newController?: Player) {
