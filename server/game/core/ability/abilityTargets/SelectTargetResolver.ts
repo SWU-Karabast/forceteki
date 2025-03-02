@@ -82,8 +82,10 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
             handlers[0]();
         } else if (handlers.length > 1) {
             const baseProperties = this.getDefaultProperties(context);
+            const activePromptTitleConcrete = (baseProperties.activePromptTitle && typeof baseProperties.activePromptTitle === 'function') ? (baseProperties.activePromptTitle as (context: AbilityContext) => string)(context) : baseProperties.activePromptTitle || 'Choose a player';
+
             const promptProperties = Object.assign(baseProperties, {
-                activePromptTitle: baseProperties.activePromptTitle || 'Select one',
+                activePromptTitle: activePromptTitleConcrete,
                 choices,
                 handlers
             });

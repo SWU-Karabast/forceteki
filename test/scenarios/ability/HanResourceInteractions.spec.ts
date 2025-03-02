@@ -40,7 +40,7 @@ describe('Han Solo Resource Interaction Scenarios', function() {
                 context.player1.clickPrompt('Done');
 
                 // Han defeats P2's Wampa and ensure it goes to P2 discard
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('discard', context.player2);
                 expect(context.player1.readyResourceCount).toBe(7);
@@ -90,7 +90,7 @@ describe('Han Solo Resource Interaction Scenarios', function() {
                 context.player1.clickPrompt('Pay 1 resource');
                 expect(context.player1.readyResourceCount).toBe(3);
 
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('You have at least one exhausted resource that can be defeated. Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.snowspeeder, context.frontierTrader]);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('discard', context.player1);
