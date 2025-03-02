@@ -70,7 +70,7 @@ describe('Headhunting', function() {
 
                 // first attack - skip target resolution, go straight to next attack
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter, context.theMandalorian, context.wampa]);
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Done');
 
                 // second attack - select an attacker and go to target resolution, then pass
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter, context.theMandalorian, context.wampa]);

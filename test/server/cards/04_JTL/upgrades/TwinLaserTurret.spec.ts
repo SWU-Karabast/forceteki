@@ -75,7 +75,7 @@ describe('Twin Laser Turret', function() {
                 ]);
 
                 expect(context.player1).toHaveChooseNoTargetButton();
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Done');
                 context.player1.clickPrompt('Done');
                 expect(context.wampa.damage).toBe(0);
                 expect(context.battlefieldMarine.isUpgraded()).toBeTrue();

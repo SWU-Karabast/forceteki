@@ -22,7 +22,7 @@ are selected. Determine root cause and fix it so this test case passes. */
 //                 expect(context.player1.currentPrompt().menuTitle).toContain(' (because you are choosing from a hidden zone you may choose nothing)');
 //                 expect(context.player1).toHaveChooseNoTargetButton();
 
-//                 context.player1.clickPrompt('Choose no target');
+//                 context.player1.clickPrompt('Done');
 //                 context.player1.clickPrompt('Done');
 //                 expect(context.player2).toBeActivePlayer();
 

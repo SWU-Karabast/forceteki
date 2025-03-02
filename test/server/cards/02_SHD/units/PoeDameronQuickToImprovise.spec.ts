@@ -76,7 +76,7 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
             context.player1.clickCard(context.p2Base);
 
             // can choose no targets
-            context.player1.clickPrompt('Choose no target');
+            context.player1.clickPrompt('Done');
             context.player1.clickPrompt('Done');
             expect(context.player2).toBeActivePlayer();
 

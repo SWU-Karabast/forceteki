@@ -93,7 +93,7 @@ describe('Aggression', function () {
                 expect(context.player1).toHaveChooseNoTargetButton();
 
                 // can choose no targets
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Done');
 
                 expect(context.restoredArc170.isUpgraded()).toBeTrue();
                 expect(context.atst.isUpgraded()).toBeTrue();

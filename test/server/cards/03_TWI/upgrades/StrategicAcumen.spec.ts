@@ -38,7 +38,7 @@ describe('Strategic Acumen', function() {
             // can choose no target and play it later without discount
             context.player1.clickCard(context.wampa);
             context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
-            context.player1.clickPrompt('Choose no target');
+            context.player1.clickPrompt('Done');
             expect(context.wampa.exhausted).toBe(true);
 
             context.player2.passAction();

@@ -101,7 +101,7 @@ describe('Consolidation of power', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickPrompt('Done');
                 expect(context.player1).toHaveChooseNoTargetButton();
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Done');
                 expect(context.player2).toBeActivePlayer();
                 expect([context.reinforcementWalker, context.battlefieldMarine, context.theDarksaber]).toAllBeInZone('discard');
                 expect(context.allianceXwing).toBeInZone('spaceArena');

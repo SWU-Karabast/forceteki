@@ -55,7 +55,7 @@ describe('ISB Agent', function() {
                     expect(context.player1).toBeAbleToSelectExactly([context.confiscate, context.waylay]);
                     expect(context.player1).toHaveChooseNoTargetButton();
                     expect(context.player1).not.toHavePassAbilityButton();
-                    context.player1.clickPrompt('Choose no target');
+                    context.player1.clickPrompt('Done');
 
                     expect(context.getChatLogs(2)).toEqual([
                         'player1 plays ISB Agent',

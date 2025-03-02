@@ -54,7 +54,7 @@ describe('Count Dooku, Fallen Jedi', function() {
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Done');
                 expect(context.atst.damage).toBe(0);
                 expect(context.cartelSpacer.damage).toBe(0);
 
@@ -78,13 +78,13 @@ describe('Count Dooku, Fallen Jedi', function() {
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Done');
                 expect(context.atst.damage).toBe(0);
                 expect(context.cartelSpacer.damage).toBe(0);
 
                 // choose second damage target (from battle droid)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Done');
                 expect(context.atst.damage).toBe(0);
                 expect(context.cartelSpacer.damage).toBe(0);
             });

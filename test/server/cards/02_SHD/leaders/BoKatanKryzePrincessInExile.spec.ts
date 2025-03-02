@@ -178,7 +178,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing]);
                 expect(context.player1).toHaveChooseNoTargetButton();
                 // prompt does not change between 2 effects of bo katan ability
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Done');
                 expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing]);
                 expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.bokatanKryze);

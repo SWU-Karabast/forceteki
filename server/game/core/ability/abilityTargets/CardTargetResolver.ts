@@ -158,14 +158,14 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
                 buttons.push({ text: passPrompt.buttonText, arg: passPrompt.arg });
                 passPrompt.hasBeenShown = true;
             }
-            if (this.selector.optional) {
-                // If the selector is for a single card and it will automatically fire on selection,
-                // uses the 'done' arg so that the prompt doesn't show both 'Choose no target' and 'Done' buttons.
-                buttons.push({
-                    text: 'Choose no target',
-                    arg: this.selector.numCards === 1 && this.selector.automaticFireOnSelect(context) ? 'done' : 'noTarget'
-                });
-            }
+            // if (this.selector.optional) {
+            //     // If the selector is for a single card and it will automatically fire on selection,
+            //     // uses the 'done' arg so that the prompt doesn't show both 'Choose no target' and 'Done' buttons.
+            //     buttons.push({
+            //         text: 'Choose no target',
+            //         arg: this.selector.numCards === 1 && this.selector.automaticFireOnSelect(context) ? 'done' : 'noTarget'
+            //     });
+            // }
         }
         const mustSelect = legalTargets.filter((card) =>
             card.getOngoingEffectValues(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
