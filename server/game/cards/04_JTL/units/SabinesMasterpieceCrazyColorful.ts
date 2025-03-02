@@ -11,12 +11,9 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
-        this.addTriggeredAbility({
-            title: 'If you control: a vigilance unit, heal 2 damage from a base, a command, give an Experience token to a unit, a aggression unit, deal 1 damage to a unit or base, a cunning unit, exhaust or ready a resource',
-            when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
-            },
-            immediateEffect: AbilityHelper.immediateEffects.sequential(() => [
+        this.addOnAttackAbility({
+            title: 'If you control: a vigilance unit, heal 2 damage from a base, a command unit, give an Experience token to a unit, a aggression unit, deal 1 damage to a unit or base, a cunning unit, exhaust or ready a resource',
+            immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.isAspectInPlay(Aspect.Vigilance),
                     onTrue: AbilityHelper.immediateEffects.selectCard({
