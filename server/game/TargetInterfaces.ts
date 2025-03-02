@@ -62,7 +62,7 @@ export interface IDropdownListTargetResolver<TContext extends AbilityContext> ex
 }
 
 export interface ITargetResolverBase<TContext extends AbilityContext> {
-    activePromptTitle?: string;
+    activePromptTitle?: ((context: TContext) => string) | string;
     appendToDefaultTitle?: string;
     zoneFilter?: ZoneFilter | ZoneFilter[];
 
