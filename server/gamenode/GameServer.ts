@@ -461,11 +461,7 @@ export class GameServer {
             logger.info(`User ${user.id} already in a lobby, ignoring queue request.`);
             return false;
         }
-        // Also check if they're already queued
-        if (this.queue.findPlayerInQueue(user.id)) {
-            logger.info(`User ${user.id} is already in queue, rejoining`);
-            this.queue.removePlayer(user.id);
-        }
+
         this.queue.addPlayer(
             format,
             {
@@ -516,12 +512,16 @@ export class GameServer {
         if (socket1) {
             lobby.addLobbyUser(p1.user, socket1);
             socket1.registerEvent('disconnect', () => this.onSocketDisconnected(socket1.socket, p1.user.id));
-            socket1.registerEvent('requeue', () => this.requeueUser(socket1, format, p1.user, p1.deck));
+            if (!socket1.eventContainsListener('requeue')) {
+                socket1.registerEvent('requeue', () => this.requeueUser(socket1, format, p1.user, p1.deck));
+            }
         }
         if (socket2) {
             lobby.addLobbyUser(p2.user, socket2);
             socket2.registerEvent('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.id));
-            socket2.registerEvent('requeue', () => this.requeueUser(socket2, format, p2.user, p2.deck));
+            if (!socket2.eventContainsListener('requeue')) {
+                socket2.registerEvent('requeue', () => this.requeueUser(socket1, format, p1.user, p1.deck));
+            }
         }
 
         // Save user => lobby mapping

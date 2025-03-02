@@ -1,6 +1,7 @@
 import { SwuGameFormat } from '../SwuGameFormat';
 import type { Deck } from '../utils/deck/Deck';
 import type Socket from '../socket';
+import { logger } from '../logger';
 
 interface User {
     id: string;
@@ -26,6 +27,11 @@ class QueueHandler {
 
 
     public addPlayer(format: SwuGameFormat, player: QueuedPlayer) {
+        const queuedPlayer = this.findPlayerInQueue(player.user.id);
+        if (queuedPlayer) {
+            logger.info(`User ${player.user.id} is already in queue, rejoining`);
+            this.removePlayer(player.user.id);
+        }
         this.queues.get(format)?.push(player);
     }
 
