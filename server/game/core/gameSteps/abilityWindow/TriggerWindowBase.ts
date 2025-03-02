@@ -1,7 +1,7 @@
 import type Player from '../../Player';
 import type { GameEvent } from '../../event/GameEvent';
 import type { EventWindow } from '../../event/EventWindow';
-import { AbilityType } from '../../Constants';
+import { AbilityType, SubStepCheck } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import type { TriggeredAbilityContext } from '../../ability/TriggeredAbilityContext';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
@@ -305,7 +305,7 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     private canAnyAbilitiesResolve(triggeredAbilities: TriggeredAbilityContext[]) {
-        return triggeredAbilities?.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext, true));
+        return triggeredAbilities?.some((triggeredAbilityContext) => triggeredAbilityContext.ability.hasAnyLegalEffects(triggeredAbilityContext, SubStepCheck.All));
     }
 
     public abstract override toString(): string;
