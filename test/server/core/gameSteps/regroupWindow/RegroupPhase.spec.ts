@@ -230,5 +230,24 @@ describe('Regroup phase', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(1);
             });
         });
+
+        it('all resources should be able to ready regardless of card type', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'leia-organa#alliance-general',
+                    hand: ['battlefield-marine'],
+                    resources: ['hotshot-dl44-blaster', 'daring-raid', 'atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.battlefieldMarine);
+
+            context.moveToNextActionPhase();
+
+            expect(context.player1.readyResourceCount).toBe(3);
+        });
     });
 });
