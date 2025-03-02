@@ -36,6 +36,11 @@ export type ZoneFilter = ZoneName | WildcardZoneName;
 
 export type Arena = ZoneName.GroundArena | ZoneName.SpaceArena;
 
+export enum DeployType {
+    LeaderUpgrade = 'leaderUpgrade',
+    LeaderUnit = 'leaderUnit',
+}
+
 export enum PlayType {
     Piloting = 'piloting',
     PlayFromHand = 'playFromHand',

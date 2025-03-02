@@ -1,6 +1,6 @@
 import type Player from '../Player';
 import type { ZoneFilter } from '../Constants';
-import { CardType } from '../Constants';
+import { CardType, DeployType } from '../Constants';
 import { AbilityType, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
@@ -30,7 +30,8 @@ export interface ILeaderUnitCard extends IDeployableLeaderCard, IUnitCard {}
 export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitCard {
     protected _deployed = false;
     protected setupLeaderUnitSide;
-    private readonly epicActionAbility: ActionAbility;
+    protected deployEpicActionLimit: EpicActionLimit;
+    protected deployEpicActions: ActionAbility[];
 
     public get deployed() {
         return this._deployed;
@@ -46,14 +47,20 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
         this.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities(this);
 
+        this.deployEpicActionLimit = new EpicActionLimit();
+
         // add deploy leader action
-        this.epicActionAbility = this.addActionAbility({
-            title: `Deploy ${this.title}`,
-            limit: new EpicActionLimit(),
-            condition: (context) => context.player.resources.length >= context.source.cost,
-            zoneFilter: ZoneName.Base,
-            immediateEffect: new DeployLeaderSystem({})
-        });
+        this.deployEpicActions = [
+            this.addActionAbility({
+                title: `Deploy ${this.title}`,
+                limit: this.deployEpicActionLimit,
+                condition: (context) => context.player.resources.length >= context.source.cost,
+                zoneFilter: ZoneName.Base,
+                immediateEffect: new DeployLeaderSystem({
+                    deployType: DeployType.LeaderUnit
+                })
+            })
+        ];
     }
 
     public override isUnit(): this is IUnitCard {
@@ -97,6 +104,18 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected setupLeaderUnitSideAbilities(sourceCard: this) {
+    }
+
+    protected addPilotDeploy() {
+        this.deployEpicActions.push(this.addActionAbility({
+            title: `Deploy ${this.title} as a Pilot`,
+            limit: this.deployEpicActionLimit,
+            condition: (context) => context.player.resources.length >= context.source.cost,
+            zoneFilter: ZoneName.Base,
+            immediateEffect: new DeployLeaderSystem({
+                deployType: DeployType.LeaderUpgrade
+            })
+        }));
     }
 
     protected override addActionAbility(properties: IActionAbilityProps<this>) {
@@ -169,7 +188,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
     public override getSummary(activePlayer: Player) {
         return {
             ...super.getSummary(activePlayer),
-            epicActionSpent: this.epicActionAbility.limit.isAtMax(this.owner)
+            epicDeployActionSpent: this.deployEpicActionLimit.isAtMax(this.owner)
         };
     }
 }

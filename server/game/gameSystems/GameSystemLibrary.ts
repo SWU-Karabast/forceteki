@@ -198,7 +198,7 @@ export function distributeExperienceAmong<TContext extends AbilityContext = Abil
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}) {
 //     return new DetachAction(propertyFactory);
 // }
-export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext> = {}) {
+export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext>) {
     return new DeployLeaderSystem<TContext>(propertyFactory);
 }
 export function defeat<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDefeatCardProperties, TContext> = {}) {

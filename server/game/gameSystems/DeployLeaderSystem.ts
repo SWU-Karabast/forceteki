@@ -1,12 +1,14 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import type { DeployType } from '../core/Constants';
 import { CardType, EventName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import { GameEvent } from '../core/event/GameEvent';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface IDeployLeaderProperties extends ICardTargetSystemProperties {}
+export interface IDeployLeaderProperties extends ICardTargetSystemProperties {
+    deployType: DeployType;
+}
 
 export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IDeployLeaderProperties> {
     public override readonly name = 'deploy leader';
