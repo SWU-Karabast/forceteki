@@ -39,7 +39,7 @@ describe('Guardian of the Whills', function () {
                 // Test round ending resets limit
                 context.moveToNextActionPhase();
                 context.player1.clickCard(context.electrostaff);
-                expect(context.player1).toBeAbleToSelectExactly([context.guardianOfTheWhills, context.systemPatrolCraft]);
+                expect(context.player1).toBeAbleToSelectExactly([context.guardianOfTheWhills]);
                 context.player1.clickCard(context.guardianOfTheWhills);
                 expect(context.guardianOfTheWhills).toHaveExactUpgradeNames([context.jetpack.internalName, context.devotion.internalName, context.electrostaff.internalName]);
                 expect(context.player1.exhaustedResourceCount).toBe(1);
