@@ -47,7 +47,7 @@ describe('Home One', function () {
 
                 expect(context.player1).toBeActivePlayer();
 
-                // Home should not benefit from the +1 restore
+                // Home should not benefit from the +1 restore. So it restores 2.
                 context.player1.clickCard(context.homeOne);
                 expect(context.p1Base.damage).toBe(8);
             });
