@@ -158,9 +158,17 @@ export abstract class TriggerWindowBase extends BaseStep {
     private promptForNextAbilityToResolve() {
         const abilitiesToResolve = this.getCurrentlyResolvingAbilities();
 
-        // TODO: need to optionally show additional details in the ability options for more complex situations, e.g. same ability triggered multiple times in the same window.
-        // (see forcedtriggeredabilitywindow.js in the L5R code for reference)
-        const choices = abilitiesToResolve.map((context) => (context.ability as TriggeredAbility).title);
+        let choices: string[] = [];
+
+        // Check to if we're dealing with a multi-selection of the 'same' ability
+        const isMultiSelectAbility = abilitiesToResolve.length > 1 && new Set(abilitiesToResolve.map((context) => context.ability)).size === 1;
+
+        // If its a multi-select, append the card name at the end of the ability name to differentiate them
+        if (isMultiSelectAbility) {
+            choices = abilitiesToResolve.map((context) => (context.ability as TriggeredAbility).title + ': ' + context.event.card.title);
+        } else {
+            choices = abilitiesToResolve.map((context) => (context.ability as TriggeredAbility).title);
+        }
         const handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
 
         this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
