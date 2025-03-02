@@ -48,6 +48,14 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         return true;
     }
 
+    public override getHp(): number {
+        return this.upgradeHp;
+    }
+
+    public override getPower(): number {
+        return this.upgradePower;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override checkIsAttachable(): void { }
 

@@ -1,4 +1,4 @@
-describe('Confederate Courier\'s ability', function () {
+describe('Perilous Position\'s ability', function () {
     integration(function (contextRef) {
         it('should exhaust targeted unit when played', async function () {
             await contextRef.setupTestAsync({

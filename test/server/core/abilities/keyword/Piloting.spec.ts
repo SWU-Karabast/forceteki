@@ -47,6 +47,58 @@ describe('Piloting keyword', function() {
                 expect(context.daggerSquadronPilot).toBeInZone('spaceArena');
             });
 
+            it('it correctly has its unit stats when in play as a unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jyn-erso#resisting-oppression',
+                        hand: ['chewbacca#faithful-first-mate'],
+                        groundArena: ['wampa', 'falchion-ion-tank'],
+                        spaceArena: ['concord-dawn-interceptors'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const p1Resources = context.player1.readyResourceCount;
+                context.player1.clickCard(context.chewbacca);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Chewbacca', 'Play Chewbacca with Piloting']);
+                context.player1.clickPrompt('Play Chewbacca');
+
+                // Should be a 5/6 ground unit
+                expect(context.chewbacca).toBeInZone('groundArena');
+                expect(context.chewbacca.getPower()).toBe(5);
+                expect(context.chewbacca.getHp()).toBe(6);
+            });
+
+            it('it correctly adds its upgrade stat modifiers, not its unit ones', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jyn-erso#resisting-oppression',
+                        hand: ['chewbacca#faithful-first-mate'],
+                        groundArena: ['wampa', 'falchion-ion-tank'],
+                        spaceArena: ['concord-dawn-interceptors'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const p1Resources = context.player1.readyResourceCount;
+                context.player1.clickCard(context.chewbacca);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Chewbacca', 'Play Chewbacca with Piloting']);
+                context.player1.clickPrompt('Play Chewbacca with Piloting');
+                expect(context.player1).toBeAbleToSelectExactly([context.concordDawnInterceptors, context.falchionIonTank]);
+                context.player1.clickCard(context.concordDawnInterceptors);
+
+                // Should turn Concord Dawn into a 4/7 thanks to +3/+3
+                expect(context.concordDawnInterceptors.upgrades).toContain(context.chewbacca);
+                expect(context.concordDawnInterceptors.getPower()).toBe(4);
+                expect(context.concordDawnInterceptors.getHp()).toBe(7);
+                expect(context.player1.readyResourceCount).toBe(p1Resources - 5);
+                expect(context.chewbacca).toBeInZone('spaceArena');
+            });
+
             it('it cannot be played as an upgrade on a friendly vehicle that already has a pilot', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
