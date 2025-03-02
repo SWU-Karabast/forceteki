@@ -235,8 +235,8 @@ describe('Maul, Shadow Collective Visionary', function() {
                 context.player1.clickCard(context.mercenaryCompany);
 
                 // Resolve Jango's ability
-                expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player2.clickPrompt('Exhaust this leader');
+                expect(context.player2).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player2.clickPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
                 expect(context.mercenaryCompany.exhausted).toBeTrue();
                 expect(context.mercenaryCompany.damage).toBe(4);
