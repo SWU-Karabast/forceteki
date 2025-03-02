@@ -51,7 +51,7 @@ export default class HanSoloAudaciousSmuggler extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.selectCard({
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Resource,
-                activePromptTitle: 'Defeat a resource you control',
+                activePromptTitle: () => (this.controller.exhaustedResourceCount === 0 ? 'Choose a resource to defeat' : 'The resource you choose will automatically be switched to exhausted before it is defeated (you will not lose any ready resources).'),
                 innerSystem: AbilityHelper.immediateEffects.defeat()
             })
         });

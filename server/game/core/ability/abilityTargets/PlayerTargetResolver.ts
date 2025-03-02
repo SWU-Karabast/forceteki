@@ -43,7 +43,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         const choices = ['You', 'Opponent'];
 
         if (this.properties.mode === TargetMode.MultiplePlayers) { // Uses a HandlerMenuMultipleSelectionPrompt: handler takes an array of chosen items
-            const activePromptTitle = promptProperties.activePromptTitle || 'Choose any number of players';
+            const activePromptTitleConcrete = typeof this.properties.activePromptTitle === 'function' ? this.properties.activePromptTitle(context) : this.properties.activePromptTitle || 'Choose any number of players';
             const multiSelect = true;
             const handler = (chosen) => {
                 chosen = chosen.map((choiceTitle) => {
@@ -60,9 +60,9 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                 return true;
             };
 
-            Object.assign(promptProperties, { activePromptTitle, choices, multiSelect, handler });
+            Object.assign(promptProperties, { activePromptTitleConcrete, choices, multiSelect, handler });
         } else { // Uses a HandlerMenuPrompt: each choice gets its own handler, called right away when that choice is clicked
-            const activePromptTitle = this.properties.activePromptTitle || 'Choose a player';
+            const activePromptTitleConcrete = typeof this.properties.activePromptTitle === 'function' ? this.properties.activePromptTitle(context) : this.properties.activePromptTitle || 'Choose a player';
             const handlers = [player, player.opponent].map(
                 (chosenPlayer) => {
                     return () => {
@@ -71,7 +71,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                 }
             );
 
-            Object.assign(promptProperties, { activePromptTitle, choices, handlers });
+            Object.assign(promptProperties, { activePromptTitleConcrete, choices, handlers });
             // TODO: figure out if we need these buttons
             /* if (player !== context.player.opponent && context.stage === Stage.PreTarget) {
                 if (!targetResults.noCostsFirstButton) {
