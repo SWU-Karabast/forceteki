@@ -98,7 +98,7 @@ describe('Guardian of the Whills', function () {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.survivorsGauntlet);
-                expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.jediLightsaber, context.mandalorianArmor, context.foundling]);
+                expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.jediLightsaber, context.mandalorianArmor]);
                 context.player1.clickCard(context.mandalorianArmor);
                 expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer]);
                 context.player1.clickCard(context.moistureFarmer);
