@@ -21,6 +21,7 @@ export default class ScanningOfficer extends NonLeaderUnitCard {
             then: (thenContext) => ({
                 title: 'Defeat each resource with Smuggle',
                 effect: 'defeat',
+                thenCondition: () => thenContext.events[0].cards.some((card) => card.hasSomeKeyword(KeywordName.Smuggle)),
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous(() => {
                     const smuggleCards = thenContext.events[0].cards.filter((card) => card.hasSomeKeyword(KeywordName.Smuggle));
                     return [
@@ -32,7 +33,7 @@ export default class ScanningOfficer extends NonLeaderUnitCard {
                             target: thenContext.player.opponent.getTopCardsOfDeck(smuggleCards.length)
                         })
                     ];
-                }),
+                })
             })
         });
     }

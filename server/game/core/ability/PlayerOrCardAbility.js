@@ -1,6 +1,6 @@
 const { CardTargetResolver } = require('./abilityTargets/CardTargetResolver.js');
 const { SelectTargetResolver } = require('./abilityTargets/SelectTargetResolver.js');
-const { Stage, TargetMode, AbilityType, RelativePlayer } = require('../Constants.js');
+const { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
 const { v4: uuidv4 } = require('uuid');
@@ -160,14 +160,14 @@ class PlayerOrCardAbility {
             }
         }
 
-        if (!ignoredRequirements.includes('gameStateChange') && !this.hasAnyLegalEffects(context)) {
+        if (!ignoredRequirements.includes('gameStateChange') && !this.hasAnyLegalEffects(context, SubStepCheck.ThenIfYouDo)) {
             return 'gameStateChange';
         }
 
         return '';
     }
 
-    hasAnyLegalEffects(context, includeSubSteps = false) {
+    hasAnyLegalEffects(context, includeSubSteps = SubStepCheck.None) {
         return true;
     }
 
