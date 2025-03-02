@@ -5,7 +5,7 @@ describe('Iden Version, Adapt or Die', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['iden-versio#adapt-or-die'],
+                        hand: ['iden-versio#adapt-or-die', 'survivors-gauntlet'],
                         groundArena: ['atst'],
                         spaceArena: ['tieln-fighter']
                     },
@@ -55,6 +55,26 @@ describe('Iden Version, Adapt or Die', function() {
 
                 expect(context.atst).toHaveExactUpgradeNames(['iden-versio#adapt-or-die', 'shield']);
                 expect(context.tielnFighter.isUpgraded()).toBeFalse();
+            });
+
+            it('should give a shield when moved to another vehicle', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickPrompt('Play Iden Versio with Piloting');
+                context.player1.clickCard(context.tielnFighter);
+                expect(context.tielnFighter).toHaveExactUpgradeNames(['iden-versio#adapt-or-die', 'shield']);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.survivorsGauntlet);
+                expect(context.player1).toBeAbleToSelectExactly(['iden-versio#adapt-or-die', 'shield']);
+                context.player1.clickCard(context.idenVersio);
+                expect(context.player1).toBeAbleToSelectExactly(['atst', 'survivors-gauntlet']);
+                context.player1.clickCard(context.atst);
+
+                expect(context.atst).toHaveExactUpgradeNames(['iden-versio#adapt-or-die', 'shield']);
+                expect(context.tielnFighter).toHaveExactUpgradeNames(['shield']);
             });
         });
     });
