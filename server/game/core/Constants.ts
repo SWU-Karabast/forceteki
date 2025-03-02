@@ -276,6 +276,7 @@ export enum MetaEventName {
     PlayCard = 'playCard',
     ReplacementEffect = 'replacementEffect',
     SelectCard = 'selectCard',
+    SelectPlayer = 'selectPlayer',
     Sequential = 'sequential',
     Simultaneous = 'simultaneous',
 }
