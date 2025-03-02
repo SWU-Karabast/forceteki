@@ -15,6 +15,7 @@ describe('The Clone Wars ability\'s', function() {
             expect(context.player1.readyResourceCount).toBe(4);
             expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 4 + 1 }, (x, i) => `${i}`));
             context.player1.chooseListOption('2');
+            expect(context.getChatLogs(3)).toContain('player1 names 2 using The Clone Wars');
             expect(context.player1.readyResourceCount).toBe(2);
             const cloneTroopers = context.player1.findCardsByName('clone-trooper');
             const battleDroids = context.player2.findCardsByName('battle-droid');

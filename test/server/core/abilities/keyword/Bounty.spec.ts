@@ -276,7 +276,7 @@ describe('Bounty', function() {
                 context.player1.clickCard(context.consularSecurityForce);
 
                 // Jango does not trigger
-                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
                 // Opponent resolves Experience tokens
                 context.player2.clickCard(context.consularSecurityForce);
@@ -295,8 +295,8 @@ describe('Bounty', function() {
                 context.player2.clickCard(context.consularSecurityForce);
 
                 // Jango triggers
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player1.clickPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
                 expect(context.consularSecurityForce.exhausted).toBe(true);
                 expect(context.jangoFett.exhausted).toBe(true);
@@ -339,8 +339,8 @@ describe('Bounty', function() {
                 context.player2.clickCard(context.consularSecurityForce);
 
                 // Jango triggers
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player1.clickPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
                 expect(context.consularSecurityForce.exhausted).toBe(true);
                 expect(context.jangoFett.exhausted).toBe(true);
