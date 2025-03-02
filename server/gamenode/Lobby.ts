@@ -78,6 +78,10 @@ export class Lobby {
         return this._id;
     }
 
+    public get format(): SwuGameFormat {
+        return this.gameFormat;
+    }
+
     public getLobbyState(): any {
         return {
             id: this._id,
@@ -261,6 +265,29 @@ export class Lobby {
         this.lobbyOwnerId = id;
     }
 
+    public getGamePreview() {
+        if (!this.game) {
+            return null;
+        }
+        try {
+            if (this.users.length !== 2) {
+                return null;
+            }
+            const player1 = this.users[0];
+            const player2 = this.users[1];
+
+            return {
+                player1Leader: player1.deck.leader,
+                player1Base: player1.deck.base,
+                player2Leader: player2.deck.leader,
+                player2Base: player2.deck.base,
+            };
+        } catch (error) {
+            logger.error(`Error retrieving lobby game data ${this.id}:`, error);
+            return null;
+        }
+    }
+
     public getUserState(id: string): string {
         const user = this.users.find((u) => u.id === id);
         return user ? user.state : null;
@@ -271,6 +298,18 @@ export class Lobby {
     }
 
     public removeUser(id: string): void {
+        const user = this.users.find((u) => u.id === id);
+        if (user) {
+            this.gameChat.addMessage(`${user.username} has left the lobby`);
+        }
+        if (this.game) {
+            this.game.addMessage(`${user.username} has left the game`);
+            const winner = this.users.find((u) => u.id !== id);
+            if (winner) {
+                this.game.endGame(this.game.getPlayerById(winner.id), `${user.username} has conceded`);
+            }
+            this.sendGameState(this.game);
+        }
         this.users = this.users.filter((u) => u.id !== id);
         this.sendLobbyState();
     }
@@ -289,6 +328,9 @@ export class Lobby {
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
 
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
+        if (setupData.autoSingleTarget == null) {
+            setupData.autoSingleTarget = false;
+        }
 
         Contract.assertNotNullLike(this.testGameBuilder, `Attempting to start a test game from file ${filename} but local test tools were not found`);
 
@@ -332,7 +374,7 @@ export class Lobby {
                 username: user.username,
                 settings: {
                     optionSettings: {
-                        autoSingleTarget: true,
+                        autoSingleTarget: false,
                     }
                 }
             })
@@ -349,18 +391,16 @@ export class Lobby {
         };
     }
 
-    private onLobbyMessage(socket: Socket, command: string, ...args): void {
+    private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
         if (!this[command] || typeof this[command] !== 'function') {
             throw new Error(`Incorrect command or command format expected function but got: ${command}`);
         }
 
-        this.runLobbyFuncAndCatchErrors(() => {
-            this[command](socket, ...args);
-            this.sendLobbyState();
-        });
+        await this[command](socket, ...args);
+        this.sendLobbyState();
     }
 
-    private onGameMessage(socket: Socket, command: string, ...args): void {
+    private async onGameMessage(socket: Socket, command: string, ...args): Promise<void> {
         if (!this.game) {
             return;
         }
@@ -373,34 +413,14 @@ export class Lobby {
             return;
         }
 
-        this.runAndCatchErrors(this.game, () => {
-            this.game.stopNonChessClocks();
-            this.game[command](socket.user.id, ...args);
+        this.game.stopNonChessClocks();
+        await this.game[command](socket.user.id, ...args);
 
-            this.game.continue();
+        this.game.continue();
 
-            this.sendGameState(this.game);
-        });
+        this.sendGameState(this.game);
     }
 
-    private runAndCatchErrors(game: Game, func: () => void) {
-        try {
-            func();
-        } catch (e) {
-            this.handleError(game, e);
-            this.sendGameState(game);
-        }
-    }
-
-    // might just use the top function at some point?
-    private runLobbyFuncAndCatchErrors(func: () => void) {
-        try {
-            func();
-        } catch (e) {
-            logger.error(e);
-            this.sendLobbyState();
-        }
-    }
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, e: Error) {

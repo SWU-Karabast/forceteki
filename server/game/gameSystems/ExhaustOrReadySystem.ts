@@ -20,6 +20,10 @@ export abstract class ExhaustOrReadySystem<TContext extends AbilityContext = Abi
             return false;
         }
 
+        if ((card.isUpgrade() || card.isEvent()) && card.zoneName !== ZoneName.Resource) {
+            return false;
+        }
+
         if (!card.canBeExhausted()) {
             return false;
         }

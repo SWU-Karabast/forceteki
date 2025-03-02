@@ -276,7 +276,7 @@ describe('Bounty', function() {
                 context.player1.clickCard(context.consularSecurityForce);
 
                 // Jango does not trigger
-                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
                 // Opponent resolves Experience tokens
                 context.player2.clickCard(context.consularSecurityForce);
@@ -295,8 +295,8 @@ describe('Bounty', function() {
                 context.player2.clickCard(context.consularSecurityForce);
 
                 // Jango triggers
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player1.clickPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
                 expect(context.consularSecurityForce.exhausted).toBe(true);
                 expect(context.jangoFett.exhausted).toBe(true);
@@ -339,12 +339,36 @@ describe('Bounty', function() {
                 context.player2.clickCard(context.consularSecurityForce);
 
                 // Jango triggers
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player1.clickPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
                 expect(context.consularSecurityForce.exhausted).toBe(true);
                 expect(context.jangoFett.exhausted).toBe(true);
             });
+        });
+
+        it('When a leader with a Bounty ability gained from an effect is defeated, the ability should resolve under the opponent\'s control', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['rivals-fall']
+                },
+                player2: {
+                    leader: {
+                        card: 'asajj-ventress#unparalleled-adversary',
+                        deployed: true,
+                        upgrades: ['death-mark']
+                    }
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.rivalsFall);
+            context.player1.clickCard(context.asajjVentress);
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw 2 cards');
+            context.player1.clickPrompt('Collect Bounty: Draw 2 cards');
+            expect(context.player1.handSize).toBe(2);
         });
     });
 });

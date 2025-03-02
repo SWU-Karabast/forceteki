@@ -5,6 +5,8 @@ import type { OngoingEffectSource } from './OngoingEffectSource';
 import { EventRegistrar } from '../event/EventRegistrar';
 import type Game from '../Game';
 import * as Contract from '../utils/Contract';
+import * as Helpers from '../utils/Helpers';
+import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
 
 interface ICustomDurationEvent {
     name: string;
@@ -104,9 +106,19 @@ export class OngoingEffectEngine {
     }
 
     public removeLastingEffects(card: OngoingEffectSource) {
+        Contract.assertTrue(card.isCard());
+
         this.unapplyAndRemove(
             (effect) => {
                 if (effect.impl.type === 'delayedEffect') {
+                    if (
+                        Helpers.asArray(effect.targets).includes(card) &&
+                        effect.duration !== Duration.WhileSourceInPlay &&
+                        effect.ongoingEffect.delayedEffectType !== DelayedEffectType.Player
+                    ) {
+                        return true;
+                    }
+
                     const effectImplValue = effect.impl.getValue();
                     const limit = effectImplValue.limit;
 

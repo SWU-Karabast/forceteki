@@ -1,6 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { IAbilityLimit } from '../core/ability/AbilityLimit';
-import { perGame } from '../core/ability/AbilityLimit';
+import { PerGameAbilityLimit, type IAbilityLimit } from '../core/ability/AbilityLimit';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 import { Duration, EventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
@@ -23,7 +22,7 @@ export interface IDelayedEffectProperties extends IGameSystemProperties {
     duration?: Duration;
     limit?: IAbilityLimit;
     immediateEffect: GameSystem<TriggeredAbilityContext>;
-    effectType: DelayedEffectType;
+    delayedEffectType: DelayedEffectType;
 }
 
 export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IDelayedEffectProperties> {
@@ -35,9 +34,9 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         title: null,
         when: null,
         duration: Duration.Persistent,
-        limit: perGame(1),
+        limit: null,
         immediateEffect: null,
-        effectType: null
+        delayedEffectType: null
     };
 
     public eventHandler(event: any, _additionalProperties: any): void {
@@ -74,13 +73,16 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
 
         const { title, when, limit, immediateEffect, ...otherProperties } = properties;
 
-        const effectProperties = { ...otherProperties, ongoingEffect:
-            OngoingEffectLibrary.delayedEffect({
+        const effectProperties = {
+            ...otherProperties,
+            matchTarget: properties.delayedEffectType === DelayedEffectType.Card ? event.sourceCard : null,
+            ongoingEffect: OngoingEffectLibrary.delayedEffect({
                 title,
                 when,
                 immediateEffect,
-                limit
-            }) };
+                limit: limit ?? new PerGameAbilityLimit(1),
+            })
+        };
 
         event.effectProperties = effectProperties;
         event.immediateEffect = properties.immediateEffect;
@@ -115,9 +117,9 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
     }
 
     protected getDelayedEffectSource(context: TContext, additionalProperties?: any) {
-        const { effectType, target } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { delayedEffectType, target } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        switch (effectType) {
+        switch (delayedEffectType) {
             case DelayedEffectType.Card:
                 Contract.assertNotNullLike(target, `No target provided for delayed effect from card ${context.source.internalName}`);
 
@@ -133,7 +135,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
             case DelayedEffectType.Player:
                 return context.source;
             default:
-                Contract.fail(`Unknown delayed effect type: ${effectType}`);
+                Contract.fail(`Unknown delayed effect type: ${delayedEffectType}`);
         }
     }
 }

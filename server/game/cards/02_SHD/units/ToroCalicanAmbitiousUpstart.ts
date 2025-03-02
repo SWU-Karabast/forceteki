@@ -14,10 +14,11 @@ export default class ToroCalicanAmbitiousUpstart extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Deal 1 damage to the played Bounty Hunter unit',
             when: {
-                onCardPlayed: (event) =>
+                onCardPlayed: (event, context) =>
                     event.card.hasSomeTrait(Trait.BountyHunter) &&
                     event.card.controller === this.controller &&
-                    event.card.isUnit()
+                    event.card.isUnit() &&
+                    event.card !== context.source
             },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({ amount: 1, target: context.event.card })),

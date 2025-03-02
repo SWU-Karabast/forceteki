@@ -14,7 +14,7 @@ export default class CoruscantDissident extends NonLeaderUnitCard {
             title: 'Ready a resource',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.readyResources((context) => ({
-                target: context.source.controller,
+                target: context.player,
                 amount: 1
             }))
         });

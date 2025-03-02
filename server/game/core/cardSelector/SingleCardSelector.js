@@ -1,5 +1,5 @@
 const BaseCardSelector = require('./BaseCardSelector.js');
-const { CardType, WildcardCardType } = require('../Constants.js');
+const { WildcardCardType } = require('../Constants.js');
 
 class SingleCardSelector extends BaseCardSelector {
     constructor(properties) {

@@ -13,7 +13,7 @@ export default class ShadowCollectiveCamp extends BaseCard {
         this.addTriggeredAbility({
             title: 'Draw a card.',
             when: {
-                onLeaderDeployed: (event, context) => event.card.controller === context.source.controller
+                onLeaderDeployed: (event, context) => event.card.controller === context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.draw()
         });

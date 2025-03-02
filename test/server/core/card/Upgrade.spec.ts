@@ -34,6 +34,32 @@ describe('Upgrade cards', function() {
                 expect(context.wampa.getHp()).toBe(8);
             });
 
+            it('the player should be able to cancel attach target selection and then repeat the action', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.foundling);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.tielnFighter, context.brightHope]);
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
+
+                // cancel attach
+                context.player1.clickPrompt('Cancel');
+                expect(context.foundling).toBeInZone('hand');
+                expect(context.player1).toBeActivePlayer();
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+
+                // repeat the action and resolve it this time
+                context.player1.clickCard(context.foundling);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.tielnFighter, context.brightHope]);
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
+                context.player1.clickCard(context.wampa);
+
+                expect(context.wampa.upgrades).toContain(context.academyTraining);
+                expect(context.wampa.upgrades).toContain(context.foundling);
+                expect(context.wampa.upgrades.length).toBe(2);
+                expect(context.wampa.getPower()).toBe(7);
+                expect(context.wampa.getHp()).toBe(8);
+            });
+
             it('its stat bonuses should be correctly applied during combat', function () {
                 const { context } = contextRef;
 

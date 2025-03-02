@@ -15,7 +15,7 @@ export abstract class TriggerWindowBase extends BaseStep {
     protected unresolved = new Map<Player, TriggeredAbilityContext[]>();
 
     /** Already resolved effects / abilities */
-    protected resolved: { ability: TriggeredAbilityContext; event: GameEvent }[] = [];
+    protected resolved: { ability: TriggeredAbility; event: GameEvent }[] = [];
 
     /** Chosen order of players to resolve in (SWU 7.6.10), null if not yet chosen */
     private resolvePlayerOrder?: Player[] = null;
@@ -137,13 +137,21 @@ export abstract class TriggerWindowBase extends BaseStep {
             abilitiesToResolve = this.unresolved.get(this.currentlyResolvingPlayer);
         }
 
+        // Check to if we're dealing with a multi-selection of the 'same' ability
+        const isMultiSelectAbility = this.isMultiSelectAbility(abilitiesToResolve, this.resolved.map((resolved) => resolved.ability));
+
         // if there's more than one ability still unresolved, prompt for next selection
         if (abilitiesToResolve.length > 1) {
-            this.promptForNextAbilityToResolve();
+            this.promptForNextAbilityToResolve(isMultiSelectAbility);
             return false;
         }
 
-        this.resolveAbility(abilitiesToResolve[0]);
+        let abilityContextToResolve = abilitiesToResolve[0];
+        if (isMultiSelectAbility) {
+            abilityContextToResolve = abilityContextToResolve.createCopy({ overrideTitle: this.getOverrideTitle(abilityContextToResolve) });
+        }
+
+        this.resolveAbility(abilityContextToResolve);
         return false;
     }
 
@@ -155,13 +163,33 @@ export abstract class TriggerWindowBase extends BaseStep {
         return this.unresolved.get(this.currentlyResolvingPlayer);
     }
 
-    private promptForNextAbilityToResolve() {
+    private getOverrideTitle(context: TriggeredAbilityContext) {
+        return (context.ability as TriggeredAbility).title + ': ' + context.event.card.title;
+    }
+
+    private isMultiSelectAbility(abilitiesToResolve: TriggeredAbilityContext[], resolvedAbilities: TriggeredAbility[]) {
+        const uniqueAbilities = new Set([
+            ...abilitiesToResolve.map((context) => context.ability),
+            ...resolvedAbilities
+        ]);
+        return (resolvedAbilities.length + abilitiesToResolve.length > 1) && uniqueAbilities.size === 1;
+    }
+
+
+    private promptForNextAbilityToResolve(isMultiSelectAbility: boolean) {
         const abilitiesToResolve = this.getCurrentlyResolvingAbilities();
 
-        // TODO: need to optionally show additional details in the ability options for more complex situations, e.g. same ability triggered multiple times in the same window.
-        // (see forcedtriggeredabilitywindow.js in the L5R code for reference)
-        const choices = abilitiesToResolve.map((context) => (context.ability as TriggeredAbility).title);
-        const handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
+        let choices: string[] = [];
+        let handlers: (() => void)[] = [];
+
+        // If its a multi-select, append the card name at the end of the ability name to differentiate them
+        if (isMultiSelectAbility) {
+            choices = abilitiesToResolve.map((context) => this.getOverrideTitle(context));
+            handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context.createCopy({ overrideTitle: this.getOverrideTitle(context) })));
+        } else {
+            choices = abilitiesToResolve.map((context) => (context.ability as TriggeredAbility).title);
+            handlers = abilitiesToResolve.map((context) => () => this.resolveAbility(context));
+        }
 
         this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
             activePromptTitle: 'Choose an ability to resolve:',
@@ -226,17 +254,18 @@ export abstract class TriggerWindowBase extends BaseStep {
     }
 
     private promptForResolvePlayerOrder() {
-        this.game.promptWithHandlerMenu(this.game.actionPhaseActivePlayer, {
+        const activePlayer = this.game.getActivePlayer();
+        this.game.promptWithHandlerMenu(activePlayer, {
             activePromptTitle: 'Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:',
             waitingPromptTitle: 'Waiting for opponent to choose a player to resolve their triggers first',
             choices: ['You', 'Opponent'],
             handlers: [
                 () => {
-                    this.resolvePlayerOrder = [this.game.actionPhaseActivePlayer, this.game.actionPhaseActivePlayer.opponent];
+                    this.resolvePlayerOrder = [activePlayer, activePlayer.opponent];
                     this.promptUnresolvedAbilities();
                 },
                 () => {
-                    this.resolvePlayerOrder = [this.game.actionPhaseActivePlayer.opponent, this.game.actionPhaseActivePlayer];
+                    this.resolvePlayerOrder = [activePlayer.opponent, activePlayer];
                     this.promptUnresolvedAbilities();
                 }
             ]

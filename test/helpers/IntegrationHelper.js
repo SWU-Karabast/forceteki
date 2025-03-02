@@ -39,6 +39,8 @@ global.integration = function (definitions) {
             }
         };
         beforeEach(function () {
+            process.env.ENVIRONMENT = 'development';
+
             var gameRouter = jasmine.createSpyObj('gameRouter', ['gameWon', 'playerLeft', 'handleError']);
             gameRouter.handleError.and.callFake((game, error) => {
                 throw error;

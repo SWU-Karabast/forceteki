@@ -13,7 +13,7 @@ export default class UnmaskingTheConspirancy extends EventCard {
         this.setEventAbility({
             title: 'Discard a card from your hand',
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
-                target: context.source.controller,
+                target: context.player,
                 amount: 1
             })),
             ifYouDo: {

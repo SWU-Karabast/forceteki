@@ -23,7 +23,7 @@ export default class ItBindsAllThings extends EventCard {
             then: (thenContext) => ({
                 title: 'If you control a Force unit, you may deal that much damage to another unit.',
                 optional: true,
-                thenCondition: () => thenContext.source.controller.isTraitInPlay(Trait.Force) &&
+                thenCondition: () => thenContext.player.isTraitInPlay(Trait.Force) &&
                   thenContext.events[0].totalDistributed > 0,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
