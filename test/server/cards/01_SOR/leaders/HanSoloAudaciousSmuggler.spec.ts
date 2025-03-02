@@ -91,7 +91,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player2.clickPrompt('Done');
                 context.player1.clickPrompt('Done');
 
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.aggression, context.sparkOfRebellion, context.protector, context.atst]);
                 expect(context.player1).not.toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.aggression);
@@ -112,7 +112,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player2.clickPrompt('Done');
                 context.player1.clickPrompt('Done');
 
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.vanquish, context.sparkOfRebellion, context.protector, context.atst]);
                 expect(context.player1).not.toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.vanquish);

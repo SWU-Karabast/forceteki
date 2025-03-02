@@ -90,7 +90,7 @@ describe('Han Solo Resource Interaction Scenarios', function() {
                 context.player1.clickPrompt('Pay 1 resource');
                 expect(context.player1.readyResourceCount).toBe(3);
 
-                expect(context.player1).toHavePrompt('You have at least one exhausted resource that can be defeated. Choose a resource to defeat');
+                expect(context.player1).toHavePrompt('The resource you choose will automatically be switched to exhausted before it is defeated (you will not lose any ready resources).');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.snowspeeder, context.frontierTrader]);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('discard', context.player1);
