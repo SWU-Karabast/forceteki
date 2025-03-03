@@ -118,6 +118,7 @@ export = {
                     KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties));
         }
     },
+    loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, new LoseKeyword(keyword)),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
