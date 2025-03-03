@@ -360,7 +360,7 @@ class PlayerInteractionWrapper {
             this.moveCard(card, 'resource');
             card.exhausted = false;
         });
-        this.game.continue();
+        Util.refreshGameState(this.game);
     }
 
     attachOpponentOwnedUpgrades(opponentOwnedUpgrades = []) {
