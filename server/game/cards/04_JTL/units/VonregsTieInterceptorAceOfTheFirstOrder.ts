@@ -5,7 +5,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class VonregsTieInterceptorAceOfTheFirstOrder extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
-            id: '',
+            id: '2948071304',
             internalName: 'vonregs-tie-interceptor#ace-of-the-first-order'
         };
     }
