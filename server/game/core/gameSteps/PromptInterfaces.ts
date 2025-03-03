@@ -71,6 +71,8 @@ export interface IDistributeAmongTargetsPromptData {
     type: DistributePromptType;
     amount: number;
     isIndirectDamange: boolean;
+    canDistributeLess: boolean;
+    maxTargets?: number;
 }
 
 export interface IDistributeAmongTargetsPromptResults {
