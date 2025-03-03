@@ -10,6 +10,9 @@ import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { ICardCanChangeControllers } from './CardInterfaces';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
+import type { ActionAbility } from '../ability/ActionAbility';
+import type TriggeredAbility from '../ability/TriggeredAbility';
+import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
@@ -73,8 +76,19 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
         }
     }
 
-
     public override checkIsAttachable(): void {
         Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+    }
+
+    public override getActionAbilities(): ActionAbility[] {
+        return this.isBlank() ? [] : this.actionAbilities;
+    }
+
+    public override getTriggeredAbilities(): TriggeredAbility[] {
+        return this.isBlank() ? [] : this.triggeredAbilities;
+    }
+
+    public override getConstantAbilities(): IConstantAbility[] {
+        return this.isBlank() ? [] : this.constantAbilities;
     }
 }

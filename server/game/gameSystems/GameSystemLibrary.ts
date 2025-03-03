@@ -128,6 +128,8 @@ import type { IDeployAndAttachLeaderPilotProperties as IDeployAndAttachPilotLead
 import { DeployAndAttachPilotLeaderSystem as DeployAndAttachPilotLeaderSystem } from './DeployAndAttachPilotLeaderSystem';
 import type { ISelectPlayerProperties } from './SelectPlayerSystem';
 import { SelectPlayerSystem } from './SelectPlayerSystem';
+import type { ICardRoundLastingEffectProperties } from './CardRoundLastingEffectSystem';
+import { CardRoundLastingEffectSystem } from './CardRoundLastingEffectSystem';
 
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
@@ -236,6 +238,9 @@ export function flipDoubleSidedLeader<TContext extends AbilityContext = AbilityC
 }
 export function forThisPhaseCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardPhaseLastingEffectProperties, TContext>) {
     return new CardPhaseLastingEffectSystem<TContext>(propertyFactory);
+}
+export function forThisRoundCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactor: PropsFactory<ICardRoundLastingEffectProperties, TContext>) {
+    return new CardRoundLastingEffectSystem<TContext>(propertyFactor);
 }
 export function forThisAttackCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardAttackLastingEffectProperties, TContext>) {
     return new CardAttackLastingEffectSystem<TContext>(propertyFactory);
