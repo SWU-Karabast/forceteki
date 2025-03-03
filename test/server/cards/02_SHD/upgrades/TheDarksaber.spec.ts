@@ -57,6 +57,7 @@ describe('The Darksaber', function() {
             it('should ignore Aspect penalties when being attached to a friendly Mandalorian', function () {
                 const { context } = contextRef;
                 context.player1.setResourceCount(4);
+                expect(context.player1).toBeAbleToSelect(context.theDarksaber);
                 context.player1.clickCard(context.theDarksaber);
                 expect(context.player1).toBeAbleToSelectExactly([context.supercommandoSquad, context.clanWrenRescuer, context.pykeSentinel, context.followerOfTheWay]);
                 context.player1.clickCard(context.clanWrenRescuer);
@@ -66,6 +67,7 @@ describe('The Darksaber', function() {
             it('should ignore Aspect penalties when being attached to an enemy Mandalorian', function () {
                 const { context } = contextRef;
                 context.player1.setResourceCount(4);
+                expect(context.player1).toBeAbleToSelect(context.theDarksaber);
                 context.player1.clickCard(context.theDarksaber);
                 expect(context.player1).toBeAbleToSelectExactly([context.supercommandoSquad, context.clanWrenRescuer, context.pykeSentinel, context.followerOfTheWay]);
                 context.player1.clickCard(context.followerOfTheWay);
@@ -79,6 +81,25 @@ describe('The Darksaber', function() {
                 context.player1.clickCard(context.pykeSentinel);
                 expect(context.player1.exhaustedResourceCount).toBe(6);
             });
+        });
+
+        it('cannot be played with the discount if there are no Mandalorian non-vehicle units in play', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['the-darksaber'],
+                    groundArena: ['battlefield-marine'],
+                    spaceArena: ['disabling-fang-fighter'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.setResourceCount(4);
+
+            expect(context.player1).not.toBeAbleToSelect(context.theDarksaber);
+
+            context.player1.clickCardNonChecking(context.theDarksaber);
         });
     });
 });

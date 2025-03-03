@@ -834,9 +834,12 @@ class Player extends GameObject {
     getMatchingCostAdjusters(context, penaltyAspect = null, additionalCostAdjusters = [], ignoreExploit = false) {
         const allMatchingAdjusters = this.costAdjusters.concat(additionalCostAdjusters)
             .filter((adjuster) => {
-                if (context.stage === Stage.Cost && context.source.isUpgrade() && !context.target) {
+                // TODO: Make this work with Piloting
+                if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
+                    const upgrade = context.source;
                     return context.game.getArenaUnits()
-                        .some((unit) => adjuster.canAdjust(context.playType, context.source, context, unit, penaltyAspect));
+                        .filter((unit) => upgrade.canAttach(unit))
+                        .some((unit) => adjuster.canAdjust(context.playType, upgrade, context, unit, penaltyAspect));
                 }
                 return adjuster.canAdjust(context.playType, context.source, context, context.target, penaltyAspect);
             });
