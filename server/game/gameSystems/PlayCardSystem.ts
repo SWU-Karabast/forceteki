@@ -4,6 +4,7 @@ import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetS
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
+import * as Helpers from '../core/utils/Helpers';
 import { CardType, PlayType, MetaEventName } from '../core/Constants';
 import type { PlayCardAction } from '../core/ability/PlayCardAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
@@ -114,7 +115,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     }
 
     private buildPlayActionProperties(card: Card, properties: IPlayCardProperties, context: TContext, action: PlayCardAction = null) {
-        let costAdjusters = [this.makeCostAdjuster(properties.adjustCost, context)];
+        let costAdjusters = Helpers.asArray(this.makeCostAdjuster(properties.adjustCost, context));
         if (action) {
             costAdjusters = costAdjusters.concat(action.costAdjusters);
         }
