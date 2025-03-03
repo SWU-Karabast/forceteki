@@ -23,7 +23,7 @@ describe('Planetary Bombardment', function() {
 
             // Player 1 plays Planetary Bombardment and deals 12 indirect damage
             context.player1.clickCard(context.planetaryBombardment);
-            expect(context.player1).toHavePrompt('Choose a player');
+            expect(context.player1).toHavePrompt('Select one');
 
             context.player1.clickPrompt('Opponent');
             expect(context.player2).toHavePrompt('Distribute 12 indirect damage among targets');
@@ -54,7 +54,7 @@ describe('Planetary Bombardment', function() {
 
             // Player 1 plays Planetary Bombardment and deals 8 indirect damage
             context.player1.clickCard(context.planetaryBombardment);
-            expect(context.player1).toHavePrompt('Choose a player');
+            expect(context.player1).toHavePrompt('Select one');
             expect(context.p1Base.damage).toBe(0);
 
             context.player1.clickPrompt('You');

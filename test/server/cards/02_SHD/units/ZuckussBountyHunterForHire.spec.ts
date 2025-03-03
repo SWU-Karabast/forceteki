@@ -23,7 +23,7 @@ describe('Zuckuss, Bounty Hunter for Hire', function() {
                 context.player1.clickCard(context._4lom);
 
                 // ambush from himself
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
 
                 // should have saboteur from zuckuss
                 expect(context.player1).toBeAbleToSelectExactly([context.bendu, context.vigilantHonorGuards]);
@@ -60,7 +60,7 @@ describe('Zuckuss, Bounty Hunter for Hire', function() {
 
                 context.player1.passAction();
                 context.player2.clickCard(context._4lom);
-                context.player2.clickPrompt('Ambush');
+                context.player2.clickPrompt('Trigger');
                 // pyke sentinel is automatically choose
 
                 expect(context.player1).toBeActivePlayer();

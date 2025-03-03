@@ -216,7 +216,7 @@ describe('Uniqueness rule', function() {
                 // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to no attack target)
                 expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Ambush']);
                 context.player1.clickPrompt('Draw a card');
-                context.player1.clickPrompt('Draw a card');     // this click is for the 'Pass' prompt
+                context.player1.clickPrompt('Trigger');     // this click is for the 'Pass' prompt
                 expect(context.player1.handSize).toBe(handSize + 1);
 
                 expect(context.player2).toBeActivePlayer();
@@ -243,7 +243,7 @@ describe('Uniqueness rule', function() {
                 // triggered abilities from the remaining Kallus, including Ambush (which fizzles due to attacker being defeated)
                 expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'Ambush']);
                 context.player1.clickPrompt('Draw a card');
-                context.player1.clickPrompt('Draw a card');     // this click is for the 'Pass' prompt
+                context.player1.clickPrompt('Trigger');     // this click is for the 'Pass' prompt
                 expect(context.player1.handSize).toBe(handSize + 1);
 
                 expect(context.player2).toBeActivePlayer();
@@ -288,7 +288,7 @@ describe('Uniqueness rule', function() {
 
                 // triggered ability from defeated Motti
                 expect(context.player1).toHavePassAbilityPrompt('Ready a Villainy unit');
-                context.player1.clickPrompt('Ready a Villainy unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.mottiInHand.exhausted).toBe(false);
 
                 expect(context.player2).toBeActivePlayer();
@@ -312,7 +312,7 @@ describe('Uniqueness rule', function() {
 
                 // triggered ability from defeated Motti
                 expect(context.player1).toHavePassAbilityPrompt('Ready a Villainy unit');
-                context.player1.clickPrompt('Ready a Villainy unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.mottiInPlay.exhausted).toBe(false);
 
                 expect(context.player2).toBeActivePlayer();

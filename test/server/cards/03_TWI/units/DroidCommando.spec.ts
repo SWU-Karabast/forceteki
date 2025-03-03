@@ -21,7 +21,7 @@ describe('Droid Commando', function () {
                 context.player1.clickCard(context.droidCommando);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.consularSecurityForce.damage).toBe(4);
                 expect(context.player2).toBeActivePlayer();

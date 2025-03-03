@@ -82,6 +82,7 @@ export function defaultLegalZonesForCardType(cardType: CardType) {
         case CardType.BasicUnit:
         case CardType.BasicUpgrade:
         case CardType.Event:
+        case CardType.UnitUpgrade:
             return drawCardZones;
         default:
             Contract.fail(`Unknown card type: ${cardType}`);
