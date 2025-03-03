@@ -24,7 +24,7 @@ describe('Ambush keyword', function() {
 
                 context.player1.clickCard(context.syndicateLackeys);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.snowspeeder]);
 
@@ -60,7 +60,7 @@ describe('Ambush keyword', function() {
 
                 context.player1.clickCard(context.syndicateLackeys);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.syndicateLackeys.exhausted).toBe(true);
                 expect(context.p2Base.damage).toBe(0);
@@ -122,7 +122,7 @@ describe('Ambush keyword', function() {
 
                 context.player1.clickCard(context.syndicateLackeys);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.snowspeeder]);
 

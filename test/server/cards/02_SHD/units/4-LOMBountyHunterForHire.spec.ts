@@ -20,7 +20,7 @@ describe('4-LOM, Bounty Hunter for Hire', function () {
                 context.player1.clickCard(context.zuckuss);
 
                 // should have ambush from 4-lom
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
 
                 // should have saboteur from himself
                 expect(context.player1).toBeAbleToSelectExactly([context.bendu, context.consularSecurityForce]);

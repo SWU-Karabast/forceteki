@@ -21,7 +21,7 @@ describe('RicketyQuadjumper', function () {
 
                 // player1 should have prompt or pass
                 expect(context.player1).toHavePassAbilityPrompt('Reveal a card');
-                context.player1.clickPrompt('Reveal a card');
+                context.player1.clickPrompt('Trigger');
 
                 // top card is an upgrade, give exp to another unit
                 expect(context.protector).toBeInZone('deck');
@@ -54,7 +54,7 @@ describe('RicketyQuadjumper', function () {
                 context.player1.clickCard(context.p2Base);
                 // player1 should have prompt or pass
                 expect(context.player1).toHavePassAbilityPrompt('Reveal a card');
-                context.player1.clickPrompt('Reveal a card');
+                context.player1.clickPrompt('Trigger');
 
                 // top card is a unit, nothing happen
                 expect(context.isbAgent).toBeInZone('deck');

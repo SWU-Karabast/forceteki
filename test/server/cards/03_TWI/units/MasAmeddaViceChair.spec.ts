@@ -22,10 +22,10 @@ describe('Mas Amedda, Vice Chair', function() {
 
                 context.player1.clickCard(context.frontierAtrt);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Exhaust this unit\' or pass');
-                expect(context.player1).toHaveEnabledPromptButton('Exhaust this unit');
+                expect(context.player1).toHaveEnabledPromptButton('Trigger');
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
 
-                context.player1.clickPrompt('Exhaust this unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.systemPatrolCraft, context.clanWrenRescuer, context.concordDawnInterceptors],
@@ -50,10 +50,10 @@ describe('Mas Amedda, Vice Chair', function() {
 
                 context.player1.clickCard(context.frontierAtrt);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Exhaust this unit\' or pass');
-                expect(context.player1).toHaveEnabledPromptButton('Exhaust this unit');
+                expect(context.player1).toHaveEnabledPromptButton('Trigger');
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
 
-                context.player1.clickPrompt('Exhaust this unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.systemPatrolCraft, context.clanWrenRescuer, context.concordDawnInterceptors],
@@ -72,7 +72,7 @@ describe('Mas Amedda, Vice Chair', function() {
 
                 context.player1.clickCard(context.frontierAtrt);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Exhaust this unit\' or pass');
-                expect(context.player1).toHaveEnabledPromptButton('Exhaust this unit');
+                expect(context.player1).toHaveEnabledPromptButton('Trigger');
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
 
                 context.player1.clickPrompt('Pass');
@@ -88,10 +88,10 @@ describe('Mas Amedda, Vice Chair', function() {
 
                 context.player2.clickCard(context.superlaserTechnician);
                 expect(context.player2).toHavePrompt('Trigger the ability \'Exhaust this unit\' or pass');
-                expect(context.player2).toHaveEnabledPromptButton('Exhaust this unit');
+                expect(context.player2).toHaveEnabledPromptButton('Trigger');
                 expect(context.player2).toHaveEnabledPromptButton('Pass');
 
-                context.player2.clickPrompt('Exhaust this unit');
+                context.player2.clickPrompt('Trigger');
 
                 expect(context.player2).toHaveExactDisplayPromptCards({
                     invalid: [context.priceOnYourHead, context.mercilessContest, context.overwhelmingBarrage, context.publicEnemy]

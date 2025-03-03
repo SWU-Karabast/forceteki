@@ -29,7 +29,7 @@ describe('Cad Bane, He Who Needs No Introduction', function () {
             // CASE 3: controller plays an Underworld card, ability triggers
             context.player1.clickCard(context.pykeSentinel);
             expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-            context.player1.clickPrompt('Exhaust this leader');
+            context.player1.clickPrompt('Trigger');
 
             expect(context.cadBane.exhausted).toBeTrue();
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.tieAdvanced, context.cantinaBraggart]);
@@ -69,7 +69,7 @@ describe('Cad Bane, He Who Needs No Introduction', function () {
             // CASE 3: controller plays an Underworld card, ability triggers
             context.player1.clickCard(context.pykeSentinel);
             expect(context.player1).toHavePassAbilityPrompt('The opponent chooses a unit they control. Deal 2 damage to it.');
-            context.player1.clickPrompt('The opponent chooses a unit they control. Deal 2 damage to it.');
+            context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.tieAdvanced, context.cantinaBraggart]);
             expect(context.player2).not.toHavePassAbilityButton();
@@ -87,7 +87,7 @@ describe('Cad Bane, He Who Needs No Introduction', function () {
             context.player2.passAction();
             context.player1.clickCard(context.outlawCorona);
             expect(context.player1).toHavePassAbilityPrompt('The opponent chooses a unit they control. Deal 2 damage to it.');
-            context.player1.clickPrompt('The opponent chooses a unit they control. Deal 2 damage to it.');
+            context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.tieAdvanced, context.cantinaBraggart]);
             expect(context.player2).not.toHavePassAbilityButton();

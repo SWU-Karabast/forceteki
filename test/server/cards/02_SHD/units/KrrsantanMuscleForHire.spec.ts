@@ -15,7 +15,7 @@ describe('Krrsantan, Muscle For Hire', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.krrsantan);
-                context.player1.clickPrompt('Ready this unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.krrsantan.exhausted).toBeFalse();
             });

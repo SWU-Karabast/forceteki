@@ -80,7 +80,7 @@ describe('Token units', function() {
 
                 // confirm that Battle Droid defeat event registered correctly and triggered Krell ability
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
 
                 // CASE 2: defeat due to direct defeat effect
                 context.player1.clickCard(context.vanquish);
@@ -90,7 +90,7 @@ describe('Token units', function() {
 
                 // confirm that Battle Droid defeat event registered correctly and triggered Krell ability
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
 
                 // CASE 3: defeat to -hp effect
                 context.player2.clickCard(context.supremeLeaderSnoke);
@@ -98,7 +98,7 @@ describe('Token units', function() {
 
                 // confirm that Battle Droid defeat event registered correctly and triggered Krell ability
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
             });
 
             it('should be moved outside the game if they would be moved out of the arena, but not register as defeated', async function () {

@@ -28,7 +28,7 @@ describe('Steela Gerrera, Beloved Tactician', function () {
 
             // deal 2 damage to our base to search the top 8 card of deck for a tactic card
             expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to your base');
-            context.player1.clickPrompt('Deal 2 damage to your base');
+            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [context.takedown, context.superlaserBlast, context.strikeTrue],

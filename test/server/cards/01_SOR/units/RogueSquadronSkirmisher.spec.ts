@@ -31,10 +31,10 @@ describe('Rogue Squadron Skirmisher', function () {
 
                 // chooses to trigger the ambush
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Ambush',
+                    'Trigger',
                     'Pass',
                 ]);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
 
                 // solves ambush damages
                 expect(context.rogueSquadronSkirmisher.exhausted).toBeTrue();
@@ -83,7 +83,7 @@ describe('Rogue Squadron Skirmisher', function () {
                 expect(context.player1.handSize).toBe(0);
 
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Ambush',
+                    'Trigger',
                     'Pass',
                 ]);
                 context.player1.clickPrompt('Pass');

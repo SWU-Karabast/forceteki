@@ -28,7 +28,7 @@ describe('Quinlan Vos, Sticking the Landing', function () {
 
             // can pass this trigger
             expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-            context.player1.clickPrompt('Exhaust this leader');
+            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeAbleToSelectExactly([context.craftySmuggler, context.greenSquadronAwing]);
             context.player1.clickCard(context.greenSquadronAwing);
