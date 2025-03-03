@@ -1,6 +1,6 @@
 import type Player from '../Player';
 import type { ZoneFilter } from '../Constants';
-import { CardType, DeployType, Trait } from '../Constants';
+import { CardType, DeployType, Trait, WildcardCardType } from '../Constants';
 import { AbilityType, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
@@ -58,22 +58,6 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
             })
         }));
 
-        if (cardData.upgradeHp != null && cardData.upgradePower != null) {
-            this.deployEpicActions.push(this.addActionAbility({
-                title: `Deploy ${this.title} as a Pilot`,
-                limit: this.deployEpicActionLimit,
-                condition: (context) => context.player.resources.length >= context.source.cost,
-                targetResolver: {
-                    cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && card.canAttachPilot(),
-                    immediateEffect: AbilityHelper.immediateEffects.deploy((context) => ({
-                        deployType: DeployType.LeaderUpgrade,
-                        parentCard: context.target,
-                        target: context.source
-                    }))
-                }
-            }));
-        }
-
         this.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities(this);
     }
@@ -102,16 +86,17 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
     public deploy(deployType: DeployType, parentCard?: IUnitCard) {
         Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
 
+        this._deployed = true;
+
         switch (deployType) {
             case DeployType.LeaderUpgrade:
-                this.attachTo(this.parentCard);
+                this.attachTo(parentCard);
                 break;
             case DeployType.LeaderUnit:
             default:
                 this.moveTo(this.defaultArena);
                 break;
         }
-        this._deployed = true;
     }
 
     /** Return the leader from the arena to the base zone. Handles the move operation and state changes. */
@@ -127,6 +112,21 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected setupLeaderUnitSideAbilities(sourceCard: this) {
+    }
+
+    protected addPilotDeploy() {
+        this.deployEpicActions.push(this.addActionAbility({
+            title: `Deploy ${this.title} as a Pilot`,
+            limit: this.deployEpicActionLimit,
+            condition: (context) => context.player.resources.length >= context.source.cost,
+            targetResolver: {
+                cardTypeFilter: WildcardCardType.Unit,
+                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && card.canAttachPilot(),
+                immediateEffect: AbilityHelper.immediateEffects.deployAndAttachPilotLeader((context) => ({
+                    leaderPilotCard: context.source
+                }))
+            }
+        }));
     }
 
     protected override addActionAbility(properties: IActionAbilityProps<this>) {

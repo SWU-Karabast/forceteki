@@ -10,6 +10,8 @@ export default class BobaFettAnyMethodsNecessary extends LeaderUnitCard {
     }
 
     protected override setupLeaderSideAbilities() {
+        this.addPilotDeploy();
+
         this.addTriggeredAbility({
             title: 'Exhaust leader and exhaust the damaged enemy unit',
             optional: true,

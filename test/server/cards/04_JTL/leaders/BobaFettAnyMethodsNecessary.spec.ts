@@ -54,16 +54,16 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
                 context.player1.clickCard(context.cartelSpacer);
 
-                // expect(context.bobaFett.deployed).toBe(true);
-                // expect(context.bobaFett).toBeInZone('spaceArena');
-                // expect(context.bobaFett.getPower()).toBe(4);
-                // expect(context.bobaFett.getHp()).toBe(4);
+                expect(context.bobaFett.deployed).toBe(true);
+                expect(context.bobaFett).toBeInZone('spaceArena');
+                expect(context.cartelSpacer.getPower()).toBe(6);
+                expect(context.cartelSpacer.getHp()).toBe(7);
 
-                // context.player2.clickCard(context.rivalsFall);
-                // context.player2.clickCard(context.bobaFett);
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.bobaFett);
 
-                // context.moveToNextActionPhase();
-                // expect(context.bobaFett).not.toHaveAvailableActionWhenClickedBy(context.player1);
+                context.moveToNextActionPhase();
+                expect(context.bobaFett).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });
     });
