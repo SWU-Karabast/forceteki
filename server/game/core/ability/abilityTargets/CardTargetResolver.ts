@@ -176,6 +176,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             selector: this.selector,
             buttons: buttons,
             mustSelect: mustSelect,
+            selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             onSelect: (card) => {
                 this.setTargetResult(context, card);
                 return true;
@@ -214,7 +215,6 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
         context.game.promptWithHandlerMenu(context.player, {
             activePromptTitle,
-            selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             choices: [`${effectName} -> ${target.title}`, 'Pass'],
             handlers: [
                 () => this.setTargetResult(context, target),

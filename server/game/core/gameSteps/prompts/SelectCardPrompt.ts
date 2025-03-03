@@ -84,6 +84,8 @@ export class SelectCardPrompt extends UiPrompt {
 
         this.source = properties.source;
 
+        Contract.assertNotNullLike(properties.selectCardMode);
+
         this.properties = properties;
         this.context = properties.context || new AbilityContext({ game: game, player: choosingPlayer, source: properties.source });
         this.properties = Object.assign(this.defaultProperties(), properties);
@@ -116,7 +118,6 @@ export class SelectCardPrompt extends UiPrompt {
     private defaultProperties() {
         return {
             buttons: [],
-            selectCardMode: true,
             cardCondition: () => true,
             onSelect: () => true,
             onMenuCommand: () => true,
