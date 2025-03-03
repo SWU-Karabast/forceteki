@@ -7,7 +7,7 @@ describe('Hera Syndulla, We\'ve Lost Enough', function() {
                     player1: {
                         hand: ['hera-syndulla#weve-lost-enough', 'survivors-gauntlet'],
                         groundArena: ['snowspeeder'],
-                        spaceArena: ['alliance-xwing'],
+                        spaceArena: ['alliance-xwing', 'restored-arc170'],
                         base: { card: 'chopper-base', damage: 5 }
                     },
                     player2: {
@@ -28,6 +28,20 @@ describe('Hera Syndulla, We\'ve Lost Enough', function() {
                 context.player1.clickCard(context.allianceXwing);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p1Base.damage).toBe(4);
+            });
+
+            it('should correctly stack restore with the attached unit\'s printed restore', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.heraSyndulla);
+                context.player1.clickPrompt('Play Hera Syndulla with Piloting');
+                context.player1.clickCard(context.restoredArc170);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.restoredArc170);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p1Base.damage).toBe(3);
             });
 
             it('should not give restore 1 to other units than the attached when played as a pilot', function() {
