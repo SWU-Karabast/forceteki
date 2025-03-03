@@ -281,6 +281,7 @@ export enum MetaEventName {
     PlayCard = 'playCard',
     ReplacementEffect = 'replacementEffect',
     SelectCard = 'selectCard',
+    SelectPlayer = 'selectPlayer',
     Sequential = 'sequential',
     Simultaneous = 'simultaneous',
 }
@@ -312,7 +313,6 @@ export enum KeywordName {
     Overwhelm = 'overwhelm',
     Raid = 'raid',
     Restore = 'restore',
-    /** @deprecated not fully implemented yet */
     Piloting = 'piloting',
     Saboteur = 'saboteur',
     Sentinel = 'sentinel',
@@ -472,4 +472,11 @@ export enum PromptType {
     ActionWindow = 'actionWindow',
     DisplayCards = 'displayCards',
     DistributeAmongTargets = 'distributeAmongTargets',
+}
+
+export enum SubStepCheck {
+    None = 'none',
+    /** ifYouDoNot is a special case which needs to ignore SubStep checks, but then and ifYouDo will do this check. */
+    ThenIfYouDo = 'thenIfYouDo',
+    All = 'all'
 }

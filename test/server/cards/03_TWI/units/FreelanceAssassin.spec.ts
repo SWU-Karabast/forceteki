@@ -20,7 +20,7 @@ describe('Freelance Assassin', function () {
 
                 // have a prompt to pay 2 resources
                 expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources');
-                context.player1.clickPrompt('Pay 2 resources');
+                context.player1.clickPrompt('Trigger');
 
                 // deal 2 damage to a unit
                 expect(context.player1).toBeAbleToSelectExactly([context.freelanceAssassin, context.restoredArc170, context.battlefieldMarine]);

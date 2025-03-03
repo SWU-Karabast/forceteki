@@ -85,7 +85,7 @@ class GameFlowWrapper {
      */
     keepStartingHand() {
         this.guardCurrentPhase('setup');
-        this.allPlayersInInitiativeOrder().forEach((player) => player.clickPrompt('No'));
+        this.allPlayersInInitiativeOrder().forEach((player) => player.clickPrompt('Keep'));
     }
 
 
@@ -190,11 +190,11 @@ class GameFlowWrapper {
     }
 
     selectInitiativePlayer(player) {
-        var promptedPlayer = this.getPromptedPlayer('You won the flip. Do you want to start with initiative:');
+        var promptedPlayer = this.getPromptedPlayer('You won the flip. Choose the player to start with initiative:');
         if (player === promptedPlayer) {
-            promptedPlayer.clickPrompt('Yes');
+            promptedPlayer.clickPrompt('Yourself');
         } else {
-            promptedPlayer.clickPrompt('No');
+            promptedPlayer.clickPrompt('Opponent');
         }
     }
 

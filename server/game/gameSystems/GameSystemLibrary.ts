@@ -126,6 +126,8 @@ import type { IPayCardPrintedCostProperties } from './PayCardPrintedCostSystem';
 import { PayCardPrintedCostSystem } from './PayCardPrintedCostSystem';
 import type { IDeployAndAttachLeaderPilotProperties as IDeployAndAttachPilotLeaderProperties } from './DeployAndAttachPilotLeaderSystem';
 import { DeployAndAttachPilotLeaderSystem as DeployAndAttachPilotLeaderSystem } from './DeployAndAttachPilotLeaderSystem';
+import type { ISelectPlayerProperties } from './SelectPlayerSystem';
+import { SelectPlayerSystem } from './SelectPlayerSystem';
 
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
@@ -603,6 +605,9 @@ export function conditional<TContext extends AbilityContext = AbilityContext>(pr
 // }
 export function selectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISelectCardProperties<TContext>, TContext>) {
     return new SelectCardSystem<TContext>(propertyFactory);
+}
+export function selectPlayer<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISelectPlayerProperties<TContext>, TContext>) {
+    return new SelectPlayerSystem<TContext>(propertyFactory);
 }
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>) {
 //     return new SelectTokenAction(propertyFactory);

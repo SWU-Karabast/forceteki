@@ -24,7 +24,7 @@ describe('Enticing Reward', function () {
 
                 // use bounty
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
 
                 // choose up to 2 non-units cards
                 expect(context.player1).toHaveExactDisplayPromptCards({
@@ -97,7 +97,7 @@ describe('Enticing Reward', function () {
 
                 // use bounty
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
 
                 // choose up to 2 non-units cards
                 expect(context.player1).toHaveExactDisplayPromptCards({
