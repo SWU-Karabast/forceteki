@@ -56,6 +56,7 @@ describe('The Darksaber', function() {
 
             it('should ignore Aspect penalties when being attached to a friendly Mandalorian', function () {
                 const { context } = contextRef;
+                context.player1.setResourceCount(4);
                 context.player1.clickCard(context.theDarksaber);
                 expect(context.player1).toBeAbleToSelectExactly([context.supercommandoSquad, context.clanWrenRescuer, context.pykeSentinel, context.followerOfTheWay]);
                 context.player1.clickCard(context.clanWrenRescuer);
@@ -64,6 +65,7 @@ describe('The Darksaber', function() {
 
             it('should ignore Aspect penalties when being attached to an enemy Mandalorian', function () {
                 const { context } = contextRef;
+                context.player1.setResourceCount(4);
                 context.player1.clickCard(context.theDarksaber);
                 expect(context.player1).toBeAbleToSelectExactly([context.supercommandoSquad, context.clanWrenRescuer, context.pykeSentinel, context.followerOfTheWay]);
                 context.player1.clickCard(context.followerOfTheWay);

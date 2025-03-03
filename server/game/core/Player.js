@@ -17,7 +17,8 @@ const {
     KeywordName,
     WildcardCardType,
     Trait,
-    WildcardRelativePlayer
+    WildcardRelativePlayer,
+    Stage
 } = require('./Constants');
 
 const EnumHelpers = require('./utils/EnumHelpers');
@@ -80,6 +81,8 @@ class Player extends GameObject {
 
         /** @type {Deck} */
         this.decklistNames = null;
+
+        /** @type {CostAdjuster[]} */
         this.costAdjusters = [];
         this.abilityMaxByIdentifier = {}; // This records max limits for abilities
         this.promptedActionWindows = user.promptedActionWindows || {
@@ -821,11 +824,22 @@ class Player extends GameObject {
         return Math.max(cost, 0);
     }
 
-    getMatchingCostAdjusters(context, penaltyAspect = null, additionalCostAdjusters = null, ignoreExploit = false) {
+    /**
+     * @param {AbilityContext} context
+     * @param {Aspect=} penaltyAspect
+     * @param {CostAdjuster[]=} additionalCostAdjusters
+     * @param {boolean} ignoreExploit
+     * @returns {CostAdjuster[]}
+     */
+    getMatchingCostAdjusters(context, penaltyAspect = null, additionalCostAdjusters = [], ignoreExploit = false) {
         const allMatchingAdjusters = this.costAdjusters.concat(additionalCostAdjusters)
-            .filter((adjuster) =>
-                adjuster?.canAdjust(context.playingType, context.source, context, context.target, penaltyAspect)
-            );
+            .filter((adjuster) => {
+                if (context.stage === Stage.Cost && context.source.isUpgrade() && !context.target) {
+                    return context.game.getArenaUnits()
+                        .some((unit) => adjuster.canAdjust(context.playType, context.source, context, unit, penaltyAspect));
+                }
+                return adjuster.canAdjust(context.playType, context.source, context, context.target, penaltyAspect);
+            });
 
         if (ignoreExploit) {
             return allMatchingAdjusters.filter((adjuster) => !adjuster.isExploit());
@@ -837,6 +851,8 @@ class Player extends GameObject {
         // if there are multiple Exploit adjusters, generate a single merged one to represent the total Exploit value
         const costAdjusters = nonExploitAdjusters;
         if (exploitAdjusters.length > 1) {
+            Contract.assertTrue(exploitAdjusters.every((adjuster) => adjuster.isExploit()));
+            Contract.assertTrue(context.source.hasCost());
             costAdjusters.unshift(new MergedExploitCostAdjuster(exploitAdjusters, context.source, context));
         } else {
             costAdjusters.unshift(...exploitAdjusters);
@@ -847,12 +863,14 @@ class Player extends GameObject {
 
     /**
      * Mark all cost adjusters which are valid for this card/target/playingType as used, and remove them if they have no uses remaining
-     * @param {String} playingType
-     * @param card DrawCard
-     * @param target BaseCard
+     * @param {PlayType} playingType
+     * @param {Card} card DrawCard
+     * @param {AbilityContext} context
+     * @param {Card=} target BaseCard
+     * @param {Aspect=} aspects
      */
     markUsedAdjusters(playingType, card, context, target = null, aspects = null) {
-        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(playingType, card, context, target, null, aspects));
+        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(playingType, card, context, target, aspects));
         matchingAdjusters.forEach((adjuster) => {
             adjuster.markUsed();
             if (adjuster.isExpired()) {
