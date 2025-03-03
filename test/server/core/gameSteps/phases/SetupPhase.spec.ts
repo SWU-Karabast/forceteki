@@ -51,16 +51,16 @@ describe('Setup Phase', function() {
 
                 // Mulligan step
                 // check if each player has correct prompt
-                expect(context.player1).toHaveExactPromptButtons(['Yes', 'No']);
-                expect(context.player2).toHaveExactPromptButtons(['Yes', 'No']);
+                expect(context.player1).toHaveExactPromptButtons(['Mulligan', 'Keep']);
+                expect(context.player2).toHaveExactPromptButtons(['Mulligan', 'Keep']);
 
 
                 // Check if player2 can still mulligan after player1 selects yes.
-                context.player1.clickPrompt('yes');
+                context.player1.clickPrompt('Mulligan');
                 expect(context.player1.hand).toEqual(beforeMulliganHand);
-                expect(context.player2).toHaveExactPromptButtons(['Yes', 'No']);
+                expect(context.player2).toHaveExactPromptButtons(['Mulligan', 'Keep']);
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose whether to Mulligan or keep hand.');
-                context.player2.clickPrompt('no');
+                context.player2.clickPrompt('Keep');
 
                 const afterMulliganHand = context.player1.hand;
                 const afterPlayer2Hand = context.player2.hand;
@@ -175,9 +175,9 @@ describe('Setup Phase', function() {
                 expect(context.player2.handSize).toBe(6);
 
                 // Mulligan step
-                context.player1.clickPrompt('no');
+                context.player1.clickPrompt('Keep');
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose whether to Mulligan or keep hand.');
-                context.player2.clickPrompt('no');
+                context.player2.clickPrompt('Keep');
 
                 // We check if player1's hand has the only selectable cards
                 expect(context.player1).toBeAbleToSelectExactly(context.player1.hand);
