@@ -18,7 +18,6 @@ export default class IG2000AssassinsAggressor extends NonLeaderUnitCard {
                 canChooseNoCards: true,
                 numCards: 3,
                 cardTypeFilter: WildcardCardType.Unit,
-                multiSelectCardCondition: (card, selectedCards) => selectedCards.every((selectedCard) => selectedCard.title !== card.title),
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             }
         });
