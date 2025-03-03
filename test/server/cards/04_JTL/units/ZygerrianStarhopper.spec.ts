@@ -19,7 +19,7 @@ describe('Zygerrian Starhopper', function() {
             context.player2.clickCard(context.vanquish);
             context.player2.clickCard(context.zygerrianStarhopper);
 
-            expect(context.player1).toHavePrompt('Choose a player');
+            expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
             context.player1.clickPrompt('Opponent');
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
             expect(context.player2).not.toHaveChooseNoTargetButton();
