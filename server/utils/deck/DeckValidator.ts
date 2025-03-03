@@ -99,7 +99,11 @@ export class DeckValidator {
     }
 
     // update this function if anything affects the sideboard count
-    public getMaxSideboardSize(): number {
+    public getMaxSideboardSize(format: SwuGameFormat): number {
+        // sideboard is only restricted in Premier
+        if (format === SwuGameFormat.Open || format === SwuGameFormat.NextSetPreview) {
+            return -1;
+        }
         return 10;
     }
 

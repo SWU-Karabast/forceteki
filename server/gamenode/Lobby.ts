@@ -95,7 +95,7 @@ export class Lobby {
                 importDeckErrors: u.importDeckValidationErrors,
                 unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist()),
                 minDeckSize: u.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(u.deck?.base.id) : 50,
-                maxSideBoard: this.deckValidator.getMaxSideboardSize()
+                maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format)
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
