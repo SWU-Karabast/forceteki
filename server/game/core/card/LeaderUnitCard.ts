@@ -77,6 +77,10 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
         return true;
     }
 
+    public override isLeader(): this is ILeaderCard {
+        return true;
+    }
+
     public override isLeaderUnit(): this is ILeaderUnitCard {
         return this._deployed;
     }

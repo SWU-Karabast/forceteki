@@ -153,6 +153,32 @@ describe('Deploy a Leader as a Pilot', function() {
                 context.moveToNextActionPhase();
                 expect(context.bobaFett).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
+
+            it('make the attached unit a leader unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'boba-fett#any-methods-necessary',
+                        groundArena: ['wild-rancor'],
+                        spaceArena: ['cartel-spacer'],
+                        resources: 6
+                    },
+                    player2: {
+                        hand: ['fell-the-dragon']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickPrompt('Choose no targets');
+
+                context.player2.clickCard(context.fellTheDragon);
+                expect(context.player2).toBeAbleToSelectExactly([context.wildRancor]);
+                context.player2.clickCard(context.wildRancor);
+            });
         });
     });
 });

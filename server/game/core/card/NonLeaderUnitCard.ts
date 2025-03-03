@@ -24,7 +24,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
     }
 
     public override isNonLeaderUnit(): this is INonLeaderUnitCard {
-        return true;
+        return !this.isLeaderAttachedToThis();
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {

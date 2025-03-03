@@ -32,6 +32,8 @@ import type Player from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
 import type { IUpgradeCard } from '../CardInterfaces';
 import type { ActionAbility } from '../../ability/ActionAbility';
+import type { ILeaderCard } from './LeaderProperties';
+import type { ILeaderUnitCard } from '../LeaderUnitCard';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -165,6 +167,21 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this.upgrades.some((card) => card.isShield());
         }
 
+        public override isLeader(): this is ILeaderCard {
+            return this.isLeaderAttachedToThis();
+        }
+
+        public override isLeaderUnit(): this is ILeaderUnitCard {
+            return this.isLeaderAttachedToThis();
+        }
+
+        protected isLeaderAttachedToThis(): boolean {
+            if (this._upgrades == null) {
+                return false;
+            }
+            return this.isUpgraded() && this.upgrades.some((card) => card.isLeader());
+        }
+
         public override isUpgrade(): this is IUpgradeCard {
             return this._parentCard !== null;
         }
@@ -218,6 +235,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected override getType(): CardType {
+            if (this.isLeaderAttachedToThis()) {
+                return CardType.LeaderUnit;
+            }
             return this.isAttached() ? CardType.UnitUpgrade : this.printedType;
         }
 
@@ -750,11 +770,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
 
         public override checkIsAttachable(): void {
-            if (this.isNonLeaderUnit()) {
-                Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
-            }
             if (this.isLeaderUnit()) {
                 Contract.assertTrue(this.canBeUpgrade);
+            } else if (this.isNonLeaderUnit()) {
+                Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
             }
         }
 

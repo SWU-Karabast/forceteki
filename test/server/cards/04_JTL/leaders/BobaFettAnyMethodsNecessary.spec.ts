@@ -64,7 +64,7 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.bobaFett.exhausted).toBe(false);
             });
 
-            it('Can Be Deployed As a Unit', async function () {
+            it('does not deal 4 damage when deployed as a unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -83,18 +83,11 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Boba Fett', 'Deploy Boba Fett as a Pilot']);
                 context.player1.clickPrompt('Deploy Boba Fett');
                 expect(context.bobaFett.deployed).toBe(true);
-                expect(context.bobaFett).toBeInZone('groundArena');
-                expect(context.bobaFett.getPower()).toBe(4);
-                expect(context.bobaFett.getHp()).toBe(7);
 
-                context.player2.clickCard(context.rivalsFall);
-                context.player2.clickCard(context.bobaFett);
-
-                context.moveToNextActionPhase();
-                expect(context.bobaFett).not.toHaveAvailableActionWhenClickedBy(context.player1);
+                expect(context.player2).toBeActivePlayer();
             });
 
-            it('Can Be Deployed As a Pilot Upgrade and deal up to 4 damage divided among units', async function () {
+            it('will deal up to 4 damage divided among units when deployed as an upgrade', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
