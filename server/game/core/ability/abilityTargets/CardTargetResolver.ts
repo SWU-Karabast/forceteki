@@ -11,6 +11,7 @@ import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
 import * as EnumHelpers from '../../utils/EnumHelpers.js';
 import type { GameSystem } from '../../gameSystem/GameSystem';
+import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 
 /**
  * Target resolver for selecting cards for the target of an effect.
@@ -175,6 +176,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             selector: this.selector,
             buttons: buttons,
             mustSelect: mustSelect,
+            selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             onSelect: (card) => {
                 this.setTargetResult(context, card);
                 return true;
