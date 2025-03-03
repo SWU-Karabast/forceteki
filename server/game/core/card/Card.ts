@@ -211,7 +211,7 @@ export class Card extends OngoingEffectSource {
 
         this._controller = owner;
         this.id = cardData.id;
-        this.canBeUpgrade = cardData.upgradeHp !== null && cardData.upgradePower !== null; // TODO: Check if this is working
+        this.canBeUpgrade = cardData.upgradeHp != null && cardData.upgradePower != null;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 

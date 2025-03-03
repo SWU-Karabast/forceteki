@@ -1,6 +1,6 @@
 import type Player from '../Player';
 import type { ZoneFilter } from '../Constants';
-import { CardType, DeployType, Trait, WildcardCardType } from '../Constants';
+import { CardType, DeployType, RelativePlayer, Trait, WildcardCardType } from '../Constants';
 import { AbilityType, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
@@ -32,20 +32,21 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
     protected _deployed = false;
     protected setupLeaderUnitSide;
     protected deployEpicActionLimit: EpicActionLimit;
-    protected deployEpicActions: ActionAbility[] = [];
+    protected deployEpicActions: ActionAbility[];
 
     public get deployed() {
         return this._deployed;
     }
 
     public override getType(): CardType {
+        if (this.canBeUpgrade && this.isAttached()) {
+            return CardType.UnitUpgrade;
+        }
         return this._deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
-
-        this.deployEpicActionLimit = new EpicActionLimit();
 
         // add deploy leader action
         this.deployEpicActions.push(this.addActionAbility({
@@ -60,6 +61,12 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
 
         this.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities(this);
+    }
+
+    protected override initializeStateForAbilitySetup() {
+        super.initializeStateForAbilitySetup();
+        this.deployEpicActions = [];
+        this.deployEpicActionLimit = new EpicActionLimit();
     }
 
     public override isUnit(): this is IUnitCard {
@@ -121,6 +128,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
             condition: (context) => context.player.resources.length >= context.source.cost,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
+                controller: RelativePlayer.Self,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && card.canAttachPilot(),
                 immediateEffect: AbilityHelper.immediateEffects.deployAndAttachPilotLeader((context) => ({
                     leaderPilotCard: context.source

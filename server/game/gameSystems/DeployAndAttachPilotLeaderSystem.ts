@@ -42,6 +42,7 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
         const properties = this.generatePropertiesFromContext(context);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.leaderPilotCard = properties.leaderPilotCard;
+        event.deployType = DeployType.LeaderUpgrade;
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {

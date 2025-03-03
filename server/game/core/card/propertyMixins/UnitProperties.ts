@@ -198,6 +198,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected override initializeStateForAbilitySetup() {
+            super.initializeStateForAbilitySetup();
             this.pilotingActionAbilities = [];
             this.pilotingConstantAbilities = [];
             this.pilotingTriggeredAbilities = [];
@@ -314,10 +315,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected addPilotingAbility(properties: IAbilityPropsWithType<this>): void {
-            Contract.assertTrue(
-                this.printedKeywords.some((keyword) => keyword.name === KeywordName.Piloting),
-                `Attempting to add a piloting ability '${properties.title}' to ${this.internalName} but it has no printed instances of the Piloting keyword`
-            );
+            if (this.isDeployableLeader()) {
+                Contract.assertTrue(this.canBeUpgrade);
+            } else if (this.isNonLeaderUnit()) {
+                Contract.assertTrue(
+                    this.printedKeywords.some((keyword) => keyword.name === KeywordName.Piloting),
+                    `Attempting to add a piloting ability '${properties.title}' to ${this.internalName} but it has no printed instances of the Piloting keyword`
+                );
+            }
 
             switch (properties.type) {
                 case AbilityType.Action:
@@ -745,7 +750,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
 
         public override checkIsAttachable(): void {
-            Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+            if (this.isNonLeaderUnit()) {
+                Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+            }
+            if (this.isLeaderUnit()) {
+                Contract.assertTrue(this.canBeUpgrade);
+            }
         }
 
         /**
