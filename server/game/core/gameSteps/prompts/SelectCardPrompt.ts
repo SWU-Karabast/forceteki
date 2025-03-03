@@ -84,6 +84,8 @@ export class SelectCardPrompt extends UiPrompt {
 
         this.source = properties.source;
 
+        Contract.assertNotNullLike(properties.selectCardMode);
+
         this.properties = properties;
         this.context = properties.context || new AbilityContext({ game: game, player: choosingPlayer, source: properties.source });
         this.properties = Object.assign(this.defaultProperties(), properties);
@@ -116,7 +118,6 @@ export class SelectCardPrompt extends UiPrompt {
     private defaultProperties() {
         return {
             buttons: [],
-            selectCard: true,
             cardCondition: () => true,
             onSelect: () => true,
             onMenuCommand: () => true,
@@ -125,6 +126,7 @@ export class SelectCardPrompt extends UiPrompt {
         };
     }
 
+    // TODO: can we remove this?
     private savePreviouslySelectedCards() {
         this.previouslySelectedCards = this.choosingPlayer.selectedCards;
         this.choosingPlayer.clearSelectedCards();
@@ -161,7 +163,7 @@ export class SelectCardPrompt extends UiPrompt {
         }
 
         return {
-            selectCard: this.properties.selectCard,
+            selectCardMode: this.properties.selectCardMode,
             selectOrder: this.properties.selectOrder,
             menuTitle: this.properties.activePromptTitle || this.selector.defaultActivePromptTitle(this.context),
             buttons: buttons,
