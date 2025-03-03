@@ -2,7 +2,6 @@
 const { default: axios } = require('axios');
 const { default: axiosRetry } = require('axios-retry');
 const { Agent } = require('https');
-const { log } = require('console');
 const fs = require('fs/promises');
 const mkdirp = require('mkdirp');
 const path = require('path');
@@ -71,6 +70,26 @@ function populateMissingData(attributes, id) {
         case '8862896760': // Maul - Shadow Collective Visionary
             attributes.text = 'Ambush\nOverwhelm\nOn Attack: You may choose another friendly Underworld unit. If you do, all combat damage that would be dealt to this unit during this attack is dealt to the chosen unit instead.';
             break;
+        case '0011262813': // Wedge Antilles - Leader of Red Squadron
+            attributes.keywords = {
+                data: []
+            };
+            break;
+        case '5683908835': // Count Dooku - Face of the Confederacy
+            attributes.keywords = {
+                data: [{
+                    attributes: {
+                        name: 'Overwhelm'
+                    }
+                },
+                {
+                    attributes: {
+                        name: 'Exploit'
+                    }
+                }]
+            };
+        case '0754286363': // The Mandalorian's Rifle
+            attributes.unique = true;
     }
 }
 
@@ -94,23 +113,24 @@ function filterValues(card) {
         return null;
     }
 
+    const id = card.attributes.cardId || card.attributes.cardUid;
+    populateMissingData(card.attributes, id);
+
     // hacky way to strip the object down to just the attributes we want
-    const filterAttributes = ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints }) =>
-        ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints });
+    const filterAttributes = ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints, upgradePower, upgradeHp }) =>
+        ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints, upgradePower, upgradeHp });
 
     let filteredObj = filterAttributes(card.attributes);
 
-    filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
-
-    populateMissingData(card.attributes, filteredObj.id);
+    filteredObj.id = id;
 
     filteredObj.text = card.attributes.text;
 
-    if (card.attributes.upgradeHp != null) {
+    if (card.attributes.hp === null && card.attributes.upgradeHp != null) {
         filteredObj.hp = card.attributes.upgradeHp;
     }
 
-    if (card.attributes.upgradePower != null) {
+    if (card.attributes.power === null && card.attributes.upgradePower != null) {
         filteredObj.power = card.attributes.upgradePower;
     }
 
@@ -134,6 +154,11 @@ function filterValues(card) {
     // tokens use a different numbering scheme, can ignore for now
     if (!filteredObj.types.includes('token')) {
         filteredObj.setId.number = card.attributes.cardNumber;
+    }
+
+    if (filteredObj.keywords.includes('piloting')) {
+        filteredObj.pilotText = filteredObj.epicAction;
+        filteredObj.epicAction = null;
     }
 
     let internalName = filteredObj.title;

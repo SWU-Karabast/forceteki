@@ -24,7 +24,7 @@ describe('Han Solo Reluctant Hero', function() {
                 };
                 // Case 1 attack action shouldn't deal damage to the shielded wampa and should deal 4 damage to Han Solo
                 context.player1.clickCard(context.hanSolo);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.wampa);
 
                 // check board state

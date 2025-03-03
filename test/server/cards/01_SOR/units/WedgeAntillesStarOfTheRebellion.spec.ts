@@ -23,8 +23,8 @@ describe('Wedge Antilles, Star of the Rebellion', function() {
 
                 // Case 1: It should give Ambush and +1/+1 to a friendly Vehicle unit.
                 context.player1.clickCard(context.allianceXwing);
-                expect(context.player1).toHaveExactPromptButtons(['Ambush', 'Pass']);
-                context.player1.clickPrompt('Ambush');
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.allianceXwing.exhausted).toBeTrue();
                 expect(context.allianceXwing.getPower()).toBe(3);

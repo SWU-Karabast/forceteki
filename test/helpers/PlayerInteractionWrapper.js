@@ -34,7 +34,7 @@ class PlayerInteractionWrapper {
         this.player.handZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
         this.player.deckZone.cards.forEach((card) => this.moveCard(card, 'outsideTheGame'));
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     get hand() {
@@ -134,7 +134,7 @@ class PlayerInteractionWrapper {
             leaderCard.exhausted = leaderOptions.exhausted || false;
         }
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     setBaseStatus(baseOptions) {
@@ -156,7 +156,7 @@ class PlayerInteractionWrapper {
         var baseCard = this.player.base;
         baseCard.damage = baseOptions.damage || 0;
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     /**
@@ -260,7 +260,7 @@ class PlayerInteractionWrapper {
             }
         });
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     setCardUpgrades(card, upgrades, prevZones = 'any') {
@@ -414,6 +414,10 @@ class PlayerInteractionWrapper {
         return this.game.actionPhaseActivePlayer;
     }
 
+    get activePlayer() {
+        return this.game.getActivePlayer();
+    }
+
     get opponent() {
         return this.player.opponent;
     }
@@ -507,15 +511,28 @@ class PlayerInteractionWrapper {
 
     exhaustResources(number) {
         this.player.exhaustResources(number);
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     hasPrompt(title) {
         var currentPrompt = this.player.currentPrompt();
+
+        // Evaluar si menuTitle es una función o un string
+        const menuTitle =
+    typeof currentPrompt.menuTitle === 'function'
+        ? currentPrompt.menuTitle(this.player.context)
+        : currentPrompt.menuTitle;
+
+        // Evaluar si promptTitle es una función o un string
+        const promptTitle =
+    typeof currentPrompt.promptTitle === 'function'
+        ? currentPrompt.promptTitle(this.player.context)
+        : currentPrompt.promptTitle;
+
         return (
             !!currentPrompt &&
-            ((currentPrompt.menuTitle && currentPrompt.menuTitle.toLowerCase() === title.toLowerCase()) ||
-              (currentPrompt.promptTitle && currentPrompt.promptTitle.toLowerCase() === title.toLowerCase()))
+            (menuTitle && menuTitle.toLowerCase() === title.toLowerCase()) ||
+            (promptTitle && promptTitle.toLowerCase() === title.toLowerCase())
         );
     }
 

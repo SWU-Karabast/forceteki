@@ -10,9 +10,10 @@ import * as Contract from '../core/utils/Contract';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
 import type { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
+import * as Helpers from '../core/utils/Helpers';
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
-    activePromptTitle?: string;
+    activePromptTitle?: ((context: TContext) => string) | string;
     player?: RelativePlayer;
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     controller?: RelativePlayerFilter;
@@ -33,6 +34,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     effect?: string;
     effectArgs?: (context) => string[];
     optional?: boolean;
+    name?: string;
 }
 
 /**
@@ -48,7 +50,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         innerSystemProperties: (card) => ({ target: card }),
         checkTarget: false,
         manuallyRaiseEvent: false,
-        optional: false
+        optional: false,
     };
 
     public constructor(properties: ISelectCardProperties<TContext> | ((context: TContext) => ISelectCardProperties<TContext>)) {
@@ -70,12 +72,15 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         properties.innerSystem.setDefaultTargetFn(() => properties.target);
         if (!properties.selector) {
-            const cardCondition = (card, context) =>
-                properties.cardCondition(card, context) &&
-                properties.innerSystem.allTargetsLegal(
-                    context,
-                    Object.assign({}, additionalProperties, properties.innerSystemProperties(card))
-                );
+            const cardCondition = (card, context) => {
+                const contextCopy = this.getContextCopy(card, context, properties.name);
+
+                return properties.cardCondition(card, contextCopy) &&
+                  properties.innerSystem.allTargetsLegal(
+                      contextCopy,
+                      Object.assign({}, additionalProperties, properties.innerSystemProperties(card)));
+            };
+
             properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition }));
         }
 
@@ -106,6 +111,17 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
             context.player;
         return properties.selector.hasEnoughTargets(context, player);
+    }
+
+    protected override targets(context: TContext, additionalProperties?: any): Card[] {
+        this.validateContext(context);
+
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const player =
+            (properties.checkTarget && context.choosingPlayerOverride) ||
+            (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
+            context.player;
+        return properties.selector.getAllLegalTargets(context, player);
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
@@ -142,6 +158,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             onCancel: properties.cancelHandler,
             onSelect: (cards) => {
+                this.addTargetToContext(cards, context, properties.name);
                 if (properties.message) {
                     context.game.addMessage(properties.message, ...properties.messageArgs(cards, properties));
                 }
@@ -153,6 +170,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                 if (properties.manuallyRaiseEvent) {
                     context.game.openEventWindow(events);
                 }
+
                 return true;
             },
             onMenuCommand: (arg) => {
@@ -165,20 +183,24 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
 
         const legalTargets = properties.selector.getAllLegalTargets(context, player);
 
-        // if there are legal targets but this wouldn't have a gamestate-changing effect on any of them, we can just shortcut and skip selection
-        if (
-            properties.innerSystem &&
-            !legalTargets.some((target) => properties.innerSystem.canAffect(
-                target,
-                this.getContextCopy(target, context),
-                {},
-                GameStateChangeRequired.MustFullyOrPartiallyResolve
-            ))
-        ) {
+        let legalTargetWithEffect = false;
+        if (properties.innerSystem) {
+            for (const target of legalTargets) {
+                const contextCopy = this.getContextCopy(target, context, properties.name);
+                if (properties.innerSystem.hasLegalTarget(contextCopy, properties.innerSystemProperties(target), GameStateChangeRequired.MustFullyOrPartiallyResolve)) {
+                    legalTargetWithEffect = true;
+                    break;
+                }
+            }
+        }
+
+        if (!legalTargetWithEffect) {
             return;
         }
 
-        const finalProperties = Object.assign(defaultProperties, properties);
+        const finalProperties = Object.assign(defaultProperties, properties, {
+            activePromptTitle: typeof properties.activePromptTitle === 'function' ? properties.activePromptTitle(context) : properties.activePromptTitle
+        });
         if (player.autoSingleTarget) {
             if (legalTargets.length === 1) {
                 finalProperties.onSelect(legalTargets[0]);
@@ -216,12 +238,20 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         return properties.cardTypeFilter || this.properties.cardCondition;
     }
 
-    private getContextCopy(card: Card, context: TContext): TContext {
-        const contextCopy = context.copy();
-        contextCopy.targets[this.name] = card;
-        if (this.name === 'target') {
-            contextCopy.target = card;
+    private getContextCopy(card: Card | Card[], context: TContext, name: string): TContext {
+        const contextCopy = context.copy() as TContext;
+        this.addTargetToContext(card, contextCopy, name);
+
+        return contextCopy;
+    }
+
+    private addTargetToContext(card: Card | Card[], context: TContext, name: string) {
+        if (!context.target || (Array.isArray(context.target) && context.target.length === 0)) {
+            context.target = card;
         }
-        return contextCopy as TContext;
+
+        if (name) {
+            context.targets[name] = Helpers.asArray(card);
+        }
     }
 }

@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -41,6 +41,8 @@ const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 
 class Game extends EventEmitter {
+    #debug;
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -67,6 +69,8 @@ class Game extends EventEmitter {
         this.playStarted = false;
         this.createdAt = new Date();
         this.currentActionWindow = null;
+        // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
+        this.#debug = { pipeline: false };
 
         /** @type { EventWindow } */
         this.currentEventWindow = null;
@@ -84,8 +88,12 @@ class Game extends EventEmitter {
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
         this.randomGenerator = seedrandom();
+        this.currentOpenPrompt = null;
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
+
+        /** @type {AbilityResolver | null} */
+        this.currentAbilityResolver = null;
 
         this.initialiseTokens(this.cardDataGetter.tokenData);
 
@@ -243,6 +251,10 @@ class Game extends EventEmitter {
         return this.getPlayers().sort((a) => (a.hasInitiative() ? -1 : 1));
     }
 
+    getActivePlayer() {
+        return this.currentPhase === PhaseName.Action ? this.actionPhaseActivePlayer : this.initiativePlayer;
+    }
+
     /**
      * Get all players and spectators in the game
      * @returns {{[key: string]: Player | Spectator}} {name1: Player, name2: Player, name3: Spectator}
@@ -281,6 +293,7 @@ class Game extends EventEmitter {
      * Checks who the next legal active player for the action phase should be and updates @member {activePlayer}. If none available, sets it to null.
      */
     rotateActivePlayer() {
+        Contract.assertTrue(this.currentPhase === PhaseName.Action, `rotateActivePlayer can only be called during the action phase, instead called during ${this.currentPhase}`);
         if (!this.actionPhaseActivePlayer.opponent.passedActionPhase) {
             this.createEventAndOpenWindow(
                 EventName.OnPassActionPhasePriority,
@@ -1255,7 +1268,7 @@ class Game extends EventEmitter {
     }
 
     continue() {
-        this.pipeline.continue();
+        this.pipeline.continue(this);
     }
 
     /**
@@ -1440,6 +1453,39 @@ class Game extends EventEmitter {
             };
         }
         return {};
+    }
+
+    // TODO: Make a debug object type.
+    /**
+     * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
+     * @param {{ pipeline: boolean; }} settings
+     * @param {() => void} fcn
+     */
+    debug(settings, fcn) {
+        const currDebug = this.#debug;
+        this.#debug = settings;
+        try {
+            fcn();
+        } finally {
+            this.#debug = currDebug;
+        }
+    }
+
+    /**
+     * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
+     * @param {() => void} fcn
+     */
+    debugPipeline(fcn) {
+        this.#debug.pipeline = true;
+        try {
+            fcn();
+        } finally {
+            this.#debug.pipeline = false;
+        }
+    }
+
+    get isDebugPipeline() {
+        return this.#debug.pipeline;
     }
 
     // return this.getSummary(notInactivePlayerName);

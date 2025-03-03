@@ -33,10 +33,9 @@ export default tseslint.config(
                 ...globals.jasmine,
             },
 
-            ecmaVersion: 2020,
+            ecmaVersion: 2022,
             sourceType: "commonjs",
         },
-
         rules: {
             "jasmine/no-spec-dupes": 0,
             "jasmine/no-suite-dupes": 0,

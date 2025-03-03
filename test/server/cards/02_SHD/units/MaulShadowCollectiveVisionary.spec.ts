@@ -235,8 +235,8 @@ describe('Maul, Shadow Collective Visionary', function() {
                 context.player1.clickCard(context.mercenaryCompany);
 
                 // Resolve Jango's ability
-                expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player2.clickPrompt('Exhaust this leader');
+                expect(context.player2).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player2.clickPrompt('Trigger');
 
                 expect(context.mercenaryCompany.exhausted).toBeTrue();
                 expect(context.mercenaryCompany.damage).toBe(4);
@@ -263,7 +263,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                 context.player1.clickPrompt('Heal 1 damage from your base'); // select yularen's heal on base
 
                 // Select opponents Yularen to be ambushed
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(p2Yularen);
 
                 expect(p2Yularen).toBeInZone('discard');

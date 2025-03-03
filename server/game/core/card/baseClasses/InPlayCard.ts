@@ -1,6 +1,6 @@
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
-import type { ZoneName } from '../../Constants';
+import { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
@@ -15,6 +15,8 @@ import { WithCost } from '../propertyMixins/Cost';
 import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
+import type { IUnitCard } from '../propertyMixins/UnitProperties';
+import type { Card } from '../Card';
 
 const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -25,6 +27,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get disableOngoingEffectsForDefeat(): boolean;
     get inPlayId(): number;
     get mostRecentInPlayId(): number;
+    get parentCard(): IUnitCard;
     get pendingDefeat(): boolean;
     isInPlay(): boolean;
     addGainedActionAbility(properties: IActionAbilityProps): string;
@@ -37,6 +40,10 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
     registerPendingUniqueDefeat();
     checkUnique();
+    attachTo(newParentCard: IUnitCard, newController?: Player);
+    isAttached(): boolean;
+    unattach(event?: any);
+    canAttach(targetCard: Card, controller?: Player): boolean;
 }
 
 /**
@@ -49,11 +56,15 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
  * 3. Uniqueness management
  */
 export class InPlayCard extends InPlayCardParent implements IInPlayCard {
+    public readonly printedUpgradeHp: number;
+    public readonly printedUpgradePower: number;
+
     protected _disableOngoingEffectsForDefeat?: boolean = null;
     protected _mostRecentInPlayId = -1;
+    protected _parentCard?: IUnitCard = null;
     protected _pendingDefeat?: boolean = null;
-    // protected triggeredAbilities: TriggeredAbility[] = [];
 
+    protected attachCondition: (card: Card) => boolean;
 
     /**
      * If true, then this card's ongoing effects are disabled in preparation for it to be defeated (usually due to unique rule).
@@ -89,6 +100,15 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         return this._mostRecentInPlayId;
     }
 
+    /** The card that this card is underneath */
+    public get parentCard(): IUnitCard {
+        Contract.assertNotNullLike(this._parentCard);
+        // TODO: move IsInPlay to be usable here
+        Contract.assertTrue(this.isInPlay());
+
+        return this._parentCard;
+    }
+
     /**
      * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
      * and will be removed from the field after the current event window has finished the resolution step.
@@ -105,6 +125,21 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
         Contract.assertFalse(this.printedType === CardType.Event);
+
+        if (this.isUpgrade()) {
+            Contract.assertNotNullLike(cardData.upgradeHp);
+            Contract.assertNotNullLike(cardData.upgradePower);
+        }
+
+        const hasUpgradeStats = cardData.upgradePower != null && cardData.upgradeHp != null;
+
+        Contract.assertTrue(hasUpgradeStats ||
+          (cardData.upgradePower == null && cardData.upgradeHp == null));
+
+        if (hasUpgradeStats) {
+            this.printedUpgradePower = cardData.upgradePower;
+            this.printedUpgradeHp = cardData.upgradeHp;
+        }
     }
 
     public isInPlay(): boolean {
@@ -120,6 +155,75 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         this._disableOngoingEffectsForDefeat = enabledStatus ? false : null;
     }
 
+    public checkIsAttachable(): void {
+        throw new Error(`Card ${this.internalName} may not be attached`);
+    }
+
+    public assertIsUpgrade(): void {
+        Contract.assertTrue(this.isUpgrade());
+        Contract.assertNotNullLike(this.parentCard);
+    }
+
+    public getUpgradeHp(): number {
+        return this.printedUpgradeHp;
+    }
+
+    public getUpgradePower(): number {
+        return this.printedUpgradePower;
+    }
+
+    public attachTo(newParentCard: IUnitCard, newController?: Player) {
+        this.checkIsAttachable();
+        Contract.assertTrue(newParentCard.isUnit());
+
+        // this assert needed for type narrowing or else the moveTo fails
+        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
+
+        if (this._parentCard) {
+            this.unattach();
+        }
+
+        if (newController && newController !== this.controller) {
+            this.takeControl(newController, newParentCard.zoneName);
+        } else {
+            this.moveTo(newParentCard.zoneName);
+        }
+
+        newParentCard.attachUpgrade(this);
+        this._parentCard = newParentCard;
+    }
+
+    public isAttached(): boolean {
+        // TODO: I think we can't check this here because we need to be able to check if this is attached in some places like the getType method
+        // this.assertIsUpgrade();
+        return !!this._parentCard;
+    }
+
+    public unattach(event = null) {
+        Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
+        this.assertIsUpgrade();
+
+        this.parentCard.unattachUpgrade(this, event);
+        this._parentCard = null;
+    }
+
+    /**
+     * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
+     * implementations must override this if they have specific attachment conditions.
+     */
+    public canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+        this.checkIsAttachable();
+        if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public override getSummary(activePlayer: Player) {
+        return { ...super.getSummary(activePlayer),
+            parentCardId: this._parentCard ? this._parentCard.uuid : null };
+    }
 
     // ********************************************* ABILITY SETUP *********************************************
     protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
@@ -298,17 +402,6 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             // if we're moving from a visible zone (discard, capture) to a hidden zone, increment the in-play id to represent the loss of information (card becomes a new copy)
             if (EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self) && !EnumHelpers.isHiddenFromOpponent(prevZone, RelativePlayer.Self)) {
                 this._mostRecentInPlayId += 1;
-            }
-        }
-    }
-
-
-    protected override resetLimits() {
-        super.resetLimits();
-
-        for (const triggeredAbility of this.triggeredAbilities) {
-            if (triggeredAbility.limit) {
-                triggeredAbility.limit.reset();
             }
         }
     }

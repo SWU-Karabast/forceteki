@@ -20,7 +20,7 @@ describe('Unlicensed Headhunter', function() {
                 context.player2.clickCard(context.unlicensedHeadhunter);
 
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Heal 5 damage from your base');
-                context.player2.clickPrompt('Collect Bounty: Heal 5 damage from your base');
+                context.player2.clickPrompt('Trigger');
                 expect(context.p2Base.damage).toBe(1);
             });
 
@@ -42,7 +42,7 @@ describe('Unlicensed Headhunter', function() {
                 context.player1.clickCard(context.survivorsGauntlet);
 
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Heal 5 damage from your base');
-                context.player2.clickPrompt('Collect Bounty: Heal 5 damage from your base');
+                context.player2.clickPrompt('Trigger');
                 expect(context.p2Base.damage).toBe(1);
             });
 

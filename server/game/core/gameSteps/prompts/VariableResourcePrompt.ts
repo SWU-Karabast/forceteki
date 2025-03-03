@@ -41,8 +41,6 @@ export class VariableResourcePrompt extends ResourcePrompt {
                 return false;
             }
 
-            this.resourceSelectedCards(player);
-
             this.playersDone[player.name] = true;
             return true;
         }

@@ -271,6 +271,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         event.isIndirect = properties.isIndirect;
         event.damageSource = abilityDamageSource;
+
+        Contract.assertNotNullLike(properties.amount);
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
     }
 

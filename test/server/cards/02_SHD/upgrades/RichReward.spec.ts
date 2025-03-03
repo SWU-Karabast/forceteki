@@ -24,7 +24,7 @@ describe('Rich Reward', function() {
 
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.atst, context.yoda, context.concordDawnInterceptors]);
                 expect(context.player2).toHavePassAbilityButton();
-                expect(context.player2).toHavePrompt('Select 2 cards');
+                expect(context.player2).toHavePrompt('Collect Bounty: Give an Experience token to each of up to 2 units');
 
                 context.player2.clickCard(context.wampa);
                 context.player2.clickCard(context.concordDawnInterceptors);
@@ -56,7 +56,7 @@ describe('Rich Reward', function() {
 
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.atst, context.yoda, context.concordDawnInterceptors]);
                 expect(context.player2).toHavePassAbilityButton();
-                expect(context.player2).toHavePrompt('Select 2 cards');
+                expect(context.player2).toHavePrompt('Collect Bounty: Give an Experience token to each of up to 2 units');
 
                 context.player2.clickCard(context.yoda);
                 context.player2.clickPrompt('Done');
@@ -88,7 +88,7 @@ describe('Rich Reward', function() {
                 expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
                 context.player1.clickPrompt('You');
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Give an Experience token to each of up to 2 units');
-                context.player1.clickPrompt('Collect Bounty: Give an Experience token to each of up to 2 units');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toBeActivePlayer();
             });

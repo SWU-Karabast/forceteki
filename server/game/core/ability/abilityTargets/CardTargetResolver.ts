@@ -152,6 +152,9 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
                 buttons.push({ text: 'Pay costs first', arg: 'costsFirst' });
             }
             buttons.push({ text: 'Cancel', arg: 'cancel' });*/
+            if (targetResults.canCancel) {
+                buttons.push({ text: 'Cancel', arg: 'cancel' });
+            }
             if (passPrompt) {
                 buttons.push({ text: passPrompt.buttonText, arg: passPrompt.arg });
                 passPrompt.hasBeenShown = true;

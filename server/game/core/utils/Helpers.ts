@@ -82,6 +82,7 @@ export function defaultLegalZonesForCardType(cardType: CardType) {
         case CardType.BasicUnit:
         case CardType.BasicUpgrade:
         case CardType.Event:
+        case CardType.UnitUpgrade:
             return drawCardZones;
         default:
             Contract.fail(`Unknown card type: ${cardType}`);
@@ -139,4 +140,42 @@ export function splitArray<T>(ara: T[], condition: (item: T) => boolean) {
     }
 
     return results;
+}
+
+export function mergeNumericProperty<TPropertySet extends { [key in TPropName]?: number }, TPropName extends string>(
+    propertySet: TPropertySet,
+    newPropName: TPropName,
+    newPropValue: number
+): TPropertySet {
+    return mergeProperty(propertySet, newPropName, newPropValue, (oldValue, newValue) => oldValue + newValue);
+}
+
+export function mergeArrayProperty<TPropertySet extends { [key in TPropName]?: any[] }, TPropName extends string>(
+    propertySet: TPropertySet,
+    newPropName: TPropName,
+    newPropValue: any[]
+): TPropertySet {
+    return mergeProperty(propertySet, newPropName, newPropValue, (oldValue, newValue) => oldValue.concat(newValue));
+}
+
+function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergeProperty }, TMergeProperty, TPropName extends string>(
+    propertySet: TPropertySet,
+    newPropName: TPropName,
+    newPropValue: TMergeProperty,
+    mergeFn: (oldValue: TMergeProperty, newValue: TMergeProperty) => TMergeProperty
+): TPropertySet {
+    if (propertySet == null) {
+        return Object.assign({}, { [newPropName]: newPropValue }) as TPropertySet;
+    }
+
+    if (newPropValue == null) {
+        return propertySet;
+    }
+
+    if (!propertySet.hasOwnProperty(newPropName) || propertySet[newPropName] == null) {
+        return { ...propertySet, [newPropName]: newPropValue };
+    }
+
+    const oldPropValue = propertySet[newPropName] as TMergeProperty;
+    return { ...propertySet, [newPropName]: mergeFn(oldPropValue, newPropValue) };
 }

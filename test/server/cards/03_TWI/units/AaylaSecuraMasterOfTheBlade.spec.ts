@@ -85,7 +85,7 @@ describe('Aayla Secura, Master of the Blade', function() {
                 // Player 1 ambushes Aayla back into play, activating Coordinate and preventing combat damage
                 context.player1.clickCard(context.timelyIntervention);
                 context.player1.clickCard(context.aaylaSecura);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.consularSecurityForce);
 
                 expect(context.aaylaSecura.damage).toBe(0);

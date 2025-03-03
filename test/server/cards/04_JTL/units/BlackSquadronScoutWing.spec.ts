@@ -19,7 +19,7 @@ describe('Black Squadron Scout Wing', function() {
 
             expect(context.player1).toHavePassAbilityPrompt('Attack with this unit. It gets +1/+0 for this attack.');
 
-            context.player1.clickPrompt('Attack with this unit. It gets +1/+0 for this attack.');
+            context.player1.clickPrompt('Trigger');
             context.player1.clickCard(context.p2Base);
 
             // Player 2's base should have 7 damage (4 from Black Squadron Scout Wing + 2 from Academy Training + 1 from card text)

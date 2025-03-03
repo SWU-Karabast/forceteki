@@ -17,7 +17,7 @@ describe('Tri-Droid Suppressor', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.tridroidSuppressor);
-                context.player1.clickPrompt('Play Tri-Droid Suppressor');
+                context.player1.clickPrompt('Play without Exploit');
                 expect(context.player1).toBeAbleToSelectExactly([context.lomPyke, context.pykeSentinel]);
 
                 context.player1.clickCard(context.lomPyke);

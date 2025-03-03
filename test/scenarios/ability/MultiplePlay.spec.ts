@@ -34,7 +34,7 @@ describe('Abilities', function() {
 
                 context.player1.clickCard(context.ruggedSurvivors);
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('Draw a card if you control a leader unit');
+                context.player1.clickPrompt('Trigger');
 
                 // check board state
                 expect(context.player1.hand.length).toBe(1);

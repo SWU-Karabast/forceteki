@@ -30,7 +30,7 @@ describe('Energy Conversion Lab', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(2);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 expect(context.rebelPathfinder.exhausted).toBe(true);
                 expect(context.rebelPathfinder.damage).toBe(1);
                 expect(context.isbAgent.damage).toBe(2);

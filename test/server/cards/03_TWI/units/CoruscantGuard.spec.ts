@@ -20,7 +20,7 @@ describe('Coruscant Guard', function() {
 
             context.player1.clickCard(context.coruscantGuard);
             expect(context.player1).toHavePassAbilityPrompt('Ambush');
-            context.player1.clickPrompt('Ambush');
+            context.player1.clickPrompt('Trigger');
             expect(context.coruscantGuard.damage).toBe(1);
             expect(context.hylobonEnforcer.damage).toBe(3);
         });
