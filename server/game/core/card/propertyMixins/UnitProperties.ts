@@ -771,9 +771,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
 
         public override checkIsAttachable(): void {
-            if (this.isLeaderUnit()) {
+            if (this.getType() === CardType.LeaderUnit) {
                 Contract.assertTrue(this.canBeUpgrade);
-            } else if (this.isNonLeaderUnit()) {
+            } else if (EnumHelpers.isNonLeaderUnit(this.getType())) {
                 Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
             }
         }
