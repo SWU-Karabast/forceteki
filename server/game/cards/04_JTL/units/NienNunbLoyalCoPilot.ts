@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, Trait} from '../../../core/Constants';
+import { AbilityType, Trait } from '../../../core/Constants';
 
 export default class NienNunbLoyalCoPilot extends NonLeaderUnitCard {
     protected override getImplementationId () {

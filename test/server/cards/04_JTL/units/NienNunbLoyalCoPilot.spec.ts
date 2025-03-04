@@ -9,7 +9,7 @@ describe('Nien Nunb Loyal Co-Pilot', function () {
                 },
                 player2: {
                     groundArena: ['wampa'],
-                    spaceArena: [{card: 'jedi-light-cruiser', upgrades: ['determined-recruit'] }], // make sure enemy pilots are not counted
+                    spaceArena: [{ card: 'jedi-light-cruiser', upgrades: ['determined-recruit'] }], // make sure enemy pilots are not counted
                 }
             });
 
