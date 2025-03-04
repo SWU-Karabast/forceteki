@@ -164,6 +164,7 @@ export enum CardType {
     Event = 'event',
     Leader = 'leader',
     LeaderUnit = 'leaderUnit',
+    LeaderUpgrade = 'leaderUpgrade',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
     UnitUpgrade = 'unitUpgrade',
@@ -172,6 +173,7 @@ export enum CardType {
 export enum WildcardCardType {
     Any = 'any',
     NonLeaderUnit = 'nonLeaderUnit',
+    NonLeaderUpgrade = 'nonLeaderUpgrade',
     /** Any card type that can be played from hand */
     Playable = 'playable',
     Token = 'token',

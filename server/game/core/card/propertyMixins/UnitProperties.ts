@@ -281,7 +281,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         // ***************************************** ABILITY HELPERS *****************************************
         public override getActions() {
-            if (this.getType() === CardType.UnitUpgrade) {
+            if (EnumHelpers.isUnitUpgrade(this.getType())) {
                 return this.pilotingActionAbilities;
             }
 
@@ -385,7 +385,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
-            let triggeredAbilities = this.getType() === CardType.UnitUpgrade ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
+            let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
             if (this._attackKeywordAbilities !== null) {
@@ -405,7 +405,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override getConstantAbilities(): IConstantAbility[] {
-            let constantAbilities = this.getType() === CardType.UnitUpgrade ? this.pilotingConstantAbilities : super.getConstantAbilities();
+            let constantAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingConstantAbilities : super.getConstantAbilities();
 
             // add any temporarily registered attack abilities from keywords
             if (this._attackKeywordAbilities !== null) {
@@ -428,7 +428,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             // if not piloting, just use default behavior
             if (EnumHelpers.isArena(to)) {
-                abilitiesToUpdate = this.getType() === CardType.UnitUpgrade ? this.pilotingTriggeredAbilities : this.triggeredAbilities;
+                abilitiesToUpdate = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : this.triggeredAbilities;
             } else {
                 abilitiesToUpdate = this.pilotingTriggeredAbilities.concat(this.triggeredAbilities);
             }
@@ -441,7 +441,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             // if not piloting, just use default behavior
             if (EnumHelpers.isArena(to)) {
-                abilitiesToUpdate = this.getType() === CardType.UnitUpgrade ? this.pilotingConstantAbilities : this.constantAbilities;
+                abilitiesToUpdate = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingConstantAbilities : this.constantAbilities;
             } else {
                 abilitiesToUpdate = this.pilotingConstantAbilities.concat(this.constantAbilities);
             }

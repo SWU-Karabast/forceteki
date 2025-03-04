@@ -40,7 +40,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
 
     public override getType(): CardType {
         if (this.canBeUpgrade && this.isAttached()) {
-            return CardType.UnitUpgrade;
+            return CardType.LeaderUpgrade;
         }
         return this._deployed ? CardType.LeaderUnit : CardType.Leader;
     }
