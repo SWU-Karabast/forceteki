@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import * as Helpers from '../../../core/utils/Helpers.js';
 import { EventCard } from '../../../core/card/EventCard';
 import { Aspect, TargetMode } from '../../../core/Constants';
 
@@ -18,17 +19,21 @@ export default class AidFromTheInnocent extends EventCard {
                 selectCount: 2,
                 searchCount: 10,
                 cardCondition: (card) => !card.isUnit() && card.hasSomeAspect(Aspect.Heroism),
-                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.discardSpecificCard(),
-                    AbilityHelper.immediateEffects.forThisPhaseCardEffect((deckSearchContext) => ({
-                        effect: [
-                            AbilityHelper.ongoingEffects.canPlayFromDiscard(),
-                            AbilityHelper.ongoingEffects.forFree({
-                                match: (card) => deckSearchContext.selectedPromptCards.includes(card) // note cost adjusters are attached to player, so have to refilter
-                            })
-                        ]
-                    }))
-                ])
+                selectedCardsImmediateEffect: AbilityHelper.immediateEffects.discardSpecificCard()
+            }),
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'For this phase, you may play the discarded cards for 2 less each',
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous(
+                    Helpers.asArray(ifYouDoContext.selectedPromptCards).map((target) =>
+                        AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                            target: target,
+                            effect: [
+                                AbilityHelper.ongoingEffects.canPlayFromDiscard(),
+                                AbilityHelper.ongoingEffects.decreaseCost({ amount: 2, match: (card) => card === target })
+                            ]
+                        })
+                    )
+                )
             })
         });
     }

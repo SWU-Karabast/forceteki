@@ -1,13 +1,16 @@
 describe('Aid From the Innocent ', function() {
     integration(function(contextRef) {
-        describe('Cobb Vanth, The Marshal\'s ability', function() {
-            it('should search the deck for a card and make it playable for free for the phase', async function () {
+        describe('Aid From the Innocent\'s ability', function() {
+            it('should search the top 10 cards of your deck for 2 Heroism non-unit cards and discard them. They can be played from discard for 2 less this phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'dagobah-swamp',
                         hand: ['aid-from-the-innocent'],
                         deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay', 'rebel-assault', 'patrolling-vwing', 'devotion',
                             'drop-in', 'hello-there', 'swoop-racer', 'resupply', 'superlaser-technician'],
+                        resources: 20
                     },
                     player2: {
                         spaceArena: ['system-patrol-craft'],
@@ -36,23 +39,21 @@ describe('Aid From the Innocent ', function() {
 
                 expect(context.dropIn).toBeInZone('discard');
                 expect(context.helloThere).toBeInZone('discard');
+                expect(context.player1.readyResourceCount).toBe(15);
 
                 context.player2.passAction();
 
-                const p1Resources = context.player1.readyResourceCount;
-
                 // Play the other card
                 context.player1.clickCard(context.helloThere);
-                expect(context.player1.readyResourceCount).toBe(p1Resources);
+                expect(context.player1.readyResourceCount).toBe(14);
 
                 context.player2.passAction();
 
                 // Play one of the cards
                 context.player1.clickCard(context.dropIn);
-                expect(context.player1.readyResourceCount).toBe(p1Resources);
-
                 const cloneTroopers = context.player1.findCardsByName('clone-trooper');
                 expect(cloneTroopers.length).toBe(2);
+                expect(context.player1.readyResourceCount).toBe(12);
             });
         });
     });
