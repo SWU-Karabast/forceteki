@@ -21,9 +21,12 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
         Contract.assertTrue(event.card.isUnit());
         Contract.assertTrue(event.card.canAttachPilot());
         Contract.assertTrue(event.leaderPilotCard.isDeployableLeader());
-
         Contract.assertNotNullLike(event.leaderPilotCard);
-        event.leaderPilotCard.deploy(DeployType.LeaderUpgrade, event.card);
+
+        event.leaderPilotCard.deploy({
+            type: DeployType.LeaderUpgrade,
+            parentCard: event.card
+        });
     }
 
     public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {

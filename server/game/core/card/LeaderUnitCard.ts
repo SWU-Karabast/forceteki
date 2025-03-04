@@ -24,7 +24,7 @@ export interface ILeaderUnitCard extends ILeaderCard, IUnitCard {}
 /** Represents a deployable leader in an undeployed state */
 export interface IDeployableLeaderCard extends ILeaderUnitCard {
     get deployed(): boolean;
-    deploy(deployType: DeployType): void;
+    deploy(deployProps: { type: DeployType.LeaderUnit } | { type: DeployType.LeaderUpgrade; parentCard: IUnitCard }): void;
     undeploy(): void;
 }
 
@@ -54,9 +54,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
             limit: this.deployEpicActionLimit,
             condition: (context) => context.player.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
-            immediateEffect: new DeployLeaderSystem({
-                deployType: DeployType.LeaderUnit
-            })
+            immediateEffect: new DeployLeaderSystem({})
         }));
 
         this.setupLeaderUnitSide = true;
@@ -94,14 +92,14 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     }
 
     /** Deploy the leader to the arena. Handles the move operation and state changes. */
-    public deploy(deployType: DeployType, parentCard?: IUnitCard) {
+    public deploy(deployProps: { type: DeployType.LeaderUnit } | { type: DeployType.LeaderUpgrade; parentCard: IUnitCard }) {
         Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
 
         this._deployed = true;
 
-        switch (deployType) {
+        switch (deployProps.type) {
             case DeployType.LeaderUpgrade:
-                this.attachTo(parentCard);
+                this.attachTo(deployProps.parentCard);
                 break;
             case DeployType.LeaderUnit:
             default:
