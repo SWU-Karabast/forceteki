@@ -1,4 +1,4 @@
-const { ZoneName, DeckZoneDestination } = require('../../server/game/core/Constants.js');
+const { ZoneName, DeckZoneDestination, DeployType } = require('../../server/game/core/Constants.js');
 const Game = require('../../server/game/core/Game.js');
 const Player = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
@@ -97,7 +97,7 @@ class PlayerInteractionWrapper {
         var leaderCard = this.player.leader;
 
         if (leaderOptions.deployed) {
-            leaderCard.deploy();
+            leaderCard.deploy({ type: DeployType.LeaderUnit });
 
             // mark the deploy epic action as used
             const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.title.includes('Deploy'));

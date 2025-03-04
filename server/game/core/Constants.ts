@@ -36,6 +36,11 @@ export type ZoneFilter = ZoneName | WildcardZoneName;
 
 export type Arena = ZoneName.GroundArena | ZoneName.SpaceArena;
 
+export enum DeployType {
+    LeaderUpgrade = 'leaderUpgrade',
+    LeaderUnit = 'leaderUnit',
+}
+
 export enum PlayType {
     Piloting = 'piloting',
     PlayFromHand = 'playFromHand',
@@ -78,6 +83,7 @@ export enum EffectName {
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
+    IsLeader = 'isLeader',
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
     ModifyHp = 'modifyHp',
@@ -160,6 +166,7 @@ export enum CardType {
     Event = 'event',
     Leader = 'leader',
     LeaderUnit = 'leaderUnit',
+    LeaderUpgrade = 'leaderUpgrade',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
     UnitUpgrade = 'unitUpgrade',
@@ -168,6 +175,7 @@ export enum CardType {
 export enum WildcardCardType {
     Any = 'any',
     NonLeaderUnit = 'nonLeaderUnit',
+    NonLeaderUpgrade = 'nonLeaderUpgrade',
     /** Any card type that can be played from hand */
     Playable = 'playable',
     Token = 'token',

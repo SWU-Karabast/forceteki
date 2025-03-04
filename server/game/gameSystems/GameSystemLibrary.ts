@@ -124,6 +124,8 @@ import type { ILoseGameProperties } from './LoseGameSystem';
 import { LoseGameSystem } from './LoseGameSystem';
 import type { IPayCardPrintedCostProperties } from './PayCardPrintedCostSystem';
 import { PayCardPrintedCostSystem } from './PayCardPrintedCostSystem';
+import type { IDeployAndAttachLeaderPilotProperties as IDeployAndAttachPilotLeaderProperties } from './DeployAndAttachPilotLeaderSystem';
+import { DeployAndAttachPilotLeaderSystem as DeployAndAttachPilotLeaderSystem } from './DeployAndAttachPilotLeaderSystem';
 import type { ISelectPlayerProperties } from './SelectPlayerSystem';
 import { SelectPlayerSystem } from './SelectPlayerSystem';
 
@@ -200,8 +202,11 @@ export function distributeExperienceAmong<TContext extends AbilityContext = Abil
 // export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}) {
 //     return new DetachAction(propertyFactory);
 // }
-export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext> = {}) {
+export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext>) {
     return new DeployLeaderSystem<TContext>(propertyFactory);
+}
+export function deployAndAttachPilotLeader<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployAndAttachPilotLeaderProperties, TContext>) {
+    return new DeployAndAttachPilotLeaderSystem<TContext>(propertyFactory);
 }
 export function defeat<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDefeatCardProperties, TContext> = {}) {
     return new DefeatCardSystem<TContext>(propertyFactory);
