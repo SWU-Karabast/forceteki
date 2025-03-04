@@ -21,6 +21,9 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
                     innerSystem: AbilityHelper.immediateEffects.forThisRoundCardEffect({
                         effect: AbilityHelper.ongoingEffects.loseAllAbilities()
                     })
+                }),
+                AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                    effect: AbilityHelper.ongoingEffects.additionalAction()
                 })
             ])
         });

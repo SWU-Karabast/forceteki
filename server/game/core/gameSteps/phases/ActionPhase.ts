@@ -1,4 +1,4 @@
-import { PhaseName } from '../../Constants';
+import { EffectName, PhaseName } from '../../Constants';
 import type Game from '../../Game';
 import type Player from '../../Player';
 import { Phase } from './Phase';
@@ -35,7 +35,15 @@ export class ActionPhase extends Phase {
 
     private rotateActiveQueueNextAction() {
         // breaks the action loop if both players have passed
-        this.game.queueSimpleStep(() => this.game.rotateActivePlayer(), 'rotateActivePlayer');
+        this.game.queueSimpleStep(() => {
+            const activePlayer = this.game.getActivePlayer();
+            if (activePlayer && activePlayer.hasOngoingEffect(EffectName.AdditionalAction)) {
+                activePlayer.removeOngoingEffects(EffectName.AdditionalAction);
+            } else {
+                this.game.rotateActivePlayer();
+            }
+        }, 'rotateActivePlayer');
+
         this.game.queueSimpleStep(() => {
             if (this.game.actionPhaseActivePlayer !== null) {
                 this.game.queueSimpleStep(() => this.queueNextAction(), 'queueNextAction');
