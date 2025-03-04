@@ -126,6 +126,9 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements ILeaderUnitC
     }
 
     protected addPilotDeploy() {
+        Contract.assertNotNullLike(this.printedUpgradeHp, `Leader ${this.title} is missing upgrade HP.`);
+        Contract.assertNotNullLike(this.printedUpgradePower, `Leader ${this.title} is missing upgrade power.`);
+
         this.deployEpicActions.push(this.addActionAbility({
             title: `Deploy ${this.title} as a Pilot`,
             limit: this.deployEpicActionLimit,
