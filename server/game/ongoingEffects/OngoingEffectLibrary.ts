@@ -77,6 +77,7 @@ export = {
     // cannotParticipateAsDefender: (type = 'both') =>
     //     OngoingEffectBuilder.card.static(EffectName.CannotParticipat  eAsDefender, type),
     cannotAttackBase: () => OngoingEffectBuilder.card.static(EffectName.CannotAttackBase),
+    cannotAttack: () => OngoingEffectBuilder.card.static(EffectName.CannotAttack),
     dealsDamageBeforeDefender: () => OngoingEffectBuilder.card.static(EffectName.DealsDamageBeforeDefender),
     cardCannot,
     playerCannot,
