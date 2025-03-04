@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
 
 export default class ShuttleST149UnderKrennicsAuthority extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -36,6 +36,7 @@ export default class ShuttleST149UnderKrennicsAuthority extends NonLeaderUnitCar
                     immediateEffect: AbilityHelper.immediateEffects.attachUpgrade((context) => ({
                         upgrade: context.targets.chooseUpgrade,
                         target: context.targets.chooseUnit,
+                        newController: RelativePlayer.Self,
                     })),
                 }
             }

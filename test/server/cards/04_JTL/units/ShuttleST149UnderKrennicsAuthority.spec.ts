@@ -7,14 +7,14 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                     player1: {
                         hand: ['shuttle-st149#under-krennics-authority', 'entrenched'],
                         groundArena: ['fugitive-wookiee', 'battlefield-marine', { card: 'atst', exhausted: true, upgrades: ['frozen-in-carbonite'] }],
-                        spaceArena: [{ card: 'avenger#hunting-star-destroyer', upgrades: ['experience'] }],
-                        leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
+                        spaceArena: [{ card: 'avenger#hunting-star-destroyer', upgrades: ['shield'] }],
+                        leader: { card: 'finn#this-is-a-rescue', deployed: true },
                     },
                     player2: {
                         hand: ['electrostaff', 'vanquish'],
-                        groundArena: ['wampa', { card: 'hylobon-enforcer', upgrades: ['legal-authority', 'shield'] }],
+                        groundArena: ['wampa', { card: 'hylobon-enforcer', upgrades: ['legal-authority', 'experience'] }],
                         spaceArena: ['cartel-spacer'],
-                        leader: { card: 'finn#this-is-a-rescue', deployed: true },
+                        leader: { card: 'iden-versio#inferno-squad-commander', deployed: true },
                     }
                 });
             });
@@ -27,7 +27,7 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.experience, context.shield]);
                 expect(context.player1).toHavePassAbilityButton();
 
-                context.player1.clickCard(context.shield);
+                context.player1.clickCard(context.experience);
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.fugitiveWookiee,
                     context.battlefieldMarine,
@@ -43,10 +43,25 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                 context.player1.clickCard(context.fugitiveWookiee);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.fugitiveWookiee).toHaveExactUpgradeNames(['shield']);
+                expect(context.fugitiveWookiee).toHaveExactUpgradeNames(['experience']);
 
                 // Shielded should resolve now
                 expect(context.shuttleSt149).toHaveExactUpgradeNames(['shield']);
+
+                // We test the controller with of the shield with Finn
+                context.player2.passAction();
+                context.player1.clickCard(context.finn);
+                context.player1.clickCard(context.p2Base);
+                const avengerShield = context.avenger.upgrades[0];
+                const shuttleShield = context.shuttleSt149.upgrades[0];
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.experience,
+                    avengerShield,
+                    shuttleShield,
+                    context.frozenInCarbonite
+                ]);
+                context.player1.clickCard(context.experience);
+                expect(context.fugitiveWookiee).toHaveExactUpgradeNames(['shield']);
             });
 
             it('should allow, when defeated, to move a token upgrade to another eligible unit with a different controller', function () {
@@ -66,11 +81,13 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                 // Defeat the Shuttle
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.shuttleSt149);
+                context.player2.clickPrompt('You');
                 expect(context.shuttleSt149).toBeInZone('discard');
-                expect(context.player1).toBeAbleToSelectExactly([context.experience, context.shield]);
+                const avengerShield = context.avenger.upgrades[0];
+                expect(context.player1).toBeAbleToSelectExactly([context.experience, avengerShield]);
                 expect(context.player1).toHavePassAbilityButton();
 
-                context.player1.clickCard(context.experience);
+                context.player1.clickCard(avengerShield);
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.fugitiveWookiee,
                     context.battlefieldMarine,
@@ -83,24 +100,27 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                 ]);
 
                 context.player1.clickCard(context.idenVersio);
-                expect(context.idenVersio).toHaveExactUpgradeNames(['experience']);
+                expect(context.idenVersio).toHaveExactUpgradeNames(['shield']);
+
+                // The shild on idenVersion should remain controlled by player1
+                // So Finn should be able to defeat it
+                context.player1.clickCard(context.finn);
+                context.player1.clickCard(context.p2Base);
+                const idenShield = context.idenVersio.upgrades[0];
+                expect(context.player1).toBeAbleToSelectExactly([idenShield, context.frozenInCarbonite]);
+                context.player1.clickCard(idenShield);
+                expect(context.idenVersio).toHaveExactUpgradeNames(['shield']);
             });
 
             it('should allow, when played, to move the shield token from shielded', function () {
                 const { context } = contextRef;
 
-                // We remove the shiled from the Hylobon Enforcer
-                context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickCard(context.hylobonEnforcer);
-                expect(context.hylobonEnforcer).toHaveExactUpgradeNames(['legal-authority']);
-                context.player2.passAction();
-
-                // We play the Shuttle but we start with shielded
                 context.player1.clickCard(context.shuttleSt149);
                 context.player1.clickPrompt('Shielded');
                 expect(context.shuttleSt149).toHaveExactUpgradeNames(['shield']);
                 const shuttleShield = context.shuttleSt149.upgrades[0];
-                expect(context.player1).toBeAbleToSelectExactly([context.experience, shuttleShield]);
+                const avengerShield = context.avenger.upgrades[0];
+                expect(context.player1).toBeAbleToSelectExactly([context.experience, shuttleShield, avengerShield]);
                 expect(context.player1).toHavePassAbilityButton();
 
                 context.player1.clickCard(shuttleShield);
@@ -116,8 +136,8 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                     context.finn
                 ]);
 
-                context.player1.clickCard(context.avenger);
-                expect(context.avenger).toHaveExactUpgradeNames(['shield', 'experience']);
+                context.player1.clickCard(context.atst);
+                expect(context.atst).toHaveExactUpgradeNames(['shield', 'frozen-in-carbonite']);
                 expect(context.player2).toBeActivePlayer();
             });
         });
