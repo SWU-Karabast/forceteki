@@ -18,14 +18,15 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
     protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit];
 
     public eventHandler(event): void {
-        Contract.assertTrue(event.card.isUnit());
-        Contract.assertTrue(event.card.canAttachPilot());
-        Contract.assertTrue(event.leaderPilotCard.isDeployableLeader());
-        Contract.assertNotNullLike(event.leaderPilotCard);
+        Contract.assertNotNullLike(event.leaderAttachTarget);
+        Contract.assertEqual(DeployType.LeaderUpgrade, event.type);
+        Contract.assertTrue(event.leaderAttachTarget.isUnit());
+        Contract.assertTrue(event.leaderAttachTarget.canAttachPilot());
+        Contract.assertTrue(event.card.isDeployableLeader());
 
-        event.leaderPilotCard.deploy({
+        event.card.deploy({
             type: DeployType.LeaderUpgrade,
-            parentCard: event.card
+            parentCard: event.leaderAttachTarget
         });
     }
 
@@ -44,8 +45,13 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
     protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
         const properties = this.generatePropertiesFromContext(context);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
-        event.leaderPilotCard = properties.leaderPilotCard;
-        event.deployType = DeployType.LeaderUpgrade;
+        event.card = properties.leaderPilotCard;
+        event.leaderAttachTarget = card;
+        event.type = DeployType.LeaderUpgrade;
+    }
+
+    public override checkEventCondition(event: any, additionalProperties = {}): boolean {
+        return true;
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {

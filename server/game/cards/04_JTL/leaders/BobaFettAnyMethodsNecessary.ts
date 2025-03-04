@@ -35,7 +35,7 @@ export default class BobaFettAnyMethodsNecessary extends LeaderUnitCard {
             title: 'Deal up to 4 damage divided as you choose among any number of units.',
             type: AbilityType.Triggered,
             when: {
-                onLeaderDeployed: (event, context) => event.leaderPilotCard === context.source && event.deployType === DeployType.LeaderUpgrade
+                onLeaderDeployed: (event, context) => event.card === context.source && event.type === DeployType.LeaderUpgrade
             },
             zoneFilter: WildcardZoneName.AnyArena,
             immediateEffect: AbilityHelper.immediateEffects.distributeDamageAmong((context) => ({
