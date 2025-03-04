@@ -46,10 +46,10 @@ export class Lobby {
     private readonly testGameBuilder?: any;
 
     private game: Game;
-    private users: LobbyUser[] = [];
+    public users: LobbyUser[] = [];
     private lobbyOwnerId: string;
-    private gameType: MatchType;
-    private gameFormat: SwuGameFormat;
+    public gameType: MatchType;
+    public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
 
     public constructor(

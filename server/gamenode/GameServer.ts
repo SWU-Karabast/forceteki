@@ -397,6 +397,15 @@ export class GameServer {
             const socket = new Socket(ioSocket);
             lobby.addLobbyUser(user, socket);
             socket.send('connectedUser', user.id);
+
+            // If a user refreshes while they are matched with another player in the queue they lose the requeue listener
+            // this is why we reinitialize the requeue listener
+            if (lobby.gameType === MatchType.Quick) {
+                if (!socket.eventContainsListener('requeue')) {
+                    const lobbyUser = lobby.users.find((u) => u.id === user.id);
+                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
+                }
+            }
             socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
             return;
         }
