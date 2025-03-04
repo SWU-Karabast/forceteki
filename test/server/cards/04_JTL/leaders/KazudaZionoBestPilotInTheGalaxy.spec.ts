@@ -24,6 +24,10 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
 
                 // 97th Legion is immediately defeated because it has 0 hp
                 expect(context._97thLegion).toBeInZone('discard');
+
+                // Player 1 should be able to take an extra action
+                expect(context.player1).toBeActivePlayer();
+                expect(context.kazudaXiono.exhausted).toBeTrue();
             });
 
             it('should remove triggered abilites from a friendly unit for the current round only', async function() {
@@ -46,6 +50,8 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.kazudaXiono);
                 context.player1.clickPrompt('Select a friendly unit');
                 context.player1.clickCard(context.contractedHunter);
+
+                context.player1.passAction();
 
                 context.moveToNextActionPhase();
 
@@ -76,8 +82,6 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.kazudaXiono);
                 context.player1.clickPrompt('Select a friendly unit');
                 context.player1.clickCard(context.grogu);
-
-                context.player2.passAction();
 
                 // Grogu no longer has an action ability
                 context.player1.clickCard(context.grogu);
