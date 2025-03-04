@@ -296,7 +296,7 @@ describe('Piloting keyword', function() {
 
             const { context } = contextRef;
 
-            // check that sneak attack doesn't
+            // check that sneak attack doesn't allow user to play card as pilot upgrade
             context.player1.clickCard(context.sneakAttack);
             expect(context.player1).toBeAbleToSelectExactly([context.idenVersio, context.wampa]);
             context.player1.clickCard(context.idenVersio);
