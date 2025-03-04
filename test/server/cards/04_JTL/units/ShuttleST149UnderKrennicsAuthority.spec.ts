@@ -23,7 +23,7 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.shuttleSt149);
-                context.player1.clickPrompt('You may take control of a token upgrade on a unit and attach it to a different eligible unit.');
+                context.player1.clickPrompt('Take control of a token upgrade on a unit and attach it to a different eligible unit.');
                 expect(context.player1).toBeAbleToSelectExactly([context.experience, context.shield]);
                 expect(context.player1).toHavePassAbilityButton();
 
@@ -68,7 +68,7 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.shuttleSt149);
-                context.player1.clickPrompt('You may take control of a token upgrade on a unit and attach it to a different eligible unit.');
+                context.player1.clickPrompt('Take control of a token upgrade on a unit and attach it to a different eligible unit.');
                 expect(context.player1).toBeAbleToSelectExactly([context.experience, context.shield]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Pass');
