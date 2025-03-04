@@ -43,9 +43,7 @@ export default class BobaFettAnyMethodsNecessary extends LeaderUnitCard {
                 canChooseNoTargets: true,
                 canDistributeLess: true,
                 controller: WildcardRelativePlayer.Any,
-                cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card) => card.isUnit(),
-                source: context.source
+                cardTypeFilter: WildcardCardType.Unit
             }))
         });
     }
