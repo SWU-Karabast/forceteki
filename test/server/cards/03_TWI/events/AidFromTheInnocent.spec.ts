@@ -43,9 +43,43 @@ describe('Aid From the Innocent ', function() {
 
                 context.player2.passAction();
 
-                // Play the other card
+                // Play one of the cards
                 context.player1.clickCard(context.helloThere);
                 expect(context.player1.readyResourceCount).toBe(14);
+
+                context.player2.passAction();
+
+                // Play the other card
+                context.player1.clickCard(context.dropIn);
+                const cloneTroopers = context.player1.findCardsByName('clone-trooper');
+                expect(cloneTroopers.length).toBe(2);
+                expect(context.player1.readyResourceCount).toBe(12);
+            });
+
+            it('should not allow a discarded card to be played twice', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'dagobah-swamp',
+                        hand: ['aid-from-the-innocent'],
+                        deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay', 'rebel-assault', 'patrolling-vwing', 'devotion',
+                            'drop-in', 'hello-there', 'swoop-racer', 'resupply', 'superlaser-technician'],
+                        resources: 20
+                    },
+                    player2: {
+                        spaceArena: ['system-patrol-craft'],
+                        groundArena: ['wampa']
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.aidFromTheInnocent);
+
+                // Select two cards
+                context.player1.clickCardInDisplayCardPrompt(context.dropIn);
+                context.player1.clickCardInDisplayCardPrompt(context.helloThere);
+                context.player1.clickPrompt('Done');
 
                 context.player2.passAction();
 
@@ -53,7 +87,11 @@ describe('Aid From the Innocent ', function() {
                 context.player1.clickCard(context.dropIn);
                 const cloneTroopers = context.player1.findCardsByName('clone-trooper');
                 expect(cloneTroopers.length).toBe(2);
-                expect(context.player1.readyResourceCount).toBe(12);
+
+                context.player2.passAction();
+
+                // Ensure it cannot be played again
+                expect(context.dropIn).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
         });
     });
