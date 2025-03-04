@@ -6,11 +6,12 @@ describe('Chewbacca, Faithful First Mate', function() {
                     phase: 'action',
                     player1: {
                         spaceArena: ['home-one#alliance-flagship'],
+                        groundArena: ['battlefield-marine'],
                         hand: ['chewbacca#faithful-first-mate', 'vanquish'],
                     },
                     player2: {
                         spaceArena: ['avenger#hunting-star-destroyer'],
-                        hand: ['waylay', 'rivals-fall', 'confiscate', 'open-fire', 'bamboozle'],
+                        hand: ['waylay', 'rivals-fall', 'confiscate', 'open-fire', 'bamboozle', 'emperor-palpatine#master-of-the-dark-side'],
                     }
                 });
             });
@@ -89,6 +90,38 @@ describe('Chewbacca, Faithful First Mate', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
+            it('should allow attached unit to be defeated by friendly card abilities', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca with Piloting');
+                context.player1.clickCard(context.homeOne);
+
+                context.player2.passAction();
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.homeOne);
+
+                expect(context.homeOne).toBeInZone('discard');
+                expect(context.chewbacca).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should allow the attached unit to be selectable by enemy card abilities but prevent it from being defeated', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca with Piloting');
+                context.player1.clickCard(context.homeOne);
+
+                context.player2.clickCard(context.avenger);
+                context.player2.clickCard(context.p1Base);
+                context.player1.clickCard(context.homeOne);
+
+                expect(context.homeOne).toBeInZone('spaceArena', context.player1);
+                expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+                expect(context.player1).toBeActivePlayer();
+            });
+
             // TODO: Add test interaction with Force Lightning or Imprisioned
 
             // Unit tests for unit side of the card
@@ -116,6 +149,50 @@ describe('Chewbacca, Faithful First Mate', function() {
                 context.player2.clickCard(context.chewbacca);
                 expect(context.chewbacca).toBeInZone('groundArena', context.player1);
 
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should be defeated by friendly card abilities as a unit', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca');
+
+                context.player2.passAction();
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.chewbacca);
+
+                expect(context.chewbacca).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should allow to be selectable by enemy card abilities but prevent it from being defeated as a unit', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca');
+
+                context.player2.clickCard(context.avenger);
+                context.player2.clickCard(context.p1Base);
+                context.player1.clickCard(context.chewbacca);
+
+                expect(context.chewbacca).toBeInZone('groundArena', context.player1);
+                expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should be defeated by damage dealt as a unit', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca');
+
+                context.player2.clickCard(context.emperorPalpatine);
+                context.player2.setDistributeDamagePromptState(new Map([
+                    [context.chewbacca, 6]
+                ]));
+
+                expect(context.chewbacca).toBeInZone('discard', context.player1);
                 expect(context.player1).toBeActivePlayer();
             });
 
