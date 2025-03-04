@@ -15,6 +15,21 @@ describe('Triple Dark Raid', function () {
                 });
             });
 
+            it('can choose to take nothing', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.tripleDarkRaid);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.grievoussWheelBike, context.atst, context.allianceXwing],
+                    invalid: [context.battlefieldMarine, context.pykeSentinel, context.rebelPathfinder, context.wampa]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                context.player1.clickPrompt('Take nothing');
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('Can put Vehicle unit into play', function () {
                 const { context } = contextRef;
 
