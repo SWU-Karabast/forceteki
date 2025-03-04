@@ -9,10 +9,11 @@ import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
 import type { AggregateSystem } from '../core/gameSystem/AggregateSystem';
+import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
 import * as Helpers from '../core/utils/Helpers';
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
-    activePromptTitle?: string;
+    activePromptTitle?: ((context: TContext) => string) | string;
     player?: RelativePlayer;
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     controller?: RelativePlayerFilter;
@@ -154,6 +155,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             mustSelect: mustSelect,
             buttons: buttons,
             source: context.source,
+            selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             onCancel: properties.cancelHandler,
             onSelect: (cards) => {
                 this.addTargetToContext(cards, context, properties.name);
@@ -196,7 +198,9 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             return;
         }
 
-        const finalProperties = Object.assign(defaultProperties, properties);
+        const finalProperties = Object.assign(defaultProperties, properties, {
+            activePromptTitle: typeof properties.activePromptTitle === 'function' ? properties.activePromptTitle(context) : properties.activePromptTitle
+        });
         if (player.autoSingleTarget) {
             if (legalTargets.length === 1) {
                 finalProperties.onSelect(legalTargets[0]);

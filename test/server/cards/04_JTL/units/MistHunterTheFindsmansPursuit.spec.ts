@@ -31,7 +31,7 @@ describe('Mist Hunter The Findsmans Pursuit', function() {
             context.player1.clickCard(context.mistHunter);
             context.player1.clickCard(context.p2Base);
             expect(context.player1).toHavePassAbilityButton();
-            context.player1.clickPrompt('Draw a card');
+            context.player1.clickPrompt('Trigger');
             expect(context.player1.handSize).toBe(4);
 
 
@@ -42,7 +42,7 @@ describe('Mist Hunter The Findsmans Pursuit', function() {
             context.player2.passAction();
             context.player1.clickCard(context.mistHunter);
             context.player1.clickCard(context.p2Base);
-            context.player1.clickPrompt('Draw a card');
+            context.player1.clickPrompt('Trigger');
             expect(context.player1.handSize).toBe(6);
 
             context.moveToNextActionPhase();  // adds two cards to hand

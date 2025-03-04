@@ -26,7 +26,7 @@ describe('Bounty hunter\'s quarry', function () {
 
                 // use bounty
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.battlefieldMarine, context.infernoFour, context.sabineWren],
                     invalid: [context.waylay, context.protector]
@@ -54,7 +54,7 @@ describe('Bounty hunter\'s quarry', function () {
 
                 // use bounty
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.sabineWren, context.infernoFour, context.superlaserTechnician, context.echoBaseDefender, context.swoopRacer],
                     invalid: [context.devotion, context.waylay, context.protector, context.consularSecurityForce, context.resupply]

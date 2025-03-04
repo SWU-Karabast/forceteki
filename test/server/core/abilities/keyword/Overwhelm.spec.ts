@@ -127,7 +127,7 @@ describe('Overwhelm keyword', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.gorGrievoussPet);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.deathStarStormtrooper);
 
                 expect(context.deathStarStormtrooper).toBeInZone('discard');

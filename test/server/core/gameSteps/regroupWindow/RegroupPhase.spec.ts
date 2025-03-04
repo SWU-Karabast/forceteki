@@ -157,7 +157,7 @@ describe('Regroup phase', function() {
 
                     // We check the timing of General Krells "When Defeated"
                     expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                    context.player1.clickPrompt('Draw a card');
+                    context.player1.clickPrompt('Trigger');
 
                     // Check board state
                     expect(context.ardentSympathizer.zoneName).toBe('discard');

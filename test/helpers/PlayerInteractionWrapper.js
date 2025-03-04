@@ -360,6 +360,7 @@ class PlayerInteractionWrapper {
             this.moveCard(card, 'resource');
             card.exhausted = false;
         });
+        Util.refreshGameState(this.game);
     }
 
     attachOpponentOwnedUpgrades(opponentOwnedUpgrades = []) {
@@ -516,10 +517,23 @@ class PlayerInteractionWrapper {
 
     hasPrompt(title) {
         var currentPrompt = this.player.currentPrompt();
+
+        // Evaluar si menuTitle es una función o un string
+        const menuTitle =
+    typeof currentPrompt.menuTitle === 'function'
+        ? currentPrompt.menuTitle(this.player.context)
+        : currentPrompt.menuTitle;
+
+        // Evaluar si promptTitle es una función o un string
+        const promptTitle =
+    typeof currentPrompt.promptTitle === 'function'
+        ? currentPrompt.promptTitle(this.player.context)
+        : currentPrompt.promptTitle;
+
         return (
             !!currentPrompt &&
-            ((currentPrompt.menuTitle && currentPrompt.menuTitle.toLowerCase() === title.toLowerCase()) ||
-              (currentPrompt.promptTitle && currentPrompt.promptTitle.toLowerCase() === title.toLowerCase()))
+            (menuTitle && menuTitle.toLowerCase() === title.toLowerCase()) ||
+            (promptTitle && promptTitle.toLowerCase() === title.toLowerCase())
         );
     }
 

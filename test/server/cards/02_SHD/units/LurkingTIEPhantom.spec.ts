@@ -123,7 +123,7 @@ describe('Lurking TIE Phantom', function() {
 
             // Case 13: Can not be damaged by opponent ability even if you pick
             context.player1.clickCard(context.mercenaryGunship);
-            context.player1.clickPrompt('Exhaust this leader');
+            context.player1.clickPrompt('Trigger');
             expect(context.player2).toBeAbleToSelectExactly([context.lurkingTiePhantom, context.battlefieldMarine, context.countDooku, context.devastator]);
             context.player2.clickCard(context.lurkingTiePhantom);
             expect(context.lurkingTiePhantom).toBeInZone('spaceArena');

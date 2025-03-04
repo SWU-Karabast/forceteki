@@ -96,7 +96,7 @@ describe('Heroic Sacrifice', function() {
                 context.player1.clickPrompt(flamethrowerPrompt);
 
                 expect(context.player1).toHavePassAbilityPrompt(flamethrowerPrompt);
-                context.player1.clickPrompt(flamethrowerPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper, context.atst, context.craftySmuggler]);
                 context.player1.setDistributeDamagePromptState(new Map([

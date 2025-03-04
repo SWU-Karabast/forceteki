@@ -93,8 +93,18 @@ export class DeckValidator {
         return unimplementedCards;
     }
 
-    public getMinimumSideboardedDeckSize(baseData: ICardCheckData): number {
+    public getMinimumSideboardedDeckSize(baseId: string): number {
+        const baseData = this.getCardCheckData(baseId);
         return 50 + (baseData.minDeckSizeModifier ?? 0);
+    }
+
+    // update this function if anything affects the sideboard count
+    public getMaxSideboardSize(format: SwuGameFormat): number {
+        // sideboard is only restricted in Premier
+        if (format === SwuGameFormat.Open || format === SwuGameFormat.NextSetPreview) {
+            return -1;
+        }
+        return 10;
     }
 
     public getUnimplementedCardsInDeck(deck: IDecklistInternal | ISwuDbDecklist): { id: string; name: string }[] {
@@ -161,7 +171,7 @@ export class DeckValidator {
             const deckCards: ISwuDbCardEntry[] = [...deck.deck, ...(deck.sideboard ?? [])];
 
             const baseData = this.getCardCheckData(deck.base.id);
-            const minBoardedSize = this.getMinimumSideboardedDeckSize(baseData);
+            const minBoardedSize = this.getMinimumSideboardedDeckSize(deck.base.id);
             const decklistCardsCount = this.getTotalCardCount(deckCards);
             const boardedCardsCount = this.getTotalCardCount(deck.deck);
             const sideboardCardsCount = deck.sideboard ? this.getTotalCardCount(deck.sideboard) : 0;

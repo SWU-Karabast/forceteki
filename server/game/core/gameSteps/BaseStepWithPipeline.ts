@@ -10,7 +10,7 @@ export abstract class BaseStepWithPipeline extends BaseStep implements IStep {
 
     public override continue() {
         try {
-            return this.pipeline.continue();
+            return this.pipeline.continue(this.game);
         } catch (e) {
             this.game.reportError(e);
             return true;

@@ -140,7 +140,7 @@ describe('Lom Pyke, Dealer in Truths', function() {
                 context.player1.clickCard(context.lomPyke);
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1).toHavePassAbilityPrompt('Give a Shield token to an enemy unit');
-                context.player1.clickPrompt('Give a Shield token to an enemy unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.p2Base.damage).toBe(4);
                 expect(context.lomPyke).toHaveExactUpgradeNames(['shield']);

@@ -21,7 +21,7 @@ describe('San Hill, Chairman of the Banking Clan', function () {
 
                 // Syndicate Lackeys should be defeated by attacking Wampa
                 context.player1.clickCard(context.syndicateLackeys);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.wampa);
 
                 expect(context.player1.readyResourceCount).toBe(5);

@@ -19,7 +19,7 @@ describe('Synara San, Loyal to Kragan', function() {
                 context.player2.clickCard(context.synaraSan);
 
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Deal 5 damage to a base');
-                context.player2.clickPrompt('Collect Bounty: Deal 5 damage to a base');
+                context.player2.clickPrompt('Trigger');
 
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player2.clickCard(context.p1Base);
@@ -45,7 +45,7 @@ describe('Synara San, Loyal to Kragan', function() {
                 context.player1.clickCard(context.atst);
 
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Deal 5 damage to a base');
-                context.player2.clickPrompt('Collect Bounty: Deal 5 damage to a base');
+                context.player2.clickPrompt('Trigger');
 
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player2.clickCard(context.p1Base);
