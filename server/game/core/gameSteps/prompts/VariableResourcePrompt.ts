@@ -4,6 +4,7 @@ import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { ResourcePrompt } from './ResourcePrompt';
 import { PromptType } from '../../Constants';
+import { SelectCardMode } from '../PromptInterfaces';
 
 export class VariableResourcePrompt extends ResourcePrompt {
     private readonly minCardsToResource: number;
@@ -22,7 +23,7 @@ export class VariableResourcePrompt extends ResourcePrompt {
         const promptText = `Select between ${this.minCardsToResource} and ${this.maxCardsToResource} cards to resource`;
 
         return {
-            selectCard: true,
+            selectCardMode: SelectCardMode.Multiple,
             menuTitle: promptText,
             buttons: [{ text: 'Done', arg: 'done' }],
             promptTitle: 'Resource Step',

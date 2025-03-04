@@ -359,12 +359,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
         }
 
-        protected addPilotingConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'matchTarget' | 'ongoingEffect'>) {
+        protected addPilotingConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'ongoingEffect'>) {
             this.addPilotingAbility({
                 type: AbilityType.Constant,
                 title: properties.title,
                 matchTarget: (card, context) => card === context.source.parentCard,
                 targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
+                condition: properties.condition,
                 ongoingEffect: properties.ongoingEffect
             });
         }
