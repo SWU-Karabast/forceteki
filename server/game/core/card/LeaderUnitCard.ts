@@ -127,9 +127,16 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     protected setupLeaderUnitSideAbilities(sourceCard: this) {
     }
 
-    protected addPilotDeploy() {
+    protected addPilotDeploy(makeAttachedUnitALeader: boolean = true) {
         Contract.assertNotNullLike(this.printedUpgradeHp, `Leader ${this.title} is missing upgrade HP.`);
         Contract.assertNotNullLike(this.printedUpgradePower, `Leader ${this.title} is missing upgrade power.`);
+
+        if (makeAttachedUnitALeader) {
+            this.addPilotingConstantAbilityTargetingAttached({
+                title: 'Attached unit is a Leader',
+                ongoingEffect: AbilityHelper.ongoingEffects.isLeader()
+            });
+        }
 
         this.deployEpicActions.push(this.addActionAbility({
             title: `Deploy ${this.title} as a Pilot`,
