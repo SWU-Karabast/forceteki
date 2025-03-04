@@ -1,21 +1,18 @@
+
 describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
     integration(function(contextRef) {
         describe('leader ability', function() {
-            it('should remove all abilites from a friendly unit, and let the controller take an extra action', async function() {
+            it('should remove constant abilites from a friendly unit, and let the controller take an extra action', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
-                            'emperors-royal-guard',
-                            'emperor-palpatine#master-of-the-dark-side'
+                            '97th-legion#keeping-the-peace-on-sullust'
                         ],
                         leader: 'kazuda-xiono#best-pilot-in-the-galaxy'
                     },
                     player2: {
-                        hand: ['open-fire'],
-                        groundArena: [
-                            'consular-security-force'
-                        ]
+                        groundArena: ['consular-security-force']
                     }
                 });
 
@@ -23,20 +20,80 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
 
                 context.player1.clickCard(context.kazudaXiono);
                 context.player1.clickPrompt('Select a friendly unit');
-                context.player1.clickCard(context.emperorsRoyalGuard);
+                context.player1.clickCard(context._97thLegion);
 
-                // Opponent attacks base because ERG is not sentinel
-                context.player2.clickCard(context.consularSecurityForce);
-                expect(context.player2).toBeAbleToSelect(context.p1Base);
-                context.player2.clickCard(context.p1Base);
+                // 97th Legion is immediately defeated because it has 0 hp
+                expect(context._97thLegion).toBeInZone('discard');
+            });
 
-                context.player1.passAction();
+            it('should remove triggered abilites from a friendly unit for the current round only', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [
+                            'contracted-hunter'
+                        ],
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy'
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force']
+                    }
+                });
 
-                // Opponent plays Open Fire, defeating ERG because it no longer has the HP modifier
-                context.player2.clickCard(context.openFire);
-                context.player2.clickCard(context.emperorsRoyalGuard);
+                const { context } = contextRef;
 
-                expect(context.emperorsRoyalGuard).toBeInZone('discard');
+                // Use Kazuda's ability on Contracted Hunter
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickCard(context.contractedHunter);
+
+                context.moveToNextActionPhase();
+
+                // Contracted Hunter is still in play because his triggered ability was removed
+                expect(context.contractedHunter).toBeInZone('groundArena');
+
+                context.moveToNextActionPhase();
+
+                // Contracted Hunter is defeated because his triggered ability is back
+                expect(context.contractedHunter).toBeInZone('discard');
+            });
+
+            it('should remove action abilities from a friendly unit for the current round only', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['grogu#irresistible'],
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy'
+                    },
+                    player2: {
+                        groundArena: ['consular-security-force']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Use Kazuda's ability on Grogu
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickCard(context.grogu);
+
+                context.player2.passAction();
+
+                // Grogu no longer has an action ability
+                context.player1.clickCard(context.grogu);
+
+                expect(context.player1).not.toHaveEnabledPromptButton('Exhaust an enemy unit');
+                expect(context.player1).toBeAbleToSelect(context.consularSecurityForce);
+
+                context.player1.clickCard(context.consularSecurityForce);
+
+                context.moveToNextActionPhase();
+
+                // Grogu has his action ability back
+                context.player1.clickCard(context.grogu);
+                expect(context.player1).toHaveEnabledPromptButton('Exhaust an enemy unit');
+
+                context.allowTestToEndWithOpenPrompt = true;
             });
         });
     });

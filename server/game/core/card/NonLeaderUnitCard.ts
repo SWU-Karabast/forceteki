@@ -81,14 +81,14 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
     }
 
     public override getActionAbilities(): ActionAbility[] {
-        return this.isBlank() ? [] : this.actionAbilities;
+        return this.isBlank() ? [] : super.getActionAbilities();
     }
 
     public override getTriggeredAbilities(): TriggeredAbility[] {
-        return this.isBlank() ? [] : this.triggeredAbilities;
+        return this.isBlank() ? [] : super.getTriggeredAbilities();
     }
 
     public override getConstantAbilities(): IConstantAbility[] {
-        return this.isBlank() ? [] : this.constantAbilities;
+        return this.isBlank() ? [] : super.getConstantAbilities();
     }
 }

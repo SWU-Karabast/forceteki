@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -23,6 +23,22 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
                     })
                 })
             ])
+        });
+    }
+
+    protected override setupLeaderUnitSideAbilities() {
+        this.addOnAttackAbility({
+            title: 'Choose any number of friendly units',
+            targetResolver: {
+                activePromptTitle: 'Choose friendly units that will lose all abilities for this round',
+                mode: TargetMode.Unlimited,
+                cardTypeFilter: WildcardCardType.Unit,
+                controller: RelativePlayer.Self,
+                canChooseNoCards: true,
+                immediateEffect: AbilityHelper.immediateEffects.forThisRoundCardEffect({
+                    effect: AbilityHelper.ongoingEffects.loseAllAbilities()
+                })
+            }
         });
     }
 }
