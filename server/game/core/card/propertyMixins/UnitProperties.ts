@@ -335,14 +335,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected addPilotingAbility(properties: IAbilityPropsWithType<this>): void {
-            if (this.isDeployableLeader()) {
-                Contract.assertTrue(this.canBeUpgrade);
-            } else if (this.isNonLeaderUnit()) {
-                Contract.assertTrue(
-                    this.printedKeywords.some((keyword) => keyword.name === KeywordName.Piloting),
-                    `Attempting to add a piloting ability '${properties.title}' to ${this.internalName} but it has no printed instances of the Piloting keyword`
-                );
-            }
+            this.checkIsAttachable();
 
             switch (properties.type) {
                 case AbilityType.Action:
@@ -771,11 +764,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
 
         public override checkIsAttachable(): void {
-            if (this.getType() === CardType.LeaderUnit) {
-                Contract.assertTrue(this.canBeUpgrade);
-            } else if (EnumHelpers.isNonLeaderUnit(this.getType())) {
-                Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
-            }
+            throw new Error('Should not call this - call overriding methods');
         }
 
         /**

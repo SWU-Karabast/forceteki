@@ -91,6 +91,10 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
         this.resolveAbilitiesForNewZone();
     }
 
+    public override checkIsAttachable(): void {
+        Contract.assertTrue(this.canBeUpgrade);
+    }
+
     /** Deploy the leader to the arena. Handles the move operation and state changes. */
     public deploy(deployProps: { type: DeployType.LeaderUnit } | { type: DeployType.LeaderUpgrade; parentCard: IUnitCard }) {
         Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`);

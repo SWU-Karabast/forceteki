@@ -1,7 +1,7 @@
 import type Player from '../Player';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
-import { CardType, PlayType, ZoneName } from '../Constants';
+import { CardType, KeywordName, PlayType, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
@@ -71,5 +71,10 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
                 this.setCaptureZoneEnabled(false);
                 break;
         }
+    }
+
+
+    public override checkIsAttachable(): void {
+        Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
     }
 }

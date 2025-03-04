@@ -64,6 +64,31 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.bobaFett.exhausted).toBe(false);
             });
 
+            it('should not allow him to be exhausted when dealing Overwhelm damage', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'boba-fett#any-methods-necessary',
+                        groundArena: ['wampa'],
+                        resources: 6
+                    },
+                    player2: {
+                        groundArena: ['pyke-sentinel'],
+                        hand: ['rivals-fall']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.pykeSentinel);
+                expect(context.p2Base.damage).toBe(1);
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.bobaFett.exhausted).toBe(false);
+            });
+
             it('does not deal 4 damage when deployed as a unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

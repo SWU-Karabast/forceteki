@@ -1,4 +1,3 @@
-
 describe('Deploy a Leader as a Pilot', function() {
     integration(function(contextRef) {
         describe('Leaders with Pilot deploys', function() {

@@ -17,7 +17,7 @@ export default class BobaFettAnyMethodsNecessary extends LeaderUnitCard {
             title: 'Exhaust this leader',
             optional: true,
             when: {
-                onDamageDealt: (event, context) => event.damageSource.player === context.player && event.type !== DamageType.Combat,
+                onDamageDealt: (event, context) => event.damageSource.player === context.player && event.type !== DamageType.Combat && event.type !== DamageType.Overwhelm,
             },
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: {
