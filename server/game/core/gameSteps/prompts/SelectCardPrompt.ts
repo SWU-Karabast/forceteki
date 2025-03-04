@@ -226,6 +226,11 @@ export class SelectCardPrompt extends UiPrompt {
         return true;
     }
 
+    private clearSelectedCards() {
+        this.selectedCards = [];
+        this.choosingPlayer.clearSelectedCards();
+    }
+
     private fireOnSelect() {
         const cardParam = this.selector.formatSelectParam(this.selectedCards);
         if (this.properties.onSelect(cardParam)) {
@@ -241,6 +246,9 @@ export class SelectCardPrompt extends UiPrompt {
             this.complete();
             return true;
         } else if (arg === 'done' && this.selector.hasEnoughSelected(this.selectedCards, this.context)) {
+            return this.fireOnSelect();
+        } else if (arg === 'noTarget' && this.selector.hasEnoughSelected([], this.context)) {
+            this.clearSelectedCards();
             return this.fireOnSelect();
         } else if (this.properties.onMenuCommand(arg)) {
             this.complete();
