@@ -77,7 +77,6 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
 
             // can choose no targets
             context.player1.clickPrompt('Choose no target');
-            context.player1.clickPrompt('Done');
             expect(context.player2).toBeActivePlayer();
 
             // Third Poe attacks we one card to defeat an upgrade
