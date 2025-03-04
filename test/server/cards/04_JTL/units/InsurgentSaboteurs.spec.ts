@@ -28,6 +28,7 @@ describe('Insurgent Saboteurs', function () {
 
             context.player1.clickPrompt('Defeat an upgrade');
             expect(context.player1).toBeAbleToSelectExactly([context.independentSmuggler, context.experience, context.theDarksaber]);
+            expect(context.player1).toHaveChooseNoTargetButton();
             context.player1.clickCard(context.independentSmuggler);
 
             expect(context.player2).toBeActivePlayer();
