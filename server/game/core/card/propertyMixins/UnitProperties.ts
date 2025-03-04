@@ -242,6 +242,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return true;
             }
 
+            if (this.hasOngoingEffect(EffectName.CannotAttack)) {
+                return true;
+            }
+
             return false;
         }
 
