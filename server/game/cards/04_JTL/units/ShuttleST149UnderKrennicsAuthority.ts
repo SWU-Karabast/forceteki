@@ -12,7 +12,7 @@ export default class ShuttleST149UnderKrennicsAuthority extends NonLeaderUnitCar
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'You may take control of a token upgrade on a unit and attach it to a different eligible unit.',
+            title: 'Take control of a token upgrade on a unit and attach it to a different eligible unit.',
             optional: true,
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
