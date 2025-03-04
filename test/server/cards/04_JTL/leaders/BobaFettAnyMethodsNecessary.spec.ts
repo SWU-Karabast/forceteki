@@ -140,6 +140,7 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.bobaFett).toBeInZone('spaceArena');
                 expect(context.cartelSpacer.getPower()).toBe(6);
                 expect(context.cartelSpacer.getHp()).toBe(7);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['boba-fett#any-methods-necessary']);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
                 expect(context.player1).toHaveChooseNoTargetButton();
