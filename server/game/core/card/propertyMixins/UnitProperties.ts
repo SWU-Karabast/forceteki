@@ -176,12 +176,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected isLeaderAttachedToThis(): boolean {
-            if (this._upgrades == null) {
-                return false;
-            }
-            const result = this.isUpgraded() && this.upgrades.some((card) => card.isLeader());
-            const hasEffect = this.hasOngoingEffect(EffectName.IsLeader);
-            return result;
+            return this.hasOngoingEffect(EffectName.IsLeader);
         }
 
         public override isUpgrade(): this is IUpgradeCard {

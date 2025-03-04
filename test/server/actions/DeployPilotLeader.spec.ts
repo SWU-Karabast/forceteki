@@ -153,6 +153,54 @@ describe('Deploy a Leader as a Pilot', function() {
                 expect(context.bobaFett).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
 
+            it('stop making the attached unit a leader if the leader upgrade is defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'boba-fett#any-methods-necessary',
+                        spaceArena: ['cartel-spacer'],
+                        resources: 6
+                    },
+                    player2: {
+                        hand: ['confiscate', 'waylay']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bobaFett);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Boba Fett', 'Deploy Boba Fett as a Pilot']);
+                context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
+                expect(context.player2).not.toBeActivePlayer();
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player1.clickCard(context.cartelSpacer);
+
+                expect(context.bobaFett.deployed).toBe(true);
+                expect(context.bobaFett).toBeInZone('spaceArena');
+                expect(context.cartelSpacer.getPower()).toBe(6);
+                expect(context.cartelSpacer.getHp()).toBe(7);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player1.clickPrompt('Choose no targets');
+
+                context.player2.clickCard(context.confiscate);
+                expect(context.player2).toBeAbleToSelectExactly([context.bobaFett]);
+                context.player2.clickCard(context.bobaFett);
+
+                expect(context.bobaFett).toBeInZone('base');
+                expect(context.bobaFett.exhausted).toBe(true);
+                expect(context.bobaFett.deployed).toBe(false);
+
+                context.player1.claimInitiative();
+                context.player2.clickCard(context.waylay);
+                expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player2.clickCard(context.cartelSpacer);
+                expect(context.cartelSpacer).toBeInZone('hand');
+
+                context.moveToNextActionPhase();
+                expect(context.bobaFett).not.toHaveAvailableActionWhenClickedBy(context.player1);
+            });
+
             it('make the attached unit a leader unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
