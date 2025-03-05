@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
-import { UnlimitedAbilityLimit } from '../../../core/ability/AbilityLimit';
 import type { Card } from '../../../core/card/Card';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
@@ -15,7 +14,7 @@ export default class AdmiralTrenchChkchkchkchk extends LeaderUnitCard {
 
     protected override deployActionAbilityProps() {
         return {
-            limit: new UnlimitedAbilityLimit(),
+            limit: AbilityHelper.limit.unlimited(),
             cost: [
                 AbilityHelper.costs.exhaustSelf<AbilityContext<this>>(),
                 AbilityHelper.costs.abilityResourceCost<AbilityContext<this>>(3),
