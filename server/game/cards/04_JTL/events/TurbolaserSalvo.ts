@@ -27,16 +27,19 @@ export default class TurbolaserSalvo extends EventCard {
 
     private eventEffect(arena: Arena) {
         return AbilityHelper.immediateEffects.conditional((context) => ({
-            condition: context.player.opponent.getUnitsInPlay(arena).length > 0,
+            condition: context.player.getUnitsInPlay(ZoneName.SpaceArena).length > 0,
+            // && context.player.opponent.getUnitsInPlay(arena).length > 0,
             onTrue: AbilityHelper.immediateEffects.selectCard({
-                activePromptTitle: 'Select a friendly space unit to deal damage to each enemy unit in ',
+                activePromptTitle: `Select a friendly space unit to deal damage to each enemy unit in ${arena}`, // TODO: Better chat message
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.SpaceArena,
                 cardTypeFilter: WildcardCardType.Unit,
+                name: 'friendlySpaceUnitDamageSource',
                 innerSystem: AbilityHelper.immediateEffects.damage((damageContext) => {
                     return {
-                        amount: 1,
-                        target: damageContext.player.opponent.getUnitsInPlay(arena)
+                        amount: damageContext.targets.friendlySpaceUnitDamageSource?.[0].getPower(),
+                        target: damageContext.player.opponent.getUnitsInPlay(arena),
+                        source: damageContext.targets.friendlySpaceUnitDamageSource?.[0]
                     };
                 })
             }),
