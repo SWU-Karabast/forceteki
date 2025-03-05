@@ -79,6 +79,8 @@ export class Card extends OngoingEffectSource {
         return false;
     }
 
+    public readonly hasImplementationFile: boolean;
+
     protected readonly _aspects: Aspect[] = [];
     protected readonly _backSideAspects?: Aspect[];
     protected readonly _backSideTitle?: string;
@@ -90,7 +92,6 @@ export class Card extends OngoingEffectSource {
     protected readonly canBeUpgrade: boolean;
     protected override readonly id: string;
     protected readonly hasNonKeywordAbilityText: boolean;
-    protected readonly hasImplementationFile: boolean;
     protected readonly overrideNotImplemented: boolean = false;
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;

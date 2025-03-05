@@ -22,12 +22,17 @@ export class PlayEventAction extends PlayCardAction {
     }
 
     public override meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = []): string {
+        if (!this.card.hasImplementationFile) {
+            return 'unimplementedEventCard';
+        }
+
         if (
             context.player.hasRestriction(AbilityRestriction.PlayEvent, context) ||
             context.source.hasRestriction(AbilityRestriction.Play, context)
         ) {
             return 'restriction';
         }
+
         return super.meetsRequirements(context, ignoredRequirements);
     }
 

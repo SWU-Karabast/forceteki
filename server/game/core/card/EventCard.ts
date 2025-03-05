@@ -81,7 +81,6 @@ export class EventCard extends EventCardParent {
         this._eventAbility = new EventAbility(this.game, this, properties);
     }
 
-
     /** Add a constant ability on the card that decreases its cost under the given condition */
     protected addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>): void {
         this.constantAbilities.push(this.createConstantAbility(this.generateDecreaseCostAbilityProps(properties)));
