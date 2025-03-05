@@ -221,6 +221,16 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         return true;
     }
 
+    /**
+     * This is required because a gainCondition call can happen after an upgrade is discarded,
+     * so we need to short-circuit in that case to keep from trying to access illegal state such as parentCard
+     */
+    protected addZoneCheckToGainCondition(gainCondition?: (context: AbilityContext<this>) => boolean) {
+        return gainCondition == null
+            ? null
+            : (context: AbilityContext<this>) => this.isInPlay() && gainCondition(context);
+    }
+
     public override getSummary(activePlayer: Player) {
         return { ...super.getSummary(activePlayer),
             parentCardId: this._parentCard ? this._parentCard.uuid : null };
