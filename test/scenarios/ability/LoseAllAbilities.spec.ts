@@ -19,7 +19,9 @@ describe('Lose All Abilities', function() {
                             'breaking-in',
                             'heroic-sacrifice',
                             'red-three#unstoppable',
-                            'general-krell#heartless-tactician'
+                            'general-krell#heartless-tactician',
+                            'entrenched',
+                            'attack-pattern-delta'
                         ],
                         groundArena: [
                             'academy-defense-walker',
@@ -37,7 +39,8 @@ describe('Lose All Abilities', function() {
                         hand: [
                             'unshakeable-will',
                             'supreme-leader-snoke#shadow-ruler',
-                            'satine-kryze#committed-to-peace'
+                            'satine-kryze#committed-to-peace',
+                            'change-of-heart'
                         ],
                         groundArena: [
                             'consular-security-force'
@@ -46,9 +49,9 @@ describe('Lose All Abilities', function() {
                 });
             });
 
-            // Abilities printed on units
+            // Printed abilities
 
-            it('loses keyword abilities until the effect expires', function() {
+            it('loses printed keyword abilities until the effect expires', function() {
                 const { context } = contextRef;
 
                 // Use Kazuda's ability on Academy Defense Walker
@@ -72,7 +75,7 @@ describe('Lose All Abilities', function() {
                 context.player2.clickCard(context.academyDefenseWalker);
             });
 
-            it('loses triggered abilities until the effect expires', function() {
+            it('loses printed triggered abilities until the effect expires', function() {
                 const { context } = contextRef;
 
                 // Use Kazuda's ability on Contracted Hunter
@@ -92,7 +95,7 @@ describe('Lose All Abilities', function() {
                 expect(context.contractedHunter).toBeInZone('discard');
             });
 
-            it('loses constant abilities until the effect expires', function() {
+            it('loses printed constant abilities until the effect expires', function() {
                 const { context } = contextRef;
 
                 // Use Kazuda's ability on Strafing Gunship
@@ -117,7 +120,7 @@ describe('Lose All Abilities', function() {
                 context.player1.clickCard(context.consularSecurityForce);
             });
 
-            it('loses action abilities until the effect expires', function() {
+            it('loses printed action abilities until the effect expires', function() {
                 const { context } = contextRef;
 
                 // Use Kazuda's ability on Grogu
@@ -385,6 +388,102 @@ describe('Lose All Abilities', function() {
             });
 
             // TODO: There are not currently any units that give other units constant abilities
+
+            // Other effects are not blanked
+
+            it('can still be affected by ongoing effects from other units', function() {
+                const { context } = contextRef;
+
+                // Use Kazuda's ability on Academy Defense Walker
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickCard(context.academyDefenseWalker);
+                context.player1.passAction();
+
+                // Player 2 plays Supreme Leader Snoke, giving all enemy units -2/-2
+                context.player2.clickCard(context.supremeLeaderSnoke);
+
+                // Academy Defense Walker is affected by Snoke's effect
+                expect(context.academyDefenseWalker.getPower()).toBe(3);
+                expect(context.academyDefenseWalker.getHp()).toBe(3);
+            });
+
+            it('can still be affected by ongoing effects from upgrades', function() {
+                const { context } = contextRef;
+
+                // Use Kazuda's ability on Academy Defense Walker
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickCard(context.academyDefenseWalker);
+
+                // Play Entrenched on Academy Defense Walker
+                context.player1.clickCard(context.entrenched);
+                context.player1.clickCard(context.academyDefenseWalker);
+
+                context.player2.passAction();
+
+                // Academy Defense Walker cannot attack bases because of the Entrenched upgrades's ability
+                context.player1.clickCard(context.academyDefenseWalker);
+                expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
+                expect(context.academyDefenseWalker.getPower()).toBe(8);
+                expect(context.academyDefenseWalker.getHp()).toBe(8);
+
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.consularSecurityForce).toBeInZone('discard');
+            });
+
+            it('can still be affected by ongoing effects from events', function() {
+                const { context } = contextRef;
+
+                // Play Attack Pattern Delta to buff 3 friendly units
+                context.player1.clickCard(context.attackPatternDelta);
+                context.player1.clickCard(context.academyDefenseWalker);
+                context.player1.clickCard(context._97thLegion);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                context.player2.passAction();
+
+                // Use Kazuda's ability on 97th Legion
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickCard(context._97thLegion);
+
+                // 97th Legion is still in play because it has +2/+2 from Attack Pattern Delta
+                expect(context._97thLegion.getPower()).toBe(2);
+                expect(context._97thLegion.getHp()).toBe(2);
+
+                context.player1.clickCard(context._97thLegion);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(2);
+
+                context.moveToNextActionPhase();
+
+                // 97th Legion is defeated because APD's effect expires before the blanking effect
+                expect(context._97thLegion).toBeInZone('discard');
+            });
+
+            it('still has no abilities if it changes control', function() {
+                const { context } = contextRef;
+
+                // Use Kazuda's ability on Academy Defense Walker
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickCard(context.academyDefenseWalker);
+                context.player1.passAction();
+
+                // Player 2 plays Change of Heart to take control of Academy Defense Walker
+                context.player2.clickCard(context.changeOfHeart);
+                context.player2.clickCard(context.academyDefenseWalker);
+
+                // Player 1 can attack any target because Academy Defense Walker is not a Sentinel
+                context.player1.clickCard(context._97thLegion);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.p2Base,
+                    context.consularSecurityForce,
+                    context.academyDefenseWalker
+                ]);
+                context.player1.clickCard(context.consularSecurityForce);
+            });
         });
     });
 });
