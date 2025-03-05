@@ -1,6 +1,6 @@
 import type Player from '../Player';
 import type { ZoneFilter } from '../Constants';
-import { CardType, DeployType, RelativePlayer, Trait, WildcardCardType } from '../Constants';
+import { CardType, DeployType, PlayType, RelativePlayer, Trait, WildcardCardType } from '../Constants';
 import { AbilityType, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
@@ -145,7 +145,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
-                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && card.canAttachPilot(),
+                cardCondition: (card, context) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && card.canAttachPilot(context.source, PlayType.Piloting),
                 immediateEffect: AbilityHelper.immediateEffects.deployAndAttachPilotLeader((context) => ({
                     leaderPilotCard: context.source
                 }))
