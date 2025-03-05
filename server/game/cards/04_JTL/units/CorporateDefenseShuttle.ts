@@ -12,9 +12,7 @@ export default class CorporateDefenseShuttle extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'This unit can\'t attack',
-            ongoingEffect: [
-                AbilityHelper.ongoingEffects.cannotAttack()
-            ]
+            ongoingEffect: AbilityHelper.ongoingEffects.cannotAttack()
         });
     }
 }

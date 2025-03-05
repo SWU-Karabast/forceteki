@@ -1,5 +1,4 @@
 import AbilityHelper from '../../../../../server/game/AbilityHelper';
-import { InitiateAttackAction } from '../../../../../server/game/actions/InitiateAttackAction';
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
 import { AbilityRestriction } from '../../../../../server/game/core/Constants';
 
@@ -17,7 +16,7 @@ export default class ChewbaccaFaithfulFirstMate extends NonLeaderUnitCard {
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.ReturnToHand,
-                    restrictedActionCondition: (context) => !(context.ability instanceof InitiateAttackAction) && context.player !== this.controller,
+                    restrictedActionCondition: (context) => context.player !== this.controller,
                 }),
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.BeDefeated,
@@ -31,7 +30,7 @@ export default class ChewbaccaFaithfulFirstMate extends NonLeaderUnitCard {
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.ReturnToHand,
-                    restrictedActionCondition: (context) => !(context.ability instanceof InitiateAttackAction) && context.player !== this.controller,
+                    restrictedActionCondition: (context) => context.player !== this.controller,
                 }),
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.BeDefeated,
