@@ -15,6 +15,8 @@ import type { IUnitCard } from './propertyMixins/UnitProperties';
 import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { ICardCanChangeControllers, IUpgradeCard } from './CardInterfaces';
 
+type IConstantAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IConstantAbilityProps<TTarget> & IGainCondition<TSource>;
+
 type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
 
 type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
@@ -80,6 +82,20 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             matchTarget: (card, context) => card === context.source.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
             targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
             ongoingEffect: properties.ongoingEffect
+        });
+    }
+
+    /**
+     * Adds an "attached card gains [X]" ability, where X is a triggered ability. You can provide a match function
+     * to narrow down whether the effect is applied (for cases where the effect has conditions).
+     */
+    protected addGainConstantAbilityTargetingAttached(properties: IConstantAbilityPropsWithGainCondition<this, IUnitCard>) {
+        const { gainCondition, ...gainedAbilityProperties } = properties;
+
+        this.addConstantAbilityTargetingAttached({
+            title: 'Give ability to the attached card',
+            condition: this.addZoneCheckToGainCondition(gainCondition),
+            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Constant, ...gainedAbilityProperties })
         });
     }
 

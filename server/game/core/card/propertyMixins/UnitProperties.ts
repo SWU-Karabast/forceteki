@@ -12,7 +12,7 @@ import type { ICardWithPrintedPowerProperty } from './PrintedPower';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordProperties, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
@@ -371,10 +371,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             });
         }
 
-        public addPilotingGainKeywordTargetingAttached(properties: IKeywordProperties) {
+        public addPilotingGainKeywordTargetingAttached(properties: IKeywordPropertiesWithGainCondition<this>) {
+            const { gainCondition, ...gainedKeywordProperties } = properties;
+
             this.addPilotingConstantAbilityTargetingAttached({
                 title: 'Give keyword to the attached card',
-                ongoingEffect: OngoingEffectLibrary.gainKeyword(properties)
+                condition: this.addZoneCheckToGainCondition(gainCondition),
+                ongoingEffect: OngoingEffectLibrary.gainKeyword(gainedKeywordProperties)
             });
         }
 
