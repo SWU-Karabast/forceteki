@@ -41,14 +41,11 @@ describe('Allegiant General Pryde, Ruthless and Loyal', function () {
                 context.player1.clickCard(context.allegiantGeneralPryde);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player2).toBeActivePlayer();
+                expect(context.player1).toHavePrompt('Choose an action');
             });
 
             it('should defeat an non-unique upgrade on unit when indirect damage is dealt to it', function () {
                 const { context } = contextRef;
-
-                context.allegiantGeneralPryde.exhausted = false;
-                context.player2.passAction();
 
                 context.player1.clickCard(context.allegiantGeneralPryde);
                 context.player1.clickCard(context.p2Base);

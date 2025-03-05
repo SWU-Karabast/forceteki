@@ -5,7 +5,7 @@ describe('Razor Crest, Ride For Hire', function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['independent-smuggler', 'smuggling-compartement'],
+                        hand: ['independent-smuggler', 'smuggling-compartment'],
                         spaceArena: ['razor-crest#ride-for-hire'],
                         groundArena: ['battlefield-marine', 'wampa']
                     },
@@ -32,7 +32,7 @@ describe('Razor Crest, Ride For Hire', function () {
             it('Razor Crest\'s ability should not do anything is a non-pilot upgrade is attached ot it', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.smugglingComparement);
+                context.player1.clickCard(context.smugglingCompartment);
                 context.player1.clickCard(context.razorCrest);
 
                 expect(context.player2).toBeActivePlayer();
