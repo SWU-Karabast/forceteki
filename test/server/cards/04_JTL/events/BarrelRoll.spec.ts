@@ -78,10 +78,7 @@ describe('Barrel Roll', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            xit('should not allow to attack with Blue Leader when it\'s in the ground areana', function () {
-                // TODO: Implement this test when Blue Leader is implemented
-                expect(true).toBe(false);
-            });
+            // TODO: Make sure Blue Leader when deployed as ground unit can't be selected by Barrel Roll for the attack/exhaust ability
         });
     });
 });

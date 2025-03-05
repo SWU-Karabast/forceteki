@@ -17,6 +17,7 @@ export default class BarrelRoll extends EventCard {
                 zoneFilter: ZoneName.SpaceArena,
                 immediateEffect: AbilityHelper.immediateEffects.attack(),
             },
+            // TODO: Use after instead of then when it's implemented
             then: (thenContext) => ({
                 title: 'Exhaust a space unit',
                 thenCondition: () => thenContext.events.length > 0,
