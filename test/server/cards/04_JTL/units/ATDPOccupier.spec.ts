@@ -9,7 +9,6 @@ describe('AT-DP Occupier', function() {
                     leader: 'sabine-wren#galvanized-revolutionary'
                 },
                 player2: {
-                    hand: ['vanquish'],
                     groundArena: [{ card: 'atst', damage: 2 }],
                     spaceArena: [{ card: 'republic-arc170', damage: 1 }]
                 }
