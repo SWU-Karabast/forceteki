@@ -13,6 +13,7 @@ import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 import type { ActionAbility } from '../ability/ActionAbility';
 import type TriggeredAbility from '../ability/TriggeredAbility';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
+import type { KeywordInstance } from '../ability/KeywordInstance';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
@@ -78,6 +79,10 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
 
     public override checkIsAttachable(): void {
         Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+    }
+
+    public override getKeywords(): KeywordInstance[] {
+        return this.isBlank() ? [] : super.getKeywords();
     }
 
     public override getActionAbilities(): ActionAbility[] {
