@@ -155,7 +155,6 @@ describe('Reprocess\' ability', function () {
             expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel]);
             expect(context.player1).toHaveChooseNoTargetButton();
             context.player1.clickPrompt('Choose no target');
-            context.player1.clickPrompt('Done');
             expect(context.pykeSentinel).toBeInZone('discard');
             battleDroids = context.player1.findCardsByName('battle-droid');
             expect(battleDroids.length).toBe(0);

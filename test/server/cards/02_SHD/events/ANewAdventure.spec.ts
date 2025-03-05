@@ -28,7 +28,7 @@ describe('A New Adventure', function() {
                 expect(context.patrollingVwing).toBeInZone('hand');
                 expect(context.player2).toHavePassAbilityPrompt('Play Patrolling V-Wing for free');
 
-                context.player2.clickPrompt('Play Patrolling V-Wing for free');
+                context.player2.clickPrompt('Trigger');
                 expect(context.patrollingVwing).toBeInZone('spaceArena');
                 expect(context.player2.exhaustedResourceCount).toBe(0);
                 expect(context.player2.handSize).toBe(1);   // from V-Wing ability
@@ -44,7 +44,7 @@ describe('A New Adventure', function() {
                 expect(context.salaciousCrumb).toBeInZone('hand');
                 expect(context.player1).toHavePassAbilityPrompt('Play Salacious Crumb for free');
 
-                context.player1.clickPrompt('Play Salacious Crumb for free');
+                context.player1.clickPrompt('Trigger');
                 expect(context.salaciousCrumb).toBeInZone('groundArena');
                 expect(context.player1.exhaustedResourceCount).toBe(2); // just the cost of A New Adventure
                 expect(context.p1Base.damage).toBe(1);   // from Crumb ability
@@ -79,7 +79,7 @@ describe('A New Adventure', function() {
             expect(context.salaciousCrumb).toBeInZone('hand', context.player1);
             expect(context.player1).toHavePassAbilityPrompt('Play Salacious Crumb for free');
 
-            context.player1.clickPrompt('Play Salacious Crumb for free');
+            context.player1.clickPrompt('Trigger');
             expect(context.salaciousCrumb).toBeInZone('groundArena');
             expect(context.player1.exhaustedResourceCount).toBe(2); // just the cost of A New Adventure
             expect(context.p1Base.damage).toBe(1);   // from Crumb ability

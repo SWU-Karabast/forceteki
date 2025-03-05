@@ -272,9 +272,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             card.unattach();
         }
 
-        if (card.isLeader() && !EnumHelpers.isArena(destination)) {
-            // TODO: punting on this since no card could do it currently and it requires some work
-            throw new Error('Leaders leaving the arena due to a non-defeat effect is not yet implemented');
+        if (card.isDeployableLeader() && !EnumHelpers.isArena(destination)) {
+            card.undeploy();
         } else if (card.isToken() && !EnumHelpers.isArena(destination)) {
             // tokens are removed from the game when they leave the arena
             card.moveTo(ZoneName.OutsideTheGame);
@@ -327,7 +326,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         Contract.assertTrue(card.canBeInPlay());
 
 
-        if (card.isUnit()) {
+        if (card.isUnit() && !card.isAttached()) {
             return {
                 card,
                 power: card.getPower(),

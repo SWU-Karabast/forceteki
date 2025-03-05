@@ -18,7 +18,7 @@ describe('Chain Code Collector', function () {
 
                 // ambush gideon hask
                 context.player1.clickCard(context.chainCodeCollector);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.gideonHask);
 
                 // chain code collector take only 1 damage (gideon gets -4/-0)

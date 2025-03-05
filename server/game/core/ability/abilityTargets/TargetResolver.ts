@@ -62,8 +62,9 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
     }
 
     protected getDefaultProperties(context: AbilityContext) {
+        const activePromptTitleConcrete = typeof this.properties.activePromptTitle === 'function' ? this.properties.activePromptTitle(context) : this.properties.activePromptTitle;
         return {
-            activePromptTitle: this.properties.activePromptTitle,
+            activePromptTitle: activePromptTitleConcrete,
             waitingPromptTitle: 'waitingPromptTitle' in this.properties
                 ? this.properties.waitingPromptTitle as string
                 : (context.ability.type === 'action' ? 'Waiting for opponent to take an action or pass' : 'Waiting for opponent'),

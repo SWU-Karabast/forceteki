@@ -1,7 +1,7 @@
 import type Player from '../Player';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
-import { CardType, ZoneName } from '../Constants';
+import { CardType, KeywordName, PlayType, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
@@ -9,6 +9,7 @@ import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup'
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { ICardCanChangeControllers } from './CardInterfaces';
+import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
 
 const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPlayCard));
 
@@ -23,7 +24,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
     }
 
     public override isNonLeaderUnit(): this is INonLeaderUnitCard {
-        return true;
+        return !this.isLeaderAttachedToThis();
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
@@ -31,6 +32,9 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
     }
 
     public override buildPlayCardAction(properties: IPlayCardActionProperties) {
+        if (properties.playType === PlayType.Piloting) {
+            return new PlayUpgradeAction(this.game, this, properties);
+        }
         return new PlayUnitAction(this.game, this, properties);
     }
 
@@ -67,5 +71,10 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
                 this.setCaptureZoneEnabled(false);
                 break;
         }
+    }
+
+
+    public override checkIsAttachable(): void {
+        Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
     }
 }

@@ -148,11 +148,11 @@ describe('Reinforcement Walker', function() {
 
                 // The on attack ability from Ambush resolved successfully.
                 expect(context.player1).toHaveExactPromptButtons([
-                    'Ambush',
+                    'Trigger',
                     'Pass',
                 ]);
 
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.echoBaseDefender]);
                 expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Draw', 'Discard']);

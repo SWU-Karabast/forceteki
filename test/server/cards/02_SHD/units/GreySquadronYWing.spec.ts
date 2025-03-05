@@ -25,7 +25,7 @@ describe('Grey squadron Y-Wing', function() {
                 context.player2.clickCard(context.p2Base);
                 expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to Administrator\'s Tower');
 
-                context.player1.clickPrompt('Deal 2 damage to Administrator\'s Tower');
+                context.player1.clickPrompt('Trigger');
                 expect(context.p2Base.damage).toEqual(2);
             });
         });

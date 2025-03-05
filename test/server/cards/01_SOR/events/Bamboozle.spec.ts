@@ -100,6 +100,41 @@ describe('Bamboozle', function () {
             expect(context.player1.exhaustedResourceCount).toBe(4);
         });
 
+        it('Bamboozle should be defeat a leader unit attached to a vehicle targeted by Bamboozle', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'boba-fett#any-methods-necessary',
+                    spaceArena: ['cartel-spacer'],
+                    resources: 6
+                },
+                player2: {
+                    hand: ['bamboozle']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.bobaFett);
+            context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
+            context.player1.clickCard(context.cartelSpacer);
+            context.player1.clickPrompt('Choose no targets');
+
+            context.player2.clickCard(context.bamboozle);
+            expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer]);
+            context.player2.clickCard(context.cartelSpacer);
+            expect(context.cartelSpacer.exhausted).toBeTrue();
+
+            // Check that Boba has been defeated
+            expect(context.bobaFett).toBeInZone('base');
+            expect(context.bobaFett.exhausted).toBeTrue();
+            expect(context.bobaFett.deployed).toBeFalse();
+
+            // Ensure Boba cannot re-deploy
+            context.moveToNextActionPhase();
+            expect(context.bobaFett).not.toHaveAvailableActionWhenClickedBy(context.player1);
+        });
+
         it('Bamboozle\'s play modes should be available even if it is played by another card\'s effect', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

@@ -18,7 +18,7 @@ describe('Mining Guild TIE Fighter', function() {
                 expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to draw');
 
                 // pay 2 resources to draw
-                context.player1.clickPrompt('Pay 2 resources to draw');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
 
