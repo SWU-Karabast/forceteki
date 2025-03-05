@@ -33,10 +33,10 @@ describe('Turbolaser Salvo', function() {
         });
 
         it('Turbolaser Salvo should choose an Arena and then do nothing if the player controls no Space units', async function() {
-            pending('TODO: Open question on prompt auto-resolve');
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
+                    leader: 'emperor-palpatine#galactic-ruler',
                     hand: ['turbolaser-salvo'],
                     groundArena: ['battlefield-marine'],
                 },
@@ -49,8 +49,7 @@ describe('Turbolaser Salvo', function() {
 
             // Choose Arena
             context.player1.clickCard(context.turbolaserSalvo);
-            expect(context.player1).toHaveEnabledPromptButtons(['Ground', 'Space']);
-            context.player1.clickPrompt('Space');
+            expect(context.player1.exhaustedResourceCount).toBe(7);
 
             expect(context.player2).toBeActivePlayer();
         });
