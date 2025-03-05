@@ -86,6 +86,7 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
                 [context.p2Base, 2],
             ]));
             expect(context.p2Base.damage).toBe(2);
+            context.player1.clickPrompt('Pass'); // Pass on Boba\'s leader ability
         });
 
         it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent when played as we control Boba1 as unit', async function () {

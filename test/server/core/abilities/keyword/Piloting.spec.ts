@@ -282,5 +282,26 @@ describe('Piloting keyword', function() {
             expect(context.daggerSquadronPilot).toBeInZone('groundArena');
             expect(context.player1.exhaustedResourceCount).toBe(3);
         });
+
+        it('A unit with Piloting should not be able to be played as a pilot when played with Sneak Attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'gar-saxon#viceroy-of-mandalore',
+                    base: 'coronet-city',
+                    hand: ['sneak-attack', 'iden-versio#adapt-or-die', 'wampa'],
+                    spaceArena: ['cartel-turncoat'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // check that sneak attack doesn't allow user to play card as pilot upgrade
+            context.player1.clickCard(context.sneakAttack);
+            expect(context.player1).toBeAbleToSelectExactly([context.idenVersio, context.wampa]);
+            context.player1.clickCard(context.idenVersio);
+            expect(context.idenVersio).toBeInZone('groundArena');
+            expect(context.player1.exhaustedResourceCount).toBe(3); // +2 for sneak attack and +1 for iden (3pt discount)
+        });
     });
 });
