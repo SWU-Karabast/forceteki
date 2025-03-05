@@ -80,7 +80,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                     phase: 'action',
                     player1: {
                         leader: 'luke-skywalker#hero-of-yavin',
-                        spaceArena: ['alliance-xwing', 'munificent-frigate'],
+                        spaceArena: ['alliance-xwing', 'munificent-frigate', 'mercenary-gunship'],
                         groundArena: ['battlefield-marine'],
                         hand: ['power-failure']
                     },
@@ -110,7 +110,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 context.player1.clickCard(context.lukeSkywalker);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
 
                 // Assert Luke Skywalker is deployed as a pilot upgrade
@@ -129,7 +129,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 expect(context.player1).toHavePrompt('Deal 3 damage to a unit');
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.allianceXwing, context.battlefieldMarine, context.cartelSpacer, context.munificentFrigate]);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.allianceXwing, context.battlefieldMarine, context.cartelSpacer, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.wampa);
 
                 expect(context.wampa.damage).toBe(3);
@@ -143,7 +143,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 context.player1.clickCard(context.lukeSkywalker);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.munificentFrigate);
 
                 // Assert Luke Skywalker is deployed as a pilot upgrade
@@ -168,7 +168,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 context.player1.clickCard(context.lukeSkywalker);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
 
                 // Assert Luke Skywalker is deployed as a pilot upgrade
@@ -196,7 +196,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 context.player1.clickCard(context.lukeSkywalker);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
 
                 // Assert Luke Skywalker is deployed as a pilot upgrade
@@ -209,7 +209,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 // Alliance X-Wing is now a leader unit
                 context.player2.clickCard(context.vanquish);
-                expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.munificentFrigate, context.cartelSpacer, context.wampa]);
+                expect(context.player2).toBeAbleToSelectExactly([context.battlefieldMarine, context.munificentFrigate, context.cartelSpacer, context.wampa, context.mercenaryGunship]);
                 context.player2.clickCard(context.munificentFrigate);
             });
 
@@ -220,7 +220,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 context.player1.clickCard(context.lukeSkywalker);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
 
                 // Assert Luke Skywalker is deployed as a pilot upgrade
@@ -245,7 +245,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 context.player1.clickCard(context.lukeSkywalker);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
 
                 // Assert Luke Skywalker is deployed as a pilot upgrade
@@ -274,7 +274,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 context.player1.clickCard(context.lukeSkywalker);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
                 context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
                 context.player1.clickCard(context.allianceXwing);
 
                 // Assert Luke Skywalker is deployed as a pilot upgrade
@@ -289,8 +289,9 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 context.player2.clickCard(context.bamboozle);
                 context.player2.clickCard(context.allianceXwing);
 
-                expect(context.lukeSkywalker).toBeInZone('spaceArena');
-                expect(context.allianceXwing).toHaveExactUpgradeNames(['luke-skywalker#hero-of-yavin']);
+                expect(context.lukeSkywalker).toBeInZone('base');
+                expect(context.allianceXwing.isUpgraded()).toBe(false);
+                expect(context.allianceXwing.exhausted).toBe(true);
                 expect(context.player1).toBeActivePlayer();
             });
         });

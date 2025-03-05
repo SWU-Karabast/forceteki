@@ -44,7 +44,7 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
             type: AbilityType.Constant,
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.cardCannot({
-                    cannot: AbilityRestriction.BeDefeatedAsUpgrade,
+                    cannot: AbilityRestriction.BeDefeated,
                     restrictedActionCondition: (context) => context.player !== this.controller && context.target === this,
                 }),
                 AbilityHelper.ongoingEffects.cardCannot({
