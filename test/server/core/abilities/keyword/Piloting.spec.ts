@@ -262,7 +262,7 @@ describe('Piloting keyword', function() {
                 expect(context.idenVersio).toBeInZone('discard');
             });
 
-            it('it can be moved to another vehicle with a Pilot ignoring the limit', async function () {
+            it('can be moved to another vehicle with a Pilot ignoring the limit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
