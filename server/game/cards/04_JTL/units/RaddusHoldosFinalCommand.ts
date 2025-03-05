@@ -23,7 +23,7 @@ export default class RaddusHoldosFinalCommand extends NonLeaderUnitCard {
             targetResolver: {
                 cardCondition: (card, context) => card.isUnit() && card.controller !== context.source.controller,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => {
-                    return { amount: context.source.getPower() };
+                    return { amount: context.event.lastKnownInformation.power };
                 })
             }
         });

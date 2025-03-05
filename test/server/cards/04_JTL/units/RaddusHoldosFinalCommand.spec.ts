@@ -2,10 +2,10 @@ describe('Raddus', function () {
     integration(function (contextRef) {
         describe('Raddus\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTestAsync({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['resistance-xwing', 'restored-arc170'],
+                        hand: ['resistance-xwing'],
                         spaceArena: ['raddus#holdos-final-command'],
                     },
                     player2: {
@@ -17,7 +17,7 @@ describe('Raddus', function () {
             it('should give it sentinel while he has any resistance card in play', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.restoredArc170);
+                context.player1.passAction();
                 context.player2.clickCard(context.greenSquadronAwing);
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.raddusHoldosFinalCommand]);
                 context.player2.clickCard(context.p1Base);
@@ -37,7 +37,7 @@ describe('Raddus', function () {
         });
         describe('Raddus\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTestAsync({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['avenger#hunting-star-destroyer', 'ruthless-raider'],
