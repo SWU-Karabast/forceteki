@@ -23,7 +23,7 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                 context.player2.clickCard(context.atst); // Opponent plays second card, ability triggers
 
                 expect(context.player1).toHavePassAbilityPrompt('Draw 2 cards');
-                context.player1.clickPrompt('Draw 2 cards');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(3);
                 expect(context.battlefieldMarine).toBeInZone('hand');
@@ -58,7 +58,7 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                 context.player2.clickCard(context.wampa);
 
                 expect(context.player1).toHavePassAbilityPrompt('Draw 2 cards');
-                context.player1.clickPrompt('Draw 2 cards');
+                context.player1.clickPrompt('Trigger');
                 expect(context.consularSecurityForce).toBeInZone('hand');
                 expect(context.kashyyykDefender).toBeInZone('hand');
             });

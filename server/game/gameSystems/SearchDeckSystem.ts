@@ -237,7 +237,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
 
     private selectedCardsDefaultHandler(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>): void {
         const gameSystem = this.generatePropertiesFromContext(event.context).selectedCardsImmediateEffect;
-        if (gameSystem) {
+        if (gameSystem && selectedCards.size > 0) {
             const selectedArray = Array.from(selectedCards);
 
             const deckZone = context.player.getZone(ZoneName.Deck) as DeckZone;

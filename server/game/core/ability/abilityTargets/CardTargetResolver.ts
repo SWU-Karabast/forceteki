@@ -11,6 +11,8 @@ import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
 import * as EnumHelpers from '../../utils/EnumHelpers.js';
 import type { GameSystem } from '../../gameSystem/GameSystem';
+import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
+import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 
 /**
  * Target resolver for selecting cards for the target of an effect.
@@ -171,10 +173,12 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             card.getOngoingEffectValues(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
         );
 
-        const promptProperties = Object.assign(this.getDefaultProperties(context), {
+        const promptProperties: ISelectCardPromptProperties = {
+            ...this.getDefaultProperties(context),
             selector: this.selector,
             buttons: buttons,
             mustSelect: mustSelect,
+            selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             onSelect: (card) => {
                 this.setTargetResult(context, card);
                 return true;
@@ -202,7 +206,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
                         Contract.fail(`Unknown menu option '${arg}'`);
                 }
             }
-        });
+        };
         context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
     }
 

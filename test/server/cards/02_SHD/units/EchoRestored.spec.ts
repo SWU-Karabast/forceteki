@@ -39,7 +39,7 @@ describe('Echo, Restored', function () {
 
                 // discard a card
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
 
                 // can discard any cards
                 expect(context.player1).toBeAbleToSelectExactly([handLuke, handBattlefieldMarine, handWampa, context.atst]);
@@ -59,7 +59,7 @@ describe('Echo, Restored', function () {
 
                 // play echo
                 context.player1.clickCard(context.echo);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(handLuke);
 
                 // luke was discarded, leader luke should have 2 experiences tokens
@@ -76,7 +76,7 @@ describe('Echo, Restored', function () {
 
                 // play echo
                 context.player1.clickCard(context.echo);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(handWampa);
 
                 // 2 units with the same title, can choose between them

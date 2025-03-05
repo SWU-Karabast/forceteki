@@ -30,7 +30,7 @@ describe('Timely Intervention', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 expect(context.rebelPathfinder.exhausted).toBe(true);
                 expect(context.rebelPathfinder.damage).toBe(1);
                 expect(context.isbAgent.damage).toBe(2);
@@ -67,7 +67,7 @@ describe('Timely Intervention', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(4);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 expect(context.rebelPathfinder.exhausted).toBe(true);
                 expect(context.rebelPathfinder.damage).toBe(1);
                 expect(context.isbAgent.damage).toBe(2);

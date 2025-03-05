@@ -22,7 +22,7 @@ describe('No Glory, Only Results', function() {
 
             // Choose Superlaser Technician and defeat it
             context.player1.clickCard(context.superlaserTechnician);
-            context.player1.clickPrompt('Put Superlaser Technician into play as a resource and ready it');
+            context.player1.clickPrompt('Trigger');
             expect(context.superlaserTechnician).toBeInZone('resource', context.player1);
 
             // Player 2 passes
@@ -88,7 +88,7 @@ describe('No Glory, Only Results', function() {
 
             // Choose Supreme Leader Snoke and defeat it
             context.player1.clickCard(context.supremeLeaderSnoke);
-            context.player2.clickPrompt('Put Superlaser Technician into play as a resource and ready it');
+            context.player2.clickPrompt('Trigger');
             expect(context.supremeLeaderSnoke).toBeInZone('discard');
             expect(context.blackSunStarfighter).toBeInZone('discard');
             expect(context.superlaserTechnician).toBeInZone('resource');

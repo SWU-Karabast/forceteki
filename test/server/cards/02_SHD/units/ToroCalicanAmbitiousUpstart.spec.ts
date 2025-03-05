@@ -56,7 +56,7 @@ describe('Toro Calican, Ambitious Upstart', function() {
                 // CASE 5: play friendly Bounty Hunter, ability triggers
                 context.player1.clickCard(context.ketsuOnyo);
                 expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to the played Bounty Hunter unit');
-                context.player1.clickPrompt('Deal 1 damage to the played Bounty Hunter unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.ketsuOnyo.damage).toBe(1);
                 expect(context.toroCalican.exhausted).toBeFalse();
 
@@ -76,7 +76,7 @@ describe('Toro Calican, Ambitious Upstart', function() {
                 // ability triggers and can be activated even though Toro is not exhausted
                 context.player1.clickCard(context.embo);
                 expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to the played Bounty Hunter unit');
-                context.player1.clickPrompt('Deal 1 damage to the played Bounty Hunter unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.embo.damage).toBe(1);
                 expect(context.toroCalican.exhausted).toBeFalse();
 
@@ -86,7 +86,7 @@ describe('Toro Calican, Ambitious Upstart', function() {
                 // CASE 8: shield replacement effect should activate "if you do" ability
                 context.player1.clickCard(context.hunterOfTheHaxionBrood);
                 context.player1.clickPrompt('Shielded');
-                context.player1.clickPrompt('Deal 1 damage to the played Bounty Hunter unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.hunterOfTheHaxionBrood.isUpgraded()).toBeFalse();
                 expect(context.hunterOfTheHaxionBrood.damage).toBe(0);

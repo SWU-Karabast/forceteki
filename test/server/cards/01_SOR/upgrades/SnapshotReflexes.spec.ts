@@ -22,7 +22,7 @@ describe('Snapshot Reflexes', function() {
 
                 expect(context.player1).toHavePassAbilityPrompt('Attack with attached unit');
 
-                context.player1.clickPrompt('Attack with attached unit');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.specforceSoldier);
 
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['snapshot-reflexes']);
