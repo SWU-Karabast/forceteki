@@ -58,8 +58,9 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Deal 3 damage to a unit',
             optional: true,
+            gainCondition: (context) => context.source.parentCard.hasSomeTrait(Trait.Fighter),
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source && context.source.hasSomeTrait(Trait.Fighter)
+                onAttackDeclared: (event, context) => event.attack.attacker === context.source
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

@@ -75,7 +75,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
             return false;
         }
         const properties = this.generatePropertiesFromContext(context);
-        if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && (card.hasRestriction(AbilityRestriction.BeDefeated, context) || card.hasRestriction(AbilityRestriction.BeDefeatedAsUpgrade, context))) {
+        if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.BeDefeated, context)) {
             return false;
         }
         return super.canAffect(card, context);

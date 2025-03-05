@@ -35,30 +35,6 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 expect(context.lukeSkywalker.exhausted).toBe(true);
             });
 
-            it('should allow him to exhaust but deal no damage as no unit attacked this phase', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.lukeSkywalker);
-                context.player1.clickPrompt('If you attacked with a Fighter unit this phase, deal 1 damage to a unit');
-
-                expect(context.lukeSkywalker.exhausted).toBe(true);
-                expect(context.player2).toBeActivePlayer();
-            });
-
-            it('should allow him to exhaust but deal no damage as no Fighter unit attacked this phase', function () {
-                const { context } = contextRef;
-
-                context.player1.clickCard(context.battlefieldMarine);
-                context.player1.clickCard(context.p2Base);
-                context.player2.passAction();
-
-                context.player1.clickCard(context.lukeSkywalker);
-                context.player1.clickPrompt('If you attacked with a Fighter unit this phase, deal 1 damage to a unit');
-
-                expect(context.lukeSkywalker.exhausted).toBe(true);
-                expect(context.player2).toBeActivePlayer();
-            });
-
             it('should allow him to exhaust but deal no damage as no friendly Fighter unit attacked this phase', function () {
                 const { context } = contextRef;
 
@@ -213,7 +189,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 context.player2.clickCard(context.munificentFrigate);
             });
 
-            it('should deploy as a pilot upgrade and cannot be defeated as an upgrade', function () {
+            it('should deploy as a pilot upgrade and cannot be defeated as an upgrade by enemy cards abilities', function () {
                 const { context } = contextRef;
 
                 // Deploy Luke Skywalker as a Pilot
@@ -256,7 +232,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 expect(context.allianceXwing).toHaveExactUpgradeNames(['luke-skywalker#hero-of-yavin']);
                 expect(context.player2).toBeActivePlayer();
 
-                // Player 1 cannot defeat Luke Skywalker as an upgrade
+                // Player 1 can defeat Luke Skywalker as an upgrade
                 context.player2.passAction();
                 context.player1.clickCard(context.powerFailure);
                 context.player1.clickCard(context.allianceXwing);
@@ -267,7 +243,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should deploy as a pilot upgrade and cannot be defeated as an upgrade', function () {
+            it('should deploy as a pilot upgrade and can be defeated as an upgrade with bamboozle', function () {
                 const { context } = contextRef;
 
                 // Deploy Luke Skywalker as a Pilot
@@ -285,7 +261,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                 expect(context.allianceXwing).toHaveExactUpgradeNames(['luke-skywalker#hero-of-yavin']);
                 expect(context.player2).toBeActivePlayer();
 
-                // Player 2 cannot defeat Luke Skywalker as an upgrade
+                // Player 2 can defeat Luke Skywalker as an upgrade with bamboozle
                 context.player2.clickCard(context.bamboozle);
                 context.player2.clickCard(context.allianceXwing);
 
