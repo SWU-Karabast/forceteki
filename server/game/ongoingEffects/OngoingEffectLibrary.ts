@@ -22,6 +22,7 @@ import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/Dy
 import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import { playerCannot } from './PlayerCannot';
 import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotLimitModifier';
+import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -147,8 +148,10 @@ export = {
     // modifyBasePoliticalSkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
     modifyPilotingLimit: (modifier: PilotLimitModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyPilotLimit, modifier),
+    modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyStartingHandSize, modifier),
     modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) =>
         OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
+    noMulligan: () => OngoingEffectBuilder.card.static(EffectName.NoMulligan),
     // modifyMilitarySkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
     // switchAttachmentSkillModifiers,
     // modifyMilitarySkillMultiplier: (value) =>

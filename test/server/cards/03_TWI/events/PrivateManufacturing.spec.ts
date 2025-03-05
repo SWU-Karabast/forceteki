@@ -21,6 +21,9 @@ describe('Private Manufacturing', function () {
                     phase: 'action',
                     player1: {
                         hand: ['private-manufacturing', 'republic-tactical-officer', 'advanced-recon-commando'],
+                    },
+                    player2: {
+                        hand: ['wampa']
                     }
                 });
 

@@ -21,7 +21,7 @@ export default class PrivateManufacturing extends EventCard {
                     onFalse: AbilityHelper.immediateEffects.selectCard({
                         activePromptTitle: 'Select 2 cards',
                         mode: TargetMode.Exactly,
-                        player: RelativePlayer.Self,
+                        controller: RelativePlayer.Self,
                         zoneFilter: ZoneName.Hand,
                         numCards: 2,
                         innerSystem: AbilityHelper.immediateEffects.moveToBottomOfDeck()

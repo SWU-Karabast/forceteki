@@ -2,7 +2,7 @@ import { AllPlayerPrompt } from './AllPlayerPrompt';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import type Game from '../../Game';
 import * as Contract from '../../utils/Contract';
-import { DeckZoneDestination } from '../../Constants';
+import { DeckZoneDestination, EffectName } from '../../Constants';
 
 export class MulliganPrompt extends AllPlayerPrompt {
     protected playersDone = new Map<string, boolean>();
@@ -16,6 +16,9 @@ export class MulliganPrompt extends AllPlayerPrompt {
     }
 
     public override completionCondition(player): boolean {
+        if (player.base.hasOngoingEffect(EffectName.NoMulligan)) {
+            this.playersDone[player.name] = true;
+        }
         return this.playersDone[player.name];
     }
 
