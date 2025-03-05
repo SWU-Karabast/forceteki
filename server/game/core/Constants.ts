@@ -428,6 +428,7 @@ export enum AbilityRestriction {
     TriggerAbilities = 'triggerAbilities',
     BeCaptured = 'beCaptured',
     BeDefeated = 'beDefeated',
+    BeDefeatedAsUpgrade = 'beDefeatedAsUpgrade',
     ReturnToHand = 'returnToHand',
 }
 
