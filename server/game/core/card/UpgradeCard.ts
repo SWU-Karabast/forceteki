@@ -6,27 +6,20 @@ import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { AbilityType, CardType, ZoneName, WildcardRelativePlayer } from '../Constants';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import type { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IActionAbilityProps, ITriggeredAbilityBaseProps, IConstantAbilityProps, ITriggeredAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition } from '../../Interfaces';
 import type { Card } from './Card';
 import OngoingEffectLibrary from '../../ongoingEffects/OngoingEffectLibrary';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import type { AbilityContext } from '../ability/AbilityContext';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import type { IPlayableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { ICardCanChangeControllers, IUpgradeCard } from './CardInterfaces';
 
-interface IGainCondition<TSource extends UpgradeCard> {
-    gainCondition?: (context: AbilityContext<TSource>) => boolean;
-}
+type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
 
-type ITriggeredAbilityPropsWithGainCondition<TSource extends UpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
+type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
 
-type ITriggeredAbilityBasePropsWithGainCondition<TSource extends UpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
-
-type IActionAbilityPropsWithGainCondition<TSource extends UpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
-
-type IKeywordPropertiesWithGainCondition<TSource extends UpgradeCard> = IKeywordProperties & IGainCondition<TSource>;
+type IActionAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
 
 const UpgradeCardParent = WithPrintedPower(WithPrintedHp(WithStandardAbilitySetup(InPlayCard)));
 
@@ -160,16 +153,6 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             condition: this.addZoneCheckToGainCondition(gainCondition),
             ongoingEffect: OngoingEffectLibrary.gainKeyword(keywordProperties)
         });
-    }
-
-    /**
-     * This is required because a gainCondition call can happen after an upgrade is discarded,
-     * so we need to short-circuit in that case to keep from trying to access illegal state such as parentCard
-     */
-    private addZoneCheckToGainCondition(gainCondition?: (context: AbilityContext<this>) => boolean) {
-        return gainCondition == null
-            ? null
-            : (context: AbilityContext<this>) => this.isInPlay() && gainCondition(context);
     }
 
     /** Adds a condition that must return true for the upgrade to be allowed to attach to the passed card. */

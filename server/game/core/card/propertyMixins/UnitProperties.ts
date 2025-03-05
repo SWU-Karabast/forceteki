@@ -12,7 +12,7 @@ import type { ICardWithPrintedPowerProperty } from './PrintedPower';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordProperties, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
@@ -38,6 +38,8 @@ import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLim
 import type { AbilityContext } from '../../ability/AbilityContext';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
+
+type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IAbilityPropsWithType<TTarget> & IGainCondition<TSource>;
 
 export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty {
     get defaultArena(): Arena;
@@ -364,7 +366,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 title: properties.title,
                 matchTarget: (card, context) => card === context.source.parentCard,
                 targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
-                condition: properties.condition,
+                condition: this.addZoneCheckToGainCondition(properties.condition),
                 ongoingEffect: properties.ongoingEffect
             });
         }
@@ -376,10 +378,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             });
         }
 
-        public addPilotingGainAbilityTargetingAttached(properties: IAbilityPropsWithType<this>) {
+        public addPilotingGainAbilityTargetingAttached(properties: IAbilityPropsWithGainCondition<this, IUnitCard>) {
+            const { gainCondition, ...gainedAbilityProperties } = properties;
+
             this.addPilotingConstantAbilityTargetingAttached({
                 title: 'Give ability to the attached card',
-                ongoingEffect: OngoingEffectLibrary.gainAbility(properties)
+                condition: this.addZoneCheckToGainCondition(gainCondition),
+                ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProperties)
             });
         }
 
