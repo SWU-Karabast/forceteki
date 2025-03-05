@@ -23,7 +23,7 @@ describe('Effects that cause a unit to "Lose All Abilities"', function() {
                             'academy-defense-walker',
                             'contracted-hunter',
                             'grogu#irresistible',
-                            'battlefield-marine',
+                            'liberated-slaves',
                             '97th-legion#keeping-the-peace-on-sullust'
                         ],
                         spaceArena: [
@@ -263,21 +263,21 @@ describe('Effects that cause a unit to "Lose All Abilities"', function() {
             it('cannot gain new triggered abilities from events while the effect is active', function() {
                 const { context } = contextRef;
 
-                // Use Kazuda's ability on Battlefield Marine
+                // Use Kazuda's ability on Liberated Slaves
                 context.player1.clickCard(context.kazudaXiono);
                 context.player1.clickPrompt('Select a friendly unit');
-                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.liberatedSlaves);
 
-                // Play Heroic Sacrifice to attempt to give Battlefield Marine a triggered ability
+                // Play Heroic Sacrifice to attempt to give Liberated Slaves a triggered ability
                 context.player1.clickCard(context.heroicSacrifice);
-                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.liberatedSlaves);
                 context.player1.clickCard(context.consularSecurityForce);
 
-                // Battlefield Marine is not defeated because it does not have the "On Attack" ability from Heroic Sacrifce
-                expect(context.battlefieldMarine).toBeInZone('groundArena');
+                // Liberated Slaves is not defeated because it does not have the "On Attack" ability from Heroic Sacrifce
+                expect(context.liberatedSlaves).toBeInZone('groundArena');
 
                 expect(context.consularSecurityForce.damage).toBe(5);
-                expect(context.battlefieldMarine.damage).toBe(2);
+                expect(context.liberatedSlaves.damage).toBe(3);
             });
         });
     });
