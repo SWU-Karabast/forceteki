@@ -21,6 +21,10 @@ const bannedCards = new Map([
     ['4626028465', 'boba-fett#collecting-the-bounty']
 ]);
 
+const maxCopiesOfCards = new Map([
+    ['2177194044', 15], // Swarming Vulture Droid
+]);
+
 const minDeckSizeModifier = new Map([
     ['4301437393', -5], // Thermal Oscillator
     ['4028826022', 10], // Data Vault
@@ -249,10 +253,15 @@ export class DeckValidator {
     }
 
     protected checkMaxCopiesOfCard(card: ISwuDbCardEntry, cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
-        if (card.count > 3) {
+        let maxCount = 3;
+        if (maxCopiesOfCards.has(card.id)) {
+            maxCount = maxCopiesOfCards.get(card.id);
+        }
+
+        if (card.count > maxCount) {
             failures[DeckValidationFailureReason.TooManyCopiesOfCard].push({
                 card: { id: card.id, name: cardData.titleAndSubtitle },
-                maxCopies: 3,
+                maxCopies: maxCount,
                 actualCopies: card.count
             });
         }
