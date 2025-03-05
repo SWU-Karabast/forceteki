@@ -17,12 +17,15 @@ export default class PoeDameronOneHellOfAPilot extends NonLeaderUnitCard {
                 amount: 1
             }),
             then: (thenContext) => ({
-                title: 'Attach this unit as an upgrade to a friendly Vehicle unit without a Pilot on it.Exhaust this unit',
-                targetResolver:{
-                    mode: TargetMode.Select,
+                title: 'Attach this unit as an upgrade to a friendly Vehicle unit without a Pilot on it',
+                optional: true,
+                targetResolver: {
+                    mode: TargetMode.Single,
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card, context) => card.hasSomeTrait(Trait.Vehicle) && ! context.source.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot)),
-                    controller: 'self
+                    cardCondition: (card, context) => card.hasSomeTrait(Trait.Vehicle) && !context.source.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot)),
+                    immediateEffects: AbilityHelper.immediateEffects.attachUpgrade({
+                        upgrade: thenContext.source,
+                    })
                 }
             })
         });
