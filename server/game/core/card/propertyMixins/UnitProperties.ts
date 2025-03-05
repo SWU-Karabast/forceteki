@@ -1,6 +1,6 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena } from '../../Constants';
-import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
+import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, PlayType, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -34,6 +34,8 @@ import type { IUpgradeCard } from '../CardInterfaces';
 import type { ActionAbility } from '../../ability/ActionAbility';
 import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
+import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
+import type { AbilityContext } from '../../ability/AbilityContext';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -60,7 +62,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
     unattachUpgrade(upgrade, event);
-    canAttachPilot(): boolean;
+    canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean;
     attachUpgrade(upgrade);
     getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
 }
@@ -774,13 +776,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         /**
          *  This should only be called if a unit is a Pilot or has some other ability that lets it attach as an upgrade
          * @param {Card} targetCard The card that this would be attached to
+         * @param {AbilityContext} context The ability context
          * @param {Player} controller The controller of this card
          * @returns True if this is allowed to attach to the targetCard; false otherwise
          */
-        public override canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+        public override canAttach(targetCard: Card, context: AbilityContext, controller: Player = this.controller): boolean {
             Contract.assertTrue(this.canBeUpgrade);
             if (this.hasSomeKeyword(KeywordName.Piloting) && targetCard.isUnit()) {
-                return targetCard.canAttachPilot() && targetCard.controller === controller;
+                return targetCard.canAttachPilot(this, context.playType) && targetCard.controller === controller;
             }
             // TODO: Handle Phantom II and Sidon Ithano
             return false;
@@ -788,17 +791,36 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         /**
          * Checks if a pilot can be attached to this unit
+         * @param {IUnitCard} pilot The pilot card that would be attached to this unit
+         * @param {PlayType=} playType The type of play that is being used to attach the pilot
          * @returns True if a Pilot can be attached to this unit; false otherwise
          */
-        public canAttachPilot(): boolean {
+        public canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean {
             if (!this.hasSomeTrait(Trait.Vehicle)) {
                 return false;
             }
 
-            // TODO: we need logic for cards that override the pilot limit
-            if (this.upgrades.length > 0) {
-                return !this.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot));
+            // Check if the card is being played with Piloting since the pilot limit
+            // applies only in that case
+            if (playType === PlayType.Piloting) {
+                // Check if the card can be played with Piloting ignoring the pilot limit,
+                // for example "R2-D2, Artooooooooo"
+                if (pilot.hasOngoingEffect(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit)) {
+                    return true;
+                }
+
+                // Calculate the pilot limit of the card applying all the modifiers
+                const pilotCount = this.upgrades
+                    .reduce((count, upgrade) => (upgrade.hasSomeTrait(Trait.Pilot) ? count + 1 : count), 0);
+                const pilotLimit = this.getOngoingEffectValues<PilotLimitModifier>(EffectName.ModifyPilotLimit)
+                    .reduce((limit, modifier) => limit + modifier.amount, 1);
+
+                // Ensure that the card doesn't already have the maximum number of pilots
+                if (pilotCount >= pilotLimit) {
+                    return false;
+                }
             }
+
             return true;
         }
 
