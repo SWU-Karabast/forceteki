@@ -43,5 +43,22 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
                 })
             }
         });
+
+        this.addGainTriggeredAbilityTargetingAttached({
+            title: 'Choose any number of friendly units',
+            when: {
+                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+            },
+            targetResolver: {
+                activePromptTitle: 'Choose friendly units that will lose all abilities for this round',
+                mode: TargetMode.Unlimited,
+                cardTypeFilter: WildcardCardType.Unit,
+                controller: RelativePlayer.Self,
+                canChooseNoCards: true,
+                immediateEffect: AbilityHelper.immediateEffects.forThisRoundCardEffect({
+                    effect: AbilityHelper.ongoingEffects.loseAllAbilities()
+                })
+            }
+        });
     }
 }

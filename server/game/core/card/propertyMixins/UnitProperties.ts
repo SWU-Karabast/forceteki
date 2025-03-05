@@ -391,6 +391,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             });
         }
 
+        public addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityProps<IUnitCard>) {
+            this.addPilotingConstantAbilityTargetingAttached({
+                title: 'Give triggered ability to the attached card',
+                ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...properties })
+            });
+        }
+
         public override getTriggeredAbilities(): TriggeredAbility[] {
             let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
 
