@@ -241,8 +241,15 @@ export interface IGainCondition<TSource extends IUpgradeCard> {
 
 export type IKeywordPropertiesWithGainCondition<TSource extends IUpgradeCard> = IKeywordProperties & IGainCondition<TSource>;
 
+export interface IDamageAnimationData {
+    cardId: string;
+    amount: number;
+    willDefeat: boolean;
+}
+
 export interface IClientUIProperties {
     lastPlayedCard?: ISetId;
+    damageDealt: IDamageAnimationData[];
 }
 
 export interface ISetId {

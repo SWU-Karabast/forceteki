@@ -8,6 +8,7 @@ import type { Attack } from '../core/attack/Attack';
 import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
 import { DamageSourceType } from '../IDamageOrDefeatSource';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import type { IClientUIProperties } from '../Interfaces';
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
     type: DamageType;
@@ -98,6 +99,12 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         }
 
         event.availableExcessDamage = eventDamageAmount - event.damageDealt;
+
+        (event.context.game.clientUIProperties as IClientUIProperties).damageDealt.push({
+            cardId: event.card.uuid,
+            amount: event.damageDealt,
+            willDefeat: event.willDefeat
+        });
     }
 
     private getDamageAmountFromEvent(event: any): number {
@@ -184,6 +191,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         event.availableExcessDamage = damageAmount - Math.min(damageAmount, card.remainingHp);
 
         // Check if the damage will defeat the card, this can be used by abilities (e.g. Tarfful) to determine if the card will be defeated or not
+        // TODO: this doesn't work for Chirrut currently
         event.willDefeat = damageAmount >= card.remainingHp;
     }
 
