@@ -369,6 +369,7 @@ describe('Lose All Abilities', function() {
 
             it('cannot gain new action abilities from other units while the effect is active', function() {
                 const { context } = contextRef;
+                const satinePromptText = 'Discard cards from an opponent\'s deck equal to half this unit\'s remaining HP, rounded up';
 
                 // Use Kazuda's ability on Liberated Slaves
                 context.player1.clickCard(context.kazudaXiono);
@@ -381,10 +382,17 @@ describe('Lose All Abilities', function() {
 
                 // Liberated Slaves does not have the action ability from Satine Kryze
                 context.player1.clickCard(context.liberatedSlaves);
+                expect(context.player1).not.toHaveEnabledPromptButton(satinePromptText);
+                context.player1.clickCard(context.consularSecurityForce);
 
-                pending('Satine Kryze needs to be implemented before this test case can be completed');
+                // Effect expires
+                context.moveToNextActionPhase();
 
-                expect(context.player1).not.toHaveEnabledPromptButton('Mill');
+                // Liberated Slaves has the action ability gained from Satine Kryze
+                context.player1.clickCard(context.liberatedSlaves);
+                expect(context.player1).toHaveEnabledPromptButton(satinePromptText);
+                context.player1.clickPrompt(satinePromptText);
+                expect(context.liberatedSlaves.exhausted).toBeTrue();
             });
 
             // TODO: There are not currently any units that give other units constant abilities
