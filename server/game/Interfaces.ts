@@ -25,6 +25,7 @@ import type { SpaceArenaZone } from './core/zone/SpaceArenaZone';
 import type { CaptureZone } from './core/zone/CaptureZone';
 import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
 import type { DelayedEffectType } from './gameSystems/DelayedEffectSystem';
+import type { IUpgradeCard } from './core/card/CardInterfaces';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -233,6 +234,12 @@ export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbi
 export type IIfYouDoAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     ifYouDoCondition?: (context?: TContext) => boolean;
 };
+
+export interface IGainCondition<TSource extends IUpgradeCard> {
+    gainCondition?: (context: AbilityContext<TSource>) => boolean;
+}
+
+export type IKeywordPropertiesWithGainCondition<TSource extends IUpgradeCard> = IKeywordProperties & IGainCondition<TSource>;
 
 export interface IClientUIProperties {
     lastPlayedCard?: ISetId;
