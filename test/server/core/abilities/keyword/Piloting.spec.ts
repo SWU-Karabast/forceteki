@@ -261,6 +261,33 @@ describe('Piloting keyword', function() {
                 expect(context.concordDawnInterceptors).toBeInZone('hand');
                 expect(context.idenVersio).toBeInZone('discard');
             });
+
+            it('it can be moved to another vehicle with a Pilot ignoring the limit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: [
+                            { card: 'concord-dawn-interceptors', upgrades: ['iden-versio#adapt-or-die', 'shield'] },
+                            { card: 'survivors-gauntlet', upgrades: ['bb8#happy-beeps'] },
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.survivorsGauntlet);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.idenVersio, context.bb8, context.shield]);
+                expect(context.concordDawnInterceptors).toHaveExactUpgradeNames(['iden-versio#adapt-or-die', 'shield']);
+                expect(context.survivorsGauntlet).toHaveExactUpgradeNames(['bb8#happy-beeps']);
+
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickCard(context.survivorsGauntlet);
+
+                expect(context.concordDawnInterceptors).toHaveExactUpgradeNames(['shield']);
+                expect(context.survivorsGauntlet).toHaveExactUpgradeNames(['bb8#happy-beeps', 'iden-versio#adapt-or-die', 'shield']);
+            });
         });
 
         it('A unit with Piloting should not be able to be played as a pilot when played from Smuggle', async function () {
