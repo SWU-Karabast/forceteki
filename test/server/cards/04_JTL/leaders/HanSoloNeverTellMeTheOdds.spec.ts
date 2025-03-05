@@ -107,6 +107,62 @@ describe('Han Solo, Never Tell Me the Odds', function() {
         });
 
         describe('Han Solo, Never Tell Me the Odds\'s When Deployed ability', function() {
+            it('does nothing if deployed as a unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'han-solo#never-tell-me-the-odds',
+                        hand: ['republic-attack-pod'],
+                        resources: 6
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Spend all 6 resources
+                context.player1.clickCard(context.republicAttackPod);
+                expect(context.player1.readyResourceCount).toBe(0);
+                context.player2.passAction();
+
+                // Attach Han Solo to a unit
+                context.player1.clickCard(context.hanSolo);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Reveal the top card of your deck', 'Deploy Han Solo', 'Deploy Han Solo as a Pilot']);
+                context.player1.clickPrompt('Deploy Han Solo');
+                expect(context.hanSolo.getPower()).toBe(3);
+                expect(context.hanSolo.getHp()).toBe(7);
+                expect(context.player1.readyResourceCount).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('can attach as a pilot leader and give proper resource boost', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'han-solo#never-tell-me-the-odds',
+                        hand: ['republic-attack-pod'],
+                        spaceArena: ['concord-dawn-interceptors'],
+                        resources: 6
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Spend all 6 resources
+                context.player1.clickCard(context.republicAttackPod);
+                expect(context.player1.readyResourceCount).toBe(0);
+                context.player2.passAction();
+
+                // Attach Han Solo to a unit
+                context.player1.clickCard(context.hanSolo);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Reveal the top card of your deck', 'Deploy Han Solo', 'Deploy Han Solo as a Pilot']);
+                context.player1.clickPrompt('Deploy Han Solo as a Pilot');
+                expect(context.player2).not.toBeActivePlayer();
+                expect(context.player1).toBeAbleToSelectExactly([context.concordDawnInterceptors, context.republicAttackPod]);
+                context.player1.clickCard(context.concordDawnInterceptors);
+                expect(context.concordDawnInterceptors.getPower()).toBe(4);
+                expect(context.concordDawnInterceptors.getHp()).toBe(8);
+            });
+
             it('will ready resources equal to the number of odds units and upgrades', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

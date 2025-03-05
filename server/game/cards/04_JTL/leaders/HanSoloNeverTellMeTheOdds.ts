@@ -57,7 +57,7 @@ export default class HanSoloNeverTellMeTheOdds extends LeaderUnitCard {
         });
     }
 
-    private isOdd(num: number) {
+    private isOdd(num: number): boolean {
         return num % 2 === 1;
     }
 }
