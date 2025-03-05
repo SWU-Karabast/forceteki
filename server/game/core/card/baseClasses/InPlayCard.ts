@@ -17,6 +17,7 @@ import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistratio
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { Card } from '../Card';
+import type { AbilityContext } from '../../ability/AbilityContext';
 
 const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -43,7 +44,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     attachTo(newParentCard: IUnitCard, newController?: Player);
     isAttached(): boolean;
     unattach(event?: any);
-    canAttach(targetCard: Card, controller?: Player): boolean;
+    canAttach(targetCard: Card, context: AbilityContext, controller?: Player): boolean;
 }
 
 /**
@@ -211,7 +212,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
      * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
      * implementations must override this if they have specific attachment conditions.
      */
-    public canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+    public canAttach(targetCard: Card, context: AbilityContext, controller: Player = this.controller): boolean {
         this.checkIsAttachable();
         if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
             return false;

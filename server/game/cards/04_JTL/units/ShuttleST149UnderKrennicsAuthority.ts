@@ -32,7 +32,7 @@ export default class ShuttleST149UnderKrennicsAuthority extends NonLeaderUnitCar
                     controller: WildcardRelativePlayer.Any,
                     cardCondition: (card, context) =>
                         context.targets.chooseUpgrade.parentCard !== card &&
-                        context.targets.chooseUpgrade.canAttach(card, context.targets.chooseUpgrade.parentCard.controller),
+                        context.targets.chooseUpgrade.canAttach(card, context, context.targets.chooseUpgrade.parentCard.controller),
                     immediateEffect: AbilityHelper.immediateEffects.attachUpgrade((context) => ({
                         upgrade: context.targets.chooseUpgrade,
                         target: context.targets.chooseUnit,

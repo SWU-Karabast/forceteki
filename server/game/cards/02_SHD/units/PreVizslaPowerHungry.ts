@@ -28,11 +28,11 @@ export default class PreVizslaPowerHungry extends NonLeaderUnitCard {
                 }))
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: ifYouDoContext.target.canAttach(ifYouDoContext.source, ifYouDoContext.player)
+                title: ifYouDoContext.target.canAttach(ifYouDoContext.source, ifYouDoContext, ifYouDoContext.player)
                     ? `Take control of ${ifYouDoContext.target.title} and attach it to this unit`
                     : `Defeat ${ifYouDoContext.target.title}`,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: () => ifYouDoContext.target.canAttach(ifYouDoContext.source, ifYouDoContext.player),
+                    condition: () => ifYouDoContext.target.canAttach(ifYouDoContext.source, ifYouDoContext, ifYouDoContext.player),
                     onTrue: AbilityHelper.immediateEffects.attachUpgrade({
                         newController: RelativePlayer.Self,
                         upgrade: ifYouDoContext.target,

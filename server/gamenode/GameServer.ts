@@ -133,11 +133,16 @@ export class GameServer {
 
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
         this.io.on('connection', async (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
-            await this.onConnection(socket);
-            socket.on('manualDisconnect', () => {
-                socket.data.manualDisconnect = true;
+            try {
+                await this.onConnection(socket);
+                socket.on('manualDisconnect', () => {
+                    socket.data.manualDisconnect = true;
+                    socket.disconnect();
+                });
+            } catch (err) {
+                logger.error('Error in socket connection:', err);
                 socket.disconnect();
-            });
+            }
         });
 
         this.cardDataGetter = cardDataGetter;
