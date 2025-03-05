@@ -133,11 +133,16 @@ export class GameServer {
 
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
         this.io.on('connection', async (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
-            await this.onConnection(socket);
-            socket.on('manualDisconnect', () => {
-                socket.data.manualDisconnect = true;
+            try {
+                await this.onConnection(socket);
+                socket.on('manualDisconnect', () => {
+                    socket.data.manualDisconnect = true;
+                    socket.disconnect();
+                });
+            } catch (err) {
+                logger.error('Error in socket connection:', err);
                 socket.disconnect();
-            });
+            }
         });
 
         this.cardDataGetter = cardDataGetter;
@@ -397,6 +402,15 @@ export class GameServer {
             const socket = new Socket(ioSocket);
             lobby.addLobbyUser(user, socket);
             socket.send('connectedUser', user.id);
+
+            // If a user refreshes while they are matched with another player in the queue they lose the requeue listener
+            // this is why we reinitialize the requeue listener
+            if (lobby.gameType === MatchType.Quick) {
+                if (!socket.eventContainsListener('requeue')) {
+                    const lobbyUser = lobby.users.find((u) => u.id === user.id);
+                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
+                }
+            }
             socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
             return;
         }

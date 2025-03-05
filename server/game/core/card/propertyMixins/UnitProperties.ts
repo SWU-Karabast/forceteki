@@ -1,6 +1,6 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena } from '../../Constants';
-import { AbilityType, CardType, EffectName, EventName, KeywordName, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
+import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -32,6 +32,8 @@ import type Player from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
 import type { IUpgradeCard } from '../CardInterfaces';
 import type { ActionAbility } from '../../ability/ActionAbility';
+import type { ILeaderCard } from './LeaderProperties';
+import type { ILeaderUnitCard } from '../LeaderUnitCard';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -165,6 +167,18 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return this.upgrades.some((card) => card.isShield());
         }
 
+        public override isLeader(): this is ILeaderCard {
+            return this.isLeaderAttachedToThis();
+        }
+
+        public override isLeaderUnit(): this is ILeaderUnitCard {
+            return this.isLeaderAttachedToThis();
+        }
+
+        protected isLeaderAttachedToThis(): boolean {
+            return this.hasOngoingEffect(EffectName.IsLeader);
+        }
+
         public override isUpgrade(): this is IUpgradeCard {
             return this._parentCard !== null;
         }
@@ -198,6 +212,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected override initializeStateForAbilitySetup() {
+            super.initializeStateForAbilitySetup();
             this.pilotingActionAbilities = [];
             this.pilotingConstantAbilities = [];
             this.pilotingTriggeredAbilities = [];
@@ -217,6 +232,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected override getType(): CardType {
+            if (this.isLeaderAttachedToThis()) {
+                return CardType.LeaderUnit;
+            }
             return this.isAttached() ? CardType.UnitUpgrade : this.printedType;
         }
 
@@ -238,6 +256,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Returns true if so.
          */
         public effectsPreventAttack(target: Card) {
+            if (this.hasRestriction(AbilityRestriction.Attack)) {
+                return true;
+            }
             if (this.hasOngoingEffect(EffectName.CannotAttackBase) && target.isBase()) {
                 return true;
             }
@@ -260,7 +281,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         // ***************************************** ABILITY HELPERS *****************************************
         public override getActions() {
-            if (this.getType() === CardType.UnitUpgrade) {
+            if (EnumHelpers.isUnitUpgrade(this.getType())) {
                 return this.pilotingActionAbilities;
             }
 
@@ -314,10 +335,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected addPilotingAbility(properties: IAbilityPropsWithType<this>): void {
-            Contract.assertTrue(
-                this.printedKeywords.some((keyword) => keyword.name === KeywordName.Piloting),
-                `Attempting to add a piloting ability '${properties.title}' to ${this.internalName} but it has no printed instances of the Piloting keyword`
-            );
+            this.checkIsAttachable();
 
             switch (properties.type) {
                 case AbilityType.Action:
@@ -334,12 +352,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             }
         }
 
-        protected addPilotingConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'matchTarget' | 'ongoingEffect'>) {
+        protected addPilotingConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'ongoingEffect'>) {
             this.addPilotingAbility({
                 type: AbilityType.Constant,
                 title: properties.title,
                 matchTarget: (card, context) => card === context.source.parentCard,
                 targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
+                condition: properties.condition,
                 ongoingEffect: properties.ongoingEffect
             });
         }
@@ -359,7 +378,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
-            let triggeredAbilities = this.getType() === CardType.UnitUpgrade ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
+            let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
             if (this._attackKeywordAbilities !== null) {
@@ -379,7 +398,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override getConstantAbilities(): IConstantAbility[] {
-            let constantAbilities = this.getType() === CardType.UnitUpgrade ? this.pilotingConstantAbilities : super.getConstantAbilities();
+            let constantAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingConstantAbilities : super.getConstantAbilities();
 
             // add any temporarily registered attack abilities from keywords
             if (this._attackKeywordAbilities !== null) {
@@ -402,7 +421,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             // if not piloting, just use default behavior
             if (EnumHelpers.isArena(to)) {
-                abilitiesToUpdate = this.getType() === CardType.UnitUpgrade ? this.pilotingTriggeredAbilities : this.triggeredAbilities;
+                abilitiesToUpdate = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : this.triggeredAbilities;
             } else {
                 abilitiesToUpdate = this.pilotingTriggeredAbilities.concat(this.triggeredAbilities);
             }
@@ -415,7 +434,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
             // if not piloting, just use default behavior
             if (EnumHelpers.isArena(to)) {
-                abilitiesToUpdate = this.getType() === CardType.UnitUpgrade ? this.pilotingConstantAbilities : this.constantAbilities;
+                abilitiesToUpdate = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingConstantAbilities : this.constantAbilities;
             } else {
                 abilitiesToUpdate = this.pilotingConstantAbilities.concat(this.constantAbilities);
             }
@@ -745,7 +764,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
 
         public override checkIsAttachable(): void {
-            Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+            throw new Error('Should not call this - call overriding methods');
         }
 
         /**
