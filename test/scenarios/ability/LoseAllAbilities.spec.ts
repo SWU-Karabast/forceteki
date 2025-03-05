@@ -205,8 +205,6 @@ describe('Lose All Abilities', function() {
             it('cannot gain new constant abilities from upgrades while the effect is active', function() {
                 const { context } = contextRef;
 
-                pending('Gained constant abilities from upgrades are not currently implemented');
-
                 // Use Kazuda's ability on Grogu
                 context.player1.clickCard(context.kazudaXiono);
                 context.player1.clickPrompt('Select a friendly unit');
