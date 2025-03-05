@@ -78,7 +78,7 @@ describe('Blizzard Assault AT-AT', function() {
                 expect(context.blizzardAssaultAtat).toBeInZone('discard');
 
                 expect(context.player1).toHavePassAbilityPrompt('Deal the excess damage from the attack to an enemy ground unit');
-                context.player1.clickPrompt('Deal the excess damage from the attack to an enemy ground unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.chewbacca.damage).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });

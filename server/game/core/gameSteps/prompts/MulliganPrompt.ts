@@ -21,8 +21,8 @@ export class MulliganPrompt extends AllPlayerPrompt {
 
     public override activePrompt(): IPlayerPromptStateProperties {
         return {
-            menuTitle: 'Do you want to mulligan your hand?',
-            buttons: [{ text: 'Yes', arg: 'yes' }, { text: 'No', arg: 'no' }],
+            menuTitle: 'Choose whether to mulligan or keep your hand',
+            buttons: [{ text: 'Mulligan', arg: 'mulligan' }, { text: 'Keep', arg: 'keep' }],
             promptTitle: 'Mulligan Step',
             promptUuid: this.uuid
         };
@@ -42,7 +42,7 @@ export class MulliganPrompt extends AllPlayerPrompt {
     }
 
     public override menuCommand(player, arg): boolean {
-        if (arg === 'yes') {
+        if (arg === 'mulligan') {
             if (this.completionCondition(player)) {
                 return false;
             }
@@ -50,7 +50,7 @@ export class MulliganPrompt extends AllPlayerPrompt {
             this.playersDone[player.name] = true;
             this.playerMulligan[player.name] = true;
             return true;
-        } else if (arg === 'no') {
+        } else if (arg === 'keep') {
             this.game.addMessage('{0} has not mulliganed', player);
             this.playersDone[player.name] = true;
             return true;

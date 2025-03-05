@@ -18,7 +18,7 @@ describe('Cham Syndulla, Rallying Ryloth', function () {
             context.player1.clickCard(context.chamSyndulla);
 
             expect(context.player1).toHavePassAbilityPrompt('Put the top card of your deck into play as a resource');
-            context.player1.clickPrompt('Put the top card of your deck into play as a resource');
+            context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.battlefieldMarine).toBeInZone('resource');

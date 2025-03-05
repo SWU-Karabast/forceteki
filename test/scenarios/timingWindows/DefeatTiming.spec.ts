@@ -146,7 +146,7 @@ describe('Defeat timing', function() {
                 context.player1.clickPrompt('Draw a card');
                 // may ability prompts the player whether or not to actually use it before it fully resolves
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'When an opponent\'s unit is defeated, heal 1 from base']);
                 context.player1.clickPrompt('When an opponent\'s unit is defeated, heal 1 from base');
                 // last trigger is chosen automatically
@@ -160,7 +160,7 @@ describe('Defeat timing', function() {
                 context.player2.clickPrompt('You');
                 context.player2.clickPrompt('Done');
                 expect(context.player2).toHavePassAbilityPrompt('Put Superlaser Technician into play as a resource and ready it');
-                context.player2.clickPrompt('Put Superlaser Technician into play as a resource and ready it');
+                context.player2.clickPrompt('Trigger');
 
                 // triggers all done, action is finally over
                 expect(context.player2).toBeActivePlayer();

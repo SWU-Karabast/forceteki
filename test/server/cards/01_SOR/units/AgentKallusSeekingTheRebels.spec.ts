@@ -54,7 +54,7 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                 context.player2.clickCard(context.agentKallus);
                 expect(context.generalVeers).toBeInZone('discard');
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(round1HandSize + 1);
 
                 reset(false);
@@ -74,7 +74,7 @@ describe('Agent Kallus, Seeking the Rebels', function() {
                 context.player1.clickCard(context.wampa);
                 expect(context.generalTagge).toBeInZone('discard');
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(round2HandSize + 1);
 
                 reset();

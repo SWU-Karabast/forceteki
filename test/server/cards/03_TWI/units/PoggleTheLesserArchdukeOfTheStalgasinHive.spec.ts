@@ -18,7 +18,7 @@ describe('Poggle The Lesser, Archduke of the Stalgasin Hive', function() {
             // Player plays a unit, exhaust Poggle and create a Battle Droid token
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.player1).toHavePassAbilityPrompt('Exhaust this unit');
-            context.player1.clickPrompt('Exhaust this unit');
+            context.player1.clickPrompt('Trigger');
 
             let battleDroids = context.player1.findCardsByName('battle-droid');
             expect(battleDroids.length).toBe(1);

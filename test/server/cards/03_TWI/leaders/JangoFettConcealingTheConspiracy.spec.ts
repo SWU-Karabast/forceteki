@@ -47,7 +47,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.mandalorianWarrior.exhausted).toBeTrue();
 
@@ -61,7 +61,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
 
@@ -76,7 +76,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.fleetLieutenant.exhausted).toBeTrue();
 
@@ -112,7 +112,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 // Resolve for Fleet Lieutenant
                 context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit: Fleet Lieutenant');
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit: Fleet Lieutenant');
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit: Fleet Lieutenant');
+                context.player1.clickPrompt('Trigger');
                 expect(context.fleetLieutenant.exhausted).toBeTrue();
                 expect(context.jangoFett.exhausted).toBeTrue();
 
@@ -125,7 +125,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 context.player1.clickCard(context.isbAgent);
                 context.player1.clickCard(context.volunteerSoldier);
-                context.player1.clickPrompt('Deal 3 damage divided as you choose among enemy ground units');
+                context.player1.clickPrompt('Trigger');
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.battlefieldMarine, 2],
                     [context.fleetLieutenant, 1],
@@ -140,7 +140,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // Resolve for Battlefield Marine
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine');
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
 
                 // CASE 6: Trigger Jango's ability when a unit is defeated at the end of the phase
@@ -166,7 +166,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
                 // Use Jango's ability to exhaust Mandalorian Warrior
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.mandalorianWarrior.exhausted).toBeTrue();
 
                 // CASE 7: Trigger Jango's ability when a stolen unit attacks
@@ -186,7 +186,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // Use Jango's ability to exhaust Consular Security Force
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.consularSecurityForce.exhausted).toBeTrue();
             });
 
@@ -260,7 +260,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 // Use Jango's ability to exhaust Battlefield Marine
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
                 expect(context.jangoFett.exhausted).toBeTrue();
 
@@ -328,7 +328,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine');
 
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine');
-                context.player1.clickPrompt('Exhaust leader and exhaust the damaged enemy unit: Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
                 expect(context.jangoFett.exhausted).toBeTrue();
@@ -385,7 +385,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
 
-                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.mandalorianWarrior.exhausted).toBeTrue();
 
@@ -399,7 +399,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
 
-                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
 
@@ -413,7 +413,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 context.player1.clickCard(context.fleetLieutenant);
 
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
-                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.fleetLieutenant.exhausted).toBeTrue();
 
@@ -444,7 +444,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // Exhaust Volunteer Soldier
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Volunteer Soldier');
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Volunteer Soldier');
+                context.player1.clickPrompt('Trigger');
                 expect(context.volunteerSoldier.exhausted).toBeTrue();
 
                 // Choose resolution order again
@@ -458,12 +458,12 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // Exhaust Fleet Lieutenant
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Fleet Lieutenant');
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Fleet Lieutenant');
+                context.player1.clickPrompt('Trigger');
                 expect(context.fleetLieutenant.exhausted).toBeTrue();
 
                 // Exhaust Battlefield Marine
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Battlefield Marine');
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
 
                 // CASE 5: Trigger Jango's ability from an upgrade's granted ability
@@ -474,7 +474,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 // Attack and distribute damage with Vambrace Flamethrower
                 context.player1.clickCard(context.isbAgent);
                 context.player1.clickCard(context.volunteerSoldier);
-                context.player1.clickPrompt('Deal 3 damage divided as you choose among enemy ground units');
+                context.player1.clickPrompt('Trigger');
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.battlefieldMarine, 2],
                     [context.fleetLieutenant, 1],
@@ -485,15 +485,15 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // Exhaust Fleet Lieutenant
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Fleet Lieutenant');
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Fleet Lieutenant');
+                context.player1.clickPrompt('Trigger');
 
                 // Exhaust for Battlefield Marine
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Battlefield Marine');
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
 
                 // Exhaust Volunteer Soldier
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
-                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.fleetLieutenant.exhausted).toBeTrue();
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
@@ -516,7 +516,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // Use Jango's ability to exhaust Consular Security Force
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit');
-                context.player1.clickPrompt('Exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.consularSecurityForce.exhausted).toBeTrue();
 
                 // CASE 11: Trigger Jango's ability with indirect damage
@@ -545,7 +545,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // Exhaust Volunteer Soldier
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Volunteer Soldier');
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Volunteer Soldier');
+                context.player1.clickPrompt('Trigger');
                 expect(context.volunteerSoldier.exhausted).toBeTrue();
 
                 // Choose resolution order again
@@ -559,12 +559,12 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
 
                 // Exhaust Battlefield Marine
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Battlefield Marine');
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
 
                 // Exhaust Fleet Lieutenant
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust the damaged enemy unit: Fleet Lieutenant');
-                context.player1.clickPrompt('Exhaust the damaged enemy unit: Fleet Lieutenant');
+                context.player1.clickPrompt('Trigger');
                 expect(context.fleetLieutenant.exhausted).toBeTrue();
             });
         });

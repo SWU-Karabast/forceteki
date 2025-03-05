@@ -21,7 +21,7 @@ describe('Superlaser Technician', function() {
 
                 const readyResourcesBeforeTrigger = context.player1.readyResourceCount;
                 expect(context.player1).toHavePassAbilityPrompt('Put Superlaser Technician into play as a resource and ready it');
-                context.player1.clickPrompt('Put Superlaser Technician into play as a resource and ready it');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.readyResourceCount).toBe(readyResourcesBeforeTrigger + 1);
                 expect(context.superlaserTechnician).toBeInZone('resource');

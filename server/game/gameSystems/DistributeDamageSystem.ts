@@ -27,8 +27,8 @@ export class DistributeDamageSystem<
 
     public override promptType: DistributePromptType = StatefulPromptType.DistributeDamage;
 
-    protected override generateEffectSystem(target: Card = null, amount = 1): DamageSystem | HealSystem {
-        const { source } = this.properties;
+    protected override generateEffectSystem(target: Card = null, amount = 1, properties?): DamageSystem | HealSystem {
+        const { source } = properties;
         return new DamageSystem({ type: DamageType.Ability, target, amount, source });
     }
 

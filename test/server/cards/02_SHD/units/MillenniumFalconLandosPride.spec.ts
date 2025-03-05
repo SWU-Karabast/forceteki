@@ -17,7 +17,7 @@ describe('Millennium Falcon, Landos Pride', function() {
             // CASE 1: Falcon gets Ambush when played from hand
             context.player1.clickCard(context.millenniumFalcon);
             expect(context.player1).toHavePassAbilityPrompt('Ambush');
-            context.player1.clickPrompt('Ambush');
+            context.player1.clickPrompt('Trigger');
 
             context.player1.clickCard(context.survivorsGauntlet);
             expect(context.survivorsGauntlet.damage).toBe(5);

@@ -25,7 +25,7 @@ describe('Boba Fett, Daimyo', function () {
 
                 context.player1.clickCard(context.greenSquadronAwing);
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player1.clickPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wildernessFighter, context.greenSquadronAwing]);
 
                 // give +1/+0 to battlefield marine, boba should be exhausted
@@ -58,7 +58,7 @@ describe('Boba Fett, Daimyo', function () {
                 // play a unit with keyword, boba is not exhausted, should be able to give +1/+0 to a friendly unit
                 context.player1.clickCard(context.cantinaBraggart);
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player1.clickPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wildernessFighter, context.greenSquadronAwing, context.cantinaBraggart]);
                 expect(context.player1).not.toHavePassAbilityButton();
 
@@ -93,7 +93,7 @@ describe('Boba Fett, Daimyo', function () {
                 context.player1.clickCard(context.allianceXwing);
                 // boba triggers as red three give raid 1 to alliance x-wing
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player1.clickPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.redThree, context.allianceXwing]);
 
                 // give +1/+0 to battlefield marine, boba should be exhausted
@@ -132,8 +132,8 @@ describe('Boba Fett, Daimyo', function () {
         // TODO should add tests with timely intervention or ecl
 
         describe('Boba Fett\'s leader unit ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('should give +1/+0 to other friendly unit with keyword', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['red-three#unstoppable', 'green-squadron-awing'],
@@ -147,9 +147,7 @@ describe('Boba Fett, Daimyo', function () {
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
                 });
-            });
 
-            it('should give +1/+0 to other friendly unit with keyword', function () {
                 const { context } = contextRef;
 
                 expect(context.battlefieldMarine.getPower()).toBe(4);
@@ -183,6 +181,21 @@ describe('Boba Fett, Daimyo', function () {
                 expect(context.greenSquadronAwing.getPower()).toBe(2);
                 expect(context.huntingNexu.getPower()).toBe(5);
                 expect(context.redThree.getPower()).toBe(3);
+            });
+
+            it('should give +1/+0 to a pilot in play as a unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['dagger-squadron-pilot'],
+                        leader: { card: 'boba-fett#daimyo', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.daggerSquadronPilot.getHp()).toBe(1);
+                expect(context.daggerSquadronPilot.getPower()).toBe(3);
             });
         });
     });
