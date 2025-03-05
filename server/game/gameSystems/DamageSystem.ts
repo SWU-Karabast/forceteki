@@ -34,6 +34,8 @@ export interface IAbilityDamageProperties extends IDamagePropertiesBase {
 
     /** Whether this damage is indirect damage or not */
     isIndirect?: boolean;
+
+    isUnpreventable?: boolean;
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -80,7 +82,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
     protected override defaultProperties: IAbilityDamageProperties = {
         amount: null,
         type: DamageType.Ability,
-        isIndirect: false
+        isIndirect: false,
+        isUnpreventable: false
     };
 
     public eventHandler(event): void {
@@ -123,7 +126,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         // check cases where a game state change is required
         if (properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) {
-            if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context) && (properties.type !== DamageType.Ability || !properties.isIndirect)) {
+            if (
+                card.hasRestriction(AbilityRestriction.ReceiveDamage, context) &&
+                (properties.type !== DamageType.Ability || !properties.isIndirect && !properties.isUnpreventable)
+            ) {
                 return false;
             }
 
