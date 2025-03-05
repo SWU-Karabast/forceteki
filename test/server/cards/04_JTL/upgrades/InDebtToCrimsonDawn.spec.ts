@@ -1,5 +1,5 @@
 
-fdescribe('In Debt To Crimson Dawn\'s attached triggered ability', function() {
+describe('In Debt To Crimson Dawn\'s attached triggered ability', function() {
     integration(function(contextRef) {
         beforeEach(function () {
             return contextRef.setupTestAsync({
