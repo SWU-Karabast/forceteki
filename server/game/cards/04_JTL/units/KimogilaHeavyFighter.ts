@@ -14,7 +14,6 @@ export default class KimogilaHeavyFighter extends NonLeaderUnitCard {
         return events
             .filter((event) => event.name === EventName.OnDamageDealt)
             .filter((event) => event.card.canBeExhausted())
-            .filter((event) => !event.card.exhausted)
             .map((event) => event.card);
     }
 
