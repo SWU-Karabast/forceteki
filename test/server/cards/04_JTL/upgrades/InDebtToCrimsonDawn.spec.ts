@@ -8,7 +8,7 @@ fdescribe('In Debt To Crimson Dawn\'s attached triggered ability', function() {
                     spaceArena: ['green-squadron-awing'],
                 },
                 player2: {
-                    groundArena: [{card: 'frontier-atrt', upgrades: [{card: 'in-debt-to-crimson-dawn', ownerAndController: 'player1'}]}, 'consular-security-force'],
+                    groundArena: [{ card: 'frontier-atrt', upgrades: [{ card: 'in-debt-to-crimson-dawn', ownerAndController: 'player1' }] }, 'consular-security-force'],
                 }
             });
         });
@@ -24,8 +24,8 @@ fdescribe('In Debt To Crimson Dawn\'s attached triggered ability', function() {
             expect(context.frontierAtrt.exhausted).toBeTrue();
 
             // end phase to start regroup
-            context.player1.claimInitiative()
-            context.player2.passAction()
+            context.player1.claimInitiative();
+            context.player2.passAction();
 
             context.player1.clickPrompt('Done');
             context.player2.clickPrompt('Done');
@@ -39,8 +39,8 @@ fdescribe('In Debt To Crimson Dawn\'s attached triggered ability', function() {
 
         it('should unexhaust a unit when the player pays 2 resources', function() {
             const { context } = contextRef;
-            context.player2.setResourceCount(4)
-            context.player1.passAction()
+            context.player2.setResourceCount(4);
+            context.player1.passAction();
 
             // CASE 1: Frontier AT-RT attacks and is exhausted
             context.player2.clickCard(context.frontierAtrt);
@@ -48,8 +48,8 @@ fdescribe('In Debt To Crimson Dawn\'s attached triggered ability', function() {
             expect(context.frontierAtrt.exhausted).toBeTrue();
 
             // end phase to start regroup
-            context.player1.claimInitiative()
-            context.player2.passAction()
+            context.player1.claimInitiative();
+            context.player2.passAction();
 
             context.player1.clickPrompt('Done');
             context.player2.clickPrompt('Done');
@@ -60,6 +60,6 @@ fdescribe('In Debt To Crimson Dawn\'s attached triggered ability', function() {
 
             expect(context.frontierAtrt.exhausted).toBeFalse();
             expect(context.player2.readyResourceCount).toBe(2);
-        })
+        });
     });
 });

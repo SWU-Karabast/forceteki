@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { TargetMode, RelativePlayer } from '../../../core/Constants';
+import { TargetMode } from '../../../core/Constants';
 
 export default class InDebtToCrimsonDawn extends UpgradeCard {
     protected override getImplementationId () {
@@ -15,7 +15,7 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
             title: 'Exhaust it unless its controller pay 2 resources',
             when: {
                 onCardReadied: (event, context) => {
-                    return context.source.parentCard === event.card 
+                    return context.source.parentCard === event.card;
                 }
             },
             targetResolver: {
@@ -30,6 +30,6 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
                     })
                 })
             }
-        });        
+        });
     }
 }
