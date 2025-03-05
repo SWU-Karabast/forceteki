@@ -98,7 +98,9 @@ class Game extends EventEmitter {
         this.initialiseTokens(this.cardDataGetter.tokenData);
 
         /** @type {import('../Interfaces').IClientUIProperties} */
-        this.clientUIProperties = {};
+        this.clientUIProperties = {
+            damageDealt: []
+        };
 
         this.registerGlobalRulesListeners();
 
@@ -1425,34 +1427,39 @@ class Game extends EventEmitter {
     getState(notInactivePlayerId) {
         let activePlayer = this.playersAndSpectators[notInactivePlayerId] || new AnonymousSpectator();
         let playerState = {};
-        if (this.started) {
-            for (const player of this.getPlayers()) {
-                playerState[player.id] = player.getState(activePlayer);
-            }
-
-            return {
-                playerUpdate: activePlayer.name,
-                id: this.id,
-                manualMode: this.manualMode,
-                name: this.name,
-                owner: this.owner,
-                players: playerState,
-                phase: this.currentPhase,
-                messages: this.gameChat.messages,
-                initiativeClaimed: this.isInitiativeClaimed,
-                clientUIProperties: this.clientUIProperties,
-                spectators: this.getSpectators().map((spectator) => {
-                    return {
-                        id: spectator.id,
-                        name: spectator.name
-                    };
-                }),
-                started: this.started,
-                gameMode: this.gameMode,
-                winner: this.winner ? this.winner : undefined, // TODO comment once we clarify how to display endgame screen
-            };
+        if (!this.started) {
+            return {};
         }
-        return {};
+
+        for (const player of this.getPlayers()) {
+            playerState[player.id] = player.getState(activePlayer);
+        }
+
+        const state = {
+            playerUpdate: activePlayer.name,
+            id: this.id,
+            manualMode: this.manualMode,
+            name: this.name,
+            owner: this.owner,
+            players: playerState,
+            phase: this.currentPhase,
+            messages: this.gameChat.messages,
+            initiativeClaimed: this.isInitiativeClaimed,
+            clientUIProperties: { ...this.clientUIProperties },
+            spectators: this.getSpectators().map((spectator) => {
+                return {
+                    id: spectator.id,
+                    name: spectator.name
+                };
+            }),
+            started: this.started,
+            gameMode: this.gameMode,
+            winner: this.winner ? this.winner : undefined, // TODO comment once we clarify how to display endgame screen
+        };
+
+        this.clientUIProperties.damageDealt = [];
+
+        return state;
     }
 
     // TODO: Make a debug object type.
