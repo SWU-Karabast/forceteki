@@ -52,9 +52,9 @@ export class EventCard extends EventCardParent {
 
     /** Ability of event card when played. Will be a "blank" ability with no effect if this card is disabled by an effect. */
     public getEventAbility(): EventAbility {
-        return this.isBlank()
-            ? new EventAbility(this._eventAbility.game, this._eventAbility.card, {
-                title: 'No effect',
+        return this.isBlank() || !this.hasImplementationFile
+            ? new EventAbility(this.game, this, {
+                title: this.hasImplementationFile ? 'Unimplemented event card ability' : 'No effect',
                 printedAbility: false,
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
             })
