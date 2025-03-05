@@ -37,6 +37,11 @@ export enum StatefulPromptType {
     DistributeExperience = 'distributeExperience',
 }
 
+export enum SelectCardMode {
+    Single = 'single',
+    Multiple = 'multiple',
+}
+
 export type DistributePromptType =
   | StatefulPromptType.DistributeDamage
   | StatefulPromptType.DistributeIndirectDamage
@@ -66,6 +71,8 @@ export interface IDistributeAmongTargetsPromptData {
     type: DistributePromptType;
     amount: number;
     isIndirectDamange: boolean;
+    canDistributeLess: boolean;
+    maxTargets?: number;
 }
 
 export interface IDistributeAmongTargetsPromptResults {
@@ -94,7 +101,7 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     onCancel?: (player: Player) => void;
     onMenuCommand?: (arg: string) => boolean;
     onSelect?: (card: Card[]) => boolean;
-    selectCard?: boolean;
+    selectCardMode: SelectCardMode;
     selectOrder?: boolean;
     selector?: BaseCardSelector;
 }

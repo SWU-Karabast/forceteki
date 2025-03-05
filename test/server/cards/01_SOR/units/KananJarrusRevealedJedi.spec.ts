@@ -25,7 +25,7 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
 
                 context.player1.clickCard(context.kananJarrus);
                 expect(context.player1).toHavePassAbilityPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
-                context.player1.clickPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player2.base.damage).toBe(4);
 
                 // Check mill and heal
@@ -59,7 +59,7 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
 
                 context.player1.clickCard(context.kananJarrus);
                 expect(context.player1).toHavePassAbilityPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
-                context.player1.clickPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player2.base.damage).toBe(4);
 
                 // Check mill and heal
@@ -98,7 +98,7 @@ describe('Kanan Jarrus, Revealed Jedi', function() {
 
                 context.player1.clickCard(context.kananJarrus);
                 expect(context.player1).toHavePassAbilityPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
-                context.player1.clickPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
+                context.player1.clickPrompt('Trigger');
 
                 // Check mill and heal
                 expect(context.player2.deck.length).toBe(0);

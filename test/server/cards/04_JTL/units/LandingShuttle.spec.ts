@@ -21,7 +21,7 @@ describe('Landing Shuttle', function() {
 
             expect(context.player1).toHavePassAbilityPrompt('Draw a card');
 
-            context.player1.clickPrompt('Draw a card');
+            context.player1.clickPrompt('Trigger');
 
             expect(context.player1.hand.length).toBe(startingHandSize + 1);
             expect(context.player1.deck.length).toBe(startingDeckSize - 1);

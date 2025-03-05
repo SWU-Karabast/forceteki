@@ -26,7 +26,7 @@ describe('General Krell, Heartless Tactician', function() {
                 context.player1.clickCard(context.syndicateLackeys);
                 context.player1.clickCard(context.wampa);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.syndicateLackeys).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(startingHandSize + 1);
 
@@ -35,7 +35,7 @@ describe('General Krell, Heartless Tactician', function() {
                 context.player1.clickCard(context.leiaOrgana);
                 context.player1.clickCard(context.atatSuppressor);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.leiaOrgana).toBeInZone('base');
                 expect(context.player1.handSize).toBe(startingHandSize + 2);
 
@@ -47,7 +47,7 @@ describe('General Krell, Heartless Tactician', function() {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.atatSuppressor);
                 expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(startingHandSize + 2);   // hand size goes down by 1 from playing the marine
 
@@ -93,7 +93,7 @@ describe('General Krell, Heartless Tactician', function() {
                 context.player1.clickCard(context.wampa);
 
                 expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(startingHandSize + 1);
             });
@@ -132,7 +132,7 @@ describe('General Krell, Heartless Tactician', function() {
                 context.player1.clickCard(context.wampa);
 
                 expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player2).toBeActivePlayer();
 
                 // its the same as the starting hand since we play 1 card
@@ -148,7 +148,7 @@ describe('General Krell, Heartless Tactician', function() {
                 context.player1.clickCard(context.atst);
 
                 expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(startingHandSize + 1);
                 expect(context.player2).toBeActivePlayer();

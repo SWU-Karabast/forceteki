@@ -21,7 +21,7 @@ describe('Sabine Wren, You Can Count On Me', function () {
 
             // can discard the top card of deck
             expect(context.player1).toHavePassAbilityPrompt('Discard the top card from your deck');
-            context.player1.clickPrompt('Discard the top card from your deck');
+            context.player1.clickPrompt('Trigger');
 
             // specforce soldier does not share an aspect with echo base, can select an enemy ground unit
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.consularSecurityForce]);
@@ -37,7 +37,7 @@ describe('Sabine Wren, You Can Count On Me', function () {
             // aspect match the base, nothing happen
             context.player1.clickCard(context.sabineWren);
             context.player1.clickCard(context.p2Base);
-            context.player1.clickPrompt('Discard the top card from your deck');
+            context.player1.clickPrompt('Trigger');
             expect(context.player2).toBeActivePlayer();
 
             // sabine wren can't be attacked

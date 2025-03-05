@@ -14,6 +14,7 @@ import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import { WithCost } from '../propertyMixins/Cost';
 import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
+import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { Card } from '../Card';
 
@@ -55,11 +56,13 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
  * 3. Uniqueness management
  */
 export class InPlayCard extends InPlayCardParent implements IInPlayCard {
+    public readonly printedUpgradeHp: number;
+    public readonly printedUpgradePower: number;
+
     protected _disableOngoingEffectsForDefeat?: boolean = null;
     protected _mostRecentInPlayId = -1;
     protected _parentCard?: IUnitCard = null;
     protected _pendingDefeat?: boolean = null;
-    // protected triggeredAbilities: TriggeredAbility[] = [];
 
     protected attachCondition: (card: Card) => boolean;
 
@@ -122,6 +125,21 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
         Contract.assertFalse(this.printedType === CardType.Event);
+
+        if (this.isUpgrade()) {
+            Contract.assertNotNullLike(cardData.upgradeHp);
+            Contract.assertNotNullLike(cardData.upgradePower);
+        }
+
+        const hasUpgradeStats = cardData.upgradePower != null && cardData.upgradeHp != null;
+
+        Contract.assertTrue(hasUpgradeStats ||
+          (cardData.upgradePower == null && cardData.upgradeHp == null));
+
+        if (hasUpgradeStats) {
+            this.printedUpgradePower = cardData.upgradePower;
+            this.printedUpgradeHp = cardData.upgradeHp;
+        }
     }
 
     public isInPlay(): boolean {
@@ -144,6 +162,14 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     public assertIsUpgrade(): void {
         Contract.assertTrue(this.isUpgrade());
         Contract.assertNotNullLike(this.parentCard);
+    }
+
+    public getUpgradeHp(): number {
+        return this.printedUpgradeHp;
+    }
+
+    public getUpgradePower(): number {
+        return this.printedUpgradePower;
     }
 
     public attachTo(newParentCard: IUnitCard, newController?: Player) {
@@ -380,17 +406,6 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         }
     }
 
-
-    protected override resetLimits() {
-        super.resetLimits();
-
-        for (const triggeredAbility of this.triggeredAbilities) {
-            if (triggeredAbility.limit) {
-                triggeredAbility.limit.reset();
-            }
-        }
-    }
-
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************
     public registerPendingUniqueDefeat() {
         Contract.assertTrue(this.getDuplicatesInPlayForController().length === 1);
@@ -419,6 +434,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
             activePromptTitle: `Choose which copy of ${unitDisplayName} to defeat`,
             waitingPromptTitle: `Waiting for opponent to choose which copy of ${unitDisplayName} to defeat`,
             source: 'Unique rule',
+            selectCardMode: SelectCardMode.Single,
             zoneFilter: WildcardZoneName.AnyArena,
             controller: RelativePlayer.Self,
             cardCondition: (card: InPlayCard) =>

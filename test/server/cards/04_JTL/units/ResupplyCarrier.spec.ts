@@ -17,7 +17,7 @@ describe('Resupply Carrier', function() {
 
             expect(context.player1).toHavePassAbilityPrompt('Put the top card of your deck into play as a resource');
 
-            context.player1.clickPrompt('Put the top card of your deck into play as a resource');
+            context.player1.clickPrompt('Trigger');
 
             expect(context.player1.resources.length).toBe(startingResources + 1);
             expect(context.player1.deck.length).toBe(startingDeckSize - 1);

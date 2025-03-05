@@ -397,6 +397,15 @@ export class GameServer {
             const socket = new Socket(ioSocket);
             lobby.addLobbyUser(user, socket);
             socket.send('connectedUser', user.id);
+
+            // If a user refreshes while they are matched with another player in the queue they lose the requeue listener
+            // this is why we reinitialize the requeue listener
+            if (lobby.gameType === MatchType.Quick) {
+                if (!socket.eventContainsListener('requeue')) {
+                    const lobbyUser = lobby.users.find((u) => u.id === user.id);
+                    socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
+                }
+            }
             socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
             return;
         }
@@ -461,11 +470,7 @@ export class GameServer {
             logger.info(`User ${user.id} already in a lobby, ignoring queue request.`);
             return false;
         }
-        // Also check if they're already queued
-        if (this.queue.findPlayerInQueue(user.id)) {
-            logger.info(`User ${user.id} is already in queue, rejoining`);
-            this.queue.removePlayer(user.id);
-        }
+
         this.queue.addPlayer(
             format,
             {
@@ -496,6 +501,7 @@ export class GameServer {
      * Matchmake two users in a queue
      */
     private matchmakeQueuePlayers(format: SwuGameFormat, [p1, p2]: [QueuedPlayer, QueuedPlayer]): void {
+        Contract.assertFalse(p1.user.id === p2.user.id, 'Cannot matchmake the same user');
         // Create a new Lobby
         const lobby = new Lobby(
             MatchType.Quick,
@@ -516,12 +522,16 @@ export class GameServer {
         if (socket1) {
             lobby.addLobbyUser(p1.user, socket1);
             socket1.registerEvent('disconnect', () => this.onSocketDisconnected(socket1.socket, p1.user.id));
-            socket1.registerEvent('requeue', () => this.requeueUser(socket1, format, p1.user, p1.deck));
+            if (!socket1.eventContainsListener('requeue')) {
+                socket1.registerEvent('requeue', () => this.requeueUser(socket1, format, p1.user, p1.deck));
+            }
         }
         if (socket2) {
             lobby.addLobbyUser(p2.user, socket2);
             socket2.registerEvent('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.id));
-            socket2.registerEvent('requeue', () => this.requeueUser(socket2, format, p2.user, p2.deck));
+            if (!socket2.eventContainsListener('requeue')) {
+                socket2.registerEvent('requeue', () => this.requeueUser(socket2, format, p2.user, p2.deck));
+            }
         }
 
         // Save user => lobby mapping

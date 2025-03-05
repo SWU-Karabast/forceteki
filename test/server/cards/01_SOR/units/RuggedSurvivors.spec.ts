@@ -19,7 +19,7 @@ describe('Rugged Survivors', function () {
 
                 context.player1.clickCard(context.ruggedSurvivors);
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card if you control a leader unit');
-                context.player1.clickPrompt('Draw a card if you control a leader unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(0);

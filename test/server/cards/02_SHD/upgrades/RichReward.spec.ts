@@ -88,7 +88,7 @@ describe('Rich Reward', function() {
                 expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
                 context.player1.clickPrompt('You');
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Give an Experience token to each of up to 2 units');
-                context.player1.clickPrompt('Collect Bounty: Give an Experience token to each of up to 2 units');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toBeActivePlayer();
             });

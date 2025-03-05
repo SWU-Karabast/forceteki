@@ -32,7 +32,7 @@ describe('Arquitens Assault Cruiser', function() {
 
                 // CASE 1: Arquitens ambush kills a unit
                 context.player1.clickCard(context.arquitensAssaultCruiser);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.tielnFighter);
                 expect(context.tielnFighter).toBeInZone('resource', context.player1);
                 expect(context.tielnFighter.exhausted).toBeTrue();

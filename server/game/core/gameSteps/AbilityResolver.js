@@ -231,7 +231,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             this.passAbilityHandler.hasBeenShown = true;
             this.game.promptWithHandlerMenu(this.passAbilityHandler.playerChoosing, {
                 activePromptTitle: `Trigger the ability '${this.getAbilityPromptTitle(this.context)}' or pass`,
-                choices: [this.getAbilityPromptTitle(this.context), this.passAbilityHandler.buttonText],
+                choices: ['Trigger', this.passAbilityHandler.buttonText],
                 handlers: [
                     () => {},
                     () => {
