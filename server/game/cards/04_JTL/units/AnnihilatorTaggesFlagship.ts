@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as Helpers from '../../../core/utils/Helpers.js';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -25,33 +25,43 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: 'Look at an opponent\'s hand',
-                immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
-                    target: context.player.opponent.hand,
-                    useDisplayPrompt: true
-                })),
-                ifYouDo: () => {
-                    const matchingCardNames = ifYouDoContext.player.opponent.hand.filter((card) => card.name === ifYouDoContext.target.name);
-                    return {
-                        title: `Discard a copy of ${ifYouDoContext.target.name} from hand`,
-                        ifYouDoCondition: () => matchingCardNames.length > 0,
-                        immediateEffect: AbilityHelper.immediateEffects.simultaneous(
-                            Helpers.asArray(matchingCardNames).map((target) =>
-                                AbilityHelper.immediateEffects.discardSpecificCard({
-                                    target: target
-                                })
-                            )
-                        )
-                    };
-                }
+                title: `Discard all cards named ${ifYouDoContext.target.title} from the opponent's hand and deck`,
+                immediateEffect: AbilityHelper.immediateEffects.sequential([
+                    AbilityHelper.immediateEffects.conditional({
+                        condition: ifYouDoContext.player.opponent.hand.length > 0,
+                        onTrue: AbilityHelper.immediateEffects.sequential((context) => {
+                            const matchingCardNames = context.player.opponent.hand.filter((card) => card.title === ifYouDoContext.target.title);
+                            return [
+                                AbilityHelper.immediateEffects.lookAt((context) => ({
+                                    target: context.player.opponent.hand,
+                                    useDisplayPrompt: true
+                                })),
+                                AbilityHelper.immediateEffects.simultaneous(
+                                    Helpers.asArray(matchingCardNames).map((target) =>
+                                        AbilityHelper.immediateEffects.discardSpecificCard({
+                                            target: target
+                                        })
+                                    )
+
+                                )
+                            ];
+                        }),
+                        onFalse: AbilityHelper.immediateEffects.noAction()
+                    }),
+                    AbilityHelper.immediateEffects.conditional({
+                        condition: ifYouDoContext.player.opponent.drawDeck.length > 0,
+                        onTrue: AbilityHelper.immediateEffects.deckSearch({
+                            targetMode: TargetMode.Unlimited,
+                            choosingPlayer: ifYouDoContext.player,
+                            player: ifYouDoContext.player.opponent,
+                            cardCondition: (card) => card.title === ifYouDoContext.target.title,
+                            shuffleWhenDone: true,
+                            selectedCardsImmediateEffect: AbilityHelper.immediateEffects.discardSpecificCard()
+                        }),
+                        onFalse: AbilityHelper.immediateEffects.noAction()
+                    })
+                ])
             })
-            // then: (thenContext) => ({
-            //     title: ''
-            // })
         });
     }
-
-    // private buildDiscardSpecificEffects(ifYouDoContext) {
-
-    // }
 }
