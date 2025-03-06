@@ -6,14 +6,9 @@ import * as Contract from '../utils/Contract';
 export class KeywordInstance {
     public readonly name: KeywordName;
 
-    private readonly card?: Card;
+    private readonly card: Card;
 
     public get isBlank() {
-        // TODO THIS PR: remove and make this.card not optional
-        if (this.card == null) {
-            return false;
-        }
-
         if (this.card.hasOngoingEffect(EffectName.Blank)) {
             return true;
         }
@@ -31,7 +26,7 @@ export class KeywordInstance {
         return true;
     }
 
-    public constructor(name: KeywordName, card?: Card) {
+    public constructor(name: KeywordName, card: Card) {
         this.name = name;
         this.card = card;
     }
@@ -56,9 +51,10 @@ export class KeywordInstance {
 export class KeywordWithNumericValue extends KeywordInstance {
     public constructor(
         name: KeywordName,
+        card: Card,
         public readonly value: number
     ) {
-        super(name);
+        super(name, card);
     }
 
     public override hasNumericValue(): this is KeywordWithNumericValue {
@@ -69,11 +65,12 @@ export class KeywordWithNumericValue extends KeywordInstance {
 export class KeywordWithCostValues extends KeywordInstance {
     public constructor(
         name: KeywordName,
+        card: Card,
         public readonly cost: number,
         public readonly aspects: Aspect[],
-        public readonly additionalCosts: boolean
+        public readonly additionalCosts: boolean,
     ) {
-        super(name);
+        super(name, card);
     }
 
     public override hasCostValue(): this is KeywordWithCostValues {
@@ -101,8 +98,8 @@ export class BountyKeywordInstance<TSource extends Card = Card> extends KeywordI
     }
 
     /** @param abilityProps Optional, but if not provided must be provided via `abilityProps` */
-    public constructor(name: KeywordName, abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'> = null) {
-        super(name);
+    public constructor(name: KeywordName, card: Card, abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'> = null) {
+        super(name, card);
         this._abilityProps = abilityProps;
     }
 
@@ -134,8 +131,8 @@ export class KeywordWithAbilityDefinition<TSource extends Card = Card> extends K
     }
 
     /** @param abilityProps Optional, but if not provided must be provided via `abilityProps` */
-    public constructor(name: KeywordName, abilityProps: IAbilityPropsWithType<TSource> = null) {
-        super(name);
+    public constructor(name: KeywordName, card: Card, abilityProps: IAbilityPropsWithType<TSource> = null) {
+        super(name, card);
         this._abilityProps = abilityProps;
     }
 

@@ -220,7 +220,6 @@ export class Card extends OngoingEffectSource {
             this,
             cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
-            this.internalName,
             cardData.pilotText
         );
 
@@ -231,7 +230,6 @@ export class Card extends OngoingEffectSource {
                     this,
                     cardData.keywords,
                     cardData.text,
-                    this.internalName,
                     cardData.pilotText
                 )
             );
@@ -497,7 +495,8 @@ export class Card extends OngoingEffectSource {
         let keywordInstances = [...this.printedKeywords];
         const gainKeywordEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword);
         for (const effect of gainKeywordEffects) {
-            keywordInstances.push(effect.getValue(this));
+            const keywordProps = effect.getValue(this);
+            keywordInstances.push(KeywordHelpers.keywordFromProperties(keywordProps, this));
         }
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 

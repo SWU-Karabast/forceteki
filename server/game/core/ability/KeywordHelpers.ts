@@ -11,7 +11,6 @@ export function parseKeywords(
     card: Card,
     expectedKeywordsRaw: string[],
     cardText: string,
-    cardName: string,
     pilotText: string
 ): KeywordInstance[] {
     const expectedKeywords = EnumHelpers.checkConvertToEnum(expectedKeywordsRaw, KeywordName);
@@ -20,30 +19,30 @@ export function parseKeywords(
 
     for (const keywordName of expectedKeywords) {
         if (isNumericType[keywordName]) {
-            const keywordValueOrNull = parseNumericKeywordValueIfEnabled(keywordName, cardText, cardName);
+            const keywordValueOrNull = parseNumericKeywordValueIfEnabled(keywordName, cardText, card.internalName);
             if (keywordValueOrNull != null) {
-                keywords.push(new KeywordWithNumericValue(keywordName, keywordValueOrNull));
+                keywords.push(new KeywordWithNumericValue(keywordName, card, keywordValueOrNull));
             }
         } else if (keywordName === KeywordName.Piloting) {
-            const pilotingValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Piloting, pilotText, cardName);
+            const pilotingValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Piloting, pilotText, card);
             if (pilotingValuesOrNull != null) {
                 keywords.push(pilotingValuesOrNull);
             }
         } else if (keywordName === KeywordName.Smuggle) {
-            const smuggleValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Smuggle, cardText, cardName);
+            const smuggleValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Smuggle, cardText, card);
             if (smuggleValuesOrNull != null) {
                 keywords.push(smuggleValuesOrNull);
             }
         } else if (keywordName === KeywordName.Bounty) {
-            if (isKeywordEnabled(keywordName, cardText, cardName)) {
-                keywords.push(new BountyKeywordInstance(keywordName));
+            if (isKeywordEnabled(keywordName, cardText, card.internalName)) {
+                keywords.push(new BountyKeywordInstance(keywordName, card));
             }
         } else if (keywordName === KeywordName.Coordinate) {
-            if (isKeywordEnabled(keywordName, cardText, cardName)) {
-                keywords.push(new KeywordWithAbilityDefinition(keywordName));
+            if (isKeywordEnabled(keywordName, cardText, card.internalName)) {
+                keywords.push(new KeywordWithAbilityDefinition(keywordName, card));
             }
         } else { // default case is a keyword with no params
-            if (isKeywordEnabled(keywordName, cardText, cardName)) {
+            if (isKeywordEnabled(keywordName, cardText, card.internalName)) {
                 keywords.push(new KeywordInstance(keywordName, card));
             }
         }
@@ -52,18 +51,18 @@ export function parseKeywords(
     return keywords;
 }
 
-export function keywordFromProperties(properties: IKeywordProperties, card?: Card) {
+export function keywordFromProperties(properties: IKeywordProperties, card: Card) {
     switch (properties.keyword) {
         case KeywordName.Restore:
         case KeywordName.Raid:
-            return new KeywordWithNumericValue(properties.keyword, properties.amount);
+            return new KeywordWithNumericValue(properties.keyword, card, properties.amount);
 
         case KeywordName.Bounty:
-            return new BountyKeywordInstance(properties.keyword, properties.ability);
+            return new BountyKeywordInstance(properties.keyword, card, properties.ability);
 
         // TODO: Do we need Piloting here?
         case KeywordName.Smuggle:
-            return new KeywordWithCostValues(properties.keyword, properties.cost, properties.aspects, false);
+            return new KeywordWithCostValues(properties.keyword, card, properties.cost, properties.aspects, false);
 
         case KeywordName.Ambush:
         case KeywordName.Grit:
@@ -149,7 +148,7 @@ function parseNumericKeywordValueIfEnabled(keyword: KeywordName, cardText: strin
  *
  * @returns null if the keyword is not enabled, or the numeric value if enabled
  */
-function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: string, cardName: string): KeywordWithCostValues {
+function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: string, card: Card): KeywordWithCostValues {
     const regex = getRegexForKeyword(keyword);
     const matchIter = cardText.matchAll(regex);
 
@@ -160,7 +159,7 @@ function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: str
     }
 
     if (matchIter.next().done !== true) {
-        throw new Error(`Expected to match at most one instance of enabled keyword ${keyword} in card ${cardName}, but found multiple`);
+        throw new Error(`Expected to match at most one instance of enabled keyword ${keyword} in card ${card.internalName}, but found multiple`);
     }
 
     const cost = Number(match.value[1]);
@@ -169,7 +168,7 @@ function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: str
     const additionalCosts = match.value[3] !== undefined;
 
     // regex capture group will be keyword value with costs
-    return new KeywordWithCostValues(keyword, cost, aspects, additionalCosts);
+    return new KeywordWithCostValues(keyword, card, cost, aspects, additionalCosts);
 }
 
 function getRegexForKeyword(keyword: KeywordName) {
