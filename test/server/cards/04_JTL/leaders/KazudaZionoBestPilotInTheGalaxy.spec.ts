@@ -194,8 +194,8 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.fireball);
                 context.player1.clickPrompt('Done');
 
-                // No damage was restored because Kazuda lost his abilities
-                expect(context.p1Base.damage).toBe(10);
+                // Restore still happens b/c it was triggered before blanking resolved
+                expect(context.p1Base.damage).toBe(8);
 
                 context.player2.passAction();
 
@@ -211,7 +211,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                     'Restore 2'
                 ]);
 
-                expect(context.p1Base.damage).toBe(10);
+                expect(context.p1Base.damage).toBe(8);
 
                 // Move to next action phase
                 context.moveToNextActionPhase();
@@ -228,7 +228,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickPrompt('Done');
 
                 // Base HP is restored by 2
-                expect(context.p1Base.damage).toBe(8);
+                expect(context.p1Base.damage).toBe(6);
             });
 
             it('can select no units to lose abilities', function() {
@@ -379,10 +379,8 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.fireball);
                 context.player1.clickPrompt('Done');
 
-                // No damage was restored because Fireball lost its abilities
-                // TODO: This is incorrect. Once Restore is triggered, it should resolve fully:
-                //       https://github.com/SWU-Karabast/forceteki/issues/805
-                expect(context.p1Base.damage).toBe(10);
+                // Restore still happens b/c it was triggered before blanking resolved
+                expect(context.p1Base.damage).toBe(8);
 
                 context.player2.passAction();
 
@@ -398,7 +396,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                     'Restore 2'
                 ]);
 
-                expect(context.p1Base.damage).toBe(10);
+                expect(context.p1Base.damage).toBe(8);
 
                 // Move to next action phase
                 context.moveToNextActionPhase();
@@ -415,7 +413,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickPrompt('Done');
 
                 // Base HP is restored by 2
-                expect(context.p1Base.damage).toBe(8);
+                expect(context.p1Base.damage).toBe(6);
             });
 
             it('can select no units to lose abilities', function() {
