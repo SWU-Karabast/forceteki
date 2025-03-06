@@ -790,8 +790,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          */
         public override canAttach(targetCard: Card, context: AbilityContext, controller: Player = this.controller): boolean {
             Contract.assertTrue(this.canBeUpgrade);
-            if (this.hasSomeKeyword(KeywordName.Piloting) && targetCard.isUnit()) {
-                return targetCard.canAttachPilot(this, context.playType) && targetCard.controller === controller;
+            if (targetCard.isUnit()) {
+                if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
+                    return targetCard.canAttachPilot(this, context.playType) && targetCard.controller === controller;
+                } else if (this.hasSomeTrait(Trait.Pilot)) {
+                    return targetCard.canAttachPilot(this, context.playType);
+                }
             }
             // TODO: Handle Phantom II and Sidon Ithano
             return false;
