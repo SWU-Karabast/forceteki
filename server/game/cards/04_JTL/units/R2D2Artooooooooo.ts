@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardZoneName } from '../../../core/Constants';
+import { AbilityType, WildcardZoneName } from '../../../core/Constants';
 
 export default class R2D2Artooooooooo extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -11,8 +11,9 @@ export default class R2D2Artooooooooo extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities () {
-        this.addPilotingConstantAbilityTargetingAttached({
+        this.addPilotingGainAbilityTargetingAttached({
             title: 'You may play or deploy 1 additional Pilot on this unit',
+            type: AbilityType.Constant,
             ongoingEffect: AbilityHelper.ongoingEffects.modifyPilotingLimit({ amount: 1 })
         });
 

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../../../server/game/AbilityHelper';
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
-import { AbilityRestriction } from '../../../../../server/game/core/Constants';
+import { AbilityRestriction, AbilityType } from '../../../../../server/game/core/Constants';
 
 export default class ChewbaccaFaithfulFirstMate extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -25,7 +25,8 @@ export default class ChewbaccaFaithfulFirstMate extends NonLeaderUnitCard {
             ]
         });
 
-        this.addPilotingConstantAbilityTargetingAttached({
+        this.addPilotingGainAbilityTargetingAttached({
+            type: AbilityType.Constant,
             title: 'This unit can\'t be captured or damaged by enemy card abilities',
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.cardCannot({

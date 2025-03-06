@@ -50,8 +50,9 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
 
         // add deploy leader action
         this.deployEpicActions.push(this.addActionAbility({
-            title: `Deploy ${this.title}`,
             limit: this.deployEpicActionLimit,
+            ...this.deployActionAbilityProps(),
+            title: `Deploy ${this.title}`,
             condition: (context) => context.player.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
             immediateEffect: new DeployLeaderSystem({})
@@ -59,6 +60,10 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
 
         this.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities(this);
+    }
+
+    protected deployActionAbilityProps(): Omit<IActionAbilityProps<this>, 'title' | 'condition' | 'zoneFilter' | 'immediateEffect'> {
+        return {};
     }
 
     protected override initializeStateForAbilitySetup() {
