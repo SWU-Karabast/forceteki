@@ -38,6 +38,9 @@ describe('Lando Calrissian, Buying Time', function () {
                 context.player1.clickCard(context.landoCalrissian);
                 context.player1.clickCard(context.kuiil);
 
+                expect(context.player1).toBeAbleToSelectExactly([context.restoredArc170, context.kuiil, context.poeDameron, context.greenSquadronAwing]);
+                context.player1.clickCard(context.kuiil);
+
                 expect(context.player1.exhaustedResourceCount).toBe(5);
                 expect(context.kuiil).toHaveExactUpgradeNames(['shield']);
             });

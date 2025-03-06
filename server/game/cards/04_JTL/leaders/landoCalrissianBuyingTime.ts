@@ -1,6 +1,14 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { AbilityType, DeployType, KeywordName, RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import {
+    AbilityType,
+    DeployType,
+    KeywordName,
+    RelativePlayer,
+    WildcardCardType,
+    WildcardZoneName,
+    ZoneName
+} from '../../../core/Constants';
 
 export default class LandoCalrissianBuyingTime extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -25,9 +33,10 @@ export default class LandoCalrissianBuyingTime extends LeaderUnitCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Give a Shield token to a unit',
                 ifYouDoCondition: (context) => context.player.hasSomeArenaUnit({ arena: ZoneName.GroundArena }) && context.player.hasSomeArenaUnit({ arena: ZoneName.SpaceArena }),
-                immediateEffect: AbilityHelper.immediateEffects.giveShield({
-                    target: ifYouDoContext.target
-                })
+                targetResolver: {
+                    cardTypeFilter: WildcardCardType.Unit,
+                    immediateEffect: AbilityHelper.immediateEffects.giveShield()
+                }
             })
         });
     }
