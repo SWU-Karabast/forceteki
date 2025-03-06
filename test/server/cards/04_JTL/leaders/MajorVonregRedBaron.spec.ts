@@ -23,13 +23,20 @@ describe('Major Vonreg, Red Baron', function() {
                 expect(context.vonregsTieInterceptorAceOfTheFirstOrder).toBeInZone('spaceArena');
                 expect(context.player1).toBeAbleToSelectExactly([context.tielnFighter, context.allianceXwing, context.wampa]);
                 context.player1.clickCard(context.tielnFighter);
-                expect(context.tielnFighter.getPower()).toBe(3);
                 expect(context.majorVonregRedBaron.exhausted).toBe(true);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.tielnFighter);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(3); // 2 from tie +1 from vonreg
 
                 context.moveToNextActionPhase();
 
-                // +1/+0 should have worn off
-                expect(context.tielnFighter.getPower()).toBe(2);
+                // the +1/+0 should have worn off
+                context.player1.clickCard(context.tielnFighter);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p2Base.damage).toBe(5); // +2 from tie
             });
         });
 
@@ -56,7 +63,7 @@ describe('Major Vonreg, Red Baron', function() {
                 context.player1.clickPrompt('Deploy Major Vonreg');
                 expect(context.majorVonregRedBaron.deployed).toBe(true);
 
-                // Check that the unit stats are 2/5
+                // Check that the deployed unit stats are 2/5
                 expect(context.majorVonregRedBaron.getPower()).toBe(2);
                 expect(context.majorVonregRedBaron.getHp()).toBe(5);
 
@@ -96,7 +103,7 @@ describe('Major Vonreg, Red Baron', function() {
                 context.player1.clickCard(context.vonregsTieInterceptorAceOfTheFirstOrder);
                 context.player1.clickCard(context.p2Base);
 
-                // Now we hae to select who gets the +1 (make sure it doesn't include the parent card -- has to be other)
+                // Now we have to select who gets the +1 (make sure it doesn't include the parent card -- has to be other)
                 expect(context.player1).toBeAbleToSelectExactly([context.imperialInterceptor, context.allianceXwing]);
                 context.player1.clickCard(context.imperialInterceptor);
 
