@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { Duration, RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
 
 export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -23,8 +23,9 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
                         effect: AbilityHelper.ongoingEffects.loseAllAbilities()
                     })
                 }),
-                AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                    effect: AbilityHelper.ongoingEffects.additionalAction()
+                AbilityHelper.immediateEffects.playerLastingEffect({
+                    effect: AbilityHelper.ongoingEffects.additionalAction(),
+                    duration: Duration.UntilEndOfPhase // Should be Persistent, but it isn't working correctly
                 })
             ])
         });
@@ -32,9 +33,9 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addOnAttackAbility({
-            title: 'Choose any number of friendly units',
+            title: 'Choose any number of friendly units. They lose all abilities for this round.',
             targetResolver: {
-                activePromptTitle: 'Choose friendly units that will lose all abilities for this round',
+                activePromptTitle: 'Choose friendly units to lose all abilities for this round',
                 mode: TargetMode.Unlimited,
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
@@ -46,12 +47,12 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
         });
 
         this.addPilotingGainTriggeredAbilityTargetingAttached({
-            title: 'Choose any number of friendly units',
+            title: 'Choose any number of friendly units. They lose all abilities for this round.',
             when: {
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source
             },
             targetResolver: {
-                activePromptTitle: 'Choose friendly units that will lose all abilities for this round',
+                activePromptTitle: 'Choose friendly units to lose all abilities for this round',
                 mode: TargetMode.Unlimited,
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
