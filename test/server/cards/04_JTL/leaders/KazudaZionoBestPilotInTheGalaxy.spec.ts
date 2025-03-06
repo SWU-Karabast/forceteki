@@ -331,6 +331,115 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 expect(context.contractedHunter).toBeInZone('discard');
                 expect(context.fireball.damage).toBe(1);
             });
+
+            it('can select his attached unit to remove its abilities for the round', function() {
+                const { context } = contextRef;
+
+                // Play Devotion on Fireball to give it Restore 2
+                context.player1.clickCard(context.devotion);
+                context.player1.clickCard(context.fireball);
+
+                context.player2.passAction();
+
+                // Deploy Kazuda as a Pilot on Fireball
+                context.player1.clickCard(context.kazudaXiono);
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Deploy Kazuda Xiono as a Pilot',
+                    'Select a friendly unit',
+                    'Deploy Kazuda Xiono',
+                    'Cancel'
+                ]);
+
+                context.player1.clickPrompt('Deploy Kazuda Xiono as a pilot');
+                context.player1.clickCard(context.fireball);
+
+                expect(context.kazudaXiono.deployed).toBe(true);
+                expect(context.kazudaXiono).toBeInZone('spaceArena');
+                expect(context.fireball.getPower()).toBe(7);
+                expect(context.fireball.getHp()).toBe(7);
+                expect(context.fireball).toHaveExactUpgradeNames(['devotion', 'kazuda-xiono#best-pilot-in-the-galaxy']);
+                context.player2.passAction();
+
+                // Initiate an attack with Fireball, triggering Kazuda's granted ability
+                context.player1.clickCard(context.fireball);
+                context.player1.clickCard(context.p2Base);
+
+                // Choose trigger order
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Choose any number of friendly units',
+                    'Restore 2'
+                ]);
+
+                // Resolve his ability first
+                context.player1.clickPrompt('Choose any number of friendly units');
+                expect(context.player1).toHavePrompt('Choose friendly units that will lose all abilities for this round');
+
+                // Remove his ability from Fireball (among others)
+                context.player1.clickCard(context.contractedHunter);
+                context.player1.clickCard(context.fireball);
+                context.player1.clickPrompt('Done');
+
+                // No damage was restored because Fireball lost its abilities
+                expect(context.p1Base.damage).toBe(10);
+
+                context.player2.passAction();
+
+                // Use Frontline Shuttle's ability to attack with Fireball again
+                context.player1.clickCard(context.frontlineShuttle);
+                context.player1.clickPrompt('Attack with a unit, even if it’s exhausted. It can’t attack bases for this attack.');
+                context.player1.clickCard(context.fireball);
+                context.player1.clickCard(context.tielnFighter);
+
+                // No on-attack trigger, and still no restore
+                expect(context.player1).not.toHaveExactPromptButtons([
+                    'Choose any number of friendly units',
+                    'Restore 2'
+                ]);
+
+                expect(context.p1Base.damage).toBe(10);
+
+                // Move to next action phase
+                context.moveToNextActionPhase();
+
+                // Attack with Fireball, and all its abilities are back
+                context.player1.clickCard(context.fireball);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Choose any number of friendly units',
+                    'Restore 2'
+                ]);
+                context.player1.clickPrompt('Restore 2');
+                context.player1.clickPrompt('Done');
+
+                // Base HP is restored by 2
+                expect(context.p1Base.damage).toBe(8);
+            });
+
+            it('can select no units to lose abilities', function() {
+                const { context } = contextRef;
+
+                // Deploy Kazuda as a Pilot on Fireball
+                context.player1.clickCard(context.kazudaXiono);
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Deploy Kazuda Xiono as a Pilot',
+                    'Select a friendly unit',
+                    'Deploy Kazuda Xiono',
+                    'Cancel'
+                ]);
+
+                context.player1.clickPrompt('Deploy Kazuda Xiono as a pilot');
+                context.player1.clickCard(context.fireball);
+                context.player2.passAction();
+
+                // Initiate an attack with Fireball, triggering Kazuda's ability
+                context.player1.clickCard(context.fireball);
+                context.player1.clickCard(context.p2Base);
+
+                // Choose not to remove any abilities
+                expect(context.player1).toHaveEnabledPromptButton('Choose no target');
+                context.player1.clickPrompt('Choose no target');
+            });
         });
     });
 });
