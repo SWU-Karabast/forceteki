@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { AbilityRestriction, Duration, WildcardCardType } from '../../../core/Constants';
+import { AbilityRestriction, WildcardCardType } from '../../../core/Constants';
 import { EventCard } from '../../../core/card/EventCard';
 
 export default class NoGoodToMeDead extends EventCard {
@@ -17,9 +17,8 @@ export default class NoGoodToMeDead extends EventCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.exhaust(),
-                    AbilityHelper.immediateEffects.cardLastingEffect({
-                        effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.Ready),
-                        duration: Duration.UntilEndOfRound
+                    AbilityHelper.immediateEffects.forThisRoundCardEffect({
+                        effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.Ready)
                     })
                 ])
             },

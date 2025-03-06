@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { DeployType, EventName, WildcardCardType } from '../core/Constants';
+import { DeployType, EventName, PlayType, WildcardCardType } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import { GameEvent } from '../core/event/GameEvent';
@@ -21,7 +21,7 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
         Contract.assertNotNullLike(event.leaderAttachTarget);
         Contract.assertEqual(DeployType.LeaderUpgrade, event.type);
         Contract.assertTrue(event.leaderAttachTarget.isUnit());
-        Contract.assertTrue(event.leaderAttachTarget.canAttachPilot());
+        Contract.assertTrue(event.leaderAttachTarget.canAttachPilot(event.card, PlayType.Piloting));
         Contract.assertTrue(event.card.isDeployableLeader());
 
         event.card.deploy({
@@ -36,9 +36,12 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
     }
 
     public override canAffect(card: Card, context: TContext): boolean {
-        if (!card.isUnit() || !card.canAttachPilot()) {
+        const properties = this.generatePropertiesFromContext(context);
+
+        if (!card.isUnit() || !card.canAttachPilot(properties.leaderPilotCard, PlayType.Piloting)) {
             return false;
         }
+
         return super.canAffect(card, context);
     }
 
@@ -57,12 +60,22 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {
         super.updateEvent(event, card, context, additionalProperties);
         event.setContingentEventsGenerator(() => {
+            const properties = this.generatePropertiesFromContext(context);
             const entersPlayEvent = new GameEvent(EventName.OnUnitEntersPlay, context, {
                 player: context.player,
-                card
+                card: properties.leaderPilotCard
+            });
+            const attachUpgradeEvent = new GameEvent(EventName.OnUpgradeAttached, context, {
+                parentCard: card,
+                upgradeCard: properties.leaderPilotCard,
+                newController: context.player,
             });
 
-            return [entersPlayEvent];
+
+            return [
+                entersPlayEvent,
+                attachUpgradeEvent,
+            ];
         });
     }
 }
