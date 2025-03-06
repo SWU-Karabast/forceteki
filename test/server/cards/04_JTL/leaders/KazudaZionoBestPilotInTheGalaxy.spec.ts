@@ -242,5 +242,95 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickPrompt('Choose no target');
             });
         });
+
+        describe('Kazuda\'s deployed pilot on-attack ability', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        base: { card: 'dagobah-swamp', damage: 10 },
+                        hand: ['heroic-sacrifice', 'devotion'],
+                        groundArena: [
+                            'contracted-hunter',
+                            'k2so#cassians-counterpart'
+                        ],
+                        spaceArena: [
+                            'fireball#an-explosion-with-wings',
+                            'frontline-shuttle'
+                        ]
+                    },
+                    player2: {
+                        hand: ['takedown'],
+                        groundArena: ['consular-security-force'],
+                        spaceArena: ['tieln-fighter']
+                    }
+                });
+            });
+
+            it('can select multiple units to lose all abilities for the round', function() {
+                const { context } = contextRef;
+
+                // Deploy Kazuda as a Pilot on Fireball
+                context.player1.clickCard(context.kazudaXiono);
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Deploy Kazuda Xiono as a Pilot',
+                    'Select a friendly unit',
+                    'Deploy Kazuda Xiono',
+                    'Cancel'
+                ]);
+
+                context.player1.clickPrompt('Deploy Kazuda Xiono as a pilot');
+                context.player1.clickCard(context.fireball);
+
+                expect(context.kazudaXiono.deployed).toBe(true);
+                expect(context.kazudaXiono).toBeInZone('spaceArena');
+                expect(context.fireball.getPower()).toBe(6);
+                expect(context.fireball.getHp()).toBe(6);
+                expect(context.fireball).toHaveExactUpgradeNames(['kazuda-xiono#best-pilot-in-the-galaxy']);
+
+                context.player2.passAction();
+
+                // Initiate an attack with Fireball, triggering Kazuda's ability
+                context.player1.clickCard(context.fireball);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Choose friendly units that will lose all abilities for this round');
+                expect(context.player1).toHaveExactPromptButtons(['Done', 'Choose no target']);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.contractedHunter,
+                    context.k2so,
+                    context.fireball,
+                    context.frontlineShuttle
+                ]);
+
+                // Select Contracted Hunter and Fireball
+                context.player1.clickCard(context.contractedHunter);
+                context.player1.clickCard(context.fireball);
+                context.player1.clickPrompt('Done');
+
+                // Move to the regroup phase
+                context.moveToRegroupPhase();
+
+                // Check that Contracted Hunter and Fireball's triggers did not fire
+                expect(context.contractedHunter).toBeInZone('groundArena');
+                expect(context.fireball.damage).toBe(0);
+
+                // Move to the regroup phase of the next round
+                context.nextPhase();
+                context.moveToRegroupPhase();
+
+                // Resolve simultaneous triggers
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Defeat this unit',
+                    'Deal 1 damage to this unit.',
+                ]);
+                context.player1.clickPrompt('Defeat this unit');
+
+                // Contracted Hunter is defeated because his triggered ability is back
+                expect(context.contractedHunter).toBeInZone('discard');
+                expect(context.fireball.damage).toBe(1);
+            });
+        });
     });
 });

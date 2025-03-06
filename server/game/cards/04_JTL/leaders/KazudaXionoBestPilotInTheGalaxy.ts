@@ -45,7 +45,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
             }
         });
 
-        this.addGainTriggeredAbilityTargetingAttached({
+        this.addPilotingGainTriggeredAbilityTargetingAttached({
             title: 'Choose any number of friendly units',
             when: {
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source

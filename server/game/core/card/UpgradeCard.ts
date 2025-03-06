@@ -17,7 +17,7 @@ import type { ICardCanChangeControllers, IUpgradeCard } from './CardInterfaces';
 
 type IConstantAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IConstantAbilityProps<TTarget> & IGainCondition<TSource>;
 
-type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
+export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
 
 type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
 

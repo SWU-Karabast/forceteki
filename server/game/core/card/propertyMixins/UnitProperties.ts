@@ -36,6 +36,7 @@ import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
 import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
 import type { AbilityContext } from '../../ability/AbilityContext';
+import type { ITriggeredAbilityPropsWithGainCondition } from '../UpgradeCard';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 
@@ -391,10 +392,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             });
         }
 
-        public addGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityProps<IUnitCard>) {
+        public addPilotingGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<this, IUnitCard>) {
+            const { gainCondition, ...gainedAbilityProperties } = properties;
+
             this.addPilotingConstantAbilityTargetingAttached({
                 title: 'Give triggered ability to the attached card',
-                ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...properties })
+                condition: this.addZoneCheckToGainCondition(gainCondition),
+                ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties })
             });
         }
 
