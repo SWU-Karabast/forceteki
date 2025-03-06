@@ -14,7 +14,7 @@ export default class MajorVonregRedBaron extends LeaderUnitCard {
         this.addPilotDeploy();
 
         this.addActionAbility({
-            title: 'Play a Vehicle unit from your hand (paying its cost). If you do, give another unit +1/+0 for this phase.',
+            title: 'Play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.',
             cost: [AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -41,7 +41,7 @@ export default class MajorVonregRedBaron extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities() {
         this.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
-            title: 'You may give another unit in this arena +1/+0 for this phase.',
+            title: 'Give another unit in this arena +1/+0 for this phase.',
             optional: true,
             when: {
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source

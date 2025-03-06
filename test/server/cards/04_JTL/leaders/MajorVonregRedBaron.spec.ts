@@ -1,7 +1,7 @@
 describe('Major Vonreg, Red Baron', function() {
     integration(function(contextRef) {
         describe('Major Vonreg, Red Baron\'s undeployed ability', function() {
-            it('should play a Vehicle unit from your hand (paying its cost). If you do, give another unit +1/+0 for this phase.', async function () {
+            it('should play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -58,7 +58,7 @@ describe('Major Vonreg, Red Baron', function() {
 
                 context.player1.clickCard(context.majorVonregRedBaron);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Major Vonreg',
-                    'Play a Vehicle unit from your hand (paying its cost). If you do, give another unit +1/+0 for this phase.'
+                    'Play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.'
                 ]);
                 context.player1.clickPrompt('Deploy Major Vonreg');
                 expect(context.majorVonregRedBaron.deployed).toBe(true);
@@ -91,7 +91,7 @@ describe('Major Vonreg, Red Baron', function() {
 
                 context.player1.clickCard(context.majorVonregRedBaron);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Major Vonreg', 'Deploy Major Vonreg as a Pilot',
-                    'Play a Vehicle unit from your hand (paying its cost). If you do, give another unit +1/+0 for this phase.'
+                    'Play a Vehicle unit from your hand. If you do, give another unit +1/+0 for this phase.'
                 ]);
                 context.player1.clickPrompt('Deploy Major Vonreg as a Pilot');
                 expect(context.player1).toBeAbleToSelectExactly([context.vonregsTieInterceptorAceOfTheFirstOrder, context.imperialInterceptor]);
