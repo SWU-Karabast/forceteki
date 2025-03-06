@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName, Trait } from '../../../core/Constants';
-import type { Card } from '../../../core/card/Card';
+import { KeywordName, Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class RaddusHoldosFinalCommand extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,17 +13,19 @@ export default class RaddusHoldosFinalCommand extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'While you control another resistance card, this unit gains Sentinel',
-            condition: (context) => context.player.anyCardsInPlay((card: Card) => card.hasSomeTrait(Trait.Resistance) && card !== context.source),
+            condition: (context) => context.player.hasSomeArenaCard({
+                trait: Trait.Resistance,
+                otherThan: context.source
+            }),
             matchTarget: (card, context) => card === context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
         this.addWhenDefeatedAbility({
             title: 'Deal damage equal to this unit\'s power to an enemy unit.',
             targetResolver: {
-                cardCondition: (card, context) => card.isUnit() && card.controller !== context.source.controller,
-                immediateEffect: AbilityHelper.immediateEffects.damage((context) => {
-                    return { amount: context.event.lastKnownInformation.power };
-                })
+                cardCondition: (card, context) => card.controller !== context.player,
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({ amount: context.event.lastKnownInformation.power }))
             }
         });
     }

@@ -40,10 +40,11 @@ describe('Raddus', function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        spaceArena: ['avenger#hunting-star-destroyer', 'ruthless-raider'],
+                        spaceArena: ['avenger#hunting-star-destroyer', 'devastator#inescapable'],
                     },
                     player2: {
                         spaceArena: ['raddus#holdos-final-command'],
+                        hand: ['old-access-codes']
                     },
                 });
             });
@@ -51,13 +52,26 @@ describe('Raddus', function () {
             it('should deal damage equal to its power when defeated', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.ruthlessRaider);
+                context.player1.clickCard(context.avengerHuntingStarDestroyer);
                 context.player1.clickCard(context.raddusHoldosFinalCommand);
-                context.player1.clickCard(context.raddusHoldosFinalCommand);
-                context.player2.clickCard(context.avengerHuntingStarDestroyer);
+                context.player2.clickCard(context.raddusHoldosFinalCommand);
+                context.player2.clickCard(context.devastatorInescapable);
                 expect(context.raddusHoldosFinalCommand.zoneName).toBe('discard');
-                expect(context.avengerHuntingStarDestroyer.zoneName).toBe('discard');
-                expect(context.ruthlessRaider.zoneName).toBe('discard');
+                expect(context.devastatorInescapable.damage).toBe(8);
+            });
+
+            it('should deal damage equal to its power including upgrades', () => {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.oldAccessCodes);
+                context.player2.clickCard(context.raddusHoldosFinalCommand);
+                context.player1.clickCard(context.avengerHuntingStarDestroyer);
+                context.player1.clickCard(context.raddusHoldosFinalCommand);
+                context.player2.clickCard(context.raddusHoldosFinalCommand);
+                context.player2.clickCard(context.devastatorInescapable);
+                expect(context.raddusHoldosFinalCommand.zoneName).toBe('discard');
+                expect(context.devastatorInescapable.damage).toBe(9);
             });
         });
     });
