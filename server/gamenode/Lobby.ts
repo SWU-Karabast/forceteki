@@ -38,7 +38,7 @@ export interface RematchRequest {
 
 export class Lobby {
     private readonly _id: string;
-    private readonly _name: string;
+    private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
     private readonly gameChat: GameChat;
@@ -66,7 +66,7 @@ export class Lobby {
             `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
         );
         this._id = uuid();
-        this._name = lobbyName;
+        this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat();
         this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
@@ -92,7 +92,7 @@ export class Lobby {
     public getLobbyState(): any {
         return {
             id: this._id,
-            lobbyName: this._name,
+            lobbyName: this._lobbyName,
             users: this.users.map((u) => ({
                 id: u.id,
                 username: u.username,
