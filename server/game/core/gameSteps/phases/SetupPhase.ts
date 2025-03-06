@@ -50,8 +50,8 @@ export class SetupPhase extends Phase {
                     startingHandSize += value.amount;
                 });
             }
-            player.drawCardsToHand(startingHandSize);
             player.shuffleDeck();
+            player.drawCardsToHand(startingHandSize);
         }
     }
 }
