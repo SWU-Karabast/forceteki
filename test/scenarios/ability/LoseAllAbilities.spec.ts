@@ -512,7 +512,7 @@ describe('Lose All Abilities', function() {
             });
         });
 
-        describe('some meta-relavant cases worth covering:', function() {
+        describe('Some meta-relavant and edge cases worth covering:', function() {
             beforeEach(async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -539,11 +539,7 @@ describe('Lose All Abilities', function() {
                     },
                     player2: {
                         hand: [
-                            // 'unshakeable-will',
-                            // 'supreme-leader-snoke#shadow-ruler',
-                            // 'satine-kryze#committed-to-peace',
-                            // 'change-of-heart',
-                            // 'takedown'
+                            'takedown'
                         ],
                         groundArena: [
                             'consular-security-force',
@@ -638,6 +634,30 @@ describe('Lose All Abilities', function() {
 
                 expect(context.devastator).toBeInZone('deck');
                 expect(context.maKlounkee).toBeInZone('deck');
+            });
+
+            it('can remove a bounty from a stolen unit', function() {
+                const { context } = contextRef;
+
+                // Play traitorous to steal Val
+                context.player1.clickCard(context.traitorous);
+                context.player1.clickCard(context.val);
+                context.player2.passAction();
+
+                // Attack with Kazuda to remove Val's abilities
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickCard(context.consularSecurityForce);
+                context.player1.clickCard(context.val);
+                context.player1.clickPrompt('Done');
+
+                // Player 2 defeats Val with takedown
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.val);
+
+                // No abilities to resolve
+                expect(context.player2).not.toHaveExactPromptButtons(['You', 'Opponent']);
+
+                context.moveToRegroupPhase();
             });
         });
     });
