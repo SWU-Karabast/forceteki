@@ -130,7 +130,8 @@ import type { ISelectPlayerProperties } from './SelectPlayerSystem';
 import { SelectPlayerSystem } from './SelectPlayerSystem';
 import type { ICardRoundLastingEffectProperties } from './CardRoundLastingEffectSystem';
 import { CardRoundLastingEffectSystem } from './CardRoundLastingEffectSystem';
-
+import type { IFlipAndAttachLeaderPilotProperties } from './FlipAndAttachPilotLeaderSystem';
+import { FlipAndAttachPilotLeaderSystem } from './FlipAndAttachPilotLeaderSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -232,6 +233,9 @@ export function excessDamage<TContext extends AbilityContext = AbilityContext>(p
 // }
 export function exhaust<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IExhaustSystemProperties, TContext> = {}) {
     return new ExhaustSystem<TContext>(propertyFactory);
+}
+export function flipAndAttachPilotLeader<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IFlipAndAttachLeaderPilotProperties, TContext>) {
+    return new FlipAndAttachPilotLeaderSystem<TContext>(propertyFactory);
 }
 export function flipDoubleSidedLeader<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IFlipDoubleSidedLeaderProperties, TContext> = {}) {
     return new FlipDoubleSidedLeaderSystem<TContext>(propertyFactory);
