@@ -14,6 +14,7 @@ import * as Helpers from '../core/utils/Helpers';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { KeywordNameOrProperties } from '../Interfaces';
+import { KeywordInstance } from '../core/ability/KeywordInstance';
 
 export interface IAttackLastingEffectProperties<TContext extends AbilityContext = AbilityContext> {
     condition?: (attack: Attack, context: TContext) => boolean;
@@ -241,6 +242,14 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     private attackerGainsSaboteur(attackTarget: IAttackableCard, context: TContext, additionalProperties?: any) {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        // If the attacker is blanked or has lost Saboteur, it cannot gain Saboteur
+        const saboteur = new KeywordInstance(KeywordName.Saboteur, properties.attacker);
+        if (saboteur.isBlank) {
+            return false;
+        }
+
         return this.attackerGains(attackTarget, context, additionalProperties, (effect) => {
             if (effect.impl.type !== EffectName.GainKeyword) {
                 return false;
