@@ -21,7 +21,8 @@ describe('Lose All Abilities', function() {
                             'red-three#unstoppable',
                             'general-krell#heartless-tactician',
                             'entrenched',
-                            'attack-pattern-delta'
+                            'attack-pattern-delta',
+                            'shadowed-intentions'
                         ],
                         groundArena: [
                             'academy-defense-walker',
@@ -40,7 +41,8 @@ describe('Lose All Abilities', function() {
                             'unshakeable-will',
                             'supreme-leader-snoke#shadow-ruler',
                             'satine-kryze#committed-to-peace',
-                            'change-of-heart'
+                            'change-of-heart',
+                            'takedown'
                         ],
                         groundArena: [
                             'consular-security-force'
@@ -205,10 +207,28 @@ describe('Lose All Abilities', function() {
             it('cannot gain new constant abilities from upgrades while the effect is active', function() {
                 const { context } = contextRef;
 
-                // Use Kazuda's ability on Grogu
+                // Deploy Kazuda
                 context.player1.clickCard(context.kazudaXiono);
-                context.player1.clickPrompt('Select a friendly unit');
+                context.player1.clickPrompt('Deploy Kazuda Xiono');
+                context.player2.passAction();
+
+                // Attach Shadowed Intentions to Contracted Hunter to give it a constant ability
+                context.player1.clickCard(context.shadowedIntentions);
+                context.player1.clickCard(context.contractedHunter);
+                context.player2.passAction();
+
+                // Attack with Kazuda to remove Grogu and Contracted Hunter's abilities
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickCard(context.consularSecurityForce);
                 context.player1.clickCard(context.grogu);
+                context.player1.clickCard(context.contractedHunter);
+                context.player1.clickPrompt('Done');
+
+                // Player 2 plays Takedown to defeat Contracted Hunter because he is not protected by Shadowed Intentions
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.contractedHunter);
+
+                expect(context.contractedHunter).toBeInZone('discard');
 
                 // Play Squad Support on Grogu to attempt to give it a constant ability
                 context.player1.clickCard(context.squadSupport);

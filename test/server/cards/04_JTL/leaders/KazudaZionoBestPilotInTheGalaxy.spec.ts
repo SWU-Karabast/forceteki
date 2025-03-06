@@ -20,7 +20,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
 
             // FYI: More extensive "lose all abilities" tests can be found in LoseAllAbilities.spec.ts
 
-            it('removes all abilities from a friendly unit for the round, and allows the controller to take another action', function() {
+            it('can select a friendly unit to lose all abilities for the round, and allows the controller to take another action', function() {
                 const { context } = contextRef;
 
                 // Use Kazuda's ability on Contracted Hunter
@@ -85,28 +85,150 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
             });
         });
 
-        describe('Kazuda\'s deployed unit ability', function() {
+        describe('Kazuda\'s deployed unit on-attack ability', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: { card: 'kazuda-xiono#best-pilot-in-the-galaxy', deployed: true },
-                        hand: ['heroic-sacrifice'],
+                        base: { card: 'dagobah-swamp', damage: 10 },
+                        hand: ['heroic-sacrifice', 'devotion'],
                         groundArena: [
                             'contracted-hunter',
                             'k2so#cassians-counterpart'
                         ],
                         spaceArena: [
                             'fireball#an-explosion-with-wings',
-                            'millennium-falcon#piece-of-junk'
+                            'frontline-shuttle'
                         ]
                     },
                     player2: {
-                        hand: ['superlaser-blast'],
+                        hand: ['takedown'],
                         groundArena: ['consular-security-force'],
                         spaceArena: ['tieln-fighter']
                     }
                 });
+            });
+
+            it('can select multiple units to lose all abilities for the round', function() {
+                const { context } = contextRef;
+
+                // Initiate an attack with Kazuda
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                expect(context.player1).toHavePrompt('Choose friendly units that will lose all abilities for this round');
+                expect(context.player1).toHaveExactPromptButtons(['Done', 'Choose no target']);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.contractedHunter,
+                    context.k2so,
+                    context.kazudaXiono,
+                    context.fireball,
+                    context.frontlineShuttle
+                ]);
+
+                // Select Contracted Hunter and Fireball
+                context.player1.clickCard(context.contractedHunter);
+                context.player1.clickCard(context.fireball);
+                context.player1.clickPrompt('Done');
+
+                // Trigger K2SO's ability to ensure it is still active
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.k2so);
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Deal 3 damage to opponent\'s base',
+                    'The opponent discards a card'
+                ]);
+                context.player1.clickPrompt('Deal 3 damage to opponent\'s base');
+
+                // Move to the regroup phase
+                context.moveToRegroupPhase();
+
+                // Check that Contracted Hunter and Fireball's triggers did not fire
+                expect(context.contractedHunter).toBeInZone('groundArena');
+                expect(context.fireball.damage).toBe(0);
+
+                // Move to the regroup phase of the next round
+                context.nextPhase();
+                context.moveToRegroupPhase();
+
+                // Resolve simultaneous triggers
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Defeat this unit',
+                    'Deal 1 damage to this unit.',
+                ]);
+                context.player1.clickPrompt('Defeat this unit');
+
+                // Contracted Hunter is defeated because his triggered ability is back
+                expect(context.contractedHunter).toBeInZone('discard');
+                expect(context.fireball.damage).toBe(1);
+            });
+
+            it('can select himself to remove his own abilities for the round', function() {
+                const { context } = contextRef;
+
+                // Play Devotion on Kazuda to give him Restore 2
+                context.player1.clickCard(context.devotion);
+                context.player1.clickCard(context.kazudaXiono);
+
+                context.player2.passAction();
+
+                // Initiate an attack
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickCard(context.p2Base);
+
+                // Choose trigger order
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Choose any number of friendly units',
+                    'Restore 2'
+                ]);
+
+                // Resolve his ability first
+                context.player1.clickPrompt('Choose any number of friendly units');
+                expect(context.player1).toHavePrompt('Choose friendly units that will lose all abilities for this round');
+
+                // Remove his own abilities (among others)
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickCard(context.contractedHunter);
+                context.player1.clickCard(context.fireball);
+                context.player1.clickPrompt('Done');
+
+                // No damage was restored because Kazuda lost his abilities
+                expect(context.p1Base.damage).toBe(10);
+
+                context.player2.passAction();
+
+                // Use Frontline Shuttle's ability to attack with Kazuda again
+                context.player1.clickCard(context.frontlineShuttle);
+                context.player1.clickPrompt('Attack with a unit, even if it’s exhausted. It can’t attack bases for this attack.');
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // No on-attack trigger, and still no restore
+                expect(context.player1).not.toHaveExactPromptButtons([
+                    'Choose any number of friendly units',
+                    'Restore 2'
+                ]);
+
+                expect(context.p1Base.damage).toBe(10);
+
+                // Move to next action phase
+                context.moveToNextActionPhase();
+
+                // Attack with Kazuda, and all his abilities are back
+                context.player1.clickCard(context.kazudaXiono);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Choose any number of friendly units',
+                    'Restore 2'
+                ]);
+                context.player1.clickPrompt('Restore 2');
+                context.player1.clickPrompt('Done');
+
+                // Base HP is restored by 2
+                expect(context.p1Base.damage).toBe(8);
             });
 
             it('can select no units to lose abilities', function() {

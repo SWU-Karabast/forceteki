@@ -11,6 +11,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
     }
 
     protected override setupLeaderSideAbilities() {
+        this.addPilotDeploy();
         this.addActionAbility({
             title: 'Select a friendly unit',
             cost: AbilityHelper.costs.exhaustSelf(),
