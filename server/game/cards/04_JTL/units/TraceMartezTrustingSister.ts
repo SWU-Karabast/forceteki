@@ -21,7 +21,7 @@ export default class TraceMartezTrustingSister extends NonLeaderUnitCard {
                 amountToDistribute: 2,
                 controller: WildcardRelativePlayer.Any,
                 canChooseNoTargets: true,
-                canDistributeLess: true,
+                canDistributeLess: false,
                 cardCondition: (card) => card.isUnit()
             })
         });
