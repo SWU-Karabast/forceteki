@@ -31,6 +31,7 @@ describe('Anakin Skywalker, I\'ll try spinning', function () {
                 context.player1.clickCard(context.p2Base);
                 context.player1.clickPrompt('Return Anakin Skywalker to your hand');
                 expect(context.anakinSkywalker).toBeInZone('hand');
+                expect(context.escortSkiff).toBeInZone('groundArena');
             });
 
             it('may remain attached after completing an attack while piloting', function () {
