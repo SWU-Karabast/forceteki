@@ -285,8 +285,6 @@ describe('Lose All Abilities', function() {
             it('cannot gain new keyword abilities from events while the effect is active', function() {
                 const { context } = contextRef;
 
-                pending('Need to tweak the way keywords are blanked before this will pass');
-
                 // Player 2 gives Consular Security Force Sentinel
                 context.player1.passAction();
                 context.player2.clickCard(context.unshakeableWill);
@@ -303,6 +301,11 @@ describe('Lose All Abilities', function() {
 
                 // Academy Defense Walker cannot attack the base because it does not have Saboteur
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
+
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // Defender has 7 damage because Academy Defense Walker still got the attack buff
+                expect(context.consularSecurityForce.damage).toBe(7);
             });
 
             it('cannot gain new triggered abilities from events while the effect is active', function() {
