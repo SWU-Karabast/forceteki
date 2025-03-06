@@ -50,7 +50,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
             return false;
         }
 
-        if (!properties.upgrade.canAttach(card, this.getFinalController(properties, context))) {
+        if (!properties.upgrade.canAttach(card, context, this.getFinalController(properties, context))) {
             return false;
         } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
             return false;

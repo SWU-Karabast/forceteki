@@ -838,7 +838,7 @@ class Player extends GameObject {
                 if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
                     const upgrade = context.source;
                     return context.game.getArenaUnits()
-                        .filter((unit) => upgrade.canAttach(unit))
+                        .filter((unit) => upgrade.canAttach(unit, context))
                         .some((unit) => adjuster.canAdjust(context.playType, upgrade, context, unit, penaltyAspect));
                 }
                 return adjuster.canAdjust(context.playType, context.source, context, context.target, penaltyAspect);

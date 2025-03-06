@@ -11,7 +11,7 @@ export default class ShadowedIntentions extends UpgradeCard {
     }
 
     protected override setupCardAbilities() {
-        this.addConstantAbilityTargetingAttached({
+        this.addGainConstantAbilityTargetingAttached({
             title: 'This unit can\'t be captured, defeated, or returned to its owner\'s hand by enemy card abilities',
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.cardCannot({
