@@ -155,7 +155,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             mustSelect: mustSelect,
             buttons: buttons,
             source: context.source,
-            selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
+            selectCardMode: properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             onCancel: properties.cancelHandler,
             onSelect: (cards) => {
                 this.addTargetToContext(cards, context, properties.name);
