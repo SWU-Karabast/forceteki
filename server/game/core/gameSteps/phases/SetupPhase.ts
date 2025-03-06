@@ -4,7 +4,7 @@ import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ResourcePrompt } from '../prompts/ResourcePrompt';
 import { MulliganPrompt } from '../prompts/MulliganPrompt';
-import { PhaseName, PromptType } from '../../Constants';
+import { EffectName, PhaseName, PromptType } from '../../Constants';
 
 export class SetupPhase extends Phase {
     public constructor(game: Game) {
@@ -44,8 +44,14 @@ export class SetupPhase extends Phase {
     private drawStartingHands() {
         // TODO: convert these to use systems
         for (const player of this.game.getPlayers()) {
+            let startingHandSize = 6;
+            if (player.base.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
+                player.base.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
+                    startingHandSize += value.amount;
+                });
+            }
+            player.drawCardsToHand(startingHandSize);
             player.shuffleDeck();
-            player.drawCardsToHand(6);
         }
     }
 }
