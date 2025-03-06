@@ -38,6 +38,7 @@ interface ICardCheckData {
     banned: boolean;
     implemented: boolean;
     minDeckSizeModifier?: number;
+    maxCopiesOfCardOverride?: number;
 }
 
 export class DeckValidator {
@@ -69,7 +70,8 @@ export class DeckValidator {
                 set: EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0],
                 banned: bannedCards.has(cardData.id),
                 implemented: !Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id),
-                minDeckSizeModifier: minDeckSizeModifier.get(cardData.id)
+                minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
+                maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
             };
 
             this.cardData.set(cardData.id, cardCheckData);
@@ -253,10 +255,7 @@ export class DeckValidator {
     }
 
     protected checkMaxCopiesOfCard(card: ISwuDbCardEntry, cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
-        let maxCount = 3;
-        if (maxCopiesOfCards.has(card.id)) {
-            maxCount = maxCopiesOfCards.get(card.id);
-        }
+        const maxCount = cardData.maxCopiesOfCardOverride ?? 3;
 
         if (card.count > maxCount) {
             failures[DeckValidationFailureReason.TooManyCopiesOfCard].push({
