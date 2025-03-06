@@ -32,7 +32,7 @@ describe('Turbolaser Salvo', function() {
             expect(context.cartelSpacer.upgrades.length).toBe(0);
         });
 
-        it('Turbolaser Salvo should choose an Arena and then do nothing if the player controls no Space units', async function() {
+        it('Turbolaser Salvo should do nothing if the player controls no Space units', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -79,6 +79,28 @@ describe('Turbolaser Salvo', function() {
 
             expect(context.blackSunStarfighter).toBeInZone('discard');
             expect(context.concordDawnInterceptors).toBeInZone('spaceArena');
+        });
+
+        it('Turbolaser Salvo should be able to choose an empty arena', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['turbolaser-salvo'],
+                    groundArena: ['battlefield-marine'],
+                    spaceArena: ['avenger#hunting-star-destroyer']
+                },
+                player2: {
+                    spaceArena: ['black-sun-starfighter'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.turbolaserSalvo);
+            expect(context.player1).toHaveEnabledPromptButtons(['Ground', 'Space']);
+            context.player1.clickPrompt('Ground');
+
+            expect(context.player2).toBeActivePlayer();
         });
 
         it('Turbolaser Salvo should choose not deal damage to units in the non-chosen arena', async function() {
