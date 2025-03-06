@@ -88,8 +88,8 @@ describe('Nabat Village', function() {
                 context.player2.clickPrompt('Keep');
 
                 // Resource
-                context.player1.clickCard(context.timelyIntervention);
-                context.player1.clickCard(context.concordDawnInterceptors);
+                context.player1.clickCard(context.player1.hand[0]);
+                context.player1.clickCard(context.player1.hand[1]);
                 context.player1.clickPrompt('Done');
 
                 context.player2.clickCard(context.player2.hand[0]);
