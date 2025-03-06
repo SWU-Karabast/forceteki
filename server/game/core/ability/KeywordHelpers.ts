@@ -1,4 +1,5 @@
 import type { IKeywordProperties } from '../../Interfaces';
+import type { Card } from '../card/Card';
 import type { PlayType } from '../Constants';
 import { Aspect, KeywordName } from '../Constants';
 import * as Contract from '../utils/Contract';
@@ -6,7 +7,13 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import { BountyKeywordInstance, KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
 import type { PlayCardAction } from './PlayCardAction';
 
-export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, cardName: string, pilotText: string): KeywordInstance[] {
+export function parseKeywords(
+    card: Card,
+    expectedKeywordsRaw: string[],
+    cardText: string,
+    cardName: string,
+    pilotText: string
+): KeywordInstance[] {
     const expectedKeywords = EnumHelpers.checkConvertToEnum(expectedKeywordsRaw, KeywordName);
 
     const keywords: KeywordInstance[] = [];
@@ -37,7 +44,7 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
             }
         } else { // default case is a keyword with no params
             if (isKeywordEnabled(keywordName, cardText, cardName)) {
-                keywords.push(new KeywordInstance(keywordName));
+                keywords.push(new KeywordInstance(keywordName, card));
             }
         }
     }
@@ -45,8 +52,7 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
     return keywords;
 }
 
-// "Gain Coordinate" and "gain Exploit" are not yet implemented
-export function keywordFromProperties(properties: IKeywordProperties) {
+export function keywordFromProperties(properties: IKeywordProperties, card?: Card) {
     switch (properties.keyword) {
         case KeywordName.Restore:
         case KeywordName.Raid:
@@ -65,7 +71,7 @@ export function keywordFromProperties(properties: IKeywordProperties) {
         case KeywordName.Saboteur:
         case KeywordName.Sentinel:
         case KeywordName.Shielded:
-            return new KeywordInstance(properties.keyword);
+            return new KeywordInstance(properties.keyword, card);
 
         default:
             throw new Error(`Keyword '${(properties as any).keyword}' is not implemented yet`);

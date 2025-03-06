@@ -216,12 +216,19 @@ export class Card extends OngoingEffectSource {
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
         // TODO: add validation that if the card has the Piloting trait, the right cardData properties are set
-        this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
+        this.printedKeywords = KeywordHelpers.parseKeywords(
+            this,
+            cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
-            this.internalName, cardData.pilotText);
+            this.internalName,
+            cardData.pilotText
+        );
+
+        // repeat keyword parsing for pilot ability text if present
         if (this.printedType === CardType.Leader) {
             this.printedKeywords.push(
                 ...KeywordHelpers.parseKeywords(
+                    this,
                     cardData.keywords,
                     cardData.text,
                     this.internalName,

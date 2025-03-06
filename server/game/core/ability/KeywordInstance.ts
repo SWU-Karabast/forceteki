@@ -1,14 +1,25 @@
 import type { IAbilityPropsWithType, ITriggeredAbilityBaseProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
-import type { Aspect, KeywordName } from '../Constants';
-import type { LoseKeyword } from '../ongoingEffect/effectImpl/LoseKeyword';
+import { EffectName, type Aspect, type KeywordName } from '../Constants';
 import * as Contract from '../utils/Contract';
 
 export class KeywordInstance {
-    private blankingEffects: LoseKeyword[] = [];
+    public readonly name: KeywordName;
+
+    private readonly card?: Card;
 
     public get isBlank() {
-        return this.blankingEffects.length > 0;
+        // TODO THIS PR: remove and make this.card not optional
+        if (this.card == null) {
+            return false;
+        }
+
+        if (this.card.hasOngoingEffect(EffectName.Blank)) {
+            return true;
+        }
+
+        const blankedKeywords: string[] = this.card.getOngoingEffectValues(EffectName.LoseKeyword);
+        return blankedKeywords.includes(this.name);
     }
 
     /*
@@ -20,9 +31,9 @@ export class KeywordInstance {
         return true;
     }
 
-    public constructor(
-        public readonly name: KeywordName
-    ) {
+    public constructor(name: KeywordName, card?: Card) {
+        this.name = name;
+        this.card = card;
     }
 
     public hasNumericValue(): this is KeywordWithNumericValue {
@@ -39,14 +50,6 @@ export class KeywordInstance {
 
     public valueOf() {
         return this.name;
-    }
-
-    public registerBlankingEffect(blankingEffect: LoseKeyword) {
-        this.blankingEffects.push(blankingEffect);
-    }
-
-    public unregisterBlankingEffect(blankingEffect: LoseKeyword) {
-        this.blankingEffects = this.blankingEffects.filter((effect) => effect !== blankingEffect);
     }
 }
 
