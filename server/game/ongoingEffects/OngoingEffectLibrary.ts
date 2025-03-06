@@ -14,10 +14,8 @@ import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import type { IAbilityPropsWithType, IKeywordProperties, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
-import * as KeywordHelpers from '../core/ability/KeywordHelpers';
 import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
-import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
 import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import { playerCannot } from './PlayerCannot';
@@ -109,17 +107,16 @@ export = {
         switch (typeof keywordOrKeywordProperties) {
             case 'string':
                 return OngoingEffectBuilder.card.static(EffectName.GainKeyword,
-                    KeywordHelpers.keywordFromProperties({ keyword: keywordOrKeywordProperties }));
+                    { keyword: keywordOrKeywordProperties });
             case 'function':
                 return OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword,
-                    (target, context) => KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties(target, context)));
+                    (target, context) => keywordOrKeywordProperties(target, context));
             default:
-                return OngoingEffectBuilder.card.static(EffectName.GainKeyword,
-                    KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties));
+                return OngoingEffectBuilder.card.static(EffectName.GainKeyword, keywordOrKeywordProperties);
         }
     },
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
-    loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, new LoseKeyword(keyword)),
+    loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),

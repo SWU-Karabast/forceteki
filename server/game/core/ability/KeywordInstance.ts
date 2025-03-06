@@ -1,14 +1,20 @@
 import type { IAbilityPropsWithType, ITriggeredAbilityBaseProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
-import type { Aspect, KeywordName } from '../Constants';
-import type { LoseKeyword } from '../ongoingEffect/effectImpl/LoseKeyword';
+import { EffectName, type Aspect, type KeywordName } from '../Constants';
 import * as Contract from '../utils/Contract';
 
 export class KeywordInstance {
-    private blankingEffects: LoseKeyword[] = [];
+    public readonly name: KeywordName;
+
+    private readonly card: Card;
 
     public get isBlank() {
-        return this.blankingEffects.length > 0;
+        if (this.card.hasOngoingEffect(EffectName.Blank)) {
+            return true;
+        }
+
+        const blankedKeywords: string[] = this.card.getOngoingEffectValues(EffectName.LoseKeyword);
+        return blankedKeywords.includes(this.name);
     }
 
     /*
@@ -20,9 +26,9 @@ export class KeywordInstance {
         return true;
     }
 
-    public constructor(
-        public readonly name: KeywordName
-    ) {
+    public constructor(name: KeywordName, card: Card) {
+        this.name = name;
+        this.card = card;
     }
 
     public hasNumericValue(): this is KeywordWithNumericValue {
@@ -40,22 +46,15 @@ export class KeywordInstance {
     public valueOf() {
         return this.name;
     }
-
-    public registerBlankingEffect(blankingEffect: LoseKeyword) {
-        this.blankingEffects.push(blankingEffect);
-    }
-
-    public unregisterBlankingEffect(blankingEffect: LoseKeyword) {
-        this.blankingEffects = this.blankingEffects.filter((effect) => effect !== blankingEffect);
-    }
 }
 
 export class KeywordWithNumericValue extends KeywordInstance {
     public constructor(
         name: KeywordName,
+        card: Card,
         public readonly value: number
     ) {
-        super(name);
+        super(name, card);
     }
 
     public override hasNumericValue(): this is KeywordWithNumericValue {
@@ -66,11 +65,12 @@ export class KeywordWithNumericValue extends KeywordInstance {
 export class KeywordWithCostValues extends KeywordInstance {
     public constructor(
         name: KeywordName,
+        card: Card,
         public readonly cost: number,
         public readonly aspects: Aspect[],
-        public readonly additionalCosts: boolean
+        public readonly additionalCosts: boolean,
     ) {
-        super(name);
+        super(name, card);
     }
 
     public override hasCostValue(): this is KeywordWithCostValues {
@@ -98,8 +98,8 @@ export class BountyKeywordInstance<TSource extends Card = Card> extends KeywordI
     }
 
     /** @param abilityProps Optional, but if not provided must be provided via `abilityProps` */
-    public constructor(name: KeywordName, abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'> = null) {
-        super(name);
+    public constructor(name: KeywordName, card: Card, abilityProps: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'> = null) {
+        super(name, card);
         this._abilityProps = abilityProps;
     }
 
@@ -131,8 +131,8 @@ export class KeywordWithAbilityDefinition<TSource extends Card = Card> extends K
     }
 
     /** @param abilityProps Optional, but if not provided must be provided via `abilityProps` */
-    public constructor(name: KeywordName, abilityProps: IAbilityPropsWithType<TSource> = null) {
-        super(name);
+    public constructor(name: KeywordName, card: Card, abilityProps: IAbilityPropsWithType<TSource> = null) {
+        super(name, card);
         this._abilityProps = abilityProps;
     }
 
