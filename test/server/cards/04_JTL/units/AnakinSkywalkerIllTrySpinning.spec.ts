@@ -97,6 +97,24 @@ describe('Anakin Skywalker, I\'ll try spinning', function () {
                 expect(context.anakinSkywalker).toBeInZone('groundArena');
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should not trigger it another unit is attacking', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.anakinSkywalker);
+                context.player1.clickPrompt('Play Anakin Skywalker with Piloting');
+                expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.escortSkiff]);
+                context.player1.clickCard(context.escortSkiff);
+                expect(context.escortSkiff).toHaveExactUpgradeNames([context.anakinSkywalker.internalName]);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.greenSquadronAwing);
+                context.player1.clickCard(context.p2Base);
+                expect(context.anakinSkywalker).toBeInZone('groundArena');
+                expect(context.escortSkiff).toBeInZone('groundArena');
+                expect(context.greenSquadronAwing).toBeInZone('spaceArena');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });
