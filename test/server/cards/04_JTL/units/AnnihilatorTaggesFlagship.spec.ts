@@ -243,6 +243,52 @@ describe('Annihilator, Tagge\'s Flagship', function() {
 
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should be able to choose not to discard some card from the deck', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['annihilator#tagges-flagship'],
+                        spaceArena: ['concord-dawn-interceptors'],
+                        deck: ['battlefield-marine']
+                    },
+                    player2: {
+                        leader: { card: 'boba-fett#any-methods-necessary', deployed: true },
+                        hand: ['boba-fett#disintegrator', 'boba-fett#feared-bounty-hunter', 'cartel-turncoat'],
+                        deck: ['boba-fett#disintegrator', 'boba-fett#feared-bounty-hunter', 'cartel-spacer']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const player2LeaderBoba = context.player2.findCardByName('boba-fett#any-methods-necessary', 'groundArena');
+                const inHandBoba = context.player2.findCardByName('boba-fett#disintegrator', 'hand');
+                const inHandPilotBoba = context.player2.findCardByName('boba-fett#feared-bounty-hunter', 'hand');
+                const inDeckBoba = context.player2.findCardByName('boba-fett#disintegrator', 'deck');
+                const inDeckPilotBoba = context.player2.findCardByName('boba-fett#feared-bounty-hunter', 'deck');
+
+                context.player1.clickCard(context.annihilator);
+                context.player1.clickCard(player2LeaderBoba);
+
+                context.player1.clickPrompt('Done');
+
+                expect(inHandBoba).toBeInZone('discard');
+                expect(inHandPilotBoba).toBeInZone('discard');
+
+                // Player sees the opponent's deck
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [inDeckBoba, inDeckPilotBoba],
+                    invalid: [context.cartelSpacer]
+                });
+
+                context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
+                expect(context.player1).toHaveEnabledPromptButton('Done');
+                context.player1.clickPrompt('Done');
+
+                expect(inDeckBoba).toBeInZone('discard');
+                expect(inDeckPilotBoba).toBeInZone('deck');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
 
         it('Annihilator\'s when defeated ability should defeat an enemy unit and discard all cards with the same name from the opponent\'s hand and deck', async function() {
@@ -269,16 +315,17 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             const inDeckBoba = context.player2.findCardByName('boba-fett#disintegrator', 'deck');
             const inDeckPilotBoba = context.player2.findCardByName('boba-fett#feared-bounty-hunter', 'deck');
 
+            // Player 2 defeats Annihilator
             context.player1.passAction();
             context.player2.clickCard(context.rivalsFall);
             context.player2.clickCard(context.annihilator);
 
-            expect(context.player1).toHavePrompt('');
-            expect(context.player1).toBeAbleToSelectExactly([player2LeaderBoba, context.wampa]);
+            // Choose player 2 Boba Fett leader
+            expect(context.player1).toBeAbleToSelectExactly([player2LeaderBoba, context.wampa, inPlayBoba]);
             context.player1.clickCard(player2LeaderBoba);
             expect(player2LeaderBoba).toBeInZone('base');
 
-            // Player sees the opponent's hand
+            // Discard Bobas from hand
             expect(context.player1).toHaveEnabledPromptButton('Done');
             expect(context.player1).toHaveExactViewableDisplayPromptCards([
                 inHandBoba,
@@ -290,14 +337,11 @@ describe('Annihilator, Tagge\'s Flagship', function() {
             expect(inHandBoba).toBeInZone('discard');
             expect(inHandPilotBoba).toBeInZone('discard');
 
-            // Player sees the opponent's deck
+            // Search deck for Bobas
             expect(context.player1).toHaveExactDisplayPromptCards({
                 selectable: [inDeckBoba, inDeckPilotBoba],
                 invalid: [context.cartelSpacer]
             });
-
-            expect(context.player1).toHaveEnabledPromptButton('Take nothing');
-            expect(context.player2).toHavePrompt('Waiting for opponent to use Annihilator');
 
             context.player1.clickCardInDisplayCardPrompt(inDeckBoba);
             expect(context.player1).toHaveEnabledPromptButton('Done');
@@ -307,10 +351,9 @@ describe('Annihilator, Tagge\'s Flagship', function() {
 
             expect(inDeckBoba).toBeInZone('discard');
             expect(inDeckPilotBoba).toBeInZone('discard');
-
             expect(inPlayBoba).toBeInZone('groundArena');
 
-            expect(context.player2).toBeActivePlayer();
+            expect(context.player1).toBeActivePlayer();
         });
     });
 });
