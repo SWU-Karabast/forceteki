@@ -60,12 +60,22 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {
         super.updateEvent(event, card, context, additionalProperties);
         event.setContingentEventsGenerator(() => {
+            const properties = this.generatePropertiesFromContext(context);
             const entersPlayEvent = new GameEvent(EventName.OnUnitEntersPlay, context, {
                 player: context.player,
-                card
+                card: properties.leaderPilotCard
+            });
+            const attachUpgradeEvent = new GameEvent(EventName.OnUpgradeAttached, context, {
+                parentCard: card,
+                upgradeCard: properties.leaderPilotCard,
+                newController: context.player,
             });
 
-            return [entersPlayEvent];
+
+            return [
+                entersPlayEvent,
+                attachUpgradeEvent,
+            ];
         });
     }
 }

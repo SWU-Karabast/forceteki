@@ -22,7 +22,7 @@ export default class LegalAuthority extends UpgradeCard {
             title: 'Attached unit captures an enemy non-leader unit with less power than it',
             targetResolver: {
                 controller: RelativePlayer.Opponent,
-                cardCondition: (card, context) => card.isUnit() && card.getPower() <= context.source.parentCard.getPower(),
+                cardCondition: (card, context) => card.isUnit() && card.getPower() < context.source.parentCard.getPower(),
                 immediateEffect: AbilityHelper.immediateEffects.capture((context) => ({
                     captor: context.source.parentCard
                 }))

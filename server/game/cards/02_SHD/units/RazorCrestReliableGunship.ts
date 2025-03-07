@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 
-export default class RazorCrest extends NonLeaderUnitCard {
+export default class RazorCrestReliableGunship extends NonLeaderUnitCard {
     protected override getImplementationId () {
         return {
             id: '8142386948',

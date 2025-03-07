@@ -151,6 +151,12 @@ export type IReplacementEffectAbilityPropsWithType<TSource extends Card = Card> 
     type: AbilityType.ReplacementEffect;
 };
 
+/** Ability types with gain contdition */
+export type IConstantAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IConstantAbilityProps<TTarget> & IGainCondition<TSource>;
+export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
+export type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
+export type IActionAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
+
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
   IActionAbilityPropsWithType<TSource> |
