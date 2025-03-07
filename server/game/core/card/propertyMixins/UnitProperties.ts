@@ -408,6 +408,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return [];
             }
 
+            if (EnumHelpers.isUnitUpgrade(this.getType())) {
+                return this.pilotingTriggeredAbilities;
+            }
+
             let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
@@ -432,6 +436,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return [];
             }
 
+            if (EnumHelpers.isUnitUpgrade(this.getType())) {
+                return this.pilotingConstantAbilities;
+            }
+
             let constantAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingConstantAbilities : super.getConstantAbilities();
 
             // add any temporarily registered attack abilities from keywords
@@ -451,29 +459,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected override updateTriggeredAbilitiesForZone(from: ZoneName, to: ZoneName) {
-            let abilitiesToUpdate: TriggeredAbility[];
-
-            // if not piloting, just use default behavior
-            if (EnumHelpers.isArena(to)) {
-                abilitiesToUpdate = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : this.triggeredAbilities;
-            } else {
-                abilitiesToUpdate = this.pilotingTriggeredAbilities.concat(this.triggeredAbilities);
-            }
-
-            super.updateTriggeredAbilityEventsInternal(abilitiesToUpdate, from, to);
+            super.updateTriggeredAbilityEventsInternal(this.pilotingTriggeredAbilities.concat(this.triggeredAbilities), from, to);
         }
 
         protected override updateConstantAbilityEffects(from: ZoneName, to: ZoneName): void {
-            let abilitiesToUpdate: IConstantAbility[];
-
-            // if not piloting, just use default behavior
-            if (EnumHelpers.isArena(to)) {
-                abilitiesToUpdate = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingConstantAbilities : this.constantAbilities;
-            } else {
-                abilitiesToUpdate = this.pilotingConstantAbilities.concat(this.constantAbilities);
-            }
-
-            super.updateConstantAbilityEffectsInternal(abilitiesToUpdate, from, to, true);
+            super.updateConstantAbilityEffectsInternal(this.pilotingConstantAbilities.concat(this.constantAbilities), from, to, true);
         }
 
         /** Register / un-register the effects for any abilities from keywords */
