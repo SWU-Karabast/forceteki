@@ -21,7 +21,7 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
             targetResolver: {
                 mode: TargetMode.Select,
                 choices: (context) => ({
-                    ['Pay 2 resource']: AbilityHelper.immediateEffects.payResourceCost({
+                    ['Pay 2 resources']: AbilityHelper.immediateEffects.payResourceCost({
                         target: context.source.parentCard.owner,
                         amount: 2
                     }),
