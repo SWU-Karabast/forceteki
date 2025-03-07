@@ -2,6 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers.js';
 
 export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
     private unitsDefeatedThisPhaseWatcher: UnitsDefeatedThisPhaseWatcher;
@@ -35,7 +36,7 @@ export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
         this.addTriggeredAbility({
             title: 'When an opponent\'s unit is defeated, heal 1 from base',
             when: {
-                onCardDefeated: (event, context) => event.card.controller !== context.player
+                onCardDefeated: (event, context) => EnumHelpers.isUnit(event.lastKnownInformation.type) && event.card.controller !== context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.heal((context) => {
                 return { amount: 1, target: context.player.base };
