@@ -7,17 +7,12 @@ describe('Torpedo Barrage', function() {
                     hand: ['torpedo-barrage'],
                 },
                 player2: {
-                    groundArena: [{ card: 'wampa', upgrades: ['shield'] }, { card: 'boba-fett#disintegrator', upgrades: ['boba-fetts-armor'] }],
                     spaceArena: ['lurking-tie-phantom'],
                     hand: ['vanquish'],
                 }
             });
 
             const { context } = contextRef;
-
-            const reset = () => {
-                context.player1.moveCard(context.planetaryBombardment, 'hand');
-            };
 
             // Player 1 plays Torpedo Barrage and deals 5 indirect damage
             context.player1.clickCard(context.torpedoBarrage);
@@ -26,7 +21,7 @@ describe('Torpedo Barrage', function() {
             context.player1.clickPrompt('Opponent');
             expect(context.player2).toHavePrompt('Distribute 5 indirect damage among targets');
 
-            expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.lurkingTiePhantom, context.bobaFett, context.p2Base]);
+            expect(context.player2).toBeAbleToSelectExactly([context.lurkingTiePhantom, context.p2Base]);
             expect(context.player2).not.toHaveChooseNoTargetButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 4],
