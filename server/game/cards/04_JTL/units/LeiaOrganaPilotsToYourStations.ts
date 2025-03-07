@@ -13,6 +13,7 @@ export default class LeiaOrganaPilotsToYourStations extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
             title: 'Attack with a Pilot unit or a unit with a Pilot on it. It gets +1/+0 and gainsRestore 1 for this attack.',
+            optional: true,
             initiateAttack: {
                 attackerCondition: (card) => card.isUnit() && (card.hasSomeTrait(Trait.Pilot) || card.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot))),
                 attackerLastingEffects:

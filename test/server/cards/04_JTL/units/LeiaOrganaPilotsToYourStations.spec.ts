@@ -19,6 +19,7 @@ describe('Leia Organa, Pilots to your stations', function() {
 
             context.player1.clickCard(context.leiaOrgana);
             expect(context.player1).toBeAbleToSelectExactly([context.restoredArc170, context.escortSkiff, context.wingmanVictorThree]);
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.restoredArc170);
             context.player1.clickCard(context.p2Base);
             expect(context.p2Base.damage).toBe(4);
