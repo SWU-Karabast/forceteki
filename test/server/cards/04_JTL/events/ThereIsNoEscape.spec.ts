@@ -115,6 +115,41 @@ describe('There Is No Escape', function() {
             expect(context.kyloRen.exhausted).toBeTrue();
         });
 
+        it('Its ability does not affect a leader\'s leader-side abilities after they leave play', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['there-is-no-escape', 'rivals-fall'],
+                },
+                player2: {
+                    leader: { card: 'director-krennic#aspiring-to-authority', deployed: true },
+                    spaceArena: [{ card: 'ruthless-raider', damage: 2 }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Ensure Ruthless Raider has power buff from Krennic's ability
+            expect(context.ruthlessRaider.getPower()).toBe(5);
+
+            // Play There Is No Escape to remove Krennic's abilities
+            context.player1.clickCard(context.thereIsNoEscape);
+            context.player1.clickCard(context.directorKrennic);
+            context.player1.clickPrompt('Done');
+
+            // Ruthless Raider no longer has power buff
+            expect(context.ruthlessRaider.getPower()).toBe(4);
+
+            context.player2.passAction();
+
+            // Play Rivals Fall to defeat Krennic, returning him to leader position
+            context.player1.clickCard(context.rivalsFall);
+            context.player1.clickCard(context.directorKrennic);
+
+            // Ruthless Raider regains power buff because Krennic's leader-side ability is still active
+            expect(context.ruthlessRaider.getPower()).toBe(5);
+        });
+
         it('It allows the player to choose no targets, even if there are targets available.', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
