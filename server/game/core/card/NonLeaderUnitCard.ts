@@ -73,7 +73,6 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
         }
     }
 
-
     public override checkIsAttachable(): void {
         Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
     }

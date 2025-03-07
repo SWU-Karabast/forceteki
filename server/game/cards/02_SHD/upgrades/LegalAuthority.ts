@@ -3,6 +3,7 @@ import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import type Player from '../../../core/Player';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
 
 export default class LegalAuthority extends UpgradeCard {
     protected override getImplementationId() {
@@ -12,7 +13,7 @@ export default class LegalAuthority extends UpgradeCard {
         };
     }
 
-    public override canAttach(targetCard: Card, controller: Player): boolean {
+    public override canAttach(targetCard: Card, _context: AbilityContext, controller: Player): boolean {
         return targetCard.isUnit() && targetCard.controller === controller;
     }
 
@@ -21,7 +22,7 @@ export default class LegalAuthority extends UpgradeCard {
             title: 'Attached unit captures an enemy non-leader unit with less power than it',
             targetResolver: {
                 controller: RelativePlayer.Opponent,
-                cardCondition: (card, context) => card.isUnit() && card.getPower() <= context.source.parentCard.getPower(),
+                cardCondition: (card, context) => card.isUnit() && card.getPower() < context.source.parentCard.getPower(),
                 immediateEffect: AbilityHelper.immediateEffects.capture((context) => ({
                     captor: context.source.parentCard
                 }))
