@@ -15,15 +15,15 @@ export default class AnakinsSkywalkerIllTrySpinning extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Return this upgrade to its owner\'s hand',
             when: {
-                onAttackCompleted: (event, context) => event.attack.attacker.upgrades.filter((upgrade) => upgrade === context.source).length > 0
+                onAttackCompleted: (event, context) => event.attack.attacker === context.source.parentCard,
             },
             immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
                 amountOfChoices: 1,
                 choices: (context) => ({
-                    [`Return ${this.title} to your hand`]: AbilityHelper.immediateEffects.returnToHand({
+                    [`Return ${context.source.title} to your hand`]: AbilityHelper.immediateEffects.returnToHand({
                         target: context.source,
                     }),
-                    [`Keep ${this.title} attached`]: AbilityHelper.immediateEffects.noAction({
+                    [`Keep ${context.source.title} attached`]: AbilityHelper.immediateEffects.noAction({
                     })
                 })
             })
