@@ -25,22 +25,18 @@ export default class FinnOnTheRun extends NonLeaderUnitCard {
                         title: 'For this phase, if damage would be dealt to that unit, prevent 1 of that damage',
                         type: AbilityType.ReplacementEffect,
                         when: {
-                            onDamageDealt: (event, context) => {
-                                return event.card === context.source && !event.isIndirect;
-                            }
+                            onDamageDealt: (event, context) => event.card === context.source && !event.isIndirect
                         },
                         effect: 'Finn\'s ability prevents 1 damage to {1}',
                         effectArgs: (context) => [context.source],
                         replaceWith: {
-                            replacementImmediateEffect: new DamageSystem((context) => {
-                                return ({
-                                    type: context.event.type,
-                                    target: context.source,
-                                    amount: Math.max(context.event.amount - 1, 0),
-                                    source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
-                                    sourceAttack: context.event.damageSource.attack,
-                                });
-                            })
+                            replacementImmediateEffect: new DamageSystem((context) => ({
+                                type: context.event.type,
+                                target: context.source,
+                                amount: Math.max(context.event.amount - 1, 0),
+                                source: context.event.damageSource.type === DamageType.Ability ? context.event.damageSource.card : context.event.damageSource.damageDealtBy,
+                                sourceAttack: context.event.damageSource.attack,
+                            }))
                         },
                     })
                 })
