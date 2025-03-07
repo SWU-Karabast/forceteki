@@ -71,7 +71,7 @@ describe('In Debt To Crimson Dawn\'s attached triggered ability', function() {
             context.player1.claimInitiative();
 
             context.player2.clickCard(context.bravado);
-            context.player2.clickCard(context.frontierAtrt)
+            context.player2.clickCard(context.frontierAtrt);
 
             expect(context.player2).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust it']);
             context.player2.clickPrompt('Pay 2 resources');
