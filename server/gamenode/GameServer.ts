@@ -102,7 +102,7 @@ export class GameServer {
         const server = http.createServer(app);
 
         const corsOptions = {
-            origin: ['http://localhost:3000', 'https://beta.karabast.net'],
+            origin: ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'],
             methods: ['GET', 'POST'],
             credentials: true, // Allow cookies or authorization headers
         };
@@ -126,7 +126,7 @@ export class GameServer {
             perMessageDeflate: false,
             path: '/ws',
             cors: {
-                origin: ['http://localhost:3000', 'https://beta.karabast.net'],
+                origin: ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'],
                 methods: ['GET', 'POST']
             }
         });
