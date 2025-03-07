@@ -5,7 +5,8 @@ describe('Imprisoned', function() {
                 phase: 'action',
                 player1: {
                     hand: ['protector'],
-                    spaceArena: [{ card: 'avenger#hunting-star-destroyer', upgrades: ['imprisoned'] }]
+                    spaceArena: [{ card: 'avenger#hunting-star-destroyer', upgrades: ['imprisoned'] }],
+                    leader: { card: 'iden-versio#inferno-squad-commander', deployed: true }
                 },
                 player2: {
                     spaceArena: ['cartel-spacer'],
@@ -15,6 +16,7 @@ describe('Imprisoned', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.avenger);
+            expect(context.player1).toBeAbleToSelectExactly([context.avenger]);
             context.player1.clickCard(context.p2Base);
 
             expect(context.player2).toBeActivePlayer();
