@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardCardType } from '../../../core/Constants';
+import { WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class RebelliousHammerhead extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -15,8 +15,8 @@ export default class RebelliousHammerhead extends NonLeaderUnitCard {
             title: 'Deal damage to a unit equal to the number of cards in your hand',
             optional: true,
             targetResolver: {
+                controller: WildcardRelativePlayer.Any,
                 cardTypeFilter: WildcardCardType.Unit,
-                activePromptTitle: (context) => `Choose a unit to deal ${context.player.hand.length} damage`,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                     amount: context.player.hand.length
                 }))

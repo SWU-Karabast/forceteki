@@ -5,7 +5,7 @@ describe('Darth Vader, Scourge Of Squadrons', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['darth-vader#scourge-of-squadrons', 'survivors-gauntlet'],
+                        hand: ['darth-vader#scourge-of-squadrons'],
                         spaceArena: ['ruthless-raider']
                     },
                     player2: {
@@ -14,26 +14,59 @@ describe('Darth Vader, Scourge Of Squadrons', function() {
                 });
             });
 
-            it('should give restore 1 to the attached unit when played as a pilot', function() {
+            it('should deal 1 damage, if a unit is defeated this way it should deal 1 damage to a unit or base', function() {
                 const { context } = contextRef;
 
+                // Play Darth Vader with Piloting
                 context.player1.clickCard(context.darthVaderScourgeOfSquadrons);
                 context.player1.clickPrompt('Play Darth Vader with Piloting');
                 context.player1.clickCard(context.ruthlessRaider);
 
+                // Attack with attached unit
                 context.player2.passAction();
                 context.player1.clickCard(context.ruthlessRaider);
                 context.player1.clickCard(context.allianceXwing);
 
+                // Triggers first damage ability
                 expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.tielnFighter, context.ruthlessRaider]);
                 context.player1.clickCard(context.tielnFighter);
+
+                // Unit is defeated with ability
                 expect(context.tielnFighter).toBeInZone('discard');
                 expect(context.player1).toHavePassAbilityButton();
+
+                // Vader's ability can deal 1 damage to a unit or base
+                expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to a unit or base');
                 context.player1.clickPrompt('Trigger');
-                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.p1Base, context.ruthlessRaider]);
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.p1Base, context.ruthlessRaider, context.allianceXwing]);
                 context.player1.clickCard(context.p2Base);
+
                 expect(context.p2Base.damage).toBe(1);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should deal 1 damage, if that damage does not defeat a unit no extra damage is dealt by the ability', function() {
+                const { context } = contextRef;
+
+                // Play Darth Vader with Piloting
+                context.player1.clickCard(context.darthVaderScourgeOfSquadrons);
+                context.player1.clickPrompt('Play Darth Vader with Piloting');
+                context.player1.clickCard(context.ruthlessRaider);
+
+                // Attack with attached unit
+                context.player2.passAction();
+                context.player1.clickCard(context.ruthlessRaider);
+                context.player1.clickCard(context.tielnFighter);
+
+                // Triggers first damage ability
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.tielnFighter, context.ruthlessRaider]);
+                context.player1.clickCard(context.allianceXwing);
+
+                expect(context.allianceXwing.damage).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
         });
