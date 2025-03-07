@@ -117,7 +117,7 @@ describe('Boba Fett, Any Methods Necessary', function() {
                     phase: 'action',
                     player1: {
                         leader: 'boba-fett#any-methods-necessary',
-                        spaceArena: ['cartel-spacer'],
+                        spaceArena: ['cartel-spacer', 'auzituck-liberator-gunship'],
                         resources: 6
                     },
                     player2: {
@@ -133,16 +133,16 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Boba Fett', 'Deploy Boba Fett as a Pilot']);
                 context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
                 expect(context.player2).not.toBeActivePlayer();
-                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
-                context.player1.clickCard(context.cartelSpacer);
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.auzituckLiberatorGunship]);
+                context.player1.clickCard(context.auzituckLiberatorGunship);
 
                 expect(context.bobaFett.deployed).toBe(true);
                 expect(context.bobaFett).toBeInZone('spaceArena');
-                expect(context.cartelSpacer.getPower()).toBe(6);
-                expect(context.cartelSpacer.getHp()).toBe(7);
-                expect(context.cartelSpacer).toHaveExactUpgradeNames(['boba-fett#any-methods-necessary']);
+                expect(context.auzituckLiberatorGunship.getPower()).toBe(7);
+                expect(context.auzituckLiberatorGunship.getHp()).toBe(8);
+                expect(context.auzituckLiberatorGunship).toHaveExactUpgradeNames(['boba-fett#any-methods-necessary']);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.auzituckLiberatorGunship, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
                 expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.wampa, 2],
@@ -156,10 +156,10 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.cartelSpacer.damage).toBe(1);
 
                 context.player2.clickCard(context.rivalsFall);
-                expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
-                context.player2.clickCard(context.cartelSpacer);
+                expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer, context.auzituckLiberatorGunship, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
+                context.player2.clickCard(context.auzituckLiberatorGunship);
 
-                expect(context.cartelSpacer).toBeInZone('discard');
+                expect(context.auzituckLiberatorGunship).toBeInZone('discard');
                 expect(context.bobaFett).toBeInZone('base');
                 expect(context.bobaFett.exhausted).toBe(true);
                 expect(context.bobaFett.deployed).toBe(false);
