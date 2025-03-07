@@ -14,9 +14,7 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
         this.addTriggeredAbility({
             title: 'Exhaust it unless its controller pay 2 resources',
             when: {
-                onCardReadied: (event, context) => {
-                    return context.source.parentCard === event.card;
-                }
+                onCardReadied: (event, context) => context.source.parentCard === event.card
             },
             targetResolver: {
                 mode: TargetMode.Select,
