@@ -8,7 +8,7 @@ describe('Lightspeed Assault', function() {
                     spaceArena: ['avenger#hunting-star-destroyer', 'concord-dawn-interceptors']
                 },
                 player2: {
-                    spaceArena: ['black-sun-starfighter', 'imperial-interceptor', 'lurking-tie-phantom', { card: 'cartel-spacer', upgrades: ['shield'] }],
+                    spaceArena: ['black-sun-starfighter', 'imperial-interceptor'],
                 }
             });
 
@@ -21,21 +21,35 @@ describe('Lightspeed Assault', function() {
             expect(context.concordDawnInterceptors).toBeInZone('discard');
 
             // Deal Damage to Black Sun
-            expect(context.player1).toBeAbleToSelectExactly([context.blackSunStarfighter, context.imperialInterceptor, context.lurkingTiePhantom, context.cartelSpacer]);
+            expect(context.player1).toBeAbleToSelectExactly([context.blackSunStarfighter, context.imperialInterceptor]);
             context.player1.clickCard(context.blackSunStarfighter);
             expect(context.blackSunStarfighter.damage).toBe(1);
 
             expect(context.player2).toHavePrompt('Distribute 3 indirect damage among targets');
 
-            expect(context.player2).toBeAbleToSelectExactly([context.blackSunStarfighter, context.imperialInterceptor, context.lurkingTiePhantom, context.cartelSpacer, context.p2Base]);
+            expect(context.player2).toBeAbleToSelectExactly([context.blackSunStarfighter, context.imperialInterceptor, context.p2Base]);
             expect(context.player2).not.toHaveChooseNoTargetButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.blackSunStarfighter, 0],
                 [context.imperialInterceptor, 1],
-                [context.lurkingTiePhantom, 0],
-                [context.cartelSpacer, 2],
-                [context.p2Base, 0],
+                [context.p2Base, 2],
             ]));
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('Lightspeed Assault should defeat a friendly unit but deal no indirect damage if there is no enemy unit', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['lightspeed-assault'],
+                    spaceArena: ['concord-dawn-interceptors']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.lightspeedAssault);
+            context.player1.clickCard(context.concordDawnInterceptors);
             expect(context.player2).toBeActivePlayer();
         });
 
@@ -80,9 +94,6 @@ describe('Lightspeed Assault', function() {
             expect(context.lurkingTiePhantom.damage).toBe(0);
 
             expect(context.player2).toHavePrompt('Distribute 2 indirect damage among targets');
-
-            expect(context.player2).toBeAbleToSelectExactly([context.lurkingTiePhantom, context.p2Base]);
-            expect(context.player2).not.toHaveChooseNoTargetButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.lurkingTiePhantom, 1],
                 [context.p2Base, 1],
@@ -113,9 +124,6 @@ describe('Lightspeed Assault', function() {
             expect(context.cartelSpacer.damage).toBe(0);
 
             expect(context.player2).toHavePrompt('Distribute 2 indirect damage among targets');
-
-            expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer, context.p2Base]);
-            expect(context.player2).not.toHaveChooseNoTargetButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.cartelSpacer, 1],
                 [context.p2Base, 1],
