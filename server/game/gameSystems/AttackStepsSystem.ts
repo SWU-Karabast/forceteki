@@ -11,9 +11,10 @@ import type { GameEvent } from '../core/event/GameEvent';
 import { CardLastingEffectSystem } from './CardLastingEffectSystem';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
-import type { KeywordInstance } from '../core/ability/KeywordInstance';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import type { KeywordNameOrProperties } from '../Interfaces';
+import { KeywordInstance } from '../core/ability/KeywordInstance';
 
 export interface IAttackLastingEffectProperties<TContext extends AbilityContext = AbilityContext> {
     condition?: (attack: Attack, context: TContext) => boolean;
@@ -241,7 +242,24 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     private attackerGainsSaboteur(attackTarget: IAttackableCard, context: TContext, additionalProperties?: any) {
-        return this.attackerGains(attackTarget, context, additionalProperties, (effect) => effect.impl.type === EffectName.GainKeyword && (effect.impl.valueWrapper.value as KeywordInstance).name === KeywordName.Saboteur);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        // If the attacker is blanked or has lost Saboteur, it cannot gain Saboteur
+        const saboteur = new KeywordInstance(KeywordName.Saboteur, properties.attacker);
+        if (saboteur.isBlank) {
+            return false;
+        }
+
+        return this.attackerGains(attackTarget, context, additionalProperties, (effect) => {
+            if (effect.impl.type !== EffectName.GainKeyword) {
+                return false;
+            }
+
+            const keywordProps = effect.impl.valueWrapper.value as KeywordNameOrProperties;
+            const keyword = typeof keywordProps === 'string' ? keywordProps : keywordProps.keyword;
+
+            return keyword === KeywordName.Saboteur;
+        });
     }
 
     private attackerGainsEffect(attackTarget: IAttackableCard, context: TContext, effect: EffectName, additionalProperties?: any) {

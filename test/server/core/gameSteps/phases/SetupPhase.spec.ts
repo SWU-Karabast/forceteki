@@ -203,6 +203,25 @@ describe('Setup Phase', function() {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1).toHavePrompt('Waiting for opponent to take an action or pass');
             });
+
+            it('should shuffle the deck before drawing a starting hand', function () {
+                const { context } = contextRef;
+                context.game.setRandomSeed('76235');
+
+                context.selectInitiativePlayer(context.player1);
+
+                expect(context.player1.handSize).toBe(6);
+                expect(context.player2.handSize).toBe(6);
+
+                // This was first in the deck in setup, so it being still in the deck means it was shuffled
+                expect(context.armedToTheTeeth).toBeInZone('deck');
+
+                const beforeMulliganHand = context.player1.hand;
+
+                context.player1.clickPrompt('Mulligan');
+                context.player2.clickPrompt('Keep');
+                expect(beforeMulliganHand).not.toEqual(context.player1.hand);
+            });
         });
     });
 });

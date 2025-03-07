@@ -11,6 +11,7 @@ export default class RazorCrestRideForHire extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
+        // TODO FIX TRIGGER
         this.addTriggeredAbility({
             title: 'Return a non-leader unit that costs 2 or less or an exhausted non-leader unit that costs 4 or less to its owner\'s hand',
             when: {

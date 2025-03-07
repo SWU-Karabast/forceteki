@@ -48,13 +48,14 @@ describe('Nabat Village', function() {
 
             it('should make its owner put 3 cards on the bottom of their deck at the start of the first action phase', function () {
                 const { context } = contextRef;
+                context.game.setRandomSeed('76234');
 
                 context.selectInitiativePlayer(context.player1);
                 context.player2.clickPrompt('Keep');
 
                 // Resource step
                 context.player1.clickCard(context.timelyIntervention);
-                context.player1.clickCard(context.concordDawnInterceptors);
+                context.player1.clickCard(context.lothalInsurgent);
                 context.player1.clickPrompt('Done');
 
                 context.player2.clickCard(context.player2.hand[0]);
@@ -70,26 +71,27 @@ describe('Nabat Village', function() {
                 context.player1.clickCard(context.wampa);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
-                context.player1.clickCard(context.confiscate);
+                context.player1.clickCard(context.concordDawnInterceptors);
                 expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
                 context.player1.clickCard(context.restock);
                 expect(context.player1).toHaveEnabledPromptButton('Done');
                 context.player1.clickPrompt('Done');
 
-                expect([context.wampa, context.confiscate, context.restock]).toAllBeInBottomOfDeck(context.player1, 3);
+                expect([context.wampa, context.concordDawnInterceptors, context.restock]).toAllBeInBottomOfDeck(context.player1, 3);
                 expect(context.player1).toBeActivePlayer();
             });
 
             it('should not make its owner put 3 cards on the bottom of their deck at the start of the second action phase', function () {
                 const { context } = contextRef;
+                context.game.setRandomSeed('76234');
 
                 context.selectInitiativePlayer(context.player1);
                 context.player2.clickPrompt('Keep');
 
                 // Resource
                 context.player1.clickCard(context.timelyIntervention);
-                context.player1.clickCard(context.concordDawnInterceptors);
+                context.player1.clickCard(context.lothalInsurgent);
                 context.player1.clickPrompt('Done');
 
                 context.player2.clickCard(context.player2.hand[0]);
@@ -98,7 +100,7 @@ describe('Nabat Village', function() {
 
                 // First action phase - use Nabat Village
                 context.player1.clickCard(context.wampa);
-                context.player1.clickCard(context.confiscate);
+                context.player1.clickCard(context.concordDawnInterceptors);
                 context.player1.clickCard(context.restock);
                 context.player1.clickPrompt('Done');
 
