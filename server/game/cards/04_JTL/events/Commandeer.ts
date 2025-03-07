@@ -17,16 +17,16 @@ export default class Commandeer extends EventCard {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle) && card.isUnit() && card.cost <= 6 && !card.upgrades.some((u) => u.hasSomeTrait(Trait.Pilot)),
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
-                        newController: context.player,
-                    })),
                     AbilityHelper.immediateEffects.delayedCardEffect({
                         title: 'Return that unit to its owner\'s hand.',
                         when: {
                             onPhaseStarted: (context) => context.phase === PhaseName.Regroup
                         },
                         immediateEffect: AbilityHelper.immediateEffects.returnToHand()
-                    })
+                    }),
+                    AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
+                        newController: context.player,
+                    }))
                 ])
             },
             ifYouDo: (ifYouDoContext) => ({
