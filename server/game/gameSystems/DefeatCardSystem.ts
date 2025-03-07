@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import type { UnitCard } from '../core/card/CardTypes';
-import type { UpgradeCard } from '../core/card/UpgradeCard';
+import type { IUpgradeCard } from '../core/card/CardInterfaces';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type Player from '../core/Player';
@@ -29,9 +29,10 @@ export interface ILastKnownInformation {
     arena: ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Resource;
     power?: number;
     hp?: number;
+    type?: CardType;
     damage?: number;
-    parentCard?: UnitCard;
-    upgrades?: UpgradeCard[];
+    parentCard?: IUnitCard;
+    upgrades?: IUpgradeCard[];
 }
 
 export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IDefeatCardPropertiesBase = IDefeatCardProperties> extends CardTargetSystem<TContext, TProperties> {
@@ -51,13 +52,13 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         if (card.zoneName === ZoneName.Resource) {
             this.leavesResourceZoneEventHandler(card, event.context);
         } else if (card.isUpgrade()) {
-            card.unattach();
+            card.unattach(event);
         }
 
         if (card.isToken()) {
             // move the token out of the play area so that effect cleanup happens, then remove it from all card lists
             card.moveTo(ZoneName.OutsideTheGame);
-        } else if (card.isLeaderUnit()) {
+        } else if (card.isDeployableLeader() && card.deployed) {
             card.undeploy();
         } else {
             card.moveTo(ZoneName.Discard);
@@ -99,6 +100,9 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
             event.isDefeatedByAttackerDamage =
                 eventDefeatSource.type === DamageSourceType.Attack &&
                 eventDefeatSource.damageDealtBy === eventDefeatSource.attack.attacker;
+            if (eventDefeatSource?.type === DamageSourceType.Attack) {
+                eventDefeatSource.player = eventDefeatSource.damageDealtBy.controller;
+            }
         } else {
             eventDefeatSource = this.buildDefeatSourceForType(defeatSource, event, context);
         }
@@ -125,52 +129,6 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
             this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
         }
 
-        // build last known information for the card before event window resolves to ensure that no state has yet changed
-        event.setPreResolutionEffect((event) => {
-            event.lastKnownInformation = this.buildLastKnownInformation(card);
-        });
-    }
-
-    private buildLastKnownInformation(card: Card): ILastKnownInformation {
-        Contract.assertTrue(
-            card.zoneName === ZoneName.GroundArena ||
-            card.zoneName === ZoneName.SpaceArena ||
-            card.zoneName === ZoneName.Resource
-        );
-
-        if (card.zoneName === ZoneName.Resource) {
-            return {
-                card,
-                controller: card.controller,
-                arena: card.zoneName
-            };
-        }
-        Contract.assertTrue(card.canBeInPlay());
-
-
-        if (card.isUnit()) {
-            return {
-                card,
-                power: card.getPower(),
-                hp: card.getHp(),
-                arena: card.zoneName,
-                controller: card.controller,
-                damage: card.damage,
-                upgrades: card.upgrades
-            };
-        }
-
-        if (card.isUpgrade()) {
-            return {
-                card,
-                power: card.getPower(),
-                hp: card.getHp(),
-                arena: card.zoneName,
-                controller: card.controller,
-                parentCard: card.parentCard
-            };
-        }
-
-        Contract.fail(`Unexpected card type: ${card.type}`);
+        this.addLastKnownInformationToEvent(event, card);
     }
 }

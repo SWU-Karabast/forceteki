@@ -1,3 +1,4 @@
+import type Game from './Game';
 import type Player from './Player';
 import type { Card } from './card/Card';
 import type { IStep } from './gameSteps/IStep';
@@ -25,11 +26,17 @@ export class GamePipeline {
      * Resolve all steps in the pipeline (including any new ones added during resolution)
      * @returns {boolean} True if the pipeline has completed, false if it has been paused with steps still queued
      */
-    public continue() {
+    public continue(game: Game) {
         this.queueNewStepsIntoPipeline();
 
         while (this.pipeline.length > 0) {
             const currentStep = this.getCurrentStep();
+
+            if (game.isDebugPipeline) {
+                // Intended to be used when manually testing a single unit test.
+                // Can be used to determine when a pipeline has an unexpected branch.
+                console.log(currentStep.getDebugInfo());
+            }
 
             // Explicitly check for a return of false - if no return values is
             // defined then just continue to the next step.

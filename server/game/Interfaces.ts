@@ -14,7 +14,6 @@ import type PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
 import type Player from './core/Player';
 import type { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
 import type { OngoingPlayerEffect } from './core/ongoingEffect/OngoingPlayerEffect';
-import type { UnitCard } from './core/card/CardTypes';
 import type { BaseZone } from './core/zone/BaseZone';
 import type { DeckZone } from './core/zone/DeckZone';
 import type { DiscardZone } from './core/zone/DiscardZone';
@@ -24,6 +23,9 @@ import type { ResourceZone } from './core/zone/ResourceZone';
 import type { GroundArenaZone } from './core/zone/GroundArenaZone';
 import type { SpaceArenaZone } from './core/zone/SpaceArenaZone';
 import type { CaptureZone } from './core/zone/CaptureZone';
+import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
+import type { DelayedEffectType } from './gameSystems/DelayedEffectSystem';
+import type { IUpgradeCard } from './core/card/CardInterfaces';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
 /* eslint @stylistic/lines-around-comment: off */
@@ -61,6 +63,7 @@ export interface IOngoingEffectProps {
     target?: (Player | Card) | (Player | Card)[];
     cannotBeCancelled?: boolean;
     optional?: boolean;
+    delayedEffectType?: DelayedEffectType;
 }
 
 export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
@@ -108,7 +111,7 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
     then?: ((context?: AbilityContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
-    ifYouDo?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
+    ifYouDo?: ((context?: AbilityContext) => IIfYouDoAbilityPropsWithSystems<TContext>) | IIfYouDoAbilityPropsWithSystems<TContext>;
     ifYouDoNot?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
 }
 
@@ -148,6 +151,12 @@ export type IReplacementEffectAbilityPropsWithType<TSource extends Card = Card> 
     type: AbilityType.ReplacementEffect;
 };
 
+/** Ability types with gain contdition */
+export type IConstantAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IConstantAbilityProps<TTarget> & IGainCondition<TSource>;
+export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
+export type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
+export type IActionAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
+
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
   IActionAbilityPropsWithType<TSource> |
@@ -178,6 +187,7 @@ export type IKeywordProperties =
   | IBountyKeywordProperties
   | IGritKeywordProperties
   | IOverwhelmKeywordProperties
+  | IPilotingKeywordProperties
   | IRaidKeywordProperties
   | IRestoreKeywordProperties
   | ISaboteurKeywordProperties
@@ -226,6 +236,16 @@ export type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoing
 export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     thenCondition?: (context?: TContext) => boolean;
 };
+
+export type IIfYouDoAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
+    ifYouDoCondition?: (context?: TContext) => boolean;
+};
+
+export interface IGainCondition<TSource extends IUpgradeCard> {
+    gainCondition?: (context: AbilityContext<TSource>) => boolean;
+}
+
+export type IKeywordPropertiesWithGainCondition<TSource extends IUpgradeCard> = IKeywordProperties & IGainCondition<TSource>;
 
 export interface IClientUIProperties {
     lastPlayedCard?: ISetId;
@@ -301,6 +321,11 @@ interface INumericKeywordProperties extends IKeywordPropertiesBase {
     amount: number;
 }
 
+interface IKeywordWithCostProperties extends IKeywordPropertiesBase {
+    cost: number;
+    aspects: Aspect[];
+}
+
 interface IKeywordWithAbilityDefinitionProperties<TSource extends Card = Card> extends IKeywordPropertiesBase {
     ability: IAbilityPropsWithSystems<AbilityContext<TSource>>;
 }
@@ -309,7 +334,7 @@ interface IAmbushKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Ambush;
 }
 
-interface IBountyKeywordProperties<TSource extends UnitCard = UnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
+interface IBountyKeywordProperties<TSource extends IUnitCard = IUnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
     keyword: KeywordName.Bounty;
     ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>;
 }
@@ -320,6 +345,10 @@ interface IGritKeywordProperties extends IKeywordPropertiesBase {
 
 interface IOverwhelmKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Overwhelm;
+}
+
+interface IPilotingKeywordProperties extends IKeywordWithCostProperties {
+    keyword: KeywordName.Piloting;
 }
 
 interface IRaidKeywordProperties extends INumericKeywordProperties {
@@ -338,10 +367,8 @@ interface ISentinelKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Sentinel;
 }
 
-interface ISmuggleKeywordProperties extends IKeywordPropertiesBase {
+interface ISmuggleKeywordProperties extends IKeywordWithCostProperties {
     keyword: KeywordName.Smuggle;
-    cost: number;
-    aspects: Aspect[];
 }
 
 interface IShieldedKeywordProperties extends IKeywordPropertiesBase {

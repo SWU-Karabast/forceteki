@@ -2,7 +2,7 @@ describe('Shield', function() {
     integration(function(contextRef) {
         describe('Shield\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vanquish'],
@@ -45,8 +45,8 @@ describe('Shield', function() {
         });
 
         describe('Shield\'s ability', function() {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['cartel-spacer']
@@ -87,7 +87,7 @@ describe('Shield', function() {
 
         describe('When a shield is created', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['moment-of-peace']

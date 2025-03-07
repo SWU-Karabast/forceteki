@@ -1,7 +1,7 @@
 describe('Banshee, Crippling Command', function() {
     integration(function(contextRef) {
-        it('Banshee, Crippling Command\'s ability should deal damage to a unit equal to the amount of damage on this unit', function () {
-            contextRef.setupTest({
+        it('Banshee, Crippling Command\'s ability should deal damage to a unit equal to the amount of damage on this unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: [{ card: 'banshee#crippling-command', damage: 2 }],
@@ -22,7 +22,7 @@ describe('Banshee, Crippling Command', function() {
 
             // Assert ability Deal damage to a unit equal to the amount of damage on this unit
             expect(context.player1).toHavePassAbilityButton();
-            expect(context.player1).toHavePrompt('Choose a unit');
+            expect(context.player1).toHavePrompt('Deal damage to a unit equal to the amount of damage on this unit');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.restoredArc170, context.banshee]);
             context.player1.clickCard(context.atst);
 

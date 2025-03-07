@@ -2,8 +2,8 @@ describe('Echo, Restored', function () {
     integration(function (contextRef) {
         describe('Echo\'s ability', function () {
             const prompt = 'Discard a card from your hand. Give 2 Experience tokens to a unit in play with the same name as the discarded card.';
-            it('can discard a card and give 2 experience tokens to a unit with same name', function () {
-                contextRef.setupTest({
+            it('can discard a card and give 2 experience tokens to a unit with same name', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['echo#restored', 'luke-skywalker#jedi-knight', 'wampa', 'battlefield-marine', 'atst'],
@@ -39,7 +39,7 @@ describe('Echo, Restored', function () {
 
                 // discard a card
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
 
                 // can discard any cards
                 expect(context.player1).toBeAbleToSelectExactly([handLuke, handBattlefieldMarine, handWampa, context.atst]);
@@ -59,7 +59,7 @@ describe('Echo, Restored', function () {
 
                 // play echo
                 context.player1.clickCard(context.echo);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(handLuke);
 
                 // luke was discarded, leader luke should have 2 experiences tokens
@@ -76,7 +76,7 @@ describe('Echo, Restored', function () {
 
                 // play echo
                 context.player1.clickCard(context.echo);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(handWampa);
 
                 // 2 units with the same title, can choose between them

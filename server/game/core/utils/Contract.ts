@@ -1,3 +1,4 @@
+
 import assert from 'assert';
 
 export enum AssertMode {
@@ -18,7 +19,11 @@ class AssertContractCheckImpl implements IContractCheckImpl {
             debugger;
         }
 
-        assert.fail(`Contract assertion failure: ${message}`);
+        if (process.env.ENVIRONMENT === 'development') {
+            assert.fail(`Contract assertion failure: ${message}`);
+        } else {
+            throw new Error(`Contract assertion failure: ${message}`);
+        }
     }
 }
 

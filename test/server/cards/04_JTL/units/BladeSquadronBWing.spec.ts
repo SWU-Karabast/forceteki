@@ -1,7 +1,7 @@
 describe('Blade Squadron B-Wing', function() {
     integration(function(contextRef) {
-        it('Blade Squadron B-Wing\'s ability should give shield to a unit if the opponent has at least 3 exhausted units', function () {
-            contextRef.setupTest({
+        it('Blade Squadron B-Wing\'s ability should give shield to a unit if the opponent has at least 3 exhausted units', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['blade-squadron-bwing'],
@@ -20,15 +20,15 @@ describe('Blade Squadron B-Wing', function() {
             context.player1.clickCard(context.bladeSquadronBwing);
 
             // Assert ability Give shield to a unit if the opponent has at least 3 exhausted units
-            expect(context.player1).toHavePrompt('Choose a unit');
+            expect(context.player1).toHavePrompt('Give a Shield token to a unit');
             expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.wampa, context.tielnFighter, context.tieAdvanced, context.imperialInterceptor, context.bladeSquadronBwing, context.atst]);
             context.player1.clickCard(context.allianceXwing);
 
             expect(context.allianceXwing).toHaveExactUpgradeNames(['shield']);
         });
 
-        it('Blade Squadron B-Wing\'s ability should not be triggered as opponent does not have 3 or more exhausted units', function () {
-            contextRef.setupTest({
+        it('Blade Squadron B-Wing\'s ability should not be triggered as opponent does not have 3 or more exhausted units', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['blade-squadron-bwing'],

@@ -1,10 +1,8 @@
 describe('Mining Guild TIE Fighter', function() {
     integration(function(contextRef) {
         describe('Mining Guild TIE Fighter\'s ability', function() {
-            it('should pay 2 resources to draw', function () {
-                const { context } = contextRef;
-
-                contextRef.setupTest({
+            it('should pay 2 resources to draw', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['mining-guild-tie-fighter'],
@@ -14,11 +12,13 @@ describe('Mining Guild TIE Fighter', function() {
                     autoSingleTarget: true
                 });
 
+                const { context } = contextRef;
+
                 context.player1.clickCard(context.miningGuildTieFighter);
                 expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to draw');
 
                 // pay 2 resources to draw
-                context.player1.clickPrompt('Pay 2 resources to draw');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
 
@@ -34,10 +34,10 @@ describe('Mining Guild TIE Fighter', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(2);
             });
 
-            it('should not prompt as we do not have spendable resource', function () {
+            it('should not prompt as we do not have spendable resource', async function () {
                 const { context } = contextRef;
 
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['mining-guild-tie-fighter'],

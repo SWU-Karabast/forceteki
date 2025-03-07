@@ -1,22 +1,51 @@
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
-import type { ZoneName } from '../../Constants';
+import { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps } from './PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
-import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
-import type { Card } from '../Card';
-import type { BaseCard } from '../BaseCard';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
-import type { ActionAbility } from '../../ability/ActionAbility';
+import type { ICardWithCostProperty } from '../propertyMixins/Cost';
+import { WithCost } from '../propertyMixins/Cost';
+import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
+import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
+import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
+import type { IUnitCard } from '../propertyMixins/UnitProperties';
+import type { Card } from '../Card';
+import type { AbilityContext } from '../../ability/AbilityContext';
+
+const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
+
+export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithTriggeredAbilities {
+    get disableOngoingEffectsForDefeat(): boolean;
+    get inPlayId(): number;
+    get mostRecentInPlayId(): number;
+    get parentCard(): IUnitCard;
+    get pendingDefeat(): boolean;
+    isInPlay(): boolean;
+    addGainedActionAbility(properties: IActionAbilityProps): string;
+    removeGainedActionAbility(removeAbilityUuid: string): void;
+    addGainedConstantAbility(properties: IConstantAbilityProps): string;
+    removeGainedConstantAbility(removeAbilityUuid: string): void;
+    addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string;
+    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string;
+    removeGainedTriggeredAbility(removeAbilityUuid: string): void;
+    removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
+    registerPendingUniqueDefeat();
+    checkUnique();
+    attachTo(newParentCard: IUnitCard, newController?: Player);
+    isAttached(): boolean;
+    unattach(event?: any);
+    canAttach(targetCard: Card, context: AbilityContext, controller?: Player): boolean;
+}
 
 /**
  * Subclass of {@link Card} (via {@link PlayableOrDeployableCard}) that adds properties for cards that
@@ -27,12 +56,16 @@ export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
  * 2. Defeat state management
  * 3. Uniqueness management
  */
-export class InPlayCard extends PlayableOrDeployableCard {
+export class InPlayCard extends InPlayCardParent implements IInPlayCard {
+    public readonly printedUpgradeHp: number;
+    public readonly printedUpgradePower: number;
+
     protected _disableOngoingEffectsForDefeat?: boolean = null;
     protected _mostRecentInPlayId = -1;
+    protected _parentCard?: IUnitCard = null;
     protected _pendingDefeat?: boolean = null;
-    // protected triggeredAbilities: TriggeredAbility[] = [];
 
+    protected attachCondition: (card: Card) => boolean;
 
     /**
      * If true, then this card's ongoing effects are disabled in preparation for it to be defeated (usually due to unique rule).
@@ -68,6 +101,15 @@ export class InPlayCard extends PlayableOrDeployableCard {
         return this._mostRecentInPlayId;
     }
 
+    /** The card that this card is underneath */
+    public get parentCard(): IUnitCard {
+        Contract.assertNotNullLike(this._parentCard);
+        // TODO: move IsInPlay to be usable here
+        Contract.assertTrue(this.isInPlay());
+
+        return this._parentCard;
+    }
+
     /**
      * If true, then this card is queued to be defeated as a consequence of another effect (damage, unique rule)
      * and will be removed from the field after the current event window has finished the resolution step.
@@ -84,13 +126,28 @@ export class InPlayCard extends PlayableOrDeployableCard {
 
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
         Contract.assertFalse(this.printedType === CardType.Event);
+
+        if (this.isUpgrade()) {
+            Contract.assertNotNullLike(cardData.upgradeHp);
+            Contract.assertNotNullLike(cardData.upgradePower);
+        }
+
+        const hasUpgradeStats = cardData.upgradePower != null && cardData.upgradeHp != null;
+
+        Contract.assertTrue(hasUpgradeStats ||
+          (cardData.upgradePower == null && cardData.upgradeHp == null));
+
+        if (hasUpgradeStats) {
+            this.printedUpgradePower = cardData.upgradePower;
+            this.printedUpgradeHp = cardData.upgradeHp;
+        }
     }
 
     public isInPlay(): boolean {
         return EnumHelpers.isArena(this.zoneName);
     }
 
-    public override canBeInPlay(): this is InPlayCard {
+    public override canBeInPlay(): this is IInPlayCard {
         return true;
     }
 
@@ -99,51 +156,93 @@ export class InPlayCard extends PlayableOrDeployableCard {
         this._disableOngoingEffectsForDefeat = enabledStatus ? false : null;
     }
 
-    // ********************************************** ABILITY GETTERS **********************************************
-    /**
-     * `SWU 7.6.1`: Triggered abilities have bold text indicating their triggering condition, starting with the word
-     * “When” or “On”, followed by a colon and an effect. Examples of triggered abilities are “When Played,”
-     * “When Defeated,” and “On Attack” abilities
-     */
-    public getTriggeredAbilities(): TriggeredAbility[] {
-        return this.triggeredAbilities;
+    public checkIsAttachable(): void {
+        throw new Error(`Card ${this.internalName} may not be attached`);
     }
 
+    public assertIsUpgrade(): void {
+        Contract.assertTrue(this.isUpgrade());
+        Contract.assertNotNullLike(this.parentCard);
+    }
 
-    public override canRegisterTriggeredAbilities(): this is InPlayCard | BaseCard {
+    public getUpgradeHp(): number {
+        return this.printedUpgradeHp;
+    }
+
+    public getUpgradePower(): number {
+        return this.printedUpgradePower;
+    }
+
+    public attachTo(newParentCard: IUnitCard, newController?: Player) {
+        this.checkIsAttachable();
+        Contract.assertTrue(newParentCard.isUnit());
+
+        // this assert needed for type narrowing or else the moveTo fails
+        Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
+
+        if (this._parentCard) {
+            this.unattach();
+        }
+
+        if (newController && newController !== this.controller) {
+            this.takeControl(newController, newParentCard.zoneName);
+        } else {
+            this.moveTo(newParentCard.zoneName);
+        }
+
+        newParentCard.attachUpgrade(this);
+        this._parentCard = newParentCard;
+    }
+
+    public isAttached(): boolean {
+        // TODO: I think we can't check this here because we need to be able to check if this is attached in some places like the getType method
+        // this.assertIsUpgrade();
+        return !!this._parentCard;
+    }
+
+    public unattach(event = null) {
+        Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
+        this.assertIsUpgrade();
+
+        this.parentCard.unattachUpgrade(this, event);
+        this._parentCard = null;
+    }
+
+    /**
+     * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
+     * implementations must override this if they have specific attachment conditions.
+     */
+    public canAttach(targetCard: Card, context: AbilityContext, controller: Player = this.controller): boolean {
+        this.checkIsAttachable();
+        if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
+            return false;
+        }
+
         return true;
     }
 
-
-    // ********************************************* ABILITY SETUP *********************************************
-    protected addActionAbility(properties: IActionAbilityProps<this>): ActionAbility {
-        const ability = this.createActionAbility(properties);
-        this.actionAbilities.push(ability);
-        return ability;
+    /**
+     * This is required because a gainCondition call can happen after an upgrade is discarded,
+     * so we need to short-circuit in that case to keep from trying to access illegal state such as parentCard
+     */
+    protected addZoneCheckToGainCondition(gainCondition?: (context: AbilityContext<this>) => boolean) {
+        return gainCondition == null
+            ? null
+            : (context: AbilityContext<this>) => this.isInPlay() && gainCondition(context);
     }
 
-    protected addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbilityProps<this> {
-        const ability = this.createConstantAbility(properties);
+    public override getSummary(activePlayer: Player) {
+        return { ...super.getSummary(activePlayer),
+            parentCardId: this._parentCard ? this._parentCard.uuid : null };
+    }
+
+    // ********************************************* ABILITY SETUP *********************************************
+    protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
+        const ability = super.addConstantAbility(properties);
         // This check is necessary to make sure on-play cost-reduction effects are registered
         if (ability.sourceZoneFilter === WildcardZoneName.Any) {
             ability.registeredEffects = this.addEffectToEngine(ability);
         }
-        this.constantAbilities.push(ability);
-        return ability;
-    }
-
-    protected addReplacementEffectAbility(properties: IReplacementEffectAbilityProps<this>): ReplacementEffectAbility {
-        const ability = this.createReplacementEffectAbility(properties);
-
-        // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
-        this.triggeredAbilities.push(ability);
-
-        return ability;
-    }
-
-    protected addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
-        const ability = this.createTriggeredAbility(properties);
-        this.triggeredAbilities.push(ability);
         return ability;
     }
 
@@ -155,10 +254,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
     protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
         const triggeredProperties = Object.assign(properties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
         return this.addTriggeredAbility(triggeredProperties);
-    }
-
-    public createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
-        return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
     }
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
@@ -322,17 +417,6 @@ export class InPlayCard extends PlayableOrDeployableCard {
         }
     }
 
-
-    protected override resetLimits() {
-        super.resetLimits();
-
-        for (const triggeredAbility of this.triggeredAbilities) {
-            if (triggeredAbility.limit) {
-                triggeredAbility.limit.reset();
-            }
-        }
-    }
-
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************
     public registerPendingUniqueDefeat() {
         Contract.assertTrue(this.getDuplicatesInPlayForController().length === 1);
@@ -361,6 +445,7 @@ export class InPlayCard extends PlayableOrDeployableCard {
             activePromptTitle: `Choose which copy of ${unitDisplayName} to defeat`,
             waitingPromptTitle: `Waiting for opponent to choose which copy of ${unitDisplayName} to defeat`,
             source: 'Unique rule',
+            selectCardMode: SelectCardMode.Single,
             zoneFilter: WildcardZoneName.AnyArena,
             controller: RelativePlayer.Self,
             cardCondition: (card: InPlayCard) =>

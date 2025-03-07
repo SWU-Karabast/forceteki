@@ -2,7 +2,7 @@ describe('Kylo Ren, Killing the Past', function() {
     integration(function(contextRef) {
         describe('Kylo Ren\'s Ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['kylo-ren#killing-the-past'],
@@ -28,7 +28,7 @@ describe('Kylo Ren, Killing the Past', function() {
 
         describe('Kylo Ren\'s Ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['kylo-ren#killing-the-past'],
@@ -53,7 +53,7 @@ describe('Kylo Ren, Killing the Past', function() {
 
         describe('Kylo Ren\'s Ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['kylo-ren#killing-the-past', 'pyke-sentinel', 'battlefield-marine', 'wild-rancor'],

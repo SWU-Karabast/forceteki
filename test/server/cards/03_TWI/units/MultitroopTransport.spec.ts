@@ -1,7 +1,7 @@
 describe('Multi-Troop Transport', function () {
     integration(function (contextRef) {
-        it('Multi-Troop Transport\'s on-attack ability should create a Battle Droid token', function () {
-            contextRef.setupTest({
+        it('Multi-Troop Transport\'s on-attack ability should create a Battle Droid token', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['multitroop-transport']

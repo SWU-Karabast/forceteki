@@ -15,7 +15,7 @@ export default class JangoFettConcealingTheConspiracy extends LeaderUnitCard {
         //     You may exhaust this leader.
         //     If you do, exhaust that enemy unit.
         this.addTriggeredAbility({
-            title: 'Exhaust this leader',
+            title: 'Exhaust leader and exhaust the damaged enemy unit',
             optional: true,
             when: {
                 onDamageDealt: (event, context) => this.isEnemyUnitDamagedByFriendlyUnit(event, context)

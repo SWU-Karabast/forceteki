@@ -1,8 +1,8 @@
 describe('Han Solo Resource Interaction Scenarios', function() {
     integration(function(contextRef) {
         describe('Han Solo\'s interaction with DJ\'s resource steal ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'han-solo#audacious-smuggler',
@@ -40,7 +40,7 @@ describe('Han Solo Resource Interaction Scenarios', function() {
                 context.player1.clickPrompt('Done');
 
                 // Han defeats P2's Wampa and ensure it goes to P2 discard
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('discard', context.player2);
                 expect(context.player1.readyResourceCount).toBe(7);
@@ -49,8 +49,8 @@ describe('Han Solo Resource Interaction Scenarios', function() {
         });
 
         describe('Han Solo\'s interaction with Millenium Falcon\'s resource payment', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'han-solo#audacious-smuggler',
@@ -90,7 +90,7 @@ describe('Han Solo Resource Interaction Scenarios', function() {
                 context.player1.clickPrompt('Pay 1 resource');
                 expect(context.player1.readyResourceCount).toBe(3);
 
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat. The resource you choose will automatically be switched to exhausted before it is defeated (you will not lose any ready resources).');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.snowspeeder, context.frontierTrader]);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('discard', context.player1);

@@ -1,8 +1,8 @@
 describe('Twice The Pride', function() {
     integration(function(contextRef) {
         describe('Twice The Pride\'s ability', function() {
-            it('should deal 2 damage to attached unit', function () {
-                contextRef.setupTest({
+            it('should deal 2 damage to attached unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['twice-the-pride'],

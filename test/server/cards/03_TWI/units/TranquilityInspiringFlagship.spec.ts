@@ -1,7 +1,7 @@
 describe('Tranquility, Inspiring Flagship', function() {
     integration(function(contextRef) {
-        it('Tranquility\'s ability should return 1 republic card to hand and the next 3 republic cards played should cost 1 resource less', function () {
-            contextRef.setupTest({
+        it('Tranquility\'s ability should return 1 republic card to hand and the next 3 republic cards played should cost 1 resource less', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['tranquility#inspiring-flagship', 'barriss-offee#unassuming-apprentice', 'compassionate-senator', 'shaak-ti#unity-wins-wars', 'battlefield-marine', 'for-the-republic'],

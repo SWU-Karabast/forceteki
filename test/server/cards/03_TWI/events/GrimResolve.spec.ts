@@ -1,7 +1,7 @@
 describe('Grim Resolve', function() {
     integration(function(contextRef) {
-        it('Grim Resolve\'s ability should attack with a non-leader unit and grant Grit', function () {
-            contextRef.setupTest({
+        it('Grim Resolve\'s ability should attack with a non-leader unit and grant Grit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['grim-resolve'],

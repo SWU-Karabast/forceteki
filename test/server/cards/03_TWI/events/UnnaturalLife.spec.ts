@@ -1,8 +1,8 @@
 describe('Unnatural Life', function() {
     integration(function(contextRef) {
         describe('Unnatural Life\'s ability', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine', 'fleet-lieutenant'],
@@ -28,7 +28,7 @@ describe('Unnatural Life', function() {
                 expect(context.zuckuss).toBeInZone('discard');
 
                 context.player2.clickCard(context.unnaturalLife);
-                expect(context.player2).toHavePrompt('Choose a unit');
+                expect(context.player2).toHavePrompt('Choose a unit to play that was defeated this phase from your discard pile. It costs 2 less and enters play ready.');
                 expect(context.player2).toBeAbleToSelectExactly([context.zuckuss]);
 
                 context.player2.clickCard(context.zuckuss);

@@ -2,7 +2,7 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
     integration(function (contextRef) {
         describe('Jabba the Hutt\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['jabba-the-hutt#cunning-daimyo'],

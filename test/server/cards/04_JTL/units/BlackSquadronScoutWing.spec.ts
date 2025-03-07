@@ -1,7 +1,7 @@
 describe('Black Squadron Scout Wing', function() {
     integration(function(contextRef) {
-        it('Black Squadron Scout Wing\'s ability should attack when an upgrade is played on this unit giving it a +1/0 for this attack', function () {
-            contextRef.setupTest({
+        it('Black Squadron Scout Wing\'s ability should attack when an upgrade is played on this unit giving it a +1/0 for this attack', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['academy-training', 'armed-to-the-teeth'],
@@ -19,7 +19,7 @@ describe('Black Squadron Scout Wing', function() {
 
             expect(context.player1).toHavePassAbilityPrompt('Attack with this unit. It gets +1/+0 for this attack.');
 
-            context.player1.clickPrompt('Attack with this unit. It gets +1/+0 for this attack.');
+            context.player1.clickPrompt('Trigger');
             context.player1.clickCard(context.p2Base);
 
             // Player 2's base should have 7 damage (4 from Black Squadron Scout Wing + 2 from Academy Training + 1 from card text)

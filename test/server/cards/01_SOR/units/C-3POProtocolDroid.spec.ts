@@ -2,7 +2,7 @@ describe('C-3PO, Protocol Droid', function() {
     integration(function(contextRef) {
         describe('C-3PO\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['c3po#protocol-droid'],
@@ -23,6 +23,7 @@ describe('C-3PO, Protocol Droid', function() {
                 // should have prompt options from 0 to 20
                 expect(context.player1).toHaveExactDropdownListOptions(Array.from({ length: 21 }, (x, i) => `${i}`));
                 context.player1.chooseListOption('4');
+                expect(context.getChatLogs(3)).toContain('player1 names 4 using C-3PO');
 
                 // P1 sees the top card of their deck
                 expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.wampa]);
@@ -79,7 +80,7 @@ describe('C-3PO, Protocol Droid', function() {
 
         describe('C-3PO\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['c3po#protocol-droid'],

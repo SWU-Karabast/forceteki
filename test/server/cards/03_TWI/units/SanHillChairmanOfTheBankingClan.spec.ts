@@ -2,7 +2,7 @@ describe('San Hill, Chairman of the Banking Clan', function () {
     integration(function (contextRef) {
         describe('San Hill\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'general-grievous#general-of-the-droid-armies',
@@ -21,7 +21,7 @@ describe('San Hill, Chairman of the Banking Clan', function () {
 
                 // Syndicate Lackeys should be defeated by attacking Wampa
                 context.player1.clickCard(context.syndicateLackeys);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.wampa);
 
                 expect(context.player1.readyResourceCount).toBe(5);

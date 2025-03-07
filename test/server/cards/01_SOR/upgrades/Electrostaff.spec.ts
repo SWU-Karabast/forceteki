@@ -2,10 +2,11 @@ describe('Electrostaff', function() {
     integration(function(contextRef) {
         describe('Electrostaff\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'battlefield-marine', upgrades: ['electrostaff'] }, 'consular-security-force']
+                        hand: ['electrostaff'],
+                        groundArena: ['battlefield-marine', 'consular-security-force']
                     },
                     player2: {
                         groundArena: ['resourceful-pursuers', 'cargo-juggernaut']
@@ -15,6 +16,16 @@ describe('Electrostaff', function() {
 
             it('should give -1/-0 to the attacker while the attached unit is defending', function () {
                 const { context } = contextRef;
+
+                // Can't attach to vehicle units
+                context.player1.clickCard(context.electrostaff);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.battlefieldMarine,
+                    context.consularSecurityForce,
+                    context.resourcefulPursuers,
+                ]);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player2.passAction();
 
                 // battlefield marine attack, damage should be applied as usual
                 context.player1.clickCard(context.battlefieldMarine);

@@ -2,7 +2,7 @@ describe('Maz Kanata, Pirate Queen', function() {
     integration(function(contextRef) {
         describe('Maz Kanata\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['battlefield-marine', 'maz-kanata#pirate-queen'],

@@ -2,7 +2,7 @@ describe('Dengar, The Demolisher', function () {
     integration(function (contextRef) {
         describe('Dengar\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['electrostaff', 'entrenched'],
@@ -23,7 +23,7 @@ describe('Dengar, The Demolisher', function () {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 expect(context.player1).toHaveEnabledPromptButtons(['Deal 1 damage to the upgraded unit', 'Pass']);
-                context.player1.clickPrompt('Deal 1 damage to the upgraded unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.battlefieldMarine.damage).toBe(1);
 
                 // enemy play an upgrade, nothing happen

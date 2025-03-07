@@ -2,7 +2,7 @@ describe('Forced Surrender', function() {
     integration(function(contextRef) {
         describe('Forced Surrender\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['forced-surrender', 'atst', 'atst'],

@@ -2,7 +2,7 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
     integration(function (contextRef) {
         describe('Hondo Ohnaka\'s leader undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['alliance-xwing'],
@@ -44,7 +44,7 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
                 // play a second unit from smuggle
                 context.player1.clickCard(context.warbirdStowaway);
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player1.clickPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
 
                 // give experience token to warbird stowaway
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.privateerCrew, context.greenSquadronAwing, context.warbirdStowaway, context.freetownBackup, context.allianceXwing]);
@@ -62,7 +62,7 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
 
         describe('Hondo Ohnaka\'s leader deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wampa'],

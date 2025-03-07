@@ -4,7 +4,7 @@ describe('Frontier Trader', function() {
     integration(function(contextRef) {
         describe('Frontier Trader\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['frontier-trader'],
@@ -41,7 +41,7 @@ describe('Frontier Trader', function() {
                 ]);
                 context.player1.clickCard(context.collectionsStarhopper);
                 expect(context.player1).toHavePassAbilityPrompt('Put the top card of your deck into play as a resource.');
-                context.player1.clickPrompt('Put the top card of your deck into play as a resource.');
+                context.player1.clickPrompt('Trigger');
                 expect(context.collectionsStarhopper).toBeInZone(ZoneName.Hand);
                 expect(context.wampa).toBeInZone(ZoneName.Resource);
             });

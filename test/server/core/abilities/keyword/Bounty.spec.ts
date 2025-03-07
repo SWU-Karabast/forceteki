@@ -1,8 +1,8 @@
 describe('Bounty', function() {
     integration(function(contextRef) {
         describe('When a unit with a Bounty ability', function() {
-            it('is defeated by the opponent, the ability should resolve under the opponent\'s control', function () {
-                contextRef.setupTest({
+            it('is defeated by the opponent, the ability should resolve under the opponent\'s control', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['hylobon-enforcer']
@@ -21,15 +21,15 @@ describe('Bounty', function() {
                 context.player1.clickCard(context.wampa);
 
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player2.clickPrompt('Collect Bounty: Draw a card');
+                context.player2.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(0);
                 expect(context.player2.handSize).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('gained from an effect is defeated, the ability should resolve under the opponent\'s control', function () {
-                contextRef.setupTest({
+            it('gained from an effect is defeated, the ability should resolve under the opponent\'s control', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -57,8 +57,8 @@ describe('Bounty', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('is defeated by the controller, the ability should resolve under the opponent\'s control', function () {
-                contextRef.setupTest({
+            it('is defeated by the controller, the ability should resolve under the opponent\'s control', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vanquish'],
@@ -74,15 +74,15 @@ describe('Bounty', function() {
                 context.player1.clickCard(context.vanquish);
 
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player2.clickPrompt('Collect Bounty: Draw a card');
+                context.player2.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(0);
                 expect(context.player2.handSize).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('is captured, the ability should resolve under the opponent\'s control', function () {
-                contextRef.setupTest({
+            it('is captured, the ability should resolve under the opponent\'s control', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['hylobon-enforcer']
@@ -104,7 +104,7 @@ describe('Bounty', function() {
                 expect(context.hylobonEnforcer).toBeCapturedBy(context.discerningVeteran);
 
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player2.clickPrompt('Collect Bounty: Draw a card');
+                context.player2.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(0);
                 expect(context.player2.handSize).toBe(1);
@@ -112,8 +112,8 @@ describe('Bounty', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('gained from an effect is captured, the ability should resolve under the opponent\'s control', function () {
-                contextRef.setupTest({
+            it('gained from an effect is captured, the ability should resolve under the opponent\'s control', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -147,8 +147,8 @@ describe('Bounty', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('is on the field, it should be targetable by abilities filtering for Bounty', function () {
-                contextRef.setupTest({
+            it('is on the field, it should be targetable by abilities filtering for Bounty', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['covetous-rivals', 'waylay'],
@@ -177,8 +177,8 @@ describe('Bounty', function() {
                 context.covetousRivals.exhausted = false;
             });
 
-            it('leaves play it should not trigger the bounty twice', function () {
-                contextRef.setupTest({
+            it('leaves play it should not trigger the bounty twice', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
@@ -207,8 +207,8 @@ describe('Bounty', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
-            it('should not trigger twice when removed from play', function () {
-                contextRef.setupTest({
+            it('should not trigger twice when removed from play', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
@@ -232,15 +232,15 @@ describe('Bounty', function() {
                 context.player1.clickCard(context.hylobonEnforcer);
 
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player1.clickPrompt('Collect Bounty: Draw a card');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(1);
                 expect(context.player2.handSize).toBe(0);
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('deals damage, the damage is attributed to the unit with the Bounty ability', function () {
-                contextRef.setupTest({
+            it('deals damage, the damage is attributed to the unit with the Bounty ability', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['takedown'],
@@ -276,7 +276,7 @@ describe('Bounty', function() {
                 context.player1.clickCard(context.consularSecurityForce);
 
                 // Jango does not trigger
-                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
 
                 // Opponent resolves Experience tokens
                 context.player2.clickCard(context.consularSecurityForce);
@@ -295,15 +295,15 @@ describe('Bounty', function() {
                 context.player2.clickCard(context.consularSecurityForce);
 
                 // Jango triggers
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player1.clickPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.consularSecurityForce.exhausted).toBe(true);
                 expect(context.jangoFett.exhausted).toBe(true);
             });
 
-            it('changes control, the bounty is still collected by the opposing player', function () {
-                contextRef.setupTest({
+            it('changes control, the bounty is still collected by the opposing player', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['change-of-heart'],
@@ -339,12 +339,36 @@ describe('Bounty', function() {
                 context.player2.clickCard(context.consularSecurityForce);
 
                 // Jango triggers
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player1.clickPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.consularSecurityForce.exhausted).toBe(true);
                 expect(context.jangoFett.exhausted).toBe(true);
             });
+        });
+
+        it('When a leader with a Bounty ability gained from an effect is defeated, the ability should resolve under the opponent\'s control', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['rivals-fall']
+                },
+                player2: {
+                    leader: {
+                        card: 'asajj-ventress#unparalleled-adversary',
+                        deployed: true,
+                        upgrades: ['death-mark']
+                    }
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.rivalsFall);
+            context.player1.clickCard(context.asajjVentress);
+            expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw 2 cards');
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1.handSize).toBe(2);
         });
     });
 });

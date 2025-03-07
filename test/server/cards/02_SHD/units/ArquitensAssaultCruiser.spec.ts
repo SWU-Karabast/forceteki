@@ -2,7 +2,7 @@ describe('Arquitens Assault Cruiser', function() {
     integration(function(contextRef) {
         describe('Arquitens Assault Cruiser\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['arquitens-assault-cruiser'],
@@ -32,7 +32,7 @@ describe('Arquitens Assault Cruiser', function() {
 
                 // CASE 1: Arquitens ambush kills a unit
                 context.player1.clickCard(context.arquitensAssaultCruiser);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.tielnFighter);
                 expect(context.tielnFighter).toBeInZone('resource', context.player1);
                 expect(context.tielnFighter.exhausted).toBeTrue();
@@ -71,7 +71,7 @@ describe('Arquitens Assault Cruiser', function() {
 
         // describe('Mace\'s triggered ability', function() {
         //     beforeEach(function () {
-        //         contextRef.setupTest({
+        //         await contextRef.setupTestAsync({
         //             phase: 'action',
         //             player1: {
         //                 groundArena: [{ card: 'mace-windu#party-crasher', upgrades: ['fallen-lightsaber'] }]

@@ -1,7 +1,7 @@
 describe('Kit Fisto, The Smiling Jedi', function() {
     integration(function(contextRef) {
-        it('on attack Coordinate ability should deal 3 damage to ground unit', function () {
-            contextRef.setupTest({
+        it('on attack Coordinate ability should deal 3 damage to ground unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['kit-fisto#the-smiling-jedi', 'battlefield-marine'],

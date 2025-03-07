@@ -12,7 +12,7 @@ export default class UnexpectedEscape extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Exhaust a unit. You may rescue a captured card guarded by that unit.',
+            title: 'Choose a unit to exhaust',
             targetResolvers: {
                 exhaust: {
                     zoneFilter: WildcardZoneName.AnyArena,

@@ -1,0 +1,33 @@
+import { EventCard } from '../../../core/card/EventCard';
+import { CardType, WildcardCardType, ZoneName } from '../../../core/Constants';
+import AbilityHelper from '../../../AbilityHelper';
+
+export default class ShootDown extends EventCard {
+    protected override getImplementationId() {
+        return {
+            id: '7730475388',
+            internalName: 'shoot-down',
+        };
+    }
+
+    public override setupCardAbilities() {
+        this.setEventAbility({
+            title: 'Deal 3 damage to space unit.',
+            targetResolver: {
+                zoneFilter: ZoneName.SpaceArena,
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 3 })
+            },
+            ifYouDo: {
+                title: 'Deal 2 damage to a base',
+                optional: true,
+                ifYouDoCondition: (ifYouDoContext) => ifYouDoContext.events[0].willDefeat,
+                immediateEffect: AbilityHelper.immediateEffects.selectCard({
+                    activePromptTitle: 'Deal 2 damage to a base',
+                    cardTypeFilter: CardType.Base,
+                    innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                })
+            }
+        });
+    }
+}

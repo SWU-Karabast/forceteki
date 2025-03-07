@@ -1,8 +1,8 @@
 describe('Hylobon Enforcer', function() {
     integration(function(contextRef) {
         describe('Hylobon Enforcer\'s Bounty ability', function() {
-            it('should draw a card', function () {
-                contextRef.setupTest({
+            it('should draw a card', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['hylobon-enforcer']
@@ -18,15 +18,15 @@ describe('Hylobon Enforcer', function() {
                 context.player1.clickCard(context.wampa);
 
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player2.clickPrompt('Collect Bounty: Draw a card');
+                context.player2.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(0);
                 expect(context.player2.handSize).toBe(1);
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should cause the opponent to take 3 damage to base if their deck is empty', function () {
-                contextRef.setupTest({
+            it('should cause the opponent to take 3 damage to base if their deck is empty', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['hylobon-enforcer']
@@ -43,7 +43,7 @@ describe('Hylobon Enforcer', function() {
                 context.player1.clickCard(context.wampa);
 
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player2.clickPrompt('Collect Bounty: Draw a card');
+                context.player2.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(0);
                 expect(context.player2.handSize).toBe(0);

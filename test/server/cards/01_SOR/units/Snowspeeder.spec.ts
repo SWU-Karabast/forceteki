@@ -1,8 +1,8 @@
 describe('Snowspeeder', function() {
     integration(function (contextRef) {
         describe('Snowspeeder\'s ability -', function() {
-            beforeEach(function() {
-                contextRef.setupTest({
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['snowspeeder'],
@@ -22,7 +22,7 @@ describe('Snowspeeder', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.snowspeeder);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.occupierSiegeTank]);
 
                 context.player1.clickCard(context.atst);

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
-import type { CardWithCost } from '../../../core/card/CardTypes';
 import { EventCard } from '../../../core/card/EventCard';
+import type { ICardWithCostProperty } from '../../../core/card/propertyMixins/Cost';
 import { Trait } from '../../../core/Constants';
 
 export default class BountyPosting extends EventCard {
@@ -21,15 +21,12 @@ export default class BountyPosting extends EventCard {
             }),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Play that upgrade (paying its cost)',
+                ifYouDoCondition: () =>
+                    ifYouDoContext.selectedPromptCards.length === 1 &&
+                    ifYouDoContext.player.readyResourceCount >= (ifYouDoContext.selectedPromptCards[0] as ICardWithCostProperty).cost,
                 optional: true,
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: () =>
-                        ifYouDoContext.selectedPromptCards.length === 1 &&
-                        ifYouDoContext.player.readyResourceCount >= (ifYouDoContext.selectedPromptCards[0] as CardWithCost).cost,
-                    onTrue: AbilityHelper.immediateEffects.playCardFromHand({
-                        target: ifYouDoContext.selectedPromptCards[0]
-                    }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
+                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
+                    target: ifYouDoContext.selectedPromptCards[0]
                 })
             })
         });

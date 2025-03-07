@@ -11,11 +11,8 @@ export default class KashyyykDefender extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
-        this.addTriggeredAbility({
+        this.addWhenPlayedAbility({
             title: 'Heal up to 2 damage from another unit',
-            when: {
-                onCardPlayed: (event, context) => event.card.controller === context.source.controller
-            },
             immediateEffect: AbilityHelper.immediateEffects.distributeHealingAmong({
                 amountToDistribute: 2,
                 cardCondition: (card, context) => card !== context.source,

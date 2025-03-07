@@ -2,7 +2,7 @@ describe('Leia Organa, Alliance General', function() {
     integration(function(contextRef) {
         describe('Leia\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['sabine-wren#explosives-artist', 'atst', 'battlefield-marine', 'fleet-lieutenant', { card: 'rebel-pathfinder', exhausted: true }],
@@ -119,7 +119,7 @@ describe('Leia Organa, Alliance General', function() {
 
         describe('Leia\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', { card: 'rebel-pathfinder', exhausted: true }],
@@ -147,7 +147,7 @@ describe('Leia Organa, Alliance General', function() {
 
         describe('Leia\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst', 'fleet-lieutenant', { card: 'battlefield-marine', exhausted: true }],
@@ -193,7 +193,7 @@ describe('Leia Organa, Alliance General', function() {
                 expect(context.leiaOrgana.exhausted).toBe(true);
                 expect(context.p2Base.damage).toBe(7);
 
-                expect(context.player1).toHaveEnabledPromptButton('Attack with another Rebel unit');
+                expect(context.player1).toHaveEnabledPromptButton('Trigger');
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
                 context.player1.clickPrompt('Pass');
 

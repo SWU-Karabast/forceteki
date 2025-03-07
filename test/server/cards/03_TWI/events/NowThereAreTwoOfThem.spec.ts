@@ -1,8 +1,8 @@
 describe('Now There are Two of Them', function() {
     integration(function(contextRef) {
         describe('Now There are Two of Them\'s ability -', function() {
-            it('should allow you to play a non-Vehicle unit from your hand that shares a Trait with the unit you control for 5 less, if you have only one unit in play', function() {
-                contextRef.setupTest({
+            it('should allow you to play a non-Vehicle unit from your hand that shares a Trait with the unit you control for 5 less, if you have only one unit in play', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -36,8 +36,8 @@ describe('Now There are Two of Them', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(5);
             });
 
-            it('should not allow you to play a card if none share a trait with your unit', function() {
-                contextRef.setupTest({
+            it('should not allow you to play a card if none share a trait with your unit', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -65,8 +65,8 @@ describe('Now There are Two of Them', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not allow you to play a card if you have more than 1 unit in play or 0 unit', function() {
-                contextRef.setupTest({
+            it('should not allow you to play a card if you have more than 1 unit in play or 0 unit', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [
@@ -89,8 +89,8 @@ describe('Now There are Two of Them', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not allow you to play a card if you have 0 unit in play', function() {
-                contextRef.setupTest({
+            it('should not allow you to play a card if you have 0 unit in play', async function() {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [

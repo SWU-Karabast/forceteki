@@ -6,6 +6,7 @@ const Settings = require('../../server/Settings.js');
 const TestSetupError = require('./TestSetupError.js');
 const playableCardTitles = require('../json/_playableCardTitles.json');
 const Util = require('./Util.js');
+const { GameMode } = require('../../server/GameMode.js');
 
 class GameFlowWrapper {
     /**
@@ -13,17 +14,19 @@ class GameFlowWrapper {
      * @param {PlayerInfo} player1Info
      * @param {PlayerInfo} player2Info
      */
-    constructor(router, player1Info, player2Info) {
+    constructor(cardDataGetter, router, player1Info, player2Info) {
+        /** @type {import('../../server/game/core/GameInterfaces.js').GameConfiguration} */
         var details = {
             name: `${player1Info.username}'s game`,
             id: 12345,
             owner: player1Info.username,
             saveGameId: 12345,
+            gameMode: GameMode.Premier,
             players: [
-                { user: Settings.getUserWithDefaultsSet(player1Info) },
-                { user: Settings.getUserWithDefaultsSet(player2Info) },
+                Settings.getUserWithDefaultsSet(player1Info),
+                Settings.getUserWithDefaultsSet(player2Info),
             ],
-            playableCardTitles: this.getPlayableCardTitles()
+            cardDataGetter
         };
 
         this.game = new Game(details, { router });
@@ -34,8 +37,6 @@ class GameFlowWrapper {
 
         this.player1 = new PlayerInteractionWrapper(this.game, this.game.getPlayerById(this.player1Id), this);
         this.player2 = new PlayerInteractionWrapper(this.game, this.game.getPlayerById(this.player2Id), this);
-        // this.player1.player.timerSettings.events = false;
-        // this.player2.player.timerSettings.events = false;
         this.allPlayers = [this.player1, this.player2];
     }
 
@@ -75,8 +76,8 @@ class GameFlowWrapper {
         this.game.continue();
     }
 
-    startGame() {
-        this.game.initialise();
+    startGameAsync() {
+        return this.game.initialiseAsync();
     }
 
     /**
@@ -84,7 +85,7 @@ class GameFlowWrapper {
      */
     keepStartingHand() {
         this.guardCurrentPhase('setup');
-        this.allPlayersInInitiativeOrder().forEach((player) => player.clickPrompt('No'));
+        this.allPlayersInInitiativeOrder().forEach((player) => player.clickPrompt('Keep'));
     }
 
 
@@ -135,41 +136,36 @@ class GameFlowWrapper {
 
     /**
      * Moves to the next phase of the game
-     * @return {number} value of phase change.
-     * regroup -> dynasty value is 4
-     * all other changes is -1
      */
-    nextPhase() {
-        var phaseChange = 0;
+    nextPhase(transitionHandler = () => undefined) {
         switch (this.game.currentPhase) {
             case 'setup':
                 this.skipSetupPhase();
                 break;
             case 'action':
                 this.moveToRegroupPhase();
-                phaseChange = -1;
                 break;
             case 'regroup':
                 this.skipRegroupPhase();
-                phaseChange = 4; // New turn
                 break;
             default:
-                break;
+                throw new TestSetupError(`Unknown current phase: ${this.game.currentPhase}`);
         }
-        return phaseChange;
+
+        transitionHandler(this.game.currentPhase);
     }
 
     /**
      * Moves through phases, until a certain one is reached
      * @param {String} endphase - phase in which to end
      */
-    advancePhases(endphase) {
+    advancePhases(endphase, transitionHandler = () => undefined) {
         if (!endphase) {
             return;
         }
 
         while (this.game.currentPhase !== endphase) {
-            this.nextPhase();
+            this.nextPhase(transitionHandler);
         }
     }
 
@@ -194,11 +190,11 @@ class GameFlowWrapper {
     }
 
     selectInitiativePlayer(player) {
-        var promptedPlayer = this.getPromptedPlayer('You won the flip. Do you want to start with initiative:');
+        var promptedPlayer = this.getPromptedPlayer('You won the flip. Choose the player to start with initiative:');
         if (player === promptedPlayer) {
-            promptedPlayer.clickPrompt('Yes');
+            promptedPlayer.clickPrompt('Yourself');
         } else {
-            promptedPlayer.clickPrompt('No');
+            promptedPlayer.clickPrompt('Opponent');
         }
     }
 
@@ -224,7 +220,7 @@ class GameFlowWrapper {
             card.removeDamage(-damageDiff, {});
         }
 
-        this.game.resolveGameState(true);
+        Util.refreshGameState(this.game);
     }
 
     /**

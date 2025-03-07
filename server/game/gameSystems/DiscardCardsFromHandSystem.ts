@@ -12,6 +12,7 @@ import type { Derivable } from '../core/utils/Helpers';
 import { derive } from '../core/utils/Helpers';
 import * as Contract from '../core/utils/Contract';
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
+import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
 
 export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProperties {
     amount: Derivable<number, Player>;
@@ -98,7 +99,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 mode: TargetMode.Exactly,
                 numCards: amount,
                 zoneFilter: ZoneName.Hand,
-                controller: player === context.player ? RelativePlayer.Self : RelativePlayer.Opponent,
+                controller: EnumHelpers.asRelativePlayer(player, context.player),
                 cardCondition: (card) => properties.cardCondition(card, context)
             });
 
@@ -107,6 +108,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 source: context.source,
                 selector: selector,
                 context: context,
+                selectCardMode: amount === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
                 onSelect: (cards) => {
                     this.generateEventsForCards(cards, context, events, additionalProperties);
                     return true;

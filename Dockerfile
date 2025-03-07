@@ -14,7 +14,7 @@ COPY ./node_modules ./node_modules
 ENV GAME_NODE_HOST="localhost"
 ENV GAME_NODE_NAME="test1"
 ENV GAME_NODE_SOCKET_IO_PORT="9500"
-ENV ENVIRONMENT="development"
+ENV ENVIRONMENT="production"
 ENV SECRET="verysecret"
 
 EXPOSE 9500

@@ -2,7 +2,7 @@ describe('Power Failure', function() {
     integration(function(contextRef) {
         describe('Power Failure\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['power-failure'],

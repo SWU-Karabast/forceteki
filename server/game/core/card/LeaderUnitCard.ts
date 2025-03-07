@@ -1,10 +1,9 @@
 import type Player from '../Player';
-import { LeaderCard } from './LeaderCard';
 import type { ZoneFilter } from '../Constants';
-import { AbilityType, CardType, ZoneName } from '../Constants';
-import { WithCost } from './propertyMixins/Cost';
+import { CardType, DeployType, PlayType, RelativePlayer, Trait, WildcardCardType } from '../Constants';
+import { AbilityType, ZoneName } from '../Constants';
+import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
-import type { UnitCard } from './CardTypes';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityProps, IAbilityPropsWithType } from '../../Interfaces';
 import * as Helpers from '../utils/Helpers';
@@ -12,47 +11,80 @@ import * as Contract from '../utils/Contract';
 import { EpicActionLimit } from '../ability/AbilityLimit';
 import { DeployLeaderSystem } from '../../gameSystems/DeployLeaderSystem';
 import type { ActionAbility } from '../ability/ActionAbility';
+import type { ILeaderCard } from './propertyMixins/LeaderProperties';
+import { WithLeaderProperties } from './propertyMixins/LeaderProperties';
+import { InPlayCard } from './baseClasses/InPlayCard';
+import AbilityHelper from '../../AbilityHelper';
 
-const LeaderUnitCardParent = WithUnitProperties(WithCost(LeaderCard));
+const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
-export class LeaderUnitCard extends LeaderUnitCardParent {
+/** Represents a deployable leader in a deployed state (i.e., is also a unit) */
+export interface ILeaderUnitCard extends ILeaderCard, IUnitCard {}
+
+/** Represents a deployable leader in an undeployed state */
+export interface IDeployableLeaderCard extends ILeaderUnitCard {
+    get deployed(): boolean;
+    deploy(deployProps: { type: DeployType.LeaderUnit } | { type: DeployType.LeaderUpgrade; parentCard: IUnitCard }): void;
+    undeploy(): void;
+}
+
+export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableLeaderCard {
     protected _deployed = false;
     protected setupLeaderUnitSide;
-    private readonly epicActionAbility: ActionAbility;
+    protected deployEpicActionLimit: EpicActionLimit;
+    protected deployEpicActions: ActionAbility[];
 
     public get deployed() {
         return this._deployed;
     }
 
-    public override get type(): CardType {
+    public override getType(): CardType {
+        if (this.canBeUpgrade && this.isAttached()) {
+            return CardType.LeaderUpgrade;
+        }
         return this._deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
-        this.setupLeaderUnitSide = true;
-        this.setupLeaderUnitSideAbilities(this);
-
         // add deploy leader action
-        this.epicActionAbility = this.addActionAbility({
+        this.deployEpicActions.push(this.addActionAbility({
+            limit: this.deployEpicActionLimit,
+            ...this.deployActionAbilityProps(),
             title: `Deploy ${this.title}`,
-            limit: new EpicActionLimit(),
-            condition: (context) => context.source.controller.resources.length >= context.source.cost,
+            condition: (context) => context.player.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
             immediateEffect: new DeployLeaderSystem({})
-        });
+        }));
+
+        this.setupLeaderUnitSide = true;
+        this.setupLeaderUnitSideAbilities(this);
     }
 
-    public override isUnit(): this is UnitCard {
+    protected deployActionAbilityProps(): Omit<IActionAbilityProps<this>, 'title' | 'condition' | 'zoneFilter' | 'immediateEffect'> {
+        return {};
+    }
+
+    protected override initializeStateForAbilitySetup() {
+        super.initializeStateForAbilitySetup();
+        this.deployEpicActions = [];
+        this.deployEpicActionLimit = new EpicActionLimit();
+    }
+
+    public override isUnit(): this is IUnitCard {
         return this._deployed;
     }
 
-    public override isDeployableLeader(): this is LeaderUnitCard {
+    public override isDeployableLeader(): this is IDeployableLeaderCard {
         return true;
     }
 
-    public override isLeaderUnit(): this is LeaderUnitCard {
+    public override isLeader(): this is ILeaderCard {
+        return true;
+    }
+
+    public override isLeaderUnit(): this is ILeaderUnitCard {
         return this._deployed;
     }
 
@@ -64,12 +96,25 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
         this.resolveAbilitiesForNewZone();
     }
 
+    public override checkIsAttachable(): void {
+        Contract.assertTrue(this.canBeUpgrade);
+    }
+
     /** Deploy the leader to the arena. Handles the move operation and state changes. */
-    public deploy() {
+    public deploy(deployProps: { type: DeployType.LeaderUnit } | { type: DeployType.LeaderUpgrade; parentCard: IUnitCard }) {
         Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
 
         this._deployed = true;
-        this.moveTo(this.defaultArena);
+
+        switch (deployProps.type) {
+            case DeployType.LeaderUpgrade:
+                this.attachTo(deployProps.parentCard);
+                break;
+            case DeployType.LeaderUnit:
+            default:
+                this.moveTo(this.defaultArena);
+                break;
+        }
     }
 
     /** Return the leader from the arena to the base zone. Handles the move operation and state changes. */
@@ -85,6 +130,32 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
      */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected setupLeaderUnitSideAbilities(sourceCard: this) {
+    }
+
+    protected addPilotDeploy(makeAttachedUnitALeader: boolean = true) {
+        Contract.assertNotNullLike(this.printedUpgradeHp, `Leader ${this.title} is missing upgrade HP.`);
+        Contract.assertNotNullLike(this.printedUpgradePower, `Leader ${this.title} is missing upgrade power.`);
+
+        if (makeAttachedUnitALeader) {
+            this.addPilotingConstantAbilityTargetingAttached({
+                title: 'Attached unit is a Leader',
+                ongoingEffect: AbilityHelper.ongoingEffects.isLeader()
+            });
+        }
+
+        this.deployEpicActions.push(this.addActionAbility({
+            title: `Deploy ${this.title} as a Pilot`,
+            limit: this.deployEpicActionLimit,
+            condition: (context) => context.player.resources.length >= context.source.cost,
+            targetResolver: {
+                cardTypeFilter: WildcardCardType.Unit,
+                controller: RelativePlayer.Self,
+                cardCondition: (card, context) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && card.canAttachPilot(context.source, PlayType.Piloting),
+                immediateEffect: AbilityHelper.immediateEffects.deployAndAttachPilotLeader((context) => ({
+                    leaderPilotCard: context.source
+                }))
+            }
+        }));
     }
 
     protected override addActionAbility(properties: IActionAbilityProps<this>) {
@@ -157,7 +228,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent {
     public override getSummary(activePlayer: Player) {
         return {
             ...super.getSummary(activePlayer),
-            epicActionSpent: this.epicActionAbility.limit.isAtMax(this.owner)
+            epicDeployActionSpent: this.deployEpicActionLimit.isAtMax(this.owner)
         };
     }
 }

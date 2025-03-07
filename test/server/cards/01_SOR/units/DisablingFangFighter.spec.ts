@@ -2,7 +2,7 @@ describe('Disabling Fang Fighter', function() {
     integration(function(contextRef) {
         describe('Disabling Fang Fighter\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['disabling-fang-fighter'],

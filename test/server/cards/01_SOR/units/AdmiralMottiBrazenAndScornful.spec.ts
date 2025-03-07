@@ -2,7 +2,7 @@ describe('Admiral Motti', function() {
     integration(function (contextRef) {
         describe('Admiral Motti\'s ability -', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['admiral-motti#brazen-and-scornful', 'superlaser-technician', { card: 'viper-probe-droid', exhausted: true }, { card: 'wampa', exhausted: true }],

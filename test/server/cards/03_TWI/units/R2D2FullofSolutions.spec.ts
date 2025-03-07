@@ -1,12 +1,15 @@
 describe('R2-D2, Full of Solutions', function() {
     integration(function(contextRef) {
         describe('R2-D2, Full of Solution\'s ability', function() {
-            it('should be able to discard a card from hand to search the top 3 cards of your deck for a card to draw', function () {
-                contextRef.setupTest({
+            it('should be able to discard a card from hand to search the top 3 cards of your deck for a card to draw', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['r2d2#full-of-solutions', 'entrenched', 'pyke-sentinel'],
                         deck: ['batch-brothers', 'perilous-position', 'battlefield-marine', 'wampa']
+                    },
+                    player2: {
+                        hand: ['multitroop-transport']
                     }
                 });
 
@@ -15,6 +18,7 @@ describe('R2-D2, Full of Solutions', function() {
                 // Play R2 and discard a card
                 context.player1.clickCard(context.r2d2);
                 expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.pykeSentinel]);
+                expect(context.player1).not.toBeAbleToSelectExactly([context.multitroopTransport]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.entrenched);
                 expect(context.entrenched).toBeInZone('discard', context.player1);
@@ -30,8 +34,8 @@ describe('R2-D2, Full of Solutions', function() {
                 expect(context.player1.deck[0]).toBe(context.wampa);
             });
 
-            it('should do nothing if the player\'s hand is empty after playing R2', function () {
-                contextRef.setupTest({
+            it('should do nothing if the player\'s hand is empty after playing R2', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['r2d2#full-of-solutions'],

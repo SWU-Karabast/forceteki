@@ -1,10 +1,14 @@
 import * as Contract from '../../utils/Contract';
-import type { CardConstructor } from '../Card';
-import type { CardWithCost } from '../CardTypes';
+import type { Card, CardConstructor } from '../Card';
+
+export interface ICardWithCostProperty extends Card {
+    readonly printedCost: number;
+    get cost(): number;
+}
 
 /** Mixin function that adds the `cost` property to a base class. */
 export function WithCost<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
-    return class WithCost extends BaseClass {
+    return class WithCost extends BaseClass implements ICardWithCostProperty {
         public readonly printedCost: number;
 
         public get cost(): number {
@@ -20,7 +24,7 @@ export function WithCost<TBaseClass extends CardConstructor>(BaseClass: TBaseCla
             this.printedCost = cardData.cost;
         }
 
-        public override hasCost(): this is CardWithCost {
+        public override hasCost(): this is ICardWithCostProperty {
             return true;
         }
     };

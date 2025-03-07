@@ -87,6 +87,7 @@ export class AbilityContext<TSource extends Card = Card> {
         copy.choosingPlayerOverride = this.choosingPlayerOverride;
         copy.gameActionsResolutionChain = this.gameActionsResolutionChain;
         copy.playType = this.playType;
+        copy.events = this.events;
         return copy;
     }
 

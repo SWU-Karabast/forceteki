@@ -1,7 +1,7 @@
 describe('Admiral Trench, Holding the Line', function () {
     integration(function (contextRef) {
-        beforeEach(function () {
-            contextRef.setupTest({
+        beforeEach(async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['superlaser-blast', 'pillage'],
@@ -23,7 +23,7 @@ describe('Admiral Trench, Holding the Line', function () {
             expect(context.player2).toBeActivePlayer();
 
             context.player2.clickCard(context.admiralTrenchHoldingTheLine);
-            expect(context.player2).toHavePrompt('Select 3 cards');
+            expect(context.player2).toHavePrompt('Return up to 3 units that were defeated this phase from your discard pile to your hand.');
             expect(context.player2).toBeAbleToSelectExactly([context.firstLegionSnowtrooper, context.maul, context.fifthBrother, context.imperialInterceptor]);
             expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose no target']);
 
@@ -46,14 +46,14 @@ describe('Admiral Trench, Holding the Line', function () {
             context.player1.passAction();
 
             context.player2.clickCard(context.admiralTrenchHoldingTheLine);
-            context.player2.clickPrompt('Play Admiral Trench using Exploit');
+            context.player2.clickPrompt('Trigger exploit');
 
             expect(context.player2).toHavePrompt('Select 1 cards to exploit');
 
             context.player2.clickCard(context.firstLegionSnowtrooper);
             context.player2.clickPrompt('Done');
 
-            expect(context.player2).toHavePrompt('Select 3 cards');
+            expect(context.player2).toHavePrompt('Return up to 3 units that were defeated this phase from your discard pile to your hand.');
             expect(context.player2).toBeAbleToSelectExactly([context.firstLegionSnowtrooper]);
             expect(context.player2).toHaveEnabledPromptButtons(['Done', 'Choose no target']);
 
@@ -85,7 +85,7 @@ describe('Admiral Trench, Holding the Line', function () {
             expect(context.firstLegionSnowtrooper).toBeInZone('discard', context.player2);
 
             context.player2.clickCard(context.admiralTrenchHoldingTheLine);
-            context.player2.clickPrompt('Play Admiral Trench');
+            context.player2.clickPrompt('Play without Exploit');
 
             // Should not be able to return any cards since First Legion Snowtrooper is a new copy and was not defeated this phase
             expect(context.player1).toBeActivePlayer();

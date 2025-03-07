@@ -32,5 +32,3 @@ export default class DeathTrooper extends NonLeaderUnitCard {
         });
     }
 }
-
-DeathTrooper.implemented = true;

@@ -1,9 +1,9 @@
 describe('RicketyQuadjumper', function () {
     integration(function (contextRef) {
         describe('Rickety Quadjumper\'s ability', function () {
-            it('should give an experience token to another unit if the revealed card is not a unit', function () {
+            it('should give an experience token to another unit if the revealed card is not a unit', async function () {
                 const { context } = contextRef;
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],
@@ -21,7 +21,7 @@ describe('RicketyQuadjumper', function () {
 
                 // player1 should have prompt or pass
                 expect(context.player1).toHavePassAbilityPrompt('Reveal a card');
-                context.player1.clickPrompt('Reveal a card');
+                context.player1.clickPrompt('Trigger');
 
                 // top card is an upgrade, give exp to another unit
                 expect(context.protector).toBeInZone('deck');
@@ -35,9 +35,9 @@ describe('RicketyQuadjumper', function () {
             });
 
 
-            it('should not give an experience token to another unit if the discarded card is a unit', function () {
+            it('should not give an experience token to another unit if the discarded card is a unit', async function () {
                 const { context } = contextRef;
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],
@@ -54,7 +54,7 @@ describe('RicketyQuadjumper', function () {
                 context.player1.clickCard(context.p2Base);
                 // player1 should have prompt or pass
                 expect(context.player1).toHavePassAbilityPrompt('Reveal a card');
-                context.player1.clickPrompt('Reveal a card');
+                context.player1.clickPrompt('Trigger');
 
                 // top card is a unit, nothing happen
                 expect(context.isbAgent).toBeInZone('deck');
@@ -63,9 +63,9 @@ describe('RicketyQuadjumper', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not prompt if the deck is empty', function () {
+            it('should not prompt if the deck is empty', async function () {
                 const { context } = contextRef;
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],

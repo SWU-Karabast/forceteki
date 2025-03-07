@@ -2,18 +2,20 @@ import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type Player from '../core/Player';
-import type { UnitCard } from '../core/card/CardTypes';
 import type { Card } from '../core/card/Card';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 // TODO: add a "defeatedBy: Player" field here.
 export interface DefeatedUnitEntry {
-    unit: UnitCard;
+    unit: IUnitCard;
     inPlayId: number;
     controlledBy: Player;
+    defeatedBy?: Player;
 }
 
 interface InPlayUnit {
-    unit: UnitCard;
+    unit: IUnitCard;
     inPlayId: number;
 }
 
@@ -36,7 +38,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     }
 
     /** Get the list of the specified player's units that were defeated */
-    public getDefeatedUnitsControlledByPlayer(controller: Player): UnitCard[] {
+    public getDefeatedUnitsControlledByPlayer(controller: Player): IUnitCard[] {
         return this.getCurrentValue()
             .filter((entry) => entry.controlledBy === controller)
             .map((entry) => entry.unit);
@@ -55,7 +57,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
     }
 
     /** Check if a specific copy of a unit was defeated this phase */
-    public wasDefeatedThisPhase(card: UnitCard, inPlayId?: number): boolean {
+    public wasDefeatedThisPhase(card: IUnitCard, inPlayId?: number): boolean {
         const inPlayIdToCheck = inPlayId ?? (card.isInPlay() ? card.inPlayId : card.mostRecentInPlayId);
 
         return this.getCurrentValue().some(
@@ -68,14 +70,18 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
         return this.getCurrentValue().filter((entry) => entry.controlledBy === controller).length > 0;
     }
 
+    /** Check if the given player defeated an enemy unit */
+    public playerDefeatedEnemyUnit(player: Player): boolean {
+        return this.getCurrentValue().filter((entry) => entry.controlledBy !== player && entry.defeatedBy === player).length > 0;
+    }
+
     protected override setupWatcher() {
-        // on card played, add the card to the player's list of cards played this phase
         this.addUpdater({
             when: {
-                onCardDefeated: (context) => context.card.isUnit(),
+                onCardDefeated: (event) => EnumHelpers.isUnit(event.lastKnownInformation.type)
             },
             update: (currentState: IUnitsDefeatedThisPhase, event: any) =>
-                currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.card.controller })
+                currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.card.controller, defeatedBy: event.defeatSource.player })
         });
     }
 

@@ -1,7 +1,7 @@
 describe('Lurking TIE Phantom', function() {
     integration(function(contextRef) {
-        it('Lurking TIE Phantom\'s ability', function () {
-            contextRef.setupTest({
+        it('Lurking TIE Phantom\'s ability', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['cassian-andor#rebellions-are-built-on-hope', 'fifth-brother#fear-hunter'],
@@ -123,7 +123,7 @@ describe('Lurking TIE Phantom', function() {
 
             // Case 13: Can not be damaged by opponent ability even if you pick
             context.player1.clickCard(context.mercenaryGunship);
-            context.player1.clickPrompt('Exhaust this leader');
+            context.player1.clickPrompt('Trigger');
             expect(context.player2).toBeAbleToSelectExactly([context.lurkingTiePhantom, context.battlefieldMarine, context.countDooku, context.devastator]);
             context.player2.clickCard(context.lurkingTiePhantom);
             expect(context.lurkingTiePhantom).toBeInZone('spaceArena');
@@ -148,8 +148,8 @@ describe('Lurking TIE Phantom', function() {
             // TODO Force Lightning currently not implemented
         });
 
-        it('Lurking TIE Phantom should be immune to friendly Val\'s bounty', function () {
-            contextRef.setupTest({
+        it('Lurking TIE Phantom should be immune to friendly Val\'s bounty', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['wampa'],

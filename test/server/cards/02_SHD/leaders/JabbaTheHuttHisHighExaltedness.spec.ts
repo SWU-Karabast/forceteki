@@ -4,7 +4,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
             const bountyPrompt = 'Collect Bounty: The next unit you play this phase costs 1 resource less';
 
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['seasoned-shoretrooper', 'vanguard-infantry'],
@@ -34,7 +34,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
 
                 // collect bounty
                 expect(context.player1).toHavePassAbilityPrompt(bountyPrompt);
-                context.player1.clickPrompt(bountyPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 context.player2.passAction();
 
@@ -65,7 +65,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
 
                 // collect bounty
                 expect(context.player1).toHavePassAbilityPrompt(bountyPrompt);
-                context.player1.clickPrompt(bountyPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 context.moveToNextActionPhase();
 
@@ -98,8 +98,8 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
         });
 
         describe('Jabba the Hutt\'s leader deployed ability', function () {
-            it('should choose a friendly to capture a enemy non leader unit', function () {
-                contextRef.setupTest({
+            it('should choose a friendly to capture a enemy non leader unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'seasoned-shoretrooper'],
@@ -134,7 +134,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
             const bountyPrompt = 'Collect Bounty: The next unit you play this phase costs 2 resources less';
 
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['seasoned-shoretrooper', 'vanguard-infantry'],
@@ -165,7 +165,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
 
                 // collect bounty
                 expect(context.player1).toHavePassAbilityPrompt(bountyPrompt);
-                context.player1.clickPrompt(bountyPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 context.player2.passAction();
 
@@ -196,7 +196,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1).toHavePassAbilityPrompt(bountyPrompt);
-                context.player1.clickPrompt(bountyPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 context.moveToNextActionPhase();
 

@@ -2,7 +2,7 @@ describe('Freetown Backup', function() {
     integration(function(contextRef) {
         describe('Freetown Backup\'s modify stats ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['freetown-backup', 'battlefield-marine'],

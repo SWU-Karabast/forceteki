@@ -2,7 +2,7 @@ describe('Shielded keyword', function() {
     integration(function(contextRef) {
         describe('When a unit with the Shielded keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['crafty-smuggler']
@@ -38,7 +38,7 @@ describe('Shielded keyword', function() {
 
         describe('When a leader with the Shielded keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'iden-versio#inferno-squad-commander'

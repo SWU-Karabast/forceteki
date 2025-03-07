@@ -2,7 +2,7 @@ describe('Outlaw Corona', function() {
     integration(function(contextRef) {
         describe('Outlaw Corona\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['outlaw-corona'],
@@ -22,7 +22,7 @@ describe('Outlaw Corona', function() {
                 context.player1.clickCard(context.fettsFirespray);
 
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Put the top card of your deck into play as a resource.');
-                context.player2.clickPrompt('Collect Bounty: Put the top card of your deck into play as a resource.');
+                context.player2.clickPrompt('Trigger');
 
                 expect(context.player2.resources.length).toBe(startingResources + 1);
                 expect(context.player2).toBeActivePlayer();

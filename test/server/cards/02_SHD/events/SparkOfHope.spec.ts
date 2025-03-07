@@ -2,7 +2,7 @@ describe('Spark of Hope', function () {
     integration(function (contextRef) {
         describe('Spark of Hope\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['spark-of-hope'],
@@ -56,8 +56,8 @@ describe('Spark of Hope', function () {
             });
         });
 
-        it('Spark of Hope\'s ability should only affect units that were defeated as their most recent in-play copy', function () {
-            contextRef.setupTest({
+        it('Spark of Hope\'s ability should only affect units that were defeated as their most recent in-play copy', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['the-emperors-legion', 'spark-of-hope'],

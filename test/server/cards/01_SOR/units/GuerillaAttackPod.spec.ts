@@ -2,7 +2,7 @@ describe('Guerilla Attack Pod', function () {
     integration(function (contextRef) {
         describe('Guerilla Attack Pod\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['guerilla-attack-pod'],
@@ -64,7 +64,7 @@ describe('Guerilla Attack Pod', function () {
                 context.player1.clickPrompt('Play a unit that costs 6 or less from your hand. Give it ambush for this phase -> Guerilla Attack Pod');
                 context.player1.clickPrompt('Ambush');
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 expect(context.guerillaAttackPod.damage).toBe(3);
                 expect(context.ruggedSurvivors.damage).toBe(4);
                 expect(context.guerillaAttackPod.exhausted).toBe(false);

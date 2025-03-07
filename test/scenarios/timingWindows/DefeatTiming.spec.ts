@@ -2,7 +2,7 @@ describe('Defeat timing', function() {
     integration(function(contextRef) {
         describe('When a unit enters play with a constant ability that defeats other units,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['supreme-leader-snoke#shadow-ruler'],
@@ -38,7 +38,7 @@ describe('Defeat timing', function() {
         // TODO: add a similar test for Dodonna and units leaving the field due to a +hp modifier going away
         describe('When a unit enters play and is immediately defeated by a constant ability,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['supreme-leader-snoke#shadow-ruler'],
@@ -74,7 +74,7 @@ describe('Defeat timing', function() {
 
         describe('When a unit enters play and is immediately defeated by a constant ability,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['supreme-leader-snoke#shadow-ruler'],
@@ -104,7 +104,7 @@ describe('Defeat timing', function() {
 
         describe('When multiple units are defeated simultaneously,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['superlaser-blast'],
@@ -146,7 +146,7 @@ describe('Defeat timing', function() {
                 context.player1.clickPrompt('Draw a card');
                 // may ability prompts the player whether or not to actually use it before it fully resolves
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card');
-                context.player1.clickPrompt('Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toHaveExactPromptButtons(['Draw a card', 'When an opponent\'s unit is defeated, heal 1 from base']);
                 context.player1.clickPrompt('When an opponent\'s unit is defeated, heal 1 from base');
                 // last trigger is chosen automatically
@@ -160,7 +160,7 @@ describe('Defeat timing', function() {
                 context.player2.clickPrompt('You');
                 context.player2.clickPrompt('Done');
                 expect(context.player2).toHavePassAbilityPrompt('Put Superlaser Technician into play as a resource and ready it');
-                context.player2.clickPrompt('Put Superlaser Technician into play as a resource and ready it');
+                context.player2.clickPrompt('Trigger');
 
                 // triggers all done, action is finally over
                 expect(context.player2).toBeActivePlayer();
@@ -175,7 +175,7 @@ describe('Defeat timing', function() {
 
         describe('When a unit not controlled by the owner is defeated,', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['change-of-heart'],

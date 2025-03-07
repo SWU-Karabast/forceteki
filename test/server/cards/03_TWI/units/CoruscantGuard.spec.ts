@@ -1,7 +1,7 @@
 describe('Coruscant Guard', function() {
     integration(function(contextRef) {
-        it('Coruscant Guard\'s constant Coordinate ability should grant Ambush', function () {
-            contextRef.setupTest({
+        it('Coruscant Guard\'s constant Coordinate ability should grant Ambush', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['battlefield-marine'],
@@ -20,13 +20,13 @@ describe('Coruscant Guard', function() {
 
             context.player1.clickCard(context.coruscantGuard);
             expect(context.player1).toHavePassAbilityPrompt('Ambush');
-            context.player1.clickPrompt('Ambush');
+            context.player1.clickPrompt('Trigger');
             expect(context.coruscantGuard.damage).toBe(1);
             expect(context.hylobonEnforcer.damage).toBe(3);
         });
 
-        it('Coruscant Guard\'s constant Coordinate ability should do nothing if the Coordinate condition is not met', function () {
-            contextRef.setupTest({
+        it('Coruscant Guard\'s constant Coordinate ability should do nothing if the Coordinate condition is not met', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     spaceArena: ['wing-leader'],

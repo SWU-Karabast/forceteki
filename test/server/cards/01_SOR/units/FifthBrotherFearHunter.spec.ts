@@ -4,7 +4,7 @@ describe('Fifth Brother, Fear Hunter', function() {
 
         describe('Fifth Brother\'s on attack ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['fifth-brother#fear-hunter', 'wampa'],
@@ -40,7 +40,7 @@ describe('Fifth Brother, Fear Hunter', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.rebelPathfinder]);
                 context.player1.clickCard(context.wampa);
 
@@ -62,7 +62,7 @@ describe('Fifth Brother, Fear Hunter', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.rebelPathfinder]);
                 context.player1.clickCard(context.wampa);
 

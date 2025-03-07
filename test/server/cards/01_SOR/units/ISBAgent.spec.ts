@@ -2,8 +2,8 @@ describe('ISB Agent', function() {
     integration(function(contextRef) {
         describe('ISB Agent\'s When Played ability', function() {
             describe('when hand contains some events', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['confiscate', 'waylay', 'isb-agent'],
@@ -74,8 +74,8 @@ describe('ISB Agent', function() {
             });
 
             describe('when hand contains no events', function() {
-                beforeEach(function () {
-                    contextRef.setupTest({
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
                             hand: ['isb-agent']

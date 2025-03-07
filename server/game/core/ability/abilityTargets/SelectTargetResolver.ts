@@ -59,14 +59,29 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
         return [];
     }
 
-    // TODO: add passHandler here so that player can potentially be prompted for pass earlier in the window
     protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
-        const choices = Object.keys(this.getChoices(context)).filter((key) => this.isChoiceLegal(key, context));
-        const handlers = choices.map((choice) => {
+        const choices = Object.keys(this.getChoices(context));
+        let legalChoices = choices.filter((key) => this.isChoiceLegal(key, context));
+
+        if (legalChoices.length === 0) {
+            return;
+        }
+
+        if (this.properties.showUnresolvable) {
+            legalChoices = choices;
+        }
+
+        const handlers = legalChoices.map((choice) => {
             return () => {
                 this.setTargetResult(context, choice);
             };
         });
+
+        if (passPrompt) {
+            choices.push(passPrompt.buttonText);
+            handlers.push(passPrompt.handler);
+            passPrompt.hasBeenShown = true;
+        }
 
         // TODO: figure out if we need these buttons
         /* if (player !== context.player.opponent && context.stage === Stage.PreTarget) {
@@ -82,8 +97,10 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
             handlers[0]();
         } else if (handlers.length > 1) {
             const baseProperties = this.getDefaultProperties(context);
+            const activePromptTitleConcrete = (baseProperties.activePromptTitle && typeof baseProperties.activePromptTitle === 'function') ? (baseProperties.activePromptTitle as (context: AbilityContext) => string)(context) : baseProperties.activePromptTitle || 'Select one';
+
             const promptProperties = Object.assign(baseProperties, {
-                activePromptTitle: baseProperties.activePromptTitle || 'Select one',
+                activePromptTitle: activePromptTitleConcrete,
                 choices,
                 handlers
             });
@@ -92,7 +109,11 @@ export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<A
     }
 
     protected override checkTarget(context: AbilityContext): boolean {
-        return !!context.selects[this.name] && this.isChoiceLegal(context.selects[this.name].choice, context);
+        if (!context.selects[this.name]) {
+            return false;
+        }
+
+        return this.properties.showUnresolvable || this.isChoiceLegal(context.selects[this.name].choice, context);
     }
 
     protected override hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean {

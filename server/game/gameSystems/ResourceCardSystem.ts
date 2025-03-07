@@ -30,10 +30,10 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         // event.cardStateWhenMoved = card.createSnapshot();
 
         const card = event.card as Card;
-        Contract.assertTrue(card.isTokenOrPlayable());
-        Contract.assertFalse(card.isToken());
+        Contract.assertTrue(card.isPlayable());
 
         if (event.resourceControllingPlayer !== card.controller) {
+            Contract.assertTrue(card.canChangeController(), `Card ${card.internalName} cannot change controller`);
             card.takeControl(event.resourceControllingPlayer, ZoneName.Resource);
         } else {
             card.moveTo(ZoneName.Resource);
@@ -63,8 +63,8 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
         const destinationController = properties.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
         return [
-            'move {0} to {1}\'s resources',
-            [properties.target, destinationController]
+            'move a card to {0}\'s resources',
+            [destinationController.name]
         ];
     }
 

@@ -1,7 +1,7 @@
 describe('Heavy Persuader Tank', function() {
     integration(function(contextRef) {
-        it('Heavy Persuader Tank\'s ability should optionally deal 2 damage to any ground unit when played', function() {
-            contextRef.setupTest({
+        it('Heavy Persuader Tank\'s ability should optionally deal 2 damage to any ground unit when played', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['heavy-persuader-tank'],
@@ -18,7 +18,7 @@ describe('Heavy Persuader Tank', function() {
 
             // Play the card
             context.player1.clickCard(context.heavyPersuaderTank);
-            context.player1.clickPrompt('Play Heavy Persuader Tank');
+            context.player1.clickPrompt('Play without Exploit');
 
             // See if the ability is available
             expect(context.player1).toBeAbleToSelectExactly([

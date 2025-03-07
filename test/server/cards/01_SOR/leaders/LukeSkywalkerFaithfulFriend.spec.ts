@@ -2,7 +2,7 @@ describe('Luke Skywalker, Faithful Friend', function() {
     integration(function(contextRef) {
         describe('Luke\'s undeployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['battlefield-marine', 'cartel-spacer', 'alliance-xwing'],
@@ -60,7 +60,7 @@ describe('Luke Skywalker, Faithful Friend', function() {
 
         describe('Luke\'s deployed ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['atst'],
@@ -83,7 +83,7 @@ describe('Luke Skywalker, Faithful Friend', function() {
                 context.player1.clickCard(context.lukeSkywalker);
                 context.player1.clickCard(context.wampa);
 
-                expect(context.player1).toHavePrompt('Choose a card');
+                expect(context.player1).toHavePrompt('Give a shield token to another unit');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.tielnFighter, context.wampa, context.tieAdvanced]);
                 context.player1.clickCard(context.tielnFighter);

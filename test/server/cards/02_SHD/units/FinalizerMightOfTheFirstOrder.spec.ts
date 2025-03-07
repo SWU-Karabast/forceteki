@@ -1,8 +1,8 @@
 describe('Finalizer, Might of the First Order', function() {
     integration(function(contextRef) {
         describe('Finalizer\'s when played ability', function () {
-            it('allows any number of friendly units to capture another unit in the same arena', function () {
-                contextRef.setupTest({
+            it('allows any number of friendly units to capture another unit in the same arena', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['finalizer#might-of-the-first-order'],
@@ -60,8 +60,8 @@ describe('Finalizer, Might of the First Order', function() {
                 expect(context.zuckuss).toBeCapturedBy(context.wampa);
             });
 
-            it('does nothing if there are no units to be captured', function () {
-                contextRef.setupTest({
+            it('does nothing if there are no units to be captured', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['finalizer#might-of-the-first-order'],

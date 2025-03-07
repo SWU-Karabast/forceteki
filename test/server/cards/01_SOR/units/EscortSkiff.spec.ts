@@ -2,7 +2,7 @@ describe('Escort Skiff', function() {
     integration(function(contextRef) {
         describe('Escort Skiff\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['escort-skiff'],
@@ -21,10 +21,10 @@ describe('Escort Skiff', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.escortSkiff);
-                expect(context.player1).toHaveExactPromptButtons(['Ambush', 'Pass']);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
 
                 // ambush grogu
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 expect(context.escortSkiff.exhausted).toBeTrue();
                 expect(context.escortSkiff.damage).toBe(0);
                 expect(context.grogu.damage).toBe(4);
@@ -33,7 +33,7 @@ describe('Escort Skiff', function() {
 
         describe('Escort Skiff\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['escort-skiff'],

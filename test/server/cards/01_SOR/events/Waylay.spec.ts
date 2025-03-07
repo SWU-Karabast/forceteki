@@ -2,7 +2,7 @@ describe('Waylay', function() {
     integration(function(contextRef) {
         describe('Waylay\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay', 'waylay'],
@@ -51,6 +51,35 @@ describe('Waylay', function() {
                 expect(context.pykeSentinel).toBeInZone('groundArena', context.player1);
                 expect(context.pykeSentinel.exhausted).toBe(true); // Does not retain state when returned to hand
             });
+        });
+
+        it('cannot return an enemy unit with a leader attached to it to it\'s owner\'s hand', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'boba-fett#any-methods-necessary',
+                    groundArena: ['wampa'],
+                    spaceArena: ['cartel-spacer'],
+                    resources: 6
+                },
+                player2: {
+                    hand: ['waylay'],
+                    groundArena: ['pyke-sentinel'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.bobaFett);
+            context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
+            context.player1.clickCard(context.cartelSpacer);
+            context.player1.clickPrompt('Choose no targets');
+
+            context.player2.clickCard('waylay');
+            expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel]);
+
+            context.player2.clickCard(context.wampa);
+            expect(context.wampa).toBeInZone('hand');
         });
     });
 });

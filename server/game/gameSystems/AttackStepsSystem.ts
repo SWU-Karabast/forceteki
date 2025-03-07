@@ -10,9 +10,11 @@ import { isArray } from 'underscore';
 import type { GameEvent } from '../core/event/GameEvent';
 import { CardLastingEffectSystem } from './CardLastingEffectSystem';
 import * as Contract from '../core/utils/Contract';
-import type { CardWithDamageProperty, UnitCard } from '../core/card/CardTypes';
 import * as Helpers from '../core/utils/Helpers';
-import type { KeywordInstance } from '../core/ability/KeywordInstance';
+import type { IAttackableCard } from '../core/card/CardInterfaces';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
+import type { KeywordNameOrProperties } from '../Interfaces';
+import { KeywordInstance } from '../core/ability/KeywordInstance';
 
 export interface IAttackLastingEffectProperties<TContext extends AbilityContext = AbilityContext> {
     condition?: (attack: Attack, context: TContext) => boolean;
@@ -69,6 +71,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         this.registerAttackEffects(context, event.attackerLastingEffects, event.defenderLastingEffects, event.attack);
 
         const attack = event.attack;
+        context.game.addMessage(`${attack.attacker.title} attacks ${attack.target.title}`);
         context.game.queueStep(new AttackFlow(context, attack));
     }
 
@@ -90,7 +93,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
     /** This method is checking whether cards are a valid target for an attack. */
     public override canAffect(targetCard: Card, context: TContext, additionalProperties = {}): boolean {
-        if (!targetCard.canBeDamaged()) {
+        if (!targetCard.isUnit() && !targetCard.isBase()) {
             return false;
         }
 
@@ -185,8 +188,8 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         event.attacker = properties.attacker;
         event.attack = new Attack(
             context.game,
-            properties.attacker as UnitCard,
-            event.target as CardWithDamageProperty,
+            properties.attacker as IUnitCard,
+            event.target as IAttackableCard,
             properties.isAmbush
         );
 
@@ -238,16 +241,33 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         return true;
     }
 
-    private attackerGainsSaboteur(attackTarget: CardWithDamageProperty, context: TContext, additionalProperties?: any) {
-        return this.attackerGains(attackTarget, context, additionalProperties, (effect) => effect.impl.type === EffectName.GainKeyword && (effect.impl.valueWrapper.value as KeywordInstance).name === KeywordName.Saboteur);
+    private attackerGainsSaboteur(attackTarget: IAttackableCard, context: TContext, additionalProperties?: any) {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        // If the attacker is blanked or has lost Saboteur, it cannot gain Saboteur
+        const saboteur = new KeywordInstance(KeywordName.Saboteur, properties.attacker);
+        if (saboteur.isBlank) {
+            return false;
+        }
+
+        return this.attackerGains(attackTarget, context, additionalProperties, (effect) => {
+            if (effect.impl.type !== EffectName.GainKeyword) {
+                return false;
+            }
+
+            const keywordProps = effect.impl.valueWrapper.value as KeywordNameOrProperties;
+            const keyword = typeof keywordProps === 'string' ? keywordProps : keywordProps.keyword;
+
+            return keyword === KeywordName.Saboteur;
+        });
     }
 
-    private attackerGainsEffect(attackTarget: CardWithDamageProperty, context: TContext, effect: EffectName, additionalProperties?: any) {
+    private attackerGainsEffect(attackTarget: IAttackableCard, context: TContext, effect: EffectName, additionalProperties?: any) {
         return this.attackerGains(attackTarget, context, additionalProperties, (e) => e.impl.type === effect);
     }
 
     /** Checks if there are any lasting effects that would give the attacker Saboteur, for the purposes of targeting */
-    private attackerGains(attackTarget: CardWithDamageProperty, context: TContext, additionalProperties?: any, predicate = (e) => false): boolean {
+    private attackerGains(attackTarget: IAttackableCard, context: TContext, additionalProperties?: any, predicate = (e) => false): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const attackerLastingEffects = Helpers.asArray(properties.attackerLastingEffects);
@@ -258,7 +278,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         // construct a hypothetical attack in case it's required for evaluating a condition on the lasting effect
         const attack = new Attack(
             context.game,
-            properties.attacker as UnitCard,
+            properties.attacker as IUnitCard,
             attackTarget,
             properties.isAmbush
         );

@@ -1,8 +1,8 @@
 describe('Admiral Yularen, Advising Caution', function () {
     integration(function (contextRef) {
         describe('Admiral Yularen\'s ability', function () {
-            it('should give +0/+1 to each other friendly heroism unit', function () {
-                contextRef.setupTest({
+            it('should give +0/+1 to each other friendly heroism unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['echo-base-defender', 'admiral-yularen#advising-caution', 'wampa'],

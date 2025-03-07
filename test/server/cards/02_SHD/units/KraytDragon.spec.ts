@@ -2,7 +2,7 @@ describe('Krayt Dragon', function () {
     integration(function (contextRef) {
         describe('Krayt Dragon\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['battlefield-marine'],
@@ -62,7 +62,7 @@ describe('Krayt Dragon', function () {
                 context.player1.passAction();
                 context.player2.clickCard(context.superlaserBlast);
                 expect(context.player1).toHavePassAbilityPrompt('Deal damage equal to that card’s cost to their base or a ground unit they control');
-                context.player1.clickPrompt('Deal damage equal to that card’s cost to their base or a ground unit they control');
+                context.player1.clickPrompt('Trigger');
                 expect(context.p2Base.damage).toBe(8);
             });
             // TODO test u-wing, vader or endless legion when implemented

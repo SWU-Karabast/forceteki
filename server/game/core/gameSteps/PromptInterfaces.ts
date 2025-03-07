@@ -32,12 +32,19 @@ export interface IDisplayCard {
 
 export enum StatefulPromptType {
     DistributeDamage = 'distributeDamage',
+    DistributeIndirectDamage = 'distributeIndirectDamage',
     DistributeHealing = 'distributeHealing',
     DistributeExperience = 'distributeExperience',
 }
 
+export enum SelectCardMode {
+    Single = 'single',
+    Multiple = 'multiple',
+}
+
 export type DistributePromptType =
   | StatefulPromptType.DistributeDamage
+  | StatefulPromptType.DistributeIndirectDamage
   | StatefulPromptType.DistributeExperience
   | StatefulPromptType.DistributeHealing;
 
@@ -63,6 +70,9 @@ export interface IDistributeAmongTargetsPromptProperties extends IPromptProperti
 export interface IDistributeAmongTargetsPromptData {
     type: DistributePromptType;
     amount: number;
+    isIndirectDamage: boolean;
+    canDistributeLess: boolean;
+    maxTargets?: number;
 }
 
 export interface IDistributeAmongTargetsPromptResults {
@@ -91,7 +101,7 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     onCancel?: (player: Player) => void;
     onMenuCommand?: (arg: string) => boolean;
     onSelect?: (card: Card[]) => boolean;
-    selectCard?: boolean;
+    selectCardMode: SelectCardMode;
     selectOrder?: boolean;
     selector?: BaseCardSelector;
 }

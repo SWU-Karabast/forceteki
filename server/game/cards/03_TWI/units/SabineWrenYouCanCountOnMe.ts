@@ -22,24 +22,21 @@ export default class SabineWrenYouCanCountOnMe extends NonLeaderUnitCard {
             title: 'Discard the top card from your deck',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard((context) => ({
-                target: context.source.controller.getTopCardOfDeck()
+                target: context.player.getTopCardOfDeck()
             })),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'If it doesn\'t share an aspect with your base, deal 2 damage to a ground unit',
-                immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => {
-                        const cardAspects: Aspect[] = ifYouDoContext.events[0].card.aspects;
-                        const baseAspects: Aspect[] = context.source.controller.base.aspects;
-                        return !cardAspects.some((cardAspect) => baseAspects.includes(cardAspect));
-                    },
-                    onTrue: AbilityHelper.immediateEffects.selectCard({
-                        cardTypeFilter: WildcardCardType.Unit,
-                        controller: RelativePlayer.Opponent,
-                        zoneFilter: ZoneName.GroundArena,
-                        innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
-                    }),
-                    onFalse: AbilityHelper.immediateEffects.noAction(),
-                })
+                ifYouDoCondition: (context) => {
+                    const cardAspects: Aspect[] = ifYouDoContext.events[0].card.aspects;
+                    const baseAspects: Aspect[] = context.player.base.aspects;
+                    return !cardAspects.some((cardAspect) => baseAspects.includes(cardAspect));
+                },
+                targetResolver: {
+                    cardTypeFilter: WildcardCardType.Unit,
+                    controller: RelativePlayer.Opponent,
+                    zoneFilter: ZoneName.GroundArena,
+                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
+                }
             })
         });
     }

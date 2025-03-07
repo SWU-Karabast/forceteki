@@ -1,7 +1,7 @@
 describe('No Disintegrations', function() {
     integration(function(contextRef) {
-        it('No Disintegrations\'s ability should deal damage to a non leader unit equal to its remaining hp minus 1', function() {
-            contextRef.setupTest({
+        it('No Disintegrations\'s ability should deal damage to a non leader unit equal to its remaining hp minus 1', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['no-disintegrations'],

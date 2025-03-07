@@ -1,7 +1,7 @@
 describe('Strategic Acumen', function() {
     integration(function(contextRef) {
-        it('Strategic Acumen\'s activated ability should allow the controller to play a unit with a discount of 1', function () {
-            contextRef.setupTest({
+        it('Strategic Acumen\'s activated ability should allow the controller to play a unit with a discount of 1', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: [{ card: 'wampa', upgrades: ['strategic-acumen'] }],

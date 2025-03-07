@@ -2,7 +2,7 @@ describe('Consolidation of power', function () {
     integration(function (contextRef) {
         describe('Consolidation of power\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: [

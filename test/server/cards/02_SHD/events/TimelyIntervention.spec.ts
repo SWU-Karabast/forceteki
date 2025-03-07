@@ -2,7 +2,7 @@ describe('Timely Intervention', function () {
     integration(function (contextRef) {
         describe('Timely Intervention\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'hera-syndulla#spectre-two',
@@ -30,7 +30,7 @@ describe('Timely Intervention', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 expect(context.rebelPathfinder.exhausted).toBe(true);
                 expect(context.rebelPathfinder.damage).toBe(1);
                 expect(context.isbAgent.damage).toBe(2);
@@ -39,7 +39,7 @@ describe('Timely Intervention', function () {
 
         describe('Timely Intervention\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         leader: 'hera-syndulla#spectre-two',
@@ -67,7 +67,7 @@ describe('Timely Intervention', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(4);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 expect(context.rebelPathfinder.exhausted).toBe(true);
                 expect(context.rebelPathfinder.damage).toBe(1);
                 expect(context.isbAgent.damage).toBe(2);

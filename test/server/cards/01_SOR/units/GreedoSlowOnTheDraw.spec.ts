@@ -3,9 +3,8 @@ describe('Greedo, Slow on the Draw', function () {
         describe('Greedo\'s ability', function () {
             const prompt = 'Discard a card from your deck. If it\'s not a unit, deal 2 damage to a ground unit.';
 
-            it('should deal 2 damage to a ground unit if the discarded card is not a unit', function () {
-                const { context } = contextRef;
-                contextRef.setupTest({
+            it('should deal 2 damage to a ground unit if the discarded card is not a unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],
@@ -17,6 +16,8 @@ describe('Greedo, Slow on the Draw', function () {
                     }
                 });
 
+                const { context } = contextRef;
+
                 // kill greedo
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.greedo);
@@ -24,7 +25,7 @@ describe('Greedo, Slow on the Draw', function () {
 
                 // player2 should have prompt or pass
                 expect(context.player2).toHavePassAbilityPrompt(prompt);
-                context.player2.clickPrompt(prompt);
+                context.player2.clickPrompt('Trigger');
 
                 // top card is an upgrade, deal 2 damage to a ground unit
                 expect(context.protector).toBeInZone('discard');
@@ -34,9 +35,8 @@ describe('Greedo, Slow on the Draw', function () {
                 expect(context.battlefieldMarine.damage).toBe(2);
             });
 
-            it('should not deal 2 damage to a ground unit if the discarded card is a unit', function () {
-                const { context } = contextRef;
-                contextRef.setupTest({
+            it('should not deal 2 damage to a ground unit if the discarded card is a unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],
@@ -48,6 +48,8 @@ describe('Greedo, Slow on the Draw', function () {
                     }
                 });
 
+                const { context } = contextRef;
+
                 // kill greedo
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.greedo);
@@ -55,16 +57,15 @@ describe('Greedo, Slow on the Draw', function () {
 
                 // player2 should have prompt or pass
                 expect(context.player2).toHavePassAbilityPrompt(prompt);
-                context.player2.clickPrompt(prompt);
+                context.player2.clickPrompt('Trigger');
 
                 // top card is a unit, nothing happen
                 expect(context.isbAgent).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not prompt if the deck is empty', function () {
-                const { context } = contextRef;
-                contextRef.setupTest({
+            it('should not prompt if the deck is empty', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'battlefield-marine'],
@@ -75,6 +76,8 @@ describe('Greedo, Slow on the Draw', function () {
                         deck: []
                     }
                 });
+
+                const { context } = contextRef;
 
                 // kill greedo
                 context.player1.clickCard(context.wampa);

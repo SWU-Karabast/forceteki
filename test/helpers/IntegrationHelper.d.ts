@@ -1,8 +1,9 @@
+type PhaseName = import('../../server/game/core/Constants').PhaseName;
+type IBaseCard = import('../../server/game/core/card/BaseCard').IBaseCard;
+type ILeaderCard = import('../../server/game/core/card/propertyMixins/LeaderProperties').ILeaderCard;
 type Card = import('../../server/game/core/card/Card').Card;
 type DeckBuilder = import('./DeckBuilder').DeckBuilder;
 type CardWithDamageProperty = import('../../server/game/core/card/CardTypes').CardWithDamageProperty;
-type BaseCard = import('../../server/game/core/card/BaseCard').BaseCard;
-type LeaderCard = import('../../server/game/core/card/LeaderCard').LeaderCard;
 type Game = import('../../server/game/core/Game');
 type Player = import('../../server/game/core/Player');
 type GameFlowWrapper = import('./GameFlowWrapper');
@@ -12,7 +13,7 @@ declare let integration: (definitions: ((contextRef: SwuTestContextRef) => void)
 
 interface SwuTestContextRef {
     context: SwuTestContext;
-    setupTest: (options?: SwuSetupTestOptions) => void;
+    setupTestAsync: (options?: SwuSetupTestOptions) => Promise;
     buildImportAllCardsTools: () => {
         deckBuilder: DeckBuilder;
         implementedCardsCtors: Map<string, new (owner: Player, cardData: any) => Card>;
@@ -29,10 +30,10 @@ interface SwuTestContext {
     player2Name: string;
     player1: PlayerInteractionWrapper;
     player2: PlayerInteractionWrapper;
-    p1Base: BaseCard;
-    p1Leader: LeaderCard;
-    p2Base: BaseCard;
-    p2Leader: LeaderCard;
+    p1Base: IBaseCard;
+    p1Leader: ILeaderCard;
+    p2Base: IBaseCard;
+    p2Leader: ILeaderCard;
 
     allowTestToEndWithOpenPrompt: boolean;
 
@@ -49,7 +50,7 @@ interface SwuTestContext {
     selectInitiativePlayer(player: PlayerInteractionWrapper);
     setDamage(card: CardWithDamageProperty, amount: number);
     skipSetupPhase();
-    startGame();
+    startGameAsync(): Promise;
 
     // To account for any dynamically added cards or objects, we have a free-form accessor.
     [field: string]: any;
@@ -65,6 +66,7 @@ interface SwuSetupTestOptions {
     player1?: SwuPlayerSetupOptions;
     player2?: SwuPlayerSetupOptions;
     autoSingleTarget?: boolean;
+    phaseTransitionHandler?: (phase: PhaseName) => void;
 
     [field: string]: any;
 }
@@ -119,7 +121,9 @@ declare namespace jasmine {
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
         toHaveExactDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedPromptState: ICardDisplaySelectionState): boolean;
         toHaveExactSelectableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: Card[]): boolean;
-        toHaveExactViewableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: Card[]): boolean;
+        toHaveExactViewableDisplayPromptCards<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedCardsInPrompt: (Card | { card: Card; displayText: string })[]): boolean;
         toHaveExactDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
+        toHaveExactEnabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
+        toHaveExactDisabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
     }
 }

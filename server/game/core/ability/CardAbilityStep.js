@@ -1,6 +1,6 @@
 const { AbilityContext } = require('./AbilityContext.js');
 const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer } = require('../Constants.js');
+const { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck } = require('../Constants.js');
 const AttackHelper = require('../attack/AttackHelpers.js');
 const Helpers = require('../utils/Helpers.js');
 const Contract = require('../utils/Contract.js');
@@ -34,7 +34,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** @override */
-    hasAnyLegalEffects(context, includeSubSteps = false) {
+    hasAnyLegalEffects(context, includeSubSteps = SubStepCheck.None) {
         if (this.immediateEffect && this.checkGameActionsForPotential(context)) {
             return true;
         }
@@ -43,7 +43,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
             return true;
         }
 
-        if (includeSubSteps) {
+        if (includeSubSteps === SubStepCheck.All || (includeSubSteps === SubStepCheck.ThenIfYouDo && (this.properties.then || this.properties.ifYouDo))) {
             const subAbilityStepContext = this.getSubAbilityStepContext(context);
             return subAbilityStepContext && subAbilityStepContext.ability.hasAnyLegalEffects(subAbilityStepContext);
         }
@@ -114,9 +114,8 @@ class CardAbilityStep extends PlayerOrCardAbility {
             if (eventsToResolve.length > 0) {
                 let window = this.openEventWindow(eventsToResolve);
                 window.setSubAbilityStep(() => this.getSubAbilityStepContext(context, eventsToResolve));
-            // if no events for the current step, skip directly to the "then" step (if any)
+                // if no events for the current step, skip directly to the "then" step (if any)
             } else {
-                // TODO THIS PR: make sure that this part also passes triggers to parent window?
                 const subAbilityStep = this.getSubAbilityStepContext(context, []);
                 if (!!subAbilityStep) {
                     this.game.resolveAbility(subAbilityStep);
@@ -160,7 +159,6 @@ class CardAbilityStep extends PlayerOrCardAbility {
             if (resolvedAbilityEvents.length === 0) {
                 return null;
             }
-
             ifAbility = this.properties.ifYouDo;
             effectShouldResolve = true;
         } else if (this.properties.ifYouDoNot) {
@@ -184,9 +182,11 @@ class CardAbilityStep extends PlayerOrCardAbility {
         // the last of this ability step's events is the one used for evaluating the "if you do (not)" condition
         const conditionalEvent = resolvedAbilityEvents[resolvedAbilityEvents.length - 1];
 
-        return conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve
-            ? this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy)
-            : null;
+        if (conditionalEvent.isResolvedOrReplacementResolved === effectShouldResolve && (!concreteIfAbility.ifYouDoCondition || concreteIfAbility.ifYouDoCondition(context))) {
+            return this.buildSubAbilityStepContext(concreteIfAbility, canBeTriggeredBy);
+        }
+
+        return null;
     }
 
     getConcreteSubAbilityStepProperties(subAbilityStep, context) {

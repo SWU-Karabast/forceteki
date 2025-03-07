@@ -2,7 +2,7 @@ describe('Heroic Sacrifice', function() {
     integration(function(contextRef) {
         describe('Heroic Sacrifice\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['heroic-sacrifice'],
@@ -96,7 +96,7 @@ describe('Heroic Sacrifice', function() {
                 context.player1.clickPrompt(flamethrowerPrompt);
 
                 expect(context.player1).toHavePassAbilityPrompt(flamethrowerPrompt);
-                context.player1.clickPrompt(flamethrowerPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper, context.atst, context.craftySmuggler]);
                 context.player1.setDistributeDamagePromptState(new Map([

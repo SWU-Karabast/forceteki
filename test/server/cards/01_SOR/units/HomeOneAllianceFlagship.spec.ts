@@ -2,7 +2,7 @@ describe('Home One', function () {
     integration(function (contextRef) {
         describe('Home One\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -43,14 +43,19 @@ describe('Home One', function () {
 
                 // enemy units shouldn't have restore 1, p2 base damage should still be 3
                 expect(context.p2Base.damage).toBe(3);
+                expect(context.p1Base.damage).toBe(10);
 
                 expect(context.player1).toBeActivePlayer();
+
+                // Home should not benefit from the +1 restore. So it restores 2.
+                context.player1.clickCard(context.homeOne);
+                expect(context.p1Base.damage).toBe(8);
             });
         });
 
         describe('Home One\'s when played ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],
@@ -105,7 +110,7 @@ describe('Home One', function () {
 
         describe('Home One\'s when played ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['battlefield-marine'],

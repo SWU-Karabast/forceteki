@@ -2,8 +2,8 @@
 describe('Captain Phasma, Chrome Dome', function() {
     integration(function(contextRef) {
         describe('Captain Phasma, Chrome Dome\'s undeployed ability', function() {
-            it('should only have an effect if the controller played a First Order card this phase, but still be usable otherwise', function () {
-                contextRef.setupTest({
+            it('should only have an effect if the controller played a First Order card this phase, but still be usable otherwise', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['kylos-tie-silencer#ruthlessly-efficient'],
@@ -51,8 +51,8 @@ describe('Captain Phasma, Chrome Dome', function() {
         });
 
         describe('Captain Phasma, Chrome Domer\'s deployed ability', function() {
-            it('should optionally deal 1 damage to any unit and base on attack', function () {
-                contextRef.setupTest({
+            it('should optionally deal 1 damage to any unit and base on attack', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['kylo-ren#killing-the-past'],
@@ -76,11 +76,11 @@ describe('Captain Phasma, Chrome Dome', function() {
 
                 // Damage to a unit (optional)
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
                 context.player1.clickCard(context.brightHope);
 
                 // Damage to a base (not optional)
-                expect(context.player1).toHavePrompt('Choose a base');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a base');
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.p2Base);
 
@@ -97,7 +97,7 @@ describe('Captain Phasma, Chrome Dome', function() {
                 context.player1.clickCard(context.captainPhasma);
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();

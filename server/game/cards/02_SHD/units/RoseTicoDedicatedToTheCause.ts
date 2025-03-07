@@ -16,7 +16,7 @@ export default class RoseTicoDedicatedToTheCause extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
-                cardCondition: (card, context) => card.isShield() && card.parentCard.controller === context.source.controller,
+                cardCondition: (card, context) => card.isShield() && card.parentCard.controller === context.player,
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             },
             ifYouDo: (ifYouDoContext) => ({

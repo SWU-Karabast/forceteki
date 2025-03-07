@@ -1,8 +1,8 @@
 describe('Zeb Orrelios, Headstrong Warrior', function () {
     integration(function (contextRef) {
         describe('Zeb Orrelios\'s ability', function () {
-            it('should deal 4 damage to a ground unit when he kill someone and survives', function () {
-                contextRef.setupTest({
+            it('should deal 4 damage to a ground unit when he kill someone and survives', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['zeb-orrelios#headstrong-warrior', 'swoop-racer'],
@@ -26,7 +26,7 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                 // kill superlaser technician, should deal 4 to a ground unit
                 context.player1.clickCard(context.zebOrrelios);
                 context.player1.clickCard(context.superlaserTechnician);
-                context.player2.clickPrompt('Put Superlaser Technician into play as a resource and ready it');
+                context.player2.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.zebOrrelios, context.swoopRacer, context.consularSecurityForce, context.steadfastBattalion]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.consularSecurityForce);
@@ -57,8 +57,8 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
             });
 
 
-            it('should deal 4 damage to a ground unit when zeb attacks and kill with on attack abilities', function () {
-                contextRef.setupTest({
+            it('should deal 4 damage to a ground unit when zeb attacks and kill with on attack abilities', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'zeb-orrelios#headstrong-warrior', upgrades: ['vambrace-flamethrower'] }]
@@ -73,7 +73,7 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                 context.player1.clickCard(context.zebOrrelios);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                context.player1.clickPrompt('Deal 3 damage divided as you choose among enemy ground units');
+                context.player1.clickPrompt('Trigger');
 
                 // kill battlefield marine with flamethrower, zeb should deal 4 damage to another unit
                 context.player1.setDistributeDamagePromptState(new Map([
@@ -89,8 +89,8 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
             });
         });
 
-        it('should do nothing if the defender was previously defeated and played again before his attack', function () {
-            contextRef.setupTest({
+        it('should do nothing if the defender was previously defeated and played again before his attack', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['rivals-fall'],

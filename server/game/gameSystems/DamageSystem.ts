@@ -7,7 +7,7 @@ import * as Contract from '../core/utils/Contract';
 import type { Attack } from '../core/attack/Attack';
 import type { IDamagedOrDefeatedByAbility, IDamagedOrDefeatedByAttack } from '../IDamageOrDefeatSource';
 import { DamageSourceType } from '../IDamageOrDefeatSource';
-import type { UnitCard } from '../core/card/CardTypes';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 
 export interface IDamagePropertiesBase extends ICardTargetSystemProperties {
     type: DamageType;
@@ -27,10 +27,15 @@ export interface ICombatDamageProperties extends IDamagePropertiesBase {
 /** Used for when an ability is directly dealing damage to a target (most common case for card implementations) */
 export interface IAbilityDamageProperties extends IDamagePropertiesBase {
     type: DamageType.Ability;
-    amount: number | ((card: UnitCard) => number);
+    amount: number | ((card: IUnitCard) => number);
 
     /** The source of the damage, if different from the card that triggered the ability */
     source?: Card;
+
+    /** Whether this damage is indirect damage or not */
+    isIndirect?: boolean;
+
+    isUnpreventable?: boolean;
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -76,7 +81,9 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
     protected override defaultProperties: IAbilityDamageProperties = {
         amount: null,
-        type: DamageType.Ability
+        type: DamageType.Ability,
+        isIndirect: false,
+        isUnpreventable: false
     };
 
     public eventHandler(event): void {
@@ -119,7 +126,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         // check cases where a game state change is required
         if (properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) {
-            if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context)) {
+            if (
+                card.hasRestriction(AbilityRestriction.ReceiveDamage, context) &&
+                (properties.type !== DamageType.Ability || !properties.isIndirect && !properties.isUnpreventable)
+            ) {
                 return false;
             }
 
@@ -181,7 +191,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         Contract.assertTrue(context.source.isUnit());
         Contract.assertNotNullLike(card);
 
-        let damageDealtBy: UnitCard;
+        let damageDealtBy: IUnitCard;
 
         if (properties.source) {
             Contract.assertTrue(properties.source.isUnit());
@@ -205,7 +215,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         const attackDamageSource: IDamagedOrDefeatedByAttack = {
             type: DamageSourceType.Attack,
             attack: properties.sourceAttack,
-            player: context.source.controller,
+            player: context.player,
             damageDealtBy,
             isOverwhelmDamage: false,
             event
@@ -229,7 +239,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         const overwhelmDamageSource: IDamagedOrDefeatedByAttack = {
             type: DamageSourceType.Attack,
             attack: properties.sourceAttack,
-            player: context.source.controller,
+            player: context.player,
             damageDealtBy: properties.sourceAttack.attacker,
             isOverwhelmDamage: true,
             event
@@ -265,7 +275,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             abilityDamageSource.controller = context.event.lastKnownInformation.controller;
         }
 
+        event.isIndirect = properties.isIndirect;
         event.damageSource = abilityDamageSource;
+
+        Contract.assertNotNullLike(properties.amount);
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
     }
 

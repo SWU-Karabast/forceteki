@@ -1,8 +1,8 @@
 describe('Political Pressure', function() {
     integration(function(contextRef) {
         describe('Political Pressure\'s ability', function () {
-            it('should prompt Opponent to discard a card or let the opponent create 2 Battle Droids tokens', function () {
-                contextRef.setupTest({
+            it('should prompt Opponent to discard a card or let the opponent create 2 Battle Droids tokens', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['political-pressure'],
@@ -23,7 +23,7 @@ describe('Political Pressure', function() {
                 context.player1.clickCard(context.politicalPressure);
 
                 expect(context.player2).toHaveEnabledPromptButtons(['Discard a random card from your hand', 'Opponent creates 2 Battle Droid Tokens']);
-                context.player2.clickPrompt('Discard a random card from your hand');
+                context.player2.clickPrompt('Trigger');
                 expect(context.player2.getCardsInZone('discard').length).toBe(1);
                 expect(context.player1.getCardsInZone('groundArena').length).toBe(0); // No Battle Droids tokens are created
                 expect(context.player2.hand.length).toBe(2);
@@ -43,8 +43,8 @@ describe('Political Pressure', function() {
                 expect(context.player2.hand.length).toBe(2);
             });
 
-            it('should be skipped as Opponent does not have any cards in hand', function () {
-                contextRef.setupTest({
+            it('should be skipped as Opponent does not have any cards in hand', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['political-pressure'],
@@ -58,7 +58,7 @@ describe('Political Pressure', function() {
 
                 // TODO: this probably shouldn't show a prompt at all since the discard effect won't fire, likely our resolution checks need some additional work around the optional: true case
                 expect(context.player2).toHaveEnabledPromptButtons(['Discard a random card from your hand', 'Opponent creates 2 Battle Droid Tokens']);
-                context.player2.clickPrompt('Discard a random card from your hand');
+                context.player2.clickPrompt('Trigger');
                 expect(context.player2.getCardsInZone('discard').length).toBe(0);
                 expect(context.player1.getCardsInZone('groundArena').length).toBe(2); // Battle Droids tokens are created
             });

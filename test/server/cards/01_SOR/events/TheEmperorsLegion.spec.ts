@@ -1,7 +1,7 @@
 describe('The Emprerors Legion', function () {
     integration(function (contextRef) {
-        it('should only return card defeated this phase to player hand from a discard pile', function () {
-            contextRef.setupTest({
+        it('should only return card defeated this phase to player hand from a discard pile', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['the-emperors-legion', 'wilderness-fighter'],
@@ -38,8 +38,8 @@ describe('The Emprerors Legion', function () {
             expect(context.player2.discard.length).toBe(5);
         });
 
-        it('should not return card to player hand from a discard pile if no units were defeated this phase', function () {
-            contextRef.setupTest({
+        it('should not return card to player hand from a discard pile if no units were defeated this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['the-emperors-legion'],
@@ -65,8 +65,8 @@ describe('The Emprerors Legion', function () {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should only affect units that were defeated as their most recent in-play copy', function () {
-            contextRef.setupTest({
+        it('should only affect units that were defeated as their most recent in-play copy', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['the-emperors-legion', 'the-emperors-legion'],

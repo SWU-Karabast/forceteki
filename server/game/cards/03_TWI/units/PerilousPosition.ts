@@ -18,5 +18,3 @@ export default class PerilousPosition extends UpgradeCard {
         });
     }
 }
-
-PerilousPosition.implemented = true;

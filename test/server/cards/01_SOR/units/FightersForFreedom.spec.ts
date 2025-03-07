@@ -1,8 +1,8 @@
 describe('Fighters for Freedom', function() {
     integration(function(contextRef) {
         describe('Fighters for Freedom\'s ability', function() {
-            it('should allow dealing 1 damage to a base when playing an aggression card', function () {
-                contextRef.setupTest({
+            it('should allow dealing 1 damage to a base when playing an aggression card', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wampa', 'wilderness-fighter'],

@@ -1,16 +1,14 @@
 const { CardTargetResolver } = require('./abilityTargets/CardTargetResolver.js');
 const { SelectTargetResolver } = require('./abilityTargets/SelectTargetResolver.js');
-const { Stage, TargetMode, AbilityType, RelativePlayer } = require('../Constants.js');
+const { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
 const Contract = require('../utils/Contract.js');
-const { GameSystem } = require('../gameSystem/GameSystem.js');
 const { v4: uuidv4 } = require('uuid');
 const { PlayerTargetResolver } = require('./abilityTargets/PlayerTargetResolver.js');
 const { DropdownListTargetResolver } = require('./abilityTargets/DropdownListTargetResolver.js');
 const { TriggerHandlingMode } = require('../event/EventWindow.js');
 const Helpers = require('../utils/Helpers.js');
 const { AbilityContext } = require('./AbilityContext.js');
-const Player = require('../Player.js');
 
 // TODO: convert to TS and make this abstract
 /**
@@ -162,14 +160,14 @@ class PlayerOrCardAbility {
             }
         }
 
-        if (!ignoredRequirements.includes('gameStateChange') && !this.hasAnyLegalEffects(context)) {
+        if (!ignoredRequirements.includes('gameStateChange') && !this.hasAnyLegalEffects(context, SubStepCheck.ThenIfYouDo)) {
             return 'gameStateChange';
         }
 
         return '';
     }
 
-    hasAnyLegalEffects(context, includeSubSteps = false) {
+    hasAnyLegalEffects(context, includeSubSteps = SubStepCheck.None) {
         return true;
     }
 
@@ -190,8 +188,6 @@ class PlayerOrCardAbility {
 
     getCosts(context, playCosts = true, triggerCosts = true) {
         let costs = typeof this.cost === 'function' ? Helpers.asArray(this.cost(context)) : this.cost;
-
-        // TODO THIS PR: is the below line needed?
 
         costs = costs.map((a) => a);
 
@@ -239,13 +235,14 @@ class PlayerOrCardAbility {
     /**
      * Prompts the current player to choose each target defined for the ability.
      */
-    resolveTargets(context, passHandler = null) {
+    resolveTargets(context, passHandler = null, canCancel = false) {
         let targetResults = {
             canIgnoreAllCosts:
                 context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,
             cancelled: false,
             payCostsFirst: false,
-            delayTargeting: null
+            delayTargeting: null,
+            canCancel
         };
         for (let target of this.targetResolvers) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
@@ -349,7 +346,7 @@ class PlayerOrCardAbility {
     }
 
     /** Return the controller of ability, can be different from card's controller (with bounty for exemple)
-     * @returns {Player} */
+     * @returns {import('../Player.js')} */
     get controller() {
         return this.canBeTriggeredBy === RelativePlayer.Self ? this.card.controller : this.card.controller.opponent;
     }

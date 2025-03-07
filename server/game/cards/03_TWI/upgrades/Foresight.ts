@@ -24,15 +24,15 @@ export default class Foresight extends UpgradeCard {
                 title: 'Look at the top card of your deck',
                 immediateEffect: AbilityHelper.immediateEffects.lookAt((context) => ({
                     useDisplayPrompt: true,
-                    target: context.source.controller.getTopCardOfDeck()
+                    target: context.player.getTopCardOfDeck()
                 })),
                 then: {
                     title: 'Reveal and draw the top card of deck',
                     optional: true,
-                    thenCondition: (context) => thenContext.select === context.source.controller.getTopCardOfDeck().title,
+                    thenCondition: (context) => thenContext.select === context.player.getTopCardOfDeck().title,
                     immediateEffect: AbilityHelper.immediateEffects.sequential([
                         AbilityHelper.immediateEffects.reveal((context) => ({
-                            target: context.source.controller.getTopCardOfDeck()
+                            target: context.player.getTopCardOfDeck()
                         })),
                         AbilityHelper.immediateEffects.draw()
                     ])
@@ -42,4 +42,3 @@ export default class Foresight extends UpgradeCard {
     }
 }
 
-Foresight.implemented = true;

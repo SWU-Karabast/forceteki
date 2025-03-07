@@ -1,8 +1,8 @@
 describe('Wartime Profiteering', function () {
     integration(function (contextRef) {
         describe('Wartime Profiteering\'s ability', function () {
-            it('should look at cards from the top of your deck equal to the number of units that were defeated this phase, draw 1 and put the others on the bottom of your deck in a random order', function () {
-                contextRef.setupTest({
+            it('should look at cards from the top of your deck equal to the number of units that were defeated this phase, draw 1 and put the others on the bottom of your deck in a random order', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['wartime-profiteering'],

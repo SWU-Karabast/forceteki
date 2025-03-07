@@ -1,6 +1,6 @@
 import type { Attack } from './core/attack/Attack';
 import type { Card } from './core/card/Card';
-import type { UnitCard } from './core/card/CardTypes';
+import type { IUnitCard } from './core/card/propertyMixins/UnitProperties';
 import type Player from './core/Player';
 
 // allow block comments without spaces so we can have compact jsdoc descriptions in this file
@@ -8,7 +8,7 @@ import type Player from './core/Player';
 
 // ********************************************** EXPORTED TYPES **********************************************
 export type IDamageSource = IDamagedOrDefeatedByAttack | IDamagedOrDefeatedByAbility;
-export type IDefeatSource = IDamagedOrDefeatedByAttack | IDamagedOrDefeatedByAbility | IDefeatedByUniqueRule;
+export type IDefeatSource = IDamagedOrDefeatedByAttack | IDamagedOrDefeatedByAbility | IDefeatedByUniqueRule | IDefeatedByFramework;
 
 export enum DamageSourceType {
     Ability = 'ability',
@@ -25,7 +25,7 @@ export enum DefeatSourceType {
 export interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
     type: DamageSourceType.Attack | DefeatSourceType.Attack;
     attack: Attack;
-    damageDealtBy: UnitCard;
+    damageDealtBy: IUnitCard;
     isOverwhelmDamage: boolean;
     event: any;
 }
@@ -42,6 +42,10 @@ export interface IDamagedOrDefeatedByAbility extends IDamageOrDefeatSourceBase {
 
 export interface IDefeatedByUniqueRule extends IDamageOrDefeatSourceBase {
     type: DefeatSourceType.UniqueRule;
+}
+
+export interface IDefeatedByFramework extends IDamageOrDefeatSourceBase {
+    type: DefeatSourceType.FrameworkEffect;
 }
 
 // ********************************************** INTERNAL TYPES **********************************************

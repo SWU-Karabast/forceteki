@@ -1,8 +1,8 @@
 describe('Guardian of the Whills', function () {
     integration(function (contextRef) {
         describe('Guardian of the Whills\' ability', function () {
-            it('should decrease the cost of the first upgrade played on it by 1 resource, once per round', function () {
-                contextRef.setupTest({
+            it('should decrease the cost of the first upgrade played on it by 1 resource, once per round', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['jetpack', 'devotion', 'electrostaff', 'foundling', 'entrenched', 'jedi-lightsaber', 'mandalorian-armor',
@@ -39,7 +39,7 @@ describe('Guardian of the Whills', function () {
                 // Test round ending resets limit
                 context.moveToNextActionPhase();
                 context.player1.clickCard(context.electrostaff);
-                expect(context.player1).toBeAbleToSelectExactly([context.guardianOfTheWhills, context.systemPatrolCraft]);
+                expect(context.player1).toBeAbleToSelectExactly([context.guardianOfTheWhills]);
                 context.player1.clickCard(context.guardianOfTheWhills);
                 expect(context.guardianOfTheWhills).toHaveExactUpgradeNames([context.jetpack.internalName, context.devotion.internalName, context.electrostaff.internalName]);
                 expect(context.player1.exhaustedResourceCount).toBe(1);
@@ -98,7 +98,7 @@ describe('Guardian of the Whills', function () {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.survivorsGauntlet);
-                expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.jediLightsaber, context.mandalorianArmor, context.foundling]);
+                expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.jediLightsaber, context.mandalorianArmor]);
                 context.player1.clickCard(context.mandalorianArmor);
                 expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer]);
                 context.player1.clickCard(context.moistureFarmer);

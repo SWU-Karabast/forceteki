@@ -2,7 +2,7 @@ describe('The Mandalorian, Sworn To The Creed', function () {
     integration(function (contextRef) {
         describe('The Mandalorian\'s leader undeployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['academy-training', 'waylay', 'devotion'],
@@ -38,7 +38,7 @@ describe('The Mandalorian, Sworn To The Creed', function () {
                 // play an upgrade from hand and pass
                 context.player1.clickCard(context.academyTraining);
                 context.player1.clickCard(context.wampa);
-                expect(context.player1).toHaveExactPromptButtons(['Pass', 'Exhaust this leader']);
+                expect(context.player1).toHaveExactPromptButtons(['Pass', 'Trigger']);
                 context.player1.clickPrompt('Pass');
                 expect(context.theMandalorian.exhausted).toBeFalse();
 
@@ -49,7 +49,7 @@ describe('The Mandalorian, Sworn To The Creed', function () {
                 // play an upgrade from smuggle, exhaust an enemy unit
                 context.player1.clickCard(context.armedToTheTeeth);
                 context.player1.clickCard(context.wampa);
-                context.player1.clickPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
 
                 // exhaust battlefield marine
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.consularSecurityForce]);
@@ -69,7 +69,7 @@ describe('The Mandalorian, Sworn To The Creed', function () {
 
         describe('The Mandalorian\'s leader deployed ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['academy-training', 'devotion', 'waylay'],

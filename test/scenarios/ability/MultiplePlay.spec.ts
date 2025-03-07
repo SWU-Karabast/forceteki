@@ -1,8 +1,8 @@
 describe('Abilities', function() {
     integration(function (contextRef) {
         describe('When played ability, on attack ability', function () {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         deck: ['foundling', 'pyke-sentinel', 'atst', 'cartel-spacer', 'wampa'],
@@ -34,7 +34,7 @@ describe('Abilities', function() {
 
                 context.player1.clickCard(context.ruggedSurvivors);
                 context.player1.clickCard(context.p2Base);
-                context.player1.clickPrompt('Draw a card if you control a leader unit');
+                context.player1.clickPrompt('Trigger');
 
                 // check board state
                 expect(context.player1.hand.length).toBe(1);
@@ -54,8 +54,8 @@ describe('Abilities', function() {
         });
 
         describe('Constant abilities', function () {
-            beforeEach(function () {
-                contextRef.setupTest({
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['waylay'],
@@ -116,7 +116,7 @@ describe('Abilities', function() {
         });
         describe('cost reduction', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['reputable-hunter'],
@@ -147,7 +147,7 @@ describe('Abilities', function() {
         });
         describe('when defeated', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-emperors-legion'],

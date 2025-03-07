@@ -1,7 +1,7 @@
 describe('Poe Demaron Quick to improvise\'s ability', function () {
     integration(function (contextRef) {
-        it('should allow to discard up to 3 cards and to resolve 1 different effect per card discarded', function () {
-            contextRef.setupTest({
+        it('should allow to discard up to 3 cards and to resolve 1 different effect per card discarded', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['sneak-attack', 'battlefield-marine', 'daring-raid', 'specforce-soldier'],
@@ -77,7 +77,6 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
 
             // can choose no targets
             context.player1.clickPrompt('Choose no target');
-            context.player1.clickPrompt('Done');
             expect(context.player2).toBeActivePlayer();
 
             // Third Poe attacks we one card to defeat an upgrade

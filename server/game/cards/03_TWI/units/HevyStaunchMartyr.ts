@@ -21,7 +21,7 @@ export default class HevyStaunchMartyr extends NonLeaderUnitCard {
             title: 'Deal 1 damage to each enemy ground unit.',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 1,
-                target: context.source.controller.opponent.getArenaUnits({ arena: ZoneName.GroundArena })
+                target: context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena })
             }))
         });
     }

@@ -1,8 +1,8 @@
 describe('The Mandalorian\'s Rifle', function () {
     integration(function (contextRef) {
         describe('The Mandalorian\'s Rifle\'s ability', function () {
-            it('should not capture anyone because attached unit is not The Mandalorian', function () {
-                contextRef.setupTest({
+            it('should not capture anyone because attached unit is not The Mandalorian', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-mandalorians-rifle'],
@@ -33,8 +33,8 @@ describe('The Mandalorian\'s Rifle', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should capture an exhausted enemy unit because attached unit is The Mandalorian (unit)', function () {
-                contextRef.setupTest({
+            it('should capture an exhausted enemy unit because attached unit is The Mandalorian (unit)', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-mandalorians-rifle'],
@@ -61,8 +61,8 @@ describe('The Mandalorian\'s Rifle', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should capture an exhausted enemy unit because attached unit is The Mandalorian (leader)', function () {
-                contextRef.setupTest({
+            it('should capture an exhausted enemy unit because attached unit is The Mandalorian (leader)', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['the-mandalorians-rifle'],

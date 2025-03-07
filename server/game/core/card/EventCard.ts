@@ -1,18 +1,23 @@
 import type Player from '../Player';
+import type { ICardWithCostProperty } from './propertyMixins/Cost';
 import { WithCost } from './propertyMixins/Cost';
 import { CardType, ZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
-import type { IDecreaseCostAbilityProps } from './baseClasses/PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import type { IEventAbilityProps } from '../../Interfaces';
 import { EventAbility } from '../ability/EventAbility';
 import { PlayEventAction } from '../../actions/PlayEventAction';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
-import type { TokenOrPlayableCard } from './CardTypes';
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
+import type { ICardCanChangeControllers } from './CardInterfaces';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
+
+export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeControllers, ICardWithCostProperty {
+    getEventAbility(): EventAbility;
+}
 
 export class EventCard extends EventCardParent {
     private _eventAbility: EventAbility;
@@ -29,7 +34,7 @@ export class EventCard extends EventCardParent {
         }
     }
 
-    public override isEvent(): this is EventCard {
+    public override isEvent(): this is IEventCard {
         return true;
     }
 
@@ -37,15 +42,19 @@ export class EventCard extends EventCardParent {
         return new PlayEventAction(this.game, this, properties);
     }
 
-    public override isTokenOrPlayable(): this is TokenOrPlayableCard {
+    public override canChangeController(): this is ICardCanChangeControllers {
+        return true;
+    }
+
+    public override isPlayable(): this is IPlayableCard {
         return true;
     }
 
     /** Ability of event card when played. Will be a "blank" ability with no effect if this card is disabled by an effect. */
     public getEventAbility(): EventAbility {
-        return this.isBlank()
-            ? new EventAbility(this._eventAbility.game, this._eventAbility.card, {
-                title: 'No effect',
+        return this.isBlank() || !this.hasImplementationFile
+            ? new EventAbility(this.game, this, {
+                title: this.hasImplementationFile ? 'Unimplemented event card ability' : 'No effect',
                 printedAbility: false,
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
             })
@@ -71,7 +80,6 @@ export class EventCard extends EventCardParent {
         properties.cardName = this.title;
         this._eventAbility = new EventAbility(this.game, this, properties);
     }
-
 
     /** Add a constant ability on the card that decreases its cost under the given condition */
     protected addDecreaseCostAbility(properties: IDecreaseCostAbilityProps<this>): void {

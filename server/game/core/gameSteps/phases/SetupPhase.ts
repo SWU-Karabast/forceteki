@@ -4,11 +4,11 @@ import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ResourcePrompt } from '../prompts/ResourcePrompt';
 import { MulliganPrompt } from '../prompts/MulliganPrompt';
-import { PromptType } from '../../Constants';
+import { EffectName, PhaseName, PromptType } from '../../Constants';
 
 export class SetupPhase extends Phase {
     public constructor(game: Game) {
-        const name = 'setup';
+        const name = PhaseName.Setup;
         super(game, name);
         this.game.currentPhase = name;
         this.pipeline.initialise([
@@ -27,9 +27,9 @@ export class SetupPhase extends Phase {
 
         this.game.promptWithHandlerMenu(firstPlayer, {
             promptType: PromptType.Initiative,
-            activePromptTitle: 'You won the flip. Do you want to start with initiative:',
+            activePromptTitle: 'You won the flip. Choose the player to start with initiative:',
             source: 'Choose Initiative Player',
-            choices: ['Yes', 'No'],
+            choices: ['Yourself', 'Opponent'],
             handlers: [
                 () => {
                     this.game.initiativePlayer = firstPlayer;
@@ -44,8 +44,14 @@ export class SetupPhase extends Phase {
     private drawStartingHands() {
         // TODO: convert these to use systems
         for (const player of this.game.getPlayers()) {
+            let startingHandSize = 6;
+            if (player.base.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
+                player.base.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
+                    startingHandSize += value.amount;
+                });
+            }
             player.shuffleDeck();
-            player.drawCardsToHand(6);
+            player.drawCardsToHand(startingHandSize);
         }
     }
 }

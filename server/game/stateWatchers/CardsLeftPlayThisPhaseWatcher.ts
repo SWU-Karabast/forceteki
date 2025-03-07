@@ -1,13 +1,16 @@
-import type { InPlayCard } from '../core/card/baseClasses/InPlayCard';
+import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { Card } from '../core/card/Card';
+import type { CardType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type Player from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface CardLeftPlayEntry {
-    card: InPlayCard;
+    card: IInPlayCard;
     controlledBy: Player;
+    cardType: CardType;
 }
 
 export type ICardsLeftPlayThisPhase = CardLeftPlayEntry[];
@@ -44,12 +47,30 @@ export class CardsLeftPlayThisPhaseWatcher extends StateWatcher<CardLeftPlayEntr
         return this.getCardsLeftPlay({ controller, filter }).length > 0;
     }
 
+    public someUnitLeftPlay({ controller, filter }: {
+        controller?: Player;
+        filter?: (event: CardLeftPlayEntry) => boolean;
+    }) {
+        const playerFilter = (entry: CardLeftPlayEntry) => (controller != null ? entry.controlledBy === controller : true);
+
+        const unitsLeftPlay = this.getCurrentValue().filter((entry) => EnumHelpers.isUnit(entry.cardType));
+
+        if (filter != null) {
+            return unitsLeftPlay.filter(filter)
+                .filter(playerFilter)
+                .map((entry) => entry.card).length > 0;
+        }
+
+        return unitsLeftPlay.filter(playerFilter)
+            .map((entry) => entry.card).length > 0;
+    }
+
     protected override setupWatcher() {
         this.addUpdater({
             when: {
-                onCardLeavesPlay: (context) => context.card.isUnit() || context.card.isUpgrade()
+                onCardLeavesPlay: () => true
             },
-            update: (currentState, event) => currentState.concat({ card: event.card, controlledBy: event.card.controller })
+            update: (currentState, event) => currentState.concat({ card: event.card, controlledBy: event.card.controller, cardType: event.lastKnownInformation.type })
         });
     }
 

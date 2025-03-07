@@ -2,7 +2,7 @@ describe('Ambush keyword', function() {
     integration(function(contextRef) {
         describe('When a unit with the Ambush keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['syndicate-lackeys'],
@@ -24,7 +24,7 @@ describe('Ambush keyword', function() {
 
                 context.player1.clickCard(context.syndicateLackeys);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.snowspeeder]);
 
@@ -39,7 +39,7 @@ describe('Ambush keyword', function() {
 
         describe('When a unit with the Ambush keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['syndicate-lackeys'],
@@ -60,7 +60,7 @@ describe('Ambush keyword', function() {
 
                 context.player1.clickCard(context.syndicateLackeys);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.syndicateLackeys.exhausted).toBe(true);
                 expect(context.p2Base.damage).toBe(0);
@@ -72,7 +72,7 @@ describe('Ambush keyword', function() {
 
         describe('When a unit with the Ambush keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['syndicate-lackeys'],
@@ -97,7 +97,7 @@ describe('Ambush keyword', function() {
         });
         describe('When a unit with the Ambush keyword', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa', 'syndicate-lackeys']
@@ -122,7 +122,7 @@ describe('Ambush keyword', function() {
 
                 context.player1.clickCard(context.syndicateLackeys);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce, context.snowspeeder]);
 

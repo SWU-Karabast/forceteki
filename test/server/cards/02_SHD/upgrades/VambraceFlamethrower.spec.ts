@@ -4,7 +4,7 @@ describe('Vambrace Flamethrower', function () {
             const flamethrowerPrompt = 'Deal 3 damage divided as you choose among enemy ground units';
 
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['vambrace-flamethrower'] }, 'wampa'],
@@ -23,7 +23,7 @@ describe('Vambrace Flamethrower', function () {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePassAbilityPrompt(flamethrowerPrompt);
-                context.player1.clickPrompt(flamethrowerPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.specforceSoldier]);
                 context.player1.setDistributeDamagePromptState(new Map([
@@ -59,7 +59,7 @@ describe('Vambrace Flamethrower', function () {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePassAbilityPrompt(flamethrowerPrompt);
-                context.player1.clickPrompt(flamethrowerPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.specforceSoldier]);
                 context.player1.setDistributeDamagePromptState(new Map([

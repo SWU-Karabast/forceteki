@@ -1,7 +1,7 @@
 describe('IG-11, I Cannot Be Captured', function() {
     integration(function(contextRef) {
-        it('IG-11\'s on attack ability should deal to a damaged ground unit', function () {
-            contextRef.setupTest({
+        it('IG-11\'s on attack ability should deal to a damaged ground unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['ig11#i-cannot-be-captured', 'wampa'],
@@ -47,8 +47,8 @@ describe('IG-11, I Cannot Be Captured', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('IG-11\'s on capture should deal to 3 damage to each enemeny ground unit', function () {
-            contextRef.setupTest({
+        it('IG-11\'s on capture should deal to 3 damage to each enemeny ground unit', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['bounty-hunter-crew', 'oomseries-officer'],

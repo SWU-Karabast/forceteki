@@ -1,8 +1,8 @@
 describe('Chimaera, Flagship of the Seventh Fleet', function () {
     integration(function (contextRef) {
         describe('Chimaera\'s ability', function () {
-            it('should allow the controller to choose a card title, then reveal the opponent\'s hand and force them to choose a card with matching title to discard', function () {
-                contextRef.setupTest({
+            it('should allow the controller to choose a card title, then reveal the opponent\'s hand and force them to choose a card with matching title to discard', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['chimaera#flagship-of-the-seventh-fleet']
@@ -23,6 +23,7 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 context.player1.clickCard(context.chimaera);
                 expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
                 context.player1.chooseListOption('Millennium Falcon');
+                expect(context.getChatLogs(3)).toContain('player1 names Millennium Falcon using Chimaera');
 
                 expect(context.player1).toHaveExactViewableDisplayPromptCards([context.vanquish, falcon1, falcon2, context.wampa]);
                 expect(context.getChatLogs(1)[0]).toContain(context.vanquish.title);
@@ -42,8 +43,8 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should allow the controller to choose a card title, then reveal the opponent\'s hand and automatically discard the only card with matching title', function () {
-                contextRef.setupTest({
+            it('should allow the controller to choose a card title, then reveal the opponent\'s hand and automatically discard the only card with matching title', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['chimaera#flagship-of-the-seventh-fleet']
@@ -80,8 +81,8 @@ describe('Chimaera, Flagship of the Seventh Fleet', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should allow the controller to choose a card title, then reveal the opponent\'s hand and do nothing if no card title matches', function () {
-                contextRef.setupTest({
+            it('should allow the controller to choose a card title, then reveal the opponent\'s hand and do nothing if no card title matches', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['chimaera#flagship-of-the-seventh-fleet']

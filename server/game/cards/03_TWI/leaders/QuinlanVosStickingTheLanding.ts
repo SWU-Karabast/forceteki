@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -15,8 +15,8 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
             title: 'Exhaust this leader',
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.controller === context.source.controller &&
-                    event.card.isUnit(),
+                    event.card.controller === context.player &&
+                    event.cardTypeWhenInPlay === CardType.BasicUnit,
             },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
@@ -37,9 +37,10 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
             title: 'Deal 1 damage to an enemy unit that costs the same as or less than the played unit',
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.controller === context.source.controller &&
+                    event.card.controller === context.player &&
                     event.card.isUnit(),
             },
+            optional: true,
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
@@ -50,4 +51,3 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
     }
 }
 
-QuinlanVosStickingTheLanding.implemented = true;

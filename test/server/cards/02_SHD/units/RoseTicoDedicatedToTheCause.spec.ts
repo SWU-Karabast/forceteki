@@ -2,7 +2,7 @@ describe('Rose Tico, Dedicated to the Cause', function () {
     integration(function (contextRef) {
         describe('Rose Tico\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: [
@@ -30,7 +30,7 @@ describe('Rose Tico, Dedicated to the Cause', function () {
                 context.player1.clickCard(context.p2Base);
 
                 // add shield on enemy unit with lom pyke
-                context.player1.clickPrompt('Give a Shield token to an enemy unit');
+                context.player1.clickPrompt('Trigger');
                 // atst is automatically choose
                 context.player1.clickCard(context.greenSquadronAwing);
 

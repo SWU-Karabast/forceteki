@@ -1,8 +1,8 @@
 describe('Price on your Head', function() {
     integration(function(contextRef) {
         describe('Price on your Head\'s Bounty ability', function() {
-            it('should add the top deck card as a resource', function () {
-                contextRef.setupTest({
+            it('should add the top deck card as a resource', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['green-squadron-awing']
@@ -21,14 +21,14 @@ describe('Price on your Head', function() {
                 context.player1.clickCard(context.restoredArc170);
 
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.resources.length).toBe(startingResources + 1);
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should not add the top deck card as a resource if deck is empty', function () {
-                contextRef.setupTest({
+            it('should not add the top deck card as a resource if deck is empty', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['green-squadron-awing'],
@@ -46,7 +46,7 @@ describe('Price on your Head', function() {
 
                 // bounty trigger still appears even though there's no effect, b/c the player still needs to decide whether to "collect the bounty"
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Put the top card of your deck into play as a resource');
-                context.player1.clickPrompt('Collect Bounty: Put the top card of your deck into play as a resource');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toBeActivePlayer();
             });

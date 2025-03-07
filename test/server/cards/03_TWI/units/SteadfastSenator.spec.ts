@@ -1,8 +1,8 @@
 
 describe('Steadfast Senator', function() {
     integration(function(contextRef) {
-        it('should Attack with a unit. It gets +2/+0 for this attack', function () {
-            contextRef.setupTest({
+        it('should Attack with a unit. It gets +2/+0 for this attack', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     groundArena: ['steadfast-senator', 'battlefield-marine'],

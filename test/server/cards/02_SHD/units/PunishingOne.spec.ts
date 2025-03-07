@@ -2,7 +2,7 @@ describe('Punishing One', function() {
     integration(function(contextRef) {
         describe('Punishing One\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['vanquish'],
@@ -31,7 +31,7 @@ describe('Punishing One', function() {
                 context.player1.clickCard(context.vanquish);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('discard');
-                context.player1.clickPrompt('Ready this unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.punishingOne.exhausted).toBe(false);
 
 
@@ -41,7 +41,7 @@ describe('Punishing One', function() {
                 // CASE 2: Punishing One readies after defeating a unit with an upgrade
                 context.player1.clickCard(context.punishingOne);
                 context.player1.clickCard(context.privateerScyk);
-                context.player1.clickPrompt('Ready this unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.punishingOne.exhausted).toBe(false);
 
                 reset(false);
@@ -58,7 +58,7 @@ describe('Punishing One', function() {
                 // CASE 4: Punishing One should only ready once after defeating 2 units with upgrades
                 context.player1.clickCard(context.punishingOne);
                 context.player1.clickCard(context.outlandTieVanguard);
-                context.player1.clickPrompt('Ready this unit');
+                context.player1.clickPrompt('Trigger');
                 expect(context.punishingOne.exhausted).toBe(false);
                 reset();
                 context.player1.clickCard(context.punishingOne);

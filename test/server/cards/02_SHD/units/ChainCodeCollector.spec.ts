@@ -1,9 +1,9 @@
 describe('Chain Code Collector', function () {
     integration(function (contextRef) {
         describe('Chain Code Collector\'s on attack ability', function () {
-            it('should give -4/-0 on unit who have bounty', function () {
+            it('should give -4/-0 on unit who have bounty', async function () {
                 const { context } = contextRef;
-                contextRef.setupTest({
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['chain-code-collector'],
@@ -18,7 +18,7 @@ describe('Chain Code Collector', function () {
 
                 // ambush gideon hask
                 context.player1.clickCard(context.chainCodeCollector);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.gideonHask);
 
                 // chain code collector take only 1 damage (gideon gets -4/-0)

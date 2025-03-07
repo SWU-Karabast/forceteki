@@ -2,7 +2,7 @@ describe('Follower of the Way', function() {
     integration(function(contextRef) {
         describe('Follower of the Way\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['covert-strength'],

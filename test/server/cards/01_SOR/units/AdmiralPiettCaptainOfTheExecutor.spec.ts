@@ -2,7 +2,7 @@ describe('Admiral Piett, Captain of the Executor\'s Folly', function() {
     integration(function(contextRef) {
         describe('Admiral Piett\'s ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['relentless#konstantines-folly', 'battlefield-marine', 'clan-saxon-gauntlet'],
@@ -26,8 +26,8 @@ describe('Admiral Piett, Captain of the Executor\'s Folly', function() {
 
                 // CASE 1: friendly non-leader unit cost >= 6, gains Ambush
                 context.player1.clickCard(context.relentless);
-                expect(context.player1).toHaveExactPromptButtons(['Ambush', 'Pass']);
-                context.player1.clickPrompt('Ambush');
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
                 expect(context.relentless.exhausted).toBeTrue();
                 expect(context.relentless.damage).toBe(6);
                 expect(context.redemption.damage).toBe(8);

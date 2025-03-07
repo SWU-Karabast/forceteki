@@ -2,7 +2,7 @@ describe('Grey squadron Y-Wing', function() {
     integration(function(contextRef) {
         describe('Grey squadron Y-Wing\'s Ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['grey-squadron-ywing'],
@@ -25,7 +25,7 @@ describe('Grey squadron Y-Wing', function() {
                 context.player2.clickCard(context.p2Base);
                 expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to Administrator\'s Tower');
 
-                context.player1.clickPrompt('Deal 2 damage to Administrator\'s Tower');
+                context.player1.clickPrompt('Trigger');
                 expect(context.p2Base.damage).toEqual(2);
             });
         });

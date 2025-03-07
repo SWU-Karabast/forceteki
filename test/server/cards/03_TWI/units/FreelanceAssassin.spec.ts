@@ -1,8 +1,8 @@
 describe('Freelance Assassin', function () {
     integration(function (contextRef) {
         describe('Freelance Assassin\'s ability', function () {
-            it('should pay 2 resources to deal 2 damage to a unit', function () {
-                contextRef.setupTest({
+            it('should pay 2 resources to deal 2 damage to a unit', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['freelance-assassin'],
@@ -20,7 +20,7 @@ describe('Freelance Assassin', function () {
 
                 // have a prompt to pay 2 resources
                 expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources');
-                context.player1.clickPrompt('Pay 2 resources');
+                context.player1.clickPrompt('Trigger');
 
                 // deal 2 damage to a unit
                 expect(context.player1).toBeAbleToSelectExactly([context.freelanceAssassin, context.restoredArc170, context.battlefieldMarine]);
@@ -31,8 +31,8 @@ describe('Freelance Assassin', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(5);
             });
 
-            it('should pass the ability', function () {
-                contextRef.setupTest({
+            it('should pass the ability', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['freelance-assassin'],

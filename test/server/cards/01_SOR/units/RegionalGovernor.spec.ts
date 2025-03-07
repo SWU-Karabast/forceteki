@@ -1,7 +1,7 @@
 describe('Regional Governor', function () {
     integration(function (contextRef) {
-        it('Regional Governor\'s ability should name a card and opponent can\'t play named cards', function () {
-            contextRef.setupTest({
+        it('Regional Governor\'s ability should name a card and opponent can\'t play named cards', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['regional-governor', 'millennium-falcon#landos-pride', 'millennium-falcon#get-out-and-push', 'take-captive'],
@@ -28,6 +28,7 @@ describe('Regional Governor', function () {
             context.player1.clickCard(context.regionalGovernor);
             expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
             context.player1.chooseListOption('Millennium Falcon');
+            expect(context.getChatLogs(2)).toContain('player1 names Millennium Falcon using Regional Governor');
 
             expect(context.player2).toBeActivePlayer();
 

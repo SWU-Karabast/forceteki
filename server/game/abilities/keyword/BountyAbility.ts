@@ -1,14 +1,14 @@
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import type { Card } from '../../core/card/Card';
-import type { UnitCard } from '../../core/card/CardTypes';
-import { EventName, KeywordName, RelativePlayer, WildcardZoneName } from '../../core/Constants';
+import type { IUnitCard } from '../../core/card/propertyMixins/UnitProperties';
+import { EventName, KeywordName, RelativePlayer, SubStepCheck, WildcardZoneName } from '../../core/Constants';
 import { GameEvent } from '../../core/event/GameEvent';
 import type Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import type { ITriggeredAbilityBaseProps } from '../../Interfaces';
 
 export type IResolvedBountyProperties = Omit<ITriggeredAbilityBaseProps, 'canBeTriggeredBy'> & {
-    bountySource?: UnitCard;
+    bountySource?: IUnitCard;
 };
 
 /**
@@ -52,7 +52,7 @@ export class BountyAbility extends TriggeredAbility {
     }
 
     // Bounty abilities always have some game effect because we always do "collecting the bounty" / emitting the onBountyCollected event
-    public override hasAnyLegalEffects(context, includeSubSteps = false) {
+    public override hasAnyLegalEffects(context, includeSubSteps = SubStepCheck.None) {
         return true;
     }
 

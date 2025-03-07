@@ -2,7 +2,7 @@ describe('Mace Windu, Party Crasher', function() {
     integration(function(contextRef) {
         describe('Mace\'s triggered ability', function() {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['mace-windu#party-crasher'],
@@ -26,7 +26,7 @@ describe('Mace Windu, Party Crasher', function() {
 
                 // CASE 1: Mace ambush kills a unit
                 context.player1.clickCard(context.maceWindu);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('discard');
                 expect(context.maceWindu.damage).toBe(4);

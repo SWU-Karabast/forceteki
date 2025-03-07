@@ -2,7 +2,7 @@ describe('Rugged Survivors', function () {
     integration(function (contextRef) {
         describe('Rugged Survivors\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['rugged-survivors'],
@@ -19,7 +19,7 @@ describe('Rugged Survivors', function () {
 
                 context.player1.clickCard(context.ruggedSurvivors);
                 expect(context.player1).toHavePassAbilityPrompt('Draw a card if you control a leader unit');
-                context.player1.clickPrompt('Draw a card if you control a leader unit');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(0);
@@ -29,7 +29,7 @@ describe('Rugged Survivors', function () {
 
         describe('Rugged Survivors\'s ability', function () {
             beforeEach(function () {
-                contextRef.setupTest({
+                return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         groundArena: ['rugged-survivors'],

@@ -3,8 +3,8 @@ describe('Enticing Reward', function () {
         describe('Enticing reward bounty\'s ability', function () {
             const prompt = 'Collect Bounty: Search the top 10 cards of your deck for 2 non-unit cards, reveal them, and draw them.';
 
-            it('should prompt to choose up to 2 non-units from the top 10 cards, reveal them, draw them, and move the rest to the bottom of the deck and discard a card from hand because attached unit is not unique', function () {
-                contextRef.setupTest({
+            it('should prompt to choose up to 2 non-units from the top 10 cards, reveal them, draw them, and move the rest to the bottom of the deck and discard a card from hand because attached unit is not unique', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['scout-bike-pursuer', 'atst'],
@@ -24,7 +24,7 @@ describe('Enticing Reward', function () {
 
                 // use bounty
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
 
                 // choose up to 2 non-units cards
                 expect(context.player1).toHaveExactDisplayPromptCards({
@@ -76,8 +76,8 @@ describe('Enticing Reward', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should prompt to choose up to 2 non-units from the top 10 cards, reveal them, draw them, and move the rest to the bottom of the deck and do not discard because the attached unit is unique', function () {
-                contextRef.setupTest({
+            it('should prompt to choose up to 2 non-units from the top 10 cards, reveal them, draw them, and move the rest to the bottom of the deck and do not discard because the attached unit is unique', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['scout-bike-pursuer', 'atst'],
@@ -97,7 +97,7 @@ describe('Enticing Reward', function () {
 
                 // use bounty
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
 
                 // choose up to 2 non-units cards
                 expect(context.player1).toHaveExactDisplayPromptCards({

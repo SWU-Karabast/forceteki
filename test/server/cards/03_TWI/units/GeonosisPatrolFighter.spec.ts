@@ -1,7 +1,7 @@
 describe('Geonosis Patrol Fighter', function() {
     integration(function(contextRef) {
-        it('Geonosis Patrol Fighter\'s when played ability should return a non-leader unit that costs 3 or less to its owner\'s hand', function () {
-            contextRef.setupTest({
+        it('Geonosis Patrol Fighter\'s when played ability should return a non-leader unit that costs 3 or less to its owner\'s hand', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['geonosis-patrol-fighter'],
@@ -23,7 +23,7 @@ describe('Geonosis Patrol Fighter', function() {
 
             // Returns Ground unit that costs 3 or less
             context.player1.clickCard(context.geonosisPatrolFighter);
-            context.player1.clickPrompt('Play Geonosis Patrol Fighter');
+            context.player1.clickPrompt('Play without Exploit');
 
             expect(context.player1).toHavePassAbilityButton();
             expect(context.player1).toBeAbleToSelectExactly([context.cloneHeavyGunner, context.restoredArc170, context.captainTyphoProtectingTheSenator, context.separatistCommando]);
@@ -34,7 +34,7 @@ describe('Geonosis Patrol Fighter', function() {
             context.player2.clickCard(context.waylay);
             context.player2.clickCard(context.geonosisPatrolFighter);
             context.player1.clickCard(context.geonosisPatrolFighter);
-            context.player1.clickPrompt('Play Geonosis Patrol Fighter');
+            context.player1.clickPrompt('Play without Exploit');
             expect(context.player1).toHavePassAbilityButton();
             expect(context.player1).toBeAbleToSelectExactly([context.restoredArc170, context.captainTyphoProtectingTheSenator, context.separatistCommando]);
 
@@ -45,6 +45,7 @@ describe('Geonosis Patrol Fighter', function() {
 
             // Ability triggers using exploit, exploited units should not be targetable
             context.player1.clickCard(context.geonosisPatrolFighter);
+            context.player1.clickPrompt('Trigger Exploit');
             expect(context.player1).toBeAbleToSelectExactly([context.asajjVentress, context.shaakTi, context.separatistCommando]);
             expect(context.player1).not.toHaveEnabledPromptButton('Done');
             context.player1.clickCard(context.asajjVentress);

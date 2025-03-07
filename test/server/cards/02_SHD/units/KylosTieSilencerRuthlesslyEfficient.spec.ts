@@ -1,7 +1,7 @@
 describe('Kylo\'s TIE Silencer, Ruthless Efficient', function () {
     integration(function (contextRef) {
-        it('Kylo\'s TIE Silencer\'s can be played from the discard when it was discarded from hand or deck this phase', function () {
-            contextRef.setupTest({
+        it('Kylo\'s TIE Silencer\'s can be played from the discard when it was discarded from hand or deck this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['rogue-squadron-skirmisher'],
@@ -23,7 +23,7 @@ describe('Kylo\'s TIE Silencer, Ruthless Efficient', function () {
             context.player2.clickCard(context.kananJarrus);
             context.player2.clickCard(context.p1Base);
             context.player2.clickPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
-            context.player2.clickPrompt('Discard a card from the defending player\'s deck for each Spectre you control. Heal 1 damage for each aspect among the discarded cards.');
+            context.player2.clickPrompt('Trigger');
             expect(context.kylosTieSilencer).toBeInZone('discard', context.player1);
             expect(context.player1.currentActionTargets).toContain(context.kylosTieSilencer);
 

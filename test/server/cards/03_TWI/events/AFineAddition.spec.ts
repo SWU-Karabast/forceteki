@@ -1,7 +1,7 @@
 describe('A Fine Addition', function () {
     integration(function (contextRef) {
-        it('A Fine Addition\'s ability should play an upgrade from your hand or opponents discard, ignoring aspect penalty, if an enemy was defeated this phase', function () {
-            contextRef.setupTest({
+        it('A Fine Addition\'s ability should play an upgrade from your hand or opponents discard, ignoring aspect penalty, if an enemy was defeated this phase', async function () {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['a-fine-addition', 'ahsokas-padawan-lightsaber'],
@@ -71,7 +71,7 @@ describe('A Fine Addition', function () {
             context.player2.clickCard(context.finnThisIsARescue);
             context.player2.clickCard(context.p1Base);
 
-            expect(context.player2).toHavePrompt('Choose an upgrade');
+            expect(context.player2).toHavePrompt('Defeat a friendly upgrade on a unit');
             expect(context.player2).toBeAbleToSelectExactly([context.resilient]);
 
             context.player2.clickCard(context.resilient);
