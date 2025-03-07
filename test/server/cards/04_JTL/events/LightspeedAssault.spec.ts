@@ -70,36 +70,37 @@ describe('Lightspeed Assault', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('Lightspeed Assault should defeat a friendly space unit and deal its damage to an enemy Lurking TIE, and still deal indirect damage', async function() {
-            pending('This test is failing because Lurking TIE is not being treated as a replacement effect');
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['lightspeed-assault'],
-                    spaceArena: ['concord-dawn-interceptors']
-                },
-                player2: {
-                    spaceArena: ['lurking-tie-phantom'],
-                }
-            });
+        // TODO: uncomment this once Lurking TIE is using replacement effects
+        // it('Lightspeed Assault should defeat a friendly space unit and deal its damage to an enemy Lurking TIE, and still deal indirect damage', async function() {
+        //     pending('This test is failing because Lurking TIE is not being treated as a replacement effect');
+        //     await contextRef.setupTestAsync({
+        //         phase: 'action',
+        //         player1: {
+        //             hand: ['lightspeed-assault'],
+        //             spaceArena: ['concord-dawn-interceptors']
+        //         },
+        //         player2: {
+        //             spaceArena: ['lurking-tie-phantom'],
+        //         }
+        //     });
 
-            const { context } = contextRef;
+        //     const { context } = contextRef;
 
-            // Sacrifice Concord Dawn
-            context.player1.clickCard(context.lightspeedAssault);
-            context.player1.clickCard(context.concordDawnInterceptors);
+        //     // Sacrifice Concord Dawn
+        //     context.player1.clickCard(context.lightspeedAssault);
+        //     context.player1.clickCard(context.concordDawnInterceptors);
 
-            // Deal Damage to Lurking TIE
-            context.player1.clickCard(context.lurkingTiePhantom);
-            expect(context.lurkingTiePhantom.damage).toBe(0);
+        //     // Deal Damage to Lurking TIE
+        //     context.player1.clickCard(context.lurkingTiePhantom);
+        //     expect(context.lurkingTiePhantom.damage).toBe(0);
 
-            expect(context.player2).toHavePrompt('Distribute 2 indirect damage among targets');
-            context.player2.setDistributeIndirectDamagePromptState(new Map([
-                [context.lurkingTiePhantom, 1],
-                [context.p2Base, 1],
-            ]));
-            expect(context.player2).toBeActivePlayer();
-        });
+        //     expect(context.player2).toHavePrompt('Distribute 2 indirect damage among targets');
+        //     context.player2.setDistributeIndirectDamagePromptState(new Map([
+        //         [context.lurkingTiePhantom, 1],
+        //         [context.p2Base, 1],
+        //     ]));
+        //     expect(context.player2).toBeActivePlayer();
+        // });
 
         it('Lightspeed Assault should defeat a friendly space unit and deal its damage to an enemy unit with a Shield, and still deal indirect damage', async function() {
             await contextRef.setupTestAsync({

@@ -244,6 +244,60 @@ describe('Annihilator, Tagge\'s Flagship', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            // TODO: fix this test once Lurking TIE is using replacement effects
+            // it('should defeat an enemy unit and discard all cards with the same name from the opponent\'s hand and deck', async function() {
+            //     pending('This test is failing because Lurking TIE is not being treated as a replacement effect');
+            //     await contextRef.setupTestAsync({
+            //         phase: 'action',
+            //         player1: {
+            //             hand: ['annihilator#tagges-flagship'],
+            //             spaceArena: ['concord-dawn-interceptors'],
+            //             deck: ['battlefield-marine']
+            //         },
+            //         player2: {
+            //             spaceArena: ['lurking-tie-phantom'],
+            //             hand: ['lurking-tie-phantom', 'cartel-turncoat'],
+            //             deck: ['lurking-tie-phantom', 'cartel-spacer']
+            //         }
+            //     });
+
+            //     const { context } = contextRef;
+
+            //     const inPlayLurkingTIE = context.player2.findCardByName('lurking-tie-phantom', 'spaceArena');
+            //     const inHandLurkingTIE = context.player2.findCardByName('lurking-tie-phantom', 'hand');
+            //     const inDeckLurkingTIE = context.player2.findCardByName('lurking-tie-phantom', 'deck');
+
+            //     context.player1.clickCard(context.annihilator);
+            //     context.player1.clickCard(inPlayLurkingTIE);
+            //     expect(inPlayLurkingTIE).toBeInZone('spaceArena');
+
+            //     // Player sees the opponent's hand
+            //     expect(context.player1).toHaveEnabledPromptButton('Done');
+            //     expect(context.player1).toHaveExactViewableDisplayPromptCards([
+            //         inHandLurkingTIE,
+            //         context.cartelTurncoat
+            //     ]);
+            //     context.player1.clickPrompt('Done');
+
+            //     expect(inHandLurkingTIE).toBeInZone('discard');
+
+            //     // Player sees the opponent's deck
+            //     expect(context.player1).toHaveExactDisplayPromptCards({
+            //         selectable: [inDeckLurkingTIE],
+            //         invalid: [context.cartelSpacer]
+            //     });
+
+            //     expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+            //     expect(context.player2).toHavePrompt('Waiting for opponent to use Annihilator');
+
+            //     context.player1.clickCardInDisplayCardPrompt(inDeckLurkingTIE);
+            //     context.player1.clickPrompt('Done');
+
+            //     expect(inDeckLurkingTIE).toBeInZone('discard');
+
+            //     expect(context.player2).toBeActivePlayer();
+            // });
+
             it('should be able to choose not to discard some card from the deck', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

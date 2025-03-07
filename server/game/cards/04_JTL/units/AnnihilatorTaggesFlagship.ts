@@ -42,7 +42,6 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                                             target: target
                                         })
                                     )
-
                                 )
                             ];
                         }),
