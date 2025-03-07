@@ -23,7 +23,7 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
                         target: context.source.parentCard.owner,
                         amount: 2
                     }),
-                    ['Exhaust it']: AbilityHelper.immediateEffects.exhaust({
+                    [`Exhaust ${context.source.parentCard.title}`]: AbilityHelper.immediateEffects.exhaust({
                         target: context.source.parentCard
                     })
                 })
