@@ -119,7 +119,7 @@ export class Lobby {
     private createLobbyLink(): string {
         return process.env.ENVIRONMENT === 'development'
             ? `http://localhost:3000/lobby?lobbyId=${this._id}`
-            : `https://beta.karabast.net/lobby?lobbyId=${this._id}`;
+            : `https://karabast.net/lobby?lobbyId=${this._id}`;
     }
 
     public createLobbyUser(user, decklist = null): void {

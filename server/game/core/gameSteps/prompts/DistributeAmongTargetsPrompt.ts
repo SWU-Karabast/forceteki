@@ -60,7 +60,7 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         const promptData: IDistributeAmongTargetsPromptData = {
             type: this.properties.type,
             amount: this.properties.amount,
-            isIndirectDamange: this.properties.type === StatefulPromptType.DistributeIndirectDamage,
+            isIndirectDamage: this.properties.type === StatefulPromptType.DistributeIndirectDamage,
             canDistributeLess: this.properties.canDistributeLess,
             maxTargets: this.properties.maxTargets,
         };
