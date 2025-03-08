@@ -69,7 +69,7 @@ export class MulliganPrompt extends AllPlayerPrompt {
                     card.moveTo(DeckZoneDestination.DeckBottom);
                 }
                 player.shuffleDeck();
-                player.drawCardsToHand(6);
+                player.drawCardsToHand(player.getStartingHandSize());
             }
         }
         return super.complete();

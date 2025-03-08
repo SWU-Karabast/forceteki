@@ -28,7 +28,7 @@ import * as Contract from '../core/utils/Contract';
  * @property shuffleMovedCards - Indicates whether all targets should be shuffled before added into the destination.
  */
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Exclude<MoveZoneDestination, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
+    destination: Exclude<MoveZoneDestination, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
     shuffle?: boolean;
     shuffleMovedCards?: boolean;
 }
@@ -110,14 +110,15 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         const { destination } = properties;
 
+        Contract.assertNotNullLike(destination);
+
         if (card.isToken()) {
             Contract.assertTrue(destination !== ZoneName.Base, `${destination} is not a valid zone for a token card`);
         } else {
             // Ensure that we have a valid destination and that the card can be moved there
-            Contract.assertTrue(
-                destination && context.player.isLegalZoneForCardType(card.type, destination),
-                `${destination} is not a valid zone for ${card.type}`
-            );
+            if (!context.player.isLegalZoneForCardType(card.type, destination)) {
+                return false;
+            }
         }
 
         // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
