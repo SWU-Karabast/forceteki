@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
 import type { CardTypeFilter } from '../core/Constants';
-import { KeywordName, RelativePlayer } from '../core/Constants';
+import { RelativePlayer, Trait } from '../core/Constants';
 import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -23,7 +23,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         const upgradeCard = (event.upgradeCard as InPlayCard);
         const parentCard = (event.parentCard as Card);
 
-        Contract.assertTrue(upgradeCard.isUpgrade() || (upgradeCard.isUnit() && upgradeCard.hasSomeKeyword(KeywordName.Piloting)));
+        Contract.assertTrue(upgradeCard.isUpgrade() || (upgradeCard.isUnit() && upgradeCard.hasSomeTrait(Trait.Pilot)));
         Contract.assertTrue(parentCard.isUnit());
 
         event.originalZone = upgradeCard.zoneName;
@@ -76,7 +76,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         event.setContingentEventsGenerator(() => {
             const contingentEvents = [];
 
-            if (upgrade.isInPlay()) {
+            if (upgrade.isInPlay() && !upgrade.isUnit()) {
                 contingentEvents.push(new GameEvent(
                     EventName.OnUpgradeUnattached,
                     context,
