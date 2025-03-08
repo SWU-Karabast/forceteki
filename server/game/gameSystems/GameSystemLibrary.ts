@@ -75,6 +75,8 @@ import type { ILookMoveDeckCardsTopOrBottomProperties } from './LookMoveDeckCard
 import { LookMoveDeckCardsTopOrBottomSystem } from './LookMoveDeckCardsTopOrBottomSystem';
 import type { IMoveCardProperties } from './MoveCardSystem';
 import { MoveCardSystem } from './MoveCardSystem';
+import type { IMoveUnitBetweenArenasProperties } from './MoveUnitBetweenArenasSystem';
+import { MoveArenaType, MoveUnitBetweenArenasSystem } from './MoveUnitBetweenArenasSystem';
 import type { INoActionSystemProperties } from './NoActionSystem';
 import { NoActionSystem } from './NoActionSystem';
 import type { IPlayCardProperties } from '../gameSystems/PlayCardSystem';
@@ -288,15 +290,9 @@ export function lookAtAndSelectCard<TContext extends AbilityContext = AbilityCon
 export function lookMoveDeckCardsTopOrBottom<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookMoveDeckCardsTopOrBottomProperties, TContext>) {
     return new LookMoveDeckCardsTopOrBottomSystem<TContext>(propertyFactory);
 }
-/**
- * default switch = false
- * default shuffle = false
- * default faceup = false
- */
 export function moveCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IMoveCardProperties, TContext>) {
     return new MoveCardSystem<TContext>(propertyFactory);
 }
-
 export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: Omit<PropsFactory<IMoveCardProperties, TContext>, 'destination'> = {}) {
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
@@ -305,7 +301,6 @@ export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityCont
         )
     );
 }
-
 export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext>) {
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
@@ -314,11 +309,25 @@ export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext
         )
     );
 }
-
+export function moveUnitFromGroundToSpace<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveUnitBetweenArenasProperties, 'moveType'>, TContext> = {}) {
+    return new MoveUnitBetweenArenasSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveUnitBetweenArenasProperties, 'moveType'>(
+            propertyFactory,
+            { moveType: MoveArenaType.GroundToSpace }
+        )
+    );
+}
+export function moveUnitFromSpaceToGround<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveUnitBetweenArenasProperties, 'moveType'>, TContext> = {}) {
+    return new MoveUnitBetweenArenasSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveUnitBetweenArenasProperties, 'moveType'>(
+            propertyFactory,
+            { moveType: MoveArenaType.SpaceToGround }
+        )
+    );
+}
 export function payCardPrintedCost<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPayCardPrintedCostProperties, TContext>) {
     return new PayCardPrintedCostSystem<TContext>(propertyFactory);
 }
-
 /**
  * default resetOnCancel = false
  */

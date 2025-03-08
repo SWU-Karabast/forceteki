@@ -25,6 +25,8 @@ const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard))
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
 
 export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithTriggeredAbilities {
+    readonly printedUpgradeHp: number;
+    readonly printedUpgradePower: number;
     get disableOngoingEffectsForDefeat(): boolean;
     get inPlayId(): number;
     get mostRecentInPlayId(): number;
