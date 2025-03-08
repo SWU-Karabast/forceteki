@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType } from '../../../core/Constants';
+import { AbilityType, TargetMode } from '../../../core/Constants';
 
 export default class AnakinsSkywalkerIllTrySpinning extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,16 +17,17 @@ export default class AnakinsSkywalkerIllTrySpinning extends NonLeaderUnitCard {
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source.parentCard,
             },
-            immediateEffect: AbilityHelper.immediateEffects.chooseModalEffects({
-                amountOfChoices: 1,
+            targetResolver: {
+                mode: TargetMode.Select,
                 choices: (context) => ({
                     [`Return ${context.source.title} to your hand`]: AbilityHelper.immediateEffects.returnToHand({
                         target: context.source,
                     }),
                     [`Keep ${context.source.title} attached`]: AbilityHelper.immediateEffects.noAction({
+                        hasLegalTarget: true,
                     })
                 })
-            })
+            }
         });
     }
 }
