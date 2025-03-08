@@ -897,6 +897,7 @@ class Game extends EventEmitter {
             []
         );
 
+        this.resolveGameState(true);
         this.pipeline.initialise([new SetupPhase(this), new SimpleStep(this, () => this.beginRound(), 'beginRound')]);
 
         this.playStarted = true;
