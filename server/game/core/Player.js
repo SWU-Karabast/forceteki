@@ -565,6 +565,16 @@ class Player extends GameObject {
         }
     }
 
+    getStartingHandSize() {
+        let startingHandSize = 6;
+        if (this.base.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
+            this.base.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
+                startingHandSize += value.amount;
+            });
+        }
+        return startingHandSize;
+    }
+
     // /**
     //  * Called when one of the players decks runs out of cards, removing 5 honor and shuffling the discard pile back into the deck
     //  * @param {String} deck - one of 'conflict' or 'dynasty'
