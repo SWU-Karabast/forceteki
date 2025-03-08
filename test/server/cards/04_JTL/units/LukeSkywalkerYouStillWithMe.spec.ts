@@ -8,14 +8,14 @@ describe('Luke Skywalker, You Still With Me?', function() {
                         groundArena: [{ card: 'snowspeeder', upgrades: ['luke-skywalker#you-still-with-me'] }]
                     },
                     player2: {
-                        groundArena: ['atst'],
+                        groundArena: ['blizzard-assault-atat'],
                         hand: ['confiscate', 'bamboozle', 'vanquish'],
                         hasInitiative: true
                     }
                 });
             });
 
-            it('should give a shield to the attached unit when played as a pilot', function() {
+            it('should allow the controller to detach him instead of being defeated', function() {
                 const { context } = contextRef;
 
                 context.player2.clickCard(context.confiscate);
@@ -27,6 +27,23 @@ describe('Luke Skywalker, You Still With Me?', function() {
                 expect(context.lukeSkywalker).toBeInZone('groundArena');
                 expect(context.lukeSkywalker.exhausted).toBeTrue();
                 expect(context.snowspeeder.isUpgraded()).toBeFalse();
+            });
+
+            it('should prevent him from being defeated when the attached unit is defeated in combat', function() {
+                const { context } = contextRef;
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.snowspeeder);
+                context.player1.clickCard(context.blizzardAssaultAtat);
+                context.player1.clickCard(context.blizzardAssaultAtat); // Snowspeeder ability
+
+                expect(context.player1).toHavePassAbilityPrompt('Move Luke Skywalker to the ground arena instead of being defeated');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.lukeSkywalker).toBeInZone('groundArena');
+                expect(context.lukeSkywalker.exhausted).toBeTrue();
+                expect(context.snowspeeder).toBeInZone('discard');
             });
         });
     });

@@ -25,9 +25,11 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             `Replacement effect '${this} resolving in trigger window of type ${triggerWindow.triggerAbilityType}`
         );
 
+        const eventBeingReplaced = event.context.event;
+
         const replacementImmediateEffect = event.replacementImmediateEffect;
         if (replacementImmediateEffect) {
-            const eventWindow = event.context.event.window;
+            const eventWindow = eventBeingReplaced.window;
             const events = [];
 
             replacementImmediateEffect.queueGenerateEventGameSteps(
@@ -39,8 +41,9 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
 
             events.forEach((replacementEvent) => {
+                replacementEvent.order = eventBeingReplaced.order;
                 event.context.game.queueSimpleStep(() => {
-                    event.context.event.setReplacementEvent(replacementEvent);
+                    eventBeingReplaced.setReplacementEvent(replacementEvent);
                     eventWindow.addEvent(replacementEvent);
                     triggerWindow.addReplacementEffectEvent(replacementEvent);
                 }, 'replacementEffect: replace window event');
