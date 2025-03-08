@@ -16,7 +16,7 @@ export default class JamCommunications extends EventCard {
                 target: context.player.opponent.hand,
                 canChooseNothing: false,
                 immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard(),
-                cardCondition: (card) => !card.isUnit()
+                cardCondition: (card) => card.isEvent()
             }))
         });
     }
