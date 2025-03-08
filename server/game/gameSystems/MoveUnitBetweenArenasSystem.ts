@@ -9,7 +9,6 @@ import {
 import { GameEvent } from '../core/event/GameEvent';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export enum MoveArenaType {
     SpaceToGround = 'spaceToGround',
@@ -23,14 +22,9 @@ export interface IMoveUnitBetweenArenasProperties extends ICardTargetSystemPrope
 export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IMoveUnitBetweenArenasProperties> {
     public override readonly name = 'move';
     protected override readonly eventName = EventName.OnCardMoved;
-    public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.UnitUpgrade];
+    public override targetTypeFilter = [WildcardCardType.Unit];
 
     public eventHandler(event: any, additionalProperties = {}): void {
-        const card = event.card as Card;
-        if (card.isUpgrade()) {
-            card.unattach(event);
-        }
-
         (event.card as Card).moveTo(event.destination, false);
     }
 
@@ -46,15 +40,8 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
         super.updateEvent(event, card, context, additionalProperties);
 
-        if (card.isUnit()) {
-            this.addUnitMoveContingentEvents(event, card, context);
-        } else if (EnumHelpers.isUnitUpgrade(card.type)) {
-            this.addUpgradeMoveContingentEvents(event, card, context);
-        }
-    }
-
-    private addUnitMoveContingentEvents(event: any, card: Card, context: TContext) {
         Contract.assertTrue(card.isUnit());
+
         event.setContingentEventsGenerator(() => {
             const moveUpgradeEvents = [];
 
@@ -77,21 +64,6 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
 
             return moveUpgradeEvents;
         });
-    }
-
-    private addUpgradeMoveContingentEvents(event: any, card: Card, context: TContext) {
-        Contract.assertTrue(card.isUpgrade());
-        event.setContingentEventsGenerator(() => [
-            new GameEvent(
-                EventName.OnUpgradeUnattached,
-                context,
-                {
-                    card,
-                    upgradeCard: card,
-                    parentCard: card.parentCard,
-                }
-            )
-        ]);
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {

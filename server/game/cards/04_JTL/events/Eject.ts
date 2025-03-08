@@ -17,7 +17,7 @@ export default class Eject extends EventCard {
                 cardTypeFilter: WildcardCardType.UnitUpgrade,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Pilot),
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
-                    AbilityHelper.immediateEffects.moveUnitFromSpaceToGround(),
+                    AbilityHelper.immediateEffects.detachPilot(),
                     AbilityHelper.immediateEffects.exhaust(),
                     AbilityHelper.immediateEffects.draw((context) => ({ target: context.player }))
                 ])
