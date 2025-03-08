@@ -355,8 +355,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 case AbilityType.Triggered:
                     this.pilotingTriggeredAbilities.push(this.createTriggeredAbility(properties));
                     break;
+                case AbilityType.ReplacementEffect:
+                    this.pilotingTriggeredAbilities.push(this.createReplacementEffectAbility(properties));
+                    break;
                 default:
-                    Contract.fail(`Unsupported ability type ${properties.type}`);
+                    Contract.fail(`Unsupported ability type ${(properties as any).type}`);
             }
         }
 
