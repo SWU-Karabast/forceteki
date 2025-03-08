@@ -12,7 +12,7 @@ import type { ICardWithPrintedPowerProperty } from './PrintedPower';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
@@ -391,7 +391,23 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             });
         }
 
+        public addPilotingGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<this, IUnitCard>) {
+            this.addPilotingGainAbilityTargetingAttached({
+                type: AbilityType.Triggered,
+                title: 'Give triggered ability to the attached card',
+                ...properties
+            });
+        }
+
+        public override getActionAbilities(): ActionAbility[] {
+            return this.isBlank() ? [] : super.getActionAbilities();
+        }
+
         public override getTriggeredAbilities(): TriggeredAbility[] {
+            if (this.isBlank()) {
+                return [];
+            }
+
             let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
@@ -412,6 +428,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override getConstantAbilities(): IConstantAbility[] {
+            if (this.isBlank()) {
+                return [];
+            }
+
             let constantAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingConstantAbilities : super.getConstantAbilities();
 
             // add any temporarily registered attack abilities from keywords
@@ -790,8 +810,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          */
         public override canAttach(targetCard: Card, context: AbilityContext, controller: Player = this.controller): boolean {
             Contract.assertTrue(this.canBeUpgrade);
-            if (this.hasSomeKeyword(KeywordName.Piloting) && targetCard.isUnit()) {
-                return targetCard.canAttachPilot(this, context.playType) && targetCard.controller === controller;
+            if (targetCard.isUnit()) {
+                if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
+                    return targetCard.canAttachPilot(this, context.playType) && targetCard.controller === controller;
+                } else if (this.hasSomeTrait(Trait.Pilot)) {
+                    return targetCard.canAttachPilot(this, context.playType);
+                }
             }
             // TODO: Handle Phantom II and Sidon Ithano
             return false;

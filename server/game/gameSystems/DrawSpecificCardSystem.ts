@@ -49,26 +49,10 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         }
     }
 
-    public override getCostMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IDrawSpecificCardProperties;
-        return ['shuffling {0} into their deck', [properties.target]];
-    }
-
     public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IDrawSpecificCardProperties;
-        const destinationController = Array.isArray(properties.target)
-            ? properties.changePlayer
-                ? properties.target[0].controller.opponent
-                : properties.target[0].controller
-            : properties.changePlayer
-                ? properties.target.controller.opponent
-                : properties.target.controller;
-        if (properties.shuffle) {
-            return ['shuffle {0} into {1}\'s hand', [properties.target, destinationController]];
-        }
         return [
-            'move {0} to {1}\'s hand',
-            [properties.target, destinationController]
+            '{0} draws a card',
+            [context.player]
         ];
     }
 
