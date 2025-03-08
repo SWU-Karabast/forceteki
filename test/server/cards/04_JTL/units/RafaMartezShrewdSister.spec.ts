@@ -38,7 +38,7 @@ describe('Rafa Martez, Shrewd Sister', function () {
                 phase: 'action',
                 player1: {
                     base: 'chopper-base',
-                    hand: ['liberated-slaves'],
+                    hand: ['swoop-racer'],
                     groundArena: ['rafa-martez#shrewd-sister'],
                     spaceArena: ['millennium-falcon#piece-of-junk'],
                     resources: 10
@@ -51,9 +51,9 @@ describe('Rafa Martez, Shrewd Sister', function () {
 
             const { context } = contextRef;
 
-            context.player1.clickCard(context.liberatedSlaves);
+            context.player1.clickCard(context.swoopRacer);
 
-            // Liberated Slaves costs 3 resources to play
+            // Swoop Racer costs 3 resources to play
             expect(context.player1.readyResourceCount).toBe(7);
 
             context.player2.passAction();
@@ -61,12 +61,12 @@ describe('Rafa Martez, Shrewd Sister', function () {
             context.player1.clickCard(context.p2Base);
 
             expect(context.player1).toHavePrompt('Deal 1 damage to a friendly unit and ready a resource');
-            expect(context.player1).toBeAbleToSelectExactly([context.rafaMartez, context.liberatedSlaves, context.millenniumFalcon]);
+            expect(context.player1).toBeAbleToSelectExactly([context.rafaMartez, context.swoopRacer, context.millenniumFalcon]);
 
             // Deal a damage to a friendly unit and ready a resource
-            context.player1.clickCard(context.liberatedSlaves);
+            context.player1.clickCard(context.swoopRacer);
 
-            expect(context.liberatedSlaves.damage).toBe(1);
+            expect(context.swoopRacer.damage).toBe(1);
             expect(context.player1.readyResourceCount).toBe(8);
             expect(context.player2).toBeActivePlayer();
         });
