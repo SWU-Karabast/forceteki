@@ -9,7 +9,7 @@ describe('Luke Skywalker, You Still With Me?', function() {
                     },
                     player2: {
                         groundArena: ['blizzard-assault-atat'],
-                        hand: ['confiscate', 'bamboozle', 'vanquish'],
+                        hand: ['confiscate', 'bamboozle', 'rivals-fall', 'superlaser-blast'],
                         hasInitiative: true
                     }
                 });
@@ -44,6 +44,61 @@ describe('Luke Skywalker, You Still With Me?', function() {
                 expect(context.lukeSkywalker).toBeInZone('groundArena');
                 expect(context.lukeSkywalker.exhausted).toBeTrue();
                 expect(context.snowspeeder).toBeInZone('discard');
+            });
+
+            it('should prevent him from being defeated when the attached unit is defeated by an ability', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.snowspeeder);
+
+                expect(context.player1).toHavePassAbilityPrompt('Move Luke Skywalker to the ground arena instead of being defeated');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.lukeSkywalker).toBeInZone('groundArena');
+                expect(context.lukeSkywalker.exhausted).toBeTrue();
+                expect(context.snowspeeder).toBeInZone('discard');
+            });
+
+            it('should prevent him from being defeated by a defeat ability targeting all units', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.superlaserBlast);
+
+                expect(context.player1).toHavePassAbilityPrompt('Move Luke Skywalker to the ground arena instead of being defeated');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.lukeSkywalker).toBeInZone('groundArena');
+                expect(context.lukeSkywalker.exhausted).toBeTrue();
+                expect(context.snowspeeder).toBeInZone('discard');
+            });
+
+            it('should not prevent him from being directly returned to hand', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.bamboozle);
+                context.player2.clickCard(context.snowspeeder);
+
+                expect(context.lukeSkywalker).toBeInZone('hand');
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should prevent him from being defeated as a unit after detaching', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.snowspeeder);
+
+                expect(context.player1).toHavePassAbilityPrompt('Move Luke Skywalker to the ground arena instead of being defeated');
+                context.player1.clickPrompt('Trigger');
+
+                context.player1.passAction();
+
+                // SQUISH
+                context.player2.clickCard(context.blizzardAssaultAtat);
+                context.player2.clickCard(context.lukeSkywalker);
+
+                expect(context.lukeSkywalker).toBeInZone('discard');
             });
         });
     });
