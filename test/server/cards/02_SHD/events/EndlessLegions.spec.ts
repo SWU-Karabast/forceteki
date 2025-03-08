@@ -42,6 +42,7 @@ describe('Endless Legions', function() {
 
             // Player 1 plays Endless Legions
             context.player1.clickCard(context.endlessLegions);
+            expect(context.player1).toHaveEnabledPromptButton('Done');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.discerningVeteran,
                 context.snowspeeder,
@@ -188,6 +189,7 @@ describe('Endless Legions', function() {
 
             // Player 1 plays Endless Legions
             context.player1.clickCard(context.endlessLegions);
+            expect(context.player1).toHaveEnabledPromptButton('Done');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.discerningVeteran,
                 context.snowspeeder,
