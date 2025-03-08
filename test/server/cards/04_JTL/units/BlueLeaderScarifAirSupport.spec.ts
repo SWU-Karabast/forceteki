@@ -176,5 +176,98 @@ describe('Blue Leader, Scarif Air Support', function() {
             expect(shield).toBeInZone('outsideTheGame');
             expect(context.blueLeader.damage).toBe(0);
         });
+
+        describe('After Blue Leader has moved to the ground arena', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: [
+                            'blue-leader#scarif-air-support',
+                            'death-space-skirmisher',
+                            'victor-leader#leading-from-the-front'
+                        ],
+                        spaceArena: ['supporting-eta2']
+                    },
+                    player2: {
+                        hand: ['shoot-down', 'wild-rancor', 'takedown']
+                    }
+                });
+
+                // setup Blue Leader in ground arena for each test
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.blueLeader);
+                expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources', 'Ambush']);
+                context.player1.clickPrompt('Pay 2 resources');
+                context.player1.clickPrompt('Trigger');
+            });
+
+            it('it should not be explicitly targetable for \'choose a space unit\' effects', function() {
+                const { context } = contextRef;
+
+                // confirm that Blue Leader isn't targetable
+                context.player2.clickCard(context.shootDown);
+                expect(context.player2).toBeAbleToSelectExactly(context.supportingEta2);
+                context.allowTestToEndWithOpenPrompt = true;
+            });
+
+            it('it should be explicitly targetable for \'choose a ground unit\' effects', function() {
+                const { context } = contextRef;
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.supportingEta2);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly(context.blueLeader);
+                context.player1.clickCard(context.blueLeader);
+                expect(context.blueLeader.getPower()).toBe(7);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('it should be explicitly targetable for \'choose a ground unit\' effects', function() {
+                const { context } = contextRef;
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.supportingEta2);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly(context.blueLeader);
+                context.player1.clickCard(context.blueLeader);
+                expect(context.blueLeader.getPower()).toBe(7);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('it should not be counted for \'if you control a space unit\' conditions', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.supportingEta2);
+
+                context.player1.clickCard(context.deathSpaceSkirmisher);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('it should not be counted for ongoing effects that target all space units', function() {
+                const { context } = contextRef;
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.victorLeader);
+                expect(context.blueLeader.getPower()).toBe(5);
+                expect(context.blueLeader.getHp()).toBe(5);
+            });
+
+            it('it should be counted for triggered effects that target all ground units', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.wildRancor);
+                expect(context.blueLeader.damage).toBe(2);
+            });
+        });
     });
 });
