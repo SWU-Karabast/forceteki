@@ -28,8 +28,8 @@ describe('Covering The Wing', function() {
                 expect(xwings.every((token) => token.exhausted)).toBeTrue();
 
                 // Give a Shield token to another unit
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toHavePrompt('Give a Shield token to another unit');
-                expect(context.player1).toHaveChooseNoTargetButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.redThree, context.allianceXwing]);
                 context.player1.clickCard(context.battlefieldMarine);
 

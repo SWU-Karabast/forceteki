@@ -13,16 +13,16 @@ export default class CoveringTheWing extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Create an X-Wing token',
-            immediateEffect: AbilityHelper.immediateEffects.sequential([
-                AbilityHelper.immediateEffects.createXWing(),
-                AbilityHelper.immediateEffects.selectCard({
-                    activePromptTitle: 'Give a Shield token to another unit',
-                    optional: true,
+            immediateEffect: AbilityHelper.immediateEffects.createXWing(),
+            then: (thenContext) => ({
+                title: 'Give a Shield token to another unit',
+                optional: true,
+                immediateEffect: AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card, context) => card !== context.events[0]?.generatedTokens[0],
-                    innerSystem: AbilityHelper.immediateEffects.giveShield()
+                    cardCondition: (card) => card !== thenContext.events[0]?.generatedTokens[0],
+                    innerSystem: AbilityHelper.immediateEffects.giveShield(),
                 })
-            ])
+            })
         });
     }
 }
