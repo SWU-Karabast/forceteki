@@ -34,7 +34,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
 
                 // collect bounty
                 expect(context.player1).toHavePassAbilityPrompt(bountyPrompt);
-                context.player1.clickPrompt(bountyPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 context.player2.passAction();
 
@@ -65,7 +65,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
 
                 // collect bounty
                 expect(context.player1).toHavePassAbilityPrompt(bountyPrompt);
-                context.player1.clickPrompt(bountyPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 context.moveToNextActionPhase();
 
@@ -165,7 +165,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
 
                 // collect bounty
                 expect(context.player1).toHavePassAbilityPrompt(bountyPrompt);
-                context.player1.clickPrompt(bountyPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 context.player2.passAction();
 
@@ -196,7 +196,7 @@ describe('Jabba the Hutt, His High Exaltedness', function () {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1).toHavePassAbilityPrompt(bountyPrompt);
-                context.player1.clickPrompt(bountyPrompt);
+                context.player1.clickPrompt('Trigger');
 
                 context.moveToNextActionPhase();
 

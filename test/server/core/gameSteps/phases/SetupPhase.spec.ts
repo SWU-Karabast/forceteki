@@ -51,16 +51,16 @@ describe('Setup Phase', function() {
 
                 // Mulligan step
                 // check if each player has correct prompt
-                expect(context.player1).toHaveExactPromptButtons(['Yes', 'No']);
-                expect(context.player2).toHaveExactPromptButtons(['Yes', 'No']);
+                expect(context.player1).toHaveExactPromptButtons(['Mulligan', 'Keep']);
+                expect(context.player2).toHaveExactPromptButtons(['Mulligan', 'Keep']);
 
 
                 // Check if player2 can still mulligan after player1 selects yes.
-                context.player1.clickPrompt('yes');
+                context.player1.clickPrompt('Mulligan');
                 expect(context.player1.hand).toEqual(beforeMulliganHand);
-                expect(context.player2).toHaveExactPromptButtons(['Yes', 'No']);
+                expect(context.player2).toHaveExactPromptButtons(['Mulligan', 'Keep']);
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose whether to Mulligan or keep hand.');
-                context.player2.clickPrompt('no');
+                context.player2.clickPrompt('Keep');
 
                 const afterMulliganHand = context.player1.hand;
                 const afterPlayer2Hand = context.player2.hand;
@@ -175,9 +175,9 @@ describe('Setup Phase', function() {
                 expect(context.player2.handSize).toBe(6);
 
                 // Mulligan step
-                context.player1.clickPrompt('no');
+                context.player1.clickPrompt('Keep');
                 expect(context.player1).toHavePrompt('Waiting for opponent to choose whether to Mulligan or keep hand.');
-                context.player2.clickPrompt('no');
+                context.player2.clickPrompt('Keep');
 
                 // We check if player1's hand has the only selectable cards
                 expect(context.player1).toBeAbleToSelectExactly(context.player1.hand);
@@ -202,6 +202,25 @@ describe('Setup Phase', function() {
                 // Check if player2 is the active player
                 expect(context.player2).toBeActivePlayer();
                 expect(context.player1).toHavePrompt('Waiting for opponent to take an action or pass');
+            });
+
+            it('should shuffle the deck before drawing a starting hand', function () {
+                const { context } = contextRef;
+                context.game.setRandomSeed('76235');
+
+                context.selectInitiativePlayer(context.player1);
+
+                expect(context.player1.handSize).toBe(6);
+                expect(context.player2.handSize).toBe(6);
+
+                // This was first in the deck in setup, so it being still in the deck means it was shuffled
+                expect(context.armedToTheTeeth).toBeInZone('deck');
+
+                const beforeMulliganHand = context.player1.hand;
+
+                context.player1.clickPrompt('Mulligan');
+                context.player2.clickPrompt('Keep');
+                expect(beforeMulliganHand).not.toEqual(context.player1.hand);
             });
         });
     });

@@ -193,7 +193,7 @@ describe('Leia Organa, Alliance General', function() {
                 expect(context.leiaOrgana.exhausted).toBe(true);
                 expect(context.p2Base.damage).toBe(7);
 
-                expect(context.player1).toHaveEnabledPromptButton('Attack with another Rebel unit');
+                expect(context.player1).toHaveEnabledPromptButton('Trigger');
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
                 context.player1.clickPrompt('Pass');
 

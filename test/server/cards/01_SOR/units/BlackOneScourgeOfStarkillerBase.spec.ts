@@ -25,7 +25,7 @@ describe('Black One', function() {
 
                 expect(context.player1.handSize).toBe(0);
                 expect(context.player1).toHavePassAbilityPrompt('Discard your hand');
-                context.player1.clickPrompt('Discard your hand');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(3);
                 expect(context.confiscate).toBeInZone('hand', context.player1);
@@ -38,7 +38,7 @@ describe('Black One', function() {
 
                 // Player 1 actives When Defeated, drawing cards
                 expect(context.player1).toHavePassAbilityPrompt('Discard your hand');
-                context.player1.clickPrompt('Discard your hand');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(3);
                 expect(context.confiscate).toBeInZone('discard', context.player1);
@@ -52,7 +52,7 @@ describe('Black One', function() {
                 expect(context.player1).toBeActivePlayer();
                 context.player1.moveCard(context.blackOne, 'hand');
                 context.player1.clickCard(context.blackOne);
-                context.player1.clickPrompt('Discard your hand');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(1);
                 expect(context.cartelSpacer).toBeInZone('discard', context.player1);
@@ -66,7 +66,7 @@ describe('Black One', function() {
                 context.player2.clickCard(context.rivalsFall);
 
                 // Player 1 actives When Defeated, drawing cards
-                context.player1.clickPrompt('Discard your hand');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(0);
                 expect(context.atst).toBeInZone('discard', context.player1);

@@ -42,6 +42,10 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
         this.ongoingEffects = this.ongoingEffects.filter((e) => e !== ongoingEffect);
     }
 
+    public removeOngoingEffects(type: EffectName) {
+        this.ongoingEffects = this.ongoingEffects.filter((e) => e.type !== type);
+    }
+
     public getOngoingEffectValues<V = any>(type: EffectName): V[] {
         const filteredEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === type);
         return filteredEffects.map((ongoingEffect) => ongoingEffect.getValue(this));

@@ -14,8 +14,10 @@ import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import { WithCost } from '../propertyMixins/Cost';
 import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
+import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { Card } from '../Card';
+import type { AbilityContext } from '../../ability/AbilityContext';
 
 const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -30,6 +32,8 @@ export interface IInPlayCardState extends IPlayableOrDeployableCardState {
 }
 
 export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithTriggeredAbilities {
+    readonly printedUpgradeHp: number;
+    readonly printedUpgradePower: number;
     get disableOngoingEffectsForDefeat(): boolean;
     get inPlayId(): number;
     get mostRecentInPlayId(): number;
@@ -49,7 +53,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     attachTo(newParentCard: IUnitCard, newController?: Player);
     isAttached(): boolean;
     unattach(event?: any);
-    canAttach(targetCard: Card, controller?: Player): boolean;
+    canAttach(targetCard: Card, context: AbilityContext, controller?: Player): boolean;
 }
 
 /**
@@ -62,11 +66,13 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
  * 3. Uniqueness management
  */
 export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends InPlayCardParent<T> implements IInPlayCard {
+    public readonly printedUpgradeHp: number;
+    public readonly printedUpgradePower: number;
+
     protected _disableOngoingEffectsForDefeat?: boolean = null;
     protected _mostRecentInPlayId = -1;
     protected _parentCard?: IUnitCard = null;
     protected _pendingDefeat?: boolean = null;
-    // protected triggeredAbilities: TriggeredAbility[] = [];
 
     protected attachCondition: (card: Card) => boolean;
 
@@ -133,6 +139,21 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
         Contract.assertFalse(this.printedType === CardType.Event);
+
+        if (this.isUpgrade()) {
+            Contract.assertNotNullLike(cardData.upgradeHp);
+            Contract.assertNotNullLike(cardData.upgradePower);
+        }
+
+        const hasUpgradeStats = cardData.upgradePower != null && cardData.upgradeHp != null;
+
+        Contract.assertTrue(hasUpgradeStats ||
+          (cardData.upgradePower == null && cardData.upgradeHp == null));
+
+        if (hasUpgradeStats) {
+            this.printedUpgradePower = cardData.upgradePower;
+            this.printedUpgradeHp = cardData.upgradeHp;
+        }
     }
 
     public isInPlay(): boolean {
@@ -155,6 +176,14 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     public assertIsUpgrade(): void {
         Contract.assertTrue(this.isUpgrade());
         Contract.assertNotNullLike(this.parentCard);
+    }
+
+    public getUpgradeHp(): number {
+        return this.printedUpgradeHp;
+    }
+
+    public getUpgradePower(): number {
+        return this.printedUpgradePower;
     }
 
     public attachTo(newParentCard: IUnitCard, newController?: Player) {
@@ -196,13 +225,23 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      * Checks whether the passed card meets any attachment restrictions for this card. Upgrade
      * implementations must override this if they have specific attachment conditions.
      */
-    public canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+    public canAttach(targetCard: Card, context: AbilityContext, controller: Player = this.controller): boolean {
         this.checkIsAttachable();
         if (!targetCard.isUnit() || (this.attachCondition && !this.attachCondition(targetCard))) {
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * This is required because a gainCondition call can happen after an upgrade is discarded,
+     * so we need to short-circuit in that case to keep from trying to access illegal state such as parentCard
+     */
+    protected addZoneCheckToGainCondition(gainCondition?: (context: AbilityContext<this>) => boolean) {
+        return gainCondition == null
+            ? null
+            : (context: AbilityContext<this>) => this.isInPlay() && gainCondition(context);
     }
 
     public override getSummary(activePlayer: Player) {
@@ -386,18 +425,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
             // if we're moving from a visible zone (discard, capture) to a hidden zone, increment the in-play id to represent the loss of information (card becomes a new copy)
             if (EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self) && !EnumHelpers.isHiddenFromOpponent(prevZone, RelativePlayer.Self)) {
-                this.state.mostRecentInPlayId += 1;
-            }
-        }
-    }
-
-
-    protected override resetLimits() {
-        super.resetLimits();
-
-        for (const triggeredAbility of this.triggeredAbilities) {
-            if (triggeredAbility.limit) {
-                triggeredAbility.limit.reset();
+                this._mostRecentInPlayId += 1;
             }
         }
     }
@@ -430,6 +458,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
             activePromptTitle: `Choose which copy of ${unitDisplayName} to defeat`,
             waitingPromptTitle: `Waiting for opponent to choose which copy of ${unitDisplayName} to defeat`,
             source: 'Unique rule',
+            selectCardMode: SelectCardMode.Single,
             zoneFilter: WildcardZoneName.AnyArena,
             controller: RelativePlayer.Self,
             cardCondition: (card: InPlayCard) =>

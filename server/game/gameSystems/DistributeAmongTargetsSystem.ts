@@ -49,7 +49,7 @@ export abstract class DistributeAmongTargetsSystem<
 
     public abstract promptType: DistributePromptType;
     protected abstract canDistributeLessDefault(): boolean;
-    protected abstract generateEffectSystem(target?: Card, amount?: number): DamageSystem | HealSystem | GiveExperienceSystem;
+    protected abstract generateEffectSystem(target?: Card, amount?: number, properties?): DamageSystem | HealSystem | GiveExperienceSystem;
     protected abstract getDistributedAmountFromEvent(event: any): number;
 
     public eventHandler(event): void {
@@ -109,7 +109,7 @@ export abstract class DistributeAmongTargetsSystem<
         Contract.assertFalse(properties.canDistributeLess && !properties.canChooseNoTargets, 'Must set properties.canDistributeLess to true if properties.canChooseNoTargets is true');
 
         if (!properties.selector) {
-            const effectSystem = this.generateEffectSystem();
+            const effectSystem = this.generateEffectSystem(null, 1, properties);
             const cardCondition = (card, context) =>
                 effectSystem.canAffect(card, context) && properties.cardCondition(card, context);
             properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition, mode: TargetMode.Unlimited }));
@@ -134,7 +134,8 @@ export abstract class DistributeAmongTargetsSystem<
     }
 
     private generateEffectEvent(card: Card, distributeEvent: any, context: TContext, amount: number) {
-        const effectSystem = this.generateEffectSystem(card, amount);
+        const properties = this.generatePropertiesFromContext(context);
+        const effectSystem = this.generateEffectSystem(card, amount, properties);
 
         const individualEvent = effectSystem.generateEvent(context);
         individualEvent.order = distributeEvent.order - 1;

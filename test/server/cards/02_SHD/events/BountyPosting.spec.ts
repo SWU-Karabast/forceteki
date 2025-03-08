@@ -36,7 +36,7 @@ describe('Bounty Posting', function() {
                     'player1 is shuffling their deck'
                 ]);
 
-                context.player1.clickPrompt('Play that upgrade (paying its cost)');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.cloneTrooper);
                 expect(context.cloneTrooper).toHaveExactUpgradeNames(['top-target']);
                 expect(preShuffleDeck).not.toEqual(context.player1.deck);

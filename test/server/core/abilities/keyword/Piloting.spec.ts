@@ -47,6 +47,58 @@ describe('Piloting keyword', function() {
                 expect(context.daggerSquadronPilot).toBeInZone('spaceArena');
             });
 
+            it('it correctly has its unit stats when in play as a unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jyn-erso#resisting-oppression',
+                        hand: ['chewbacca#faithful-first-mate'],
+                        groundArena: ['wampa', 'falchion-ion-tank'],
+                        spaceArena: ['concord-dawn-interceptors'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const p1Resources = context.player1.readyResourceCount;
+                context.player1.clickCard(context.chewbacca);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Chewbacca', 'Play Chewbacca with Piloting']);
+                context.player1.clickPrompt('Play Chewbacca');
+
+                // Should be a 5/6 ground unit
+                expect(context.chewbacca).toBeInZone('groundArena');
+                expect(context.chewbacca.getPower()).toBe(5);
+                expect(context.chewbacca.getHp()).toBe(6);
+            });
+
+            it('it correctly adds its upgrade stat modifiers, not its unit ones', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'jyn-erso#resisting-oppression',
+                        hand: ['chewbacca#faithful-first-mate'],
+                        groundArena: ['wampa', 'falchion-ion-tank'],
+                        spaceArena: ['concord-dawn-interceptors'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                const p1Resources = context.player1.readyResourceCount;
+                context.player1.clickCard(context.chewbacca);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Chewbacca', 'Play Chewbacca with Piloting']);
+                context.player1.clickPrompt('Play Chewbacca with Piloting');
+                expect(context.player1).toBeAbleToSelectExactly([context.concordDawnInterceptors, context.falchionIonTank]);
+                context.player1.clickCard(context.concordDawnInterceptors);
+
+                // Should turn Concord Dawn into a 4/7 thanks to +3/+3
+                expect(context.concordDawnInterceptors.upgrades).toContain(context.chewbacca);
+                expect(context.concordDawnInterceptors.getPower()).toBe(4);
+                expect(context.concordDawnInterceptors.getHp()).toBe(7);
+                expect(context.player1.readyResourceCount).toBe(p1Resources - 5);
+                expect(context.chewbacca).toBeInZone('spaceArena');
+            });
+
             it('it cannot be played as an upgrade on a friendly vehicle that already has a pilot', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -209,6 +261,33 @@ describe('Piloting keyword', function() {
                 expect(context.concordDawnInterceptors).toBeInZone('hand');
                 expect(context.idenVersio).toBeInZone('discard');
             });
+
+            it('can be moved to another vehicle with a Pilot ignoring the limit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: [
+                            { card: 'concord-dawn-interceptors', upgrades: ['iden-versio#adapt-or-die', 'shield'] },
+                            { card: 'survivors-gauntlet', upgrades: ['bb8#happy-beeps'] },
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.survivorsGauntlet);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.idenVersio, context.bb8, context.shield]);
+                expect(context.concordDawnInterceptors).toHaveExactUpgradeNames(['iden-versio#adapt-or-die', 'shield']);
+                expect(context.survivorsGauntlet).toHaveExactUpgradeNames(['bb8#happy-beeps']);
+
+                context.player1.clickCard(context.idenVersio);
+                context.player1.clickCard(context.survivorsGauntlet);
+
+                expect(context.concordDawnInterceptors).toHaveExactUpgradeNames(['shield']);
+                expect(context.survivorsGauntlet).toHaveExactUpgradeNames(['bb8#happy-beeps', 'iden-versio#adapt-or-die', 'shield']);
+            });
         });
 
         it('A unit with Piloting should not be able to be played as a pilot when played from Smuggle', async function () {
@@ -229,6 +308,27 @@ describe('Piloting keyword', function() {
             context.player1.clickCard(context.daggerSquadronPilot);
             expect(context.daggerSquadronPilot).toBeInZone('groundArena');
             expect(context.player1.exhaustedResourceCount).toBe(3);
+        });
+
+        it('A unit with Piloting should not be able to be played as a pilot when played with Sneak Attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'gar-saxon#viceroy-of-mandalore',
+                    base: 'coronet-city',
+                    hand: ['sneak-attack', 'iden-versio#adapt-or-die', 'wampa'],
+                    spaceArena: ['cartel-turncoat'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            // check that sneak attack doesn't allow user to play card as pilot upgrade
+            context.player1.clickCard(context.sneakAttack);
+            expect(context.player1).toBeAbleToSelectExactly([context.idenVersio, context.wampa]);
+            context.player1.clickCard(context.idenVersio);
+            expect(context.idenVersio).toBeInZone('groundArena');
+            expect(context.player1.exhaustedResourceCount).toBe(3); // +2 for sneak attack and +1 for iden (3pt discount)
         });
     });
 });

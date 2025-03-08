@@ -43,6 +43,8 @@ const { GameObject } = require('./GameObject.js');
 const { GameObjectBase } = require('./GameObjectBase.js');
 
 class Game extends EventEmitter {
+    #debug;
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -72,6 +74,8 @@ class Game extends EventEmitter {
         this.gameObjectMapping = new Map();
         this.createdAt = new Date();
         this.currentActionWindow = null;
+        // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
+        this.#debug = { pipeline: false };
 
         /** @type { EventWindow } */
         this.currentEventWindow = null;
@@ -908,6 +912,7 @@ class Game extends EventEmitter {
             []
         );
 
+        this.resolveGameState(true);
         this.pipeline.initialise([new SetupPhase(this), new SimpleStep(this, () => this.beginRound(), 'beginRound')]);
 
         this.playStarted = true;
@@ -1279,7 +1284,7 @@ class Game extends EventEmitter {
     }
 
     continue() {
-        this.pipeline.continue();
+        this.pipeline.continue(this);
     }
 
     /**
@@ -1477,6 +1482,39 @@ class Game extends EventEmitter {
             };
         }
         return {};
+    }
+
+    // TODO: Make a debug object type.
+    /**
+     * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
+     * @param {{ pipeline: boolean; }} settings
+     * @param {() => void} fcn
+     */
+    debug(settings, fcn) {
+        const currDebug = this.#debug;
+        this.#debug = settings;
+        try {
+            fcn();
+        } finally {
+            this.#debug = currDebug;
+        }
+    }
+
+    /**
+     * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
+     * @param {() => void} fcn
+     */
+    debugPipeline(fcn) {
+        this.#debug.pipeline = true;
+        try {
+            fcn();
+        } finally {
+            this.#debug.pipeline = false;
+        }
+    }
+
+    get isDebugPipeline() {
+        return this.#debug.pipeline;
     }
 
     // return this.getSummary(notInactivePlayerName);

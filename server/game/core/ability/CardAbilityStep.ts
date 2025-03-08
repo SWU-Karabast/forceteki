@@ -1,6 +1,6 @@
 import { AbilityContext } from './AbilityContext.js';
 import PlayerOrCardAbility from './PlayerOrCardAbility.js';
-import { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer } from '../Constants.js';
+import { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck } from '../Constants.js';
 import * as AttackHelper from '../attack/AttackHelpers.js';
 import * as Helpers from '../utils/Helpers.js';
 import * as Contract from '../utils/Contract.js';
@@ -39,7 +39,7 @@ export default class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** @override */
-    override hasAnyLegalEffects(context, includeSubSteps = false) {
+    hasAnyLegalEffects(context, includeSubSteps = SubStepCheck.None) {
         if (this.immediateEffect && this.checkGameActionsForPotential(context)) {
             return true;
         }
@@ -48,7 +48,7 @@ export default class CardAbilityStep extends PlayerOrCardAbility {
             return true;
         }
 
-        if (includeSubSteps) {
+        if (includeSubSteps === SubStepCheck.All || (includeSubSteps === SubStepCheck.ThenIfYouDo && (this.properties.then || this.properties.ifYouDo))) {
             const subAbilityStepContext = this.getSubAbilityStepContext(context);
             return subAbilityStepContext && subAbilityStepContext.ability.hasAnyLegalEffects(subAbilityStepContext);
         }

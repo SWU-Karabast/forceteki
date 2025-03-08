@@ -1,7 +1,7 @@
 import type Player from '../Player';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
-import { CardType, PlayType, ZoneName } from '../Constants';
+import { CardType, KeywordName, PlayType, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
@@ -25,7 +25,7 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
     }
 
     public override isNonLeaderUnit(): this is INonLeaderUnitCard {
-        return true;
+        return !this.isLeaderAttachedToThis();
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
@@ -72,6 +72,10 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
                 this.setCaptureZoneEnabled(false);
                 break;
         }
+    }
+
+    public override checkIsAttachable(): void {
+        Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
     }
 }
 

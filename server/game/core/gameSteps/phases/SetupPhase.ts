@@ -27,9 +27,9 @@ export class SetupPhase extends Phase {
 
         this.game.promptWithHandlerMenu(firstPlayer, {
             promptType: PromptType.Initiative,
-            activePromptTitle: 'You won the flip. Do you want to start with initiative:',
+            activePromptTitle: 'You won the flip. Choose the player to start with initiative:',
             source: 'Choose Initiative Player',
-            choices: ['Yes', 'No'],
+            choices: ['Yourself', 'Opponent'],
             handlers: [
                 () => {
                     this.game.initiativePlayer = firstPlayer;
@@ -45,7 +45,7 @@ export class SetupPhase extends Phase {
         // TODO: convert these to use systems
         for (const player of this.game.getPlayers()) {
             player.shuffleDeck();
-            player.drawCardsToHand(6);
+            player.drawCardsToHand(player.getStartingHandSize());
         }
     }
 }

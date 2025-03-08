@@ -75,6 +75,21 @@ function populateMissingData(attributes, id) {
                 data: []
             };
             break;
+        case '5683908835': // Count Dooku - Face of the Confederacy
+            attributes.keywords = {
+                data: [{
+                    attributes: {
+                        name: 'Overwhelm'
+                    }
+                },
+                {
+                    attributes: {
+                        name: 'Exploit'
+                    }
+                }]
+            };
+        case '0754286363': // The Mandalorian's Rifle
+            attributes.unique = true;
     }
 }
 
@@ -87,76 +102,84 @@ function getAttributeNames(attributeList) {
 }
 
 function filterValues(card) {
-    // just filter out variants for now
+    try {
+        // just filter out variants for now
     // TODO: add some map for variants
-    if (card.attributes.variantOf.data !== null) {
+        if (card.attributes.variantOf.data !== null) {
+            return null;
+        }
+
+        // filtering out C24 for now since we do not handle variants
+        if (card.attributes.expansion.data.attributes.code === 'C24') {
+            return null;
+        }
+
+        const id = card.attributes.cardId || card.attributes.cardUid;
+        populateMissingData(card.attributes, id);
+
+        // hacky way to strip the object down to just the attributes we want
+        const filterAttributes = ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints, upgradePower, upgradeHp }) =>
+            ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints, upgradePower, upgradeHp });
+
+        let filteredObj = filterAttributes(card.attributes);
+
+        filteredObj.id = id;
+
+        filteredObj.text = card.attributes.text;
+
+        if (card.attributes.hp === null && card.attributes.upgradeHp != null) {
+            filteredObj.hp = card.attributes.upgradeHp;
+        }
+
+        if (card.attributes.power === null && card.attributes.upgradePower != null) {
+            filteredObj.power = card.attributes.upgradePower;
+        }
+
+        filteredObj.aspects = getAttributeNames(card.attributes.aspects).concat(getAttributeNames(card.attributes.aspectDuplicates));
+        filteredObj.traits = getAttributeNames(card.attributes.traits);
+        filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
+        filteredObj.keywords = getAttributeNames(card.attributes.keywords);
+
+        if (card.attributes.backSideAspects) {
+            filteredObj.backSideAspects = getAttributeNames(card.attributes.backSideAspects);
+        }
+        if (card.attributes.backSideTitle) {
+            filteredObj.backSideTitle = card.attributes.backSideTitle;
+        }
+
+        // if a card has multiple types it will be still in one string, like 'token upgrade'
+        filteredObj.types = getAttributeNames(card.attributes.type).split(' ');
+
+        filteredObj.setId = { set: card.attributes.expansion.data.attributes.code };
+
+        // tokens use a different numbering scheme, can ignore for now
+        if (!filteredObj.types.includes('token')) {
+            filteredObj.setId.number = card.attributes.cardNumber;
+        }
+
+        if (filteredObj.keywords.includes('piloting')) {
+            filteredObj.pilotText = filteredObj.epicAction;
+            filteredObj.epicAction = null;
+        }
+
+        let internalName = filteredObj.title;
+        internalName += filteredObj.subtitle ? '#' + filteredObj.subtitle : '';
+        // remove accents / diacritics (e.g., 'Chirrut Îmwe' -> 'Chirrut Imwe')
+        internalName = internalName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        filteredObj.internalName = internalName.toLowerCase().replace(/[^\w\s#]|_/g, '')
+            .replace(/\s/g, '-');
+
+        // keep original card for debug logging, will be removed before card is written to file
+        delete card.attributes.variants;
+        filteredObj.debugObject = card;
+
+        return filteredObj;
+    } catch (error) {
+        console.error('WARNING: error parsing card data, card omitted');
+        console.error(error);
+        console.error('\n\n');
         return null;
     }
-
-    // filtering out C24 for now since we do not handle variants
-    if (card.attributes.expansion.data.attributes.code === 'C24') {
-        return null;
-    }
-
-    // hacky way to strip the object down to just the attributes we want
-    const filterAttributes = ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints, upgradePower, upgradeHp }) =>
-        ({ title, backSideTitle, subtitle, cost, hp, power, text, deployBox, epicAction, unique, rules, reprints, upgradePower, upgradeHp });
-
-    let filteredObj = filterAttributes(card.attributes);
-
-    filteredObj.id = card.attributes.cardId || card.attributes.cardUid;
-
-    populateMissingData(card.attributes, filteredObj.id);
-
-    filteredObj.text = card.attributes.text;
-
-    if (card.attributes.hp === null && card.attributes.upgradeHp != null) {
-        filteredObj.hp = card.attributes.upgradeHp;
-    }
-
-    if (card.attributes.power === null && card.attributes.upgradePower != null) {
-        filteredObj.power = card.attributes.upgradePower;
-    }
-
-    filteredObj.aspects = getAttributeNames(card.attributes.aspects).concat(getAttributeNames(card.attributes.aspectDuplicates));
-    filteredObj.traits = getAttributeNames(card.attributes.traits);
-    filteredObj.arena = getAttributeNames(card.attributes.arenas)[0];
-    filteredObj.keywords = getAttributeNames(card.attributes.keywords);
-
-    if (card.attributes.backSideAspects) {
-        filteredObj.backSideAspects = getAttributeNames(card.attributes.backSideAspects);
-    }
-    if (card.attributes.backSideTitle) {
-        filteredObj.backSideTitle = card.attributes.backSideTitle;
-    }
-
-    // if a card has multiple types it will be still in one string, like 'token upgrade'
-    filteredObj.types = getAttributeNames(card.attributes.type).split(' ');
-
-    filteredObj.setId = { set: card.attributes.expansion.data.attributes.code };
-
-    // tokens use a different numbering scheme, can ignore for now
-    if (!filteredObj.types.includes('token')) {
-        filteredObj.setId.number = card.attributes.cardNumber;
-    }
-
-    if (filteredObj.keywords.includes('piloting')) {
-        filteredObj.pilotText = filteredObj.epicAction;
-        filteredObj.epicAction = null;
-    }
-
-    let internalName = filteredObj.title;
-    internalName += filteredObj.subtitle ? '#' + filteredObj.subtitle : '';
-    // remove accents / diacritics (e.g., 'Chirrut Îmwe' -> 'Chirrut Imwe')
-    internalName = internalName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    filteredObj.internalName = internalName.toLowerCase().replace(/[^\w\s#]|_/g, '')
-        .replace(/\s/g, '-');
-
-    // keep original card for debug logging, will be removed before card is written to file
-    delete card.attributes.variants;
-    filteredObj.debugObject = card;
-
-    return filteredObj;
 }
 
 function getCardData(page, progressBar) {
@@ -171,7 +194,8 @@ function getCardData(page, progressBar) {
             );
         })
         .catch((error) => {
-            throw new Error(`Request error retrieving data: ${error.code} ${error.response?.data?.message || ''}`);
+            console.error(error);
+            throw new Error(`Request error retrieving data: ${error}`);
         });
 }
 

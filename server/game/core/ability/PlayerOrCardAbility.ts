@@ -1,6 +1,6 @@
 import { CardTargetResolver } from './abilityTargets/CardTargetResolver.js';
 import { SelectTargetResolver } from './abilityTargets/SelectTargetResolver.js';
-import { Stage, TargetMode, AbilityType, RelativePlayer } from '../Constants.js';
+import { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck } from '../Constants.js';
 import { GameEvent } from '../event/GameEvent.js';
 import * as Contract from '../utils/Contract.js';
 import { PlayerTargetResolver } from './abilityTargets/PlayerTargetResolver.js';
@@ -178,14 +178,14 @@ export default class PlayerOrCardAbility extends GameObjectBase {
             }
         }
 
-        if (!ignoredRequirements.includes('gameStateChange') && !this.hasAnyLegalEffects(context)) {
+        if (!ignoredRequirements.includes('gameStateChange') && !this.hasAnyLegalEffects(context, SubStepCheck.ThenIfYouDo)) {
             return 'gameStateChange';
         }
 
         return '';
     }
 
-    public hasAnyLegalEffects(context, includeSubSteps = false) {
+    hasAnyLegalEffects(context, includeSubSteps = SubStepCheck.None) {
         return true;
     }
 

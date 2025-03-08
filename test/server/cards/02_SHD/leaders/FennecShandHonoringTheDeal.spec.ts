@@ -31,7 +31,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 expect(context.rebelPathfinder.exhausted).toBeTrue();
                 expect(context.rebelPathfinder.damage).toBe(1);
                 expect(context.isbAgent.damage).toBe(2);
@@ -72,7 +72,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
                 // ambush isb agent
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.isbAgent);
                 expect(context.fennecShand.exhausted).toBeFalse();
                 expect(context.rebelPathfinder.exhausted).toBeTrue();
@@ -98,7 +98,7 @@ describe('Fennec Shand, Honoring the Deal', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(6); // no extra cost
                 expect(context.player1).toHavePassAbilityPrompt('Ambush');
 
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.moddedCohort.exhausted).toBeTrue();
                 expect(context.moddedCohort.damage).toBe(3);

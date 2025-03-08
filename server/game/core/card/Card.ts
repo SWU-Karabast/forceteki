@@ -242,26 +242,32 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
         this.controller = owner;
         this.state.id = cardData.id;
-        this.canBeUpgrade = cardData.upgradeHp !== null && cardData.upgradePower !== null; // TODO: Check if this is working
+        this.canBeUpgrade = cardData.upgradeHp != null && cardData.upgradePower != null;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
         // TODO: add validation that if the card has the Piloting trait, the right cardData properties are set
-        this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
+        this.printedKeywords = KeywordHelpers.parseKeywords(
+            this,
+            cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
-            this.internalName, cardData.pilotText);
+            cardData.pilotText
+        );
+
+        // repeat keyword parsing for pilot ability text if present
         if (this.printedType === CardType.Leader) {
             this.printedKeywords.push(
                 ...KeywordHelpers.parseKeywords(
+                    this,
                     cardData.keywords,
                     cardData.text,
-                    this.internalName,
                     cardData.pilotText
                 )
             );
         }
 
         this.setupStateWatchers(this.owner.game.stateWatcherRegistrar);
+        this.initializeStateForAbilitySetup();
     }
 
     protected override onSetupDefaultState() {
@@ -386,6 +392,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected setupStateWatchers(registrar: StateWatcherRegistrar) {
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected initializeStateForAbilitySetup() {
     }
 
     // ******************************************* ABILITY HELPERS *******************************************
@@ -525,7 +535,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         let keywordInstances = [...this.printedKeywords];
         const gainKeywordEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword);
         for (const effect of gainKeywordEffects) {
-            keywordInstances.push(effect.getValue(this));
+            const keywordProps = effect.getValue(this);
+            keywordInstances.push(KeywordHelpers.keywordFromProperties(keywordProps, this));
         }
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
@@ -607,7 +618,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      *
      * @param targetZoneName Zone to move to
      */
-    public moveTo(targetZoneName: MoveZoneDestination) {
+    public moveTo(targetZoneName: MoveZoneDestination, initializeCardState = true) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
         const prevZone = this.zoneName;
@@ -632,7 +643,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
         this.addSelfToZone(targetZoneName);
 
-        this.postMoveSteps(prevZone);
+        this.postMoveSteps(prevZone, initializeCardState);
     }
 
     protected removeFromCurrentZone() {
@@ -644,8 +655,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         }
     }
 
-    protected postMoveSteps(movedFromZone: ZoneName) {
-        this.initializeForCurrentZone(movedFromZone);
+    protected postMoveSteps(movedFromZone: ZoneName, initializeCardState = true) {
+        if (initializeCardState) {
+            this.initializeForCurrentZone(movedFromZone);
+        }
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,
@@ -738,19 +751,42 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     public resolveAbilitiesForNewZone() {
         // TODO: do we need to consider a case where a card is moved from one arena to another,
         // where we maybe wouldn't reset events / effects / limits?
-        this.updateTriggeredAbilityEvents(this.movedFromZone, this.zoneName);
+        this.updateActionAbilitiesForZone(this.movedFromZone, this.zoneName);
+        this.updateTriggeredAbilitiesForZone(this.movedFromZone, this.zoneName);
         this.updateConstantAbilityEffects(this.movedFromZone, this.zoneName);
         this.updateKeywordAbilityEffects(this.movedFromZone, this.zoneName);
 
         this.movedFromZone = null;
     }
 
-    private updateTriggeredAbilityEvents(from: ZoneName, to: ZoneName, reset: boolean = true) {
-        if (!EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) {
-            this.resetLimits();
+    protected updateActionAbilitiesForZone(from: ZoneName, to: ZoneName) {
+        this.updateActionAbilitiesForZoneInternal(this.actionAbilities, from, to);
+    }
+
+    protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbility[], from: ZoneName, to: ZoneName) {
+        if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
+            for (const action of actionAbilities) {
+                if (action.limit) {
+                    action.limit.reset();
+                }
+            }
+        }
+    }
+
+    protected updateTriggeredAbilitiesForZone(from: ZoneName, to: ZoneName) {
+        this.updateTriggeredAbilityEventsInternal(this.triggeredAbilities, from, to);
+    }
+
+    protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbility[], from: ZoneName, to: ZoneName) {
+        if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
+            for (const triggeredAbility of triggeredAbilities) {
+                if (triggeredAbility.limit) {
+                    triggeredAbility.limit.reset();
+                }
+            }
         }
 
-        for (const triggeredAbility of this.triggeredAbilities) {
+        for (const triggeredAbility of triggeredAbilities) {
             if (EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && !EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
                 triggeredAbility.registerEvents();
             } else if (!EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
@@ -759,12 +795,16 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         }
     }
 
-    private updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
+    protected updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
+        this.updateConstantAbilityEffectsInternal(this.constantAbilities, from, to);
+    }
+
+    protected updateConstantAbilityEffectsInternal(constantAbilities: IConstantAbility[], from: ZoneName, to: ZoneName, allowIdempotentUnregistration = false) {
         if (!EnumHelpers.isArena(to) || from === ZoneName.Discard || from === ZoneName.Capture) {
             this.removeLastingEffects();
         }
 
-        for (const constantAbility of this.constantAbilities) {
+        for (const constantAbility of constantAbilities) {
             if (constantAbility.sourceZoneFilter === WildcardZoneName.Any) {
                 continue;
             }
@@ -777,6 +817,12 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                 EnumHelpers.cardZoneMatches(from, constantAbility.sourceZoneFilter) &&
                 !EnumHelpers.cardZoneMatches(to, constantAbility.sourceZoneFilter)
             ) {
+                const registeredEffects = constantAbility.registeredEffects;
+                if (!registeredEffects) {
+                    Contract.assertTrue(allowIdempotentUnregistration, `Attempting to unregister effects for constant ability ${constantAbility.title} on ${this.internalName} but it is not registered`);
+                    continue;
+                }
+
                 this.removeEffectFromEngine(constantAbility.registeredEffects);
                 constantAbility.registeredEffects = [];
             }
@@ -856,14 +902,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     private buildPropertyDisabledForZoneStr(propertyName: string) {
         return `Attempting to read property '${propertyName}' on '${this.internalName}' but it is in zone '${this.zoneName}' where the property does not apply`;
-    }
-
-    protected resetLimits() {
-        for (const action of this.actionAbilities) {
-            if (action.limit) {
-                action.limit.reset();
-            }
-        }
     }
 
     public isResource() {

@@ -28,6 +28,7 @@ describe('Regional Governor', function () {
             context.player1.clickCard(context.regionalGovernor);
             expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
             context.player1.chooseListOption('Millennium Falcon');
+            expect(context.getChatLogs(2)).toContain('player1 names Millennium Falcon using Regional Governor');
 
             expect(context.player2).toBeActivePlayer();
 

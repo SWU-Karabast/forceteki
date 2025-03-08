@@ -191,7 +191,7 @@ describe('Yoda, Sensing Darkness', function () {
 
                 // Should be able to pass
                 expect(context.player1).toHavePassAbilityPrompt('You may discard the top card from your deck. If you do, defeat an enemy non-leader unit with cost equal to or less than the cost of the discarded card.');
-                context.player1.clickPrompt('You may discard the top card from your deck. If you do, defeat an enemy non-leader unit with cost equal to or less than the cost of the discarded card.');
+                context.player1.clickPrompt('Trigger');
                 expect(context.entrenched).toBeInZone('discard');
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.battlefieldMarine]);
                 context.player1.clickCard(context.pykeSentinel);

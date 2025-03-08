@@ -18,7 +18,7 @@ import type { DeckZone } from '../core/zone/DeckZone.js';
 type Derivable<T, TContext extends AbilityContext = AbilityContext> = T | ((context: TContext) => T);
 
 export interface ISearchDeckProperties<TContext extends AbilityContext = AbilityContext> extends IPlayerTargetSystemProperties {
-    targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable;
+    targetMode?: TargetMode.UpTo | TargetMode.Single | TargetMode.UpToVariable | TargetMode.Unlimited;
     activePromptTitle?: string;
 
     /** The number of cards from the top of the deck to search, or a function to determine how many cards to search. Default is -1, which indicates the whole deck. */
@@ -146,6 +146,9 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
             case TargetMode.Single:
                 selectAmount = 1;
                 break;
+            case TargetMode.Unlimited:
+                selectAmount = -1; // TODO: do we need to use a large number?
+                break;
             default:
                 Contract.fail(`Invalid targetMode: ${properties.targetMode}`);
         }
@@ -236,11 +239,12 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
     }
 
     private selectedCardsDefaultHandler(properties: ISearchDeckProperties, context: TContext, event: any, selectedCards: Set<Card>): void {
-        const gameSystem = this.generatePropertiesFromContext(event.context).selectedCardsImmediateEffect;
-        if (gameSystem) {
+        const gameSystem = properties.selectedCardsImmediateEffect;
+        const targetDeckOwner = properties.player || context.player;
+        if (gameSystem && selectedCards.size > 0) {
             const selectedArray = Array.from(selectedCards);
 
-            const deckZone = context.player.getZone(ZoneName.Deck) as DeckZone;
+            const deckZone = targetDeckOwner.getZone(ZoneName.Deck) as DeckZone;
             deckZone.moveCardsToSearching(selectedArray, event);
 
             const events = [];
