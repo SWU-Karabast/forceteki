@@ -6,8 +6,9 @@ import {
     WildcardCardType,
     ZoneName
 } from '../core/Constants';
-import * as EnumHelpers from '../core/utils/EnumHelpers';
+import { GameEvent } from '../core/event/GameEvent';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
+import * as Contract from '../core/utils/Contract';
 
 export enum MoveArenaType {
     SpaceToGround = 'spaceToGround',
@@ -39,10 +40,30 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
         super.updateEvent(event, card, context, additionalProperties);
 
-        // Check if the card is leaving play
-        if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
-            this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
-        }
+        Contract.assertTrue(card.isUnit());
+
+        event.setContingentEventsGenerator(() => {
+            const moveUpgradeEvents = [];
+
+            for (const upgrade of card.upgrades) {
+                const moveEvent = new GameEvent(
+                    EventName.OnCardMoved,
+                    context,
+                    {
+                        card: upgrade,
+                        destination: event.destination,
+                    },
+                    (event) => (event as any).card.moveTo((event as any).destination)
+                );
+
+                moveEvent.order = event.order + 1;
+
+                moveEvent.isContingent = true;
+                moveUpgradeEvents.push(moveEvent);
+            }
+
+            return moveUpgradeEvents;
+        });
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
@@ -50,7 +71,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
         event.moveType = properties.moveType;
-        event.destination = properties.moveType === MoveArenaType.SpaceToGround ? ZoneName.GroundArena : ZoneName.SpaceArena;
+        event.destination = this.getDestination(properties);
     }
 
     public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
@@ -64,5 +85,9 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
         }
 
         return super.canAffect(card, context, additionalProperties, mustChangeGameState);
+    }
+
+    private getDestination(properties: IMoveUnitBetweenArenasProperties): ZoneName {
+        return properties.moveType === MoveArenaType.SpaceToGround ? ZoneName.GroundArena : ZoneName.SpaceArena;
     }
 }
