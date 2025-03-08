@@ -239,7 +239,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             if (this.isLeaderAttachedToThis()) {
                 return CardType.LeaderUnit;
             }
-            return this.isAttached() ? CardType.UnitUpgrade : this.printedType;
+            return super.getType();
         }
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
