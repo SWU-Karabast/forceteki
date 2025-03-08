@@ -28,6 +28,7 @@ describe('Blue Leader, Scarif Air Support', function() {
 
                 expect(context.blueLeader).toBeInZone('groundArena');
                 expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
+                expect(context.blueLeader.exhausted).toBeTrue();
             });
 
             it('should allow ambush first and then paying 2 to move it to the ground arena and get two experience', function() {
@@ -50,6 +51,7 @@ describe('Blue Leader, Scarif Air Support', function() {
 
                 expect(context.blueLeader).toBeInZone('groundArena');
                 expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
+                expect(context.blueLeader.exhausted).toBeTrue();
                 expect(context.blueLeader.damage).toBe(2);
             });
         });
@@ -80,6 +82,7 @@ describe('Blue Leader, Scarif Air Support', function() {
 
             expect(context.blueLeader).toBeInZone('groundArena');
             expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
+            expect(context.blueLeader.exhausted).toBeTrue();
 
             expect(context.player1).toHavePassAbilityPrompt('Ambush');
             context.player1.clickPrompt('Trigger');
@@ -117,6 +120,7 @@ describe('Blue Leader, Scarif Air Support', function() {
 
             expect(context.blueLeader).toBeInZone('groundArena');
             expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
+            expect(context.blueLeader.exhausted).toBeTrue();
 
             expect(context.player1).toHavePassAbilityPrompt('Ambush');
             context.player1.clickPrompt('Trigger');
@@ -164,6 +168,7 @@ describe('Blue Leader, Scarif Air Support', function() {
 
             expect(context.blueLeader).toBeInZone('groundArena');
             expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience', 'shield']);
+            expect(context.blueLeader.exhausted).toBeTrue();
 
             // confirm that Shield appears in the right arena
             const shield = context.player1.findCardByName('shield');
@@ -175,6 +180,37 @@ describe('Blue Leader, Scarif Air Support', function() {
             expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
             expect(shield).toBeInZone('outsideTheGame');
             expect(context.blueLeader.damage).toBe(0);
+        });
+
+        it('Blue Leader\'s when played ability should preserve its exhaust state and delayed effects', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['blue-leader#scarif-air-support', 'sneak-attack']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.sneakAttack);
+            context.player1.clickCard(context.blueLeader);
+            expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources', 'Ambush']);
+
+            expect(context.player1).toHaveExactPromptButtons(['Pay 2 resources', 'Ambush']);
+            context.player1.clickPrompt('Pay 2 resources');
+            expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources');
+
+            const readyResources = context.player1.readyResourceCount;
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1.readyResourceCount).toBe(readyResources - 2);
+
+            expect(context.blueLeader).toBeInZone('groundArena');
+            expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
+            expect(context.blueLeader.exhausted).toBeFalse();
+
+            context.moveToRegroupPhase();
+
+            expect(context.blueLeader).toBeInZone('discard');
         });
 
         describe('After Blue Leader has moved to the ground arena', function() {
