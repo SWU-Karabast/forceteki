@@ -185,7 +185,7 @@ export default class PlayerOrCardAbility extends GameObjectBase {
         return '';
     }
 
-    hasAnyLegalEffects(context, includeSubSteps = SubStepCheck.None) {
+    public hasAnyLegalEffects(context, includeSubSteps = SubStepCheck.None) {
         return true;
     }
 
@@ -317,6 +317,7 @@ export default class PlayerOrCardAbility extends GameObjectBase {
         };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public displayMessage(context) {}
 
     /**
@@ -325,6 +326,7 @@ export default class PlayerOrCardAbility extends GameObjectBase {
      * does nothing.
      */
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public executeHandler(context) {}
 
     public isAction() {

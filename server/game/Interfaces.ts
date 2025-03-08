@@ -129,7 +129,7 @@ export interface IConstantAbilityProps<TSource extends Card = Card> {
     targetZoneFilter?: ZoneFilter;
     targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     cardName?: string;
-    uuid?: number;
+    uuid?: string;
     ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
     createCopies?: boolean;
     abilityIdentifier?: string;

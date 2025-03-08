@@ -18,6 +18,8 @@ import AbilityHelper from '../../AbilityHelper';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
+/** Represents a deployable leader in a deployed state (i.e., is also a unit) */
+export interface ILeaderUnitCard extends ILeaderCard, IUnitCard {}
 
 /** Represents a deployable leader in an undeployed state */
 export interface IDeployableLeaderCard extends ILeaderUnitCard {

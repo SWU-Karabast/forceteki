@@ -1,10 +1,11 @@
 import type { GamePipeline } from '../GamePipeline';
-import type { Card } from '../card/Card';
 import type Player from '../Player';
 import type { IStatefulPromptResults } from './PromptInterfaces';
+import type { AbilityContext } from '../ability/AbilityContext';
+import type { Card, ICardState } from '../card/Card';
 
 export interface IStep {
-    setSubAbilityStep(arg0: () => import("../ability/AbilityContext").AbilityContext<Card<import("../card/Card").ICardState>>): unknown;
+    setSubAbilityStep(arg0: () => AbilityContext<Card<ICardState>>): unknown;
     onCardClicked(player: Player, card: Card): boolean;
     onMenuCommand(player: Player, arg: string, uuid: string, method: string): boolean;
     onPerCardMenuCommand(player: Player, arg: string, cardUuid: string, uuid: string, method: string): boolean;
