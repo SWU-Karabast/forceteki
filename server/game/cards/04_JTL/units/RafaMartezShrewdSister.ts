@@ -21,10 +21,13 @@ export default class RafaMartezShrewdSister extends NonLeaderUnitCard {
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.isUnit(),
-                zoneFilter: WildcardZoneName.Any,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                zoneFilter: WildcardZoneName.AnyArena,
+                immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                    AbilityHelper.immediateEffects.readyResources({ amount: 1 })
+                    AbilityHelper.immediateEffects.readyResources((context) => ({
+                        amount: 1,
+                        target: context.player
+                    }))
                 ])
             }
         });
