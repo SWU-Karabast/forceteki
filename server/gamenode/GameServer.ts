@@ -396,6 +396,8 @@ export class GameServer {
             const lobby = this.lobbies.get(lobbyId);
             if (!lobby) {
                 logger.info('No lobby for', ioSocket.data.user.username, 'disconnecting');
+                // we forgot to remove the user there from the userLobbyMap
+                this.userLobbyMap.delete(user.id);
                 ioSocket.disconnect();
                 return;
             }
@@ -561,12 +563,14 @@ export class GameServer {
             const lobbyId = this.userLobbyMap.get(user.id);
             const lobby = this.lobbies.get(lobbyId);
             this.userLobbyMap.delete(user.id);
-            lobby.removeUser(user.id);
-            // check if lobby is empty
-            if (lobby.isEmpty()) {
-                // cleanup process
-                lobby.cleanLobby();
-                this.lobbies.delete(lobbyId);
+            if (lobby) {
+                lobby.removeUser(user.id);
+                // check if lobby is empty
+                if (lobby.isEmpty()) {
+                    // cleanup process
+                    lobby.cleanLobby();
+                    this.lobbies.delete(lobbyId);
+                }
             }
         }
         // add user to queue
@@ -591,33 +595,78 @@ export class GameServer {
         const lobbyId = this.userLobbyMap.get(id);
         const lobby = this.lobbies.get(lobbyId);
         const wasManualDisconnect = !!socket?.data?.manualDisconnect;
-        if (wasManualDisconnect) {
-            this.userLobbyMap.delete(id);
-            lobby.removeUser(id);
-
-            // check if lobby is empty
-            if (lobby.isEmpty()) {
-                // cleanup process
-                lobby.cleanLobby();
-                this.lobbies.delete(lobbyId);
-            }
-            return;
-        }
-        // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
-        //  without triggering onSocketDisconnect
-        lobby.setUserDisconnected(id);
-        setTimeout(() => {
-            // Check if the user is still disconnected after the timer
-            if (lobby.getUserState(id) === 'disconnected') {
+        // this is so we don't get a null reference
+        if (lobby) {
+            if (wasManualDisconnect) {
                 this.userLobbyMap.delete(id);
                 lobby.removeUser(id);
-                // Check if lobby is empty
+
+                // check if lobby is empty
                 if (lobby.isEmpty()) {
-                    // Start the cleanup process
+                    // cleanup process
                     lobby.cleanLobby();
                     this.lobbies.delete(lobbyId);
                 }
+                return;
             }
-        }, 20000);
+            // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
+            //  without triggering onSocketDisconnect
+            lobby.setUserDisconnected(id);
+            setTimeout(() => {
+                // we do this in the case of when a lobby cleanup operation and a user disconnect happen simultaneously,
+                // there could be race conditions.
+                const currentLobby = this.lobbies.get(lobbyId);
+                if (currentLobby) {
+                    this.userLobbyMap.delete(id);
+                }
+                // Check if the user is still disconnected after the timer
+                if (lobby.getUserState(id) === 'disconnected') {
+                    this.userLobbyMap.delete(id);
+                    lobby.removeUser(id);
+                    // Check if lobby is empty
+                    if (lobby.isEmpty()) {
+                        // Start the cleanup process
+                        lobby.cleanLobby();
+                        this.lobbies.delete(lobbyId);
+                    }
+                }
+            }, 20000);
+        } else {
+            // if lobby doesn't exist delete the mapping
+            this.userLobbyMap.delete(id);
+        }
+    }
+
+    /* possibly utility function for cleanup. */
+    private startPeriodicCleanup() {
+        setInterval(() => {
+            // Check for empty lobbies or inconsistencies
+            this.ensureMappingConsistency();
+
+            // cleanup ghost lobbies.
+            for (const [lobbyId, lobby] of this.lobbies.entries()) {
+                if (lobby.isEmpty()) {
+                    this.lobbies.delete(lobbyId);
+                }
+            }
+        }, 60000); // Check every minute
+    }
+
+    private ensureMappingConsistency() {
+        // Remove any userLobbyMap entries that point to non-existent lobbies
+        for (const [userId, lobbyId] of this.userLobbyMap.entries()) {
+            if (!this.lobbies.has(lobbyId)) {
+                this.userLobbyMap.delete(userId);
+            }
+        }
+
+        // Ensure all users in lobbies are mapped correctly
+        for (const [lobbyId, lobby] of this.lobbies.entries()) {
+            for (const user of lobby.users) {
+                if (this.userLobbyMap.get(user.id) !== lobbyId) {
+                    this.userLobbyMap.set(user.id, lobbyId);
+                }
+            }
+        }
     }
 }
