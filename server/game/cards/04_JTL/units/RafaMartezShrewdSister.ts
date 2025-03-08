@@ -1,24 +1,32 @@
 
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { RelativePlayer, WildcardZoneName } from '../../../core/Constants';
 
 export default class RafaMartezShrewdSister extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '2870117979',
-            internalName: 'executor#might-of-the-empire'
+            id: '3278986026',
+            internalName: 'rafa-martez#shrewd-sister'
         };
     }
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'Create 3 TIE Fighter tokens.',
+            title: 'Deal 1 damage to a friendly unit and ready a resource',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onCardDefeated: (event, context) => event.card === context.source,
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source
             },
-            immediateEffect: AbilityHelper.immediateEffects.createTieFighter({ amount: 3 })
+            targetResolver: {
+                controller: RelativePlayer.Self,
+                cardCondition: (card) => card.isUnit(),
+                zoneFilter: WildcardZoneName.Any,
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                    AbilityHelper.immediateEffects.damage({ amount: 1 }),
+                    AbilityHelper.immediateEffects.readyResources({ amount: 1 })
+                ])
+            }
         });
     }
 }
