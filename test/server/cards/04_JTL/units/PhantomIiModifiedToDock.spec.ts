@@ -42,6 +42,33 @@ describe('Phantom II, Modified to Dock', function() {
             });
         });
 
+        it('Phantom\'s action ability will remove all upgrades, rescue all captured units, and remove all damage before attaching', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: [
+                        {
+                            card: 'phantom-ii#modified-to-dock',
+                            upgrades: ['shield', 'academy-training'],
+                            capturedUnits: ['wampa'],
+                            damage: 2
+                        },
+                        'the-ghost#heart-of-the-family',
+                    ],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.phantomIi);
+            context.player1.clickPrompt('Attach this as an upgrade to The Ghost');
+            context.player1.clickCard(context.theGhost);
+
+            expect(context.shield).toBeInZone('outsideTheGame');
+            expect(context.academyTraining).toBeInZone('discard');
+            expect(context.wampa).toBeInZone('groundArena');
+        });
+
         describe('Phantom\'s constant ability', function() {
             beforeEach(async function () {
                 await contextRef.setupTestAsync({

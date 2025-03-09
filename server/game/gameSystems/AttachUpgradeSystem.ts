@@ -80,6 +80,14 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         event.parentCard = card;
         event.upgradeCard = upgrade;
         event.newController = this.getFinalController(properties, context);
+    }
+
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
+
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const upgrade = properties.upgrade;
+
         event.setContingentEventsGenerator(() => {
             const contingentEvents = [];
 
@@ -93,6 +101,9 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
                         parentCard: upgrade.parentCard,
                     }
                 ));
+            } else if (upgrade.isUnit() && upgrade.isInPlay()) {
+                // if we're attaching a unit, remove any upgrades / rescue any captured units
+                contingentEvents.push(...this.buildUnitCleanupContingentEvents(upgrade, context, event));
             }
 
             return contingentEvents;
