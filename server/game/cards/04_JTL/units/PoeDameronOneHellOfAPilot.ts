@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, Trait } from '../../../core/Constants';
 
 export default class PoeDameronOneHellOfAPilot extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -20,12 +20,11 @@ export default class PoeDameronOneHellOfAPilot extends NonLeaderUnitCard {
                 title: 'Attach this unit as an upgrade to a friendly Vehicle unit without a Pilot on it',
                 optional: true,
                 targetResolver: {
-                    mode: TargetMode.Single,
-                    cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (card, context) => card.hasSomeTrait(Trait.Vehicle) && !context.source.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot)),
-                    immediateEffects: AbilityHelper.immediateEffects.attachUpgrade({
-                        upgrade: thenContext.source,
-                    })
+                    controller: RelativePlayer.Self,
+                    cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && !card.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot)),
+                    immediateEffect: AbilityHelper.immediateEffects.attachUpgrade((context) => ({
+                        upgrade: context.source,
+                    })),
                 }
             })
         });
