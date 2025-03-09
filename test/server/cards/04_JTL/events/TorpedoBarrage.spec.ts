@@ -16,7 +16,7 @@ describe('Torpedo Barrage', function() {
 
             // Player 1 plays Torpedo Barrage and deals 5 indirect damage
             context.player1.clickCard(context.torpedoBarrage);
-            expect(context.player1).toHavePrompt('Select one');
+            expect(context.player1).toHavePrompt('Choose a player to target for ability \'Deal 5 indirect damage to a player\'');
 
             context.player1.clickPrompt('Opponent');
             expect(context.player2).toHavePrompt('Distribute 5 indirect damage among targets');
