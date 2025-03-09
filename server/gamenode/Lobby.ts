@@ -304,7 +304,7 @@ export class Lobby {
     }
 
     public isFilled(): boolean {
-        return this.users.length === 2;
+        return this.users.length >= 2;
     }
 
     public removeUser(id: string): void {
