@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameEvent } from '../core/event/GameEvent.js';
 import type { CardTypeFilter } from '../core/Constants';
-import { RelativePlayer, Trait } from '../core/Constants';
+import { RelativePlayer } from '../core/Constants';
 import { AbilityRestriction, EventName, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
@@ -23,7 +23,10 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         const upgradeCard = (event.upgradeCard as InPlayCard);
         const parentCard = (event.parentCard as Card);
 
-        Contract.assertTrue(upgradeCard.isUpgrade() || (upgradeCard.isUnit() && upgradeCard.hasSomeTrait(Trait.Pilot)));
+        Contract.assertTrue(
+            upgradeCard.isUpgrade() ||
+            (upgradeCard.isUnit() && upgradeCard.canAttach(parentCard, event.context, event.newController)),
+        );
         Contract.assertTrue(parentCard.isUnit());
 
         event.originalZone = upgradeCard.zoneName;
@@ -41,22 +44,26 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const contextCopy = context.copy({ source: card });
 
+        const upgrade = properties.upgrade;
+
         Contract.assertNotNullLike(context);
         Contract.assertNotNullLike(context.player);
         Contract.assertNotNullLike(card);
-        Contract.assertNotNullLike(properties.upgrade);
+        Contract.assertNotNullLike(upgrade);
 
         if (!card.isUnit()) {
             return false;
         }
-
-        if (!properties.upgrade.canAttach(card, context, this.getFinalController(properties, context))) {
-            return false;
-        } else if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
-            return false;
-        } else if (context.player.hasRestriction(AbilityRestriction.PutIntoPlay, contextCopy)) {
+        if (!upgrade.canAttach(card, context, this.getFinalController(properties, context))) {
             return false;
         }
+        if (card.hasRestriction(AbilityRestriction.EnterPlay, context)) {
+            return false;
+        }
+        if (context.player.hasRestriction(AbilityRestriction.PutIntoPlay, contextCopy)) {
+            return false;
+        }
+
         return super.canAffect(card, context);
     }
 
@@ -73,10 +80,18 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         event.parentCard = card;
         event.upgradeCard = upgrade;
         event.newController = this.getFinalController(properties, context);
+    }
+
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
+
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const upgrade = properties.upgrade;
+
         event.setContingentEventsGenerator(() => {
             const contingentEvents = [];
 
-            if (upgrade.isInPlay() && !upgrade.isUnit()) {
+            if (upgrade.isAttached()) {
                 contingentEvents.push(new GameEvent(
                     EventName.OnUpgradeUnattached,
                     context,
@@ -86,6 +101,9 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
                         parentCard: upgrade.parentCard,
                     }
                 ));
+            } else if (upgrade.isUnit() && upgrade.isInPlay()) {
+                // if we're attaching a unit, remove any upgrades / rescue any captured units
+                contingentEvents.push(...this.buildUnitCleanupContingentEvents(upgrade, context, event));
             }
 
             return contingentEvents;

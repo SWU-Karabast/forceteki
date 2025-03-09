@@ -35,6 +35,8 @@ import type { IDelayedEffectProperties } from './DelayedEffectSystem';
 import { DelayedEffectSystem, DelayedEffectType } from './DelayedEffectSystem';
 import type { IDeployLeaderProperties } from './DeployLeaderSystem';
 import { DeployLeaderSystem } from './DeployLeaderSystem';
+import type { IDetachPilotProperties } from './DetachPilotSystem';
+import { DetachPilotSystem } from './DetachPilotSystem';
 import type { IDiscardCardsFromHandProperties } from './DiscardCardsFromHandSystem';
 import { DiscardCardsFromHandSystem } from './DiscardCardsFromHandSystem';
 import type { IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
@@ -195,6 +197,9 @@ export function delayedCardEffect<TContext extends AbilityContext = AbilityConte
             { delayedEffectType: DelayedEffectType.Card }
         ));
 }
+export function detachPilot<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDetachPilotProperties, TContext> = {}) {
+    return new DetachPilotSystem<TContext>(propertyFactory);
+}
 export function distributeDamageAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeDamageSystemProperties, TContext>) {
     return new DistributeDamageSystem<TContext>(propertyFactory);
 }
@@ -204,9 +209,6 @@ export function distributeHealingAmong<TContext extends AbilityContext = Ability
 export function distributeExperienceAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeExperienceSystemProperties, TContext>) {
     return new DistributeExperienceSystem<TContext>(propertyFactory);
 }
-// export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}) {
-//     return new DetachAction(propertyFactory);
-// }
 export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext>) {
     return new DeployLeaderSystem<TContext>(propertyFactory);
 }
