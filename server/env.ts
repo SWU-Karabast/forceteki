@@ -9,7 +9,10 @@ const parsedEnv = z
         GAME_NODE_HOST: z.string(),
         GAME_NODE_NAME: z.string(),
         GAME_NODE_SOCKET_IO_PORT: z.coerce.number().int(),
-        SECRET: z.string()
+        SECRET: z.string(),
+        AWS_REGION: z.string(),
+        AWS_ACCESS_KEY_ID: z.string(),
+        AWS_SECRET_ACCESS_KEY: z.string(),
     })
     .safeParse(process.env);
 
@@ -62,3 +65,6 @@ export const gameNodeSocketIoPort = parsedEnv.data.GAME_NODE_SOCKET_IO_PORT;
 // export const mqUrl = parsedEnv.data.MQ_URL;
 export const secret = parsedEnv.data.SECRET;
 // export const sentryDsn = parsedEnv.data.SENTRY_DSN;
+export const AWS_REGION = parsedEnv.data.AWS_REGION;
+export const AWS_ACCESS_KEY_ID = parsedEnv.data.AWS_ACCESS_KEY_ID;
+export const AWS_SECRET_ACCESS_KEY = parsedEnv.data.AWS_SECRET_ACCESS_KEY;

@@ -19,6 +19,7 @@ import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import QueueHandler from './QueueHandler';
+import { DynamoDBService } from '../services/DynamoDBService';
 
 /**
  * Represents a user object
@@ -151,6 +152,42 @@ export class GameServer {
     }
 
     private setupAppRoutes(app: express.Application) {
+        app.post('/api/test-dynamodb', async (req, res) => {
+            const { id, data } = req.body;
+
+            if (!id || !data) {
+                return res.status(400).json({ success: false, message: 'Missing required fields' });
+            }
+            try {
+                const dbService = new DynamoDBService();
+                // Create a test item
+                const item = {
+                    pk: `TEST#${id}`,
+                    sk: `TEST#${new Date().toISOString()}`,
+                    id,
+                    data,
+                    createdAt: new Date().toISOString()
+                };
+
+                // Write to DynamoDB
+                await dbService.putItem(item);
+
+                // Return success
+                return res.status(200).json({
+                    success: true,
+                    message: 'Item successfully added to DynamoDB',
+                    item
+                });
+            } catch (error) {
+                logger.error('Error writing to DynamoDB:', error);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to write to DynamoDB',
+                    error: error.message
+                });
+            }
+        });
+
         app.get('/api/get-unimplemented', (req, res) => {
             return res.json(this.deckValidator.getUnimplementedCards());
         });
