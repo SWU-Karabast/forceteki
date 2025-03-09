@@ -89,6 +89,59 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.bobaFett.exhausted).toBe(false);
             });
 
+            describe('when dealing simultaneous damage to multiple targets,', function () {
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            leader: 'boba-fett#any-methods-necessary',
+                            groundArena: ['wampa'],
+                            hand: ['overwhelming-barrage']
+                        },
+                        player2: {
+                            groundArena: ['atst', 'consular-security-force']
+                        }
+                    });
+                });
+
+                it('should only show one trigger prompt and go away when triggered', function () {
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.overwhelmingBarrage);
+                    context.player1.clickCard(context.wampa);
+                    context.player1.setDistributeDamagePromptState(new Map([
+                        [context.atst, 3],
+                        [context.consularSecurityForce, 3],
+                    ]));
+
+                    expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                    context.player1.clickPrompt('Trigger');
+                    context.player1.clickPrompt('Opponent');
+                    expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
+                    context.player2.setDistributeIndirectDamagePromptState(new Map([
+                        [context.p2Base, 1],
+                    ]));
+
+                    expect(context.player2).toBeActivePlayer();
+                });
+
+                it('should only show one trigger prompt and go away when passed', function () {
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.overwhelmingBarrage);
+                    context.player1.clickCard(context.wampa);
+                    context.player1.setDistributeDamagePromptState(new Map([
+                        [context.atst, 3],
+                        [context.consularSecurityForce, 3],
+                    ]));
+
+                    expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                    context.player1.clickPrompt('Pass');
+
+                    expect(context.player2).toBeActivePlayer();
+                });
+            });
+
             it('does not deal 4 damage when deployed as a unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
