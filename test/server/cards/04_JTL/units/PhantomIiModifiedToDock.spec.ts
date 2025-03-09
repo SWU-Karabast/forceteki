@@ -8,11 +8,11 @@ describe('Phantom II, Modified to Dock', function() {
                         spaceArena: [
                             'phantom-ii#modified-to-dock',
                             'the-ghost#heart-of-the-family',
-                            'relentless-firespray'
+                            'the-starhawk#prototype-battleship'
                         ],
                     },
                     player2: {
-                        spaceArena: ['ruthless-raider', 'the-ghost#spectre-home-base'],
+                        spaceArena: ['the-ghost#spectre-home-base', 'profundity#we-fight'],
                     }
                 });
             });
@@ -27,18 +27,6 @@ describe('Phantom II, Modified to Dock', function() {
                 context.player1.clickCard(context.theGhostHeartOfTheFamily);
                 expect(context.theGhostHeartOfTheFamily).toHaveExactUpgradeNames(['phantom-ii#modified-to-dock']);
                 expect(context.phantomIi.parentCard).toBe(context.theGhostHeartOfTheFamily);
-
-                expect(context.theGhostHeartOfTheFamily.getPower()).toBe(5);
-                expect(context.theGhostHeartOfTheFamily.getHp()).toBe(6);
-
-                context.player2.passAction();
-
-                // do an attack to confirm stats work
-                context.player1.clickCard(context.theGhostHeartOfTheFamily);
-                context.player1.clickCard(context.ruthlessRaider);
-
-                expect(context.ruthlessRaider.damage).toBe(5);
-                expect(context.theGhostHeartOfTheFamily.damage).toBe(4);
             });
 
             it('should attach itself to the opponent\'s Ghost as an upgrade', function() {
@@ -51,17 +39,55 @@ describe('Phantom II, Modified to Dock', function() {
                 context.player1.clickCard(context.theGhostSpectreHomeBase);
                 expect(context.theGhostSpectreHomeBase).toHaveExactUpgradeNames(['phantom-ii#modified-to-dock']);
                 expect(context.phantomIi.parentCard).toBe(context.theGhostSpectreHomeBase);
+            });
+        });
 
-                expect(context.theGhostSpectreHomeBase.getPower()).toBe(5);
-                expect(context.theGhostSpectreHomeBase.getHp()).toBe(5);
+        describe('Phantom\'s constant ability', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: [
+                            'phantom-ii#modified-to-dock',
+                            'the-ghost#heart-of-the-family',
+                        ],
+                    },
+                    player2: {
+                        hand: ['open-fire'],
+                        spaceArena: ['the-starhawk#prototype-battleship'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.phantomIi);
+                context.player1.clickPrompt('Attach this as an upgrade to The Ghost');
+                context.player1.clickCard(context.theGhost);
+            });
+
+            it('should give the attached unit +3/+3', function() {
+                const { context } = contextRef;
+
+                expect(context.theGhostHeartOfTheFamily.getPower()).toBe(8);
+                expect(context.theGhostHeartOfTheFamily.getHp()).toBe(9);
+
+                context.player2.passAction();
 
                 // do an attack to confirm stats work
-                context.player2.clickCard(context.theGhostSpectreHomeBase);
-                context.player2.clickCard(context.relentlessFirespray);
-                context.player2.clickPrompt('Pass');
+                context.player1.clickCard(context.theGhostHeartOfTheFamily);
+                context.player1.clickCard(context.theStarhawk);
 
-                expect(context.relentlessFirespray.damage).toBe(5);
-                expect(context.theGhostSpectreHomeBase.damage).toBe(4);
+                expect(context.theStarhawk.damage).toBe(8);
+                expect(context.theGhostHeartOfTheFamily.damage).toBe(6);
+            });
+
+            it('should give the attached unit Grit', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.openFire);
+                context.player2.clickCard(context.theGhost);
+
+                expect(context.theGhost.getPower()).toBe(12);
             });
         });
     });
