@@ -27,8 +27,7 @@ describe('Han Solo Has His Moments', function () {
                     context.millenniumFalconLandosPride,
                     context.goldLeader
                 ]);
-                context.player1.clickCard(context.millenniumFalconPieceOfJunk); // To attach Han Sol
-                context.player1.clickCard(context.millenniumFalconPieceOfJunk); // To trigger the attack
+                context.player1.clickCard(context.millenniumFalconPieceOfJunk);
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer).toBeInZone('discard');
                 expect(context.millenniumFalconPieceOfJunk.damage).toBe(0);
@@ -46,8 +45,7 @@ describe('Han Solo Has His Moments', function () {
                     context.millenniumFalconLandosPride,
                     context.goldLeader
                 ]);
-                context.player1.clickCard(context.millenniumFalconGetOutAndPush); // To attach Han Sol
-                context.player1.clickCard(context.millenniumFalconGetOutAndPush); // To trigger the attack
+                context.player1.clickCard(context.millenniumFalconGetOutAndPush);
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer).toBeInZone('discard');
                 expect(context.millenniumFalconGetOutAndPush.damage).toBe(0);
@@ -65,8 +63,7 @@ describe('Han Solo Has His Moments', function () {
                     context.millenniumFalconLandosPride,
                     context.goldLeader
                 ]);
-                context.player1.clickCard(context.millenniumFalconLandosPride); // To attach Han Sol
-                context.player1.clickCard(context.millenniumFalconLandosPride); // To trigger the attack
+                context.player1.clickCard(context.millenniumFalconLandosPride);
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer).toBeInZone('discard');
                 expect(context.millenniumFalconLandosPride.damage).toBe(0);
@@ -84,8 +81,7 @@ describe('Han Solo Has His Moments', function () {
                     context.millenniumFalconLandosPride,
                     context.goldLeader
                 ]);
-                context.player1.clickCard(context.goldLeader); // To attach Han Sol
-                context.player1.clickCard(context.goldLeader); // To trigger the attack
+                context.player1.clickCard(context.goldLeader);
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer).toBeInZone('discard');
                 expect(context.goldLeader.damage).toBe(2);
@@ -103,8 +99,7 @@ describe('Han Solo Has His Moments', function () {
                     context.millenniumFalconLandosPride,
                     context.goldLeader
                 ]);
-                context.player1.clickCard(context.millenniumFalconLandosPride); // To attach Han Sol
-                context.player1.clickCard(context.millenniumFalconLandosPride); // To trigger the attack
+                context.player1.clickCard(context.millenniumFalconLandosPride);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(7);
                 expect(context.player2).toBeActivePlayer();
