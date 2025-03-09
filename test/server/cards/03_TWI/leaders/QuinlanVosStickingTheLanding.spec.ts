@@ -91,6 +91,7 @@ describe('Quinlan Vos, Sticking the Landing', function () {
 
             // should deal damage to an enemy unit with a cost equal or less than 2
             expect(context.player1).toBeAbleToSelectExactly([context.specforceSoldier, context.craftySmuggler, context.greenSquadronAwing]);
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.greenSquadronAwing);
 
             expect(context.player2).toBeActivePlayer();

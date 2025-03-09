@@ -216,15 +216,20 @@ export class Card extends OngoingEffectSource {
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
         // TODO: add validation that if the card has the Piloting trait, the right cardData properties are set
-        this.printedKeywords = KeywordHelpers.parseKeywords(cardData.keywords,
+        this.printedKeywords = KeywordHelpers.parseKeywords(
+            this,
+            cardData.keywords,
             this.printedType === CardType.Leader ? cardData.deployBox : cardData.text,
-            this.internalName, cardData.pilotText);
+            cardData.pilotText
+        );
+
+        // repeat keyword parsing for pilot ability text if present
         if (this.printedType === CardType.Leader) {
             this.printedKeywords.push(
                 ...KeywordHelpers.parseKeywords(
+                    this,
                     cardData.keywords,
                     cardData.text,
-                    this.internalName,
                     cardData.pilotText
                 )
             );
@@ -396,11 +401,11 @@ export class Card extends OngoingEffectSource {
     }
 
     public isUnit(): this is IUnitCard {
-        return this.type === CardType.BasicUnit || this.type === CardType.LeaderUnit || this.type === CardType.TokenUnit;
+        return EnumHelpers.isUnit(this.type);
     }
 
     public isUpgrade(): this is IUpgradeCard {
-        return this.type === CardType.BasicUpgrade || this.type === CardType.TokenUpgrade || this.type === CardType.UnitUpgrade;
+        return EnumHelpers.isUpgrade(this.type);
     }
 
     public isBase(): this is IBaseCard {
@@ -490,7 +495,8 @@ export class Card extends OngoingEffectSource {
         let keywordInstances = [...this.printedKeywords];
         const gainKeywordEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword);
         for (const effect of gainKeywordEffects) {
-            keywordInstances.push(effect.getValue(this));
+            const keywordProps = effect.getValue(this);
+            keywordInstances.push(KeywordHelpers.keywordFromProperties(keywordProps, this));
         }
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
@@ -572,7 +578,7 @@ export class Card extends OngoingEffectSource {
      *
      * @param targetZoneName Zone to move to
      */
-    public moveTo(targetZoneName: MoveZoneDestination) {
+    public moveTo(targetZoneName: MoveZoneDestination, initializeCardState = true) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
         const prevZone = this.zoneName;
@@ -597,7 +603,7 @@ export class Card extends OngoingEffectSource {
 
         this.addSelfToZone(targetZoneName);
 
-        this.postMoveSteps(prevZone);
+        this.postMoveSteps(prevZone, initializeCardState);
     }
 
     protected removeFromCurrentZone() {
@@ -609,8 +615,10 @@ export class Card extends OngoingEffectSource {
         }
     }
 
-    protected postMoveSteps(movedFromZone: ZoneName) {
-        this.initializeForCurrentZone(movedFromZone);
+    protected postMoveSteps(movedFromZone: ZoneName, initializeCardState = true) {
+        if (initializeCardState) {
+            this.initializeForCurrentZone(movedFromZone);
+        }
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,

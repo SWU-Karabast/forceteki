@@ -102,7 +102,7 @@ export class GameServer {
         const server = http.createServer(app);
 
         const corsOptions = {
-            origin: ['http://localhost:3000', 'https://beta.karabast.net'],
+            origin: ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'],
             methods: ['GET', 'POST'],
             credentials: true, // Allow cookies or authorization headers
         };
@@ -126,7 +126,7 @@ export class GameServer {
             perMessageDeflate: false,
             path: '/ws',
             cors: {
-                origin: ['http://localhost:3000', 'https://beta.karabast.net'],
+                origin: ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'],
                 methods: ['GET', 'POST']
             }
         });
@@ -160,7 +160,7 @@ export class GameServer {
         });
 
         app.post('/api/create-lobby', async (req, res, next) => {
-            const { user, deck, format, isPrivate } = req.body;
+            const { user, deck, format, isPrivate, lobbyName } = req.body;
             // Check if the user is already in a lobby
             const userId = typeof user === 'string' ? user : user.id;
             if (this.userLobbyMap.has(userId)) {
@@ -171,7 +171,7 @@ export class GameServer {
             }
             try {
                 await this.processDeckValidation(deck, format, res, async () => {
-                    await this.createLobby(user, deck, format, isPrivate);
+                    await this.createLobby(lobbyName, user, deck, format, isPrivate);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
@@ -182,7 +182,7 @@ export class GameServer {
         app.get('/api/available-lobbies', (_, res) => {
             const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, lobby]) => ({
                 id,
-                name: `Game #${id}`,
+                name: lobby.name,
                 format: lobby.format,
             }));
             return res.json(availableLobbies);
@@ -301,7 +301,7 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(user: User | string, deck: Deck, format: SwuGameFormat, isPrivate: boolean) {
+    private createLobby(lobbyName: string, user: User | string, deck: Deck, format: SwuGameFormat, isPrivate: boolean) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -316,6 +316,7 @@ export class GameServer {
 
 
         const lobby = new Lobby(
+            lobbyName,
             isPrivate ? MatchType.Private : MatchType.Custom,
             format,
             this.cardDataGetter,
@@ -331,6 +332,7 @@ export class GameServer {
 
     private async startTestGame(filename: string) {
         const lobby = new Lobby(
+            'Test Game',
             MatchType.Custom,
             SwuGameFormat.Open,
             this.cardDataGetter,
@@ -509,6 +511,7 @@ export class GameServer {
         Contract.assertFalse(p1.user.id === p2.user.id, 'Cannot matchmake the same user');
         // Create a new Lobby
         const lobby = new Lobby(
+            'Quick Game',
             MatchType.Quick,
             format,
             this.cardDataGetter,

@@ -38,6 +38,7 @@ export interface RematchRequest {
 
 export class Lobby {
     private readonly _id: string;
+    private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
     private readonly gameChat: GameChat;
@@ -53,6 +54,7 @@ export class Lobby {
     private rematchRequest?: RematchRequest = null;
 
     public constructor(
+        lobbyName: string,
         lobbyGameType: MatchType,
         lobbyGameFormat: SwuGameFormat,
         cardDataGetter: CardDataGetter,
@@ -64,6 +66,7 @@ export class Lobby {
             `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
         );
         this._id = uuid();
+        this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat();
         this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
@@ -78,6 +81,10 @@ export class Lobby {
         return this._id;
     }
 
+    public get name(): string {
+        return this._lobbyName;
+    }
+
     public get format(): SwuGameFormat {
         return this.gameFormat;
     }
@@ -85,6 +92,7 @@ export class Lobby {
     public getLobbyState(): any {
         return {
             id: this._id,
+            lobbyName: this._lobbyName,
             users: this.users.map((u) => ({
                 id: u.id,
                 username: u.username,
@@ -111,7 +119,7 @@ export class Lobby {
     private createLobbyLink(): string {
         return process.env.ENVIRONMENT === 'development'
             ? `http://localhost:3000/lobby?lobbyId=${this._id}`
-            : `https://beta.karabast.net/lobby?lobbyId=${this._id}`;
+            : `https://karabast.net/lobby?lobbyId=${this._id}`;
     }
 
     public createLobbyUser(user, decklist = null): void {

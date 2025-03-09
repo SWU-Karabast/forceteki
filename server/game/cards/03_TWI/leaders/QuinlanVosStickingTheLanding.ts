@@ -40,6 +40,7 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
                     event.card.controller === context.player &&
                     event.card.isUnit(),
             },
+            optional: true,
             targetResolver: {
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,

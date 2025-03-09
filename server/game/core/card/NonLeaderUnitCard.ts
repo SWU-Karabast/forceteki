@@ -42,6 +42,10 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
         return true;
     }
 
+    protected override getType(): CardType {
+        return this.isAttached() ? CardType.NonLeaderUnitUpgrade : super.getType();
+    }
+
     protected override initializeForCurrentZone(prevZone?: ZoneName): void {
         super.initializeForCurrentZone(prevZone);
 
@@ -72,7 +76,6 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
                 break;
         }
     }
-
 
     public override checkIsAttachable(): void {
         Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));

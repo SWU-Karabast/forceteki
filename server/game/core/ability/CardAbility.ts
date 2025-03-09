@@ -71,10 +71,6 @@ export abstract class CardAbility extends CardAbilityStep {
             return 'player';
         }
 
-        if (this.card.isBlank() && this.printedAbility) {
-            return 'blank';
-        }
-
         if (
             (this.isActivatedAbility() && !this.card.canTriggerAbilities(context, ignoredRequirements)) ||
             (this.card.isEvent() && !this.card.canPlay(context, context.playType))
