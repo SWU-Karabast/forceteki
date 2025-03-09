@@ -188,8 +188,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             if (card.isUnit()) {
                 // add events to defeat any upgrades attached to this card and free any captured units. the events will
                 // be added as "contingent events" in the event window, so they'll resolve in the same window but after the primary event
-                contingentEvents = contingentEvents.concat(this.generateUpgradeDefeatEvents(card, context, event));
-                contingentEvents = contingentEvents.concat(this.generateRescueEvents(card, context, event));
+                contingentEvents = contingentEvents.concat(this.buildUnitCleanupContingentEvents(card, context, event));
             }
 
             if (card.isUpgrade()) {
@@ -207,19 +206,13 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
 
             return contingentEvents;
         });
+    }
 
-        // TODO GAR SAXON: the L5R 'ancestral' keyword behaves exactly like Gar's deployed ability, we can reuse this code for him
-        // event.preResolutionEffect = () => {
-        //     event.cardStateWhenLeftPlay = event.card.createSnapshot();
-        //     if (event.card.isAncestral() && event.isContingent) {
-        //         event.destination = ZoneName.Hand;
-        //         context.game.addMessage(
-        //             '{0} returns to {1}'s hand due to its Ancestral keyword',
-        //             event.card,
-        //             event.card.owner
-        //         );
-        //     }
-        // };
+    protected buildUnitCleanupContingentEvents(card: IUnitCard, context: TContext, event: any): any[] {
+        let contingentEvents = [];
+        contingentEvents = contingentEvents.concat(this.generateUpgradeDefeatEvents(card, context, event));
+        contingentEvents = contingentEvents.concat(this.generateRescueEvents(card, context, event));
+        return contingentEvents;
     }
 
     private generateUpgradeDefeatEvents(card: IUnitCard, context: TContext, event: any): any[] {

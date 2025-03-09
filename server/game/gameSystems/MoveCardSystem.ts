@@ -113,7 +113,9 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         Contract.assertNotNullLike(destination);
 
         if (card.isToken()) {
-            Contract.assertTrue(destination !== ZoneName.Base, `${destination} is not a valid zone for a token card`);
+            if (destination === ZoneName.Base) {
+                return false;
+            }
         } else {
             // Ensure that we have a valid destination and that the card can be moved there
             if (!context.player.isLegalZoneForCardType(card.type, destination)) {
@@ -123,10 +125,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
         if (destination === ZoneName.Hand) {
-            Contract.assertTrue(
-                [ZoneName.Discard, ZoneName.Resource].includes(card.zoneName) || EnumHelpers.isArena(card.zoneName),
-                `Cannot use MoveCardSystem to return a card to hand from ${card.zoneName}`
-            );
+            if (
+                !([ZoneName.Discard, ZoneName.Resource].includes(card.zoneName)) && !EnumHelpers.isArena(card.zoneName)
+            ) {
+                return false;
+            }
 
             if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.ReturnToHand, context)) {
                 return false;

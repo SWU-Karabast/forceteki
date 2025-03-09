@@ -401,11 +401,11 @@ export class Card extends OngoingEffectSource {
     }
 
     public isUnit(): this is IUnitCard {
-        return this.type === CardType.BasicUnit || this.type === CardType.LeaderUnit || this.type === CardType.TokenUnit;
+        return EnumHelpers.isUnit(this.type);
     }
 
     public isUpgrade(): this is IUpgradeCard {
-        return this.type === CardType.BasicUpgrade || this.type === CardType.TokenUpgrade || this.type === CardType.UnitUpgrade;
+        return EnumHelpers.isUpgrade(this.type);
     }
 
     public isBase(): this is IBaseCard {
@@ -578,7 +578,7 @@ export class Card extends OngoingEffectSource {
      *
      * @param targetZoneName Zone to move to
      */
-    public moveTo(targetZoneName: MoveZoneDestination) {
+    public moveTo(targetZoneName: MoveZoneDestination, initializeCardState = true) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
         const prevZone = this.zoneName;
@@ -603,7 +603,7 @@ export class Card extends OngoingEffectSource {
 
         this.addSelfToZone(targetZoneName);
 
-        this.postMoveSteps(prevZone);
+        this.postMoveSteps(prevZone, initializeCardState);
     }
 
     protected removeFromCurrentZone() {
@@ -615,8 +615,10 @@ export class Card extends OngoingEffectSource {
         }
     }
 
-    protected postMoveSteps(movedFromZone: ZoneName) {
-        this.initializeForCurrentZone(movedFromZone);
+    protected postMoveSteps(movedFromZone: ZoneName, initializeCardState = true) {
+        if (initializeCardState) {
+            this.initializeForCurrentZone(movedFromZone);
+        }
 
         this.game.emitEvent(EventName.OnCardMoved, null, {
             card: this,

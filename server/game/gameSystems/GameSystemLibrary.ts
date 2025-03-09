@@ -35,6 +35,8 @@ import type { IDelayedEffectProperties } from './DelayedEffectSystem';
 import { DelayedEffectSystem, DelayedEffectType } from './DelayedEffectSystem';
 import type { IDeployLeaderProperties } from './DeployLeaderSystem';
 import { DeployLeaderSystem } from './DeployLeaderSystem';
+import type { IDetachPilotProperties } from './DetachPilotSystem';
+import { DetachPilotSystem } from './DetachPilotSystem';
 import type { IDiscardCardsFromHandProperties } from './DiscardCardsFromHandSystem';
 import { DiscardCardsFromHandSystem } from './DiscardCardsFromHandSystem';
 import type { IDiscardEntireHandSystemProperties } from './DiscardEntireHandSystem';
@@ -75,6 +77,8 @@ import type { ILookMoveDeckCardsTopOrBottomProperties } from './LookMoveDeckCard
 import { LookMoveDeckCardsTopOrBottomSystem } from './LookMoveDeckCardsTopOrBottomSystem';
 import type { IMoveCardProperties } from './MoveCardSystem';
 import { MoveCardSystem } from './MoveCardSystem';
+import type { IMoveUnitBetweenArenasProperties } from './MoveUnitBetweenArenasSystem';
+import { MoveArenaType, MoveUnitBetweenArenasSystem } from './MoveUnitBetweenArenasSystem';
 import type { INoActionSystemProperties } from './NoActionSystem';
 import { NoActionSystem } from './NoActionSystem';
 import type { IPlayCardProperties } from '../gameSystems/PlayCardSystem';
@@ -193,6 +197,9 @@ export function delayedCardEffect<TContext extends AbilityContext = AbilityConte
             { delayedEffectType: DelayedEffectType.Card }
         ));
 }
+export function detachPilot<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDetachPilotProperties, TContext> = {}) {
+    return new DetachPilotSystem<TContext>(propertyFactory);
+}
 export function distributeDamageAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeDamageSystemProperties, TContext>) {
     return new DistributeDamageSystem<TContext>(propertyFactory);
 }
@@ -202,9 +209,6 @@ export function distributeHealingAmong<TContext extends AbilityContext = Ability
 export function distributeExperienceAmong<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDistributeExperienceSystemProperties, TContext>) {
     return new DistributeExperienceSystem<TContext>(propertyFactory);
 }
-// export function detach(propertyFactory: PropsFactory<DetachActionProperties> = {}) {
-//     return new DetachAction(propertyFactory);
-// }
 export function deploy<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IDeployLeaderProperties, TContext>) {
     return new DeployLeaderSystem<TContext>(propertyFactory);
 }
@@ -288,15 +292,9 @@ export function lookAtAndSelectCard<TContext extends AbilityContext = AbilityCon
 export function lookMoveDeckCardsTopOrBottom<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ILookMoveDeckCardsTopOrBottomProperties, TContext>) {
     return new LookMoveDeckCardsTopOrBottomSystem<TContext>(propertyFactory);
 }
-/**
- * default switch = false
- * default shuffle = false
- * default faceup = false
- */
 export function moveCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IMoveCardProperties, TContext>) {
     return new MoveCardSystem<TContext>(propertyFactory);
 }
-
 export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: Omit<PropsFactory<IMoveCardProperties, TContext>, 'destination'> = {}) {
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
@@ -305,7 +303,6 @@ export function moveToBottomOfDeck<TContext extends AbilityContext = AbilityCont
         )
     );
 }
-
 export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext>) {
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
@@ -314,11 +311,25 @@ export function moveToTopOfDeck<TContext extends AbilityContext = AbilityContext
         )
     );
 }
-
+export function moveUnitFromGroundToSpace<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveUnitBetweenArenasProperties, 'moveType'>, TContext> = {}) {
+    return new MoveUnitBetweenArenasSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveUnitBetweenArenasProperties, 'moveType'>(
+            propertyFactory,
+            { moveType: MoveArenaType.GroundToSpace }
+        )
+    );
+}
+export function moveUnitFromSpaceToGround<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveUnitBetweenArenasProperties, 'moveType'>, TContext> = {}) {
+    return new MoveUnitBetweenArenasSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IMoveUnitBetweenArenasProperties, 'moveType'>(
+            propertyFactory,
+            { moveType: MoveArenaType.SpaceToGround }
+        )
+    );
+}
 export function payCardPrintedCost<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPayCardPrintedCostProperties, TContext>) {
     return new PayCardPrintedCostSystem<TContext>(propertyFactory);
 }
-
 /**
  * default resetOnCancel = false
  */
