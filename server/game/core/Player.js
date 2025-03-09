@@ -275,6 +275,7 @@ class Player extends GameObject {
             case ZoneName.Hand:
                 return this.handZone.cards;
             case ZoneName.Deck:
+                Contract.assertNotNullLike(this.deckZone);
                 return this.deckZone.cards;
             case ZoneName.Discard:
                 return this.discardZone.cards;
