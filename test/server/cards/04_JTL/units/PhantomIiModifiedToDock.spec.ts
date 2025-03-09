@@ -90,5 +90,55 @@ describe('Phantom II, Modified to Dock', function() {
                 expect(context.theGhost.getPower()).toBe(12);
             });
         });
+
+        describe('When Phantom is attached', function() {
+            beforeEach(async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: [
+                            'phantom-ii#modified-to-dock',
+                            'the-ghost#heart-of-the-family',
+                        ],
+                    },
+                    player2: {
+                        hand: ['vanquish', 'confiscate', 'bamboozle']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.phantomIi);
+                context.player1.clickPrompt('Attach this as an upgrade to The Ghost');
+                context.player1.clickCard(context.theGhost);
+            });
+
+            it('it should be defeated when the attached unit is defeated', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.theGhost);
+
+                expect(context.phantomIi).toBeInZone('discard');
+            });
+
+            it('it should be defeated when targeted by an upgrade defeat effect', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.confiscate);
+                context.player2.clickCard(context.phantomIi);
+
+                expect(context.phantomIi).toBeInZone('discard');
+            });
+
+            it('it should be returned to hand by Bamboozle', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.bamboozle);
+                context.player2.clickCard(context.theGhost);
+
+                expect(context.phantomIi).toBeInZone('hand');
+            });
+        });
     });
 });
