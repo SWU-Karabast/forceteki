@@ -427,6 +427,7 @@ export class GameServer {
             const lobbyId = this.userLobbyMap.get(user.id);
             const lobby = this.lobbies.get(lobbyId);
             if (!lobby) {
+                this.userLobbyMap.delete(user.id);
                 logger.info('No lobby for', ioSocket.data.user.username, 'disconnecting');
                 ioSocket.disconnect();
                 return;
@@ -615,13 +616,13 @@ export class GameServer {
         await this.matchmakeAllQueues();
     }
 
-    private removeUserMaybeCleanupLobby(lobby: Lobby, userId: string) {
-        lobby.removeUser(userId);
+    private removeUserMaybeCleanupLobby(lobby: Lobby | null, userId: string) {
+        lobby?.removeUser(userId);
         // Check if lobby is empty
-        if (lobby.isEmpty()) {
+        if (lobby?.isEmpty()) {
             // Start the cleanup process
-            lobby.cleanLobby();
-            this.lobbies.delete(lobby.id);
+            lobby?.cleanLobby();
+            this.lobbies.delete(lobby?.id);
         }
     }
 
@@ -632,6 +633,7 @@ export class GameServer {
         }
         const lobbyId = this.userLobbyMap.get(id);
         const lobby = this.lobbies.get(lobbyId);
+
         const wasManualDisconnect = !!socket?.data?.manualDisconnect;
         if (wasManualDisconnect) {
             this.userLobbyMap.delete(id);
@@ -640,10 +642,10 @@ export class GameServer {
         }
         // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
         //  without triggering onSocketDisconnect
-        lobby.setUserDisconnected(id);
+        lobby?.setUserDisconnected(id);
         setTimeout(() => {
             // Check if the user is still disconnected after the timer
-            if (lobby.getUserState(id) === 'disconnected') {
+            if (lobby?.getUserState(id) === 'disconnected') {
                 this.userLobbyMap.delete(id);
                 this.removeUserMaybeCleanupLobby(lobby, id);
             }
