@@ -162,7 +162,7 @@ export class GameServer {
             const { user, deck, format, isPrivate, lobbyName } = req.body;
             // Check if the user is already in a lobby
             const userId = typeof user === 'string' ? user : user.id;
-            if (this.userLobbyMap.has(userId)) {
+            if (!this.canUserJoinNewLobby(userId)) {
                 return res.status(403).json({
                     success: false,
                     message: 'User is already in a lobby'
@@ -190,6 +190,14 @@ export class GameServer {
         app.post('/api/join-lobby', (req, res) => {
             const { lobbyId, user } = req.body;
 
+            const userId = typeof user === 'string' ? user : user.id;
+            if (!this.canUserJoinNewLobby(userId)) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'User is already in a lobby'
+                });
+            }
+
             const lobby = this.lobbies.get(lobbyId);
             if (!lobby) {
                 return res.status(404).json({ success: false, message: 'Lobby not found' });
@@ -198,6 +206,7 @@ export class GameServer {
             if (lobby.isFilled()) {
                 return res.status(400).json({ success: false, message: 'Lobby is full' });
             }
+
             // Add the user to the lobby
             this.userLobbyMap.set(user.id, lobby.id);
             return res.status(200).json({ success: true });
@@ -222,7 +231,7 @@ export class GameServer {
             const { format, user, deck } = req.body;
             // check if user is already in a lobby
             const userId = typeof user === 'string' ? user : user.id;
-            if (this.userLobbyMap.has(userId)) {
+            if (!this.canUserJoinNewLobby(userId)) {
                 return res.status(403).json({
                     success: false,
                     message: 'User is already in a lobby'
@@ -244,6 +253,30 @@ export class GameServer {
         app.get('/api/health', (_, res) => {
             return res.status(200).json({ success: true });
         });
+    }
+
+    private canUserJoinNewLobby(userId: string) {
+        const previousLobbyForUser = this.userLobbyMap.get(userId);
+        if (previousLobbyForUser) {
+            const previousLobby = this.lobbies.get(previousLobbyForUser);
+            if (previousLobby) {
+                const userLastActivity = previousLobby.getLastActivityForUser(userId);
+
+                if (userLastActivity == null) {
+                    return true;
+                }
+
+                const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
+
+                if (elapsedSeconds < 60) {
+                    return false;
+                }
+
+                this.removeUserMaybeCleanupLobby(previousLobby, userId);
+            }
+        }
+
+        return true;
     }
 
     // method for validating the deck via API
@@ -582,6 +615,16 @@ export class GameServer {
         await this.matchmakeAllQueues();
     }
 
+    private removeUserMaybeCleanupLobby(lobby: Lobby, userId: string) {
+        lobby.removeUser(userId);
+        // Check if lobby is empty
+        if (lobby.isEmpty()) {
+            // Start the cleanup process
+            lobby.cleanLobby();
+            this.lobbies.delete(lobby.id);
+        }
+    }
+
     public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {
         if (!this.userLobbyMap.has(id)) {
             this.queue.removePlayer(id);
@@ -592,14 +635,7 @@ export class GameServer {
         const wasManualDisconnect = !!socket?.data?.manualDisconnect;
         if (wasManualDisconnect) {
             this.userLobbyMap.delete(id);
-            lobby.removeUser(id);
-
-            // check if lobby is empty
-            if (lobby.isEmpty()) {
-                // cleanup process
-                lobby.cleanLobby();
-                this.lobbies.delete(lobbyId);
-            }
+            this.removeUserMaybeCleanupLobby(lobby, id);
             return;
         }
         // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
@@ -609,13 +645,6 @@ export class GameServer {
             // Check if the user is still disconnected after the timer
             if (lobby.getUserState(id) === 'disconnected') {
                 this.userLobbyMap.delete(id);
-                lobby.removeUser(id);
-                // Check if lobby is empty
-                if (lobby.isEmpty()) {
-                    // Start the cleanup process
-                    lobby.cleanLobby();
-                    this.lobbies.delete(lobbyId);
-                }
             }
         }, 20000);
     }
