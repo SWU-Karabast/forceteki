@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as Helpers from '../../../core/utils/Helpers.js';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -47,17 +47,20 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                         }),
                         onFalse: AbilityHelper.immediateEffects.noAction()
                     }),
-                    AbilityHelper.immediateEffects.conditional({
-                        condition: ifYouDoContext.player.opponent.drawDeck.length > 0,
-                        onTrue: AbilityHelper.immediateEffects.deckSearch({
-                            targetMode: TargetMode.Unlimited,
-                            choosingPlayer: ifYouDoContext.player,
-                            player: ifYouDoContext.player.opponent,
-                            cardCondition: (card) => card.title === ifYouDoContext.target.title,
-                            shuffleWhenDone: true,
-                            selectedCardsImmediateEffect: AbilityHelper.immediateEffects.discardSpecificCard()
-                        }),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
+                    AbilityHelper.immediateEffects.conditional((context) => {
+                        const opponentDeck = context.player.opponent.drawDeck;
+                        return {
+                            condition: opponentDeck.length > 0,
+                            onTrue: AbilityHelper.immediateEffects.simultaneous(() => {
+                                const matchingCardNames = opponentDeck.filter((card) => card.title === ifYouDoContext.target.title);
+                                return Helpers.asArray(matchingCardNames).map((target) =>
+                                    AbilityHelper.immediateEffects.discardSpecificCard({
+                                        target: target
+                                    })
+                                );
+                            }),
+                            onFalse: AbilityHelper.immediateEffects.noAction()
+                        };
                     })
                 ])
             })

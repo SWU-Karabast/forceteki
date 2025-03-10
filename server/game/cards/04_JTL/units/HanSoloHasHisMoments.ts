@@ -18,13 +18,13 @@ export default class HanSoloHasHisMoments extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) => event.card === context.source && event.playType === PlayType.Piloting
             },
-            initiateAttack: {
-                attackerCondition: (card, context) => context.source.isUpgrade() && card === context.source.parentCard,
+            immediateEffect: AbilityHelper.immediateEffects.attack((context) => ({
+                target: context.source.parentCard,
                 attackerLastingEffects: [{
                     effect: AbilityHelper.ongoingEffects.dealsDamageBeforeDefender(),
                     condition: (attack: Attack) => attack.attacker.title === 'Millennium Falcon'
                 }]
-            },
+            }))
         });
     }
 }

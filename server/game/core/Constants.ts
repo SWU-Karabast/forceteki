@@ -173,7 +173,7 @@ export enum CardType {
     LeaderUpgrade = 'leaderUpgrade',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
-    UnitUpgrade = 'unitUpgrade',
+    NonLeaderUnitUpgrade = 'nonLeaderUnitUpgrade',
 }
 
 export enum WildcardCardType {
@@ -189,6 +189,8 @@ export enum WildcardCardType {
 
     /** Any upgrade type, including token upgrades */
     Upgrade = 'upgrade',
+
+    UnitUpgrade = 'unitUpgrade',
 }
 
 export type CardTypeFilter = CardType | WildcardCardType;
