@@ -331,6 +331,8 @@ export class Lobby {
         const user = this.users.find((u) => u.id === id);
         if (user) {
             this.gameChat.addMessage(`${user.username} has left the lobby`);
+        } else {
+            return;
         }
         if (this.game) {
             this.game.addMessage(`${user.username} has left the game`);
