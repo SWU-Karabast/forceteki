@@ -88,6 +88,7 @@ export enum EffectName {
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
     ModifyHp = 'modifyHp',
+    ModifyIndirectDamage = 'modifyIndirectDamage',
     ModifyPilotLimit = 'modifyPilotLimit',
     ModifyStartingHandSize = 'modifyStartingHandSize',
     ModifyPower = 'modifyPower',
