@@ -1,7 +1,7 @@
 
-describe('Echo Base Defender', function () {
+describe('Echo Base Engineer', function () {
     integration(function (contextRef) {
-        it('Echo Base Defender\'s ability should give a shield to a damaged Vehicle unit', async function () {
+        it('Echo Base Engineer\'s ability should give a shield to a damaged Vehicle unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

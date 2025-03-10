@@ -12,7 +12,7 @@ export default class EchoBaseEngineer extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Give a Shield token',
+            title: 'Give a Shield token to a damaged Vehicle unit',
             optional: true,
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.damage !== 0 && card.hasSomeTrait(Trait.Vehicle),
