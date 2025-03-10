@@ -645,6 +645,7 @@ export class GameServer {
             // Check if the user is still disconnected after the timer
             if (lobby.getUserState(id) === 'disconnected') {
                 this.userLobbyMap.delete(id);
+                this.removeUserMaybeCleanupLobby(lobby, id);
             }
         }, 20000);
     }
