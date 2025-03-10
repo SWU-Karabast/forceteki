@@ -52,7 +52,7 @@ describe('Stay on Target', function () {
                 expect(context.player1.handSize).toBe(0);
             });
 
-            it('should Attack with a Vehicle unit, opponent then assign indirect to base casuing card draw for both', function () {
+            it('should Attack with a Vehicle unit, opponent then assign indirect to base causing card draw for both', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.stayOnTarget);
