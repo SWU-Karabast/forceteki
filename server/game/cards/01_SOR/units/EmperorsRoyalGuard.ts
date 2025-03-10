@@ -19,7 +19,7 @@ export default class EmperorsRoyalGuard extends NonLeaderUnitCard {
 
         this.addConstantAbility({
             title: 'While you control Emperor Palpatine (leader or unit), this gets +0/+1',
-            condition: (context) => context.player.controlsLeaderOrUnitWithTitle('Emperor Palpatine'),
+            condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Emperor Palpatine'),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: 0, hp: 1 })
         });
     }
