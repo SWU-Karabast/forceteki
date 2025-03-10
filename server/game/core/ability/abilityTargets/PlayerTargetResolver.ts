@@ -43,7 +43,10 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         const choices = ['You', 'Opponent'];
 
         if (this.properties.mode === TargetMode.MultiplePlayers) { // Uses a HandlerMenuMultipleSelectionPrompt: handler takes an array of chosen items
-            const activePromptTitleConcrete = typeof this.properties.activePromptTitle === 'function' ? this.properties.activePromptTitle(context) : this.properties.activePromptTitle || 'Choose any number of players';
+            const activePromptTitle = typeof this.properties.activePromptTitle === 'function'
+                ? this.properties.activePromptTitle(context)
+                : this.properties.activePromptTitle || this.getDefaultPromptTitle(context, true);
+
             const multiSelect = true;
             const handler = (chosen) => {
                 chosen = chosen.map((choiceTitle) => {
@@ -60,9 +63,11 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                 return true;
             };
 
-            Object.assign(promptProperties, { activePromptTitleConcrete, choices, multiSelect, handler });
+            Object.assign(promptProperties, { activePromptTitle, choices, multiSelect, handler });
         } else { // Uses a HandlerMenuPrompt: each choice gets its own handler, called right away when that choice is clicked
-            const activePromptTitleConcrete = typeof this.properties.activePromptTitle === 'function' ? this.properties.activePromptTitle(context) : this.properties.activePromptTitle || 'Choose a player';
+            const activePromptTitle = typeof this.properties.activePromptTitle === 'function'
+                ? this.properties.activePromptTitle(context)
+                : this.properties.activePromptTitle || this.getDefaultPromptTitle(context, false);
             const handlers = [player, player.opponent].map(
                 (chosenPlayer) => {
                     return () => {
@@ -71,7 +76,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
                 }
             );
 
-            Object.assign(promptProperties, { activePromptTitleConcrete, choices, handlers });
+            Object.assign(promptProperties, { activePromptTitle, choices, handlers });
             // TODO: figure out if we need these buttons
             /* if (player !== context.player.opponent && context.stage === Stage.PreTarget) {
                 if (!targetResults.noCostsFirstButton) {
@@ -83,5 +88,11 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
             }*/
         }
         context.game.promptWithHandlerMenu(player, promptProperties);
+    }
+
+    private getDefaultPromptTitle(context: AbilityContext, isMultiSelect = false) {
+        const abilityTitleStr = context.ability?.title ? ` for ability '${context.ability.title}'` : '';
+
+        return isMultiSelect ? `Choose any number of players to target${abilityTitleStr}` : `Choose a player to target${abilityTitleStr}`;
     }
 }

@@ -89,9 +89,11 @@ export enum EffectName {
     LoseTrait = 'loseTrait',
     ModifyHp = 'modifyHp',
     ModifyPilotLimit = 'modifyPilotLimit',
+    ModifyStartingHandSize = 'modifyStartingHandSize',
     ModifyPower = 'modifyPower',
     ModifyStats = 'modifyStats',
     MustBeChosen = 'mustBeChosen',
+    NoMulligan = 'noMulligan',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
     SuppressEffects = 'suppressEffects',
@@ -171,7 +173,7 @@ export enum CardType {
     LeaderUpgrade = 'leaderUpgrade',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
-    UnitUpgrade = 'unitUpgrade',
+    NonLeaderUnitUpgrade = 'nonLeaderUnitUpgrade',
 }
 
 export enum WildcardCardType {
@@ -187,6 +189,8 @@ export enum WildcardCardType {
 
     /** Any upgrade type, including token upgrades */
     Upgrade = 'upgrade',
+
+    UnitUpgrade = 'unitUpgrade',
 }
 
 export type CardTypeFilter = CardType | WildcardCardType;

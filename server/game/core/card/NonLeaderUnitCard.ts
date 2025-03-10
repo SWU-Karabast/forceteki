@@ -1,7 +1,7 @@
 import type Player from '../Player';
 import { PlayUnitAction } from '../../actions/PlayUnitAction';
 import * as Contract from '../utils/Contract';
-import { CardType, KeywordName, PlayType, ZoneName } from '../Constants';
+import { CardType, PlayType, Trait, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
@@ -42,6 +42,10 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
         return true;
     }
 
+    protected override getType(): CardType {
+        return this.isAttached() ? CardType.NonLeaderUnitUpgrade : super.getType();
+    }
+
     protected override initializeForCurrentZone(prevZone?: ZoneName): void {
         super.initializeForCurrentZone(prevZone);
 
@@ -73,8 +77,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
         }
     }
 
-
     public override checkIsAttachable(): void {
-        Contract.assertTrue(this.hasSomeKeyword(KeywordName.Piloting));
+        Contract.assertTrue(this.hasSomeTrait(Trait.Pilot));
     }
 }

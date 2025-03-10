@@ -14,14 +14,13 @@ import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import type { IAbilityPropsWithType, IKeywordProperties, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
-import * as KeywordHelpers from '../core/ability/KeywordHelpers';
 import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
-import { LoseKeyword } from '../core/ongoingEffect/effectImpl/LoseKeyword';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
 import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import { playerCannot } from './PlayerCannot';
 import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotLimitModifier';
+import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -108,16 +107,16 @@ export = {
         switch (typeof keywordOrKeywordProperties) {
             case 'string':
                 return OngoingEffectBuilder.card.static(EffectName.GainKeyword,
-                    KeywordHelpers.keywordFromProperties({ keyword: keywordOrKeywordProperties }));
+                    { keyword: keywordOrKeywordProperties });
             case 'function':
                 return OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword,
-                    (target, context) => KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties(target, context)));
+                    (target, context) => keywordOrKeywordProperties(target, context));
             default:
-                return OngoingEffectBuilder.card.static(EffectName.GainKeyword,
-                    KeywordHelpers.keywordFromProperties(keywordOrKeywordProperties));
+                return OngoingEffectBuilder.card.static(EffectName.GainKeyword, keywordOrKeywordProperties);
         }
     },
-    loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, new LoseKeyword(keyword)),
+    loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
+    loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
     // gainAllAbilities,
     // gainAllAbilitiesDynamic: (match) =>
     //     OngoingEffectBuilder.card.static(EffectName.GainAllAbilitiesDynamic, new GainAllAbiliitesDynamic(match)),
@@ -147,8 +146,10 @@ export = {
     // modifyBasePoliticalSkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBasePoliticalSkillMultiplier, value),
     modifyPilotingLimit: (modifier: PilotLimitModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyPilotLimit, modifier),
+    modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyStartingHandSize, modifier),
     modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) =>
         OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
+    noMulligan: () => OngoingEffectBuilder.card.static(EffectName.NoMulligan),
     // modifyMilitarySkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
     // switchAttachmentSkillModifiers,
     // modifyMilitarySkillMultiplier: (value) =>
@@ -188,7 +189,7 @@ export = {
     // participatesFromHome: (properties) => OngoingEffectBuilder.card.static(EffectName.ParticipatesFromHome, properties),
     // unlessActionCost: (properties) => OngoingEffectBuilder.card.static(EffectName.UnlessActionCost, properties),
     // // Player effects
-    // additionalAction: (amount = 1) => OngoingEffectBuilder.player.static(EffectName.AdditionalAction, amount),
+    additionalAction: () => OngoingEffectBuilder.player.static(EffectName.AdditionalAction),
     // additionalCardPlayed: (amount = 1) => OngoingEffectBuilder.player.flexible(EffectName.AdditionalCardPlayed, amount),
     // additionalCharactersInConflict: (amount) =>
     //     OngoingEffectBuilder.player.flexible(EffectName.AdditionalCharactersInConflict, amount),

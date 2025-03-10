@@ -110,9 +110,9 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
-    then?: ((context?: AbilityContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
-    ifYouDo?: ((context?: AbilityContext) => IIfYouDoAbilityPropsWithSystems<TContext>) | IIfYouDoAbilityPropsWithSystems<TContext>;
-    ifYouDoNot?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
+    then?: ((context?: TContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
+    ifYouDo?: ((context?: TContext) => IIfYouDoAbilityPropsWithSystems<TContext>) | IIfYouDoAbilityPropsWithSystems<TContext>;
+    ifYouDoNot?: ((context?: TContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
 }
 
 /** Interface definition for addConstantAbility */
@@ -151,6 +151,12 @@ export type IReplacementEffectAbilityPropsWithType<TSource extends Card = Card> 
     type: AbilityType.ReplacementEffect;
 };
 
+/** Ability types with gain contdition */
+export type IConstantAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IConstantAbilityProps<TTarget> & IGainCondition<TSource>;
+export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
+export type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
+export type IActionAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
+
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
   IActionAbilityPropsWithType<TSource> |
@@ -164,9 +170,9 @@ export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPr
     targetResolvers?: ITriggeredAbilityTargetsResolver<TriggeredAbilityContext<TSource>>;
     immediateEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
     handler?: (context: TriggeredAbilityContext) => void;
-    then?: ((context?: TriggeredAbilityContext) => IThenAbilityPropsWithSystems<TriggeredAbilityContext>) | IThenAbilityPropsWithSystems<TriggeredAbilityContext>;
-    ifYouDo?: ((context?: TriggeredAbilityContext) => IAbilityPropsWithSystems<TriggeredAbilityContext>) | IAbilityPropsWithSystems<TriggeredAbilityContext>;
-    ifYouDoNot?: ((context?: TriggeredAbilityContext) => IAbilityPropsWithSystems<TriggeredAbilityContext>) | IAbilityPropsWithSystems<TriggeredAbilityContext>;
+    then?: ((context?: TriggeredAbilityContext<TSource>) => IThenAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>) | IThenAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>;
+    ifYouDo?: ((context?: TriggeredAbilityContext<TSource>) => IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>) | IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>;
+    ifYouDoNot?: ((context?: TriggeredAbilityContext<TSource>) => IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>) | IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>;
 };
 
 /** Interface definition for setEventAbility */

@@ -59,13 +59,31 @@ export default class StatsModifierWrapper {
 
         const description = card.isUpgrade() ? `${card.name} bonus` : `${card.name} base`;
 
-        return new this({
-            hp: card.isUpgrade() ? card.printedUpgradeHp : card.printedHp,
-            power: card.isUpgrade() ? card.printedUpgradePower : card.printedPower
-        },
-        description,
-        overrides,
-        this.getCardType(card)
+        let hp: number;
+        let power: number;
+        if (card.isUpgrade()) {
+            if (card.printedUpgradeHp == null && card.printedUpgradePower == null) {
+                hp = 0;
+                power = 0;
+            } else {
+                Contract.assertTrue(
+                    card.printedUpgradeHp != null && card.printedUpgradePower != null,
+                    `Found incomplete printed upgrade stats. hp: ${card.printedUpgradeHp}, power: ${card.printedUpgradePower}`
+                );
+
+                hp = card.printedUpgradeHp;
+                power = card.printedUpgradePower;
+            }
+        } else {
+            hp = card.printedHp;
+            power = card.printedPower;
+        }
+
+        return new this(
+            { hp, power },
+            description,
+            overrides,
+            this.getCardType(card)
         );
     }
 }
