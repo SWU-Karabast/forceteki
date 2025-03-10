@@ -240,6 +240,14 @@ class Player extends GameObject {
     }
 
     /**
+     * @param { Trait } trait the trait to look for
+     * @returns { boolean } true if this player controls a card with the trait
+     */
+    controlsCardWithTrait(trait, onlyUnique = false) {
+        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({ condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)) });
+    }
+
+    /**
      * @param {ZoneName} zoneName
      * @returns {ZoneAbstract}
      */
