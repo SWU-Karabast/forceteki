@@ -158,6 +158,12 @@ export class GameServer {
             return res.json(this.getOngoingGamesData());
         });
 
+        app.post('/api/error-report', (req, res) => {
+            const { userReport } = req.body;
+            logger.error('User error report:', userReport);
+            return res.status(200).json({ success: true });
+        });
+
         app.post('/api/create-lobby', async (req, res, next) => {
             const { user, deck, format, isPrivate, lobbyName } = req.body;
             // Check if the user is already in a lobby
