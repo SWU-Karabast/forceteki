@@ -6,7 +6,7 @@ describe('Stay on Target', function () {
                     phase: 'action',
                     player1: {
                         hand: ['stay-on-target'],
-                        spaceArena: ['alliance-xwing', 'special-forces-tie-fighter'],
+                        spaceArena: ['alliance-xwing', 'special-forces-tie-fighter', 'red-squadron-ywing'],
                         groundArena: ['clone-commander-cody#commanding-the-212th']
                     },
                     player2: {
@@ -21,7 +21,7 @@ describe('Stay on Target', function () {
 
                 context.player1.clickCard(context.stayOnTarget);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.specialForcesTieFighter]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.specialForcesTieFighter, context.redSquadronYwing]);
                 context.player1.clickCard(context.allianceXwing);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(5); // Cody gives +1/+1
@@ -33,7 +33,7 @@ describe('Stay on Target', function () {
 
                 context.player1.clickCard(context.stayOnTarget);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.specialForcesTieFighter]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.specialForcesTieFighter, context.redSquadronYwing]);
                 context.player1.clickCard(context.allianceXwing);
                 context.player1.clickCard(context.tielnFighter);
                 expect(context.p2Base.damage).toBe(4); // Cody gives +1/+1
@@ -50,6 +50,19 @@ describe('Stay on Target', function () {
                 context.player1.clickCard(context.allianceXwing);
                 context.player1.clickCard(context.tielnFighter);
                 expect(context.player1.handSize).toBe(0);
+            });
+
+            it('should Attack with a Vehicle unit, opponent then assign indirect to base casuing card draw for both', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.stayOnTarget);
+
+                context.player1.clickCard(context.redSquadronYwing);
+                context.player1.clickCard(context.p2Base);
+                context.player2.setDistributeIndirectDamagePromptState(new Map([
+                    [context.p2Base, 3],
+                ]));
+                expect(context.player1.handSize).toBe(2);
             });
         });
     });

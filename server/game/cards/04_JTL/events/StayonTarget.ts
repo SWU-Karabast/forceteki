@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { Trait, AbilityType, DamageType } from '../../../core/Constants';
+import { Trait, AbilityType } from '../../../core/Constants';
+import { DamageSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class StayonTarget extends EventCard {
     protected override getImplementationId() {
@@ -22,9 +23,9 @@ export default class StayonTarget extends EventCard {
                             type: AbilityType.Triggered,
                             title: 'When this unit deals damage to a base: Draw a card.',
                             when: {
-                                onDamageDealt: (event, context) => (
-                                    event.damageSource?.attack?.attacker === context.source &&
-                                    ((event.type === DamageType.Combat && event.damageSource.attack.target?.isBase()) || event.type === DamageType.Overwhelm))
+                                onDamageDealt: (event, context) =>
+                                    event.card.isBase() &&
+                                    (event.damageSource.damageDealtBy === context.source || (event.damageSource.type === DamageSourceType.Ability && event.damageSource.card === context.source))
                             },
                             immediateEffect: AbilityHelper.immediateEffects.draw(),
                         })
