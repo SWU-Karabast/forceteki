@@ -110,9 +110,9 @@ export interface IAbilityProps<TContext extends AbilityContext> {
     cannotTargetFirst?: boolean;
     effect?: string;
     effectArgs?: EffectArg | ((context: TContext) => EffectArg);
-    then?: ((context?: AbilityContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
-    ifYouDo?: ((context?: AbilityContext) => IIfYouDoAbilityPropsWithSystems<TContext>) | IIfYouDoAbilityPropsWithSystems<TContext>;
-    ifYouDoNot?: ((context?: AbilityContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
+    then?: ((context?: TContext) => IThenAbilityPropsWithSystems<TContext>) | IThenAbilityPropsWithSystems<TContext>;
+    ifYouDo?: ((context?: TContext) => IIfYouDoAbilityPropsWithSystems<TContext>) | IIfYouDoAbilityPropsWithSystems<TContext>;
+    ifYouDoNot?: ((context?: TContext) => IAbilityPropsWithSystems<TContext>) | IAbilityPropsWithSystems<TContext>;
 }
 
 /** Interface definition for addConstantAbility */
@@ -170,9 +170,9 @@ export type ITriggeredAbilityBaseProps<TSource extends Card = Card> = IAbilityPr
     targetResolvers?: ITriggeredAbilityTargetsResolver<TriggeredAbilityContext<TSource>>;
     immediateEffect?: GameSystem<TriggeredAbilityContext<TSource>>;
     handler?: (context: TriggeredAbilityContext) => void;
-    then?: ((context?: TriggeredAbilityContext) => IThenAbilityPropsWithSystems<TriggeredAbilityContext>) | IThenAbilityPropsWithSystems<TriggeredAbilityContext>;
-    ifYouDo?: ((context?: TriggeredAbilityContext) => IAbilityPropsWithSystems<TriggeredAbilityContext>) | IAbilityPropsWithSystems<TriggeredAbilityContext>;
-    ifYouDoNot?: ((context?: TriggeredAbilityContext) => IAbilityPropsWithSystems<TriggeredAbilityContext>) | IAbilityPropsWithSystems<TriggeredAbilityContext>;
+    then?: ((context?: TriggeredAbilityContext<TSource>) => IThenAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>) | IThenAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>;
+    ifYouDo?: ((context?: TriggeredAbilityContext<TSource>) => IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>) | IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>;
+    ifYouDoNot?: ((context?: TriggeredAbilityContext<TSource>) => IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>) | IAbilityPropsWithSystems<TriggeredAbilityContext<TSource>>;
 };
 
 /** Interface definition for setEventAbility */

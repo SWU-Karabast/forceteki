@@ -1,5 +1,6 @@
 import type { Card } from '../card/Card';
 import { AbilityContext, type IAbilityContextProperties } from './AbilityContext';
+import type TriggeredAbility from './TriggeredAbility';
 
 export interface ITriggeredAbilityContextProperties extends IAbilityContextProperties {
     // TODO: rename this to "triggeringEvent"
@@ -10,6 +11,7 @@ export interface ITriggeredAbilityContextProperties extends IAbilityContextPrope
 export class TriggeredAbilityContext<TSource extends Card = Card> extends AbilityContext<TSource> {
     public readonly event: any;
     public readonly overrideTitle?: string;
+    public override readonly ability: TriggeredAbility;
 
     public constructor(properties: ITriggeredAbilityContextProperties) {
         super(properties);

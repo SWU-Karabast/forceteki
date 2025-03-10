@@ -141,7 +141,6 @@ export class GameServer {
                 });
             } catch (err) {
                 logger.error('Error in socket connection:', err);
-                socket.disconnect();
             }
         });
 

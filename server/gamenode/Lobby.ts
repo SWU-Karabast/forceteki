@@ -304,7 +304,7 @@ export class Lobby {
     }
 
     public isFilled(): boolean {
-        return this.users.length === 2;
+        return this.users.length >= 2;
     }
 
     public removeUser(id: string): void {
@@ -320,6 +320,14 @@ export class Lobby {
             }
             this.sendGameState(this.game);
         }
+
+        if (this.lobbyOwnerId === id) {
+            const newOwner = this.users.find((u) => u.id !== id);
+            if (newOwner) {
+                this.lobbyOwnerId = newOwner.id;
+            }
+        }
+
         this.users = this.users.filter((u) => u.id !== id);
         this.sendLobbyState();
     }
