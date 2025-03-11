@@ -27,7 +27,7 @@ describe('All Wings Report In', function() {
                 context.player1.clickCard(context.allWingsReportIn);
 
                 // Exhaust up to 2 friendly space units
-                expect(context.player1).toHavePrompt('Exhaust up to 2 friendly space units. For each unit exhausted this way, create an X-Wing token');
+                expect(context.player1).toHavePrompt('Exhaust up to 2 friendly space units');
                 expect(context.player1).toHaveChooseNoTargetButton();
 
                 // Select a space unit
@@ -61,6 +61,35 @@ describe('All Wings Report In', function() {
                 // No X-Wing tokens created
                 const xwings = context.player1.findCardsByName('xwing');
                 expect(xwings.length).toBe(0);
+                expect(context.allianceXwing.exhausted).toBe(true);
+                expect(context.redThree.exhausted).toBe(true);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should create one X-wing token units as there is only one friendly space unit ready', function () {
+                const { context } = contextRef;
+
+                // Assert game state
+                context.allianceXwing.exhausted = true;
+
+                expect(context.allianceXwing.exhausted).toBe(true);
+                expect(context.redThree.exhausted).toBe(false);
+
+                // Play All Wings Report In
+                context.player1.clickCard(context.allWingsReportIn);
+
+                expect(context.player1).toHavePrompt('Exhaust up to 2 friendly space units');
+                expect(context.player1).toHaveChooseNoTargetButton();
+
+                // Select a space unit
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.redThree]);
+                context.player1.clickCardNonChecking(context.allianceXwing);
+                context.player1.clickCard(context.redThree);
+                context.player1.clickPrompt('Done');
+
+                // No X-Wing tokens created
+                const xwings = context.player1.findCardsByName('xwing');
+                expect(xwings.length).toBe(1);
                 expect(context.allianceXwing.exhausted).toBe(true);
                 expect(context.redThree.exhausted).toBe(true);
                 expect(context.player2).toBeActivePlayer();
