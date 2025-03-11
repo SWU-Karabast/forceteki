@@ -19,6 +19,7 @@ export default class DarthVaderCommandingTheFirstLegion extends NonLeaderUnitCar
                 activePromptTitle: 'Choose any units with combined cost 3 or less to play for free',
                 searchCount: 10,
                 selectCount: 10,
+                canChooseFewer: true,
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Villainy),
                 multiSelectCondition: (card, currentlySelectedCards) => this.costSum(currentlySelectedCards.concat(card)) <= 3
             })
