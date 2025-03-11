@@ -39,12 +39,14 @@ export class DeckZone extends ZoneAbstract<IPlayableCard> implements IAddRemoveZ
         return this._deck.length > 0 ? this._deck[0] : null;
     }
 
-    public constructor(owner: Player, cards: IPlayableCard[]) {
+    public constructor(owner: Player) {
         super(owner);
 
         this.hiddenForPlayers = WildcardRelativePlayer.Any;
         this.name = ZoneName.Deck;
+    }
 
+    public initialize(cards: IPlayableCard[]) {
         this._deck = cards;
 
         cards.forEach((card) => card.initializeZone(this));
