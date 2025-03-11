@@ -16,7 +16,7 @@ export default class ShuttleST149UnderKrennicsAuthority extends NonLeaderUnitCar
             optional: true,
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onCardDefeated: (event, context) => event.card === context.source,
+                whenDefeated: true,
             },
             targetResolvers: {
                 chooseUpgrade: {

@@ -18,7 +18,7 @@ export default class InspiringMentor extends UpgradeCard {
             title: 'Give an Experience token to another friendly unit',
             when: {
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source,
-                onCardDefeated: (event, context) => event.card === context.source,
+                whenDefeated: true,
             },
             targetResolver: {
                 controller: RelativePlayer.Self,
