@@ -13,14 +13,11 @@ export default class FocusFire extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Choose a unit',
+            title: 'Choose a unit. Each friendly Vehicle unit in the same arena deals damage equal to its power that unit',
             targetResolver: {
-                cardTypeFilter: WildcardCardType.Unit
-            },
-            then: (selectedUnitContext) => ({
-                title: 'Each friendly Vehicle unit in the same arena deals damage equal to its power to that unit',
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous(this.getDamageFromContext(selectedUnitContext)),
-            }),
+                cardTypeFilter: WildcardCardType.Unit,
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => (this.getDamageFromContext(context))),
+            }
         });
     }
 

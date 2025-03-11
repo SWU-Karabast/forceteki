@@ -21,7 +21,7 @@ describe('Focus Fire', function() {
 
                 context.player1.clickCard(context.focusFire);
 
-                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePrompt('Choose a unit. Each friendly Vehicle unit in the same arena deals damage equal to its power that unit');
                 expect(context.player1).not.toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.reinforcementWalker, context.redThree, context.wampa, context.allianceXwing, context.atst]);
 
@@ -38,7 +38,7 @@ describe('Focus Fire', function() {
 
                 context.player1.clickCard(context.focusFire);
 
-                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePrompt('Choose a unit. Each friendly Vehicle unit in the same arena deals damage equal to its power that unit');
                 expect(context.player1).not.toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.reinforcementWalker, context.redThree, context.wampa, context.allianceXwing, context.atst]);
 
@@ -49,9 +49,8 @@ describe('Focus Fire', function() {
                 expect(context.reinforcementWalker.damage).toBe(6);
             });
 
-            it('should select aunit and do not deal damage as there is no friendly Vehicle units in that arena', function () {
+            it('should not be able to select a unit where there is no friendly Vehicle units in that arena', function () {
                 const { context } = contextRef;
-
 
                 // Remove friendly vehicle units
                 context.player1.clickCard(context.vanquish);
@@ -61,15 +60,13 @@ describe('Focus Fire', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.focusFire);
 
-                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePrompt('Choose a unit. Each friendly Vehicle unit in the same arena deals damage equal to its power that unit');
                 expect(context.player1).not.toHavePassAbilityButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.reinforcementWalker, context.redThree, context.wampa, context.allianceXwing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.redThree, context.allianceXwing]);
+                context.player1.clickCard(context.redThree);
 
-                // Select a unit
-                context.player1.clickCard(context.reinforcementWalker);
-
-                // Assert damage dealt
-                expect(context.reinforcementWalker.damage).toBe(0);
+                // Assert
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
