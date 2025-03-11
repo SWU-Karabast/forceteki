@@ -1,7 +1,8 @@
 import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
+import { EventName, StandardTriggeredAbilityType } from '../Constants';
 import { AbilityType, GameStateChangeRequired, RelativePlayer, Stage } from '../Constants';
-import type { ITriggeredAbilityProps, WhenType } from '../../Interfaces';
+import type { ITriggeredAbilityProps, WhenType, WhenTypeOrStandard } from '../../Interfaces';
 import type { GameEvent } from '../event/GameEvent';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
@@ -43,14 +44,53 @@ interface IEventRegistration {
  */
 
 export default class TriggeredAbility extends CardAbility {
-    public when?: WhenType;
-    public aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
-    public anyPlayer: boolean;
-    public collectiveTrigger: boolean;
-    public eventRegistrations?: IEventRegistration[];
-    public eventsTriggeredFor: GameEvent[] = [];
+    private static parseStandardTriggerTypes(when: WhenTypeOrStandard): {
+        when: WhenType;
+        standardTriggerTypes: StandardTriggeredAbilityType[];
+    } {
+        const updatedWhen: WhenType = {};
+        const standardTriggerTypes = [];
+
+        for (const [trigger, value] of Object.entries(when)) {
+            if (typeof value === 'boolean') {
+                switch (trigger) {
+                    case StandardTriggeredAbilityType.WhenDefeated:
+                        updatedWhen[EventName.OnCardDefeated] = (event, context) => event.card === context.source;
+                        break;
+                    case StandardTriggeredAbilityType.OnAttack:
+                        updatedWhen[EventName.OnAttackDeclared] = (event, context) => event.attack.attacker === context.source;
+                        break;
+                    default:
+                        Contract.fail(`Unexpected standard trigger type: ${trigger}`);
+                }
+
+                standardTriggerTypes.push(trigger);
+            } else {
+                updatedWhen[trigger] = value;
+            }
+        }
+
+        return { when: updatedWhen, standardTriggerTypes };
+    }
+
+    public readonly when?: WhenType;
+    public readonly aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
+    public readonly anyPlayer: boolean;
+    public readonly collectiveTrigger: boolean;
+    public readonly standardTriggerTypes: StandardTriggeredAbilityType[] = [];
+
+    protected eventRegistrations?: IEventRegistration[];
+    protected eventsTriggeredFor: GameEvent[] = [];
 
     private readonly mustChangeGameState: GameStateChangeRequired;
+
+    public get isOnAttackAbility() {
+        return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);
+    }
+
+    public get isWhenDefeatedAbility() {
+        return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.WhenDefeated);
+    }
 
     public constructor(
         game: Game,
@@ -65,10 +105,13 @@ export default class TriggeredAbility extends CardAbility {
         }
 
         if ('when' in properties) {
-            this.when = properties.when;
+            const { when, standardTriggerTypes } = TriggeredAbility.parseStandardTriggerTypes(properties.when);
+            this.when = when;
+            this.standardTriggerTypes = standardTriggerTypes;
         } else if ('aggregateWhen' in properties) {
             this.aggregateWhen = properties.aggregateWhen;
         }
+
         this.collectiveTrigger = !!properties.collectiveTrigger;
 
         this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot

@@ -138,6 +138,11 @@ export enum WildcardRelativePlayer {
 
 export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
+export enum StandardTriggeredAbilityType {
+    WhenDefeated = 'whenDefeated',
+    OnAttack = 'onAttack'
+}
+
 export enum TargetMode {
     AutoSingle = 'autoSingle',
     // TODO: add 'Between'
