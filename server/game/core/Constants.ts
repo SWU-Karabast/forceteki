@@ -98,6 +98,7 @@ export enum EffectName {
     ShowTopCard = 'showTopCard',
     SuppressEffects = 'suppressEffects',
     TakeControl = 'takeControl',
+    TokenUnitsEnterPlayReady = 'tokenUnitsEnterPlayReady',
     UnlessActionCost = 'unlessActionCost',
     UpgradeHpModifier = 'upgradeHpModifier',
     UpgradePowerModifier = 'upgradePowerModifier',
