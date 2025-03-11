@@ -235,8 +235,18 @@ class Player extends GameObject {
      * @param { String } title the title of the unit or leader to check for control of
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
-    controlsLeaderOrUnitWithTitle(title) {
-        return this.leader.title === title || this.hasSomeArenaUnit({ condition: (card) => card.title === title });
+    controlsLeaderUnitOrUpgradeWithTitle(title) {
+        return this.leader.title === title ||
+          this.hasSomeArenaUnit({ condition: (card) => card.title === title }) ||
+          this.hasSomeArenaUpgrade({ condition: (card) => card.title === title });
+    }
+
+    /**
+     * @param { Trait } trait the trait to look for
+     * @returns { boolean } true if this player controls a card with the trait
+     */
+    controlsCardWithTrait(trait, onlyUnique = false) {
+        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({ condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)) });
     }
 
     /**
@@ -275,6 +285,7 @@ class Player extends GameObject {
             case ZoneName.Hand:
                 return this.handZone.cards;
             case ZoneName.Deck:
+                Contract.assertNotNullLike(this.deckZone);
                 return this.deckZone.cards;
             case ZoneName.Discard:
                 return this.discardZone.cards;
@@ -563,6 +574,16 @@ class Player extends GameObject {
         for (let card of this.drawDeck.slice(0, numCards)) {
             card.moveTo(ZoneName.Hand);
         }
+    }
+
+    getStartingHandSize() {
+        let startingHandSize = 6;
+        if (this.base.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
+            this.base.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
+                startingHandSize += value.amount;
+            });
+        }
+        return startingHandSize;
     }
 
     // /**
@@ -996,7 +1017,7 @@ class Player extends GameObject {
     }
 
     get drawDeck() {
-        return this.deckZone.deck;
+        return this.deckZone?.deck;
     }
 
     /**

@@ -245,12 +245,17 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             `Attempting to take control of card ${this.internalName} for player ${newController.name} in invalid zone: ${moveDestination}`
         );
 
-        // if we're changing controller and staying in the arena, just tell the arena to update our controller. no move needed
-        if (moveDestination === this.zoneName && (this.zone.name === ZoneName.GroundArena || this.zone.name === ZoneName.SpaceArena)) {
+        // if we're changing controller and staying in play, tell the arena to update our controller
+        if (this.zone.name === ZoneName.GroundArena || this.zone.name === ZoneName.SpaceArena) {
             this.zone.updateController(this);
 
-            // register this transition with the engine so it can do uniqueness check if needed
-            this.registerMove(this.zone.name);
+            // if we're staying in the same arena, no move needed
+            if (moveDestination === this.zoneName) {
+                // register this transition with the engine so it can do uniqueness check if needed
+                this.registerMove(this.zone.name);
+            } else {
+                this.moveTo(moveDestination);
+            }
         } else {
             this.moveTo(moveDestination);
         }

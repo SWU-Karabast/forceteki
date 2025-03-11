@@ -135,6 +135,38 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             expect(context.p2Base.damage).toBe(6); // 4+2
         });
 
+        it('Fett\'s Firespray\'s ability should deal 2 indirect damage to opponent on attack as we control Boba4 unit as upgrade', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['boba-fett#feared-bounty-hunter'],
+                    spaceArena: ['fetts-firespray#feared-silhouette'],
+                    leader: { card: 'rio-durant#wisecracking-wheelman' },
+                },
+                player2: {
+                    groundArena: ['battlefield-marine']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.bobaFett);
+            context.player1.clickPrompt('Play Boba Fett with Piloting');
+            context.player1.clickCard(context.fettsFirespray);
+
+            // skip boba ability
+            context.player1.clickPrompt('Pass');
+            context.player2.passAction();
+
+            context.player1.clickCard(context.fettsFirespray);
+            context.player1.clickCard(context.p2Base);
+            context.player1.clickPrompt('Opponent');
+            context.player2.setDistributeIndirectDamagePromptState(new Map([
+                [context.p2Base, 2],
+            ]));
+            expect(context.p2Base.damage).toBe(8);
+        });
+
         it('Fett\'s Firespray\'s ability should deal 1 indirect damage to opponent on attack', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -157,7 +189,5 @@ describe('Fett\'s Firespray, Feared Silhouette', function () {
             ]));
             expect(context.p2Base.damage).toBe(5); // 4+1
         });
-
-        // TODO WHEN PILOTING IS DONE, TEST WITH BOBA AS UPGRADE
     });
 });

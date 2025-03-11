@@ -82,7 +82,7 @@ export function defaultLegalZonesForCardType(cardType: CardType) {
         case CardType.BasicUnit:
         case CardType.BasicUpgrade:
         case CardType.Event:
-        case CardType.UnitUpgrade:
+        case CardType.NonLeaderUnitUpgrade:
         case CardType.LeaderUpgrade:
             return drawCardZones;
         default:

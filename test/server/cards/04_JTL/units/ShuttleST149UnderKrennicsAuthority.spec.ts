@@ -40,10 +40,10 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                     context.finn
                 ]);
 
-                context.player1.clickCard(context.fugitiveWookiee);
+                context.player1.clickCard(context.avenger);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.fugitiveWookiee).toHaveExactUpgradeNames(['experience']);
+                expect(context.avenger).toHaveExactUpgradeNames(['shield', 'experience']);
 
                 // Shielded should resolve now
                 expect(context.shuttleSt149).toHaveExactUpgradeNames(['shield']);
@@ -61,7 +61,7 @@ describe('Shuttle ST-149 Under Krennics Authority', function() {
                     context.frozenInCarbonite
                 ]);
                 context.player1.clickCard(context.experience);
-                expect(context.fugitiveWookiee).toHaveExactUpgradeNames(['shield']);
+                expect(context.avenger).toHaveExactUpgradeNames(['shield', 'shield']);
             });
 
             it('should allow, when defeated, to move a token upgrade to another eligible unit with a different controller', function () {

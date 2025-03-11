@@ -38,7 +38,8 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
 
     protected override setupLeaderUnitSideAbilities() {
         this.addTriggeredAbility({
-            title: 'When you deal damage to an enemy base: You may draw a card. Use this ability only once each round.',
+            title: 'Draw a card',
+            collectiveTrigger: true,
             when: {
                 onDamageDealt: (event, context) =>
                     event.card.isBase() &&

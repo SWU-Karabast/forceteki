@@ -46,6 +46,22 @@ describe('Colossus', function() {
                 expect(context.player1.handSize).toBe(5);
                 expect(context.player2.handSize).toBe(6);
             });
+
+            it('should draw 5 cards on mulligan', function () {
+                const { context } = contextRef;
+
+                context.selectInitiativePlayer(context.player1);
+
+                // Draw cards step
+                expect(context.player1.handSize).toBe(5);
+                expect(context.player2.handSize).toBe(6);
+
+                context.player1.clickPrompt('Mulligan');
+                context.player2.clickPrompt('Mulligan');
+
+                expect(context.player1.handSize).toBe(5);
+                expect(context.player2.handSize).toBe(6);
+            });
         });
     });
 });

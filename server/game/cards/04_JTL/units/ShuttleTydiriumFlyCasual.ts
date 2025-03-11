@@ -19,6 +19,7 @@ export default class ShuttleTydiriumFlyCasual extends NonLeaderUnitCard {
             })),
             ifYouDo: (context) => ({
                 title: 'You may give an Experience token to another unit',
+                optional: true,
                 ifYouDoCondition: () => context.events[0].card?.printedCost % 2 === 1,
                 immediateEffect: AbilityHelper.immediateEffects.selectCard({
                     cardTypeFilter: WildcardCardType.Unit,
