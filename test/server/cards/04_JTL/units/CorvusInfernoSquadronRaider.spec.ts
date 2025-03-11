@@ -9,6 +9,10 @@ describe('Corvus, Inferno Squadron Raider', function() {
                         groundArena: [{ card: 'astromech-pilot', upgrades: ['devotion', 'protector'], damage: 2 }],
                         spaceArena: [{ card: 'green-squadron-awing', upgrades: ['determined-recruit'], damage: 1 }],
                         base: { card: 'echo-base', damage: 15 }
+                    },
+                    player2: {
+                        groundArena: ['clone-pilot'],
+                        spaceArena: [{ card: 'distant-patroller', upgrades: ['hopeful-volunteer'] }],
                     }
                 });
             });
@@ -50,6 +54,11 @@ describe('Corvus, Inferno Squadron Raider', function() {
                 expect(context.corvus).toHaveExactUpgradeNames([]);
                 expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['determined-recruit']);
                 expect(context.astromechPilot).toHaveExactUpgradeNames(['devotion', 'protector']);
+
+                context.moveToNextActionPhase();
+                context.player1.clickCard(context.corvus);
+                context.player1.clickCard(context.p2Base);
+                expect(context.p1Base.damage).toBe(13); // restore 2
             });
         });
     });
