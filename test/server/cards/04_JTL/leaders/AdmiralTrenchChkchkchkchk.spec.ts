@@ -78,12 +78,36 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
 
                 context.player1.clickPrompt('Done');
 
-                expect(context.player2).toHavePrompt('Choose 2 cards to discard');
-                expect(context.player1).not.toHaveChooseNoTargetButton();
-                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.endlessLegions, context.theDarksaber]);
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selectable: [context.wampa, context.cartelSpacer, context.endlessLegions, context.theDarksaber]
+                });
+                expect(context.player2).toHaveDisabledPromptButton('Done');
 
-                context.player2.clickCard(context.endlessLegions);
-                context.player2.clickCard(context.wampa);
+                context.player2.clickCardInDisplayCardPrompt(context.endlessLegions);
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selected: [context.endlessLegions],
+                    selectable: [context.wampa, context.cartelSpacer, context.theDarksaber]
+                });
+                expect(context.player2).toHaveDisabledPromptButton('Done');
+                context.player2.clickCardInDisplayCardPrompt(context.theDarksaber);
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selected: [context.endlessLegions, context.theDarksaber],
+                    selectable: [context.wampa, context.cartelSpacer]
+                });
+                expect(context.player2).toHaveEnabledPromptButton('Done');
+
+                // unselect and select another
+                context.player2.clickCardInDisplayCardPrompt(context.theDarksaber);
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selected: [context.endlessLegions],
+                    selectable: [context.wampa, context.cartelSpacer, context.theDarksaber]
+                });
+                expect(context.player2).toHaveDisabledPromptButton('Done');
+                context.player2.clickCardInDisplayCardPrompt(context.wampa);
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selected: [context.endlessLegions, context.wampa],
+                    selectable: [context.theDarksaber, context.cartelSpacer]
+                });
                 context.player2.clickPrompt('Done');
 
                 expect(context.endlessLegions).toBeInZone('discard');
@@ -94,11 +118,10 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                     context.evacuate,
                 ]);
 
-                expect(context.player1).toHavePrompt('Choose a card to draw and discard the other');
-                expect(context.player1).not.toHaveChooseNoTargetButton();
-                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.theDarksaber]);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.cartelSpacer, context.theDarksaber]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
 
-                context.player1.clickCard(context.theDarksaber);
+                context.player1.clickCardInDisplayCardPrompt(context.theDarksaber);
 
                 expect(context.endlessLegions).toBeInZone('discard');
                 expect(context.wampa).toBeInZone('discard');
@@ -129,12 +152,10 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
 
                 context.player1.clickPrompt('Done');
 
-                expect(context.player2).toHavePrompt('Choose 2 cards to discard');
-                expect(context.player1).not.toHaveChooseNoTargetButton();
-                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.endlessLegions]);
+                expect(context.player2).toHaveExactSelectableDisplayPromptCards([context.wampa, context.cartelSpacer, context.endlessLegions]);
 
-                context.player2.clickCard(context.endlessLegions);
-                context.player2.clickCard(context.wampa);
+                context.player2.clickCardInDisplayCardPrompt(context.endlessLegions);
+                context.player2.clickCardInDisplayCardPrompt(context.wampa);
                 context.player2.clickPrompt('Done');
 
                 expect(context.endlessLegions).toBeInZone('discard');
