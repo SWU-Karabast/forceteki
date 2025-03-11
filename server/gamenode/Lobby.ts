@@ -52,6 +52,7 @@ export class Lobby {
     public gameType: MatchType;
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
+    private userLastActivity = new Map<string, Date>();
 
     public constructor(
         lobbyName: string,
@@ -116,10 +117,19 @@ export class Lobby {
         };
     }
 
+    public getLastActivityForUser(userId: string): Date | null {
+        return this.userLastActivity.get(userId);
+    }
+
     private createLobbyLink(): string {
         return process.env.ENVIRONMENT === 'development'
             ? `http://localhost:3000/lobby?lobbyId=${this._id}`
             : `https://karabast.net/lobby?lobbyId=${this._id}`;
+    }
+
+    private updateUserLastActivity(id: string): void {
+        const now = new Date();
+        this.userLastActivity.set(id, now);
     }
 
     public createLobbyUser(user, decklist = null): void {
@@ -139,6 +149,8 @@ export class Lobby {
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck
         }));
+
+        this.updateUserLastActivity(user.id);
     }
 
     public addLobbyUser(user, socket: Socket): void {
@@ -164,6 +176,8 @@ export class Lobby {
             });
         }
 
+        this.updateUserLastActivity(user.id);
+
         if (this.game) {
             this.sendGameState(this.game);
         } else {
@@ -175,6 +189,7 @@ export class Lobby {
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'boolean', 'Ready status arguments aren\'t boolean or present');
         const currentUser = this.users.find((u) => u.id === socket.user.id);
         currentUser.ready = args[0];
+        this.updateUserLastActivity(currentUser.id);
     }
 
     private sendChatMessage(socket: Socket, ...args) {
@@ -233,6 +248,8 @@ export class Lobby {
                 this.gameFormat);
             activeUser.importDeckValidationErrors = null;
         }
+
+        this.updateUserLastActivity(activeUser.id);
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -241,7 +258,8 @@ export class Lobby {
 
         Contract.assertTrue(source === 'Deck' || source === 'Sideboard', `source isn't 'Deck' or 'Sideboard' but ${source}`);
 
-        const userDeck = this.getUser(socket.user.id).deck;
+        const user = this.getUser(socket.user.id);
+        const userDeck = user.deck;
 
         if (source === 'Deck') {
             userDeck.moveToSideboard(cardId);
@@ -249,9 +267,11 @@ export class Lobby {
             userDeck.moveToDeck(cardId);
         }
         // check deck for deckValidationErrors
-        this.getUser(socket.user.id).deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
+        user.deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
         // we need to clear any importDeckValidation errors otherwise they can persist
-        this.getUser(socket.user.id).importDeckValidationErrors = null;
+        user.importDeckValidationErrors = null;
+
+        this.updateUserLastActivity(user.id);
     }
 
     private getUser(id: string) {
@@ -311,6 +331,8 @@ export class Lobby {
         const user = this.users.find((u) => u.id === id);
         if (user) {
             this.gameChat.addMessage(`${user.username} has left the lobby`);
+        } else {
+            return;
         }
         if (this.game) {
             this.game.addMessage(`${user.username} has left the game`);

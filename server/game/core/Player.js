@@ -235,8 +235,18 @@ class Player extends GameObject {
      * @param { String } title the title of the unit or leader to check for control of
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
-    controlsLeaderOrUnitWithTitle(title) {
-        return this.leader.title === title || this.hasSomeArenaUnit({ condition: (card) => card.title === title });
+    controlsLeaderUnitOrUpgradeWithTitle(title) {
+        return this.leader.title === title ||
+          this.hasSomeArenaUnit({ condition: (card) => card.title === title }) ||
+          this.hasSomeArenaUpgrade({ condition: (card) => card.title === title });
+    }
+
+    /**
+     * @param { Trait } trait the trait to look for
+     * @returns { boolean } true if this player controls a card with the trait
+     */
+    controlsCardWithTrait(trait, onlyUnique = false) {
+        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({ condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)) });
     }
 
     /**
