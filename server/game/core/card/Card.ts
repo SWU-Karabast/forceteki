@@ -509,11 +509,21 @@ export class Card extends OngoingEffectSource {
     /** Helper method for {@link Card.keywords} */
     protected getKeywords() {
         let keywordInstances = [...this.printedKeywords];
-        const gainKeywordEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword);
+        const gainKeywordEffects = this.getOngoingEffects()
+            .filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword || ongoingEffect.type === EffectName.GainKeywords);
+
         for (const effect of gainKeywordEffects) {
             const keywordProps = effect.getValue(this);
-            keywordInstances.push(KeywordHelpers.keywordFromProperties(keywordProps, this));
+
+            if (Array.isArray(keywordProps)) {
+                for (const props of keywordProps) {
+                    keywordInstances.push(KeywordHelpers.keywordFromProperties(props, this));
+                }
+            } else {
+                keywordInstances.push(KeywordHelpers.keywordFromProperties(keywordProps, this));
+            }
         }
+
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
         return keywordInstances;
