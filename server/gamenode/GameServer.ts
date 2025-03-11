@@ -20,6 +20,8 @@ import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import QueueHandler from './QueueHandler';
 import { DynamoDBService } from '../services/DynamoDBService';
+import { nextAuthMiddleware } from '../middleware/AuthMiddleWare';
+import jwt from 'jsonwebtoken';
 
 /**
  * Represents a user object
@@ -104,10 +106,12 @@ export class GameServer {
 
         const corsOptions = {
             origin: ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'],
-            methods: ['GET', 'POST'],
+            methods: ['GET', 'POST', 'PUT', 'DELETE'],
             credentials: true, // Allow cookies or authorization headers
         };
         app.use(cors(corsOptions));
+
+        app.use(nextAuthMiddleware());
 
         this.setupAppRoutes(app);
 
@@ -129,6 +133,43 @@ export class GameServer {
             cors: {
                 origin: ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'],
                 methods: ['GET', 'POST']
+            }
+        });
+
+        // Setup Socket.IO middleware for Next-auth token verification
+        this.io.use((socket, next) => {
+            try {
+                // Get token from handshake auth
+                const token = socket.handshake.auth.token;
+
+                if (token) {
+                    try {
+                        // NEXTAUTH_SECRET should match your Next.js app
+                        const secret = process.env.NEXTAUTH_SECRET || 'your-nextauth-secret';
+
+                        // Decode without verification first to get the id
+                        const decoded = jwt.decode(token) as { id?: string; name?: string };
+
+                        if (decoded && decoded.id) {
+                            // Now we can verify with the secret
+                            jwt.verify(token, secret);
+
+                            // Attach user data to socket
+                            socket.data.user = {
+                                id: decoded.id,
+                                username: decoded.name || 'Anonymous'
+                            };
+                        }
+                    } catch (error) {
+                        // Invalid token, continue with anonymous session
+                        logger.warn('Invalid token in socket connection:', error);
+                    }
+                }
+
+                next();
+            } catch (error) {
+                logger.error('Socket auth middleware error:', error);
+                next();
             }
         });
 
@@ -413,9 +454,15 @@ export class GameServer {
     // }
 
     public async onConnection(ioSocket) {
-        const user = JSON.parse(ioSocket.handshake.query.user);
+        // First check if the user is authenticated via JWT
+        const authenticatedUser = ioSocket.data.user;
+
+        const queryUser = ioSocket.handshake.query.user ? JSON.parse(ioSocket.handshake.query.user) : null;
+        const user = authenticatedUser || queryUser;
+
         const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
 
+        // TODO maybe we need to add a check here and disconnect if user is null?
         if (user) {
             ioSocket.data.user = user;
         }
