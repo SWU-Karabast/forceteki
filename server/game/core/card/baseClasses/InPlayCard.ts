@@ -1,4 +1,4 @@
-import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IConstantAbilityProps, ITriggeredAbilityBaseProps } from '../../../Interfaces';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
@@ -12,6 +12,8 @@ import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatC
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import { WithCost } from '../propertyMixins/Cost';
+import type { ICardWithActionAbilities } from '../propertyMixins/ActionAbilityRegistration';
+import type { ICardWithConstantAbilities } from '../propertyMixins/ConstantAbilityRegistration';
 import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
@@ -24,7 +26,7 @@ const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard))
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
 
-export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithTriggeredAbilities {
+export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities, ICardWithConstantAbilities, ICardWithTriggeredAbilities {
     readonly printedUpgradeHp: number;
     readonly printedUpgradePower: number;
     get disableOngoingEffectsForDefeat(): boolean;
@@ -33,14 +35,6 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get parentCard(): IUnitCard;
     get pendingDefeat(): boolean;
     isInPlay(): boolean;
-    addGainedActionAbility(properties: IActionAbilityProps): string;
-    removeGainedActionAbility(removeAbilityUuid: string): void;
-    addGainedConstantAbility(properties: IConstantAbilityProps): string;
-    removeGainedConstantAbility(removeAbilityUuid: string): void;
-    addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string;
-    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string;
-    removeGainedTriggeredAbility(removeAbilityUuid: string): void;
-    removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
     registerPendingUniqueDefeat();
     checkUnique();
     attachTo(newParentCard: IUnitCard, newController?: Player);

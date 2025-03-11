@@ -3,6 +3,11 @@ import type { ActionAbility } from '../../ability/ActionAbility';
 import type { CardConstructor } from '../Card';
 import * as Contract from '../../utils/Contract';
 
+export interface ICardWithActionAbilities {
+    addGainedActionAbility(properties: IActionAbilityProps): string;
+    removeGainedActionAbility(removeAbilityUuid: string): void;
+}
+
 /** Mixin function that adds the ability to register action abilities to a base card class. */
 export function WithActionAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithActionAbilities extends BaseClass {

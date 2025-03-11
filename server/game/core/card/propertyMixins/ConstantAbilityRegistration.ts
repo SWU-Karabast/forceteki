@@ -4,6 +4,11 @@ import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import type { CardConstructor } from '../Card';
 import * as Contract from '../../utils/Contract';
 
+export interface ICardWithConstantAbilities {
+    addGainedConstantAbility(properties: IConstantAbilityProps): string;
+    removeGainedConstantAbility(removeAbilityUuid: string): void;
+}
+
 /** Mixin function that adds the ability to register constant abilities to a base card class. */
 export function WithConstantAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
     return class WithConstantAbilities extends BaseClass {

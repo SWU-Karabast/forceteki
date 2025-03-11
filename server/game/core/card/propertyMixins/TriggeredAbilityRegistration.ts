@@ -6,6 +6,10 @@ import * as Contract from '../../utils/Contract';
 
 export interface ICardWithTriggeredAbilities {
     getTriggeredAbilities(): TriggeredAbility[];
+    addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string;
+    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string;
+    removeGainedTriggeredAbility(removeAbilityUuid: string): void;
+    removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
 }
 
 /** Mixin function that adds the ability to register triggered abilities to a base card class. */
