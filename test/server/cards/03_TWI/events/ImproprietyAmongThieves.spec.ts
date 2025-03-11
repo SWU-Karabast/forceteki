@@ -1,3 +1,5 @@
+import {ZoneName} from '../../../../../server/game/core/Constants';
+
 describe('Impropriety Among Thieves', function() {
     integration(function(contextRef) {
         describe('Impropriety Among Thieves\'s event ability', function() {
@@ -61,13 +63,13 @@ describe('Impropriety Among Thieves', function() {
                     context.player1.clickCard(context.seasonedShoretrooper);
 
                     expect(context.player2).toBeActivePlayer();
-                    expect(context.superlaserTechnician.controller).toBe(context.player2.player);
-                    expect(context.seasonedShoretrooper.controller).toBe(context.player1.player);
+                    expect(context.superlaserTechnician).toBeInZone(ZoneName.GroundArena, context.player2);
+                    expect(context.seasonedShoretrooper).toBeInZone(ZoneName.GroundArena, context.player1);
 
                     context.moveToRegroupPhase();
 
-                    expect(context.superlaserTechnician.controller).toBe(context.player1.player);
-                    expect(context.seasonedShoretrooper.controller).toBe(context.player2.player);
+                    expect(context.superlaserTechnician).toBeInZone(ZoneName.GroundArena, context.player1);
+                    expect(context.seasonedShoretrooper).toBeInZone(ZoneName.GroundArena, context.player2);
                 });
             });
         });

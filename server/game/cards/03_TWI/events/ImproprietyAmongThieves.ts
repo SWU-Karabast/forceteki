@@ -29,42 +29,38 @@ export default class ImproprietyAmongThieves extends EventCard {
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardCondition: (card: IUnitCard) => !card.isExhausted(),
+                    immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                        AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
+                            target: context.targets.friendlyUnit,
+                            newController: context.targets.friendlyUnit.controller.opponent,
+                        })),
+                        AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
+                            target: context.targets.enemyUnit,
+                            newController: context.targets.enemyUnit.controller.opponent,
+                        })),
+                        AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
+                            title: 'Owner takes control',
+                            when: {
+                                onPhaseStarted: (context) => context.phase === PhaseName.Regroup
+                            },
+                            immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
+                                target: context.targets.friendlyUnit,
+                                newController: context.targets.friendlyUnit.controller.opponent,
+                            }),
+                        })),
+                        AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
+                            title: 'Owner takes control',
+                            when: {
+                                onPhaseStarted: (context) => context.phase === PhaseName.Regroup
+                            },
+                            immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
+                                target: context.targets.enemyUnit,
+                                newController: context.targets.enemyUnit.controller.opponent,
+                            }),
+                        }))
+                    ]),
                 }
             },
-            then: (thenContext) => ({
-                title: 'Each player takes control of the chosen unit controlled by the player to their right. At the start of the regroup phase, each player takes control of each unit they own that was chosen for this ability.',
-                thenCondition: (context) => context.targets.friendlyUnit && context.targets.enemyUnit,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
-                        target: thenContext.targets.friendlyUnit,
-                        newController: thenContext.targets.friendlyUnit.controller.opponent,
-                    })),
-                    AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
-                        target: thenContext.targets.enemyUnit,
-                        newController: thenContext.targets.enemyUnit.controller.opponent,
-                    })),
-                    AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
-                        title: 'Owner takes control',
-                        when: {
-                            onPhaseStarted: (context) => context.phase === PhaseName.Regroup
-                        },
-                        immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
-                            target: thenContext.targets.friendlyUnit,
-                            newController: thenContext.targets.friendlyUnit.controller.opponent,
-                        }),
-                    })),
-                    AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
-                        title: 'Owner takes control',
-                        when: {
-                            onPhaseStarted: (context) => context.phase === PhaseName.Regroup
-                        },
-                        immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
-                            target: thenContext.targets.enemyUnit,
-                            newController: thenContext.targets.enemyUnit.controller.opponent,
-                        }),
-                    }))
-                ]),
-            })
         });
     }
 }
