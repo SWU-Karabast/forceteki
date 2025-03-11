@@ -23,7 +23,6 @@ describe('Migs Mayfeld, Triggerman', function() {
                 context.player1.clickCard(context.commission);
                 context.player1.clickCard(context.fellTheDragon);
                 context.player1.clickPrompt('Done');
-                context.player1.clickPrompt('You may deal 2 damage to a unit or base.');
                 expect(context.player1).toBeAbleToSelectExactly([context.groguIrresistible, context.migsMayfeldTriggerman, context.wampa, context.systemPatrolCraft, context.p1Base, context.p2Base]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.p2Base);
