@@ -260,6 +260,7 @@ export interface ISetId {
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'
 > {
+    replacedSystem?: GameSystem<TriggeredAbilityContext<TSource>>;
     replaceWith?: IReplacementEffectSystemProperties<TriggeredAbilityContext<TSource>>;
 }
 
