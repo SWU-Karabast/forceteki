@@ -15,6 +15,7 @@ export default class MigsMayfeldTriggerman extends NonLeaderUnitCard {
             title: 'You may deal 2 damage to a unit or base.',
             limit: AbilityHelper.limit.perRound(1),
             optional: true,
+            collectiveTrigger: true,
             when: {
                 onCardDiscarded: (event) => event.discardedFromZone === ZoneName.Hand,
             },
