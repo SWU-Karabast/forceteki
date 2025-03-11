@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { ZoneName } from '../../../core/Constants';
 
 export default class MigsMayfeldTriggerman extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +16,7 @@ export default class MigsMayfeldTriggerman extends NonLeaderUnitCard {
             limit: AbilityHelper.limit.perRound(1),
             optional: true,
             when: {
-                onCardsDiscardedFromHand: (event, context) => true,
+                onCardDiscarded: (event) => event.discardedFromZone === ZoneName.Hand,
             },
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.damage(() => ({ amount: 2 }))
