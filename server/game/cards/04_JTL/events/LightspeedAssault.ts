@@ -35,7 +35,7 @@ export default class LightspeedAssault extends EventCard {
                 ifYouDoCondition: (context) => context.events.length >= 2,
                 immediateEffect: AbilityHelper.immediateEffects.indirectDamageToPlayer({
                     target: ifYouDoContext.player.opponent,
-                    amount: ifYouDoContext.events[1].card.getPower() // TODO: do we need LKI?
+                    amount: ifYouDoContext.events[1].lastKnownInformation?.power || ifYouDoContext.events[1].card.getPower(),
                 })
             })
         });

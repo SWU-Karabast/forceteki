@@ -22,7 +22,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             },
             ifYouDo: (ifYouDoContext) => {
-                const friendlyArena = ifYouDoContext.target.zoneName;
+                const friendlyArena = ifYouDoContext.events[0].lastKnownInformation?.arena ?? ifYouDoContext.target.zoneName;
                 return {
                     title: `Deal 1 damage to an enemy unit in the ${friendlyArena} arena`,
                     targetResolver: {
@@ -54,7 +54,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             },
             ifYouDo: (ifYouDoContext) => {
-                const friendlyArena = ifYouDoContext.target.zoneName;
+                const friendlyArena = ifYouDoContext.events[0].lastKnownInformation?.arena ?? ifYouDoContext.target.zoneName;
                 return {
                     title: `Deal 1 damage to an enemy unit in the ${friendlyArena} arena`,
                     targetResolver: {
