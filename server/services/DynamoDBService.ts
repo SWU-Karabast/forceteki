@@ -9,6 +9,18 @@ import {
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 
+// Define user interface
+export interface UserData {
+    id: string;
+    username: string;
+    email?: string;
+    provider: string;
+    avatarUrl?: string;
+    lastLogin: string;
+    createdAt: string;
+    settings?: Record<string, any>;
+}
+
 export class DynamoDBService {
     private client: DynamoDBDocumentClient;
     private tableName = 'KarabastGlobalTable';
@@ -113,6 +125,66 @@ export class DynamoDBService {
             return await this.client.send(command);
         } catch (error) {
             logger.error(`DynamoDB deleteItem error: ${error}`);
+            throw error;
+        }
+    }
+
+    // User-specific methods
+
+    // Save or update user
+    public async saveUser(userData: UserData) {
+        try {
+            const item = {
+                pk: `USER#${userData.id}`,
+                sk: 'METADATA',
+                ...userData,
+                lastLogin: new Date().toISOString()
+            };
+
+            return await this.putItem(item);
+        } catch (error) {
+            logger.error(`Error saving user to DynamoDB: ${error}`);
+            throw error;
+        }
+    }
+
+    // Get user by ID
+    public async getUserById(userId: string) {
+        try {
+            const result = await this.getItem(`USER#${userId}`, 'METADATA');
+            return result.Item as UserData | undefined;
+        } catch (error) {
+            logger.error(`Error getting user from DynamoDB: ${error}`);
+            throw error;
+        }
+    }
+
+    // Update user's last login time
+    public async updateUserLogin(userId: string) {
+        try {
+            return await this.updateItem(
+                `USER#${userId}`,
+                'METADATA',
+                'SET lastLogin = :lastLogin',
+                { ':lastLogin': new Date().toISOString() }
+            );
+        } catch (error) {
+            logger.error(`Error updating user login time: ${error}`);
+            throw error;
+        }
+    }
+
+    // Save user settings
+    public async saveUserSettings(userId: string, settings: Record<string, any>) {
+        try {
+            return await this.updateItem(
+                `USER#${userId}`,
+                'METADATA',
+                'SET settings = :settings',
+                { ':settings': settings }
+            );
+        } catch (error) {
+            logger.error(`Error saving user settings: ${error}`);
             throw error;
         }
     }

@@ -20,7 +20,7 @@ import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import QueueHandler from './QueueHandler';
 import { DynamoDBService } from '../services/DynamoDBService';
-import { nextAuthMiddleware } from '../middleware/AuthMiddleWare';
+import { authMiddleware } from '../middleware/AuthMiddleWare';
 import jwt from 'jsonwebtoken';
 
 /**
@@ -111,7 +111,7 @@ export class GameServer {
         };
         app.use(cors(corsOptions));
 
-        app.use(nextAuthMiddleware());
+        app.use(authMiddleware());
 
         this.setupAppRoutes(app);
 
@@ -137,35 +137,49 @@ export class GameServer {
         });
 
         // Setup Socket.IO middleware for Next-auth token verification
-        this.io.use((socket, next) => {
+        this.io.use(async (socket, next) => {
             try {
                 // Get token from handshake auth
                 const token = socket.handshake.auth.token;
 
+                // Get user from query (for backward compatibility)
+                const queryUser = socket.handshake.query.user
+                    ? JSON.parse(socket.handshake.query.user as string) : null;
+
                 if (token) {
                     try {
-                        // NEXTAUTH_SECRET should match your Next.js app
-                        const secret = process.env.NEXTAUTH_SECRET || 'your-nextauth-secret';
-
-                        // Decode without verification first to get the id
-                        const decoded = jwt.decode(token) as { id?: string; name?: string };
+                        // Verify JWT token
+                        const secret = process.env.NEXTAUTH_SECRET || '';
+                        const decoded = jwt.verify(token, secret) as any;
 
                         if (decoded && decoded.id) {
-                            // Now we can verify with the secret
-                            jwt.verify(token, secret);
-
-                            // Attach user data to socket
+                            // Set authenticated user
                             socket.data.user = {
                                 id: decoded.id,
                                 username: decoded.name || 'Anonymous'
                             };
+
+                            // Try to update login time in DB
+                            try {
+                                const dbService = new DynamoDBService();
+                                await dbService.updateUserLogin(decoded.id);
+                            } catch (dbError) {
+                                logger.warn('Failed to update user login time:', dbError);
+                            }
                         }
-                    } catch (error) {
-                        // Invalid token, continue with anonymous session
-                        logger.warn('Invalid token in socket connection:', error);
+                    } catch (jwtError) {
+                        logger.warn('Invalid JWT token in socket connection:', jwtError);
+                        // Fall back to query user
+                        if (queryUser) {
+                            socket.data.user = queryUser;
+                        }
                     }
+                } else if (queryUser) {
+                    // No token, use query user
+                    socket.data.user = queryUser;
                 }
 
+                // Always continue to next middleware
                 next();
             } catch (error) {
                 logger.error('Socket auth middleware error:', error);
@@ -193,6 +207,48 @@ export class GameServer {
     }
 
     private setupAppRoutes(app: express.Application) {
+        app.post('/api/auth/register', async (req, res) => {
+            try {
+                // Get user data from request body (sent by frontend)
+                const userData = req.body;
+
+                // Validate the data (ensure it contains necessary user information)
+                if (!userData.id || !userData.name) {
+                    return res.status(400).json({ success: false, message: 'Invalid user data' });
+                }
+
+                // Save user in DynamoDB
+                const dbService = new DynamoDBService();
+
+                // Check if user already exists
+                const existingUser = await dbService.getUserById(userData.id);
+
+                if (existingUser) {
+                    // Update existing user's login time
+                    await dbService.updateUserLogin(userData.id);
+                } else {
+                    // Create new user record
+                    const newUser = {
+                        id: userData.id,
+                        username: userData.name,
+                        email: userData.email || null,
+                        provider: userData.provider || 'unknown',
+                        avatarUrl: userData.image || null,
+                        lastLogin: new Date().toISOString(),
+                        createdAt: new Date().toISOString(),
+                        settings: { cardBack: 'default' }
+                    };
+
+                    await dbService.saveUser(newUser);
+                }
+
+                res.json({ success: true });
+            } catch (error) {
+                console.error('Error registering user:', error);
+                res.status(500).json({ success: false, message: 'Failed to register user' });
+            }
+        });
+
         app.post('/api/test-dynamodb', async (req, res) => {
             const { id, data } = req.body;
 

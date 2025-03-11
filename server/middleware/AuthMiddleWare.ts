@@ -1,9 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { logger } from '../logger';
 import { DynamoDBService } from '../services/DynamoDBService';
 
-// Extend Express Request type to include user
+// Extend Express Request type
 declare global {
     namespace Express {
         interface Request {
@@ -11,69 +9,41 @@ declare global {
                 userId: string;
                 username: string;
                 provider?: string;
+                email?: string;
+                image?: string;
             };
         }
     }
 }
 
-interface NextAuthToken {
-    name: string;
-    email?: string;
-    picture?: string;
-    sub: string;
-    id: string;
-    provider: string;
-    providerId: string;
-    iat: number;
-    exp: number;
-    jti: string;
-}
-
-export const nextAuthMiddleware = () => {
+export const authMiddleware = () => {
     const dbService = new DynamoDBService();
 
-    return (req: Request, res: Response, next: NextFunction) => {
+    return async (req: Request, res: Response, next: NextFunction) => {
         try {
-            // Get the token from the Authorization header
-            const authHeader = req.headers.authorization;
+            // Get user ID from custom header
+            const userId = req.headers['x-user-id'];
 
-            if (!authHeader || !authHeader.startsWith('Bearer ')) {
-                return next(); // No token, continue without authenticated user
-            }
+            if (userId && typeof userId === 'string') {
+                // Check if user exists in database
+                const user = await dbService.getUserById(userId);
 
-            const token = authHeader.split(' ')[1];
-
-            if (!token) {
-                return next(); // No token, continue without authenticated user
-            }
-
-            // Verify the token
-            // This should match the NEXTAUTH_SECRET from your Next.js app
-            const secret = process.env.NEXTAUTH_SECRET || 'your-nextauth-secret';
-
-            try {
-                const decoded = jwt.verify(token, secret) as NextAuthToken;
-
-                // Next-auth tokens use 'sub' as the subject identifier
-                // It also contains 'id' which is provider-prefixed
-                // We'll use the 'id' field which follows our convention
-                if (decoded && decoded.id) {
-                    // Attach the user to the request
+                if (user) {
+                    // Attach user to request
                     req.user = {
-                        userId: decoded.id,
-                        username: decoded.name,
-                        provider: decoded.provider
+                        userId: user.id,
+                        username: user.username,
+                        email: user.email,
+                        image: user.avatarUrl,
+                        provider: user.provider
                     };
                 }
-            } catch (jwtError) {
-                logger.warn('Invalid JWT token:', jwtError);
-                // Don't block the request, just continue without authenticated user
             }
 
+            // Always continue to next middleware
             next();
         } catch (error) {
-            logger.error('Auth middleware error:', error);
-            // Don't return an error, just continue without authenticated user
+            console.error('Auth middleware error:', error);
             next();
         }
     };
