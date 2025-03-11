@@ -282,6 +282,14 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
     }
 
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
+
+        if (!card.isBase()) {
+            this.addLastKnownInformationToEvent(event, card);
+        }
+    }
+
     // TODO: might need to refactor getEffectMessage generally so that it has access to the event, doesn't really work for some of the damage scenarios currently
     // public override getEffectMessage(context: TContext): [string, any[]] {
     //     const properties = this.generatePropertiesFromContext(context);

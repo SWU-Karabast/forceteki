@@ -12,10 +12,12 @@ import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './prop
 import { WithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import type TriggeredAbility from '../ability/TriggeredAbility';
+import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
+import { WithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 
-const BaseCardParent = WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card))));
+const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
-export interface IBaseCard extends ICardWithDamageProperty, ICardWithTriggeredAbilities {
+export interface IBaseCard extends ICardWithDamageProperty, ICardWithActionAbilities, ICardWithTriggeredAbilities {
     get epicActionSpent(): boolean;
 }
 

@@ -70,7 +70,7 @@ class Player extends GameObject {
         this.baseZone = null;
 
         /** @type {DeckZone} */
-        this.deckZone = null;
+        this.deckZone = new DeckZone(this);
 
         this.damageToBase = null;
 
@@ -235,8 +235,10 @@ class Player extends GameObject {
      * @param { String } title the title of the unit or leader to check for control of
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
-    controlsLeaderOrUnitWithTitle(title) {
-        return this.leader.title === title || this.hasSomeArenaUnit({ condition: (card) => card.title === title });
+    controlsLeaderUnitOrUpgradeWithTitle(title) {
+        return this.leader.title === title ||
+          this.hasSomeArenaUnit({ condition: (card) => card.title === title }) ||
+          this.hasSomeArenaUpgrade({ condition: (card) => card.title === title });
     }
 
     /**
@@ -670,7 +672,7 @@ class Player extends GameObject {
         this.base = preparedDecklist.base;
         this.leader = preparedDecklist.leader;
 
-        this.deckZone = new DeckZone(this, preparedDecklist.deckCards);
+        this.deckZone.initialize(preparedDecklist.deckCards);
 
         // set up playable zones now that all relevant zones are created
         /** @type {PlayableZone[]} */
@@ -1161,9 +1163,9 @@ class Player extends GameObject {
             ? this.drawDeck
             : this.getCardsInZone(zone);
 
-        return zoneCards.map((card) => {
+        return zoneCards?.map((card) => {
             return card.getSummary(activePlayer);
-        });
+        }) ?? [];
     }
 
     getSortedSummaryForCardList(list, activePlayer) {
@@ -1260,8 +1262,8 @@ class Player extends GameObject {
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
             availableResources: this.readyResourceCount,
-            leader: this.leader.getSummary(activePlayer),
-            base: this.base.getSummary(activePlayer),
+            leader: this.leader?.getSummary(activePlayer),
+            base: this.base?.getSummary(activePlayer),
             id: this.id,
             left: this.left,
             name: this.name,

@@ -22,7 +22,7 @@ export default class BlackOneStraightAtThem extends NonLeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
-                cardCondition: (card, context) => context.player.controlsLeaderOrUnitWithTitle('Poe Dameron'),
+                cardCondition: (card, context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Poe Dameron'),
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             }
         });
