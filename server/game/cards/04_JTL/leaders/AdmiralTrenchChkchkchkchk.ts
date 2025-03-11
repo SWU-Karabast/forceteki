@@ -1,8 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
-import type { Card } from '../../../core/card/Card';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, TargetMode, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, ZoneName } from '../../../core/Constants';
 
 export default class AdmiralTrenchChkchkchkchk extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -59,36 +58,32 @@ export default class AdmiralTrenchChkchkchkchk extends LeaderUnitCard {
                         target: context.player.getTopCardsOfDeck(2),
                     })),
                     onFalse: AbilityHelper.immediateEffects.sequential([
-                        AbilityHelper.immediateEffects.selectCard({
-                            activePromptTitle: 'Choose 2 cards to discard',
-                            name: 'discardedCards',
-                            mode: TargetMode.Exactly,
-                            numCards: 2,
-                            controller: RelativePlayer.Self,
-                            zoneFilter: ZoneName.Deck,
-                            player: RelativePlayer.Opponent,
-                            cardCondition: (card, context) => (context.player.getTopCardsOfDeck(4) as Card[]).includes(card),
-                            innerSystem: AbilityHelper.immediateEffects.discardSpecificCard(),
-                        }),
+                        AbilityHelper.immediateEffects.revealAndSelectCard((context) => ({
+                            activePromptTitle: 'Choose 2 cards from opponent\'s deck to discard for Trench ability',
+                            maxCards: 2,
+                            canChooseFewer: false,
+                            promptedPlayer: RelativePlayer.Opponent,
+                            target: context.player.getTopCardsOfDeck(4),
+                            immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard(),
+                            useDisplayPrompt: true
+                        })),
                         AbilityHelper.immediateEffects.conditional({
                             condition: (context) => context.player.deckZone.count === 1,
                             onTrue: AbilityHelper.immediateEffects.draw((context) => ({
                                 target: context.player,
                             })),
-                            onFalse: AbilityHelper.immediateEffects.selectCard({
-                                activePromptTitle: 'Choose a card to draw and discard the other',
-                                name: 'drawnCard',
-                                mode: TargetMode.Single,
-                                controller: RelativePlayer.Self,
-                                zoneFilter: ZoneName.Deck,
-                                cardCondition: (card, context) => (context.player.getTopCardsOfDeck(2) as Card[]).includes(card),
-                                innerSystem: AbilityHelper.immediateEffects.simultaneous([
+                            onFalse: AbilityHelper.immediateEffects.revealAndSelectCard((context) => ({
+                                activePromptTitle: 'Choose a card to draw (the other will be discarded)',
+                                canChooseFewer: false,
+                                target: context.player.getTopCardsOfDeck(2),
+                                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                                     AbilityHelper.immediateEffects.drawSpecificCard(),
                                     AbilityHelper.immediateEffects.discardSpecificCard((context) => ({
-                                        target: context.player.getTopCardsOfDeck(2).find((card) => card !== context.targets.drawnCard[0])
+                                        target: context.player.getTopCardsOfDeck(2).find((card) => card !== context.target)
                                     })),
                                 ]),
-                            }),
+                                useDisplayPrompt: true
+                            })),
                         }),
                     ]),
                 }),

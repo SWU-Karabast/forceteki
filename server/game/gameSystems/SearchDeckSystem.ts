@@ -23,7 +23,7 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
 
     /** The number of cards from the top of the deck to search, or a function to determine how many cards to search. Default is -1, which indicates the whole deck. */
     searchCount?: number | ((context: TContext) => number);
-    canChooseNothing?: boolean;
+    canChooseFewer?: boolean;
 
     /** The number of cards to select from the search, or a function to determine how many cards to select. Default is 1. The targetMode will interact with this to determine the min/max number of cards to retrieve. */
     selectCount?: number | ((context: TContext) => number);
@@ -191,7 +191,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
             source: context.source,
             displayCards: cards,
             maxCards: selectAmount,
-            canChooseNothing: properties.canChooseNothing || true,
+            canChooseFewer: properties.canChooseFewer || true,
             validCardCondition: (card: Card) =>
                 properties.cardCondition(card, context) &&
                 (!properties.selectedCardsImmediateEffect || properties.selectedCardsImmediateEffect.canAffect(card, context, additionalProperties)),

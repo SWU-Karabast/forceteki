@@ -14,7 +14,7 @@ export default class JamCommunications extends EventCard {
             title: 'Look at an opponent\'s hand and discard an event from it',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
                 target: context.player.opponent.hand,
-                canChooseNothing: false,
+                canChooseFewer: false,
                 immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard(),
                 cardCondition: (card) => card.isEvent()
             }))
