@@ -22,6 +22,10 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor>(BaseCl
             return ability;
         }
 
+        public override canRegisterConstantAbilities(): this is ICardWithConstantAbilities {
+            return true;
+        }
+
         // ******************************************** ABILITY STATE MANAGEMENT ********************************************
         /**
              * Adds a dynamically gained constant ability to the card and immediately registers its triggers. Used for "gain ability" effects.

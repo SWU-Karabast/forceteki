@@ -24,7 +24,6 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
             return this.triggeredAbilities;
         }
 
-
         public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
             return true;
         }

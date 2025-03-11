@@ -17,6 +17,10 @@ export function WithActionAbilities<TBaseClass extends CardConstructor>(BaseClas
             return ability;
         }
 
+        public override canRegisterActionAbilities(): this is ICardWithActionAbilities {
+            return true;
+        }
+
         // ******************************************** ABILITY STATE MANAGEMENT ********************************************
         /**
              * Adds a dynamically gained action ability to the card. Used for "gain ability" effects.

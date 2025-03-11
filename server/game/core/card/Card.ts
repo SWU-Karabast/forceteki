@@ -33,6 +33,8 @@ import type { ICardCanChangeControllers, IUpgradeCard } from './CardInterfaces';
 import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
+import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -470,6 +472,20 @@ export class Card extends OngoingEffectSource {
     }
 
     public hasCost(): this is ICardWithCostProperty {
+        return false;
+    }
+
+    /**
+     * Returns true if the card is a type that can legally have triggered abilities.
+     */
+    public canRegisterActionAbilities(): this is ICardWithActionAbilities {
+        return false;
+    }
+
+    /**
+     * Returns true if the card is a type that can legally have triggered abilities.
+     */
+    public canRegisterConstantAbilities(): this is ICardWithConstantAbilities {
         return false;
     }
 
