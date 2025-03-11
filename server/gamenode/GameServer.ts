@@ -669,10 +669,14 @@ export class GameServer {
             //  without triggering onSocketDisconnect
             lobby?.setUserDisconnected(id);
             setTimeout(() => {
-                // Check if the user is still disconnected after the timer
-                if (lobby?.getUserState(id) === 'disconnected') {
-                    this.userLobbyMap.delete(id);
-                    this.removeUserMaybeCleanupLobby(lobby, id);
+                try {
+                    // Check if the user is still disconnected after the timer
+                    if (lobby?.getUserState(id) === 'disconnected') {
+                        this.userLobbyMap.delete(id);
+                        this.removeUserMaybeCleanupLobby(lobby, id);
+                    }
+                } catch (err) {
+                    logger.error('Error in setTimeout for onSocketDisconnected:', err);
                 }
             }, 20000);
         } catch (err) {
