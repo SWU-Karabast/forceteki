@@ -102,6 +102,7 @@ export class Card extends OngoingEffectSource {
     protected constantAbilities: IConstantAbility[] = [];
     protected _controller: Player;
     protected disableWhenDefeatedCheck = false;
+    protected disableYouMayCheck = false;
     protected _facedown = true;
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;

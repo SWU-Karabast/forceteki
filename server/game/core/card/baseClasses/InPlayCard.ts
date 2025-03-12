@@ -303,10 +303,26 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
 
         Contract.assertFalse(
             !this.disableWhenDefeatedCheck &&
-            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:\n)|(?:\/))When Defeated/g) &&
+            Helpers.hasSomeMatch(cardText, /(?:^|(?:\n)|(?:\/))When Defeated/g) &&
             !this.triggeredAbilities.some((ability) => ability.isWhenDefeatedAbility),
-            `Card ${this.internalName} has one or more 'When Defeated' keywords in its text but no corresponding ability definition or set property 'disableWhenDefeatedCheck' to true on card implementation`
+            `Card ${this.internalName} has one or more 'When Defeated' keywords in its text but no corresponding ability definition was found. Set property 'disableWhenDefeatedCheck' to true on card implementation to disable this if it's a false positive.`
         );
+
+        const cardTextCopy = cardText.slice().replace(/you may play it for its smuggle cost/g, '');
+        if (cardTextCopy.includes('ou may') && !this.disableYouMayCheck) {
+            this.checkHasOptionalAbility();
+        }
+    }
+
+    private checkHasOptionalAbility() {
+        if (this.triggeredAbilities.some((ability) =>
+            ability.optional ||
+            ability.targetResolvers && ability.targetResolvers.some((resolver) => resolver.optional)
+        )) {
+            return;
+        }
+
+        Contract.fail(`Card ${this.internalName} has 'you may' in its text but no corresponding optional ability definition was detected. Set property 'disableYouMayCheck' to true on card implementation to disable this if it's a false alert.`);
     }
 
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************
