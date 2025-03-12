@@ -510,7 +510,7 @@ export class Card extends OngoingEffectSource {
     protected getKeywords() {
         let keywordInstances = [...this.printedKeywords];
         const gainKeywordEffects = this.getOngoingEffects()
-            .filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword || ongoingEffect.type === EffectName.GainKeywords);
+            .filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword);
 
         for (const effect of gainKeywordEffects) {
             const keywordProps = effect.getValue(this);

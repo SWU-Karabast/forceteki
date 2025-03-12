@@ -83,7 +83,6 @@ export enum EffectName {
     EntersPlayReady = 'entersPlayReady',
     GainAbility = 'gainAbility',
     GainKeyword = 'gainKeyword',
-    GainKeywords = 'gainKeywords',
     IncreaseLimitOnAbilities = 'increaseLimitOnAbilities',
     IsLeader = 'isLeader',
     LoseKeyword = 'loseKeyword',

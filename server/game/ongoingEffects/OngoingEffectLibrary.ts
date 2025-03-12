@@ -118,7 +118,7 @@ export = {
         }
     },
     gainKeywords: (calculate: (target: any, context: AbilityContext) => IKeywordProperties[]) =>
-        OngoingEffectBuilder.card.dynamic(EffectName.GainKeywords, (target, context) => calculate(target, context)),
+        OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context) => calculate(target, context)),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
     // gainAllAbilities,

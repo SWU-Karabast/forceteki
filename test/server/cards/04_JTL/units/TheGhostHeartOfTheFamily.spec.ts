@@ -46,14 +46,14 @@ describe('The Ghost, Heart of the Family', () => {
                     player1: {
                         leader: 'hera-syndulla#spectre-two',
                         hand: [
-                            'infiltrators-skill',                     // Saboteur
-                            'red-three#unstoppable',                 // Raid 1
-                            'home-one#alliance-flagship',             // Restore 1
-                            'wedge-antilles#star-of-the-rebellion',  // Ambush
+                            'infiltrators-skill',
+                            'red-three#unstoppable',
+                            'home-one#alliance-flagship',
+                            'wedge-antilles#star-of-the-rebellion',
                         ],
                         spaceArena: [
                             'the-ghost#heart-of-the-family',
-                            'phantom-ii#modified-to-dock',            // Grit
+                            'phantom-ii#modified-to-dock',
                         ],
                         groundArena: ['sabine-wren#explosives-artist', 'battlefield-marine'],
                     },
@@ -61,7 +61,7 @@ describe('The Ghost, Heart of the Family', () => {
                         hand: [
                             'takedown',
                             'daring-raid',
-                            'top-target',                            // Bounty
+                            'top-target',
                             'chopper#metal-menace',
                             'specforce-soldier'
                         ],
