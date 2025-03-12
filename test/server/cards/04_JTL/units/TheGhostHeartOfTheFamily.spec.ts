@@ -50,6 +50,7 @@ describe('The Ghost, Heart of the Family', () => {
                             'red-three#unstoppable',
                             'home-one#alliance-flagship',
                             'wedge-antilles#star-of-the-rebellion',
+                            'admiral-yularen#fleet-coordinator'
                         ],
                         spaceArena: [
                             'the-ghost#heart-of-the-family',
@@ -171,6 +172,20 @@ describe('The Ghost, Heart of the Family', () => {
                 context.player1.clickCard(context.p2Base); // Resolve Sabine's ability
 
                 expect(context.cloudCityWingGuard).toBeInZone('discard');
+            });
+
+            it('Shielded, it shares that keyword with other friendly Spectre units', function() {
+                const { context } = contextRef;
+
+                // Play Admiral Yularen and give all Vehicles Shielded
+                context.player1.clickCard(context.admiralYularen);
+                context.player1.clickPrompt('Shielded');
+
+                context.player2.passAction();
+
+                // Deploy Hera Syndulla, she gains Shielded via The Ghost
+                context.player1.clickCard(context.heraSyndulla);
+                expect(context.heraSyndulla).toHaveExactUpgradeNames(['shield']);
             });
 
             it('a Bounty, it shares that keyword with other friendly Spectre units', function() {
