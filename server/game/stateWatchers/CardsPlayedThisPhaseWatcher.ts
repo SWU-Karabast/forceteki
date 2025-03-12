@@ -63,7 +63,7 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
                     inPlayId: event.card.inPlayId ?? null,
                     playedBy: event.card.controller,
                     hasWhenDefeatedAbilities: event.card.canBeInPlay() && event.card.getTriggeredAbilities().some((ability) => ability.isWhenDefeated),
-                    playedAsType: event.card.cardType,
+                    playedAsType: event.card.type,
                 })
         });
     }
