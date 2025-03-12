@@ -60,6 +60,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
 
         this.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities(this);
+        this.validateCardAbilities(cardData.deployBox);
     }
 
     protected deployActionAbilityProps(): Omit<IActionAbilityProps<this>, 'title' | 'condition' | 'zoneFilter' | 'immediateEffect'> {

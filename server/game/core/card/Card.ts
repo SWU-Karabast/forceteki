@@ -101,6 +101,7 @@ export class Card extends OngoingEffectSource {
     protected actionAbilities: ActionAbility[] = [];
     protected constantAbilities: IConstantAbility[] = [];
     protected _controller: Player;
+    protected disableWhenDefeatedCheck = false;
     protected _facedown = true;
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
@@ -358,6 +359,10 @@ export class Card extends OngoingEffectSource {
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected initializeStateForAbilitySetup() {
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected validateCardAbilities(cardText: string) {
     }
 
     // ******************************************* ABILITY HELPERS *******************************************
