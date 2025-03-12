@@ -39,7 +39,7 @@ describe('The Ghost, Heart of the Family', () => {
             expect(context.theGhost.damage).toBe(2);
         });
 
-        describe('When The Ghost gains keywords, it shares them with other Spectre units', function() {
+        describe('When The Ghost gains', function() {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -62,13 +62,14 @@ describe('The Ghost, Heart of the Family', () => {
                             'takedown',
                             'daring-raid',
                             'top-target',                            // Bounty
+                            'chopper#metal-menace'
                         ],
                         groundArena: ['cloud-city-wing-guard']
                     }
                 });
             });
 
-            it('(Sentinel & Saboteur)', function() {
+            it('Sentinel & Saboteur, it shares those keywords with other friendly Spectre units', function() {
                 const { context } = contextRef;
 
                 // Sabine must attack the Sentinel
@@ -103,7 +104,7 @@ describe('The Ghost, Heart of the Family', () => {
                 context.player1.clickCard(context.p2Base);
             });
 
-            it('(Raid)', function() {
+            it('Raid 1, it shares that keyword with other friendly Spectre units', function() {
                 const { context } = contextRef;
 
                 // Play Red Three to give other Heroism units Raid 1
@@ -117,7 +118,7 @@ describe('The Ghost, Heart of the Family', () => {
                 expect(context.cloudCityWingGuard).toBeInZone('discard');
             });
 
-            it('(Restore)', function() {
+            it('Restore 1, it shares that keyword with other friendly Spectre units', function() {
                 const { context } = contextRef;
 
                 // Play Home One to give other Rebel units Restore 1
@@ -136,7 +137,7 @@ describe('The Ghost, Heart of the Family', () => {
                 expect(context.p1Base.damage).toBe(0);
             });
 
-            it('(Ambush)', function() {
+            it('Ambush, it shares that keyword with other friendly Spectre units, including leaders', function() {
                 const { context } = contextRef;
 
                 // Play Wedge Antilles to give other Vehicle units Ambush
@@ -151,7 +152,7 @@ describe('The Ghost, Heart of the Family', () => {
                 context.player1.clickCard(context.sabineWren); // Resolve Hera's ability
             });
 
-            it('(Grit)', function() {
+            it('Grit, it shares that keyword with other friendly Spectre units', function() {
                 const { context } = contextRef;
 
                 // Attach Phantom II to give The Ghost Grit
@@ -171,7 +172,7 @@ describe('The Ghost, Heart of the Family', () => {
                 expect(context.cloudCityWingGuard).toBeInZone('discard');
             });
 
-            it('(Bounty)', function() {
+            it('a Bounty, it shares that keyword with other friendly Spectre units', function() {
                 const { context } = contextRef;
 
                 // Attack base with The Ghost
@@ -192,6 +193,51 @@ describe('The Ghost, Heart of the Family', () => {
                 expect(context.player2).toHavePrompt('Collect Bounty: Heal 4 damage from a unit or base. If the Bounty unit is unique, heal 6 damage instead.');
                 context.player2.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(0);
+            });
+
+            it('keywords, it does not share them with friendly non-Spectre units', function() {
+                const { context } = contextRef;
+
+                // Play Infiltrator's Skill on The Ghost, giving it Sentinel & Saboteur
+                context.player1.clickCard(context.infiltratorsSkill);
+                context.player1.clickCard(context.theGhost);
+
+                // Cloud City Wing Guard connot attack Battlefied Marine because Sabine is Sentinel and BM is not
+                context.player2.clickCard(context.cloudCityWingGuard);
+                expect(context.player2).not.toBeAbleToSelect(context.battlefieldMarine);
+                context.player2.clickCard(context.sabineWren);
+
+                // Battlefield Marine cannot attack base because it does not have Saboteur
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).not.toBeAbleToSelect(context.p2Base);
+                context.player1.clickCard(context.cloudCityWingGuard);
+            });
+
+            it('keywords, it does not share them with enemy Spectre units', function() {
+                const { context } = contextRef;
+
+                // Play Wedge Antilles to give other Vehicle units Ambush
+                context.player1.clickCard(context.wedgeAntilles);
+
+                // Plyer 2 plays Chopper, it does not gain Ambush from The Ghost
+                context.player2.clickCard(context.chopper);
+                expect(context.player2).not.toHavePrompt('Trigger the ability \'Ambush\' or pass');
+
+                context.moveToNextActionPhase();
+
+                // Play Infiltrator's Skill on The Ghost, giving it Sentinel & Saboteur
+                context.player1.clickCard(context.infiltratorsSkill);
+                context.player1.clickCard(context.theGhost);
+
+                // Chopper does not have Saboteur, so it must attack Sabine
+                context.player2.clickCard(context.chopper);
+                expect(context.player2).toBeAbleToSelectExactly([context.sabineWren]);
+                context.player2.clickCard(context.sabineWren);
+
+                // Chopper does not have Sentinel, so Battlefied Marine must attack Cloud City Wing Guard
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.player1).toBeAbleToSelectExactly([context.cloudCityWingGuard]);
+                context.player1.clickCard(context.cloudCityWingGuard);
             });
         });
     });
