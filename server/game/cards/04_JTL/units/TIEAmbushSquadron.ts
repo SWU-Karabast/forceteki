@@ -14,7 +14,7 @@ export default class TIEAmbushSquadron extends NonLeaderUnitCard {
             title: 'Create a TIE Fighter token.',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onCardDefeated: (event, context) => event.card === context.source,
+                whenDefeated: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.createTieFighter()
         });

@@ -18,7 +18,11 @@ export class AmbushAbility extends TriggeredAbility {
         return {
             title: 'Ambush',
             optional: true,
-            when: { onUnitEntersPlay: (event, context) => event.card === context.source },
+            when: {
+                onCardPlayed: (event, context) => event.card === context.source,
+                onLeaderDeployed: (event, context) => event.card === context.source,
+                onUnitEntersPlay: (event, context) => event.card === context.source && context.source.isToken()
+            },
             zoneFilter: WildcardZoneName.AnyArena,
             immediateEffect: new ConditionalSystem({
                 condition: AmbushAbility.unitWouldHaveAmbushTarget<TSource>,
