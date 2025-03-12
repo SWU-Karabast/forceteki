@@ -5,14 +5,17 @@ describe('Corvus, Inferno Squadron Raider', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['corvus#inferno-squadron-raider'],
-                        groundArena: [{ card: 'astromech-pilot', upgrades: ['devotion', 'protector'], damage: 2 }],
+                        hand: ['corvus#inferno-squadron-raider', 'atst'],
+                        groundArena: [{ card: 'astromech-pilot', upgrades: ['devotion', 'protector'], damage: 2 }, { card: 'escort-skiff', upgrades: ['sullustan-spacer'] }, 'battlefield-marine'],
                         spaceArena: [{ card: 'green-squadron-awing', upgrades: ['determined-recruit'], damage: 1 }],
-                        base: { card: 'echo-base', damage: 15 }
+                        base: { card: 'echo-base', damage: 15 },
+                        leader: 'major-vonreg#red-baron',
+                        resources: 20
                     },
                     player2: {
-                        groundArena: ['clone-pilot'],
-                        spaceArena: [{ card: 'distant-patroller', upgrades: ['hopeful-volunteer'] }],
+                        hand: ['change-of-heart'],
+                        groundArena: ['clone-pilot'], // clone-pilot is a pilot unit
+                        spaceArena: [{ card: 'distant-patroller', upgrades: ['hopeful-volunteer'] }], // hopeful-volunteer is a pilot upgrade
                     }
                 });
             });
@@ -21,7 +24,7 @@ describe('Corvus, Inferno Squadron Raider', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.corvus);
-                expect(context.player1).toBeAbleToSelectExactly([context.astromechPilot, context.determinedRecruit]);
+                expect(context.player1).toBeAbleToSelectExactly([context.astromechPilot, context.determinedRecruit, context.sullustanSpacer]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.astromechPilot);
                 expect(context.corvus).toHaveExactUpgradeNames(['astromech-pilot']);
@@ -35,7 +38,7 @@ describe('Corvus, Inferno Squadron Raider', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.corvus);
-                expect(context.player1).toBeAbleToSelectExactly([context.astromechPilot, context.determinedRecruit]);
+                expect(context.player1).toBeAbleToSelectExactly([context.astromechPilot, context.determinedRecruit, context.sullustanSpacer]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.determinedRecruit);
                 expect(context.corvus).toHaveExactUpgradeNames(['determined-recruit']);
@@ -44,21 +47,74 @@ describe('Corvus, Inferno Squadron Raider', function() {
                 expect(context.corvus.damage).toBe(0);
             });
 
+            it('can attach a pilot upgrade from a ground vehicle unit to it', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.corvus);
+                expect(context.player1).toBeAbleToSelectExactly([context.astromechPilot, context.determinedRecruit, context.sullustanSpacer]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.sullustanSpacer);
+                expect(context.corvus).toHaveExactUpgradeNames(['sullustan-spacer']);
+                expect(context.escortSkiff).toHaveExactUpgradeNames([]);
+            });
+
             it('can do nothing when played', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.corvus);
-                expect(context.player1).toBeAbleToSelectExactly([context.astromechPilot, context.determinedRecruit]);
+                expect(context.player1).toBeAbleToSelectExactly([context.astromechPilot, context.determinedRecruit, context.sullustanSpacer]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickPrompt('Pass');
                 expect(context.corvus).toHaveExactUpgradeNames([]);
                 expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['determined-recruit']);
                 expect(context.astromechPilot).toHaveExactUpgradeNames(['devotion', 'protector']);
+                expect(context.escortSkiff).toHaveExactUpgradeNames(['sullustan-spacer']);
 
                 context.moveToNextActionPhase();
                 context.player1.clickCard(context.corvus);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p1Base.damage).toBe(13); // restore 2
+            });
+
+            it('can attach a pilot from a unit the player does not control', function() {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.changeOfHeart);
+                context.player2.clickCard(context.escortSkiff);
+
+                context.player1.clickCard(context.corvus);
+                expect(context.player1).toBeAbleToSelectExactly([context.astromechPilot, context.determinedRecruit, context.sullustanSpacer]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.sullustanSpacer);
+                expect(context.corvus).toHaveExactUpgradeNames(['sullustan-spacer']);
+                expect(context.escortSkiff).toHaveExactUpgradeNames([]);
+                expect(context.escortSkiff).toBeInZone('groundArena', context.player2);
+            });
+
+            it('can attach a leader pilot', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.atst);
+                context.player2.passAction();
+
+                expect(context.atst).toBeInZone('groundArena');
+                context.player1.clickCard(context.majorVonreg);
+                context.player1.clickPrompt('Deploy Major Vonreg as a Pilot');
+                context.player1.clickCard(context.atst);
+                expect(context.atst).toHaveExactUpgradeNames(['major-vonreg#red-baron']);
+                context.player2.passAction();
+
+                context.player1.clickCard(context.corvus);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.astromechPilot,
+                    context.determinedRecruit,
+                    context.sullustanSpacer,
+                    context.majorVonreg
+                ]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.majorVonreg);
+                expect(context.corvus).toHaveExactUpgradeNames(['major-vonreg#red-baron']);
             });
         });
     });
