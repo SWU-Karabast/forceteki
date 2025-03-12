@@ -1,10 +1,8 @@
-import {ZoneName} from '../../../../../server/game/core/Constants';
-
-describe('Impropriety Among Thieves', function() {
-    integration(function(contextRef) {
-        describe('Impropriety Among Thieves\'s event ability', function() {
-            describe('when there are no ready non-leader units in play', function() {
-                beforeEach(async function() {
+describe('Impropriety Among Thieves', function () {
+    integration(function (contextRef) {
+        describe('Impropriety Among Thieves\'s event ability', function () {
+            describe('when there are no ready non-leader units in play', function () {
+                beforeEach(async function () {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -27,13 +25,13 @@ describe('Impropriety Among Thieves', function() {
                     context.player1.clickCard(context.improprietyAmongThieves);
 
                     expect(context.player2).toBeActivePlayer();
-                    expect(context.superlaserTechnician.controller).toBe(context.player1Object);
-                    expect(context.seasonedShoretrooper.controller).toBe(context.player2Object);
+                    expect(context.superlaserTechnician.controller).toBeInZone('groundArena', context.player1);
+                    expect(context.seasonedShoretrooper.controller).toBeInZone('groundArena', context.player2);
                 });
             });
 
-            describe('when there are ready non-leader units in play', function() {
-                beforeEach(async function() {
+            describe('when there are ready non-leader units in play', function () {
+                beforeEach(async function () {
                     await contextRef.setupTestAsync({
                         phase: 'action',
                         player1: {
@@ -63,13 +61,13 @@ describe('Impropriety Among Thieves', function() {
                     context.player1.clickCard(context.seasonedShoretrooper);
 
                     expect(context.player2).toBeActivePlayer();
-                    expect(context.superlaserTechnician).toBeInZone(ZoneName.GroundArena, context.player2);
-                    expect(context.seasonedShoretrooper).toBeInZone(ZoneName.GroundArena, context.player1);
+                    expect(context.superlaserTechnician).toBeInZone('groundArena', context.player2);
+                    expect(context.seasonedShoretrooper).toBeInZone('groundArena', context.player1);
 
                     context.moveToRegroupPhase();
 
-                    expect(context.superlaserTechnician).toBeInZone(ZoneName.GroundArena, context.player1);
-                    expect(context.seasonedShoretrooper).toBeInZone(ZoneName.GroundArena, context.player2);
+                    expect(context.superlaserTechnician).toBeInZone('groundArena', context.player1);
+                    expect(context.seasonedShoretrooper).toBeInZone('groundArena', context.player2);
                 });
             });
         });
