@@ -23,13 +23,16 @@ export default class NeverTellMeTheodds extends EventCard {
                     target: context.source.owner.opponent
                 }))
             ]),
-            ifYouDo: (ifYouDoContext) => ({
-                title: `Deal damage to a unit equal to the cost of ${ifYouDoContext.events[0]?.card?.title} (${ifYouDoContext.events[0]?.card?.printedCost} damage)`,
-                targetResolver: {
-                    cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.damage({ amount: this.getOddCostCountFromEvents(ifYouDoContext.events) })
-                }
-            })
+            ifYouDo: (ifYouDoContext) => {
+                const oddCostCount = this.getOddCostCountFromEvents(ifYouDoContext.events);
+                return {
+                    title: `Deal damage to a unit equal to number of odd-cost cards discarded (${oddCostCount} damage)`,
+                    targetResolver: {
+                        cardTypeFilter: WildcardCardType.Unit,
+                        immediateEffect: AbilityHelper.immediateEffects.damage({ amount: oddCostCount })
+                    }
+                };
+            }
         });
     }
 
