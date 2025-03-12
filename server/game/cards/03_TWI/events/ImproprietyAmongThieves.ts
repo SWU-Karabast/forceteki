@@ -45,7 +45,7 @@ export default class ImproprietyAmongThieves extends EventCard {
                             },
                             immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
                                 target: context.targets.friendlyUnit,
-                                newController: context.targets.friendlyUnit.controller.opponent,
+                                newController: context.targets.friendlyUnit.owner,
                             }),
                         })),
                         AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
@@ -55,7 +55,7 @@ export default class ImproprietyAmongThieves extends EventCard {
                             },
                             immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
                                 target: context.targets.enemyUnit,
-                                newController: context.targets.enemyUnit.controller.opponent,
+                                newController: context.targets.enemyUnit.owner,
                             }),
                         }))
                     ]),

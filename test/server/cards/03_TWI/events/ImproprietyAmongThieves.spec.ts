@@ -25,8 +25,8 @@ describe('Impropriety Among Thieves', function () {
                     context.player1.clickCard(context.improprietyAmongThieves);
 
                     expect(context.player2).toBeActivePlayer();
-                    expect(context.superlaserTechnician.controller).toBeInZone('groundArena', context.player1);
-                    expect(context.seasonedShoretrooper.controller).toBeInZone('groundArena', context.player2);
+                    expect(context.superlaserTechnician).toBeInZone('groundArena', context.player1);
+                    expect(context.seasonedShoretrooper).toBeInZone('groundArena', context.player2);
                 });
             });
 
@@ -68,6 +68,51 @@ describe('Impropriety Among Thieves', function () {
 
                     expect(context.superlaserTechnician).toBeInZone('groundArena', context.player1);
                     expect(context.seasonedShoretrooper).toBeInZone('groundArena', context.player2);
+                });
+            });
+
+            describe('when a unit is taken with traitorous ability', function () {
+                beforeEach(async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['impropriety-among-thieves'],
+                            groundArena: ['superlaser-technician', 'seasoned-shoretrooper'],
+                            leader: { card: 'boba-fett#daimyo', deployed: true },
+                        },
+                        player2: {
+                            hand: ['traitorous'],
+                            groundArena: ['scanning-officer'],
+                            leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
+                        }
+                    });
+                });
+
+                it('returns control of the unit to the owner at the start of the regroup phase', () => {
+                    const { context } = contextRef;
+                    context.scanningOfficer.exhaust();
+                    context.player1.passAction();
+
+                    context.player2.clickCard(context.traitorous);
+                    context.player2.clickCard(context.seasonedShoretrooper);
+                    context.player1.clickCard(context.improprietyAmongThieves);
+                    expect(context.player1).toHavePrompt('Choose a ready friendly non-leader unit');
+                    expect(context.player1).toBeAbleToSelectExactly(context.superlaserTechnician);
+
+                    context.player1.clickCard(context.superlaserTechnician);
+                    expect(context.player1).toHavePrompt('Choose a ready enemy non-leader unit');
+                    expect(context.player1).toBeAbleToSelectExactly(context.seasonedShoretrooper);
+
+                    context.player1.clickCard(context.seasonedShoretrooper);
+
+                    expect(context.player2).toBeActivePlayer();
+                    expect(context.superlaserTechnician).toBeInZone('groundArena', context.player2);
+                    expect(context.seasonedShoretrooper).toBeInZone('groundArena', context.player1);
+
+                    context.moveToRegroupPhase();
+
+                    expect(context.superlaserTechnician).toBeInZone('groundArena', context.player1);
+                    expect(context.seasonedShoretrooper).toBeInZone('groundArena', context.player1);
                 });
             });
         });
