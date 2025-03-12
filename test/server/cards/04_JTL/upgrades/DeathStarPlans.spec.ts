@@ -134,6 +134,42 @@ describe('Death Star Plans', function () {
                 expect(context.player2.exhaustedResourceCount).toBe(1);
             });
 
+            it('should not reduce the cost of the first unit played and by a player who has already used Death Star Plans before it switched control twice', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'yoda#sensing-darkness',
+                        base: 'kestro-city',
+                        hand: ['partisan-insurgent', 'moisture-farmer'],
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['death-star-plans'] }, 'cantina-braggart']
+                    },
+                    player2: {
+                        hand: ['volunteer-soldier'],
+                        groundArena: ['warrior-drone', 'wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.partisanInsurgent);
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+
+                // Attack and move DSP to Wampa
+                context.player2.clickCard(context.warriorDrone);
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.wampa);
+
+                // Attack and move DSP back to Battlefield Marine
+                context.player1.clickCard(context.cantinaBraggart);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                const p1ResourcesBefore = context.player1.readyResourceCount;
+                context.player2.passAction();
+                context.player1.clickCard(context.moistureFarmer);
+                expect(context.player1.readyResourceCount).toBe(p1ResourcesBefore - 1);
+            });
+
             it('should not reduce the cost of the first unit played after taking control of Death Star Plans if it is not the first unit of the phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

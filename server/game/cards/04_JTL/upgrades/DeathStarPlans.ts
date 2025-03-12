@@ -40,8 +40,7 @@ export default class DeathStarPlans extends UpgradeCard {
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 amount: 2,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                match: (card) => this.isFirstUnitPlayedThisPhase(card),
-                limit: AbilityHelper.limit.perRound(1)
+                match: (card) => this.isFirstUnitPlayedThisPhase(card)
             }),
         });
     }
