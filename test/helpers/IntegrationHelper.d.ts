@@ -116,6 +116,7 @@ declare namespace jasmine {
         toBeInZone(zone, player?: PlayerInteractionWrapper): boolean;
         toAllBeInZone(zone, player?: PlayerInteractionWrapper): boolean;
         toBeCapturedBy(card: any): boolean;
+        toBeAttachedTo(card: any): boolean;
         toHaveExactUpgradeNames(upgradeNames: any[]): boolean;
         toHaveExactPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, buttons: any[]): boolean;
         toHaveExactDropdownListOptions<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedOptions: any[]): boolean;
