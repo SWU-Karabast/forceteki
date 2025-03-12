@@ -1,4 +1,4 @@
-import type { IConstantAbilityProps, ITriggeredAbilityBaseProps } from '../../../Interfaces';
+import type { IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
@@ -20,6 +20,8 @@ import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { Card } from '../Card';
 import type { AbilityContext } from '../../ability/AbilityContext';
+import { StandardTriggeredAbilityType } from '../../Constants';
+import * as Helpers from '../../utils/Helpers';
 
 const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -248,7 +250,8 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
-        const triggeredProperties = Object.assign(properties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
+        const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenDefeated]: true };
+        const triggeredProperties = Object.assign(properties, { when });
         return this.addTriggeredAbility(triggeredProperties);
     }
 
@@ -291,6 +294,19 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
                 this._mostRecentInPlayId += 1;
             }
         }
+    }
+
+    protected override validateCardAbilities(cardText?: string) {
+        if (!this.hasImplementationFile || cardText == null) {
+            return;
+        }
+
+        Contract.assertFalse(
+            !this.disableWhenDefeatedCheck &&
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:\n)|(?:\/))When Defeated/g) &&
+            !this.triggeredAbilities.some((ability) => ability.isWhenDefeated),
+            `Card ${this.internalName} has one or more 'When Defeated' keywords in its text but no corresponding ability definition or set property 'disableWhenDefeatedCheck' to true on card implementation`
+        );
     }
 
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************

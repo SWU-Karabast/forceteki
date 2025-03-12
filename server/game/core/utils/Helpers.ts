@@ -159,6 +159,12 @@ export function mergeArrayProperty<TPropertySet extends { [key in TPropName]?: a
     return mergeProperty(propertySet, newPropName, newPropValue, (oldValue, newValue) => oldValue.concat(newValue));
 }
 
+export function hasSomeMatch(text: string, regex: RegExp) {
+    const matchIter = text.matchAll(regex);
+    const match = matchIter.next();
+    return !match.done;
+}
+
 function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergeProperty }, TMergeProperty, TPropName extends string>(
     propertySet: TPropertySet,
     newPropName: TPropName,
