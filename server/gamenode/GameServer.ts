@@ -141,7 +141,6 @@ export class GameServer {
             try {
                 // Get token from handshake auth
                 const token = socket.handshake.auth.token;
-
                 // Get user from query (for backward compatibility)
                 const queryUser = socket.handshake.query.user
                     ? JSON.parse(socket.handshake.query.user as string) : null;
@@ -150,25 +149,49 @@ export class GameServer {
                     try {
                         // Verify JWT token
                         const secret = process.env.NEXTAUTH_SECRET || '';
-                        const decoded = jwt.verify(token, secret) as any;
 
-                        if (decoded && decoded.id) {
-                            // Set authenticated user
-                            socket.data.user = {
-                                id: decoded.id,
-                                username: decoded.name || 'Anonymous'
-                            };
+                        // Try standard JWT verification first
+                        try {
+                            const decoded = jwt.verify(token, secret) as any;
+                            console.log(decoded);
+                            if (decoded && (decoded.id || decoded.sub)) {
+                                // Set authenticated user
 
-                            // Try to update login time in DB
-                            try {
+                                socket.data.user = {
+                                    id: decoded.id || decoded.sub,
+                                    username: decoded.name || 'Anonymous'
+                                };
+
+                                // Update login time in DB
+                                try {
+                                    const dbService = new DynamoDBService();
+                                    await dbService.updateUserLogin(socket.data.user.id);
+                                } catch (dbError) {
+                                    logger.warn('Failed to update user login time:', dbError);
+                                }
+                            }
+                        } catch (jwtError) {
+                            // If standard verification fails, the token might be from the session cookie
+                            logger.warn('Standard JWT verification failed:', jwtError.message);
+
+                            // Fall back to user ID in auth object if available
+                            if (socket.handshake.auth.userId) {
                                 const dbService = new DynamoDBService();
-                                await dbService.updateUserLogin(decoded.id);
-                            } catch (dbError) {
-                                logger.warn('Failed to update user login time:', dbError);
+                                const user = await dbService.getUserById(socket.handshake.auth.userId);
+
+                                if (user) {
+                                    socket.data.user = {
+                                        id: user.id,
+                                        username: user.username || 'Anonymous'
+                                    };
+                                }
+                            } else if (queryUser) {
+                                // Last resort: fall back to query user
+                                socket.data.user = queryUser;
                             }
                         }
-                    } catch (jwtError) {
-                        logger.warn('Invalid JWT token in socket connection:', jwtError);
+                    } catch (tokenError) {
+                        logger.warn('Token handling error:', tokenError);
                         // Fall back to query user
                         if (queryUser) {
                             socket.data.user = queryUser;
@@ -207,48 +230,6 @@ export class GameServer {
     }
 
     private setupAppRoutes(app: express.Application) {
-        app.post('/api/auth/register', async (req, res) => {
-            try {
-                // Get user data from request body (sent by frontend)
-                const userData = req.body;
-
-                // Validate the data (ensure it contains necessary user information)
-                if (!userData.id || !userData.name) {
-                    return res.status(400).json({ success: false, message: 'Invalid user data' });
-                }
-
-                // Save user in DynamoDB
-                const dbService = new DynamoDBService();
-
-                // Check if user already exists
-                const existingUser = await dbService.getUserById(userData.id);
-
-                if (existingUser) {
-                    // Update existing user's login time
-                    await dbService.updateUserLogin(userData.id);
-                } else {
-                    // Create new user record
-                    const newUser = {
-                        id: userData.id,
-                        username: userData.name,
-                        email: userData.email || null,
-                        provider: userData.provider || 'unknown',
-                        avatarUrl: userData.image || null,
-                        lastLogin: new Date().toISOString(),
-                        createdAt: new Date().toISOString(),
-                        settings: { cardBack: 'default' }
-                    };
-
-                    await dbService.saveUser(newUser);
-                }
-
-                res.json({ success: true });
-            } catch (error) {
-                console.error('Error registering user:', error);
-                res.status(500).json({ success: false, message: 'Failed to register user' });
-            }
-        });
-
         app.post('/api/test-dynamodb', async (req, res) => {
             const { id, data } = req.body;
 

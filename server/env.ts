@@ -13,6 +13,7 @@ const parsedEnv = z
         AWS_REGION: z.string(),
         AWS_ACCESS_KEY_ID: z.string(),
         AWS_SECRET_ACCESS_KEY: z.string(),
+        NEXTAUTH_SECRET: z.string(),
     })
     .safeParse(process.env);
 
@@ -68,3 +69,4 @@ export const secret = parsedEnv.data.SECRET;
 export const AWS_REGION = parsedEnv.data.AWS_REGION;
 export const AWS_ACCESS_KEY_ID = parsedEnv.data.AWS_ACCESS_KEY_ID;
 export const AWS_SECRET_ACCESS_KEY = parsedEnv.data.AWS_SECRET_ACCESS_KEY;
+export const NEXTAUTH_SECRET = parsedEnv.data.NEXTAUTH_SECRET;
