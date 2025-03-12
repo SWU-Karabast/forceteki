@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MoveZoneDestination } from '../core/Constants';
-import { AbilityRestriction } from '../core/Constants';
+import { AbilityRestriction, EffectName } from '../core/Constants';
 import {
     CardType,
     DeckZoneDestination,
@@ -117,8 +117,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
                 return false;
             }
         } else {
+            // Used below. Units with leaders attached need to be considered basic units (tokens with leaders attached are handled above)
+            const isUnitWithLeaderAttached = card.isUnit() && card.hasOngoingEffect(EffectName.IsLeader);
+
             // Ensure that we have a valid destination and that the card can be moved there
-            if (!context.player.isLegalZoneForCardType(card.type, destination)) {
+            if (!context.player.isLegalZoneForCardType(isUnitWithLeaderAttached ? CardType.BasicUnit : card.type, destination)) {
                 return false;
             }
         }

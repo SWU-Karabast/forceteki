@@ -54,6 +54,69 @@ describe('Asajj Ventress, I Work Alone', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should deal 1 damage to enemy unit even if the friendly unit is defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'asajj-ventress#i-work-alone',
+                        groundArena: ['superlaser-technician'],
+                        resources: 4
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        spaceArena: ['alliance-xwing']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Click Asajj and select a friendly unit
+                context.player1.clickCard(context.asajjVentress);
+                expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician]);
+                context.player1.clickCard(context.superlaserTechnician);
+
+                // Now, select an enemy unit
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(1);
+
+                context.player1.clickPrompt('Trigger'); // SLT ability
+                expect(context.asajjVentress.exhausted).toBe(true);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should deal 1 damage to enemy unit even if the friendly unit has a shield', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'asajj-ventress#i-work-alone',
+                        groundArena: [{ card: 'superlaser-technician', upgrades: ['shield'] }],
+                        resources: 4
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        spaceArena: ['alliance-xwing']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Click Asajj and select a friendly unit
+                context.player1.clickCard(context.asajjVentress);
+                expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician]);
+                context.player1.clickCard(context.superlaserTechnician);
+
+                // Now, select an enemy unit
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(1);
+
+                expect(context.asajjVentress.exhausted).toBe(true);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should not deal 1 damage to an enemy unit if there is no friendly unit to deal 1 damage to', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -212,6 +275,92 @@ describe('Asajj Ventress, I Work Alone', function() {
 
                 // Resolve attack
                 expect(context.p2Base.damage).toBe(5);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should deal 1 damage to enemy unit even if the friendly unit is defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'asajj-ventress#i-work-alone',
+                        spaceArena: ['cartel-spacer'],
+                        groundArena: ['superlaser-technician'],
+                        resources: 6
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        spaceArena: ['cartel-turncoat']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.asajjVentress);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Asajj Ventress', 'Deploy Asajj Ventress as a Pilot',
+                    'Deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.'
+                ]);
+                context.player1.clickPrompt('Deploy Asajj Ventress as a Pilot');
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player1.clickCard(context.cartelSpacer);
+
+                context.player2.passAction();
+
+                // Attack base
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.cartelSpacer]);
+                context.player1.clickCard(context.superlaserTechnician);
+
+                // Now, select an enemy unit
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(1);
+
+                context.player1.clickPrompt('Trigger'); // SLT ability
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should deal 1 damage to enemy unit even if the friendly unit has a shield', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'asajj-ventress#i-work-alone',
+                        spaceArena: ['cartel-spacer'],
+                        groundArena: [{ card: 'superlaser-technician', upgrades: ['shield'] }],
+                        resources: 6
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                        spaceArena: ['cartel-turncoat']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.asajjVentress);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Asajj Ventress', 'Deploy Asajj Ventress as a Pilot',
+                    'Deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.'
+                ]);
+                context.player1.clickPrompt('Deploy Asajj Ventress as a Pilot');
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player1.clickCard(context.cartelSpacer);
+
+                context.player2.passAction();
+
+                // Attack base
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.cartelSpacer]);
+                context.player1.clickCard(context.superlaserTechnician);
+
+                // Now, select an enemy unit
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(1);
+
                 expect(context.player2).toBeActivePlayer();
             });
         });

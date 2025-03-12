@@ -40,6 +40,10 @@ export class ActionAbility extends CardAbility {
         this.phase = properties.phase ?? PhaseName.Action;
         this.condition = properties.condition;
         this.doesNotTarget = (properties as any).doesNotTarget;
+
+        if (!card.canRegisterActionAbilities()) {
+            throw Error(`Card '${card.internalName}' cannot have action abilities`);
+        }
     }
 
     public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = [], thisStepOnly = false) {

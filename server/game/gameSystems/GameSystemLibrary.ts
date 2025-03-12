@@ -120,7 +120,7 @@ import type { ICreateXWingProperties } from './CreateXWingSystem';
 import { CreateXWingSystem } from './CreateXWingSystem';
 import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
 import { CreateTieFighterSystem } from './CreateTieFighterSystem';
-import type { IViewCardAndSelectSingleProperties, IViewCardWithPerCardButtonsProperties } from './ViewCardSystem';
+import type { IViewAndSelectCardsProperties, IViewCardWithPerCardButtonsProperties } from './ViewCardSystem';
 import { ViewCardInteractMode } from './ViewCardSystem';
 import type { IIndirectDamageToPlayerProperties } from './IndirectDamageToPlayerSystem';
 import { IndirectDamageToPlayerSystem } from './IndirectDamageToPlayerSystem';
@@ -281,11 +281,11 @@ export function lookAtAndChooseOption<TContext extends AbilityContext = AbilityC
         )
     );
 }
-export function lookAtAndSelectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewCardAndSelectSingleProperties, 'interactMode'>, TContext>) {
+export function lookAtAndSelectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewAndSelectCardsProperties, 'interactMode'>, TContext>) {
     return new LookAtSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IViewCardAndSelectSingleProperties, 'interactMode'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IViewAndSelectCardsProperties, 'interactMode'>(
             propertyFactory,
-            { interactMode: ViewCardInteractMode.SelectSingle }
+            { interactMode: ViewCardInteractMode.SelectCards }
         )
     );
 }
@@ -440,7 +440,14 @@ export function revealAndChooseOption<TContext extends AbilityContext = AbilityC
         )
     );
 }
-
+export function revealAndSelectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewAndSelectCardsProperties, 'interactMode'>, TContext>) {
+    return new RevealSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IViewAndSelectCardsProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.SelectCards }
+        )
+    );
+}
 // export function sacrifice(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}) {
 //     return new DiscardFromPlayAction(propertyFactory, true);
 // }

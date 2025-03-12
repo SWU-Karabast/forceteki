@@ -24,6 +24,7 @@ export default class WarJuggernaut extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'Deal 1 damage to each of any number of units.',
             targetResolver: {
+                activePromptTitle: 'Choose units to deal 1 damage to.',
                 mode: TargetMode.Unlimited,
                 canChooseNoCards: true,
                 cardTypeFilter: WildcardCardType.Unit,

@@ -660,28 +660,36 @@ export class GameServer {
     }
 
     public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {
-        if (!this.userLobbyMap.has(id)) {
-            this.queue.removePlayer(id);
-            return;
-        }
-        const lobbyId = this.userLobbyMap.get(id);
-        const lobby = this.lobbies.get(lobbyId);
+        try {
+            if (!this.userLobbyMap.has(id)) {
+                this.queue.removePlayer(id);
+                return;
+            }
+            const lobbyId = this.userLobbyMap.get(id);
+            const lobby = this.lobbies.get(lobbyId);
 
-        const wasManualDisconnect = !!socket?.data?.manualDisconnect;
-        if (wasManualDisconnect) {
-            this.userLobbyMap.delete(id);
-            this.removeUserMaybeCleanupLobby(lobby, id);
-            return;
-        }
-        // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
-        //  without triggering onSocketDisconnect
-        lobby?.setUserDisconnected(id);
-        setTimeout(() => {
-            // Check if the user is still disconnected after the timer
-            if (lobby?.getUserState(id) === 'disconnected') {
+            const wasManualDisconnect = !!socket?.data?.manualDisconnect;
+            if (wasManualDisconnect) {
                 this.userLobbyMap.delete(id);
                 this.removeUserMaybeCleanupLobby(lobby, id);
+                return;
             }
-        }, 20000);
+            // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
+            //  without triggering onSocketDisconnect
+            lobby?.setUserDisconnected(id);
+            setTimeout(() => {
+                try {
+                    // Check if the user is still disconnected after the timer
+                    if (lobby?.getUserState(id) === 'disconnected') {
+                        this.userLobbyMap.delete(id);
+                        this.removeUserMaybeCleanupLobby(lobby, id);
+                    }
+                } catch (err) {
+                    logger.error('Error in setTimeout for onSocketDisconnected:', err);
+                }
+            }, 20000);
+        } catch (err) {
+            logger.error('Error in onSocketDisconnected:', err);
+        }
     }
 }

@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { TargetMode } from '../../../core/Constants';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class InDebtToCrimsonDawn extends UpgradeCard {
     protected override getImplementationId () {
@@ -18,6 +19,7 @@ export default class InDebtToCrimsonDawn extends UpgradeCard {
             },
             targetResolver: {
                 mode: TargetMode.Select,
+                choosingPlayer: (context) => EnumHelpers.asRelativePlayer(context.player, context.source.parentCard.controller),
                 choices: (context) => ({
                     ['Pay 2 resources']: AbilityHelper.immediateEffects.payResourceCost({
                         target: context.source.parentCard.owner,
