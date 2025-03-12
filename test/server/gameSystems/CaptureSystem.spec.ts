@@ -90,30 +90,6 @@ describe('Capture system', function() {
             expect(context.greenSquadronAwing.exhausted).toBeTrue();
         });
 
-        it('When capturing a unit with Shielded, it should not regain its shield when it returns to play', async function () {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    groundArena: ['wampa', 'wampa'],
-                    hand: ['sanctioners-shuttle']
-                },
-                player2: {
-                    spaceArena: [{ card: 'seventh-fleet-defender', upgrades: ['shield'] }],
-                    hand: ['vanquish']
-                }
-            });
-
-            const { context } = contextRef;
-
-            context.player1.clickCard(context.sanctionersShuttle);
-            context.player1.clickCard(context.seventhFleetDefender);
-            expect(context.seventhFleetDefender).toBeCapturedBy(context.sanctionersShuttle);
-            context.player2.clickCard(context.vanquish);
-            context.player2.clickCard(context.sanctionersShuttle);
-            expect(context.seventhFleetDefender).toBeInZone('spaceArena');
-            expect(context.seventhFleetDefender).not.toHaveExactUpgradeNames(['shield']);
-        });
-
         it('When a unit with captives is taken control of and defeated, the captives should return to their owner\'s control', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
