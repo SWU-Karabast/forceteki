@@ -362,7 +362,7 @@ export class Card extends OngoingEffectSource {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected validateCardAbilities(cardData: ICardDataJson) {
+    protected validateCardAbilities(cardText: string) {
     }
 
     // ******************************************* ABILITY HELPERS *******************************************

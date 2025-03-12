@@ -21,7 +21,7 @@ import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { Card } from '../Card';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { StandardTriggeredAbilityType } from '../../Constants';
-import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
+import * as Helpers from '../../utils/Helpers';
 
 const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -296,23 +296,17 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         }
     }
 
-    protected override validateCardAbilities(cardData: ICardDataJson) {
-        if (!this.hasImplementationFile) {
+    protected override validateCardAbilities(cardText?: string) {
+        if (!this.hasImplementationFile || cardText == null) {
             return;
         }
 
         Contract.assertFalse(
             !this.disableWhenDefeatedCheck &&
-            cardData.text && this.hasSomeMatch(cardData.text, /(?:^|(?:\n)|(?:\/))When Defeated/g) &&
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:\n)|(?:\/))When Defeated/g) &&
             !this.triggeredAbilities.some((ability) => ability.isWhenDefeatedAbility),
             `Card ${this.internalName} has one or more 'When Defeated' keywords in its text but no corresponding ability definition or set property 'disableWhenDefeatedCheck' to true on card implementation`
         );
-    }
-
-    private hasSomeMatch(text: string, regex: RegExp) {
-        const matchIter = text.matchAll(regex);
-        const match = matchIter.next();
-        return !match.done;
     }
 
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************
