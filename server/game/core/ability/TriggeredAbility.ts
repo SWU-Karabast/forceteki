@@ -59,7 +59,7 @@ export default class TriggeredAbility extends CardAbility {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.OnAttack);
     }
 
-    public get isWhenDefeatedAbility() {
+    public get isWhenDefeated() {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.WhenDefeated);
     }
 

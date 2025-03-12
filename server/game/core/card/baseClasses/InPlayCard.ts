@@ -304,7 +304,7 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
         Contract.assertFalse(
             !this.disableWhenDefeatedCheck &&
             cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:\n)|(?:\/))When Defeated/g) &&
-            !this.triggeredAbilities.some((ability) => ability.isWhenDefeatedAbility),
+            !this.triggeredAbilities.some((ability) => ability.isWhenDefeated),
             `Card ${this.internalName} has one or more 'When Defeated' keywords in its text but no corresponding ability definition or set property 'disableWhenDefeatedCheck' to true on card implementation`
         );
     }
