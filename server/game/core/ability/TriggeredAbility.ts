@@ -44,35 +44,6 @@ interface IEventRegistration {
  */
 
 export default class TriggeredAbility extends CardAbility {
-    private static parseStandardTriggerTypes(when: WhenTypeOrStandard): {
-        when: WhenType;
-        standardTriggerTypes: StandardTriggeredAbilityType[];
-    } {
-        const updatedWhen: WhenType = {};
-        const standardTriggerTypes = [];
-
-        for (const [trigger, value] of Object.entries(when)) {
-            if (typeof value === 'boolean') {
-                switch (trigger) {
-                    case StandardTriggeredAbilityType.WhenDefeated:
-                        updatedWhen[EventName.OnCardDefeated] = (event, context) => event.card === context.source;
-                        break;
-                    case StandardTriggeredAbilityType.OnAttack:
-                        updatedWhen[EventName.OnAttackDeclared] = (event, context) => event.attack.attacker === context.source;
-                        break;
-                    default:
-                        Contract.fail(`Unexpected standard trigger type: ${trigger}`);
-                }
-
-                standardTriggerTypes.push(trigger);
-            } else {
-                updatedWhen[trigger] = value;
-            }
-        }
-
-        return { when: updatedWhen, standardTriggerTypes };
-    }
-
     public readonly when?: WhenType;
     public readonly aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
     public readonly anyPlayer: boolean;
@@ -105,7 +76,7 @@ export default class TriggeredAbility extends CardAbility {
         }
 
         if ('when' in properties) {
-            const { when, standardTriggerTypes } = TriggeredAbility.parseStandardTriggerTypes(properties.when);
+            const { when, standardTriggerTypes } = this.parseStandardTriggerTypes(properties.when);
             this.when = when;
             this.standardTriggerTypes = standardTriggerTypes;
         } else if ('aggregateWhen' in properties) {
@@ -136,6 +107,35 @@ export default class TriggeredAbility extends CardAbility {
                 window.addTriggeredAbilityToWindow(context);
             }
         }
+    }
+
+    private parseStandardTriggerTypes(when: WhenTypeOrStandard): {
+        when: WhenType;
+        standardTriggerTypes: StandardTriggeredAbilityType[];
+    } {
+        const updatedWhen: WhenType = {};
+        const standardTriggerTypes = [];
+
+        for (const [trigger, value] of Object.entries(when)) {
+            if (typeof value === 'boolean') {
+                switch (trigger) {
+                    case StandardTriggeredAbilityType.WhenDefeated:
+                        updatedWhen[EventName.OnCardDefeated] = (event, context) => event.card === context.source;
+                        break;
+                    case StandardTriggeredAbilityType.OnAttack:
+                        updatedWhen[EventName.OnAttackDeclared] = (event, context) => event.attack.attacker === context.source;
+                        break;
+                    default:
+                        Contract.fail(`Unexpected standard trigger type: ${trigger}`);
+                }
+
+                standardTriggerTypes.push(trigger);
+            } else {
+                updatedWhen[trigger] = value;
+            }
+        }
+
+        return { when: updatedWhen, standardTriggerTypes };
     }
 
     protected override controllerMeetsRequirements(context): boolean {

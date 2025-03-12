@@ -8,7 +8,10 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor>(Bas
         public constructor(...args: any[]) {
             super(...args);
 
+            const [Player, cardData] = this.unpackConstructorArgs(...args);
+
             this.setupCardAbilities(this);
+            this.validateCardAbilities(cardData);
 
             // if an implementation file is provided, enforce that all keywords requiring explicit setup have been set up
             if (this.hasImplementationFile) {

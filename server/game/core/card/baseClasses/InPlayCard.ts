@@ -21,6 +21,7 @@ import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { Card } from '../Card';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { StandardTriggeredAbilityType } from '../../Constants';
+import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
 
 const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -293,6 +294,25 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
                 this._mostRecentInPlayId += 1;
             }
         }
+    }
+
+    protected override validateCardAbilities(cardData: ICardDataJson) {
+        if (!this.hasImplementationFile) {
+            return;
+        }
+
+        Contract.assertFalse(
+            !this.disableWhenDefeatedCheck &&
+            cardData.text && this.hasSomeMatch(cardData.text, /(?:^|(?:\n)|(?:\/))When Defeated/g) &&
+            !this.triggeredAbilities.some((ability) => ability.isWhenDefeatedAbility),
+            `Card ${this.internalName} has one or more 'When Defeated' keywords in its text but no corresponding ability definition or set property 'disableWhenDefeatedCheck' to true on card implementation`
+        );
+    }
+
+    private hasSomeMatch(text: string, regex: RegExp) {
+        const matchIter = text.matchAll(regex);
+        const match = matchIter.next();
+        return !match.done;
     }
 
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************

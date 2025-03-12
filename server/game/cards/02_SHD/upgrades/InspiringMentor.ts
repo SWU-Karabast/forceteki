@@ -12,6 +12,8 @@ export default class InspiringMentor extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
+        this.disableWhenDefeatedCheck = true;
+
         this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
         this.addGainTriggeredAbilityTargetingAttached({
