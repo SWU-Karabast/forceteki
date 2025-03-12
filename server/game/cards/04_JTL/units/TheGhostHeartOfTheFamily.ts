@@ -15,7 +15,9 @@ export default class TheGhostHeartOfTheFamily extends NonLeaderUnitCard {
             title: 'Each other friendly Spectre unit gains this unit\'s keywords',
             matchTarget: (card, context) => card !== context.source && card.isUnit() && card.hasSomeTrait(Trait.Spectre),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeywords((target, context) => {
-                return context.source.getOngoingEffectValues(EffectName.GainKeyword);
+                const blankedKeywords = context.source.getOngoingEffectValues(EffectName.LoseKeyword);
+                return context.source.getOngoingEffectValues(EffectName.GainKeyword)
+                    .filter((keywordProps) => !blankedKeywords.includes(keywordProps.keyword));
             })
         });
 

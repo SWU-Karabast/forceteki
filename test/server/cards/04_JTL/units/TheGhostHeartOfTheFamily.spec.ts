@@ -62,7 +62,8 @@ describe('The Ghost, Heart of the Family', () => {
                             'takedown',
                             'daring-raid',
                             'top-target',                            // Bounty
-                            'chopper#metal-menace'
+                            'chopper#metal-menace',
+                            'specforce-soldier'
                         ],
                         groundArena: ['cloud-city-wing-guard']
                     }
@@ -238,6 +239,30 @@ describe('The Ghost, Heart of the Family', () => {
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1).toBeAbleToSelectExactly([context.cloudCityWingGuard]);
                 context.player1.clickCard(context.cloudCityWingGuard);
+            });
+
+            it('a keyword, then loses it, other friendly Spectre units lose that keyword too', function() {
+                const { context } = contextRef;
+
+                // Play Infiltrator's Skill on The Ghost, giving it Sentinel & Saboteur
+                context.player1.clickCard(context.infiltratorsSkill);
+                context.player1.clickCard(context.theGhost);
+
+                // Play SpecForce Soldier, removing Sentinel from The Ghost
+                context.player2.clickCard(context.specforceSoldier);
+                context.player2.clickCard(context.theGhost);
+
+                // Sabine can attack base because she still has Saboteur
+                context.player1.clickCard(context.sabineWren);
+                expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.cloudCityWingGuard, context.specforceSoldier]);
+                context.player1.clickCard(context.p2Base);
+                context.player1.clickPrompt('Deal 1 damage to the defender or a base'); // Resolve Sabine's ability
+                context.player1.clickCard(context.p2Base);
+
+                // Cloud City Wing Guard can attack base because Sabine is not Sentinel
+                context.player2.clickCard(context.cloudCityWingGuard);
+                expect(context.player2).toBeAbleToSelect(context.p1Base);
+                context.player2.clickCard(context.p1Base);
             });
         });
     });
