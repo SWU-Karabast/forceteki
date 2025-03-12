@@ -134,7 +134,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         });
     }
 
-    // TODO THIS PR: update the below to use the whenDefeated property
+    // TODO THRAWN2: update the below to use the whenDefeated property
 
     /**
      * Adds an "attached card gains [X]" ability, where X is an "when defeated" triggered ability. You can provide a match function

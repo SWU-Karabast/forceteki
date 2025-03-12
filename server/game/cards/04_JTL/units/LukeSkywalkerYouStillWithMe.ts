@@ -10,7 +10,7 @@ export default class LukeSkywalkerYouStillWithMe extends NonLeaderUnitCard {
         };
     }
 
-    // TODO THIS PR: use whenDefeated: true instead of onCardDefeated
+    // TODO THRAWN2: use whenDefeated: true instead of onCardDefeated
 
     public override setupCardAbilities () {
         this.addPilotingAbility({
