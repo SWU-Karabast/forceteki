@@ -412,7 +412,7 @@ export function resourceCard<TContext extends AbilityContext = AbilityContext>(p
  * @param {PropsFactory<ICardTargetSystemProperties, TContext>} [propertyFactory={}] - A factory function or properties object to create the card target system properties.
  * @returns {CardTargetSystem<TContext>} A new instance of the {@link MoveCardSystem} configured to move a card to the player's hand.
  */
-export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext> = {}) {
+export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveCardProperties, 'destination' | 'shuffle' | 'shuffleMovedCards'>, TContext> = {}) {
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,

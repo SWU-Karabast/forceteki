@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
-import * as Helpers from '../../../core/utils/Helpers.js';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { CardType, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../../../core/Constants';
+import * as Helper from '../../../core/utils/Helpers';
 
 export default class JumpToLightspeed extends EventCard {
     protected override getImplementationId() {
@@ -22,26 +22,33 @@ export default class JumpToLightspeed extends EventCard {
                 },
                 attachedUpgrades: {
                     mode: TargetMode.Unlimited,
+                    canChooseNoCards: true,
                     dependsOn: 'friendlySpaceUnit',
                     cardTypeFilter: WildcardCardType.NonLeaderUpgrade,
-                    cardCondition: (card, context) => card.isUpgrade() && card.parentCard === context.targets.friendlySpaceUnit
+                    cardCondition: (card, context) => card.isUpgrade() && card.parentCard === context.targets.friendlySpaceUnit,
+                    immediateEffect: AbilityHelper.immediateEffects.returnToHand((context) => ({
+                        target: context.targets.friendlySpaceUnit,
+                        attachedUpgradeOverrideHandler: (card) => (
+                            context.targets.attachedUpgrades?.includes(card)
+                                ? AbilityHelper.immediateEffects.returnToHand({ target: card })
+                                : null
+                        ),
+                    }))
                 }
             },
-            then: {
-                title: 'Return each selected card to hand',
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous((context) => [
-                    AbilityHelper.immediateEffects.returnToHand({
-                        target: context.targets.friendlySpaceUnit
-                    }),
-                    AbilityHelper.immediateEffects.simultaneous(
-                        Helpers.asArray(context.targets.attachedUpgrades).map((target) =>
-                            AbilityHelper.immediateEffects.returnToHand({
-                                target: target
-                            })
-                        )
-                    )
-                ])
-            }
+            ifYouDo: (ifYouDoContext) => ({
+                title: 'The next time you play a copy of that unit this phase, you may play it for free',
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                    effect: AbilityHelper.ongoingEffects.forFree({
+                        cardTypeFilter: CardType.BasicUnit,
+                        match: (card) => {
+                            const selectedCard = Helper.asArray(ifYouDoContext.targets.friendlySpaceUnit)[0];
+                            return selectedCard.title === card.title && selectedCard.subtitle === card.subtitle;
+                        },
+                        limit: AbilityHelper.limit.perGame(1)
+                    })
+                })
+            })
         });
     }
 }

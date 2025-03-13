@@ -12,10 +12,17 @@ import type { GameObject } from '../GameObject';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { IPlayableOrDeployableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
+import type { IUpgradeCard } from '../card/CardInterfaces';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
 }
+
+/**
+ * Signature for a method that can override the default behavior for an upgrade attached to a unit leaving the arena (being defeated).
+ * Returns `null` if it has no override for the passed upgrade card.
+ */
+export type AttachedUpgradeOverrideHandler = (card: IUpgradeCard, context: AbilityContext) => CardTargetSystem<AbilityContext> | null;
 
 /**
  * A {@link GameSystem} which targets a card or cards for its effect
@@ -172,7 +179,13 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return [context.source];
     }
 
-    protected addLeavesPlayPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected addLeavesPlayPropertiesToEvent(
+        event,
+        card: Card,
+        context: TContext,
+        additionalProperties,
+        attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler,
+    ): void {
         Contract.assertTrue(card.canBeInPlay() && card.isInPlay(), `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`);
 
         event.setContingentEventsGenerator((event) => {
@@ -188,7 +201,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             if (card.isUnit()) {
                 // add events to defeat any upgrades attached to this card and free any captured units. the events will
                 // be added as "contingent events" in the event window, so they'll resolve in the same window but after the primary event
-                contingentEvents = contingentEvents.concat(this.buildUnitCleanupContingentEvents(card, context, event));
+                contingentEvents = contingentEvents.concat(this.buildUnitCleanupContingentEvents(card, context, event, attachedUpgradeOverrideHandler));
             }
 
             if (card.isUpgrade()) {
@@ -208,28 +221,37 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         });
     }
 
-    protected buildUnitCleanupContingentEvents(card: IUnitCard, context: TContext, event: any): any[] {
+    protected buildUnitCleanupContingentEvents(card: IUnitCard, context: TContext, event: any, attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler): any[] {
         let contingentEvents = [];
-        contingentEvents = contingentEvents.concat(this.generateUpgradeDefeatEvents(card, context, event));
+        contingentEvents = contingentEvents.concat(this.generateRemoveUpgradeEvents(card, context, event, attachedUpgradeOverrideHandler));
         contingentEvents = contingentEvents.concat(this.generateRescueEvents(card, context, event));
         return contingentEvents;
     }
 
-    private generateUpgradeDefeatEvents(card: IUnitCard, context: TContext, event: any): any[] {
-        const defeatEvents = [];
+    private generateRemoveUpgradeEvents(card: IUnitCard, context: TContext, event: any, attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler): any[] {
+        const removeUpgradeEvents = [];
 
         for (const upgrade of card.upgrades) {
-            const defeatEvent = context.game.actions
-                .defeat({ target: upgrade })
-                .generateEvent(context.game.getFrameworkContext());
+            let removeUpgradeEvent: GameEvent = null;
 
-            defeatEvent.order = event.order - 1;
+            if (attachedUpgradeOverrideHandler) {
+                removeUpgradeEvent = attachedUpgradeOverrideHandler(upgrade, context)?.generateEvent(context);
+            }
 
-            defeatEvent.isContingent = true;
-            defeatEvents.push(defeatEvent);
+            // if no override, the default behavior is to defeat the attachment
+            if (!removeUpgradeEvent) {
+                removeUpgradeEvent = context.game.actions
+                    .defeat({ target: upgrade })
+                    .generateEvent(context.game.getFrameworkContext());
+            }
+
+            removeUpgradeEvent.order = event.order - 1;
+
+            removeUpgradeEvent.isContingent = true;
+            removeUpgradeEvents.push(removeUpgradeEvent);
         }
 
-        return defeatEvents;
+        return removeUpgradeEvents;
     }
 
     private generateRescueEvents(card: IUnitCard, context: TContext, event: any): any[] {
