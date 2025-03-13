@@ -21,7 +21,7 @@ export default class TimelyReinforcements extends EventCard {
                 title: 'Give them Sentinel for this phase',
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel }),
-                    target: thenContext.events[0].card,
+                    target: thenContext.events[0].generatedTokens
                 })
             })
         });
