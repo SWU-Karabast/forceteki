@@ -22,6 +22,7 @@ import { playerCannot } from './PlayerCannot';
 import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotLimitModifier';
 import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
 import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
+import type { AbilityContext } from '../core/ability/AbilityContext';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -31,6 +32,7 @@ import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/In
 
 export = {
     assignIndirectDamageDealtToOpponents: () => OngoingEffectBuilder.player.static(EffectName.AssignIndirectDamageDealtToOpponents),
+    assignIndirectDamageDealtByUnit: () => OngoingEffectBuilder.card.static(EffectName.AssignIndirectDamageDealtByUnit),
     // Card effects
     // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
     // addTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.AddTrait, trait),
@@ -116,6 +118,8 @@ export = {
                 return OngoingEffectBuilder.card.static(EffectName.GainKeyword, keywordOrKeywordProperties);
         }
     },
+    gainKeywords: (calculate: (target: any, context: AbilityContext) => IKeywordProperties[]) =>
+        OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context) => calculate(target, context)),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
     // gainAllAbilities,

@@ -15,7 +15,7 @@ export default class RuthlessRaider extends NonLeaderUnitCard {
             title: 'Deal 2 damage to an enemy base and 2 damage to an enemy unit',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onCardDefeated: (event, context) => event.card === context.source
+                whenDefeated: true
             },
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
