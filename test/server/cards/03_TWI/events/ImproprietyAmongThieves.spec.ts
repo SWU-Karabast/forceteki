@@ -7,11 +7,11 @@ describe('Impropriety Among Thieves', function () {
                         phase: 'action',
                         player1: {
                             hand: ['impropriety-among-thieves'],
-                            groundArena: ['superlaser-technician'],
+                            groundArena: [{ card: 'superlaser-technician', exhausted: true }],
                             leader: { card: 'boba-fett#daimyo', deployed: true },
                         },
                         player2: {
-                            groundArena: ['seasoned-shoretrooper'],
+                            groundArena: [{ card: 'seasoned-shoretrooper', exhausted: true }],
                             leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
                         }
                     });
@@ -19,8 +19,6 @@ describe('Impropriety Among Thieves', function () {
 
                 it('does nothing', () => {
                     const { context } = contextRef;
-                    context.superlaserTechnician.exhaust();
-                    context.seasonedShoretrooper.exhaust();
 
                     context.player1.clickCard(context.improprietyAmongThieves);
 
@@ -40,7 +38,7 @@ describe('Impropriety Among Thieves', function () {
                             leader: { card: 'boba-fett#daimyo', deployed: true },
                         },
                         player2: {
-                            groundArena: ['seasoned-shoretrooper', 'scanning-officer'],
+                            groundArena: ['seasoned-shoretrooper', { card: 'scanning-officer', exhausted: true }],
                             leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
                         }
                     });
@@ -48,14 +46,13 @@ describe('Impropriety Among Thieves', function () {
 
                 it('exchanges control of the chosen units and returns control at the start of the regroup phase', () => {
                     const { context } = contextRef;
-                    context.scanningOfficer.exhaust();
 
                     context.player1.clickCard(context.improprietyAmongThieves);
-                    expect(context.player1).toHavePrompt('Choose a ready friendly non-leader unit');
+                    expect(context.player1).toHavePrompt('Choose a friendly ready non-leader unit');
                     expect(context.player1).toBeAbleToSelectExactly(context.superlaserTechnician);
 
                     context.player1.clickCard(context.superlaserTechnician);
-                    expect(context.player1).toHavePrompt('Choose a ready enemy non-leader unit');
+                    expect(context.player1).toHavePrompt('Choose an enemy ready non-leader unit');
                     expect(context.player1).toBeAbleToSelectExactly(context.seasonedShoretrooper);
 
                     context.player1.clickCard(context.seasonedShoretrooper);
@@ -82,7 +79,7 @@ describe('Impropriety Among Thieves', function () {
                         },
                         player2: {
                             hand: ['traitorous'],
-                            groundArena: ['scanning-officer'],
+                            groundArena: [{ card: 'scanning-officer', exhausted: true }],
                             leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
                         }
                     });
@@ -90,17 +87,16 @@ describe('Impropriety Among Thieves', function () {
 
                 it('returns control of the unit to the owner at the start of the regroup phase', () => {
                     const { context } = contextRef;
-                    context.scanningOfficer.exhaust();
                     context.player1.passAction();
 
                     context.player2.clickCard(context.traitorous);
                     context.player2.clickCard(context.seasonedShoretrooper);
                     context.player1.clickCard(context.improprietyAmongThieves);
-                    expect(context.player1).toHavePrompt('Choose a ready friendly non-leader unit');
+                    expect(context.player1).toHavePrompt('Choose a friendly ready non-leader unit');
                     expect(context.player1).toBeAbleToSelectExactly(context.superlaserTechnician);
 
                     context.player1.clickCard(context.superlaserTechnician);
-                    expect(context.player1).toHavePrompt('Choose a ready enemy non-leader unit');
+                    expect(context.player1).toHavePrompt('Choose an enemy ready non-leader unit');
                     expect(context.player1).toBeAbleToSelectExactly(context.seasonedShoretrooper);
 
                     context.player1.clickCard(context.seasonedShoretrooper);

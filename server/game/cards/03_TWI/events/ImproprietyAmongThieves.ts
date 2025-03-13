@@ -1,7 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { PhaseName, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
-import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 
 export default class ImproprietyAmongThieves extends EventCard {
     protected override getImplementationId() {
@@ -13,30 +12,30 @@ export default class ImproprietyAmongThieves extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Choose a ready non-leader unit controlled by each player. ',
+            title: 'Choose a ready non-leader unit controlled by each player.',
             targetResolvers: {
                 friendlyUnit: {
-                    activePromptTitle: 'Choose a ready friendly non-leader unit',
+                    activePromptTitle: 'Choose a friendly ready non-leader unit',
                     controller: RelativePlayer.Self,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     zoneFilter: WildcardZoneName.AnyArena,
-                    cardCondition: (card: IUnitCard) => !card.isExhausted(),
+                    cardCondition: (card) => card.canBeExhausted() && !card.exhausted,
                 },
                 enemyUnit: {
                     dependsOn: 'friendlyUnit',
-                    activePromptTitle: 'Choose a ready enemy non-leader unit',
+                    activePromptTitle: 'Choose an enemy ready non-leader unit',
                     controller: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     zoneFilter: WildcardZoneName.AnyArena,
-                    cardCondition: (card: IUnitCard) => !card.isExhausted(),
+                    cardCondition: (card) => card.canBeExhausted() && !card.exhausted,
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                         AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
                             target: context.targets.friendlyUnit,
-                            newController: context.targets.friendlyUnit.controller.opponent,
+                            newController: context.player.opponent,
                         })),
                         AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
                             target: context.targets.enemyUnit,
-                            newController: context.targets.enemyUnit.controller.opponent,
+                            newController: context.player,
                         })),
                         AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
                             title: 'Owner takes control',
