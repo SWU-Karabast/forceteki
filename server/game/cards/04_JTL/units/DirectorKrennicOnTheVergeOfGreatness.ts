@@ -3,7 +3,6 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { CardType, RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
-import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
 export default class DirectorKrennicOnTheVergeOfGreatness extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -28,8 +27,7 @@ export default class DirectorKrennicOnTheVergeOfGreatness extends NonLeaderUnitC
             ongoingEffect: AbilityHelper.ongoingEffects.decreaseCost({
                 amount: 1,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                match: (card) => this.isFirstUnitWithWhenDefeatedPlayedThisPhase(card),
-                limit: AbilityLimit.perRound(1)
+                match: (card) => this.isFirstUnitWithWhenDefeatedPlayedThisPhase(card)
             }),
         });
     }
