@@ -38,6 +38,7 @@ export interface RematchRequest {
 
 export class Lobby {
     private readonly _id: string;
+    private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
     private readonly gameChat: GameChat;
@@ -51,8 +52,10 @@ export class Lobby {
     public gameType: MatchType;
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
+    private userLastActivity = new Map<string, Date>();
 
     public constructor(
+        lobbyName: string,
         lobbyGameType: MatchType,
         lobbyGameFormat: SwuGameFormat,
         cardDataGetter: CardDataGetter,
@@ -64,6 +67,7 @@ export class Lobby {
             `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
         );
         this._id = uuid();
+        this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat();
         this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
@@ -78,6 +82,10 @@ export class Lobby {
         return this._id;
     }
 
+    public get name(): string {
+        return this._lobbyName;
+    }
+
     public get format(): SwuGameFormat {
         return this.gameFormat;
     }
@@ -85,6 +93,7 @@ export class Lobby {
     public getLobbyState(): any {
         return {
             id: this._id,
+            lobbyName: this._lobbyName,
             users: this.users.map((u) => ({
                 id: u.id,
                 username: u.username,
@@ -108,10 +117,19 @@ export class Lobby {
         };
     }
 
+    public getLastActivityForUser(userId: string): Date | null {
+        return this.userLastActivity.get(userId);
+    }
+
     private createLobbyLink(): string {
         return process.env.ENVIRONMENT === 'development'
             ? `http://localhost:3000/lobby?lobbyId=${this._id}`
-            : `https://beta.karabast.net/lobby?lobbyId=${this._id}`;
+            : `https://karabast.net/lobby?lobbyId=${this._id}`;
+    }
+
+    private updateUserLastActivity(id: string): void {
+        const now = new Date();
+        this.userLastActivity.set(id, now);
     }
 
     public createLobbyUser(user, decklist = null): void {
@@ -131,6 +149,10 @@ export class Lobby {
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck
         }));
+        logger.info(`Lobby ${this.id}: Creating username: ${user.username}, id: ${user.id} and adding to users list (${this.users.length} user(s))`);
+        this.gameChat.addMessage(`${user.username} has created and joined the lobby`);
+
+        this.updateUserLastActivity(user.id);
     }
 
     public addLobbyUser(user, socket: Socket): void {
@@ -146,6 +168,7 @@ export class Lobby {
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
+            logger.info(`Lobby ${this.id}: addLobbyUser: setting state to connected for existing user: ${user.username}`);
         } else {
             this.users.push({
                 id: user.id,
@@ -154,7 +177,11 @@ export class Lobby {
                 ready: false,
                 socket
             });
+            logger.info(`Lobby ${this.id}: addLobbyUser: adding username: ${user.username}, id: ${user.id} to users list (${this.users.length} user(s))`);
+            this.gameChat.addMessage(`${user.username} has joined the lobby`);
         }
+
+        this.updateUserLastActivity(user.id);
 
         if (this.game) {
             this.sendGameState(this.game);
@@ -166,7 +193,12 @@ export class Lobby {
     private setReadyStatus(socket: Socket, ...args) {
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'boolean', 'Ready status arguments aren\'t boolean or present');
         const currentUser = this.users.find((u) => u.id === socket.user.id);
+        if (!currentUser) {
+            return;
+        }
         currentUser.ready = args[0];
+        logger.info(`Lobby ${this.id}: User: ${currentUser.username} set ready status: ${args[0]}`);
+        this.updateUserLastActivity(currentUser.id);
     }
 
     private sendChatMessage(socket: Socket, ...args) {
@@ -177,6 +209,7 @@ export class Lobby {
             return;
         }
 
+        logger.info(`Lobby ${this.id}: User: ${existingUser.username} sent chat message: ${args[0]}`);
         this.gameChat.addChatMessage(existingUser, args[0]);
         this.sendLobbyState();
     }
@@ -193,7 +226,7 @@ export class Lobby {
                 initiator: socket.user.id,
                 mode,
             };
-            logger.info(`User ${socket.user.id} requested a rematch (${mode}) in lobby ${this._id}`);
+            logger.info(`Lobby ${this.id}: User: ${socket.user.id} requested a rematch (${mode})`);
         }
         this.sendLobbyState();
     }
@@ -225,6 +258,9 @@ export class Lobby {
                 this.gameFormat);
             activeUser.importDeckValidationErrors = null;
         }
+        logger.info(`Lobby ${this.id}: User: ${activeUser.username} changing deck`);
+
+        this.updateUserLastActivity(activeUser.id);
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -233,7 +269,8 @@ export class Lobby {
 
         Contract.assertTrue(source === 'Deck' || source === 'Sideboard', `source isn't 'Deck' or 'Sideboard' but ${source}`);
 
-        const userDeck = this.getUser(socket.user.id).deck;
+        const user = this.getUser(socket.user.id);
+        const userDeck = user.deck;
 
         if (source === 'Deck') {
             userDeck.moveToSideboard(cardId);
@@ -241,9 +278,13 @@ export class Lobby {
             userDeck.moveToDeck(cardId);
         }
         // check deck for deckValidationErrors
-        this.getUser(socket.user.id).deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
+        user.deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
         // we need to clear any importDeckValidation errors otherwise they can persist
-        this.getUser(socket.user.id).importDeckValidationErrors = null;
+        user.importDeckValidationErrors = null;
+
+        logger.info(`Lobby ${this.id}: User: ${user.username} updating deck`);
+
+        this.updateUserLastActivity(user.id);
     }
 
     private getUser(id: string) {
@@ -256,6 +297,7 @@ export class Lobby {
         const user = this.users.find((u) => u.id === id);
         if (user) {
             user.state = 'disconnected';
+            logger.info(`Lobby ${this.id}: setting user: ${user.username} to disconnected!`);
         }
     }
 
@@ -285,7 +327,7 @@ export class Lobby {
                 player2Base: player2.deck.base,
             };
         } catch (error) {
-            logger.error(`Error retrieving lobby game data ${this.id}:`, error);
+            logger.error(`Lobby ${this.id}: Error retrieving lobby game data`, error);
             return null;
         }
     }
@@ -296,13 +338,15 @@ export class Lobby {
     }
 
     public isFilled(): boolean {
-        return this.users.length === 2;
+        return this.users.length >= 2;
     }
 
     public removeUser(id: string): void {
         const user = this.users.find((u) => u.id === id);
         if (user) {
             this.gameChat.addMessage(`${user.username} has left the lobby`);
+        } else {
+            return;
         }
         if (this.game) {
             this.game.addMessage(`${user.username} has left the game`);
@@ -312,7 +356,16 @@ export class Lobby {
             }
             this.sendGameState(this.game);
         }
+
+        if (this.lobbyOwnerId === id) {
+            const newOwner = this.users.find((u) => u.id !== id);
+            if (newOwner) {
+                this.lobbyOwnerId = newOwner.id;
+            }
+        }
         this.users = this.users.filter((u) => u.id !== id);
+        logger.info(`Lobby ${this.id}: removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`);
+
         this.sendLobbyState();
     }
 
@@ -323,6 +376,7 @@ export class Lobby {
     public cleanLobby(): void {
         this.game = null;
         this.users = [];
+        logger.info(`Lobby ${this.id}: cleaning lobby`);
     }
 
     public async startTestGameAsync(filename: string) {
@@ -356,6 +410,8 @@ export class Lobby {
         const game = new Game(this.buildGameSettings(), { router: this });
         this.game = game;
         game.started = true;
+
+        logger.info(`Lobby ${this.id}: starting game id: ${game.id}`);
 
         // For each user, if they have a deck, select it in the game
         this.users.forEach((user) => {
@@ -426,7 +482,7 @@ export class Lobby {
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, e: Error) {
-        logger.error(e);
+        logger.error(`Lobby ${this.id}: handleError: `, e);
 
         // const gameState = game.getState();
         // const debugData: any = {};

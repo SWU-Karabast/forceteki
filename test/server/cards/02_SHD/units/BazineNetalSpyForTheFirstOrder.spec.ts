@@ -83,6 +83,28 @@ describe('Bazin Netal, Spy For The First Order', function() {
                 expect(context.getChatLogs(1)).toContain('player1 plays Bazine Netal');
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should allow the player to choose nothing', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['bazine-netal#spy-for-the-first-order'],
+                    },
+                    player2: {
+                        hand: ['atst', 'waylay'],
+                        deck: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bazineNetal);
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+                context.player1.clickPrompt('Take nothing');
+
+                expect(context.player2.hand.length).toBe(2);
+                expect(context.bazineNetal).toBeInZone('groundArena');
+            });
         });
     });
 });

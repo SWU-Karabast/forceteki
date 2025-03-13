@@ -70,7 +70,7 @@ class Player extends GameObject {
         this.baseZone = null;
 
         /** @type {DeckZone} */
-        this.deckZone = null;
+        this.deckZone = new DeckZone(this);
 
         this.damageToBase = null;
 
@@ -235,8 +235,18 @@ class Player extends GameObject {
      * @param { String } title the title of the unit or leader to check for control of
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
-    controlsLeaderOrUnitWithTitle(title) {
-        return this.leader.title === title || this.hasSomeArenaUnit({ condition: (card) => card.title === title });
+    controlsLeaderUnitOrUpgradeWithTitle(title) {
+        return this.leader.title === title ||
+          this.hasSomeArenaUnit({ condition: (card) => card.title === title }) ||
+          this.hasSomeArenaUpgrade({ condition: (card) => card.title === title });
+    }
+
+    /**
+     * @param { Trait } trait the trait to look for
+     * @returns { boolean } true if this player controls a card with the trait
+     */
+    controlsCardWithTrait(trait, onlyUnique = false) {
+        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({ condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)) });
     }
 
     /**
@@ -275,6 +285,7 @@ class Player extends GameObject {
             case ZoneName.Hand:
                 return this.handZone.cards;
             case ZoneName.Deck:
+                Contract.assertNotNullLike(this.deckZone);
                 return this.deckZone.cards;
             case ZoneName.Discard:
                 return this.discardZone.cards;
@@ -565,6 +576,16 @@ class Player extends GameObject {
         }
     }
 
+    getStartingHandSize() {
+        let startingHandSize = 6;
+        if (this.base.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
+            this.base.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
+                startingHandSize += value.amount;
+            });
+        }
+        return startingHandSize;
+    }
+
     // /**
     //  * Called when one of the players decks runs out of cards, removing 5 honor and shuffling the discard pile back into the deck
     //  * @param {String} deck - one of 'conflict' or 'dynasty'
@@ -651,7 +672,7 @@ class Player extends GameObject {
         this.base = preparedDecklist.base;
         this.leader = preparedDecklist.leader;
 
-        this.deckZone = new DeckZone(this, preparedDecklist.deckCards);
+        this.deckZone.initialize(preparedDecklist.deckCards);
 
         // set up playable zones now that all relevant zones are created
         /** @type {PlayableZone[]} */
@@ -838,7 +859,7 @@ class Player extends GameObject {
                 if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
                     const upgrade = context.source;
                     return context.game.getArenaUnits()
-                        .filter((unit) => upgrade.canAttach(unit))
+                        .filter((unit) => upgrade.canAttach(unit, context))
                         .some((unit) => adjuster.canAdjust(context.playType, upgrade, context, unit, penaltyAspect));
                 }
                 return adjuster.canAdjust(context.playType, context.source, context, context.target, penaltyAspect);
@@ -996,7 +1017,7 @@ class Player extends GameObject {
     }
 
     get drawDeck() {
-        return this.deckZone.deck;
+        return this.deckZone?.deck;
     }
 
     /**
@@ -1142,9 +1163,9 @@ class Player extends GameObject {
             ? this.drawDeck
             : this.getCardsInZone(zone);
 
-        return zoneCards.map((card) => {
+        return zoneCards?.map((card) => {
             return card.getSummary(activePlayer);
-        });
+        }) ?? [];
     }
 
     getSortedSummaryForCardList(list, activePlayer) {
@@ -1241,8 +1262,8 @@ class Player extends GameObject {
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
             availableResources: this.readyResourceCount,
-            leader: this.leader.getSummary(activePlayer),
-            base: this.base.getSummary(activePlayer),
+            leader: this.leader?.getSummary(activePlayer),
+            base: this.base?.getSummary(activePlayer),
             id: this.id,
             left: this.left,
             name: this.name,

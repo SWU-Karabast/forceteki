@@ -70,7 +70,7 @@ export interface IDistributeAmongTargetsPromptProperties extends IPromptProperti
 export interface IDistributeAmongTargetsPromptData {
     type: DistributePromptType;
     amount: number;
-    isIndirectDamange: boolean;
+    isIndirectDamage: boolean;
     canDistributeLess: boolean;
     maxTargets?: number;
 }
@@ -129,7 +129,7 @@ export interface ISelectableCard {
 export interface IDisplayCardsSelectProperties extends IDisplayCardPromptPropertiesBase {
     selectedCardsHandler: (cards: Card[]) => void;
     validCardCondition?: (card: Card) => boolean;
-    canChooseNothing?: boolean;
+    canChooseFewer?: boolean;
     maxCards?: number;
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[]) => boolean;
     noSelectedCardsButtonText?: string;

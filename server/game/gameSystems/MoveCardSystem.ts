@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MoveZoneDestination } from '../core/Constants';
-import { AbilityRestriction } from '../core/Constants';
+import { AbilityRestriction, EffectName } from '../core/Constants';
 import {
     CardType,
     DeckZoneDestination,
@@ -28,7 +28,7 @@ import * as Contract from '../core/utils/Contract';
  * @property shuffleMovedCards - Indicates whether all targets should be shuffled before added into the destination.
  */
 export interface IMoveCardProperties extends ICardTargetSystemProperties {
-    destination?: Exclude<MoveZoneDestination, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
+    destination: Exclude<MoveZoneDestination, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
     shuffle?: boolean;
     shuffleMovedCards?: boolean;
 }
@@ -110,22 +110,29 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         const { destination } = properties;
 
+        Contract.assertNotNullLike(destination);
+
         if (card.isToken()) {
-            Contract.assertTrue(destination !== ZoneName.Base, `${destination} is not a valid zone for a token card`);
+            if (destination === ZoneName.Base) {
+                return false;
+            }
         } else {
+            // Used below. Units with leaders attached need to be considered basic units (tokens with leaders attached are handled above)
+            const isUnitWithLeaderAttached = card.isUnit() && card.hasOngoingEffect(EffectName.IsLeader);
+
             // Ensure that we have a valid destination and that the card can be moved there
-            Contract.assertTrue(
-                destination && context.player.isLegalZoneForCardType(card.type, destination),
-                `${destination} is not a valid zone for ${card.type}`
-            );
+            if (!context.player.isLegalZoneForCardType(isUnitWithLeaderAttached ? CardType.BasicUnit : card.type, destination)) {
+                return false;
+            }
         }
 
         // Ensure that if the card is returning to the hand, it must be in the discard pile or in play or be a resource
         if (destination === ZoneName.Hand) {
-            Contract.assertTrue(
-                [ZoneName.Discard, ZoneName.Resource].includes(card.zoneName) || EnumHelpers.isArena(card.zoneName),
-                `Cannot use MoveCardSystem to return a card to hand from ${card.zoneName}`
-            );
+            if (
+                !([ZoneName.Discard, ZoneName.Resource].includes(card.zoneName)) && !EnumHelpers.isArena(card.zoneName)
+            ) {
+                return false;
+            }
 
             if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.ReturnToHand, context)) {
                 return false;

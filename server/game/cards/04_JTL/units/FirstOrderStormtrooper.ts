@@ -15,7 +15,7 @@ export default class FirstOrderStormtrooper extends NonLeaderUnitCard {
             title: 'Deal 1 indirect damage to a player',
             when: {
                 onAttackDeclared: (event, context) => event.attack.attacker === context.source,
-                onCardDefeated: (event, context) => event.card === context.source,
+                whenDefeated: true,
             },
             targetResolver: {
                 mode: TargetMode.Player,

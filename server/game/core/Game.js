@@ -103,7 +103,10 @@ class Game extends EventEmitter {
         this.registerGlobalRulesListeners();
 
         // TODO TWIN SUNS
-        Contract.assertArraySize(details.players, 2, 'Game must have exactly 2 players');
+        Contract.assertArraySize(
+            details.players, 2, `
+            Game must have exactly 2 players, received ${details.players.length}: ${details.players.map((player) => player.id).join(', ')}`
+        );
 
         details.players.forEach((player) => {
             this.playersAndSpectators[player.id] = new Player(
@@ -897,6 +900,7 @@ class Game extends EventEmitter {
             []
         );
 
+        this.resolveGameState(true);
         this.pipeline.initialise([new SetupPhase(this), new SimpleStep(this, () => this.beginRound(), 'beginRound')]);
 
         this.playStarted = true;

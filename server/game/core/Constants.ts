@@ -68,10 +68,12 @@ export enum EffectName {
     AdditionalTriggerCost = 'additionalTriggercost',
     AddTrait = 'addTrait',
     AssignIndirectDamageDealtToOpponents = 'assignIndirectDamageDealtToOpponents',
+    AssignIndirectDamageDealtByUnit = 'assignIndirectDamageDealtByUnit',
     Blank = 'blank',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
+    CanBePlayedWithPilotingIgnoringPilotLimit = 'canBePlayedWithPilotingIgnoringPilotLimit',
     CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
     CanPlayFromDiscard = 'canPlayFromDiscard',
     ChangeType = 'changeType',
@@ -87,13 +89,18 @@ export enum EffectName {
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
     ModifyHp = 'modifyHp',
+    ModifyIndirectDamage = 'modifyIndirectDamage',
+    ModifyPilotLimit = 'modifyPilotLimit',
+    ModifyStartingHandSize = 'modifyStartingHandSize',
     ModifyPower = 'modifyPower',
     ModifyStats = 'modifyStats',
     MustBeChosen = 'mustBeChosen',
+    NoMulligan = 'noMulligan',
     SetPower = 'setPower',
     ShowTopCard = 'showTopCard',
     SuppressEffects = 'suppressEffects',
     TakeControl = 'takeControl',
+    TokenUnitsEnterPlayReady = 'tokenUnitsEnterPlayReady',
     UnlessActionCost = 'unlessActionCost',
     UpgradeHpModifier = 'upgradeHpModifier',
     UpgradePowerModifier = 'upgradePowerModifier',
@@ -101,6 +108,7 @@ export enum EffectName {
     // "cannot" effects
     CannotApplyLastingEffects = 'cannotApplyLastingEffects',
     CannotAttackBase = 'cannotAttackBase',
+    CannotAttack = 'cannotAttack',
 }
 
 export enum Duration {
@@ -130,6 +138,11 @@ export enum WildcardRelativePlayer {
 }
 
 export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
+
+export enum StandardTriggeredAbilityType {
+    WhenDefeated = 'whenDefeated',
+    OnAttack = 'onAttack'
+}
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',
@@ -168,7 +181,7 @@ export enum CardType {
     LeaderUpgrade = 'leaderUpgrade',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
-    UnitUpgrade = 'unitUpgrade',
+    NonLeaderUnitUpgrade = 'nonLeaderUnitUpgrade',
 }
 
 export enum WildcardCardType {
@@ -184,6 +197,8 @@ export enum WildcardCardType {
 
     /** Any upgrade type, including token upgrades */
     Upgrade = 'upgrade',
+
+    UnitUpgrade = 'unitUpgrade',
 }
 
 export type CardTypeFilter = CardType | WildcardCardType;

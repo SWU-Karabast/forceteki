@@ -69,7 +69,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
                         base: { card: 'dagobah-swamp', damage: 5 }
                     },
                     player2: {
-                        groundArena: ['specforce-soldier', 'atst'],
+                        groundArena: [{ card: 'x34-landspeeder', upgrades: ['wingman-victor-three#backstabber'] }, 'atst'],
                     }
                 });
             });
@@ -86,7 +86,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
 
                 // case 2: enemy unit defeated
                 context.player1.clickCard(context.wampa);
-                context.player1.clickCard(context.specforceSoldier);
+                context.player1.clickCard(context.x34Landspeeder);
                 expect(context.p1Base.damage).toBe(4);
             });
 

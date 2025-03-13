@@ -21,6 +21,10 @@ const bannedCards = new Map([
     ['4626028465', 'boba-fett#collecting-the-bounty']
 ]);
 
+const maxCopiesOfCards = new Map([
+    ['2177194044', 15], // Swarming Vulture Droid
+]);
+
 const minDeckSizeModifier = new Map([
     ['4301437393', -5], // Thermal Oscillator
     ['4028826022', 10], // Data Vault
@@ -34,6 +38,7 @@ interface ICardCheckData {
     banned: boolean;
     implemented: boolean;
     minDeckSizeModifier?: number;
+    maxCopiesOfCardOverride?: number;
 }
 
 export class DeckValidator {
@@ -65,7 +70,8 @@ export class DeckValidator {
                 set: EnumHelpers.checkConvertToEnum(cardData.setId.set, SwuSet)[0],
                 banned: bannedCards.has(cardData.id),
                 implemented: !Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id),
-                minDeckSizeModifier: minDeckSizeModifier.get(cardData.id)
+                minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
+                maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
             };
 
             this.cardData.set(cardData.id, cardCheckData);
@@ -249,10 +255,12 @@ export class DeckValidator {
     }
 
     protected checkMaxCopiesOfCard(card: ISwuDbCardEntry, cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
-        if (card.count > 3) {
+        const maxCount = cardData.maxCopiesOfCardOverride ?? 3;
+
+        if (card.count > maxCount) {
             failures[DeckValidationFailureReason.TooManyCopiesOfCard].push({
                 card: { id: card.id, name: cardData.titleAndSubtitle },
-                maxCopies: 3,
+                maxCopies: maxCount,
                 actualCopies: card.count
             });
         }

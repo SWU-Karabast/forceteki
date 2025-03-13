@@ -89,6 +89,59 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.bobaFett.exhausted).toBe(false);
             });
 
+            describe('when dealing simultaneous damage to multiple targets,', function () {
+                beforeEach(function () {
+                    return contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            leader: 'boba-fett#any-methods-necessary',
+                            groundArena: ['wampa'],
+                            hand: ['overwhelming-barrage']
+                        },
+                        player2: {
+                            groundArena: ['atst', 'consular-security-force']
+                        }
+                    });
+                });
+
+                it('should only show one trigger prompt and go away when triggered', function () {
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.overwhelmingBarrage);
+                    context.player1.clickCard(context.wampa);
+                    context.player1.setDistributeDamagePromptState(new Map([
+                        [context.atst, 3],
+                        [context.consularSecurityForce, 3],
+                    ]));
+
+                    expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                    context.player1.clickPrompt('Trigger');
+                    context.player1.clickPrompt('Opponent');
+                    expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
+                    context.player2.setDistributeIndirectDamagePromptState(new Map([
+                        [context.p2Base, 1],
+                    ]));
+
+                    expect(context.player2).toBeActivePlayer();
+                });
+
+                it('should only show one trigger prompt and go away when passed', function () {
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.overwhelmingBarrage);
+                    context.player1.clickCard(context.wampa);
+                    context.player1.setDistributeDamagePromptState(new Map([
+                        [context.atst, 3],
+                        [context.consularSecurityForce, 3],
+                    ]));
+
+                    expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                    context.player1.clickPrompt('Pass');
+
+                    expect(context.player2).toBeActivePlayer();
+                });
+            });
+
             it('does not deal 4 damage when deployed as a unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -117,7 +170,7 @@ describe('Boba Fett, Any Methods Necessary', function() {
                     phase: 'action',
                     player1: {
                         leader: 'boba-fett#any-methods-necessary',
-                        spaceArena: ['cartel-spacer'],
+                        spaceArena: ['cartel-spacer', 'auzituck-liberator-gunship'],
                         resources: 6
                     },
                     player2: {
@@ -133,16 +186,16 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Boba Fett', 'Deploy Boba Fett as a Pilot']);
                 context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
                 expect(context.player2).not.toBeActivePlayer();
-                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
-                context.player1.clickCard(context.cartelSpacer);
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.auzituckLiberatorGunship]);
+                context.player1.clickCard(context.auzituckLiberatorGunship);
 
                 expect(context.bobaFett.deployed).toBe(true);
                 expect(context.bobaFett).toBeInZone('spaceArena');
-                expect(context.cartelSpacer.getPower()).toBe(6);
-                expect(context.cartelSpacer.getHp()).toBe(7);
-                expect(context.cartelSpacer).toHaveExactUpgradeNames(['boba-fett#any-methods-necessary']);
+                expect(context.auzituckLiberatorGunship.getPower()).toBe(7);
+                expect(context.auzituckLiberatorGunship.getHp()).toBe(8);
+                expect(context.auzituckLiberatorGunship).toHaveExactUpgradeNames(['boba-fett#any-methods-necessary']);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.auzituckLiberatorGunship, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
                 expect(context.player1).toHaveChooseNoTargetButton();
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.wampa, 2],
@@ -156,10 +209,10 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.cartelSpacer.damage).toBe(1);
 
                 context.player2.clickCard(context.rivalsFall);
-                expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
-                context.player2.clickCard(context.cartelSpacer);
+                expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer, context.auzituckLiberatorGunship, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
+                context.player2.clickCard(context.auzituckLiberatorGunship);
 
-                expect(context.cartelSpacer).toBeInZone('discard');
+                expect(context.auzituckLiberatorGunship).toBeInZone('discard');
                 expect(context.bobaFett).toBeInZone('base');
                 expect(context.bobaFett.exhausted).toBe(true);
                 expect(context.bobaFett.deployed).toBe(false);

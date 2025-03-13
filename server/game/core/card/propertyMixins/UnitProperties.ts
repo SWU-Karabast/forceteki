@@ -1,6 +1,6 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena } from '../../Constants';
-import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
+import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, PlayType, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
@@ -12,7 +12,7 @@ import type { ICardWithPrintedPowerProperty } from './PrintedPower';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, IKeywordProperties, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
@@ -34,8 +34,12 @@ import type { IUpgradeCard } from '../CardInterfaces';
 import type { ActionAbility } from '../../ability/ActionAbility';
 import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
+import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
+import type { AbilityContext } from '../../ability/AbilityContext';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
+
+type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IAbilityPropsWithType<TTarget> & IGainCondition<TSource>;
 
 export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWithPrintedPowerProperty {
     get defaultArena(): Arena;
@@ -60,7 +64,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
     unattachUpgrade(upgrade, event);
-    canAttachPilot(): boolean;
+    canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean;
     attachUpgrade(upgrade);
     getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
 }
@@ -235,7 +239,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             if (this.isLeaderAttachedToThis()) {
                 return CardType.LeaderUnit;
             }
-            return this.isAttached() ? CardType.UnitUpgrade : this.printedType;
+            return super.getType();
         }
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
@@ -260,6 +264,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return true;
             }
             if (this.hasOngoingEffect(EffectName.CannotAttackBase) && target.isBase()) {
+                return true;
+            }
+
+            if (this.hasOngoingEffect(EffectName.CannotAttack)) {
                 return true;
             }
 
@@ -347,8 +355,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 case AbilityType.Triggered:
                     this.pilotingTriggeredAbilities.push(this.createTriggeredAbility(properties));
                     break;
+                case AbilityType.ReplacementEffect:
+                    this.pilotingTriggeredAbilities.push(this.createReplacementEffectAbility(properties));
+                    break;
                 default:
-                    Contract.fail(`Unsupported ability type ${properties.type}`);
+                    Contract.fail(`Unsupported ability type ${(properties as any).type}`);
             }
         }
 
@@ -358,26 +369,52 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 title: properties.title,
                 matchTarget: (card, context) => card === context.source.parentCard,
                 targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
-                condition: properties.condition,
+                condition: this.addZoneCheckToGainCondition(properties.condition),
                 ongoingEffect: properties.ongoingEffect
             });
         }
 
-        public addPilotingGainKeywordTargetingAttached(properties: IKeywordProperties) {
+        public addPilotingGainKeywordTargetingAttached(properties: IKeywordPropertiesWithGainCondition<this>) {
+            const { gainCondition, ...gainedKeywordProperties } = properties;
+
             this.addPilotingConstantAbilityTargetingAttached({
                 title: 'Give keyword to the attached card',
-                ongoingEffect: OngoingEffectLibrary.gainKeyword(properties)
+                condition: this.addZoneCheckToGainCondition(gainCondition),
+                ongoingEffect: OngoingEffectLibrary.gainKeyword(gainedKeywordProperties)
             });
         }
 
-        public addPilotingGainAbilityTargetingAttached(properties: IAbilityPropsWithType<this>) {
+        public addPilotingGainAbilityTargetingAttached(properties: IAbilityPropsWithGainCondition<this, IUnitCard>) {
+            const { gainCondition, ...gainedAbilityProperties } = properties;
+
             this.addPilotingConstantAbilityTargetingAttached({
                 title: 'Give ability to the attached card',
-                ongoingEffect: OngoingEffectLibrary.gainAbility(properties)
+                condition: this.addZoneCheckToGainCondition(gainCondition),
+                ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProperties)
             });
+        }
+
+        public addPilotingGainTriggeredAbilityTargetingAttached(properties: ITriggeredAbilityPropsWithGainCondition<this, IUnitCard>) {
+            this.addPilotingGainAbilityTargetingAttached({
+                type: AbilityType.Triggered,
+                title: 'Give triggered ability to the attached card',
+                ...properties
+            });
+        }
+
+        public override getActionAbilities(): ActionAbility[] {
+            return this.isBlank() ? [] : super.getActionAbilities();
         }
 
         public override getTriggeredAbilities(): TriggeredAbility[] {
+            if (this.isBlank()) {
+                return [];
+            }
+
+            if (EnumHelpers.isUnitUpgrade(this.getType())) {
+                return this.pilotingTriggeredAbilities;
+            }
+
             let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
@@ -398,6 +435,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         public override getConstantAbilities(): IConstantAbility[] {
+            if (this.isBlank()) {
+                return [];
+            }
+
+            if (EnumHelpers.isUnitUpgrade(this.getType())) {
+                return this.pilotingConstantAbilities;
+            }
+
             let constantAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingConstantAbilities : super.getConstantAbilities();
 
             // add any temporarily registered attack abilities from keywords
@@ -417,29 +462,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected override updateTriggeredAbilitiesForZone(from: ZoneName, to: ZoneName) {
-            let abilitiesToUpdate: TriggeredAbility[];
-
-            // if not piloting, just use default behavior
-            if (EnumHelpers.isArena(to)) {
-                abilitiesToUpdate = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : this.triggeredAbilities;
-            } else {
-                abilitiesToUpdate = this.pilotingTriggeredAbilities.concat(this.triggeredAbilities);
-            }
-
-            super.updateTriggeredAbilityEventsInternal(abilitiesToUpdate, from, to);
+            super.updateTriggeredAbilityEventsInternal(this.pilotingTriggeredAbilities.concat(this.triggeredAbilities), from, to);
         }
 
         protected override updateConstantAbilityEffects(from: ZoneName, to: ZoneName): void {
-            let abilitiesToUpdate: IConstantAbility[];
-
-            // if not piloting, just use default behavior
-            if (EnumHelpers.isArena(to)) {
-                abilitiesToUpdate = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingConstantAbilities : this.constantAbilities;
-            } else {
-                abilitiesToUpdate = this.pilotingConstantAbilities.concat(this.constantAbilities);
-            }
-
-            super.updateConstantAbilityEffectsInternal(abilitiesToUpdate, from, to, true);
+            super.updateConstantAbilityEffectsInternal(this.pilotingConstantAbilities.concat(this.constantAbilities), from, to, true);
         }
 
         /** Register / un-register the effects for any abilities from keywords */
@@ -770,13 +797,18 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         /**
          *  This should only be called if a unit is a Pilot or has some other ability that lets it attach as an upgrade
          * @param {Card} targetCard The card that this would be attached to
+         * @param {AbilityContext} context The ability context
          * @param {Player} controller The controller of this card
          * @returns True if this is allowed to attach to the targetCard; false otherwise
          */
-        public override canAttach(targetCard: Card, controller: Player = this.controller): boolean {
+        public override canAttach(targetCard: Card, context: AbilityContext, controller: Player = this.controller): boolean {
             Contract.assertTrue(this.canBeUpgrade);
-            if (this.hasSomeKeyword(KeywordName.Piloting) && targetCard.isUnit()) {
-                return targetCard.canAttachPilot() && targetCard.controller === controller;
+            if (targetCard.isUnit()) {
+                if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
+                    return targetCard.canAttachPilot(this, context.playType) && targetCard.controller === controller;
+                } else if (this.hasSomeTrait(Trait.Pilot)) {
+                    return targetCard.canAttachPilot(this, context.playType);
+                }
             }
             // TODO: Handle Phantom II and Sidon Ithano
             return false;
@@ -784,17 +816,36 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
 
         /**
          * Checks if a pilot can be attached to this unit
+         * @param {IUnitCard} pilot The pilot card that would be attached to this unit
+         * @param {PlayType=} playType The type of play that is being used to attach the pilot
          * @returns True if a Pilot can be attached to this unit; false otherwise
          */
-        public canAttachPilot(): boolean {
+        public canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean {
             if (!this.hasSomeTrait(Trait.Vehicle)) {
                 return false;
             }
 
-            // TODO: we need logic for cards that override the pilot limit
-            if (this.upgrades.length > 0) {
-                return !this.upgrades.some((upgrade) => upgrade.hasSomeTrait(Trait.Pilot));
+            // Check if the card is being played with Piloting since the pilot limit
+            // applies only in that case
+            if (playType === PlayType.Piloting) {
+                // Check if the card can be played with Piloting ignoring the pilot limit,
+                // for example "R2-D2, Artooooooooo"
+                if (pilot.hasOngoingEffect(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit)) {
+                    return true;
+                }
+
+                // Calculate the pilot limit of the card applying all the modifiers
+                const pilotCount = this.upgrades
+                    .reduce((count, upgrade) => (upgrade.hasSomeTrait(Trait.Pilot) ? count + 1 : count), 0);
+                const pilotLimit = this.getOngoingEffectValues<PilotLimitModifier>(EffectName.ModifyPilotLimit)
+                    .reduce((limit, modifier) => limit + modifier.amount, 1);
+
+                // Ensure that the card doesn't already have the maximum number of pilots
+                if (pilotCount >= pilotLimit) {
+                    return false;
+                }
             }
+
             return true;
         }
 

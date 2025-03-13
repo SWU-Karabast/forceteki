@@ -27,7 +27,7 @@ export default class LandoCalrissianWithImpeccableTaste extends LeaderUnitCard {
         };
     }
 
-    private buildDefeatResourceAbility(): IThenAbilityPropsWithSystems<AbilityContext> {
+    private buildDefeatResourceAbility(): IThenAbilityPropsWithSystems<AbilityContext<this>> {
         return {
             title: 'Defeat a resource you own and control',
             targetResolver: {
