@@ -149,6 +149,8 @@ export class Lobby {
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck
         }));
+        logger.info(`Lobby ${this.id}: Creating username: ${user.username}, id: ${user.id} and adding to users list (${this.users.length} user(s))`);
+        this.gameChat.addMessage(`${user.username} has created and joined the lobby`);
 
         this.updateUserLastActivity(user.id);
     }
@@ -166,6 +168,7 @@ export class Lobby {
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
+            logger.info(`Lobby ${this.id}: addLobbyUser: setting state to connected for existing user: ${user.username}`);
         } else {
             this.users.push({
                 id: user.id,
@@ -174,6 +177,8 @@ export class Lobby {
                 ready: false,
                 socket
             });
+            logger.info(`Lobby ${this.id}: addLobbyUser: adding username: ${user.username}, id: ${user.id} to users list (${this.users.length} user(s))`);
+            this.gameChat.addMessage(`${user.username} has joined the lobby`);
         }
 
         this.updateUserLastActivity(user.id);
@@ -188,7 +193,11 @@ export class Lobby {
     private setReadyStatus(socket: Socket, ...args) {
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'boolean', 'Ready status arguments aren\'t boolean or present');
         const currentUser = this.users.find((u) => u.id === socket.user.id);
+        if (!currentUser) {
+            return;
+        }
         currentUser.ready = args[0];
+        logger.info(`Lobby ${this.id}: User: ${currentUser.username} set ready status: ${args[0]}`);
         this.updateUserLastActivity(currentUser.id);
     }
 
@@ -200,6 +209,7 @@ export class Lobby {
             return;
         }
 
+        logger.info(`Lobby ${this.id}: User: ${existingUser.username} sent chat message: ${args[0]}`);
         this.gameChat.addChatMessage(existingUser, args[0]);
         this.sendLobbyState();
     }
@@ -216,7 +226,7 @@ export class Lobby {
                 initiator: socket.user.id,
                 mode,
             };
-            logger.info(`User ${socket.user.id} requested a rematch (${mode}) in lobby ${this._id}`);
+            logger.info(`Lobby ${this.id}: User: ${socket.user.id} requested a rematch (${mode})`);
         }
         this.sendLobbyState();
     }
@@ -248,6 +258,7 @@ export class Lobby {
                 this.gameFormat);
             activeUser.importDeckValidationErrors = null;
         }
+        logger.info(`Lobby ${this.id}: User: ${activeUser.username} changing deck`);
 
         this.updateUserLastActivity(activeUser.id);
     }
@@ -271,6 +282,8 @@ export class Lobby {
         // we need to clear any importDeckValidation errors otherwise they can persist
         user.importDeckValidationErrors = null;
 
+        logger.info(`Lobby ${this.id}: User: ${user.username} updating deck`);
+
         this.updateUserLastActivity(user.id);
     }
 
@@ -284,6 +297,7 @@ export class Lobby {
         const user = this.users.find((u) => u.id === id);
         if (user) {
             user.state = 'disconnected';
+            logger.info(`Lobby ${this.id}: setting user: ${user.username} to disconnected!`);
         }
     }
 
@@ -313,7 +327,7 @@ export class Lobby {
                 player2Base: player2.deck.base,
             };
         } catch (error) {
-            logger.error(`Error retrieving lobby game data ${this.id}:`, error);
+            logger.error(`Lobby ${this.id}: Error retrieving lobby game data`, error);
             return null;
         }
     }
@@ -349,8 +363,9 @@ export class Lobby {
                 this.lobbyOwnerId = newOwner.id;
             }
         }
-
         this.users = this.users.filter((u) => u.id !== id);
+        logger.info(`Lobby ${this.id}: removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`);
+
         this.sendLobbyState();
     }
 
@@ -361,6 +376,7 @@ export class Lobby {
     public cleanLobby(): void {
         this.game = null;
         this.users = [];
+        logger.info(`Lobby ${this.id}: cleaning lobby`);
     }
 
     public async startTestGameAsync(filename: string) {
@@ -394,6 +410,8 @@ export class Lobby {
         const game = new Game(this.buildGameSettings(), { router: this });
         this.game = game;
         game.started = true;
+
+        logger.info(`Lobby ${this.id}: starting game id: ${game.id}`);
 
         // For each user, if they have a deck, select it in the game
         this.users.forEach((user) => {
@@ -464,7 +482,7 @@ export class Lobby {
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, e: Error) {
-        logger.error(e);
+        logger.error(`Lobby ${this.id}: handleError: `, e);
 
         // const gameState = game.getState();
         // const debugData: any = {};

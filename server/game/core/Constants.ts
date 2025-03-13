@@ -68,6 +68,7 @@ export enum EffectName {
     AdditionalTriggerCost = 'additionalTriggercost',
     AddTrait = 'addTrait',
     AssignIndirectDamageDealtToOpponents = 'assignIndirectDamageDealtToOpponents',
+    AssignIndirectDamageDealtByUnit = 'assignIndirectDamageDealtByUnit',
     Blank = 'blank',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
@@ -88,6 +89,7 @@ export enum EffectName {
     LoseKeyword = 'loseKeyword',
     LoseTrait = 'loseTrait',
     ModifyHp = 'modifyHp',
+    ModifyIndirectDamage = 'modifyIndirectDamage',
     ModifyPilotLimit = 'modifyPilotLimit',
     ModifyStartingHandSize = 'modifyStartingHandSize',
     ModifyPower = 'modifyPower',
@@ -136,6 +138,11 @@ export enum WildcardRelativePlayer {
 }
 
 export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
+
+export enum StandardTriggeredAbilityType {
+    WhenDefeated = 'whenDefeated',
+    OnAttack = 'onAttack'
+}
 
 export enum TargetMode {
     AutoSingle = 'autoSingle',

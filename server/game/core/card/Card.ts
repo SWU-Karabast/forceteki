@@ -33,6 +33,8 @@ import type { ICardCanChangeControllers, IUpgradeCard } from './CardInterfaces';
 import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
+import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
+import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
 
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
@@ -99,6 +101,7 @@ export class Card extends OngoingEffectSource {
     protected actionAbilities: ActionAbility[] = [];
     protected constantAbilities: IConstantAbility[] = [];
     protected _controller: Player;
+    protected disableWhenDefeatedCheck = false;
     protected _facedown = true;
     protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
     protected hiddenForOpponent = true;
@@ -358,6 +361,10 @@ export class Card extends OngoingEffectSource {
     protected initializeStateForAbilitySetup() {
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected validateCardAbilities(cardText: string) {
+    }
+
     // ******************************************* ABILITY HELPERS *******************************************
     public createActionAbility<TSource extends Card = this>(properties: IActionAbilityProps<TSource>): ActionAbility {
         return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
@@ -476,6 +483,20 @@ export class Card extends OngoingEffectSource {
     /**
      * Returns true if the card is a type that can legally have triggered abilities.
      */
+    public canRegisterActionAbilities(): this is ICardWithActionAbilities {
+        return false;
+    }
+
+    /**
+     * Returns true if the card is a type that can legally have triggered abilities.
+     */
+    public canRegisterConstantAbilities(): this is ICardWithConstantAbilities {
+        return false;
+    }
+
+    /**
+     * Returns true if the card is a type that can legally have triggered abilities.
+     */
     public canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
         return false;
     }
@@ -493,11 +514,21 @@ export class Card extends OngoingEffectSource {
     /** Helper method for {@link Card.keywords} */
     protected getKeywords() {
         let keywordInstances = [...this.printedKeywords];
-        const gainKeywordEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword);
+        const gainKeywordEffects = this.getOngoingEffects()
+            .filter((ongoingEffect) => ongoingEffect.type === EffectName.GainKeyword);
+
         for (const effect of gainKeywordEffects) {
             const keywordProps = effect.getValue(this);
-            keywordInstances.push(KeywordHelpers.keywordFromProperties(keywordProps, this));
+
+            if (Array.isArray(keywordProps)) {
+                for (const props of keywordProps) {
+                    keywordInstances.push(KeywordHelpers.keywordFromProperties(props, this));
+                }
+            } else {
+                keywordInstances.push(KeywordHelpers.keywordFromProperties(keywordProps, this));
+            }
         }
+
         keywordInstances = keywordInstances.filter((instance) => !instance.isBlank);
 
         return keywordInstances;

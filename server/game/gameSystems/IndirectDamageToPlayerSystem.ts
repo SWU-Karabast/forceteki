@@ -1,6 +1,6 @@
 import * as EnumHelpers from '../core/utils/EnumHelpers.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
-import { EventName } from '../core/Constants.js';
+import { EffectName, EventName, RelativePlayer } from '../core/Constants.js';
 import type { GameEvent } from '../core/event/GameEvent.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
@@ -26,10 +26,24 @@ export class IndirectDamageToPlayerSystem<TContext extends AbilityContext = Abil
         super.queueGenerateEventGameSteps(events, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const sourcePlayer = context.player;
+        const choosingPlayer = EnumHelpers.asRelativePlayer(properties.target[0], sourcePlayer);
+
+        let indirectDamageAmount = properties.amount;
+
+        if (context.player.hasOngoingEffect(EffectName.ModifyIndirectDamage)) {
+            context.player.getOngoingEffectValues(EffectName.ModifyIndirectDamage).forEach((value) => {
+                if (value.opponentsOnly === true && choosingPlayer === RelativePlayer.Opponent) {
+                    indirectDamageAmount += value.amount;
+                } else {
+                    indirectDamageAmount += value.amount;
+                }
+            });
+        }
 
         new DistributeIndirectDamageToCardsSystem({
-            amountToDistribute: properties.amount,
-            player: EnumHelpers.asRelativePlayer(properties.target[0], context.player),
+            amountToDistribute: indirectDamageAmount,
+            player: choosingPlayer,
         }).queueGenerateEventGameSteps(events, context);
     }
 

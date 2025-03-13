@@ -14,7 +14,7 @@ export default class BlackOneScourgeOfStarkillerBase extends NonLeaderUnitCard {
             title: 'Discard your hand',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onCardDefeated: (event, context) => event.card === context.source,
+                whenDefeated: true
             },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.discardEntireHand((context) => ({ target: context.player })),

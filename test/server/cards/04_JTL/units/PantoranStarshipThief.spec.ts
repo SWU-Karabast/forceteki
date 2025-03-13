@@ -5,6 +5,7 @@ describe('Pantoran Starship Thief', function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
+                        leader: 'darth-vader#victor-squadron-leader',
                         hand: ['pantoran-starship-thief', 'survivors-gauntlet'],
                         groundArena: ['atst'],
                         spaceArena: ['prototype-tie-advanced', 'millennium-falcon#get-out-and-push'],
@@ -49,6 +50,22 @@ describe('Pantoran Starship Thief', function () {
 
                 expect(context.omicronStrikeCraft).toHaveExactUpgradeNames(['pantoran-starship-thief']);
                 expect(context.omicronStrikeCraft).toBeInZone('spaceArena', context.player1);
+            });
+
+            it('correctly has the player playing the card paying all costs', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.pantoranStarshipThief);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.omicronStrikeCraft, context.scoutingHeadhunter, context.prototypeTieAdvanced, context.millenniumFalcon]);
+
+                context.player1.clickCard(context.omicronStrikeCraft);
+
+                expect(context.omicronStrikeCraft).toHaveExactUpgradeNames(['pantoran-starship-thief']);
+                expect(context.omicronStrikeCraft).toBeInZone('spaceArena', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(5);
+                expect(context.player2.exhaustedResourceCount).toBe(0);
             });
 
             it('can ba passed and it stays in play as a unit', function () {

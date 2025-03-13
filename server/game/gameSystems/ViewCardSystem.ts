@@ -140,7 +140,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
             context.selectedPromptCards = selectedCards;
 
             const gameSystem = properties.immediateEffect;
-            if (gameSystem) {
+            if (gameSystem && selectedCards.length > 0) {
                 const events = [];
                 gameSystem.setDefaultTargetFn(() => selectedCards);
                 gameSystem.queueGenerateEventGameSteps(events, context);
