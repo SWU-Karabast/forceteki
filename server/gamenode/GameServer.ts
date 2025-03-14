@@ -312,6 +312,10 @@ export class GameServer {
         return true;
     }
 
+    public getUserLobbyId(userId: string): string | undefined {
+        return this.userLobbyMap.get(userId);
+    }
+
     // method for validating the deck via API
     private async processDeckValidation(
         deck: ISwuDbDecklist,
@@ -386,6 +390,7 @@ export class GameServer {
             format,
             this.cardDataGetter,
             this.deckValidator,
+            this,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -402,6 +407,7 @@ export class GameServer {
             SwuGameFormat.Open,
             this.cardDataGetter,
             this.deckValidator,
+            this,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -582,6 +588,7 @@ export class GameServer {
             format,
             this.cardDataGetter,
             this.deckValidator,
+            this,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);

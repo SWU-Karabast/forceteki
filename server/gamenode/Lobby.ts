@@ -14,6 +14,7 @@ import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { getUserWithDefaultsSet, type User } from '../Settings';
 import { GameMode } from '../GameMode';
+import type { GameServer } from './GameServer';
 
 interface LobbyUser {
     id: string;
@@ -45,6 +46,7 @@ export class Lobby {
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
+    private readonly server: GameServer;
 
     private game: Game;
     public users: LobbyUser[] = [];
@@ -60,6 +62,7 @@ export class Lobby {
         lobbyGameFormat: SwuGameFormat,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
+        gameServer: GameServer,
         testGameBuilder?: any
     ) {
         Contract.assertTrue(
@@ -76,6 +79,7 @@ export class Lobby {
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.gameFormat = lobbyGameFormat;
+        this.server = gameServer;
     }
 
     public get id(): string {
@@ -186,6 +190,13 @@ export class Lobby {
         if (this.game) {
             this.sendGameState(this.game);
         } else {
+            // do a check to make sure that the lobby owner is still registered in the lobby. if not, set the incoming user as the new lobby owner.
+            if (this.server.getUserLobbyId(this.lobbyOwnerId) !== this.id) {
+                logger.info(`Lobby ${this.id}: lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.id}`);
+                this.removeUser(this.lobbyOwnerId);
+                this.lobbyOwnerId = user.id;
+            }
+
             this.sendLobbyState();
         }
     }
