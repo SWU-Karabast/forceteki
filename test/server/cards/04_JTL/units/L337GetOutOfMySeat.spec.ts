@@ -18,6 +18,8 @@ describe('L3-37, Get Out of my seat', function() {
             context.player1.passAction();
             context.player2.clickCard(context.wampa);
             context.player2.clickCard(context.l337);
+            expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+            context.player1.clickPrompt('Trigger');
             expect(context.player1).toBeAbleToSelectExactly([context.atst, context.greenSquadronAwing]);
             context.player1.clickCard(context.atst);
             expect(context.atst).toHaveExactUpgradeNames(['l337#get-out-of-my-seat']);
