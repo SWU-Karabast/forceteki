@@ -23,6 +23,7 @@ import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotL
 import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
 import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
 import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl/PlayFromDiscardProperties';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -66,7 +67,8 @@ export = {
     //        unapply: () => true
     //    }),
 
-    canPlayFromDiscard: () => OngoingEffectBuilder.card.static(EffectName.CanPlayFromDiscard),
+    canPlayFromDiscard: (properties: PlayFromDiscardProperties = {}) => OngoingEffectBuilder.card
+        .static(EffectName.CanPlayFromDiscard, properties),
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>

@@ -500,6 +500,19 @@ class Player extends GameObject {
      * @param {PlayType} [playingType]
      */
     isCardInPlayableZone(card, playingType = null) {
+        // Check if card can be legally played by this player out of discard from an ongoing effect
+        if (
+            playingType === PlayType.PlayFromOutOfPlay &&
+            card.zoneName === ZoneName.Discard &&
+            card.hasOngoingEffect(EffectName.CanPlayFromDiscard)
+        ) {
+            return card
+                .getOngoingEffectValues(EffectName.CanPlayFromDiscard)
+                .map((value) => value.player ?? card.owner)
+                .includes(this);
+        }
+
+        // Default to checking if there is a zone that matches play type and includes the card
         return this.playableZones.some(
             (zone) => (!playingType || zone.playingType === playingType) && zone.includes(card)
         );
