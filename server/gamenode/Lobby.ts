@@ -104,7 +104,7 @@ export class Lobby {
                 state: u.state,
                 ready: u.ready,
                 deck: u.deck?.getDecklist(),
-                deckErrors: u.deckValidationErrors,
+                deckErrors: u.deckValidationErrors ?? {},
                 importDeckErrors: u.importDeckValidationErrors,
                 unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist()),
                 minDeckSize: u.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(u.deck?.base.id) : 50,
