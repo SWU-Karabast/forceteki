@@ -136,6 +136,8 @@ import type { ICardRoundLastingEffectProperties } from './CardRoundLastingEffect
 import { CardRoundLastingEffectSystem } from './CardRoundLastingEffectSystem';
 import type { IFlipAndAttachLeaderPilotProperties } from './FlipAndAttachPilotLeaderSystem';
 import { FlipAndAttachPilotLeaderSystem } from './FlipAndAttachPilotLeaderSystem';
+import type { IUseWhenDefeatedProperties } from './UseWhenDefeatedSystem';
+import { UseWhenDefeatedSystem } from './UseWhenDefeatedSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -648,4 +650,7 @@ export function simultaneous<TContext extends AbilityContext = AbilityContext>(g
 
 export function shuffleDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IShuffleDeckProperties, TContext> = {}) {
     return new ShuffleDeckSystem<TContext>(propertyFactory);
+}
+export function useWhenDefeatedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenDefeatedProperties, TContext> = {}) {
+    return new UseWhenDefeatedSystem<TContext>(propertyFactory);
 }
