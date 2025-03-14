@@ -4,6 +4,7 @@ import { PhaseName } from '../Constants.js';
 import type { IActionAbilityProps } from '../../Interfaces.js';
 import type { Card } from '../card/Card.js';
 import type Game from '../Game.js';
+import { EpicActionLimit } from './AbilityLimit.js';
 
 /**
  * Represents an action ability provided by card text.
@@ -33,6 +34,10 @@ export class ActionAbility extends CardAbility {
     protected phase: string;
 
     public readonly condition?: (context?: AbilityContext) => boolean;
+
+    public get isEpicAction(): boolean {
+        return this.limit instanceof EpicActionLimit;
+    }
 
     public constructor(game: Game, card: Card, properties: IActionAbilityProps) {
         super(game, card, properties);
