@@ -370,9 +370,7 @@ export class Lobby {
 
         if (this.lobbyOwnerId === id) {
             const newOwner = this.users.find((u) => u.id !== id);
-            if (newOwner) {
-                this.lobbyOwnerId = newOwner.id;
-            }
+            this.lobbyOwnerId = newOwner?.id;
         }
         this.users = this.users.filter((u) => u.id !== id);
         logger.info(`Lobby ${this.id}: removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`);
