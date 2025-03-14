@@ -17,7 +17,7 @@ export default class ChimaeraReinforcingTheCenter extends NonLeaderUnitCard {
         });
 
         this.addWhenPlayedAbility({
-            title: 'Use another friendly unit\'s \'When Defeated\' ability',
+            title: 'Use a When Defeated ability on another unit',
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,
