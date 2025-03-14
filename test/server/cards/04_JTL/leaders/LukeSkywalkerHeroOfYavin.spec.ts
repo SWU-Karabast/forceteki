@@ -57,13 +57,13 @@ describe('Luke Skywalker, Hero of Yavin', function() {
                     player1: {
                         leader: 'luke-skywalker#hero-of-yavin',
                         spaceArena: ['alliance-xwing', 'munificent-frigate', 'mercenary-gunship'],
-                        groundArena: ['battlefield-marine'],
+                        groundArena: [{ card: 'battlefield-marine', upgrades: ['entrenched'] }],
                         hand: ['power-failure']
                     },
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['cartel-spacer'],
-                        hand: ['rivals-fall', 'confiscate', 'bamboozle', 'vanquish']
+                        hand: ['rivals-fall', 'confiscate', 'bamboozle', 'vanquish', 'aggression']
                     }
                 });
             });
@@ -209,9 +209,44 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 // Player 2 cannot defeat Luke Skywalker as an upgrade
                 context.player2.clickCard(context.confiscate);
+                context.player2.clickCard(context.lukeSkywalker);
 
                 expect(context.lukeSkywalker).toBeInZone('spaceArena');
                 expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should deploy as a pilot upgrade and cannot be defeated as an upgrade by enemy cards abilities aggression', function () {
+                const { context } = contextRef;
+
+                // Deploy Luke Skywalker as a Pilot
+                context.player1.clickCard(context.lukeSkywalker);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Luke Skywalker', 'Deploy Luke Skywalker as a Pilot', 'If you attacked with a Fighter unit this phase, deal 1 damage to a unit']);
+                context.player1.clickPrompt('Deploy Luke Skywalker as a Pilot');
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.munificentFrigate, context.mercenaryGunship]);
+                context.player1.clickCard(context.allianceXwing);
+
+                // Assert Luke Skywalker is deployed as a pilot upgrade
+                expect(context.lukeSkywalker.deployed).toBe(true);
+                expect(context.lukeSkywalker).toBeInZone('spaceArena');
+                expect(context.allianceXwing.getPower()).toBe(6);
+                expect(context.allianceXwing.getHp()).toBe(8);
+                expect(context.allianceXwing).toHaveExactUpgradeNames(['luke-skywalker#hero-of-yavin']);
+                expect(context.player2).toBeActivePlayer();
+
+                const defeatPrompt = 'Defeat up to 2 upgrades';
+                const damagePrompt = 'Deal 4 damage to a unit';
+
+                // Player 2 cannot defeat Luke Skywalker as an upgrade
+                context.player2.clickCard(context.aggression);
+                context.player2.clickPrompt(defeatPrompt);
+                context.player2.clickCard(context.lukeSkywalker);
+                context.player2.clickPrompt('Choose no target');
+                context.player2.clickPrompt(damagePrompt);
+                context.player2.clickCard(context.wampa);
+
+                expect(context.lukeSkywalker).toBeInZone('spaceArena');
+                expect(context.player1).toBeActivePlayer();
+                expect(context.wampa.damage).toBe(4);
             });
 
             it('should deploy as a pilot upgrade and can be defeated as an upgrade by friendly abilities', function () {
