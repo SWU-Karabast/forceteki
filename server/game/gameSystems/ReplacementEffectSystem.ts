@@ -38,17 +38,20 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
                 { ...additionalProperties, replacementEffect: true }
             );
 
-            Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
+            event.context.game.queueSimpleStep(() => {
+                Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
 
-            events.forEach((replacementEvent) => {
-                replacementEvent.order = eventBeingReplaced.order;
-                event.context.game.queueSimpleStep(() => {
-                    eventBeingReplaced.setReplacementEvent(replacementEvent);
-                    eventWindow.addEvent(replacementEvent);
-                    triggerWindow.addReplacementEffectEvent(replacementEvent);
-                }, 'replacementEffect: replace window event');
-            });
+                events.forEach((replacementEvent) => {
+                    replacementEvent.order = eventBeingReplaced.order;
+                    event.context.game.queueSimpleStep(() => {
+                        eventBeingReplaced.setReplacementEvent(replacementEvent);
+                        eventWindow.addEvent(replacementEvent);
+                        triggerWindow.addReplacementEffectEvent(replacementEvent);
+                    }, 'replacementEffect: replace window event');
+                });
+            }, 'replacementEffect: add replacement event to window');
         }
+
         event.context.cancel();
     }
 
