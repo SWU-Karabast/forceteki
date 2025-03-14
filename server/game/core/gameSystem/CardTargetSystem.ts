@@ -135,7 +135,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     // override the base class behavior with a version that forces properties.target to be a scalar value
-    public override generateEvent(context: TContext, additionalProperties: any = {}): GameEvent {
+    public override generateEvent(context: TContext, additionalProperties: any = {}, addLastKnownInformation: boolean = false): GameEvent {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
 
         Contract.assertNotNullLike(target, 'Attempting to generate card target event with no provided target');
@@ -151,6 +151,9 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         }
 
         const event = this.createEvent(nonArrayTarget, context, additionalProperties);
+        if (addLastKnownInformation) {
+            (event as any).lastKnownInformation = this.buildLastKnownInformation(nonArrayTarget);
+        }
         this.updateEvent(event, nonArrayTarget, context, additionalProperties);
         return event;
     }
@@ -324,7 +327,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         });
     }
 
-    private buildLastKnownInformation(card: Card): ILastKnownInformation {
+    protected buildLastKnownInformation(card: Card): ILastKnownInformation {
         Contract.assertTrue(
             card.zoneName === ZoneName.GroundArena ||
             card.zoneName === ZoneName.SpaceArena ||

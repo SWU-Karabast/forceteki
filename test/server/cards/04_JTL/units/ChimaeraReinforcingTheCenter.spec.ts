@@ -54,6 +54,22 @@ describe('Chimaera, Reinforcing the Center', function() {
                 expect(battleDroid[0]).toBeInZone('groundArena');
             });
 
+            it('should be able to select a unit with a when defeated that would not change game state', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['chimaera#reinforcing-the-center'],
+                        groundArena: ['hevy#staunch-martyr']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chimaera);
+                expect(context.player1).toBeAbleToSelectExactly([context.hevy]);
+                context.player1.clickCard(context.hevy);
+            });
+
             it('should let you select and activate a When Defeated ability gained from an upgrade', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -200,6 +216,27 @@ describe('Chimaera, Reinforcing the Center', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.chimaera]);
                 context.player1.clickCard(context.chimaera);
                 expect(context.shield).toBeAttachedTo(context.chimaera);
+            });
+
+            it('should interact correctly with a When Defeated referencing the stats of the selected unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['chimaera#reinforcing-the-center'],
+                        spaceArena: [{ card: 'raddus#holdos-final-command', upgrades: ['experience'] }]
+                    },
+                    player2: {
+                        groundArena: [{ card: 'krayt-dragon', upgrades: ['imprisoned'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chimaera);
+                context.player1.clickCard(context.raddusHoldosFinalCommand);
+                expect(context.player1).toBeAbleToSelectExactly([context.kraytDragon]);
+                context.player1.clickCard(context.kraytDragon);
+                expect(context.kraytDragon.damage).toBe(9);
             });
 
             it('should interact correctly with a When Defeated that makes the opponent do something', async function () {
