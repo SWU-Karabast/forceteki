@@ -1,15 +1,15 @@
 import { SwuGameFormat } from '../SwuGameFormat';
-import type { Deck } from '../utils/deck/Deck';
 import type Socket from '../socket';
 import { logger } from '../logger';
+import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 
 interface User {
     id: string;
     username: string;
 }
 
-interface QueuedPlayer {
-    deck: Deck;
+export interface QueuedPlayer {
+    deck: ISwuDbDecklist;
     socket?: Socket;
     user: User;
 }

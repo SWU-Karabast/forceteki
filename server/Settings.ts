@@ -15,9 +15,9 @@ const defaultSettings = {
 export interface User {
     username: string;
     id: string;
-    blockList: string[];
-    promptedActionWindows: { [key in PhaseName]: boolean };
-    settings: Partial<{
+    blockList?: string[];
+    promptedActionWindows?: { [key in PhaseName]: boolean };
+    settings?: Partial<{
         optionSettings: Partial<{
             autoSingleTarget: boolean;
         }>;

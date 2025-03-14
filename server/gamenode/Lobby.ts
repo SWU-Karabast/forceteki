@@ -10,10 +10,11 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
 import type { SwuGameFormat } from '../SwuGameFormat';
-import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationFailures, ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
-import { getUserWithDefaultsSet, type User } from '../Settings';
+import { getUserWithDefaultsSet } from '../Settings';
 import { GameMode } from '../GameMode';
+import type { User } from './GameServer';
 
 interface LobbyUser {
     id: string;
@@ -25,6 +26,7 @@ interface LobbyUser {
     deckValidationErrors?: IDeckValidationFailures;
     importDeckValidationErrors?: IDeckValidationFailures;
 }
+
 export enum MatchType {
     Custom = 'Custom',
     Private = 'Private',
@@ -34,6 +36,11 @@ export enum MatchType {
 export interface RematchRequest {
     initiator?: string;
     mode: 'reset' | 'regular';
+}
+
+interface IUserWithDecklist {
+    user: User;
+    decklist?: ISwuDbDecklist;
 }
 
 export class Lobby {
@@ -46,13 +53,27 @@ export class Lobby {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
 
+    public readonly gameFormat: SwuGameFormat;
+
+    private _gameType: MatchType;
+    private lobbyOwner: LobbyUser;
+    private lobbyGuest?: LobbyUser;
     private game: Game;
-    public users: LobbyUser[] = [];
-    private lobbyOwnerId: string;
-    public gameType: MatchType;
-    public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
     private userLastActivity = new Map<string, Date>();
+    private _toBeDeleted = false;
+
+    public get gameType(): MatchType {
+        return this._gameType;
+    }
+
+    public get toBeDeleted(): boolean {
+        return this._toBeDeleted;
+    }
+
+    public get users(): LobbyUser[] {
+        return this.lobbyGuest ? [this.lobbyOwner, this.lobbyGuest] : [this.lobbyOwner];
+    }
 
     public constructor(
         lobbyName: string,
@@ -60,22 +81,28 @@ export class Lobby {
         lobbyGameFormat: SwuGameFormat,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
+        lobbyOwner: IUserWithDecklist,
+        lobbyGuest?: IUserWithDecklist,
         testGameBuilder?: any
     ) {
         Contract.assertTrue(
             [MatchType.Custom, MatchType.Private, MatchType.Quick].includes(lobbyGameType),
             `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
         );
+
         this._id = uuid();
         this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat();
         this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
-        this.gameType = lobbyGameType;
+        this._gameType = lobbyGameType;
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.gameFormat = lobbyGameFormat;
+
+        this.lobbyOwner = this.createLobbyUser(lobbyOwner.user, lobbyOwner.decklist);
+        this.lobbyGuest = lobbyGuest ? this.createLobbyUser(lobbyGuest.user, lobbyGuest.decklist) : null;
     }
 
     public get id(): string {
@@ -108,10 +135,10 @@ export class Lobby {
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
-            lobbyOwnerId: this.lobbyOwnerId,
+            lobbyOwnerId: this.lobbyOwner.id,
             isPrivate: this.isPrivate,
             connectionLink: this.connectionLink,
-            gameType: this.gameType,
+            gameType: this._gameType,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
         };
@@ -132,15 +159,19 @@ export class Lobby {
         this.userLastActivity.set(id, now);
     }
 
-    public createLobbyUser(user, decklist = null): void {
+    private createLobbyUser(user: User, decklist: ISwuDbDecklist = null): LobbyUser {
         const existingUser = this.users.find((u) => u.id === user.id);
         const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
         if (existingUser) {
             existingUser.deck = deck;
-            return;
         }
 
-        this.users.push(({
+        logger.info(`Lobby ${this.id}: Creating username: ${user.username}, id: ${user.id} and adding to users list (${this.users.length} user(s))`);
+        this.gameChat.addMessage(`${user.username} has created and joined the lobby`);
+
+        this.updateUserLastActivity(user.id);
+
+        return {
             id: user.id,
             username: user.username,
             state: null,
@@ -148,14 +179,10 @@ export class Lobby {
             socket: null,
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck
-        }));
-        logger.info(`Lobby ${this.id}: Creating username: ${user.username}, id: ${user.id} and adding to users list (${this.users.length} user(s))`);
-        this.gameChat.addMessage(`${user.username} has created and joined the lobby`);
-
-        this.updateUserLastActivity(user.id);
+        };
     }
 
-    public addLobbyUser(user, socket: Socket): void {
+    public connectUserToLobby(user, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         // we check if listeners for the events already exist
         if (socket.eventContainsListener('game') || socket.eventContainsListener('lobby')) {
@@ -235,8 +262,8 @@ export class Lobby {
         // Clear the rematch request and reset the game.
         this.rematchRequest = null;
         this.game = null;
-        if (this.gameType === MatchType.Quick) {
-            this.gameType = MatchType.Custom;
+        if (this._gameType === MatchType.Quick) {
+            this._gameType = MatchType.Custom;
         }
         // Clear the 'ready' state for all users.
         this.users.forEach((user) => {
@@ -305,10 +332,6 @@ export class Lobby {
         return this.game !== undefined;
     }
 
-    public setLobbyOwner(id: string): void {
-        this.lobbyOwnerId = id;
-    }
-
     public getGamePreview() {
         if (!this.game) {
             return null;
@@ -348,6 +371,7 @@ export class Lobby {
         } else {
             return;
         }
+
         if (this.game) {
             this.game.addMessage(`${user.username} has left the game`);
             const winner = this.users.find((u) => u.id !== id);
@@ -357,14 +381,19 @@ export class Lobby {
             this.sendGameState(this.game);
         }
 
-        if (this.lobbyOwnerId === id) {
-            const newOwner = this.users.find((u) => u.id !== id);
-            if (newOwner) {
-                this.lobbyOwnerId = newOwner.id;
+        const userIsLobbyOwner = this.lobbyOwner.id === id;
+
+        logger.info(`Lobby ${this.id}: removing ${userIsLobbyOwner ? 'lobby owner' : 'lobby guest'}: ${user.username}, id: ${user.id}`);
+
+        if (userIsLobbyOwner) {
+            if (!this.lobbyGuest) {
+                this.markForDeletion();
+            } else {
+                this.lobbyOwner = this.lobbyGuest;
+                this.lobbyGuest = null;
+                logger.info(`Lobby ${this.id}: setting user as lobby owner: ${user.username}, id: ${user.id}`);
             }
         }
-        this.users = this.users.filter((u) => u.id !== id);
-        logger.info(`Lobby ${this.id}: removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`);
 
         this.sendLobbyState();
     }
@@ -373,9 +402,21 @@ export class Lobby {
         return this.users.length === 0;
     }
 
-    public cleanLobby(): void {
+    public validateState() {
+        if (!this.lobbyOwner) {
+            if (this.lobbyGuest) {
+                this.lobbyOwner = this.lobbyGuest;
+                this.lobbyGuest = null;
+                this.sendLobbyState();
+            } else {
+                this.markForDeletion();
+            }
+        }
+    }
+
+    private markForDeletion(): void {
         this.game = null;
-        this.users = [];
+        this._toBeDeleted = true;
         logger.info(`Lobby ${this.id}: cleaning lobby`);
     }
 
