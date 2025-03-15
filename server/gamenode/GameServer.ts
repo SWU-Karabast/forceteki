@@ -86,6 +86,7 @@ export class GameServer {
 
     private readonly lobbies = new Map<string, Lobby>();
     private readonly userLobbyMap = new Map<string, string>();
+    private readonly spectatorLobbyMap = new Map<string, string>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -155,6 +156,34 @@ export class GameServer {
                 return res.json(this.deckValidator.getUnimplementedCards());
             } catch (err) {
                 logger.error('GameServer: Error in setupAppRoutes:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/spectate-game', (req, res, next) => {
+            try {
+                const { gameId, user } = req.body;
+                const lobby = this.lobbies.get(gameId);
+
+                // if they are in a game already we give them 403 forbidden
+                if (this.userLobbyMap.get(user.id)) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'User is already in a game'
+                    });
+                }
+                if (!lobby || !lobby.hasOngoingGame() || lobby.isPrivate) {
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Game not found or does not allow spectators'
+                    });
+                }
+
+                // Register this user as a spectator for the game
+                this.spectatorLobbyMap.set(user.id, lobby.id);
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                logger.error('GameServer: Error in spectate-game:', err);
                 next(err);
             }
         });
@@ -449,6 +478,7 @@ export class GameServer {
     public async onConnection(ioSocket) {
         const user = JSON.parse(ioSocket.handshake.query.user);
         const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
+        const isSpectator = ioSocket.handshake.query.spectator === 'true';
 
         if (user) {
             ioSocket.data.user = user;
@@ -460,6 +490,31 @@ export class GameServer {
             return;
         }
 
+
+        // 0. If user is spectator
+        if (isSpectator) {
+            // Check if user is registered as a spectator
+            if (!this.spectatorLobbyMap.has(user.id)) {
+                logger.info(`GameServer: User ${user.id} attempted to connect as spectator but is not registered`);
+                ioSocket.disconnect();
+                return;
+            }
+            const lobbyId = this.spectatorLobbyMap.get(user.id);
+            const lobby = this.lobbies.get(lobbyId);
+
+            if (!lobby || !lobby.hasOngoingGame()) {
+                logger.info(`GameServer: No lobby or ongoing game for spectator ${user.username}, disconnecting`);
+                this.spectatorLobbyMap.delete(user.id);
+                ioSocket.disconnect();
+                return;
+            }
+            const socket = new Socket(ioSocket);
+            lobby.addSpectator(user, socket);
+            socket.registerEvent('disconnect', () => {
+                this.onSpectatorDisconnect(user.id);
+            });
+            return;
+        }
 
         // 1. If user is already in a lobby
         if (this.userLobbyMap.has(user.id)) {
@@ -663,6 +718,22 @@ export class GameServer {
             // Start the cleanup process
             lobby?.cleanLobby();
             this.lobbies.delete(lobby?.id);
+        }
+    }
+
+    public onSpectatorDisconnect(id: string) {
+        try {
+            if (!this.spectatorLobbyMap.has(id)) {
+                return;
+            }
+
+            const lobbyId = this.spectatorLobbyMap.get(id);
+            const lobby = this.lobbies.get(lobbyId);
+
+            lobby?.removeSpectator(id);
+            this.spectatorLobbyMap.delete(id);
+        } catch (err) {
+            logger.error('Error in onSpectatorDisconnected:', err);
         }
     }
 
