@@ -790,6 +790,7 @@ export class GameServer {
             // cleanup ghost lobbies.
             for (const [lobbyId, lobby] of this.lobbies.entries()) {
                 if (lobby.isEmpty()) {
+                    logger.info(`Found empty lobby with id ${lobbyId} cleaning up.`);
                     this.lobbies.delete(lobbyId);
                 }
             }
@@ -798,8 +799,9 @@ export class GameServer {
 
     private ensureMappingConsistency() {
         // Remove any userLobbyMap entries that point to non-existent lobbies
-        for (const [userId, lobby] of this.userLobbyMap.entries()) {
-            if (!this.lobbies.has(lobby.lobbyId)) {
+        for (const [userId, lobbymap] of this.userLobbyMap.entries()) {
+            if (!this.lobbies.has(lobbymap.lobbyId)) {
+                logger.info(`Found lobby that doesn't exist removing lobby ${lobbymap.lobbyId} from userLobbyMap.`);
                 this.userLobbyMap.delete(userId);
             }
         }
@@ -808,6 +810,7 @@ export class GameServer {
         for (const [, lobby] of this.lobbies.entries()) {
             for (const user of lobby.users) {
                 if (!this.userLobbyMap.get(user.id)) {
+                    logger.info(`Found misplaced user with id ${user.id} removing from lobby ${lobby.id}.`);
                     lobby.removeUser(user.id);
                 }
             }
