@@ -20,7 +20,8 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     controller: RelativePlayer.Self,
                     innerSystem: AbilityHelper.immediateEffects.forThisRoundCardEffect({
-                        effect: AbilityHelper.ongoingEffects.loseAllAbilities()
+                        effect: AbilityHelper.ongoingEffects.loseAllAbilities(),
+                        ongoingEffectDescription: 'remove all abilities from'
                     })
                 }),
                 AbilityHelper.immediateEffects.playerLastingEffect({
@@ -61,7 +62,9 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.forThisRoundCardEffect({
                     effect: AbilityHelper.ongoingEffects.loseAllAbilities()
                 })
-            }
+            },
+            effect: 'blanks all abilities on {1}',
+            effectArgs: (context) => [context.target]
         });
     }
 }
