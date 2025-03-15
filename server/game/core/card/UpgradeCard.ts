@@ -4,9 +4,9 @@ import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
-import { AbilityType, CardType, ZoneName, WildcardRelativePlayer } from '../Constants';
+import { AbilityType, CardType, ZoneName, WildcardRelativePlayer, StandardTriggeredAbilityType } from '../Constants';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import type { IActionAbilityPropsWithGainCondition, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition } from '../../Interfaces';
+import type { IActionAbilityPropsWithGainCondition, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard } from '../../Interfaces';
 import type { Card } from './Card';
 import OngoingEffectLibrary from '../../ongoingEffects/OngoingEffectLibrary';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
@@ -134,13 +134,16 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         });
     }
 
+    // TODO THRAWN2: update the below to use the whenDefeated property
+
     /**
      * Adds an "attached card gains [X]" ability, where X is an "when defeated" triggered ability. You can provide a match function
      * to narrow down whether the effect is applied (for cases where the effect has conditions).
      */
     protected addGainWhenDefeatedAbilityTargetingAttached(properties: ITriggeredAbilityBasePropsWithGainCondition<this, IUnitCard>) {
         const { gainCondition, ...gainedAbilityProperties } = properties;
-        const propsWithWhen = Object.assign(gainedAbilityProperties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
+        const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenDefeated]: true };
+        const propsWithWhen = Object.assign(gainedAbilityProperties, { when });
 
         this.addConstantAbilityTargetingAttached({
             title: 'Give ability to the attached card',

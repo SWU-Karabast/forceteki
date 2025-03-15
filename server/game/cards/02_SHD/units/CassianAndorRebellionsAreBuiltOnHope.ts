@@ -16,7 +16,6 @@ export default class CassianAndorRebellionsAreBuiltOnHope extends NonLeaderUnitC
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.event.playType === PlayType.Smuggle,
                 onTrue: AbilityHelper.immediateEffects.ready(),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

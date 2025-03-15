@@ -17,7 +17,7 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
             optional: true,
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onCardDefeated: (event, context) => event.card === context.source
+                whenDefeated: true
             },
             targetResolver: {
                 controller: RelativePlayer.Opponent,
@@ -45,7 +45,6 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                                 )
                             ];
                         }),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
                     }),
                     AbilityHelper.immediateEffects.conditional((context) => {
                         const opponentDeck = context.player.opponent.drawDeck;
@@ -59,7 +58,6 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                                     })
                                 );
                             }),
-                            onFalse: AbilityHelper.immediateEffects.noAction()
                         };
                     })
                 ])

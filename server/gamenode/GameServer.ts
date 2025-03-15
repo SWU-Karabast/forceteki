@@ -111,7 +111,7 @@ export class GameServer {
         this.setupAppRoutes(app);
 
         app.use((err, req, res, next) => {
-            logger.error('Error in API route:', err);
+            logger.error('GameServer: Error in API route:', err);
             res.status(err.status || 500).json({
                 success: false,
                 error: err.message || 'Server error.',
@@ -119,7 +119,7 @@ export class GameServer {
         });
 
         server.listen(env.gameNodeSocketIoPort);
-        logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
+        logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
 
         // Setup socket server
         this.io = new IOServer(server, {
@@ -140,7 +140,7 @@ export class GameServer {
                     socket.disconnect();
                 });
             } catch (err) {
-                logger.error('Error in socket connection:', err);
+                logger.error('GameServer: Error in socket connection:', err);
             }
         });
 
@@ -154,6 +154,7 @@ export class GameServer {
             try {
                 return res.json(this.deckValidator.getUnimplementedCards());
             } catch (err) {
+                logger.error('GameServer: Error in setupAppRoutes:', err);
                 next(err);
             }
         });
@@ -162,6 +163,7 @@ export class GameServer {
             try {
                 return res.json(this.getOngoingGamesData());
             } catch (err) {
+                logger.error('GameServer: Error in ongoing-games:', err);
                 next(err);
             }
         });
@@ -182,6 +184,7 @@ export class GameServer {
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
+                logger.error('GameServer: Error in create lobby:', err);
                 next(err);
             }
         });
@@ -195,6 +198,7 @@ export class GameServer {
                 }));
                 return res.json(availableLobbies);
             } catch (err) {
+                logger.error('GameServer: Error in available-lobbies:', err);
                 next(err);
             }
         });
@@ -224,6 +228,7 @@ export class GameServer {
                 this.userLobbyMap.set(user.id, lobby.id);
                 return res.status(200).json({ success: true });
             } catch (err) {
+                logger.error('GameServer: Error in join-lobby:', err);
                 next(err);
             }
         });
@@ -233,6 +238,7 @@ export class GameServer {
                 const testSetupFilenames = this.getTestSetupGames();
                 return res.json(testSetupFilenames);
             } catch (err) {
+                logger.error('GameServer: Error in test-game=setups:', err);
                 next(err);
             }
         });
@@ -243,6 +249,7 @@ export class GameServer {
                 await this.startTestGame(filename);
                 return res.status(200).json({ success: true });
             } catch (err) {
+                logger.error('GameServer: Error in start-test=game:', err);
                 next(err);
             }
         });
@@ -266,6 +273,7 @@ export class GameServer {
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
+                logger.error('GameServer: Error in enter-queue:', err);
                 next(err);
             }
         });
@@ -274,6 +282,7 @@ export class GameServer {
             try {
                 return res.status(200).json({ success: true });
             } catch (err) {
+                logger.error('GameServer: Error in health:', err);
                 next(err);
             }
         });
@@ -301,6 +310,10 @@ export class GameServer {
         }
 
         return true;
+    }
+
+    public getUserLobbyId(userId: string): string | undefined {
+        return this.userLobbyMap.get(userId);
     }
 
     // method for validating the deck via API
@@ -377,6 +390,7 @@ export class GameServer {
             format,
             this.cardDataGetter,
             this.deckValidator,
+            this,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -393,6 +407,7 @@ export class GameServer {
             SwuGameFormat.Open,
             this.cardDataGetter,
             this.deckValidator,
+            this,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -440,7 +455,7 @@ export class GameServer {
         }
 
         if (!ioSocket.data.user) {
-            logger.info('socket connected with no user, disconnecting');
+            logger.info('GameServer: socket connected with no user, disconnecting');
             ioSocket.disconnect();
             return;
         }
@@ -452,7 +467,7 @@ export class GameServer {
             const lobby = this.lobbies.get(lobbyId);
             if (!lobby) {
                 this.userLobbyMap.delete(user.id);
-                logger.info('No lobby for', ioSocket.data.user.username, 'disconnecting');
+                logger.info('GameServer: No lobby for', ioSocket.data.user.username, 'disconnecting');
                 ioSocket.disconnect();
                 return;
             }
@@ -478,14 +493,14 @@ export class GameServer {
         if (requestedLobby.lobbyId) {
             const lobby = this.lobbies.get(requestedLobby.lobbyId);
             if (!lobby) {
-                logger.info('No lobby with this link for', ioSocket.data.user.username, 'disconnecting');
+                logger.info('GameServer: No lobby with this link for', ioSocket.data.user.username, 'disconnecting');
                 ioSocket.disconnect();
                 return;
             }
 
             // check if the lobby is full
             if (lobby.isFilled() || lobby.hasOngoingGame()) {
-                logger.info('Requested lobby', requestedLobby.lobbyId, 'is full or already in game, disconnecting');
+                logger.info('GameServer: Requested lobby', requestedLobby.lobbyId, 'is full or already in game, disconnecting');
                 ioSocket.disconnect();
                 return;
             }
@@ -522,7 +537,7 @@ export class GameServer {
         ioSocket.emit('connection_error', 'Error connecting to lobby/game');
         ioSocket.disconnect();
         // this can happen when someone tries to reconnect to the game but are out of the mapping TODO make a notification for the player
-        logger.info(`Error state when connecting to lobby/game ${user.id} disconnecting`);
+        logger.info(`GameServer: Error state when connecting to lobby/game ${user.id} disconnecting`);
     }
 
     /**
@@ -531,7 +546,7 @@ export class GameServer {
     private enterQueue(format: SwuGameFormat, user: any, deck: any): boolean {
         // Quick check: if they're already in a lobby, no queue
         if (this.userLobbyMap.has(user.id)) {
-            logger.info(`User ${user.id} already in a lobby, ignoring queue request.`);
+            logger.info(`GameServer: User ${user.id} already in a lobby, ignoring queue request.`);
             return false;
         }
 
@@ -573,6 +588,7 @@ export class GameServer {
             format,
             this.cardDataGetter,
             this.deckValidator,
+            this,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -607,7 +623,7 @@ export class GameServer {
         lobby.setLobbyOwner(p1.user.id);
         // this needs to be here since we only send start game via the LobbyOwner.
         lobby.sendLobbyState();
-        logger.info(`Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
+        logger.info(`GameServer: Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
     }
 
     /**

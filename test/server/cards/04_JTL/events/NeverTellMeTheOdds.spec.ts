@@ -29,6 +29,27 @@ describe('Never Tell Me The Odds', function() {
             expect(context.concordDawnInterceptors.damage).toBe(3);
         });
 
+        it('Displays the proper number of damage in prompt title', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['never-tell-me-the-odds'],
+                    spaceArena: ['concord-dawn-interceptors'],
+                    deck: ['foresight', 'vanguard-infantry', 'wampa', 'spark-of-hope']
+                },
+                player2: {
+                    groundArena: ['phaseiii-dark-trooper'],
+                    deck: ['battlefield-marine', 'pyke-sentinel', 'volunteer-soldier', 'the-chaos-of-war']
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.neverTellMeTheOdds);
+            expect(context.player1).toHavePrompt('Deal damage to a unit equal to number of odd-cost cards discarded (3 damage)');
+            context.player1.clickCard(context.concordDawnInterceptors);
+        });
+
         it('Does nothing except pay costs if both decks are empty', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

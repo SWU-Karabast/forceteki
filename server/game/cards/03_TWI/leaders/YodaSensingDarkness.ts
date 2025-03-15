@@ -24,7 +24,6 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: () => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({}),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
                 onTrue: AbilityHelper.immediateEffects.draw({ amount: 1 })
             }),
             then: {

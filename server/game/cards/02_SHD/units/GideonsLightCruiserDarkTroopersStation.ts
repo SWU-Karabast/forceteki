@@ -25,7 +25,6 @@ export default class GideonsLightCruiserDarkTroopersStation extends NonLeaderUni
                         playType: context.target.zoneName === ZoneName.Hand ? PlayType.PlayFromHand : PlayType.PlayFromOutOfPlay,
                         adjustCost: { costAdjustType: CostAdjustType.Free }
                     })),
-                    onFalse: AbilityHelper.immediateEffects.noAction(),
                 })
             }
         });

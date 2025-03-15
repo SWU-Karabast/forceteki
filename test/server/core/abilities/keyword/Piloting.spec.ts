@@ -40,7 +40,7 @@ describe('Piloting keyword', function() {
                 context.player1.clickPrompt('Play Dagger Squadron Pilot with Piloting');
                 expect(context.player1).toBeAbleToSelectExactly([context.concordDawnInterceptors, context.falchionIonTank]);
                 context.player1.clickCard(context.concordDawnInterceptors);
-                expect(context.concordDawnInterceptors.upgrades).toContain(context.daggerSquadronPilot);
+                expect(context.daggerSquadronPilot).toBeAttachedTo(context.concordDawnInterceptors);
                 expect(context.concordDawnInterceptors.getPower()).toBe(3);
                 expect(context.concordDawnInterceptors.getHp()).toBe(5);
                 expect(context.player1.readyResourceCount).toBe(p1Resources - 1);
@@ -60,7 +60,6 @@ describe('Piloting keyword', function() {
 
                 const { context } = contextRef;
 
-                const p1Resources = context.player1.readyResourceCount;
                 context.player1.clickCard(context.chewbacca);
                 expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Chewbacca', 'Play Chewbacca with Piloting']);
                 context.player1.clickPrompt('Play Chewbacca');
@@ -92,7 +91,7 @@ describe('Piloting keyword', function() {
                 context.player1.clickCard(context.concordDawnInterceptors);
 
                 // Should turn Concord Dawn into a 4/7 thanks to +3/+3
-                expect(context.concordDawnInterceptors.upgrades).toContain(context.chewbacca);
+                expect(context.chewbacca).toBeAttachedTo(context.concordDawnInterceptors);
                 expect(context.concordDawnInterceptors.getPower()).toBe(4);
                 expect(context.concordDawnInterceptors.getHp()).toBe(7);
                 expect(context.player1.readyResourceCount).toBe(p1Resources - 5);
@@ -207,7 +206,7 @@ describe('Piloting keyword', function() {
                 context.player1.clickPrompt('Play Iden Versio with Piloting');
                 context.player1.clickCard(context.restoredArc170);
                 expect(context.player1.readyResourceCount).toBe(p1Resources - 3);
-                expect(context.restoredArc170.upgrades).toContain(context.idenInHand);
+                expect(context.idenInHand).toBeAttachedTo(context.restoredArc170);
                 expect(context.player1).toHavePrompt('Choose which copy of Iden Versio, Adapt or Die to defeat');
                 context.player1.clickCard(context.idenInPlay);
                 expect(context.idenInPlay).toBeInZone('discard');
@@ -235,7 +234,7 @@ describe('Piloting keyword', function() {
                 context.player2.clickCard(context.confiscate);
                 expect(context.player2).toBeAbleToSelectExactly([context.idenVersio, context.shield]);
                 context.player2.clickCard(context.idenVersio);
-                expect(context.concordDawnInterceptors.upgrades).not.toContain(context.idenVersio);
+                expect(context.idenVersio).not.toBeAttachedTo(context.concordDawnInterceptors);
                 expect(context.idenVersio).toBeInZone('discard');
             });
 

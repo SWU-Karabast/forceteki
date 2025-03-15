@@ -136,6 +136,8 @@ import type { ICardRoundLastingEffectProperties } from './CardRoundLastingEffect
 import { CardRoundLastingEffectSystem } from './CardRoundLastingEffectSystem';
 import type { IFlipAndAttachLeaderPilotProperties } from './FlipAndAttachPilotLeaderSystem';
 import { FlipAndAttachPilotLeaderSystem } from './FlipAndAttachPilotLeaderSystem';
+import type { IUseWhenDefeatedProperties } from './UseWhenDefeatedSystem';
+import { UseWhenDefeatedSystem } from './UseWhenDefeatedSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -412,7 +414,7 @@ export function resourceCard<TContext extends AbilityContext = AbilityContext>(p
  * @param {PropsFactory<ICardTargetSystemProperties, TContext>} [propertyFactory={}] - A factory function or properties object to create the card target system properties.
  * @returns {CardTargetSystem<TContext>} A new instance of the {@link MoveCardSystem} configured to move a card to the player's hand.
  */
-export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext> = {}) {
+export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveCardProperties, 'destination' | 'shuffle' | 'shuffleMovedCards'>, TContext> = {}) {
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
@@ -648,4 +650,7 @@ export function simultaneous<TContext extends AbilityContext = AbilityContext>(g
 
 export function shuffleDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IShuffleDeckProperties, TContext> = {}) {
     return new ShuffleDeckSystem<TContext>(propertyFactory);
+}
+export function useWhenDefeatedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenDefeatedProperties, TContext> = {}) {
+    return new UseWhenDefeatedSystem<TContext>(propertyFactory);
 }

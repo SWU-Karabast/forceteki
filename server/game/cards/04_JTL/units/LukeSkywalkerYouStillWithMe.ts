@@ -10,6 +10,8 @@ export default class LukeSkywalkerYouStillWithMe extends NonLeaderUnitCard {
         };
     }
 
+    // TODO THRAWN2: use whenDefeated: true instead of onCardDefeated
+
     public override setupCardAbilities () {
         this.addPilotingAbility({
             type: AbilityType.ReplacementEffect,
