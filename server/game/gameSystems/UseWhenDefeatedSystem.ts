@@ -1,7 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import * as Contract from '../core/utils/Contract.js';
-import { EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
+import { EventName, GameStateChangeRequired, Stage, WildcardCardType } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import TriggeredAbility from '../core/ability/TriggeredAbility';
 import { DefeatCardSystem } from './DefeatCardSystem';
@@ -22,8 +21,7 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
     public eventHandler(event): void {
         const whenDefeatedSource = event.whenDefeatedSource;
         const triggerAll = event.triggerAll; // TODO: Will use with Shadow Caster
-        const whenDefeatedAbilities: TriggeredAbility[] = whenDefeatedSource.getTriggeredAbilities().filter((ability) => ability.isWhenDefeated);
-        Contract.assertTrue(whenDefeatedAbilities.length > 0, 'No When Defeated abilities found on card');
+        const whenDefeatedAbilities: TriggeredAbility[] = event.whenDefeatedAbilities;
 
         if (whenDefeatedAbilities.length === 1 || triggerAll) {
             whenDefeatedAbilities.forEach((whenDefeatedAbility) => {
@@ -70,6 +68,15 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
             return false;
         }
 
+        if (mustChangeGameState !== GameStateChangeRequired.None) {
+            return card.getTriggeredAbilities().some((ability) => {
+                const whenDefeatedEvent = new DefeatCardSystem(ability.properties).generateEvent(context, card, true);
+                const abilityContext = ability.createContext(context.player, whenDefeatedEvent);
+                abilityContext.stage = Stage.PreTarget;
+                return ability.meetsRequirements(abilityContext) === '';
+            });
+        }
+
         return super.canAffect(card, context, additionalProperties, mustChangeGameState);
     }
 
@@ -79,5 +86,6 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
         const { triggerAll } = this.generatePropertiesFromContext(context, additionalProperties);
         event.triggerAll = triggerAll;
         event.whenDefeatedSource = card;
+        event.whenDefeatedAbilities = card.canRegisterTriggeredAbilities() ? card.getTriggeredAbilities().filter((ability) => ability.isWhenDefeated) : [];
     }
 }

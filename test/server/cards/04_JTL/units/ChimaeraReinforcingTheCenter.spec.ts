@@ -54,7 +54,7 @@ describe('Chimaera, Reinforcing the Center', function() {
                 expect(battleDroid[0]).toBeInZone('groundArena');
             });
 
-            it('should be able to select a unit with a when defeated that would not change game state', async function () {
+            it('should not be able to select a unit with a when defeated that would not change game state', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -66,8 +66,8 @@ describe('Chimaera, Reinforcing the Center', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.chimaera);
-                expect(context.player1).toBeAbleToSelectExactly([context.hevy]);
-                context.player1.clickCard(context.hevy);
+                expect(context.player1).not.toBeAbleToSelectExactly([context.hevy]);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should let you select and activate a When Defeated ability gained from an upgrade', async function () {
