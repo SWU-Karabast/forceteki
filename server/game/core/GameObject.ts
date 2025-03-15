@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid';
 
 import type { AbilityContext } from './ability/AbilityContext';
 import { AbilityRestriction, EffectName, Stage } from './Constants';
@@ -6,23 +5,39 @@ import type { IOngoingCardEffect } from './ongoingEffect/IOngoingCardEffect';
 import type Game from './Game';
 import type Player from './Player';
 import type { Card } from './card/Card';
+import type { IGameObjectBaseState } from './GameObjectBase';
+import { GameObjectBase } from './GameObjectBase';
 
-export abstract class GameObject {
-    public uuid = uuidv4();
-    protected id: string;
+export interface IGameObjectState extends IGameObjectBaseState {
+    id: string;
+    nameField: string;
+}
+
+// TODO: Rename to TargetableGameObject? Or something to imply this is a object with effects (as opposed to an Ability).
+export abstract class GameObject<T extends IGameObjectState = IGameObjectState> extends GameObjectBase<T> {
     private ongoingEffects = [] as IOngoingCardEffect[];
-    private nameField: string;
 
     public get name() {
-        return this.nameField;
+        return this.state.nameField;
+    }
+
+    public get id() {
+        return this.state.id;
+    }
+
+    public set id(value) {
+        this.state.id = value;
     }
 
     public constructor(
-        public game: Game,
-        name: string
+        game: Game,
+        name: string,
+        id?: string
     ) {
-        this.id = name;
-        this.nameField = name;
+        super(game);
+
+        this.state.id = id ?? name;
+        this.state.nameField = name;
     }
 
     public addOngoingEffect(ongoingEffect: IOngoingCardEffect) {
