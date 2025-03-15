@@ -518,10 +518,10 @@ export class GameServer {
                 return;
             }
             const socket = new Socket(ioSocket);
-            lobby.addSpectator(user, socket);
             socket.registerEvent('disconnect', () => {
                 this.onSpectatorDisconnect(user.id);
             });
+            lobby.addSpectator(user, socket);
             return;
         }
 

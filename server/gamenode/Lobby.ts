@@ -171,8 +171,10 @@ export class Lobby {
     public addSpectator(user: User, socket: Socket): void {
         const existingSpectator = this.spectators.find((s) => s.id === user.id);
         const existingPlayer = this.users.find((s) => s.id === user.id);
-        // TODO cleanup
         if (existingPlayer) {
+            // we remove the player and disconnect since the user should not come here
+            this.removeUser(user.id);
+            socket.disconnect();
             return;
         }
         if (!existingSpectator) {
@@ -203,8 +205,10 @@ export class Lobby {
     public addLobbyUser(user, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         const existingSpectator = this.spectators.find((s) => s.id === user.id);
-        // TODO cleanup
         if (existingSpectator) {
+            // we remove the spectator and disconnect since the user should not come here
+            this.removeSpectator(user.id);
+            socket.disconnect();
             return;
         }
         // we check if listeners for the events already exist
