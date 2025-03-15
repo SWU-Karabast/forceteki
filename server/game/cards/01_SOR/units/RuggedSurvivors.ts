@@ -15,7 +15,7 @@ export default class RuggedSurvivors extends NonLeaderUnitCard {
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.leader.isDeployableLeader() && context.player.leader.deployed,
-                onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller })),
+                onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
             })
         });
     }

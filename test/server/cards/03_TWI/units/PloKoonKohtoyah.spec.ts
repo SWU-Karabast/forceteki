@@ -19,7 +19,7 @@ describe('Plo Koon Kohtoyah', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.ploKoon);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 context.player1.clickCard(context.consularSecurityForce);
                 expect(context.consularSecurityForce.damage).toBe(6);
                 expect(context.ploKoon.damage).toBe(3);
@@ -48,7 +48,7 @@ describe('Plo Koon Kohtoyah', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.ploKoon);
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 expect(context.wampa.damage).toBe(3);
                 expect(context.ploKoon.damage).toBe(4);
             });

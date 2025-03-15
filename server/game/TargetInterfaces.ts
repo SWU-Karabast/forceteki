@@ -52,6 +52,7 @@ export interface ISelectTargetResolver<TContext extends AbilityContext> extends 
     choices: IChoicesInterface | ((context: TContext) => IChoicesInterface);
     condition?: (context: TContext) => boolean;
     checkTarget?: boolean;
+    showUnresolvable?: boolean;
 }
 
 export interface IDropdownListTargetResolver<TContext extends AbilityContext> extends ITargetResolverBase<TContext> {
@@ -61,7 +62,7 @@ export interface IDropdownListTargetResolver<TContext extends AbilityContext> ex
 }
 
 export interface ITargetResolverBase<TContext extends AbilityContext> {
-    activePromptTitle?: string;
+    activePromptTitle?: ((context: TContext) => string) | string;
     appendToDefaultTitle?: string;
     zoneFilter?: ZoneFilter | ZoneFilter[];
 
@@ -127,4 +128,7 @@ interface ICardMaxStatTargetResolver<TContext extends AbilityContext> extends IC
 
 interface CardSingleUnlimitedTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode?: TargetMode.Single | TargetMode.Unlimited;
+    canChooseNoCards?: boolean;
 }
+
+

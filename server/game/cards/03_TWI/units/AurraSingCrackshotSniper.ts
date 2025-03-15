@@ -15,9 +15,9 @@ export default class AurraSingCrackshotSniper extends NonLeaderUnitCard {
             title: 'Ready when an enemy ground unit attack base',
             when: {
                 onAttackDeclared: (event, context) =>
-                    event.attack.attacker.controller !== context.source.controller &&
+                    event.attack.attacker.controller !== context.player &&
                     event.attack.attacker.zoneName === ZoneName.GroundArena &&
-                    event.attack.target === context.source.controller.base,
+                    event.attack.target === context.player.base,
             },
             immediateEffect: AbilityHelper.immediateEffects.ready(),
         });

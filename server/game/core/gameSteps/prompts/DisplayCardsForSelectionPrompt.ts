@@ -7,7 +7,7 @@ import { DisplayCardSelectionState, type IDisplayCardsSelectProperties } from '.
 import { DisplayCardPrompt } from './DisplayCardPrompt';
 
 export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCardsSelectProperties> {
-    private readonly canChooseNothing: boolean;
+    private readonly canChooseFewer: boolean;
     private readonly displayCards: ISelectableCard[];
     private readonly doneButton?: IButton;
     private readonly maxCards: number;
@@ -36,7 +36,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
                 : DisplayCardSelectionState.Invalid,
         }));
 
-        this.canChooseNothing = !!properties.canChooseNothing;
+        this.canChooseFewer = !!properties.canChooseFewer;
         this.showSelectionOrder = !!properties.showSelectionOrder;
         this.selectedCardsButtonText = properties.selectedCardsButtonText || 'Done';
         this.noSelectedCardsButtonText = properties.noSelectedCardsButtonText || 'Take nothing';
@@ -45,7 +45,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
             (card) => card.selectionState === DisplayCardSelectionState.Selectable
         ).length;
 
-        if (this.canChooseNothing) {
+        if (this.canChooseFewer) {
             this.doneButton = { text: this.noSelectedCardsButtonText, arg: 'done' };
         } else if (this.maxCards > 1) {
             this.doneButton = { text: this.selectedCardsButtonText, arg: 'done', disabled: true };
@@ -145,10 +145,10 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
 
         // update done button state
         if (this.doneButton) {
-            if (this.selectedCards.length === 0) {
-                if (this.canChooseNothing) {
+            if (this.selectedCards.length < this.maxCards) {
+                if (this.canChooseFewer) {
                     this.doneButton.disabled = false;
-                    this.doneButton.text = this.noSelectedCardsButtonText;
+                    this.doneButton.text = this.selectedCards.length === 0 ? this.noSelectedCardsButtonText : this.selectedCardsButtonText;
                 } else {
                     this.doneButton.disabled = true;
                     this.doneButton.text = this.selectedCardsButtonText;

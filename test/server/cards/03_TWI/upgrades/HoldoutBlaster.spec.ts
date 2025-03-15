@@ -27,8 +27,8 @@ describe('Hold-out Blaster', function() {
             context.player1.clickCard(context.r2d2IgnoringProtocol);
 
             // Resolve Jango's ability
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-            context.player1.clickPrompt('Exhaust this leader');
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust leader and exhaust the damaged enemy unit');
+            context.player1.clickPrompt('Trigger');
 
             expect(context.r2d2IgnoringProtocol.damage).toBe(1);
             expect(context.r2d2IgnoringProtocol.exhausted).toBeTrue();

@@ -15,7 +15,7 @@ export default class ProfundityWeFight extends NonLeaderUnitCard {
             title: 'Make a player discard a card from their hand',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onCardDefeated: (event, context) => event.card === context.source,
+                whenDefeated: true,
             },
             targetResolver: {
                 activePromptTitle: 'Choose a player to discard a card from their hand',

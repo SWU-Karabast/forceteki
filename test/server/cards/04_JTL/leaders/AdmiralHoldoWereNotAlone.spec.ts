@@ -1,82 +1,84 @@
 describe('Admiral Holdo, We\'re Not Alone', function () {
     integration(function (contextRef) {
-        describe('Admiral Holdo\'s undeployed ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: 'admiral-holdo#were-not-alone',
-                        groundArena: ['rey#keeping-the-past', 'battlefield-marine'],
-                        spaceArena: ['dqar-cargo-frigate'],
-                        resources: 2
-                    },
-                    player2: {
-                        groundArena: ['poe-dameron#quick-to-improvise']
-                    }
-                });
+        it('Admiral Holdo\'s undeployed ability should give +2/+2 for the phase to a resistance unit or a unit with a resistance upgrade', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'admiral-holdo#were-not-alone',
+                    hand: ['determined-recruit'],
+                    groundArena: ['rey#keeping-the-past', 'battlefield-marine'],
+                    spaceArena: ['dqar-cargo-frigate', 'green-squadron-awing'],
+                    resources: 3
+                },
+                player2: {
+                    groundArena: ['poe-dameron#quick-to-improvise']
+                }
             });
 
-            it('should give +2/+2 for the phase to a resistance unit or a unit with a resistance upgrade', function () {
-                const { context } = contextRef;
+            const { context } = contextRef;
 
-                context.player1.clickCard(context.admiralHoldo);
-                expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.rey, context.dqarCargoFrigate]);
-                context.player1.clickCard(context.rey);
+            context.player1.clickCard(context.determinedRecruit);
+            context.player1.clickPrompt('Play Determined Recruit with Piloting');
+            context.player1.clickCard(context.greenSquadronAwing);
 
-                expect(context.rey.getPower()).toBe(6);
-                expect(context.rey.getHp()).toBe(9);
+            context.player2.passAction();
 
-                expect(context.player1.exhaustedResourceCount).toBe(1);
-                expect(context.admiralHoldo.exhausted).toBeTrue();
+            context.player1.clickCard(context.admiralHoldo);
+            expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.rey, context.dqarCargoFrigate, context.greenSquadronAwing]);
+            context.player1.clickCard(context.rey);
 
-                expect(context.player2).toBeActivePlayer();
+            expect(context.rey.getPower()).toBe(6);
+            expect(context.rey.getHp()).toBe(9);
 
-                context.moveToNextActionPhase();
+            expect(context.player1.exhaustedResourceCount).toBe(3);
+            expect(context.admiralHoldo.exhausted).toBeTrue();
 
-                expect(context.rey.getPower()).toBe(4);
-                expect(context.rey.getHp()).toBe(7);
-            });
+            expect(context.player2).toBeActivePlayer();
 
-            // TODO WHEN PILOTING IS DONE ADD RESISTANCE UPGRADE TESTS
+            context.moveToNextActionPhase();
+
+            expect(context.rey.getPower()).toBe(4);
+            expect(context.rey.getHp()).toBe(7);
         });
 
-        describe('Admiral Holdo\'s deployed ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
-                    phase: 'action',
-                    player1: {
-                        leader: { card: 'admiral-holdo#were-not-alone', deployed: true },
-                        groundArena: ['rey#keeping-the-past', 'battlefield-marine'],
-                        spaceArena: ['dqar-cargo-frigate'],
-                    },
-                    player2: {
-                        groundArena: ['poe-dameron#quick-to-improvise']
-                    }
-                });
+        it('Admiral Holdo\'s deployed ability may give +2/+2 for the phase to a resistance unit or a unit with a resistance upgrade', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'admiral-holdo#were-not-alone', deployed: true },
+                    hand: ['determined-recruit'],
+                    groundArena: ['rey#keeping-the-past', 'battlefield-marine'],
+                    spaceArena: ['dqar-cargo-frigate', 'green-squadron-awing'],
+                },
+                player2: {
+                    groundArena: ['poe-dameron#quick-to-improvise']
+                }
             });
 
-            it('may give +2/+2 for the phase to a resistance unit or a unit with a resistance upgrade', function () {
-                const { context } = contextRef;
+            const { context } = contextRef;
 
-                context.player1.clickCard(context.admiralHoldo);
-                context.player1.clickCard(context.p2Base);
+            context.player1.clickCard(context.determinedRecruit);
+            context.player1.clickPrompt('Play Determined Recruit with Piloting');
+            context.player1.clickCard(context.greenSquadronAwing);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.rey, context.dqarCargoFrigate]);
-                expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickCard(context.rey);
+            context.player2.passAction();
 
-                expect(context.rey.getPower()).toBe(6);
-                expect(context.rey.getHp()).toBe(9);
+            context.player1.clickCard(context.admiralHoldo);
+            context.player1.clickCard(context.p2Base);
 
-                expect(context.player2).toBeActivePlayer();
+            expect(context.player1).toBeAbleToSelectExactly([context.poeDameron, context.rey, context.dqarCargoFrigate, context.greenSquadronAwing]);
+            expect(context.player1).toHavePassAbilityButton();
+            context.player1.clickCard(context.rey);
 
-                context.moveToNextActionPhase();
+            expect(context.rey.getPower()).toBe(6);
+            expect(context.rey.getHp()).toBe(9);
 
-                expect(context.rey.getPower()).toBe(4);
-                expect(context.rey.getHp()).toBe(7);
-            });
+            expect(context.player2).toBeActivePlayer();
 
-            // TODO WHEN PILOTING IS DONE ADD RESISTANCE UPGRADE TESTS
+            context.moveToNextActionPhase();
+
+            expect(context.rey.getPower()).toBe(4);
+            expect(context.rey.getHp()).toBe(7);
         });
     });
 });

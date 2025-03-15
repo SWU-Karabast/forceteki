@@ -23,12 +23,12 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
             title: 'If a unit left play this phase, draw a card, then put a card from your hand on the top or bottom of your deck.',
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ filter: (entry) => entry.card.isUnit() }),
+                condition: () => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({}),
                 onTrue: AbilityHelper.immediateEffects.draw({ amount: 1 })
             }),
             then: {
                 title: 'Select a card from your hand to put on the top or bottom of your deck',
-                thenCondition: () => this.cardsLeftPlayThisPhaseWatcher.someCardLeftPlay({ filter: (entry) => entry.card.isUnit() }),
+                thenCondition: () => this.cardsLeftPlayThisPhaseWatcher.someUnitLeftPlay({}),
                 targetResolver: {
                     activePromptTitle: 'Select a card to put on the top or bottom of your deck',
                     controller: RelativePlayer.Self,
@@ -52,14 +52,14 @@ export default class YodaSensingDarkness extends LeaderUnitCard {
             when: {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },
-            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({ amount: 1, target: context.source.controller })),
+            immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({ amount: 1, target: context.player })),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Defeat an enemy non-leader unit that costs equal to or less than the discarded card',
                 targetResolver: {
                     controller: RelativePlayer.Opponent,
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                    cardCondition: (card) => card.cost <= ifYouDoContext.events[0].card.printedCost,
+                    cardCondition: (card) => card.hasCost() && card.cost <= ifYouDoContext.events[0].card.printedCost,
                     immediateEffect: AbilityHelper.immediateEffects.defeat()
                 }
             })

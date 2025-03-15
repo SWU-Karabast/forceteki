@@ -1,4 +1,5 @@
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
+import type { CardType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type Player from '../core/Player';
@@ -13,6 +14,8 @@ export interface PlayedCardEntry {
     playedBy: Player;
     parentCard?: IInPlayCard;
     parentCardInPlayId?: number;
+    hasWhenDefeatedAbilities?: boolean;
+    playedAsType: CardType;
 }
 
 export type ICardsPlayedThisPhase = PlayedCardEntry[];
@@ -55,10 +58,12 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
                 currentState.concat({
                     card: event.card,
                     playEvent: event,
-                    parentCard: event.card.parentCard ?? null,
-                    parentCardInPlayId: event.card.parentCard?.canBeInPlay() ? event.card.parentCard.inPlayId : null,
-                    inPlayId: event.card.canBeInPlay() ? event.card.inPlayId : null,
-                    playedBy: event.card.controller
+                    parentCard: event.card.isUpgrade() && event.card.isAttached() ? event.card.parentCard : null,
+                    parentCardInPlayId: event.card.isUpgrade() && event.card.parentCard?.canBeInPlay() ? event.card.parentCard.inPlayId : null,
+                    inPlayId: event.card.inPlayId ?? null,
+                    playedBy: event.card.controller,
+                    hasWhenDefeatedAbilities: event.card.canBeInPlay() && event.card.getTriggeredAbilities().some((ability) => ability.isWhenDefeated),
+                    playedAsType: event.card.type,
                 })
         });
     }

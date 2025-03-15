@@ -14,7 +14,7 @@ export default class KraytDragon extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Deal damage equal to that card’s cost to their base or a ground unit they control',
             when: {
-                onCardPlayed: (event, context) => event.card.controller === context.source.controller.opponent,
+                onCardPlayed: (event, context) => event.card.controller === context.player.opponent,
             },
             optional: true,
             targetResolver: {

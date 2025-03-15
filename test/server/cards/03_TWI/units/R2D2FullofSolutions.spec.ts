@@ -7,6 +7,9 @@ describe('R2-D2, Full of Solutions', function() {
                     player1: {
                         hand: ['r2d2#full-of-solutions', 'entrenched', 'pyke-sentinel'],
                         deck: ['batch-brothers', 'perilous-position', 'battlefield-marine', 'wampa']
+                    },
+                    player2: {
+                        hand: ['multitroop-transport']
                     }
                 });
 
@@ -15,6 +18,7 @@ describe('R2-D2, Full of Solutions', function() {
                 // Play R2 and discard a card
                 context.player1.clickCard(context.r2d2);
                 expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.pykeSentinel]);
+                expect(context.player1).not.toBeAbleToSelectExactly([context.multitroopTransport]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.entrenched);
                 expect(context.entrenched).toBeInZone('discard', context.player1);

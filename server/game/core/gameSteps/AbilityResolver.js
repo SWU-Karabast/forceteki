@@ -2,15 +2,12 @@ const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
 const { SimpleStep } = require('./SimpleStep.js');
 const { ZoneName, Stage, CardType, EventName, AbilityType, RelativePlayer } = require('../Constants.js');
 const { GameEvent } = require('../event/GameEvent.js');
-const Contract = require('../utils/Contract.js');
-const { EventWindow } = require('../event/EventWindow.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
-    constructor(game, context, optional = false) {
+    constructor(game, context, optional = false, canCancel = null) {
         super(game);
 
         this.context = context;
-        this.canCancel = true;
         this.events = [];
         this.targetResults = {};
         this.costResults = this.getCostResults();
@@ -25,6 +22,18 @@ class AbilityResolver extends BaseStepWithPipeline {
          */
         this.resolutionComplete = false;
 
+        // if canCancel is not provided, we default to true if there is no previous ability resolver
+        // this prevents us from trying to cancel an "inner" ability while the outer one still resolves
+        // TODO: fix this flow so cancelling is more flexible
+        if (canCancel == null) {
+            this.canCancel = game.currentAbilityResolver == null;
+        } else {
+            this.canCancel = canCancel;
+        }
+
+        this.currentAbilityResolver = game.currentAbilityResolver;
+        game.currentAbilityResolver = this;
+
         // this is used when a triggered ability is marked optional to ensure that a "Pass" button
         // appears at the appropriate times during the prompt flow for that ability
         // TODO: add interface for this in Interfaces.ts when we convert to TS
@@ -33,6 +42,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         } else {
             this.passButtonText = this.context.ability.isAttackAction() ? 'Pass attack' : 'Pass';
         }
+
         this.passAbilityHandler = (!!this.context.ability.optional || optional) ? {
             buttonText: this.passButtonText,
             arg: 'passAbility',
@@ -54,6 +64,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.resolveEarlyTargets(), 'resolveEarlyTargets'),
             new SimpleStep(this.game, () => this.checkForCancelOrPass(), 'checkForCancelOrPass'),
             new SimpleStep(this.game, () => this.openInitiateAbilityEventWindow(), 'openInitiateAbilityEventWindow'),
+            new SimpleStep(this.game, () => this.resetGameAbilityResolver(), 'resetGameAbilityResolver')
         ]);
     }
 
@@ -85,7 +96,7 @@ class AbilityResolver extends BaseStepWithPipeline {
             // if the opponent is the one choosing whether to pass or not, we don't include the pass handler in the target resolver
             const passAbilityHandler = this.passAbilityHandler?.playerChoosing === this.context.player ? this.passAbilityHandler : null;
 
-            this.targetResults = this.context.ability.resolveTargets(this.context, passAbilityHandler);
+            this.targetResults = this.context.ability.resolveTargets(this.context, passAbilityHandler, this.canCancel);
         }
     }
 
@@ -219,8 +230,8 @@ class AbilityResolver extends BaseStepWithPipeline {
         if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
             this.passAbilityHandler.hasBeenShown = true;
             this.game.promptWithHandlerMenu(this.passAbilityHandler.playerChoosing, {
-                activePromptTitle: `Trigger the ability '${this.context.ability.title}' or pass`,
-                choices: [this.context.ability.title, this.passAbilityHandler.buttonText],
+                activePromptTitle: `Trigger the ability '${this.getAbilityPromptTitle(this.context)}' or pass`,
+                choices: ['Trigger', this.passAbilityHandler.buttonText],
                 handlers: [
                     () => {},
                     () => {
@@ -229,6 +240,13 @@ class AbilityResolver extends BaseStepWithPipeline {
                 ]
             });
         }
+    }
+
+    getAbilityPromptTitle(context) {
+        if (context.overrideTitle) {
+            return context.overrideTitle;
+        }
+        return context.ability.title;
     }
 
     payCosts() {
@@ -295,6 +313,10 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.context.stage = Stage.Effect;
 
         this.context.ability.executeHandler(this.context);
+    }
+
+    resetGameAbilityResolver() {
+        this.game.currentAbilityResolver = this.currentAbilityResolver;
     }
 
     /** @override */

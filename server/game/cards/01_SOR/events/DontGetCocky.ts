@@ -7,8 +7,6 @@ import type { IThenAbilityPropsWithSystems } from '../../../Interfaces';
 import * as Contract from '../../../core/utils/Contract';
 
 export default class DontGetCocky extends EventCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '2202839291',
@@ -17,6 +15,8 @@ export default class DontGetCocky extends EventCard {
     }
 
     public override setupCardAbilities() {
+        // TODO: Consolidate this to a single prompt that includes the revealed cards and
+        //       Reveal Another Card/Stop Revealing Cards options
         this.setEventAbility({
             title: 'Choose a unit',
             targetResolver: {
@@ -24,7 +24,10 @@ export default class DontGetCocky extends EventCard {
             },
             then: (unitChosenContext) => ({
                 title: 'Reveal the top card of your deck',
-                immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({ target: context.source.controller.getTopCardOfDeck() })),
+                immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
+                    useDisplayPrompt: true,
+                    target: context.player.getTopCardOfDeck()
+                })),
                 then: this.thenAfterReveal(1, unitChosenContext)
             })
         });
@@ -32,7 +35,8 @@ export default class DontGetCocky extends EventCard {
 
     private thenAfterReveal(cardsRevealedCount: number, contextWithUnitTarget: AbilityContext): IThenAbilityPropsWithSystems<AbilityContext> {
         Contract.assertTrue(cardsRevealedCount > 0 && cardsRevealedCount < 8, `Error in Don't Get Cocky implementation: thenAfterReveal called with invalid cardsRevealedCount ${cardsRevealedCount}`);
-        if (cardsRevealedCount === 7) {
+        const deckLength = contextWithUnitTarget.player.drawDeck.length;
+        if (cardsRevealedCount === 7 || cardsRevealedCount >= deckLength) {
             return {
                 title: 'Deal damage equal to the chosen unit equal to the total cost of cards revealed, if it is 7 or less',
                 immediateEffect: this.afterStopRevealingEffect(7, contextWithUnitTarget)
@@ -44,7 +48,10 @@ export default class DontGetCocky extends EventCard {
                 activePromptTitle: `Current total cost: ${this.topXCardsTotalCost(cardsRevealedCount, contextWithUnitTarget)}\nSelect one:`,
                 mode: TargetMode.Select,
                 choices: {
-                    ['Reveal another card']: AbilityHelper.immediateEffects.reveal((context) => ({ target: context.source.controller.getTopCardsOfDeck(7)[cardsRevealedCount] })),
+                    ['Reveal another card']: AbilityHelper.immediateEffects.reveal((context) => ({
+                        useDisplayPrompt: true,
+                        target: context.player.getTopCardsOfDeck(1 + cardsRevealedCount)
+                    })),
                     ['Stop revealing cards']: this.afterStopRevealingEffect(cardsRevealedCount, contextWithUnitTarget)
                 }
             },
@@ -64,12 +71,12 @@ export default class DontGetCocky extends EventCard {
                     condition: totalCost <= 7,
                     onTrue: AbilityHelper.immediateEffects.damage({ target: contextWithUnitTarget.target, amount: totalCost }),
                 }),
-                AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.source.controller.getTopCardsOfDeck(cardsRevealedCount) })
+                AbilityHelper.immediateEffects.moveToBottomOfDeck({ target: context.player.getTopCardsOfDeck(cardsRevealedCount) })
             ];
         });
     }
 
     private topXCardsTotalCost(cardsRevealedCount: number, context: AbilityContext) {
-        return context.source.controller.getTopCardsOfDeck(cardsRevealedCount).reduce((total, card) => total + card.printedCost, 0);
+        return context.player.getTopCardsOfDeck(cardsRevealedCount).reduce((total, card) => total + card.printedCost, 0);
     }
 }

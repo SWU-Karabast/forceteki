@@ -19,11 +19,11 @@ export default class InDefenseOfKamino extends EventCard {
                     AbilityHelper.ongoingEffects.gainAbility({
                         type: AbilityType.Triggered,
                         title: 'Create a Clone Trooper token.',
-                        when: { onCardDefeated: (event, context) => event.card === context.source },
+                        when: { whenDefeated: true },
                         immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper()
                     })
                 ],
-                target: context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.hasSomeTrait(Trait.Republic))
+                target: context.player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.hasSomeTrait(Trait.Republic))
             }))
         });
     }

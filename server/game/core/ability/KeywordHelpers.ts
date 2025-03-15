@@ -1,37 +1,49 @@
 import type { IKeywordProperties } from '../../Interfaces';
-import { Aspect, KeywordName, PlayType } from '../Constants';
+import type { Card } from '../card/Card';
+import type { PlayType } from '../Constants';
+import { Aspect, KeywordName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { BountyKeywordInstance, KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
 import type { PlayCardAction } from './PlayCardAction';
 
-export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, cardName: string): KeywordInstance[] {
+export function parseKeywords(
+    card: Card,
+    expectedKeywordsRaw: string[],
+    cardText: string,
+    pilotText: string
+): KeywordInstance[] {
     const expectedKeywords = EnumHelpers.checkConvertToEnum(expectedKeywordsRaw, KeywordName);
 
     const keywords: KeywordInstance[] = [];
 
     for (const keywordName of expectedKeywords) {
         if (isNumericType[keywordName]) {
-            const keywordValueOrNull = parseNumericKeywordValueIfEnabled(keywordName, cardText, cardName);
+            const keywordValueOrNull = parseNumericKeywordValueIfEnabled(keywordName, cardText, card.internalName);
             if (keywordValueOrNull != null) {
-                keywords.push(new KeywordWithNumericValue(keywordName, keywordValueOrNull));
+                keywords.push(new KeywordWithNumericValue(keywordName, card, keywordValueOrNull));
+            }
+        } else if (keywordName === KeywordName.Piloting) {
+            const pilotingValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Piloting, pilotText, card);
+            if (pilotingValuesOrNull != null) {
+                keywords.push(pilotingValuesOrNull);
             }
         } else if (keywordName === KeywordName.Smuggle) {
-            const smuggleValuesOrNull = parseSmuggleIfEnabled(cardText, cardName);
+            const smuggleValuesOrNull = parseKeywordWithCostValuesIfEnabled(KeywordName.Smuggle, cardText, card);
             if (smuggleValuesOrNull != null) {
                 keywords.push(smuggleValuesOrNull);
             }
         } else if (keywordName === KeywordName.Bounty) {
-            if (isKeywordEnabled(keywordName, cardText, cardName)) {
-                keywords.push(new BountyKeywordInstance(keywordName));
+            if (isKeywordEnabled(keywordName, cardText, card.internalName)) {
+                keywords.push(new BountyKeywordInstance(keywordName, card));
             }
         } else if (keywordName === KeywordName.Coordinate) {
-            if (isKeywordEnabled(keywordName, cardText, cardName)) {
-                keywords.push(new KeywordWithAbilityDefinition(keywordName));
+            if (isKeywordEnabled(keywordName, cardText, card.internalName)) {
+                keywords.push(new KeywordWithAbilityDefinition(keywordName, card));
             }
         } else { // default case is a keyword with no params
-            if (isKeywordEnabled(keywordName, cardText, cardName)) {
-                keywords.push(new KeywordInstance(keywordName));
+            if (isKeywordEnabled(keywordName, cardText, card.internalName)) {
+                keywords.push(new KeywordInstance(keywordName, card));
             }
         }
     }
@@ -39,18 +51,18 @@ export function parseKeywords(expectedKeywordsRaw: string[], cardText: string, c
     return keywords;
 }
 
-// "Gain Coordinate" and "gain Exploit" are not yet implemented
-export function keywordFromProperties(properties: IKeywordProperties) {
+export function keywordFromProperties(properties: IKeywordProperties, card: Card) {
     switch (properties.keyword) {
         case KeywordName.Restore:
         case KeywordName.Raid:
-            return new KeywordWithNumericValue(properties.keyword, properties.amount);
+            return new KeywordWithNumericValue(properties.keyword, card, properties.amount);
 
         case KeywordName.Bounty:
-            return new BountyKeywordInstance(properties.keyword, properties.ability);
+            return new BountyKeywordInstance(properties.keyword, card, properties.ability);
 
+        // TODO: Do we need Piloting here?
         case KeywordName.Smuggle:
-            return new KeywordWithCostValues(properties.keyword, properties.cost, properties.aspects, false);
+            return new KeywordWithCostValues(properties.keyword, card, properties.cost, properties.aspects, false);
 
         case KeywordName.Ambush:
         case KeywordName.Grit:
@@ -58,7 +70,7 @@ export function keywordFromProperties(properties: IKeywordProperties) {
         case KeywordName.Saboteur:
         case KeywordName.Sentinel:
         case KeywordName.Shielded:
-            return new KeywordInstance(properties.keyword);
+            return new KeywordInstance(properties.keyword, card);
 
         default:
             throw new Error(`Keyword '${(properties as any).keyword}' is not implemented yet`);
@@ -136,26 +148,27 @@ function parseNumericKeywordValueIfEnabled(keyword: KeywordName, cardText: strin
  *
  * @returns null if the keyword is not enabled, or the numeric value if enabled
  */
-function parseSmuggleIfEnabled(cardText: string, cardName: string): KeywordWithCostValues {
-    const regex = getRegexForKeyword(KeywordName.Smuggle);
+function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: string, card: Card): KeywordWithCostValues {
+    const regex = getRegexForKeyword(keyword);
     const matchIter = cardText.matchAll(regex);
 
     const match = matchIter.next();
+
     if (match.done) {
         return null;
     }
 
     if (matchIter.next().done !== true) {
-        throw new Error(`Expected to match at most one instance of enabled keyword ${KeywordName.Smuggle} in card ${cardName}, but found multiple`);
+        throw new Error(`Expected to match at most one instance of enabled keyword ${keyword} in card ${card.internalName}, but found multiple`);
     }
 
-    const smuggleCost = Number(match.value[1]);
+    const cost = Number(match.value[1]);
     const aspectString = match.value[2];
-    const smuggleAspects = EnumHelpers.checkConvertToEnum(aspectString.toLowerCase().split(' '), Aspect);
-    const additionalSmuggleCosts = match.value[3] !== undefined;
+    const aspects = EnumHelpers.checkConvertToEnum(aspectString.toLowerCase().split(' '), Aspect);
+    const additionalCosts = match.value[3] !== undefined;
 
     // regex capture group will be keyword value with costs
-    return new KeywordWithCostValues(KeywordName.Smuggle, smuggleCost, smuggleAspects, additionalSmuggleCosts);
+    return new KeywordWithCostValues(keyword, card, cost, aspects, additionalCosts);
 }
 
 function getRegexForKeyword(keyword: KeywordName) {
@@ -178,7 +191,7 @@ function getRegexForKeyword(keyword: KeywordName) {
         case KeywordName.Overwhelm:
             return /(?:^|(?:\n))Overwhelm/g;
         case KeywordName.Piloting:
-            return /(?:^|(?:\n))Piloting/g;
+            return /Piloting\s\[\s*(\d+)\s+resource(?:s)?(?:,\s*|\s+)([\w\s]+)\]/g;
         case KeywordName.Raid:
             return /(?:^|(?:\n))Raid ([\d]+)/g;
         case KeywordName.Restore:
@@ -196,27 +209,27 @@ function getRegexForKeyword(keyword: KeywordName) {
     }
 }
 
-export function getCheapestSmuggle<TAbility extends PlayCardAction>(smuggleActions: TAbility[]): PlayCardAction | null {
-    const nonSmuggleActions = smuggleActions.filter((action) => action.playType !== PlayType.Smuggle);
-    Contract.assertTrue(nonSmuggleActions.length === 0, 'Found at least one action that is not a Smuggle play action');
+export function getCheapestPlayAction<TAbility extends PlayCardAction>(playType: PlayType, actions: TAbility[]): PlayCardAction | null {
+    const nonMatchingActions = actions.filter((action) => action.playType !== playType);
+    Contract.assertTrue(nonMatchingActions.length === 0, `Found at least one action that is not a ${playType} play action`);
 
-    if (smuggleActions.length === 0) {
+    if (actions.length === 0) {
         return null;
     }
-    if (smuggleActions.length === 1) {
-        return smuggleActions[0];
+    if (actions.length === 1) {
+        return actions[0];
     }
 
-    let cheapestSmuggle = null;
+    let cheapestAction = null;
     let cheapestAmount = Infinity;
-    for (const smuggleAction of smuggleActions) {
-        Contract.assertTrue(smuggleAction.isPlayCardAbility());
-        const cost = smuggleAction.getAdjustedCost(smuggleAction.createContext());
+    for (const action of actions) {
+        Contract.assertTrue(action.isPlayCardAbility());
+        const cost = action.getAdjustedCost(action.createContext());
         if (cost < cheapestAmount) {
             cheapestAmount = cost;
-            cheapestSmuggle = smuggleAction;
+            cheapestAction = action;
         }
     }
 
-    return cheapestSmuggle;
+    return cheapestAction;
 }

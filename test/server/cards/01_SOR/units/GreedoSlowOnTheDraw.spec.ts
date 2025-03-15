@@ -25,7 +25,7 @@ describe('Greedo, Slow on the Draw', function () {
 
                 // player2 should have prompt or pass
                 expect(context.player2).toHavePassAbilityPrompt(prompt);
-                context.player2.clickPrompt(prompt);
+                context.player2.clickPrompt('Trigger');
 
                 // top card is an upgrade, deal 2 damage to a ground unit
                 expect(context.protector).toBeInZone('discard');
@@ -57,7 +57,7 @@ describe('Greedo, Slow on the Draw', function () {
 
                 // player2 should have prompt or pass
                 expect(context.player2).toHavePassAbilityPrompt(prompt);
-                context.player2.clickPrompt(prompt);
+                context.player2.clickPrompt('Trigger');
 
                 // top card is a unit, nothing happen
                 expect(context.isbAgent).toBeInZone('discard');

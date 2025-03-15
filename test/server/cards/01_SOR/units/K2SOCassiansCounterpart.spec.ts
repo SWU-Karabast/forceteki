@@ -1,4 +1,4 @@
-describe('K-2SO', function() {
+describe('K-2SO, Cassian\'s Counterpart', function() {
     integration(function(contextRef) {
         describe('K-2SO\'s When Defeated ability', function() {
             beforeEach(function () {

@@ -16,7 +16,7 @@ export default class TradeFederationShuttle extends NonLeaderUnitCard {
             title: 'Create a Battle Droid token.',
             // eslint-disable-next-line @stylistic/object-curly-newline
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.controller.getUnitsInPlay(
+                condition: (context) => context.player.getUnitsInPlay(
                     WildcardZoneName.AnyArena,
                     (unit: IUnitCard) => unit.damage > 0).length > 0,
 

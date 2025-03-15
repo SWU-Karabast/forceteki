@@ -24,7 +24,7 @@ describe('Gar Saxon, Viceroy of Mandalore', function() {
             expect(context.rebelPathfinder.getHp()).toBe(3);
         });
 
-        it('Gar Saxon\'s constant deployeded ability', async function () {
+        it('Gar Saxon\'s constant deployed ability', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -102,6 +102,37 @@ describe('Gar Saxon, Viceroy of Mandalore', function() {
             context.player1.clickPrompt('Pass');
             expect(context.player1.handSize).toBe(0);
             expect(context.armedToTheTeeth).toBeInZone('discard');
+        });
+
+        it('Gar Saxon\'s constant deployed ability works with Piloting', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: [{ card: 'system-patrol-craft', upgrades: ['dagger-squadron-pilot'] }],
+                    leader: { card: 'gar-saxon#viceroy-of-mandalore', deployed: true },
+                    hand: ['vanquish', 'open-fire']
+                },
+                player2: {
+                    spaceArena: [{ card: 'concord-dawn-interceptors', upgrades: ['protector'] }],
+                    hand: ['takedown', 'price-on-your-head', 'rivals-fall']
+                }
+            });
+
+            const { context } = contextRef;
+
+            expect(context.systemPatrolCraft.getPower()).toBe(6);
+            expect(context.systemPatrolCraft.getHp()).toBe(5);
+
+            context.player1.clickCard(context.vanquish);
+            context.player1.clickCard(context.systemPatrolCraft);
+            expect(context.systemPatrolCraft).toBeInZone('discard');
+            expect(context.daggerSquadronPilot).toBeInZone('discard');
+
+            expect(context.player1).toBeAbleToSelectExactly([context.daggerSquadronPilot]);
+            context.player1.clickCard(context.daggerSquadronPilot);
+
+            expect(context.player1.handSize).toBe(2);
+            expect(context.daggerSquadronPilot).toBeInZone('hand');
         });
     });
 });

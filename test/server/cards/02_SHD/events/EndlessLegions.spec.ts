@@ -78,7 +78,22 @@ describe('Endless Legions', function() {
             expect(context.getChatLogs(1)[0]).toContain(context.frozenInCarbonite.title);
             expect(context.getChatLogs(1)[0]).toContain(context.wrecker.title);
             expect(context.getChatLogs(1)[0]).toContain(context.battlefieldMarine.title);
+
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([
+                context.resupply,
+                context.relentless,
+                context.arquitensAssaultCruiser,
+                context.peltaSupplyFrigate,
+                context.admiralPiett,
+                context.frozenInCarbonite,
+                context.wrecker,
+                context.battlefieldMarine,
+            ]);
+            context.player2.clickPrompt('Done');
+
             expect(context.player1).not.toHaveEnabledPromptButton('Choose no target');
+
+            // Only the units are selectable
             expect(context.player1).toBeAbleToSelectExactly([
                 context.wrecker,
                 context.arquitensAssaultCruiser,
@@ -123,7 +138,7 @@ describe('Endless Legions', function() {
             expect(context.player1.findCardsByName('clone-trooper').every((cloneTrooper) => cloneTrooper.damage === 1)).toBeTrue();
 
             // Player 1 triggers Wrecker's ambush
-            context.player1.clickPrompt('Ambush');
+            context.player1.clickPrompt('Trigger');
             context.player1.clickCard(context.gor);
 
             // Player 1 plays Arquitens Assault Cruiser for free
@@ -132,7 +147,7 @@ describe('Endless Legions', function() {
             ]);
 
             context.player1.clickCard(context.arquitensAssaultCruiser);
-            context.player1.clickPrompt('Ambush');
+            context.player1.clickPrompt('Trigger');
             context.player1.clickCard(context.tieAdvanced);
 
             expect(context.player2).toBeActivePlayer();
@@ -196,7 +211,17 @@ describe('Endless Legions', function() {
             context.player1.clickCard(context.confiscate);
             context.player1.clickPrompt('Done');
 
-            expect(context.getChatLogs(1)).toContain('player1 reveals Resupply, Frozen in Carbonite, Confiscate due to Endless Legions');
+            expect(context.getChatLogs(1)[0]).toContain(context.resupply.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.frozenInCarbonite.title);
+            expect(context.getChatLogs(1)[0]).toContain(context.confiscate.title);
+
+            expect(context.player2).toHaveExactViewableDisplayPromptCards([
+                context.resupply,
+                context.frozenInCarbonite,
+                context.confiscate
+            ]);
+            context.player2.clickPrompt('Done');
+
             expect(context.player2).toBeActivePlayer();
         });
     });

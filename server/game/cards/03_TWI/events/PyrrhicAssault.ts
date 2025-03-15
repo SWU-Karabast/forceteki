@@ -17,14 +17,14 @@ export default class PyrrhicAssault extends EventCard {
                 effect: AbilityHelper.ongoingEffects.gainAbility({
                     type: AbilityType.Triggered,
                     title: 'Deal 2 damage to an enemy unit.',
-                    when: { onCardDefeated: (event, context) => event.card === context.source },
+                    when: { whenDefeated: true },
                     targetResolver: {
                         controller: RelativePlayer.Opponent,
                         cardTypeFilter: WildcardCardType.Unit,
                         immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })
                     }
                 }),
-                target: context.source.controller.getUnitsInPlay()
+                target: context.player.getUnitsInPlay()
             }))
         });
     }

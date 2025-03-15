@@ -14,8 +14,8 @@ export default class VanguardDroidBomber extends NonLeaderUnitCard {
         this.addWhenPlayedAbility({
             title: 'Deal 2 damage to an enemy base.',
             immediateEffect: AbilityHelper.immediateEffects.conditional((context) => ({
-                condition: context.source.controller.getOtherUnitsInPlayWithTrait(context.source, Trait.Separatist).length > 0,
-                onTrue: AbilityHelper.immediateEffects.damage({ amount: 2, target: context.source.controller.opponent.base }),
+                condition: context.player.getOtherUnitsInPlayWithTrait(context.source, Trait.Separatist).length > 0,
+                onTrue: AbilityHelper.immediateEffects.damage({ amount: 2, target: context.player.opponent.base }),
             }))
         });
     }

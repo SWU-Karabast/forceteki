@@ -23,7 +23,7 @@ describe('Corner The Prey', function () {
 
                 // The Consular Security Force should have +2 power for this attack
                 expect(context.consularSecurityForce.getPower()).toBe(6);
-                context.player1.clickPrompt('Deal 3 damage divided as you choose among enemy ground units');
+                context.player1.clickPrompt('Trigger');
 
                 // Deal 3 damage to Chewbacca before the attack resolution
                 // They should not increase the power of the Consular Security Force for this attack

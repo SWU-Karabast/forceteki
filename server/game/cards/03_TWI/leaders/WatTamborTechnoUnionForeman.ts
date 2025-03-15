@@ -45,7 +45,7 @@ export default class WatTamborTechnoUnionForeman extends LeaderUnitCard {
 
     private getWatTamborEffect(): GameSystem<TriggeredAbilityContext<this>> {
         return AbilityHelper.immediateEffects.conditional({
-            condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.source.controller),
+            condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player),
             onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                 effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
             }),

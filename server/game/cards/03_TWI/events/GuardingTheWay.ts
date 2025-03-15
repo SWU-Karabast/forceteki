@@ -20,7 +20,7 @@ export default class GuardingTheWay extends EventCard {
                         effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
                     }),
                     AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => context.source.controller.hasInitiative(),
+                        condition: (context) => context.player.hasInitiative(),
                         onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                             effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 2 })
                         }),

@@ -15,7 +15,7 @@ export default class FennecShandLoyalSharpshooter extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.event.attack.target.isUnit(),
                 onTrue: AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: new Set(context.source.controller.discard.map((card) => card.cost)).size,
+                    amount: new Set(context.player.discard.map((card) => card.cost)).size,
                     target: context.event.attack.target,
                 })),
             })

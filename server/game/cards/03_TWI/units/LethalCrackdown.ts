@@ -20,7 +20,7 @@ export default class LethalCrackdown extends EventCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Deal damage to your base equal to that unit\'s power.',
                 immediateEffect: AbilityHelper.immediateEffects.damage({
-                    target: ifYouDoContext.source.controller.base,
+                    target: ifYouDoContext.player.base,
                     amount: ifYouDoContext.events[0].lastKnownInformation.power
                 })
             })

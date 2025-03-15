@@ -24,26 +24,27 @@ export default class CassionAndorDedicatedToTheRebellion extends LeaderUnitCard 
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => {
                     const damageDealtToBase = this.damageDealtThisPhaseWatcher.getDamageDealtByPlayer(
-                        context.source.controller,
+                        context.player,
                         (damage) => damage.target.isBase()
                     ).reduce((sum, damage) => sum + damage.amount, 0);
 
                     return damageDealtToBase >= 3;
                 },
-                onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller })),
+                onTrue: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
             })
         });
     }
 
     protected override setupLeaderUnitSideAbilities() {
         this.addTriggeredAbility({
-            title: 'When you deal damage to an enemy base: You may draw a card. Use this ability only once each round.',
+            title: 'Draw a card',
+            collectiveTrigger: true,
             when: {
                 onDamageDealt: (event, context) =>
                     event.card.isBase() &&
-                    event.damageSource.player === context.source.controller
+                    event.damageSource.player === context.player
             },
-            immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.source.controller })),
+            immediateEffect: AbilityHelper.immediateEffects.draw((context) => ({ target: context.player })),
             limit: AbilityHelper.limit.perRound(1)
         });
     }

@@ -17,7 +17,7 @@ export default class MisterBonesIPerformedViolence extends NonLeaderUnitCard {
             targetResolver: {
                 zoneFilter: ZoneName.GroundArena,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.source.controller.hand.length === 0,
+                    condition: (context) => context.player.hand.length === 0,
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 3 }),
                 })
             }

@@ -14,7 +14,7 @@ export default class SmugglersAid extends EventCard {
             title: 'Heal 3 damage from your base',
             immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
                 amount: 3,
-                target: context.source.controller.base
+                target: context.player.base
             }))
         });
     }

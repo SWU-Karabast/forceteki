@@ -21,7 +21,7 @@ export default class JynErsoStardust extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'While an enemy unit has been defeated this phase, this unit gets +1/+0 and gains Saboteur',
-            condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.source.controller.opponent),
+            condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player.opponent),
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 }),
                 AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur)

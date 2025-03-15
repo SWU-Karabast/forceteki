@@ -1,9 +1,11 @@
 /* global beforeEach, jasmine */
 
+const exp = require('constants');
 const Helpers = require('../../server/game/core/utils/Helpers.js');
 const { stringArraysEqual } = require('../../server/Util.js');
 const TestSetupError = require('./TestSetupError.js');
 const Util = require('./Util.js');
+const { Card } = require('../../server/game/core/card/Card.js');
 
 var customMatchers = {
     toHavePrompt: function () {
@@ -477,7 +479,7 @@ var customMatchers = {
                 let result = {};
 
                 // use player.player here because the received parameter is a PlayerInteractionWrapper
-                result.pass = player.game.actionPhaseActivePlayer === player.player;
+                result.pass = player.game.getActivePlayer() === player.player;
 
                 if (result.pass) {
                     result.message = `Expected ${player.name} not to be the active player but they were.`;
@@ -728,6 +730,30 @@ var customMatchers = {
             }
         };
     },
+    toBeAttachedTo: function () {
+        return {
+            compare: function (card, parentCard) {
+                if (typeof card === 'string' || typeof parentCard === 'string') {
+                    throw new TestSetupError('This expectation requires a card object, not a name');
+                }
+                let result = {};
+
+                if (card.zoneName !== 'capture' && !checkConsistentZoneState(card, result)) {
+                    return result;
+                }
+
+                result.pass = parentCard.upgrades.includes(card);
+
+                if (result.pass) {
+                    result.message = `Expected ${card.internalName} not to be attached to ${parentCard.internalName} but it is`;
+                } else {
+                    result.message = `Expected ${card.internalName} to be attached to ${parentCard.internalName} but it is in zone '${card.zone}'`;
+                }
+
+                return result;
+            }
+        };
+    },
     toHaveExactUpgradeNames: function () {
         return {
             compare: function (card, upgradeNames) {
@@ -946,6 +972,7 @@ function processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject
         }
     }
 
+    const expectedDisplayTextByUuid = new Map();
     const expectedSelectionStateByUuid = new Map();
     const expectedCardsInPrompt = [];
 
@@ -953,8 +980,17 @@ function processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject
         Util.checkNullCard(cards, `Card list for '${selectionState}' contains one more null elements`);
 
         for (const card of cards) {
-            expectedCardsInPrompt.push(card);
-            expectedSelectionStateByUuid.set(card.uuid, selectionState);
+            let concreteCard = card;
+
+            if (selectionState === 'viewOnly') {
+                if (!(card instanceof Card)) {
+                    concreteCard = card.card;
+                    expectedDisplayTextByUuid.set(concreteCard.uuid, card.displayText);
+                }
+            }
+
+            expectedCardsInPrompt.push(concreteCard);
+            expectedSelectionStateByUuid.set(concreteCard.uuid, selectionState);
         }
     }
 
@@ -1006,6 +1042,22 @@ function processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject
         }
     }
 
+    // collect any cards with incorrect displaytext for printing error messages
+    const incorrectDisplayTextCards = [];
+    for (const foundCard of expectedAndFound) {
+        const expectedDisplayText = expectedDisplayTextByUuid.get(foundCard.cardUuid);
+        if (expectedDisplayText !== foundCard.displayText) {
+            incorrectDisplayTextCards.push({ internalName: foundCard.internalName, expectedDisplayText, actualDisplayText: foundCard.displayText });
+        }
+    }
+
+    if (incorrectDisplayTextCards.length > 0) {
+        result.pass = false;
+        message += `Found cards with incorrect display text in prompt for ${player.name}:\n`;
+        message += incorrectDisplayTextCards.map((card) => `\t${card.internalName} - expected: [viewOnly, text: ${card.displayText}], actual: [viewOnly, text: ${card.actualDisplayText}]`).join('\n');
+        message += '\n';
+    }
+
     // generate error messages for any cards with incorrect selection state
     if (incorrectSelectionStateCards.length > 0 || incorrectSelectionOrderCards.length > 0) {
         result.pass = false;
@@ -1015,6 +1067,7 @@ function processExpectedCardsInDisplayPrompt(player, expectedCardsInPromptObject
             message += incorrectSelectionStateCards.map((card) => `\t${card.internalName} - expected: [${card.expectedState}], actual: [${card.actualState}]`).join('\n');
             message += '\n';
         }
+
         if (incorrectSelectionOrderCards.length > 0) {
             message += incorrectSelectionOrderCards.map((card) => `\t${card.internalName} - expected: [selected, selectionOrder: ${card.expectedOrder}], actual: [selected, selectionOrder: ${card.actualOrder}]`).join('\n');
             message += '\n';

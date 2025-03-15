@@ -4,8 +4,6 @@ import { ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class DrydenVos extends NonLeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId() {
         return {
             id: '0598830553',
@@ -20,6 +18,7 @@ export default class DrydenVos extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'Choose a captured card guarded by a unit you control. You may play it for free under your control.',
+            optional: true,
             targetResolver: {
                 zoneFilter: [ZoneName.Capture],
                 cardCondition: (card, context) => this.checkIfTargetIsGuardedByControlledUnit(card, context),

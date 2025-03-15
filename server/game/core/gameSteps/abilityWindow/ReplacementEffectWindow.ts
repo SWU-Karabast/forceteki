@@ -14,7 +14,7 @@ export class ReplacementEffectWindow extends TriggerWindowBase {
 
     public constructor(
         game: Game,
-        eventWindow: EventWindow
+        eventWindow?: EventWindow
     ) {
         super(game, AbilityType.ReplacementEffect, eventWindow);
     }

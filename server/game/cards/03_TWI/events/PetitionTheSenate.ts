@@ -14,7 +14,7 @@ export default class PetitionTheSenate extends EventCard {
         this.setEventAbility({
             title: 'Draw 3 cards.',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.source.controller.getUnitsInPlayWithTrait(Trait.Official).length >= 3,
+                condition: (context) => context.player.getUnitsInPlayWithTrait(Trait.Official).length >= 3,
                 onTrue: AbilityHelper.immediateEffects.draw({ amount: 3 }),
             })
         });

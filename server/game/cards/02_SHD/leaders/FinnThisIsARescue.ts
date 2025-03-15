@@ -3,8 +3,6 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { WildcardCardType } from '../../../core/Constants';
 
 export default class FinnThisIsARescue extends LeaderUnitCard {
-    protected override readonly overrideNotImplemented: boolean = true;
-
     protected override getImplementationId () {
         return {
             id: '9596662994',
@@ -18,7 +16,7 @@ export default class FinnThisIsARescue extends LeaderUnitCard {
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
-                cardCondition: (card, context) => card.controller === context.source.controller,
+                cardCondition: (card, context) => card.controller === context.player,
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             },
             ifYouDo: (ifYouDoContext) => ({
@@ -36,7 +34,7 @@ export default class FinnThisIsARescue extends LeaderUnitCard {
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
-                cardCondition: (card, context) => card.controller === context.source.controller,
+                cardCondition: (card, context) => card.controller === context.player,
                 immediateEffect: AbilityHelper.immediateEffects.defeat(),
             },
             ifYouDo: (ifYouDoContext) => ({

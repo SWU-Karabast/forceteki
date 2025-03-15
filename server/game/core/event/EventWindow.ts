@@ -72,7 +72,7 @@ export class EventWindow extends BaseStepWithPipeline {
             new SimpleStep(this.game, () => this.setParentEventWindow(), 'setParentEventWindow'),
             new SimpleStep(this.game, () => this.checkEventCondition(), 'checkEventCondition'),
             new SimpleStep(this.game, () => this.openReplacementEffectWindow(), 'openReplacementEffectWindow'),
-            new SimpleStep(this.game, () => this.generateContingentEvents(), 'generateContingentEvents'),
+            new SimpleStep(this.game, () => this.generateContingentEventsAndReplacementWindow(), 'generateContingentEventsAndReplacementWindow'),
             new SimpleStep(this.game, () => this.preResolutionEffects(), 'preResolutionEffects'),
             new SimpleStep(this.game, () => this.resolveEvents(), 'resolveEvents'),
             new SimpleStep(this.game, () => this.checkUniqueRule(), 'checkUniqueRule'),
@@ -166,12 +166,17 @@ export class EventWindow extends BaseStepWithPipeline {
      * but will be resolved after it in order. The main use case for this is upgrades being
      * defeated at the same time as the parent card holding them.
      */
-    private generateContingentEvents() {
+    private generateContingentEventsAndReplacementWindow() {
         let contingentEvents = [];
         this._events.forEach((event) => {
             contingentEvents = contingentEvents.concat(event.generateContingentEvents());
         });
         contingentEvents.forEach((event) => this.addEvent(event));
+
+        const replacementEffectWindow = new ReplacementEffectWindow(this.game);
+        replacementEffectWindow.addTriggeringEvents(contingentEvents);
+        replacementEffectWindow.emitEvents();
+        this.queueStep(replacementEffectWindow);
     }
 
     private preResolutionEffects() {
@@ -191,6 +196,7 @@ export class EventWindow extends BaseStepWithPipeline {
             // need to checkCondition here to ensure the event won't fizzle due to another event's resolution
             event.checkCondition();
             if (event.canResolve) {
+                this.game.emit(event.name + ':preResolve', event);
                 event.executeHandler();
                 this.game.emit(event.name, event);
 

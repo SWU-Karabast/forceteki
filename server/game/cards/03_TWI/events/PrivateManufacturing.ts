@@ -16,11 +16,11 @@ export default class PrivateManufacturing extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.draw({ amount: 2 }),
                 AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.source.controller.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.isTokenUnit()).length === 0,
-                    onTrue: AbilityHelper.immediateEffects.selectCard({
+                    condition: (context) => context.player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.isTokenUnit()).length > 0,
+                    onFalse: AbilityHelper.immediateEffects.selectCard({
                         activePromptTitle: 'Select 2 cards',
                         mode: TargetMode.Exactly,
-                        player: RelativePlayer.Self,
+                        controller: RelativePlayer.Self,
                         zoneFilter: ZoneName.Hand,
                         numCards: 2,
                         innerSystem: AbilityHelper.immediateEffects.moveToBottomOfDeck()
