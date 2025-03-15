@@ -4,6 +4,8 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import AbilityHelper from '../AbilityHelper';
+import { NoActionSystem } from './NoActionSystem';
+import * as Contract from '../core/utils/Contract';
 
 // TODO: allow providing only onTrue or onFalse in the properties so we don't need to use noAction()
 export interface IConditionalSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
@@ -55,5 +57,13 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
             condition = condition(context, properties);
         }
         return condition ? properties.onTrue : properties.onFalse;
+    }
+
+    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+
+        Contract.assertFalse(properties.onTrue instanceof NoActionSystem && properties.onFalse instanceof NoActionSystem, 'You must provide onTrue or onFalse for ConditionalSystem');
+
+        return properties;
     }
 }
