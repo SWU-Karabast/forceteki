@@ -14,6 +14,7 @@ import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { getUserWithDefaultsSet, type User } from '../Settings';
 import { GameMode } from '../GameMode';
+import type { GameServer } from './GameServer';
 
 interface LobbyUser {
     id: string;
@@ -38,25 +39,30 @@ export interface RematchRequest {
 
 export class Lobby {
     private readonly _id: string;
+    private readonly _lobbyName: string;
     public readonly isPrivate: boolean;
     private readonly connectionLink?: string;
     private readonly gameChat: GameChat;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
+    private readonly server: GameServer;
 
     private game: Game;
-    private users: LobbyUser[] = [];
+    public users: LobbyUser[] = [];
     private lobbyOwnerId: string;
-    private gameType: MatchType;
-    private gameFormat: SwuGameFormat;
+    public gameType: MatchType;
+    public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
+    private userLastActivity = new Map<string, Date>();
 
     public constructor(
+        lobbyName: string,
         lobbyGameType: MatchType,
         lobbyGameFormat: SwuGameFormat,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
+        gameServer: GameServer,
         testGameBuilder?: any
     ) {
         Contract.assertTrue(
@@ -64,6 +70,7 @@ export class Lobby {
             `Lobby game type ${lobbyGameType} doesn't match any MatchType values`
         );
         this._id = uuid();
+        this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
         this.gameChat = new GameChat();
         this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
@@ -72,15 +79,25 @@ export class Lobby {
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.gameFormat = lobbyGameFormat;
+        this.server = gameServer;
     }
 
     public get id(): string {
         return this._id;
     }
 
+    public get name(): string {
+        return this._lobbyName;
+    }
+
+    public get format(): SwuGameFormat {
+        return this.gameFormat;
+    }
+
     public getLobbyState(): any {
         return {
             id: this._id,
+            lobbyName: this._lobbyName,
             users: this.users.map((u) => ({
                 id: u.id,
                 username: u.username,
@@ -89,7 +106,9 @@ export class Lobby {
                 deck: u.deck?.getDecklist(),
                 deckErrors: u.deckValidationErrors,
                 importDeckErrors: u.importDeckValidationErrors,
-                unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist())
+                unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist()),
+                minDeckSize: u.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(u.deck?.base.id) : 50,
+                maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format)
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
@@ -102,10 +121,19 @@ export class Lobby {
         };
     }
 
+    public getLastActivityForUser(userId: string): Date | null {
+        return this.userLastActivity.get(userId);
+    }
+
     private createLobbyLink(): string {
         return process.env.ENVIRONMENT === 'development'
             ? `http://localhost:3000/lobby?lobbyId=${this._id}`
-            : `https://beta.karabast.net/lobby?lobbyId=${this._id}`;
+            : `https://karabast.net/lobby?lobbyId=${this._id}`;
+    }
+
+    private updateUserLastActivity(id: string): void {
+        const now = new Date();
+        this.userLastActivity.set(id, now);
     }
 
     public createLobbyUser(user, decklist = null): void {
@@ -125,6 +153,10 @@ export class Lobby {
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck
         }));
+        logger.info(`Lobby ${this.id}: Creating username: ${user.username}, id: ${user.id} and adding to users list (${this.users.length} user(s))`);
+        this.gameChat.addMessage(`${user.username} has created and joined the lobby`);
+
+        this.updateUserLastActivity(user.id);
     }
 
     public addLobbyUser(user, socket: Socket): void {
@@ -140,6 +172,7 @@ export class Lobby {
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
+            logger.info(`Lobby ${this.id}: addLobbyUser: setting state to connected for existing user: ${user.username}`);
         } else {
             this.users.push({
                 id: user.id,
@@ -148,11 +181,22 @@ export class Lobby {
                 ready: false,
                 socket
             });
+            logger.info(`Lobby ${this.id}: addLobbyUser: adding username: ${user.username}, id: ${user.id} to users list (${this.users.length} user(s))`);
+            this.gameChat.addMessage(`${user.username} has joined the lobby`);
         }
+
+        this.updateUserLastActivity(user.id);
 
         if (this.game) {
             this.sendGameState(this.game);
         } else {
+            // do a check to make sure that the lobby owner is still registered in the lobby. if not, set the incoming user as the new lobby owner.
+            if (this.server.getUserLobbyId(this.lobbyOwnerId) !== this.id) {
+                logger.info(`Lobby ${this.id}: lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.id}`);
+                this.removeUser(this.lobbyOwnerId);
+                this.lobbyOwnerId = user.id;
+            }
+
             this.sendLobbyState();
         }
     }
@@ -160,7 +204,12 @@ export class Lobby {
     private setReadyStatus(socket: Socket, ...args) {
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'boolean', 'Ready status arguments aren\'t boolean or present');
         const currentUser = this.users.find((u) => u.id === socket.user.id);
+        if (!currentUser) {
+            return;
+        }
         currentUser.ready = args[0];
+        logger.info(`Lobby ${this.id}: User: ${currentUser.username} set ready status: ${args[0]}`);
+        this.updateUserLastActivity(currentUser.id);
     }
 
     private sendChatMessage(socket: Socket, ...args) {
@@ -171,6 +220,7 @@ export class Lobby {
             return;
         }
 
+        logger.info(`Lobby ${this.id}: User: ${existingUser.username} sent chat message: ${args[0]}`);
         this.gameChat.addChatMessage(existingUser, args[0]);
         this.sendLobbyState();
     }
@@ -187,7 +237,7 @@ export class Lobby {
                 initiator: socket.user.id,
                 mode,
             };
-            logger.info(`User ${socket.user.id} requested a rematch (${mode}) in lobby ${this._id}`);
+            logger.info(`Lobby ${this.id}: User: ${socket.user.id} requested a rematch (${mode})`);
         }
         this.sendLobbyState();
     }
@@ -219,6 +269,9 @@ export class Lobby {
                 this.gameFormat);
             activeUser.importDeckValidationErrors = null;
         }
+        logger.info(`Lobby ${this.id}: User: ${activeUser.username} changing deck`);
+
+        this.updateUserLastActivity(activeUser.id);
     }
 
     private updateDeck(socket: Socket, ...args) {
@@ -227,7 +280,8 @@ export class Lobby {
 
         Contract.assertTrue(source === 'Deck' || source === 'Sideboard', `source isn't 'Deck' or 'Sideboard' but ${source}`);
 
-        const userDeck = this.getUser(socket.user.id).deck;
+        const user = this.getUser(socket.user.id);
+        const userDeck = user.deck;
 
         if (source === 'Deck') {
             userDeck.moveToSideboard(cardId);
@@ -235,9 +289,13 @@ export class Lobby {
             userDeck.moveToDeck(cardId);
         }
         // check deck for deckValidationErrors
-        this.getUser(socket.user.id).deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
+        user.deckValidationErrors = this.deckValidator.validateInternalDeck(userDeck.getDecklist(), this.gameFormat);
         // we need to clear any importDeckValidation errors otherwise they can persist
-        this.getUser(socket.user.id).importDeckValidationErrors = null;
+        user.importDeckValidationErrors = null;
+
+        logger.info(`Lobby ${this.id}: User: ${user.username} updating deck`);
+
+        this.updateUserLastActivity(user.id);
     }
 
     private getUser(id: string) {
@@ -250,6 +308,7 @@ export class Lobby {
         const user = this.users.find((u) => u.id === id);
         if (user) {
             user.state = 'disconnected';
+            logger.info(`Lobby ${this.id}: setting user: ${user.username} to disconnected!`);
         }
     }
 
@@ -261,17 +320,61 @@ export class Lobby {
         this.lobbyOwnerId = id;
     }
 
+    public getGamePreview() {
+        if (!this.game) {
+            return null;
+        }
+        try {
+            if (this.users.length !== 2) {
+                return null;
+            }
+            const player1 = this.users[0];
+            const player2 = this.users[1];
+
+            return {
+                player1Leader: player1.deck.leader,
+                player1Base: player1.deck.base,
+                player2Leader: player2.deck.leader,
+                player2Base: player2.deck.base,
+            };
+        } catch (error) {
+            logger.error(`Lobby ${this.id}: Error retrieving lobby game data`, error);
+            return null;
+        }
+    }
+
     public getUserState(id: string): string {
         const user = this.users.find((u) => u.id === id);
         return user ? user.state : null;
     }
 
     public isFilled(): boolean {
-        return this.users.length === 2;
+        return this.users.length >= 2;
     }
 
     public removeUser(id: string): void {
+        const user = this.users.find((u) => u.id === id);
+        if (user) {
+            this.gameChat.addMessage(`${user.username} has left the lobby`);
+        } else {
+            return;
+        }
+        if (this.game) {
+            this.game.addMessage(`${user.username} has left the game`);
+            const winner = this.users.find((u) => u.id !== id);
+            if (winner) {
+                this.game.endGame(this.game.getPlayerById(winner.id), `${user.username} has conceded`);
+            }
+            this.sendGameState(this.game);
+        }
+
+        if (this.lobbyOwnerId === id) {
+            const newOwner = this.users.find((u) => u.id !== id);
+            this.lobbyOwnerId = newOwner?.id;
+        }
         this.users = this.users.filter((u) => u.id !== id);
+        logger.info(`Lobby ${this.id}: removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`);
+
         this.sendLobbyState();
     }
 
@@ -282,6 +385,7 @@ export class Lobby {
     public cleanLobby(): void {
         this.game = null;
         this.users = [];
+        logger.info(`Lobby ${this.id}: cleaning lobby`);
     }
 
     public async startTestGameAsync(filename: string) {
@@ -289,6 +393,9 @@ export class Lobby {
         Contract.assertTrue(fs.existsSync(testJSONPath), `Test game setup file ${testJSONPath} doesn't exist`);
 
         const setupData = JSON.parse(fs.readFileSync(testJSONPath, 'utf8'));
+        if (setupData.autoSingleTarget == null) {
+            setupData.autoSingleTarget = false;
+        }
 
         Contract.assertNotNullLike(this.testGameBuilder, `Attempting to start a test game from file ${filename} but local test tools were not found`);
 
@@ -313,6 +420,8 @@ export class Lobby {
         this.game = game;
         game.started = true;
 
+        logger.info(`Lobby ${this.id}: starting game id: ${game.id}`);
+
         // For each user, if they have a deck, select it in the game
         this.users.forEach((user) => {
             if (user.deck) {
@@ -332,7 +441,7 @@ export class Lobby {
                 username: user.username,
                 settings: {
                     optionSettings: {
-                        autoSingleTarget: true,
+                        autoSingleTarget: false,
                     }
                 }
             })
@@ -382,7 +491,7 @@ export class Lobby {
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, e: Error) {
-        logger.error(e);
+        logger.error(`Lobby ${this.id}: handleError: `, e);
 
         // const gameState = game.getState();
         // const debugData: any = {};

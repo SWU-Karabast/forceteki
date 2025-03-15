@@ -25,7 +25,7 @@ describe('Bossk, Hunting his Prey', function () {
 
             // resolve optional +1/+0
             expect(context.player1).toHavePassAbilityPrompt('Give it +1/+0 for this phase');
-            context.player1.clickPrompt('Give it +1/+0 for this phase');
+            context.player1.clickPrompt('Trigger');
             expect(context.cloneTrooper.getPower()).toBe(3);
             expect(context.cloneTrooper.getHp()).toBe(2);
 
@@ -109,12 +109,12 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player1.clickCard(context.hylobonEnforcer);
 
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player1.clickPrompt('Collect Bounty: Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(1);
                 expect(context.player2.handSize).toBe(1);
 
                 expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
-                context.player1.clickPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(2);
                 expect(context.player2.handSize).toBe(1);
 
@@ -124,7 +124,7 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player2.clickCard(context.guavianAntagonizer);
                 context.player2.clickCard(context.bossk);
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player1.clickPrompt('Collect Bounty: Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(3);
                 expect(context.player2.handSize).toBe(1);
 
@@ -140,7 +140,7 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.cloneDeserter);
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player2.clickPrompt('Collect Bounty: Draw a card');
+                context.player2.clickPrompt('Trigger');
                 expect(context.player2.handSize).toBe(p2HandSizePhase2);   // played Vanquish then drew a card
                 expect(context.player1).toBeActivePlayer();
 
@@ -154,7 +154,7 @@ describe('Bossk, Hunting his Prey', function () {
                 expect(context.p2Base.damage).toBe(3);
 
                 expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
-                context.player1.clickPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickCard(context.p2Base);
@@ -220,9 +220,9 @@ describe('Bossk, Hunting his Prey', function () {
 
                 // trigger the bounty twice
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: The next unit you play this phase costs 1 resource less');
-                context.player1.clickPrompt('Collect Bounty: The next unit you play this phase costs 1 resource less');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
-                context.player1.clickPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Trigger');
 
                 // play a 3-cost unit with a 2-cost discount
                 context.player2.passAction();
@@ -261,14 +261,14 @@ describe('Bossk, Hunting his Prey', function () {
                 expect(context.p2Base.damage).toBe(2);
 
                 expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
-                context.player1.clickPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(4);
 
                 // resolve the Clone Deserter bounty, Bossk ability is already used and can't trigger
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player1.clickPrompt('Collect Bounty: Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(1);
 
                 expect(context.player2).toBeActivePlayer();
@@ -295,11 +295,11 @@ describe('Bossk, Hunting his Prey', function () {
 
                 // resolve the Clone Deserter bounty, Bossk ability is already used and can't trigger
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player1.clickPrompt('Collect Bounty: Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(1);
 
                 expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
-                context.player1.clickPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(2);
 
                 expect(context.player2).toBeActivePlayer();
@@ -331,12 +331,12 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player1.clickCard(context.cloneTrooper);
 
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Put the top card of your deck into play as a resource');
-                context.player1.clickPrompt('Collect Bounty: Put the top card of your deck into play as a resource');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.resources.length).toBe(5);
                 expect(context.atst).toBeInZone('resource');
 
                 expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
-                context.player1.clickPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.resources.length).toBe(6);
                 expect(context.waylay).toBeInZone('resource');
             });
@@ -350,12 +350,12 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player1.clickCard(context.cloneTrooper);
 
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Put the top card of your deck into play as a resource');
-                context.player1.clickPrompt('Collect Bounty: Put the top card of your deck into play as a resource');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.resources.length).toBe(4);
 
                 // Bossk ability triggers since we chose to resolve the Bounty (even though the resolution didn't change game state)
                 expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
-                context.player1.clickPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.resources.length).toBe(4);
 
                 // trigger a second Bounty to confirm that Bossk's ability limit did trigger and is used up for the phase
@@ -392,7 +392,7 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player1.clickCard(context.bossk);
                 context.player1.clickCard(context.cloneTrooper);
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.battlefieldMarine, context.snowtrooperLieutenant, context.sabineWren],
                     invalid: [context.waylay, context.protector]
@@ -406,7 +406,7 @@ describe('Bossk, Hunting his Prey', function () {
 
                 // second Bounty trigger, play a unit that has a "when played" which triggers an attack
                 expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
-                context.player1.clickPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.infernoFour, context.sabineWren, context.snowtrooperLieutenant],
                     invalid: [context.waylay, context.protector]
@@ -426,7 +426,7 @@ describe('Bossk, Hunting his Prey', function () {
 
                 // resolve the Clone Deserter bounty
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player1.clickPrompt('Collect Bounty: Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(1);
             });
 
@@ -438,7 +438,7 @@ describe('Bossk, Hunting his Prey', function () {
                 context.player1.clickCard(context.bossk);
                 context.player1.clickCard(context.cloneTrooper);
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1).toHaveExactDisplayPromptCards({
                     selectable: [context.battlefieldMarine, context.snowtrooperLieutenant, context.sabineWren],
                     invalid: [context.waylay, context.protector]
@@ -461,12 +461,12 @@ describe('Bossk, Hunting his Prey', function () {
 
                 // resolve the Clone Deserter bounty
                 expect(context.player1).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player1.clickPrompt('Collect Bounty: Draw a card');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(1);
 
                 // activate Bossk ability here to re-collect the Clone Deserter bounty, using up the per-round limit so we can't activate BHQ's Bounty again
                 expect(context.player1).toHavePassAbilityPrompt('Collect the Bounty again');
-                context.player1.clickPrompt('Collect the Bounty again');
+                context.player1.clickPrompt('Trigger');
                 expect(context.player1.handSize).toBe(2);
 
                 expect(context.player2).toBeActivePlayer();

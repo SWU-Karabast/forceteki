@@ -19,10 +19,11 @@ describe('Foresight', function () {
             expect(context.player1).toHaveExactDropdownListOptions(context.getPlayableCardTitles());
             context.player1.chooseListOption('Millennium Falcon');
             context.player1.clickPrompt('Done');
+            expect(context.getChatLogs(3)).toContain('player1 names Millennium Falcon using Foresight');
 
             // top card is millennium falcon, can reveal and draw
             expect(context.player1).toHavePassAbilityPrompt('Reveal and draw the top card of deck');
-            context.player1.clickPrompt('Reveal and draw the top card of deck');
+            context.player1.clickPrompt('Trigger');
             expect(context.player1.hand.length).toBe(3);
 
             // move to action phase

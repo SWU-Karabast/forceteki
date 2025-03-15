@@ -20,7 +20,7 @@ export default class GideonsLightCruiserDarkTroopersStation extends NonLeaderUni
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.isUnit() && card.hasSomeAspect(Aspect.Villainy) && card.cost <= 3,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.controlsLeaderOrUnitWithTitle('Moff Gideon'),
+                    condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Moff Gideon'),
                     onTrue: AbilityHelper.immediateEffects.playCard((context) => ({
                         playType: context.target.zoneName === ZoneName.Hand ? PlayType.PlayFromHand : PlayType.PlayFromOutOfPlay,
                         adjustCost: { costAdjustType: CostAdjustType.Free }

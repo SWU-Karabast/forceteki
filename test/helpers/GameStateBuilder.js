@@ -134,7 +134,7 @@ class GameStateBuilder {
             context.player2.player.promptedActionWindows[options.phase] = true;
 
             // Advance the phases to the specified
-            context.advancePhases(options.phase);
+            context.advancePhases(options.phase, options.phaseTransitionHandler);
         } else {
             // Set action window prompt
             context.player1.player.promptedActionWindows['action'] = true;
@@ -254,6 +254,7 @@ class GameStateBuilder {
             'player1',
             'player2',
             'phase',
+            'phaseTransitionHandler',
             'autoSingleTarget'
         ];
 

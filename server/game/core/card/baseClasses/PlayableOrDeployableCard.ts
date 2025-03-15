@@ -3,7 +3,7 @@ import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
-import type { IPlayCardActionProperties, IPlayCardActionPropertiesBase, ISmuggleCardActionProperties, PlayCardAction } from '../../ability/PlayCardAction';
+import type { IAlternatePlayActionProperties, IPlayCardActionProperties, IPlayCardActionPropertiesBase, PlayCardAction } from '../../ability/PlayCardAction';
 import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
@@ -93,7 +93,12 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         let playCardActions: PlayCardAction[] = [];
 
         if (this.zoneName === ZoneName.Hand) {
-            playCardActions = this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
+            let playActions = this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
+            // TODO: update this once we suppport Piloting from discard
+            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                playActions = playActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+            }
+            return playActions;
         }
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
@@ -128,9 +133,13 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         const propertyOverridesWithExploit = Helpers.mergeNumericProperty(propertyOverrides, 'exploitValue', exploitValue);
 
         let defaultPlayAction: PlayCardAction = null;
-        if (playType === PlayType.Smuggle) {
+        if (playType === PlayType.Piloting) {
+            if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Piloting, playType);
+            }
+        } else if (playType === PlayType.Smuggle) {
             if (this.hasSomeKeyword(KeywordName.Smuggle)) {
-                defaultPlayAction = this.buildCheapestSmuggleAction(propertyOverridesWithExploit);
+                defaultPlayAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Smuggle, playType);
             }
         } else {
             defaultPlayAction = this.buildPlayCardAction({ ...propertyOverridesWithExploit, playType });
@@ -146,25 +155,26 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         return actions;
     }
 
-    protected buildCheapestSmuggleAction(propertyOverrides: IPlayCardActionOverrides = null) {
-        Contract.assertTrue(this.hasSomeKeyword(KeywordName.Smuggle));
+    /** This will calculate the cheapest possible play action for alternate play costs such as Smuggle or Piloting */
+    protected buildCheapestAlternatePlayAction(propertyOverrides: IPlayCardActionOverrides = null, keyword: KeywordName, playType: PlayType) {
+        Contract.assertTrue(this.hasSomeKeyword(keyword));
 
-        // find all Smuggle keywords, filtering out any with additional ability costs as those will be implemented manually (e.g. First Light)
-        const smuggleKeywords = this.getKeywordsWithCostValues(KeywordName.Smuggle)
-            .filter((keyword) => !keyword.additionalSmuggleCosts);
+        // find all keywords, filtering out any with additional ability costs as those will be implemented manually (e.g. First Light)
+        const keywords = this.getKeywordsWithCostValues(keyword)
+            .filter((keyword) => !keyword.additionalCosts);
 
-        const smuggleActions = smuggleKeywords.map((smuggleKeyword) => {
-            const smuggleActionProps: ISmuggleCardActionProperties = {
+        const alternatePlayActions = keywords.map((keywordWithCostValue) => {
+            const alternateActionProps: IAlternatePlayActionProperties = {
                 ...propertyOverrides,
-                playType: PlayType.Smuggle,
-                smuggleResourceCost: smuggleKeyword.cost,
-                smuggleAspects: smuggleKeyword.aspects
+                playType: playType,
+                alternatePlayActionResourceCost: keywordWithCostValue.cost,
+                alternatePlayActionAspects: keywordWithCostValue.aspects
             };
 
-            return this.buildPlayCardAction(smuggleActionProps);
+            return this.buildPlayCardAction(alternateActionProps);
         });
 
-        return KeywordHelpers.getCheapestSmuggle(smuggleActions);
+        return KeywordHelpers.getCheapestPlayAction(playType, alternatePlayActions);
     }
 
     // can't do abstract due to mixins
@@ -187,7 +197,8 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     }
 
     public override getSummary(activePlayer: Player) {
-        return { ...super.getSummary(activePlayer), exhausted: this._exhausted };
+        return { ...super.getSummary(activePlayer),
+            exhausted: this._exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {
@@ -234,12 +245,17 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             `Attempting to take control of card ${this.internalName} for player ${newController.name} in invalid zone: ${moveDestination}`
         );
 
-        // if we're changing controller and staying in the arena, just tell the arena to update our controller. no move needed
-        if (moveDestination === this.zoneName && (this.zone.name === ZoneName.GroundArena || this.zone.name === ZoneName.SpaceArena)) {
+        // if we're changing controller and staying in play, tell the arena to update our controller
+        if (this.zone.name === ZoneName.GroundArena || this.zone.name === ZoneName.SpaceArena) {
             this.zone.updateController(this);
 
-            // register this transition with the engine so it can do uniqueness check if needed
-            this.registerMove(this.zone.name);
+            // if we're staying in the same arena, no move needed
+            if (moveDestination === this.zoneName) {
+                // register this transition with the engine so it can do uniqueness check if needed
+                this.registerMove(this.zone.name);
+            } else {
+                this.moveTo(moveDestination);
+            }
         } else {
             this.moveTo(moveDestination);
         }

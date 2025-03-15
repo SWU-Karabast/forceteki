@@ -44,7 +44,7 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
                 // play a second unit from smuggle
                 context.player1.clickCard(context.warbirdStowaway);
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-                context.player1.clickPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
 
                 // give experience token to warbird stowaway
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.privateerCrew, context.greenSquadronAwing, context.warbirdStowaway, context.freetownBackup, context.allianceXwing]);

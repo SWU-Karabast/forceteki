@@ -82,6 +82,8 @@ export function defaultLegalZonesForCardType(cardType: CardType) {
         case CardType.BasicUnit:
         case CardType.BasicUpgrade:
         case CardType.Event:
+        case CardType.NonLeaderUnitUpgrade:
+        case CardType.LeaderUpgrade:
             return drawCardZones;
         default:
             Contract.fail(`Unknown card type: ${cardType}`);
@@ -155,6 +157,12 @@ export function mergeArrayProperty<TPropertySet extends { [key in TPropName]?: a
     newPropValue: any[]
 ): TPropertySet {
     return mergeProperty(propertySet, newPropName, newPropValue, (oldValue, newValue) => oldValue.concat(newValue));
+}
+
+export function hasSomeMatch(text: string, regex: RegExp) {
+    const matchIter = text.matchAll(regex);
+    const match = matchIter.next();
+    return !match.done;
 }
 
 function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergeProperty }, TMergeProperty, TPropName extends string>(

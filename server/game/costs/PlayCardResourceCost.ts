@@ -95,7 +95,7 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
             const amount = this.getAdjustedCost(context);
             context.costs.resources = amount;
 
-            event.context.player.markUsedAdjusters(context.playType, event.context.source, context);
+            event.context.player.markUsedAdjusters(context.playType, event.context.source, context, event.context.target);
             if (this.playType === PlayType.Smuggle) {
                 Contract.assertTrue(event.context.source.canBeExhausted());
                 event.context.player.exhaustResources(amount, [event.context.source]);

@@ -19,7 +19,7 @@ describe('Death Mark', function() {
 
                 const prompt = 'Collect Bounty: Draw 2 cards';
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
-                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(2);
                 expect(context.player2).toBeActivePlayer();

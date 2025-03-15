@@ -61,7 +61,7 @@ describe('Black One, Straight At Them', function() {
                 context.player1.clickCard(context.blackOne);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit.');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.blackOne, context.deathStarStormtrooper, context.infernoFour]);
 
@@ -89,7 +89,7 @@ describe('Black One, Straight At Them', function() {
                 context.player1.clickCard(context.blackOne);
                 context.player1.clickCard(context.p2Base);
 
-                expect(context.player1).toHavePrompt('Choose a unit');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit.');
                 expect(context.player1).toHavePassAbilityButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.blackOne, context.poeDameron, context.deathStarStormtrooper, context.infernoFour]);
 
@@ -98,8 +98,40 @@ describe('Black One, Straight At Them', function() {
                 expect(context.deathStarStormtrooper).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
-        });
 
-        // TODO: Add tests for controlling Poe Dameron as an upgrade
+            it('should allow 1 damage to a unit for controlling Poe Dameron as an uprade', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['poe-dameron#one-hell-of-a-pilot'],
+                        spaceArena: ['black-one#straight-at-them']
+                    },
+                    player2: {
+                        groundArena: ['death-star-stormtrooper'],
+                        spaceArena: ['inferno-four#unforgetting']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.poeDameron);
+                context.player1.clickPrompt('Play Poe Dameron with Piloting');
+                context.player1.clickCard(context.blackOne);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.blackOne);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit.');
+                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toBeAbleToSelectExactly([context.blackOne, context.deathStarStormtrooper, context.infernoFour]);
+
+                context.player1.clickCard(context.deathStarStormtrooper);
+
+                expect(context.deathStarStormtrooper).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

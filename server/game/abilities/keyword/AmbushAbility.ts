@@ -1,7 +1,7 @@
 import TriggeredAbility from '../../core/ability/TriggeredAbility';
 import type { TriggeredAbilityContext } from '../../core/ability/TriggeredAbilityContext';
 import type { Card } from '../../core/card/Card';
-import { KeywordName } from '../../core/Constants';
+import { KeywordName, WildcardZoneName } from '../../core/Constants';
 import type Game from '../../core/Game';
 import * as Contract from '../../core/utils/Contract';
 import { ConditionalSystem } from '../../gameSystems/ConditionalSystem';
@@ -18,7 +18,12 @@ export class AmbushAbility extends TriggeredAbility {
         return {
             title: 'Ambush',
             optional: true,
-            when: { onUnitEntersPlay: (event, context) => event.card === context.source },
+            when: {
+                onCardPlayed: (event, context) => event.card === context.source,
+                onLeaderDeployed: (event, context) => event.card === context.source,
+                onUnitEntersPlay: (event, context) => event.card === context.source && context.source.isToken()
+            },
+            zoneFilter: WildcardZoneName.AnyArena,
             immediateEffect: new ConditionalSystem({
                 condition: AmbushAbility.unitWouldHaveAmbushTarget<TSource>,
                 onTrue: new SequentialSystem([

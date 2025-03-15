@@ -138,7 +138,7 @@ describe('Endless Legions', function() {
             expect(context.player1.findCardsByName('clone-trooper').every((cloneTrooper) => cloneTrooper.damage === 1)).toBeTrue();
 
             // Player 1 triggers Wrecker's ambush
-            context.player1.clickPrompt('Ambush');
+            context.player1.clickPrompt('Trigger');
             context.player1.clickCard(context.gor);
 
             // Player 1 plays Arquitens Assault Cruiser for free
@@ -147,7 +147,7 @@ describe('Endless Legions', function() {
             ]);
 
             context.player1.clickCard(context.arquitensAssaultCruiser);
-            context.player1.clickPrompt('Ambush');
+            context.player1.clickPrompt('Trigger');
             context.player1.clickCard(context.tieAdvanced);
 
             expect(context.player2).toBeActivePlayer();

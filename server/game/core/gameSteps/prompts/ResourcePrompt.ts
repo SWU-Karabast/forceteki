@@ -5,6 +5,7 @@ import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { AllPlayerPrompt } from './AllPlayerPrompt';
 import { PromptType } from '../../Constants';
+import { SelectCardMode } from '../PromptInterfaces';
 
 export class ResourcePrompt extends AllPlayerPrompt {
     protected selectedCards = new Map<string, Card[]>();
@@ -57,7 +58,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
         }
 
         return {
-            selectCard: true,
+            selectCardMode: this.nCardsToResource === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
             menuTitle: promptText,
             buttons: [{ text: 'Done', arg: 'done' }],
             promptTitle: 'Resource Step',

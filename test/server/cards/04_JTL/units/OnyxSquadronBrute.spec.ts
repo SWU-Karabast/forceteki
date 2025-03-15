@@ -23,7 +23,7 @@ describe('Onyx Squadron Brute', function() {
             context.player2.clickCard(context.onyxSquadronBrute);
 
             // Assert the base is healed
-            expect(context.player1).toHavePrompt('Choose a base');
+            expect(context.player1).toHavePrompt('Heal 2 damage from a base');
             expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
             context.player1.clickCard(context.p1Base);
             expect(context.p1Base.damage).toBe(1);

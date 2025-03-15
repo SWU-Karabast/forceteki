@@ -216,7 +216,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    public generateEvent(context: TContext, additionalProperties: any = {}): GameEvent {
+    public generateEvent(context: TContext, additionalProperties: any = {}, addLastKnownInformation: boolean = false): GameEvent {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
 
         const event = this.createEvent(target, context, additionalProperties);
@@ -320,7 +320,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param additionalProperties Any additional properties to extend the default ones with
      * @returns The default target(s) of this {@link GameSystem}
      */
-    private targets(context: TContext, additionalProperties: any = {}) {
+    protected targets(context: TContext, additionalProperties: any = {}) {
         this.validateContext(context);
 
         return Helpers.asArray(this.generatePropertiesFromContext(context, additionalProperties).target);
@@ -330,7 +330,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return `'GameSystem: ${this.name}'`;
     }
 
-    private validateContext(context: TContext) {
+    protected validateContext(context: TContext) {
         Contract.assertTrue(context instanceof AbilityContext, `context must be an AbilityContext, instead found ${context}`);
     }
 }

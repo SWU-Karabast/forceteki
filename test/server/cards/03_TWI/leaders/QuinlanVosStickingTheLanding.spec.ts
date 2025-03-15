@@ -28,7 +28,7 @@ describe('Quinlan Vos, Sticking the Landing', function () {
 
             // can pass this trigger
             expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
-            context.player1.clickPrompt('Exhaust this leader');
+            context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeAbleToSelectExactly([context.craftySmuggler, context.greenSquadronAwing]);
             context.player1.clickCard(context.greenSquadronAwing);
@@ -37,6 +37,30 @@ describe('Quinlan Vos, Sticking the Landing', function () {
             expect(context.player2).toBeActivePlayer();
             expect(context.greenSquadronAwing.damage).toBe(1);
             expect(context.quinlanVos.exhausted).toBeTrue();
+        });
+
+        it('Quinlan Vos\'s leader undeployed ability should not be triggered by playing a Pilot as an upgrade', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['dagger-squadron-pilot'],
+                    spaceArena: ['cartel-turncoat'],
+                    leader: 'quinlan-vos#sticking-the-landing',
+                },
+                player2: {
+                    hand: ['crafty-smuggler'],
+                    groundArena: ['wampa', 'specforce-soldier'],
+                    spaceArena: ['green-squadron-awing']
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.daggerSquadronPilot);
+            context.player1.clickPrompt('Play Dagger Squadron Pilot with Piloting');
+            context.player1.clickCard(context.cartelTurncoat);
+
+            expect(context.player2).toBeActivePlayer();
         });
 
         it('Quinlan Vos\'s leader deployed ability should deal 1 damage to an enemy unit that costs the same as the played unit', async function () {
@@ -67,6 +91,7 @@ describe('Quinlan Vos, Sticking the Landing', function () {
 
             // should deal damage to an enemy unit with a cost equal or less than 2
             expect(context.player1).toBeAbleToSelectExactly([context.specforceSoldier, context.craftySmuggler, context.greenSquadronAwing]);
+            expect(context.player1).toHavePassAbilityButton();
             context.player1.clickCard(context.greenSquadronAwing);
 
             expect(context.player2).toBeActivePlayer();

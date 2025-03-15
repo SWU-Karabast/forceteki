@@ -5,7 +5,7 @@ describe('Guardian of the Whills', function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['jetpack', 'devotion', 'electrostaff', 'foundling', 'entrenched', 'jedi-lightsaber', 'mandalorian-armor',
+                        hand: ['on-top-of-things', 'devotion', 'electrostaff', 'foundling', 'entrenched', 'jedi-lightsaber', 'mandalorian-armor',
                             'vambrace-grappleshot', 'survivors-gauntlet', 'moisture-farmer', 'protector', 'razor-crest#reliable-gunship'],
                         groundArena: ['guardian-of-the-whills'],
                         leader: 'chewbacca#walking-carpet', // vigilance aspect
@@ -21,10 +21,10 @@ describe('Guardian of the Whills', function () {
                 const { context } = contextRef;
 
                 // The first upgrade put on the whills should be 1 cheaper
-                context.player1.clickCard(context.jetpack);
+                context.player1.clickCard(context.onTopOfThings);
                 expect(context.player1).toBeAbleToSelectExactly([context.guardianOfTheWhills, context.systemPatrolCraft]);
                 context.player1.clickCard(context.guardianOfTheWhills);
-                expect(context.guardianOfTheWhills).toHaveExactUpgradeNames([context.jetpack.internalName]);
+                expect(context.guardianOfTheWhills).toHaveExactUpgradeNames([context.onTopOfThings.internalName]);
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
                 context.player2.passAction();
@@ -33,15 +33,15 @@ describe('Guardian of the Whills', function () {
                 context.player1.clickCard(context.devotion);
                 expect(context.player1).toBeAbleToSelectExactly([context.guardianOfTheWhills, context.systemPatrolCraft]);
                 context.player1.clickCard(context.guardianOfTheWhills);
-                expect(context.guardianOfTheWhills).toHaveExactUpgradeNames([context.jetpack.internalName, context.devotion.internalName]);
+                expect(context.guardianOfTheWhills).toHaveExactUpgradeNames([context.onTopOfThings.internalName, context.devotion.internalName]);
                 expect(context.player1.exhaustedResourceCount).toBe(3);
 
                 // Test round ending resets limit
                 context.moveToNextActionPhase();
                 context.player1.clickCard(context.electrostaff);
-                expect(context.player1).toBeAbleToSelectExactly([context.guardianOfTheWhills, context.systemPatrolCraft]);
+                expect(context.player1).toBeAbleToSelectExactly([context.guardianOfTheWhills]);
                 context.player1.clickCard(context.guardianOfTheWhills);
-                expect(context.guardianOfTheWhills).toHaveExactUpgradeNames([context.jetpack.internalName, context.devotion.internalName, context.electrostaff.internalName]);
+                expect(context.guardianOfTheWhills).toHaveExactUpgradeNames([context.onTopOfThings.internalName, context.devotion.internalName, context.electrostaff.internalName]);
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
                 // Test this doesn't accidentally decrease the cost playing on non-Whills units
@@ -55,7 +55,7 @@ describe('Guardian of the Whills', function () {
                 // Sennd Whills back to hand to test the 'copy of a unit' logic
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(context.guardianOfTheWhills);
-                expect(context.jetpack).toBeInZone('discard');
+                expect(context.onTopOfThings).toBeInZone('discard');
                 expect(context.devotion).toBeInZone('discard');
                 expect(context.electrostaff).toBeInZone('discard');
 
@@ -98,7 +98,7 @@ describe('Guardian of the Whills', function () {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.survivorsGauntlet);
-                expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.jediLightsaber, context.mandalorianArmor, context.foundling]);
+                expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.jediLightsaber, context.mandalorianArmor]);
                 context.player1.clickCard(context.mandalorianArmor);
                 expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer]);
                 context.player1.clickCard(context.moistureFarmer);
@@ -126,7 +126,7 @@ describe('Guardian of the Whills', function () {
                 expect(context.protector).toBeInZone('discard');
 
                 context.player1.clickCard(context.razorCrestReliableGunship);
-                expect(context.player1).toBeAbleToSelectExactly([context.jetpack, context.devotion, context.electrostaff, context.protector]);
+                expect(context.player1).toBeAbleToSelectExactly([context.onTopOfThings, context.devotion, context.electrostaff, context.protector]);
                 expect(context.player1).toHavePassAbilityButton();
                 context.player1.clickCard(context.protector);
                 expect(context.player1.exhaustedResourceCount).toBe(6);

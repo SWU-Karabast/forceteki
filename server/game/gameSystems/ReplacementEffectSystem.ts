@@ -25,9 +25,11 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             `Replacement effect '${this} resolving in trigger window of type ${triggerWindow.triggerAbilityType}`
         );
 
+        const eventBeingReplaced = event.context.event;
+
         const replacementImmediateEffect = event.replacementImmediateEffect;
         if (replacementImmediateEffect) {
-            const eventWindow = event.context.event.window;
+            const eventWindow = eventBeingReplaced.window;
             const events = [];
 
             replacementImmediateEffect.queueGenerateEventGameSteps(
@@ -36,16 +38,20 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
                 { ...additionalProperties, replacementEffect: true }
             );
 
-            Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
+            event.context.game.queueSimpleStep(() => {
+                Contract.assertFalse(events.length === 0, `Replacement effect ${replacementImmediateEffect} for ${event.name} did not generate any events`);
 
-            events.forEach((replacementEvent) => {
-                event.context.game.queueSimpleStep(() => {
-                    event.context.event.setReplacementEvent(replacementEvent);
-                    eventWindow.addEvent(replacementEvent);
-                    triggerWindow.addReplacementEffectEvent(replacementEvent);
-                }, 'replacementEffect: replace window event');
-            });
+                events.forEach((replacementEvent) => {
+                    replacementEvent.order = eventBeingReplaced.order;
+                    event.context.game.queueSimpleStep(() => {
+                        eventBeingReplaced.setReplacementEvent(replacementEvent);
+                        eventWindow.addEvent(replacementEvent);
+                        triggerWindow.addReplacementEffectEvent(replacementEvent);
+                    }, 'replacementEffect: replace window event');
+                });
+            }, 'replacementEffect: add replacement event to window');
         }
+
         event.context.cancel();
     }
 

@@ -122,11 +122,37 @@ export const isNonLeaderUnit = (cardType: CardTypeFilter) => {
     }
 };
 
+export const isNonLeaderUpgrade = (cardType: CardTypeFilter) => {
+    switch (cardType) {
+        case WildcardCardType.NonLeaderUpgrade:
+        case CardType.BasicUpgrade:
+        case CardType.TokenUpgrade:
+        case CardType.NonLeaderUnitUpgrade:
+            return true;
+        default:
+            return false;
+    }
+};
+
+export const isUnitUpgrade = (cardType: CardTypeFilter) => {
+    switch (cardType) {
+        case WildcardCardType.UnitUpgrade:
+        case CardType.NonLeaderUnitUpgrade:
+        case CardType.LeaderUpgrade:
+            return true;
+        default:
+            return false;
+    }
+};
+
 export const isUpgrade = (cardType: CardTypeFilter) => {
     switch (cardType) {
         case WildcardCardType.Upgrade:
+        case WildcardCardType.UnitUpgrade:
         case CardType.BasicUpgrade:
+        case CardType.LeaderUpgrade:
         case CardType.TokenUpgrade:
+        case CardType.NonLeaderUnitUpgrade:
             return true;
         default:
             return false;
@@ -168,6 +194,10 @@ export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilt
                 return true;
             case WildcardCardType.NonLeaderUnit:
                 return isNonLeaderUnit(cardType);
+            case WildcardCardType.NonLeaderUpgrade:
+                return isNonLeaderUpgrade(cardType);
+            case WildcardCardType.UnitUpgrade:
+                return isUnitUpgrade(cardType);
             case WildcardCardType.Unit:
                 return isUnit(cardType);
             case WildcardCardType.Upgrade:
@@ -188,10 +218,14 @@ export const getCardTypesForFilter = (cardTypeFilter: CardTypeFilter): CardType[
             return [CardType.Base, CardType.Event, CardType.Leader, CardType.BasicUnit, CardType.BasicUpgrade, CardType.TokenUnit, CardType.TokenUpgrade, CardType.LeaderUnit];
         case WildcardCardType.NonLeaderUnit:
             return [CardType.BasicUnit, CardType.TokenUnit];
+        case WildcardCardType.NonLeaderUpgrade:
+            return [CardType.BasicUpgrade, CardType.TokenUpgrade, CardType.NonLeaderUnitUpgrade];
+        case WildcardCardType.UnitUpgrade:
+            return [CardType.LeaderUpgrade, CardType.NonLeaderUnitUpgrade];
         case WildcardCardType.Unit:
             return [CardType.BasicUnit, CardType.LeaderUnit, CardType.TokenUnit];
         case WildcardCardType.Upgrade:
-            return [CardType.BasicUpgrade, CardType.TokenUpgrade];
+            return [CardType.BasicUpgrade, CardType.LeaderUpgrade, CardType.TokenUpgrade, CardType.NonLeaderUnitUpgrade];
         case WildcardCardType.Token:
             return [CardType.TokenUnit, CardType.TokenUpgrade];
         case WildcardCardType.Playable:
