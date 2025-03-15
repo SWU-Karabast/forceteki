@@ -17,7 +17,7 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
 
     protected override readonly defaultProperties: IConditionalSystemProperties<TContext> = {
         condition: null,
-        onTrue: null,
+        onTrue: AbilityHelper.immediateEffects.noAction(),
         onFalse: AbilityHelper.immediateEffects.noAction(),
     };
 

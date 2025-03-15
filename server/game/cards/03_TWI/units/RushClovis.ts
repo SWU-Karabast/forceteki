@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import {NonLeaderUnitCard} from '../../../core/card/NonLeaderUnitCard';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
 export default class RushClovis extends NonLeaderUnitCard {
     protected override getImplementationId() {
