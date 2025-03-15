@@ -43,6 +43,42 @@ describe('Hondo Ohnaka, Superfluous Swindler', function() {
             expect(context.frontierAtrt).toHaveExactUpgradeNames(['shield']);
         });
 
+        it('Hondo Ohnaka\'s ability takes control of traitorous and frees the unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['hondo-ohnaka#superfluous-swindler'],
+                    spaceArena: [{ card: 'restored-arc170', upgrades: ['experience', 'hera-syndulla#weve-lost-enough'] }],
+                },
+                player2: {
+                    spaceArena: ['onyx-squadron-brute'],
+                    hand: ['traitorous'],
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.passAction();
+
+            context.player2.clickCard(context.traitorous);
+            context.player2.clickCard(context.restoredArc170);
+
+            expect(context.restoredArc170).toBeInZone('spaceArena', context.player2);
+
+            context.player1.clickCard(context.hondoOhnaka);
+            context.player1.clickCard(context.p2Base);
+            expect(context.player1).toBeAbleToSelectExactly([context.experience, context.traitorous]); // non pilots here (no hera)
+            context.player1.clickCard(context.traitorous);
+            // Reminder: traitorous can attach to anything, but only actually works on cost 3 or less
+            expect(context.player1).toBeAbleToSelectExactly([context.onyxSquadronBrute, context.hondoOhnaka]);
+            context.player1.clickCard(context.onyxSquadronBrute);
+
+            context.player2.clickPrompt('Take control of attached unit');
+
+            // Should have performed a double take control -- one was rescued, one was freshly taken
+            expect(context.restoredArc170).toBeInZone('spaceArena', context.player1);
+            expect(context.onyxSquadronBrute).toBeInZone('spaceArena', context.player1);
+        });
+
         // TODO ADD A TEST TO TRANSFER UPGRADE BETWEEN ZONE WHEN #776 (moving an upgrade between zone) IS FIXED
     });
 });
