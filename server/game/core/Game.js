@@ -1355,7 +1355,7 @@ class Game extends EventEmitter {
 
     /** @param {GameObjectBase} gameObject */
     registerGameObject(gameObject) {
-        Contract.assertFalse(!!gameObject.uuid,
+        Contract.assertIsNullLike(gameObject.uuid,
             `Tried to register a Game Object that was already registered ${gameObject.uuid}`
         );
 
