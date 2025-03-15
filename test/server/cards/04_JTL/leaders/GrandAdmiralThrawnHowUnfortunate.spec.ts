@@ -348,6 +348,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
             //     expect(context.player1).toBeActivePlayer();
             // });
 
+            // TODO: This is finding an undefined Raddus for the second trigger
             // it('should interact correctly with a When Defeated referencing the stats of the selected unit', async function () {
             //     await contextRef.setupTestAsync({
             //         phase: 'action',
@@ -357,17 +358,25 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
             //         },
             //         player2: {
             //             hand: ['rivals-fall'],
-            //             groundArena: [{ card: 'krayt-dragon', upgrades: ['imprisoned'] }]
+            //             groundArena: [{ card: 'krayt-dragon', upgrades: ['imprisoned'] }],
+            //             spaceArena: ['annihilator#tagges-flagship']
             //         }
             //     });
 
             //     const { context } = contextRef;
 
-            //     context.player1.clickCard(context.chimaera);
-            //     context.player1.clickCard(context.raddusHoldosFinalCommand);
-            //     expect(context.player1).toBeAbleToSelectExactly([context.kraytDragon]);
+            //     context.player1.passAction();
+            //     context.player2.clickCard(context.rivalsFall);
+            //     context.player2.clickCard(context.raddusHoldosFinalCommand);
+
+            //     expect(context.player1).toBeAbleToSelectExactly([context.kraytDragon, context.annihilator]);
             //     context.player1.clickCard(context.kraytDragon);
             //     expect(context.kraytDragon.damage).toBe(9);
+            //     expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+            //     context.player1.clickPrompt('Trigger');
+            //     expect(context.player1).toBeAbleToSelectExactly([context.kraytDragon, context.annihilator]);
+            //     context.player1.clickCard(context.annihilator);
+            //     expect(context.annihilator.damage).toBe(9);
             // });
 
             // it('should interact correctly with a When Defeated that makes the opponent do something', async function () {
@@ -385,8 +394,9 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
 
             //     const { context } = contextRef;
 
-            //     context.player1.clickCard(context.chimaera);
-            //     context.player1.clickCard(context.zygerrianStarhopper);
+            //     context.player1.passAction();
+            //     context.player2.clickCard(context.rivalsFall);
+            //     context.player2.clickCard(context.zygerrianStarhopper);
 
             //     expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
             //     context.player1.clickPrompt('Opponent');
@@ -398,15 +408,35 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
             //         [context.p2Base, 1]
             //     ]));
 
-            //     expect(context.player2).toBeActivePlayer();
+            //     expect(context.wampa.damage).toBe(1);
+            //     expect(context.p2Base.damage).toBe(1);
+
+            //     expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+            //     context.player1.clickPrompt('Trigger');
+
+            //     expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
+            //     context.player1.clickPrompt('Opponent');
+
+            //     expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
+            //     expect(context.player2).not.toHaveChooseNoTargetButton();
+            //     context.player2.setDistributeIndirectDamagePromptState(new Map([
+            //         [context.wampa, 1],
+            //         [context.p2Base, 1]
+            //     ]));
+
+            //     expect(context.wampa.damage).toBe(2);
+            //     expect(context.p2Base.damage).toBe(2);
+
+            //     expect(context.player1).toBeActivePlayer();
             // });
 
-            // it('should not be able to select and trigger a When Defeated on an upgrade', async function () {
+            // TODO: this one isnt working
+            // it('should work proerly with a When Defeated on an upgrade', async function () {
             //     await contextRef.setupTestAsync({
             //         phase: 'action',
             //         player1: {
             //             leader: 'grand-admiral-thrawn#how-unfortunate',
-            //             groundArena: [{ card: 'wampa', upgrades: ['roger-roger'] }]
+            //             groundArena: [{ card: 'wampa', upgrades: ['roger-roger'] }, 'battle-droid', 'battle-droid']
             //         },
             //         player2: {
             //             hand: ['rivals-fall']
@@ -415,8 +445,24 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
 
             //     const { context } = contextRef;
 
-            //     context.player1.clickCard(context.chimaera);
-            //     expect(context.player2).toBeActivePlayer();
+            //     const battleDroids = context.player1.findCardsByName('battle-droid');
+            //     expect(battleDroids.length).toBe(2);
+            //     const roger = battleDroids[0];
+            //     const otherRoger = battleDroids[1];
+
+            //     context.player1.passAction();
+            //     context.player2.clickCard(context.rivalsFall);
+            //     context.player2.clickCard(context.wampa);
+            //     expect(context.player1).toBeAbleToSelectExactly([roger, otherRoger]);
+            //     context.player1.clickCard(roger);
+            //     expect(context.rogerRoger).toBeAttachedTo(roger);
+
+            //     expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+            //     context.player1.clickPrompt('Trigger');
+            //     expect(context.player1).toBeAbleToSelectExactly([roger, otherRoger]);
+            //     context.player1.clickCard(otherRoger);
+            //     expect(context.rogerRoger).toBeAttachedTo(otherRoger);
+            //     expect(context.player1).toBeActivePlayer();
             // });
 
             // it('should not trigger a bounty on a unit with a When Defeated', async function () {
@@ -424,7 +470,7 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
             //         phase: 'action',
             //         player1: {
             //             leader: 'grand-admiral-thrawn#how-unfortunate',
-            //             groundArena: ['val#loyal-to-the-end']
+            //             groundArena: ['val#loyal-to-the-end', 'wampa']
             //         },
             //         player2: {
             //             hand: ['rivals-fall']
@@ -433,12 +479,23 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
 
             //     const { context } = contextRef;
 
-            //     context.player1.clickCard(context.chimaera);
-            //     context.player1.clickCard(context.val);
-            //     expect(context.player1).toBeAbleToSelectExactly([context.val, context.chimaera]);
-            //     context.player1.clickCard(context.val);
-            //     expect(context.val).toHaveExactUpgradeNames(['experience', 'experience']);
-            //     expect(context.player2).not.toHavePrompt('Deal 3 damage to a unit');
+            //     context.player1.passAction();
+            //     context.player2.clickCard(context.rivalsFall);
+            //     context.player2.clickCard(context.val);
+
+            //     expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            //     context.player1.clickCard(context.wampa);
+            //     expect(context.wampa).toHaveExactUpgradeNames(['experience', 'experience']);
+
+            //     expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+            //     context.player1.clickPrompt('Trigger');
+            //     expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+            //     context.player1.clickCard(context.wampa);
+            //     expect(context.wampa).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience']);
+            //     context.player2.clickCard(context.wampa);
+
+            //     expect(context.wampa.damage).toBe(3);
+            //     expect(context.player1).toBeActivePlayer();
             // });
         });
 
