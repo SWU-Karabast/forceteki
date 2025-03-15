@@ -1355,6 +1355,10 @@ class Game extends EventEmitter {
 
     /** @param {GameObjectBase} gameObject */
     registerGameObject(gameObject) {
+        Contract.assertFalse(!!gameObject.uuid,
+            `Tried to register a Game Object that was already registered ${gameObject.uuid}`
+        );
+
         gameObject.uuid = 'GameObject_' + this.state.nextId;
         this.state.nextId += 1;
         this.allGameObjects.push(gameObject);
