@@ -16,7 +16,6 @@ export default class SpecialForcesTIEFighter extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.controlsLessUnitsInSpaceArena(context),
                 onTrue: AbilityHelper.immediateEffects.ready(),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

@@ -45,7 +45,6 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                                 )
                             ];
                         }),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
                     }),
                     AbilityHelper.immediateEffects.conditional((context) => {
                         const opponentDeck = context.player.opponent.drawDeck;
@@ -59,7 +58,6 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
                                     })
                                 );
                             }),
-                            onFalse: AbilityHelper.immediateEffects.noAction()
                         };
                     })
                 ])
