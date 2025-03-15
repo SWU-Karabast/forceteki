@@ -8,28 +8,28 @@ import type { GameEvent } from '../core/event/GameEvent';
 
 export interface IUseWhenDefeatedProperties extends ICardTargetSystemProperties {
     triggerAll?: boolean;
-    originalEvent?: GameEvent;
+    resolvedAbilityEvent?: GameEvent;
 }
 
 export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IUseWhenDefeatedProperties> {
     public override readonly name = 'use when defeated';
     public override readonly eventName = EventName.OnUseWhenDefeated;
-    protected override readonly targetTypeFilter = [WildcardCardType.Unit]; // TODO - add Upgrades for Thrawn
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade];
 
     protected override defaultProperties: IUseWhenDefeatedProperties = {
         triggerAll: false,
-        originalEvent: null
+        resolvedAbilityEvent: null
     };
 
     public eventHandler(event): void {
         const whenDefeatedSource = event.whenDefeatedSource;
         const triggerAll = event.triggerAll; // TODO: Will use with Shadow Caster
-        const originalEvent = event.originalEvent;
-        const whenDefeatedAbilities: TriggeredAbility[] = originalEvent === null ? event.whenDefeatedAbilities : [originalEvent.ability];
+        const onDefeatEvent = event.onDefeatEvent;
+        const whenDefeatedAbilities: TriggeredAbility[] = onDefeatEvent == null ? event.whenDefeatedAbilities : [event.resolvedAbility];
 
         if (whenDefeatedAbilities.length === 1 || triggerAll) {
             whenDefeatedAbilities.forEach((whenDefeatedAbility) => {
-                this.useWhenDefeatedAbility(whenDefeatedAbility, whenDefeatedSource, event, originalEvent);
+                this.useWhenDefeatedAbility(whenDefeatedAbility, whenDefeatedSource, event, onDefeatEvent);
             });
         } else {
             const player = event.context.player;
@@ -45,7 +45,7 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
             const handlers = whenDefeatedAbilities.map(
                 (whenDefeatedAbility) => {
                     return () => {
-                        this.useWhenDefeatedAbility(whenDefeatedAbility, whenDefeatedSource, event, originalEvent);
+                        this.useWhenDefeatedAbility(whenDefeatedAbility, whenDefeatedSource, event, onDefeatEvent);
                     };
                 }
             );
@@ -56,21 +56,21 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
         }
     }
 
-    private useWhenDefeatedAbility(whenDefeatedAbility: TriggeredAbility, whenDefeatedSource: Card, event, originalEvent = null) {
+    private useWhenDefeatedAbility(whenDefeatedAbility: TriggeredAbility, whenDefeatedSource: Card, event, onDefeatEvent = null) {
         const whenDefeatedProps = { ...whenDefeatedAbility.properties, optional: false, target: whenDefeatedSource };
         const ability = new TriggeredAbility(event.context.game, whenDefeatedSource, whenDefeatedProps);
 
         // This is needed for cards that use Last Known Information i.e. Raddus
-        const whenDefeatedEvent = originalEvent || new DefeatCardSystem(whenDefeatedProps).generateEvent(event.context, whenDefeatedSource, true);
+        const whenDefeatedEvent = onDefeatEvent || new DefeatCardSystem(whenDefeatedProps).generateEvent(event.context, whenDefeatedSource, true);
 
         event.context.game.resolveAbility(ability.createContext(event.context.player, whenDefeatedEvent));
     }
 
     // Since the actual When Defeated effect is resolved in a sub-window, we don't check its effects here
     public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { originalEvent } = this.generatePropertiesFromContext(context);
+        const { resolvedAbilityEvent } = this.generatePropertiesFromContext(context);
 
-        if (originalEvent === null) {
+        if (resolvedAbilityEvent === null) {
             if (!card.canRegisterTriggeredAbilities() || !card.getTriggeredAbilities().some((ability) => ability.isWhenDefeated)) {
                 return false;
             }
@@ -84,26 +84,34 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
                 });
             }
         } else {
-            const ability = (originalEvent as any).ability;
-            if (!ability.isWhenDefeated) {
+            const ability = (resolvedAbilityEvent as any).ability;
+            if (!resolvedAbilityEvent.context.isTriggered() || !ability.isWhenDefeated) {
                 return false;
             }
 
+            const onDefeatEvent = this.getOnDefeatEvent(resolvedAbilityEvent);
+
             if (mustChangeGameState !== GameStateChangeRequired.None) {
-                const abilityContext = ability.createContext(context.player, originalEvent);
+                const abilityContext = ability.createContext(context.player, onDefeatEvent);
                 abilityContext.stage = Stage.PreTarget;
+                return ability.meetsRequirements(abilityContext) === '';
             }
         }
 
         return super.canAffect(card, context, additionalProperties, mustChangeGameState);
     }
 
+    private getOnDefeatEvent(resolvedAbilityEvent: any) {
+        return resolvedAbilityEvent?.context.event;
+    }
+
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
-        const { triggerAll, originalEvent } = this.generatePropertiesFromContext(context, additionalProperties);
+        const { triggerAll, resolvedAbilityEvent } = this.generatePropertiesFromContext(context, additionalProperties);
         event.triggerAll = triggerAll;
-        event.originalEvent = originalEvent;
+        event.onDefeatEvent = this.getOnDefeatEvent(resolvedAbilityEvent);
+        event.resolvedAbility = (resolvedAbilityEvent as any)?.ability;
         event.whenDefeatedSource = card;
         event.whenDefeatedAbilities = card.canRegisterTriggeredAbilities() ? card.getTriggeredAbilities().filter((ability) => ability.isWhenDefeated) : [];
     }

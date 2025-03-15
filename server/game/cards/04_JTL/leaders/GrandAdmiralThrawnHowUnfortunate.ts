@@ -22,7 +22,7 @@ export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.useWhenDefeatedAbility(() => {
                     return {
                         target: ifYouDoContext.event.card,
-                        originalEvent: ifYouDoContext.event
+                        resolvedAbilityEvent: ifYouDoContext.event
                     };
                 })
             })
