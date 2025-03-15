@@ -45,7 +45,6 @@ export default class TheInvisibleHandCrawlingWithVultures extends NonLeaderUnitC
                                 ]
                             };
                         }),
-                        onFalse: AbilityHelper.immediateEffects.noAction(),
                     })
                 ])
             }),
