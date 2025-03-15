@@ -16,22 +16,19 @@ import { getUserWithDefaultsSet, type User } from '../Settings';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
 
-interface LobbyUser {
-    id: string;
-    username: string;
-    state: 'connected' | 'disconnected';
-    ready: boolean;
-    socket?: Socket;
-    deck?: Deck;
-    deckValidationErrors?: IDeckValidationFailures;
-    importDeckValidationErrors?: IDeckValidationFailures;
-}
 interface LobbySpectator {
     id: string;
     username: string;
     socket?: Socket;
 }
 
+interface LobbyUser extends LobbySpectator {
+    state: 'connected' | 'disconnected';
+    ready: boolean;
+    deck?: Deck;
+    deckValidationErrors?: IDeckValidationFailures;
+    importDeckValidationErrors?: IDeckValidationFailures;
+}
 
 export enum MatchType {
     Custom = 'Custom',
@@ -173,6 +170,11 @@ export class Lobby {
 
     public addSpectator(user: User, socket: Socket): void {
         const existingSpectator = this.spectators.find((s) => s.id === user.id);
+        const existingPlayer = this.users.find((s) => s.id === user.id);
+        // TODO cleanup
+        if (existingPlayer) {
+            return;
+        }
         if (!existingSpectator) {
             this.spectators.push({
                 id: user.id,
@@ -200,6 +202,11 @@ export class Lobby {
 
     public addLobbyUser(user, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === user.id);
+        const existingSpectator = this.spectators.find((s) => s.id === user.id);
+        // TODO cleanup
+        if (existingSpectator) {
+            return;
+        }
         // we check if listeners for the events already exist
         if (socket.eventContainsListener('game') || socket.eventContainsListener('lobby')) {
             socket.removeEventsListeners(['game', 'lobby']);

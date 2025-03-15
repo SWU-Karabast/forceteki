@@ -45,6 +45,16 @@ interface QueuedPlayer {
     user: User;
 }
 
+enum UserRole {
+    Player = 'player',
+    Spectator = 'spectator'
+}
+
+interface LobbyMapping {
+    lobbyId: string;
+    role: UserRole;
+}
+
 export class GameServer {
     public static async createAsync(): Promise<GameServer> {
         let cardDataGetter: CardDataGetter;
@@ -85,8 +95,7 @@ export class GameServer {
     }
 
     private readonly lobbies = new Map<string, Lobby>();
-    private readonly userLobbyMap = new Map<string, string>();
-    private readonly spectatorLobbyMap = new Map<string, string>();
+    private readonly userLobbyMap = new Map<string, LobbyMapping>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -166,7 +175,7 @@ export class GameServer {
                 const lobby = this.lobbies.get(gameId);
 
                 // if they are in a game already we give them 403 forbidden
-                if (this.userLobbyMap.get(user.id)) {
+                if (this.canUserJoinNewLobby(user.id)) {
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a game'
@@ -180,7 +189,7 @@ export class GameServer {
                 }
 
                 // Register this user as a spectator for the game
-                this.spectatorLobbyMap.set(user.id, lobby.id);
+                this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Spectator });
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer: Error in spectate-game:', err);
@@ -254,7 +263,7 @@ export class GameServer {
                 }
 
                 // Add the user to the lobby
-                this.userLobbyMap.set(user.id, lobby.id);
+                this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Player });
                 return res.status(200).json({ success: true });
             } catch (err) {
                 logger.error('GameServer: Error in join-lobby:', err);
@@ -318,7 +327,7 @@ export class GameServer {
     }
 
     private canUserJoinNewLobby(userId: string) {
-        const previousLobbyForUser = this.userLobbyMap.get(userId);
+        const previousLobbyForUser = this.userLobbyMap.get(userId).lobbyId;
         if (previousLobbyForUser) {
             const previousLobby = this.lobbies.get(previousLobbyForUser);
             if (previousLobby) {
@@ -342,7 +351,7 @@ export class GameServer {
     }
 
     public getUserLobbyId(userId: string): string | undefined {
-        return this.userLobbyMap.get(userId);
+        return this.userLobbyMap.get(userId).lobbyId;
     }
 
     // method for validating the deck via API
@@ -426,7 +435,7 @@ export class GameServer {
 
         lobby.createLobbyUser(user, deck);
         lobby.setLobbyOwner(user.id);
-        this.userLobbyMap.set(user.id, lobby.id);
+        this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Player });
     }
 
     private async startTestGame(filename: string) {
@@ -444,8 +453,8 @@ export class GameServer {
         const theWay = { id: 'th3w4y', username: 'ThisIsTheWay' };
         lobby.createLobbyUser(order66);
         lobby.createLobbyUser(theWay);
-        this.userLobbyMap.set(order66.id, lobby.id);
-        this.userLobbyMap.set(theWay.id, lobby.id);
+        this.userLobbyMap.set(order66.id, { lobbyId: lobby.id, role: UserRole.Player });
+        this.userLobbyMap.set(theWay.id, { lobbyId: lobby.id, role: UserRole.Player });
         await lobby.startTestGameAsync(filename);
     }
 
@@ -494,17 +503,17 @@ export class GameServer {
         // 0. If user is spectator
         if (isSpectator) {
             // Check if user is registered as a spectator
-            if (!this.spectatorLobbyMap.has(user.id)) {
+            if (!this.userLobbyMap.has(user.id) || this.userLobbyMap.get(user.id).role !== UserRole.Spectator) {
                 logger.info(`GameServer: User ${user.id} attempted to connect as spectator but is not registered`);
                 ioSocket.disconnect();
                 return;
             }
-            const lobbyId = this.spectatorLobbyMap.get(user.id);
+            const lobbyId = this.userLobbyMap.get(user.id).lobbyId;
             const lobby = this.lobbies.get(lobbyId);
 
             if (!lobby || !lobby.hasOngoingGame()) {
                 logger.info(`GameServer: No lobby or ongoing game for spectator ${user.username}, disconnecting`);
-                this.spectatorLobbyMap.delete(user.id);
+                this.userLobbyMap.delete(user.id);
                 ioSocket.disconnect();
                 return;
             }
@@ -518,7 +527,7 @@ export class GameServer {
 
         // 1. If user is already in a lobby
         if (this.userLobbyMap.has(user.id)) {
-            const lobbyId = this.userLobbyMap.get(user.id);
+            const lobbyId = this.userLobbyMap.get(user.id).lobbyId;
             const lobby = this.lobbies.get(lobbyId);
             if (!lobby) {
                 this.userLobbyMap.delete(user.id);
@@ -566,13 +575,13 @@ export class GameServer {
             if (!user.username) {
                 const newUser = { username: 'Player2', id: user.id };
                 lobby.addLobbyUser(newUser, socket);
-                this.userLobbyMap.set(newUser.id, lobby.id);
+                this.userLobbyMap.set(newUser.id, { lobbyId: lobby.id, role: UserRole.Player });
                 socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
                 return;
             }
 
             lobby.addLobbyUser(user, socket);
-            this.userLobbyMap.set(user.id, lobby.id);
+            this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Player });
             socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
             return;
         }
@@ -671,8 +680,8 @@ export class GameServer {
         }
 
         // Save user => lobby mapping
-        this.userLobbyMap.set(p1.user.id, lobby.id);
-        this.userLobbyMap.set(p2.user.id, lobby.id);
+        this.userLobbyMap.set(p1.user.id, { lobbyId: lobby.id, role: UserRole.Player });
+        this.userLobbyMap.set(p2.user.id, { lobbyId: lobby.id, role: UserRole.Player });
 
         // If needed, set tokens async
         lobby.setLobbyOwner(p1.user.id);
@@ -686,7 +695,7 @@ export class GameServer {
      */
     private async requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: any) {
         if (this.userLobbyMap.has(user.id)) {
-            const lobbyId = this.userLobbyMap.get(user.id);
+            const lobbyId = this.userLobbyMap.get(user.id).lobbyId;
             const lobby = this.lobbies.get(lobbyId);
             this.userLobbyMap.delete(user.id);
             lobby.removeUser(user.id);
@@ -723,15 +732,15 @@ export class GameServer {
 
     public onSpectatorDisconnect(id: string) {
         try {
-            if (!this.spectatorLobbyMap.has(id)) {
+            if (!this.userLobbyMap.has(id)) {
                 return;
             }
 
-            const lobbyId = this.spectatorLobbyMap.get(id);
+            // TODO test the scenario if both players left already but the spectator hasn't because the lobby doesn't exist anymore
+            const lobbyId = this.userLobbyMap.get(id).lobbyId;
             const lobby = this.lobbies.get(lobbyId);
-
             lobby?.removeSpectator(id);
-            this.spectatorLobbyMap.delete(id);
+            this.userLobbyMap.delete(id);
         } catch (err) {
             logger.error('Error in onSpectatorDisconnected:', err);
         }
@@ -743,7 +752,7 @@ export class GameServer {
                 this.queue.removePlayer(id);
                 return;
             }
-            const lobbyId = this.userLobbyMap.get(id);
+            const lobbyId = this.userLobbyMap.get(id).lobbyId;
             const lobby = this.lobbies.get(lobbyId);
 
             const wasManualDisconnect = !!socket?.data?.manualDisconnect;
@@ -768,6 +777,40 @@ export class GameServer {
             }, 20000);
         } catch (err) {
             logger.error('Error in onSocketDisconnected:', err);
+        }
+    }
+
+
+    /* possibly utility function for cleanup. */
+    private startPeriodicCleanup() {
+        setInterval(() => {
+            // Check for empty lobbies or inconsistencies
+            this.ensureMappingConsistency();
+
+            // cleanup ghost lobbies.
+            for (const [lobbyId, lobby] of this.lobbies.entries()) {
+                if (lobby.isEmpty()) {
+                    this.lobbies.delete(lobbyId);
+                }
+            }
+        }, 60000); // Check every minute
+    }
+
+    private ensureMappingConsistency() {
+        // Remove any userLobbyMap entries that point to non-existent lobbies
+        for (const [userId, lobby] of this.userLobbyMap.entries()) {
+            if (!this.lobbies.has(lobby.lobbyId)) {
+                this.userLobbyMap.delete(userId);
+            }
+        }
+
+        // Ensure all users in lobbies are in the userLobbyMap correctly
+        for (const [, lobby] of this.lobbies.entries()) {
+            for (const user of lobby.users) {
+                if (!this.userLobbyMap.get(user.id)) {
+                    lobby.removeUser(user.id);
+                }
+            }
         }
     }
 }
