@@ -25,7 +25,7 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
         return this.state.id;
     }
 
-    protected set id(value) {
+    public set id(value) {
         this.state.id = value;
     }
 

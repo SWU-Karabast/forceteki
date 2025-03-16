@@ -38,14 +38,6 @@ const { MergedExploitCostAdjuster } = require('../abilities/keyword/exploit/Merg
 
 class Player extends GameObject {
     /**
-     * @override
-     */
-    set id(value) {
-        this.state.id = value;
-    }
-
-
-    /**
      * @param {string} id
      * @param {import('../../Settings').User} user
      * @param {Game} game
