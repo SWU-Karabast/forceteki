@@ -23,19 +23,92 @@ export interface IUserData {
 
 export class DynamoDBService {
     private client: DynamoDBDocumentClient;
-    private tableName = 'KarabastGlobalTable';
+    private tableName: string;
+    private isLocalMode: boolean;
 
-    public constructor() {
+    public constructor(localMode?: boolean) {
+        this.isLocalMode = localMode || process.env.ENVIRONMENT === 'development';
+        this.tableName = 'KarabastGlobalTable';
         // Configure the DynamoDB client
-        const dbClient = new DynamoDBClient({
+        let dbClientConfig: any = {
             region: process.env.AWS_REGION || 'us-east-1',
-            credentials: {
+        };
+
+        // Configure for local testing if in development environment or explicitly specified
+        if (this.isLocalMode) {
+            const endpoint = 'http://localhost:8000';
+            logger.info(`DynamoDB service initialized in LOCAL mode with endpoint: ${endpoint} (${process.env.ENVIRONMENT === 'development' ? 'auto-detected development environment' : 'explicitly configured'})`);
+
+            dbClientConfig = {
+                ...dbClientConfig,
+                endpoint,
+                credentials: {
+                    accessKeyId: 'dummy',
+                    secretAccessKey: 'dummy'
+                }
+            };
+        } else {
+            // Use actual AWS credentials for production
+            dbClientConfig.credentials = {
                 accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
                 secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
-            }
-        });
+            };
+        }
 
+        const dbClient = new DynamoDBClient(dbClientConfig);
         this.client = DynamoDBDocumentClient.from(dbClient);
+
+        if (this.isLocalMode) {
+            this.ensureTableExists().catch((err) => {
+                logger.error(`Failed to ensure DynamoDB local table exists: ${err}`);
+            });
+        }
+    }
+
+    /**
+     * Ensures the table exists in DynamoDB Local
+     * This is only used in local development mode
+     */
+    private async ensureTableExists(): Promise<void> {
+        if (!this.isLocalMode) {
+            return;
+        }
+
+        try {
+            // Import the necessary client for creating tables
+            const { CreateTableCommand, ListTablesCommand } = await import('@aws-sdk/client-dynamodb');
+
+            // Check if table already exists
+            const listTablesResult = await this.client.send(
+                new ListTablesCommand({})
+            );
+
+            if (listTablesResult.TableNames?.includes(this.tableName)) {
+                logger.info(`DynamoDB local table '${this.tableName}' already exists`);
+                return;
+            }
+
+            // Create the table with the same schema as in production
+            await this.client.send(
+                new CreateTableCommand({
+                    TableName: this.tableName,
+                    KeySchema: [
+                        { AttributeName: 'pk', KeyType: 'HASH' },
+                        { AttributeName: 'sk', KeyType: 'RANGE' }
+                    ],
+                    AttributeDefinitions: [
+                        { AttributeName: 'pk', AttributeType: 'S' },
+                        { AttributeName: 'sk', AttributeType: 'S' }
+                    ],
+                    BillingMode: 'PAY_PER_REQUEST'
+                })
+            );
+
+            logger.info(`Created DynamoDB local table '${this.tableName}'`);
+        } catch (error) {
+            logger.error(`Error creating local DynamoDB table: ${error}`);
+            throw error;
+        }
     }
 
     /**
@@ -127,6 +200,39 @@ export class DynamoDBService {
         }, 'DynamoDB deleteItem error');
     }
 
+    // Clear all data (for testing purposes only)
+    public async clearAllData() {
+        if (!this.isLocalMode) {
+            throw new Error('clearAllData can only be called in local mode');
+        }
+
+        return await this.executeDbOperation(async () => {
+            // For local testing only - scan and delete all items
+            const { ScanCommand } = await import('@aws-sdk/lib-dynamodb');
+
+            const scanResult = await this.client.send(
+                new ScanCommand({
+                    TableName: this.tableName
+                })
+            );
+
+            const deletePromises = scanResult.Items?.map((item) => {
+                return this.client.send(
+                    new DeleteCommand({
+                        TableName: this.tableName,
+                        Key: {
+                            pk: item.pk,
+                            sk: item.sk
+                        }
+                    })
+                );
+            }) || [];
+
+            await Promise.all(deletePromises);
+            logger.info(`Cleared all data from local DynamoDB table '${this.tableName}'`);
+        }, 'Error clearing local DynamoDB data');
+    }
+
     // User-specific methods
 
     // Save or update user
@@ -136,7 +242,7 @@ export class DynamoDBService {
                 pk: `USER#${userData.id}`,
                 sk: 'METADATA',
                 ...userData,
-                lastLogin: new Date().toISOString()
+                lastLogin: userData.lastLogin || new Date().toISOString()
             };
 
             return await this.putItem(item);
