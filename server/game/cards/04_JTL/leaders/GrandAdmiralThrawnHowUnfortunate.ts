@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
+import { EventName } from '../../../core/Constants';
 
 export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
             title: 'Exhaust this leader',
             optional: true,
             when: {
-                onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated && event.ability.eventsTriggeredFor.some((event) => event.name === EventName.OnCardDefeated);
+                onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated && event.ability.eventsTriggeredFor.some((event) => event.name === EventName.OnCardDefeated),
             },
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: (ifYouDoContext) => ({
