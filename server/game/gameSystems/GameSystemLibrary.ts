@@ -120,7 +120,7 @@ import type { ICreateXWingProperties } from './CreateXWingSystem';
 import { CreateXWingSystem } from './CreateXWingSystem';
 import type { ICreateTieFighterProperties } from './CreateTieFighterSystem';
 import { CreateTieFighterSystem } from './CreateTieFighterSystem';
-import type { IViewCardAndSelectSingleProperties, IViewCardWithPerCardButtonsProperties } from './ViewCardSystem';
+import type { IViewAndSelectCardsProperties, IViewCardWithPerCardButtonsProperties } from './ViewCardSystem';
 import { ViewCardInteractMode } from './ViewCardSystem';
 import type { IIndirectDamageToPlayerProperties } from './IndirectDamageToPlayerSystem';
 import { IndirectDamageToPlayerSystem } from './IndirectDamageToPlayerSystem';
@@ -136,6 +136,8 @@ import type { ICardRoundLastingEffectProperties } from './CardRoundLastingEffect
 import { CardRoundLastingEffectSystem } from './CardRoundLastingEffectSystem';
 import type { IFlipAndAttachLeaderPilotProperties } from './FlipAndAttachPilotLeaderSystem';
 import { FlipAndAttachPilotLeaderSystem } from './FlipAndAttachPilotLeaderSystem';
+import type { IUseWhenDefeatedProperties } from './UseWhenDefeatedSystem';
+import { UseWhenDefeatedSystem } from './UseWhenDefeatedSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -281,11 +283,11 @@ export function lookAtAndChooseOption<TContext extends AbilityContext = AbilityC
         )
     );
 }
-export function lookAtAndSelectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewCardAndSelectSingleProperties, 'interactMode'>, TContext>) {
+export function lookAtAndSelectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewAndSelectCardsProperties, 'interactMode'>, TContext>) {
     return new LookAtSystem<TContext>(
-        GameSystem.appendToPropertiesOrPropertyFactory<IViewCardAndSelectSingleProperties, 'interactMode'>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IViewAndSelectCardsProperties, 'interactMode'>(
             propertyFactory,
-            { interactMode: ViewCardInteractMode.SelectSingle }
+            { interactMode: ViewCardInteractMode.SelectCards }
         )
     );
 }
@@ -412,7 +414,7 @@ export function resourceCard<TContext extends AbilityContext = AbilityContext>(p
  * @param {PropsFactory<ICardTargetSystemProperties, TContext>} [propertyFactory={}] - A factory function or properties object to create the card target system properties.
  * @returns {CardTargetSystem<TContext>} A new instance of the {@link MoveCardSystem} configured to move a card to the player's hand.
  */
-export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardTargetSystemProperties, TContext> = {}) {
+export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveCardProperties, 'destination' | 'shuffle' | 'shuffleMovedCards'>, TContext> = {}) {
     return new MoveCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IMoveCardProperties, 'destination'>(
             propertyFactory,
@@ -440,7 +442,14 @@ export function revealAndChooseOption<TContext extends AbilityContext = AbilityC
         )
     );
 }
-
+export function revealAndSelectCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IViewAndSelectCardsProperties, 'interactMode'>, TContext>) {
+    return new RevealSystem<TContext>(
+        GameSystem.appendToPropertiesOrPropertyFactory<IViewAndSelectCardsProperties, 'interactMode'>(
+            propertyFactory,
+            { interactMode: ViewCardInteractMode.SelectCards }
+        )
+    );
+}
 // export function sacrifice(propertyFactory: PropsFactory<DiscardFromPlayProperties> = {}) {
 //     return new DiscardFromPlayAction(propertyFactory, true);
 // }
@@ -641,4 +650,7 @@ export function simultaneous<TContext extends AbilityContext = AbilityContext>(g
 
 export function shuffleDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IShuffleDeckProperties, TContext> = {}) {
     return new ShuffleDeckSystem<TContext>(propertyFactory);
+}
+export function useWhenDefeatedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenDefeatedProperties, TContext> = {}) {
+    return new UseWhenDefeatedSystem<TContext>(propertyFactory);
 }

@@ -26,7 +26,6 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.friendlyHeroismCardDefeatedThisPhase(context),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
                 onTrue: AbilityHelper.immediateEffects.sequential((context) => ([
                     AbilityHelper.immediateEffects.draw(),
                     AbilityHelper.immediateEffects.heal({ target: context.player.base, amount: 2 }),
@@ -42,7 +41,6 @@ export default class ChancellorPalpatinePlayingBothSides extends DoubleSidedLead
             cost: AbilityHelper.costs.exhaustSelf(),
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => this.villainyCardPlayedThisPhase(context),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
                 onTrue: AbilityHelper.immediateEffects.sequential((context) => (
                     [
                         AbilityHelper.immediateEffects.createCloneTrooper(),

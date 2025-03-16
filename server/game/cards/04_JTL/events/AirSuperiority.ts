@@ -20,7 +20,6 @@ export default class AirSuperiority extends EventCard {
                     zoneFilter: ZoneName.GroundArena,
                     innerSystem: AbilityHelper.immediateEffects.damage({ amount: 4 })
                 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

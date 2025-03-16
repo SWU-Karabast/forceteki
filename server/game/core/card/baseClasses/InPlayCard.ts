@@ -1,4 +1,4 @@
-import type { IActionAbilityProps, IConstantAbilityProps, IReplacementEffectAbilityProps, ITriggeredAbilityBaseProps, ITriggeredAbilityProps } from '../../../Interfaces';
+import type { IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
@@ -12,19 +12,23 @@ import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatC
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 import { WithCost } from '../propertyMixins/Cost';
+import type { ICardWithActionAbilities } from '../propertyMixins/ActionAbilityRegistration';
+import type { ICardWithConstantAbilities } from '../propertyMixins/ConstantAbilityRegistration';
 import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import type { Card } from '../Card';
 import type { AbilityContext } from '../../ability/AbilityContext';
+import { StandardTriggeredAbilityType } from '../../Constants';
+import * as Helpers from '../../utils/Helpers';
 
 const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
 // required for mixins to be based on this class
 export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
 
-export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithTriggeredAbilities {
+export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities, ICardWithConstantAbilities, ICardWithTriggeredAbilities {
     readonly printedUpgradeHp: number;
     readonly printedUpgradePower: number;
     get disableOngoingEffectsForDefeat(): boolean;
@@ -33,14 +37,6 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
     get parentCard(): IUnitCard;
     get pendingDefeat(): boolean;
     isInPlay(): boolean;
-    addGainedActionAbility(properties: IActionAbilityProps): string;
-    removeGainedActionAbility(removeAbilityUuid: string): void;
-    addGainedConstantAbility(properties: IConstantAbilityProps): string;
-    removeGainedConstantAbility(removeAbilityUuid: string): void;
-    addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string;
-    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string;
-    removeGainedTriggeredAbility(removeAbilityUuid: string): void;
-    removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
     registerPendingUniqueDefeat();
     checkUnique();
     attachTo(newParentCard: IUnitCard, newController?: Player);
@@ -254,7 +250,8 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     }
 
     protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
-        const triggeredProperties = Object.assign(properties, { when: { onCardDefeated: (event, context) => event.card === context.source } });
+        const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenDefeated]: true };
+        const triggeredProperties = Object.assign(properties, { when });
         return this.addTriggeredAbility(triggeredProperties);
     }
 
@@ -272,126 +269,6 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
     protected addIgnoreSpecificAspectPenaltyAbility(properties: IIgnoreSpecificAspectPenaltyProps<this>): IConstantAbilityProps<this> {
         return this.addConstantAbility(this.createConstantAbility(this.generateIgnoreSpecificAspectPenaltiesAbilityProps(properties)));
     }
-
-    // ******************************************** ABILITY STATE MANAGEMENT ********************************************
-    /**
-     * Adds a dynamically gained action ability to the card. Used for "gain ability" effects.
-     *
-     * Duplicates of the same gained action from duplicates of the same source card can be added,
-     * but only one will be presented to the user as an available action.
-     *
-     * @returns The uuid of the created action ability
-     */
-    public addGainedActionAbility(properties: IActionAbilityProps): string {
-        const addedAbility = this.createActionAbility(properties);
-        this.actionAbilities.push(addedAbility);
-
-        return addedAbility.uuid;
-    }
-
-    /** Removes a dynamically gained action ability */
-    public removeGainedActionAbility(removeAbilityUuid: string): void {
-        const updatedAbilityList = this.actionAbilities.filter((ability) => ability.uuid !== removeAbilityUuid);
-        Contract.assertEqual(updatedAbilityList.length, this.actionAbilities.length - 1, `Expected to find one instance of gained action ability to remove but instead found ${this.actionAbilities.length - updatedAbilityList.length}`);
-
-        this.actionAbilities = updatedAbilityList;
-    }
-
-    /**
-     * Adds a dynamically gained constant ability to the card and immediately registers its triggers. Used for "gain ability" effects.
-     *
-     * @returns The uuid of the created triggered ability
-     */
-    public addGainedConstantAbility(properties: IConstantAbilityProps): string {
-        const addedAbility = this.createConstantAbility(properties);
-        this.constantAbilities.push(addedAbility);
-        addedAbility.registeredEffects = this.addEffectToEngine(addedAbility);
-
-        return addedAbility.uuid;
-    }
-
-    /** Removes a dynamically gained constant ability and unregisters its effects */
-    public removeGainedConstantAbility(removeAbilityUuid: string): void {
-        let abilityToRemove: IConstantAbility = null;
-        const remainingAbilities: IConstantAbility[] = [];
-
-        for (const constantAbility of this.constantAbilities) {
-            if (constantAbility.uuid === removeAbilityUuid) {
-                if (abilityToRemove) {
-                    Contract.fail(`Expected to find one instance of gained ability '${abilityToRemove.abilityIdentifier}' on card ${this.internalName} to remove but instead found multiple`);
-                }
-
-                abilityToRemove = constantAbility;
-            } else {
-                remainingAbilities.push(constantAbility);
-            }
-        }
-
-        if (abilityToRemove == null) {
-            Contract.fail(`Did not find any instance of target gained ability to remove on card ${this.internalName}`);
-        }
-
-        this.constantAbilities = remainingAbilities;
-
-        this.removeEffectFromEngine(abilityToRemove.registeredEffects);
-        abilityToRemove.registeredEffects = [];
-    }
-
-    /**
-     * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
-     *
-     * @returns The uuid of the created triggered ability
-     */
-    public addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string {
-        const addedAbility = this.createTriggeredAbility(properties);
-        this.triggeredAbilities.push(addedAbility);
-        addedAbility.registerEvents();
-
-        return addedAbility.uuid;
-    }
-
-    /**
-     * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
-     *
-     * @returns The uuid of the created triggered ability
-     */
-    public addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string {
-        const addedAbility = this.createReplacementEffectAbility(properties);
-        this.triggeredAbilities.push(addedAbility);
-        addedAbility.registerEvents();
-
-        return addedAbility.uuid;
-    }
-
-    /** Removes a dynamically gained triggered ability and unregisters its effects */
-    public removeGainedTriggeredAbility(removeAbilityUuid: string): void {
-        let abilityToRemove: TriggeredAbility = null;
-        const remainingAbilities: TriggeredAbility[] = [];
-
-        for (const triggeredAbility of this.triggeredAbilities) {
-            if (triggeredAbility.uuid === removeAbilityUuid) {
-                if (abilityToRemove) {
-                    Contract.fail(`Expected to find one instance of gained ability '${abilityToRemove.abilityIdentifier}' on card ${this.internalName} to remove but instead found multiple`);
-                }
-
-                abilityToRemove = triggeredAbility;
-            } else {
-                remainingAbilities.push(triggeredAbility);
-            }
-        }
-
-        if (abilityToRemove == null) {
-            Contract.fail(`Did not find any instance of target gained ability to remove on card ${this.internalName}`);
-        }
-
-        this.triggeredAbilities = remainingAbilities;
-        abilityToRemove.unregisterEvents();
-    }
-
-    public removeGainedReplacementEffectAbility(removeAbilityUuid: string): void {
-        this.removeGainedTriggeredAbility(removeAbilityUuid);
-    }
-
 
     public override registerMove(movedFromZone: ZoneName): void {
         super.registerMove(movedFromZone);
@@ -417,6 +294,19 @@ export class InPlayCard extends InPlayCardParent implements IInPlayCard {
                 this._mostRecentInPlayId += 1;
             }
         }
+    }
+
+    protected override validateCardAbilities(cardText?: string) {
+        if (!this.hasImplementationFile || cardText == null) {
+            return;
+        }
+
+        Contract.assertFalse(
+            !this.disableWhenDefeatedCheck &&
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:\n)|(?:\/))When Defeated/g) &&
+            !this.triggeredAbilities.some((ability) => ability.isWhenDefeated),
+            `Card ${this.internalName} has one or more 'When Defeated' keywords in its text but no corresponding ability definition or set property 'disableWhenDefeatedCheck' to true on card implementation`
+        );
     }
 
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************

@@ -21,7 +21,6 @@ export default class SmugglersStarfighter extends NonLeaderUnitCard {
                     onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: -3, hp: 0 })
                     }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
         });

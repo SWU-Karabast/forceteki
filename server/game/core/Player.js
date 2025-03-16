@@ -70,7 +70,7 @@ class Player extends GameObject {
         this.baseZone = null;
 
         /** @type {DeckZone} */
-        this.deckZone = null;
+        this.deckZone = new DeckZone(this);
 
         this.damageToBase = null;
 
@@ -235,8 +235,18 @@ class Player extends GameObject {
      * @param { String } title the title of the unit or leader to check for control of
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
-    controlsLeaderOrUnitWithTitle(title) {
-        return this.leader.title === title || this.hasSomeArenaUnit({ condition: (card) => card.title === title });
+    controlsLeaderUnitOrUpgradeWithTitle(title) {
+        return this.leader.title === title ||
+          this.hasSomeArenaUnit({ condition: (card) => card.title === title }) ||
+          this.hasSomeArenaUpgrade({ condition: (card) => card.title === title });
+    }
+
+    /**
+     * @param { Trait } trait the trait to look for
+     * @returns { boolean } true if this player controls a card with the trait
+     */
+    controlsCardWithTrait(trait, onlyUnique = false) {
+        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({ condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)) });
     }
 
     /**
@@ -275,6 +285,7 @@ class Player extends GameObject {
             case ZoneName.Hand:
                 return this.handZone.cards;
             case ZoneName.Deck:
+                Contract.assertNotNullLike(this.deckZone);
                 return this.deckZone.cards;
             case ZoneName.Discard:
                 return this.discardZone.cards;
@@ -489,6 +500,19 @@ class Player extends GameObject {
      * @param {PlayType} [playingType]
      */
     isCardInPlayableZone(card, playingType = null) {
+        // Check if card can be legally played by this player out of discard from an ongoing effect
+        if (
+            playingType === PlayType.PlayFromOutOfPlay &&
+            card.zoneName === ZoneName.Discard &&
+            card.hasOngoingEffect(EffectName.CanPlayFromDiscard)
+        ) {
+            return card
+                .getOngoingEffectValues(EffectName.CanPlayFromDiscard)
+                .map((value) => value.player ?? card.owner)
+                .includes(this);
+        }
+
+        // Default to checking if there is a zone that matches play type and includes the card
         return this.playableZones.some(
             (zone) => (!playingType || zone.playingType === playingType) && zone.includes(card)
         );
@@ -661,7 +685,7 @@ class Player extends GameObject {
         this.base = preparedDecklist.base;
         this.leader = preparedDecklist.leader;
 
-        this.deckZone = new DeckZone(this, preparedDecklist.deckCards);
+        this.deckZone.initialize(preparedDecklist.deckCards);
 
         // set up playable zones now that all relevant zones are created
         /** @type {PlayableZone[]} */
@@ -1006,7 +1030,7 @@ class Player extends GameObject {
     }
 
     get drawDeck() {
-        return this.deckZone.deck;
+        return this.deckZone?.deck;
     }
 
     /**
@@ -1152,9 +1176,9 @@ class Player extends GameObject {
             ? this.drawDeck
             : this.getCardsInZone(zone);
 
-        return zoneCards.map((card) => {
+        return zoneCards?.map((card) => {
             return card.getSummary(activePlayer);
-        });
+        }) ?? [];
     }
 
     getSortedSummaryForCardList(list, activePlayer) {
@@ -1251,8 +1275,8 @@ class Player extends GameObject {
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
             availableResources: this.readyResourceCount,
-            leader: this.leader.getSummary(activePlayer),
-            base: this.base.getSummary(activePlayer),
+            leader: this.leader?.getSummary(activePlayer),
+            base: this.base?.getSummary(activePlayer),
             id: this.id,
             left: this.left,
             name: this.name,

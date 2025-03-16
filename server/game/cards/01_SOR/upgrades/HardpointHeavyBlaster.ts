@@ -24,7 +24,6 @@ export default class HardpointHeavyBlaster extends UpgradeCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => !context.event.attack.target.isBase(),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 2 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
         });

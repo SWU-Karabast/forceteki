@@ -138,7 +138,14 @@ export abstract class TriggerWindowBase extends BaseStep {
         }
 
         // Check to if we're dealing with a multi-selection of the 'same' ability
-        const isMultiSelectAbility = this.isMultiSelectAbility(abilitiesToResolve, this.resolved.map((resolved) => resolved.ability));
+        let isMultiSelectAbility = this.isMultiSelectAbility(abilitiesToResolve, this.resolved.map((resolved) => resolved.ability));
+
+        // if an ability is triggered multiple times and uses a collective trigger, filter down to one instance of it
+        if (isMultiSelectAbility && abilitiesToResolve[0].ability.collectiveTrigger) {
+            abilitiesToResolve = [abilitiesToResolve[0]];
+            this.unresolved.set(this.currentlyResolvingPlayer, abilitiesToResolve);
+            isMultiSelectAbility = false;
+        }
 
         // if there's more than one ability still unresolved, prompt for next selection
         if (abilitiesToResolve.length > 1) {
@@ -226,7 +233,10 @@ export abstract class TriggerWindowBase extends BaseStep {
     protected postResolutionUpdate(resolver) {
         const unresolvedAbilitiesForPlayer = this.getCurrentlyResolvingAbilities();
 
-        const justResolvedAbility = unresolvedAbilitiesForPlayer.find((context) => context.ability === resolver.context.ability);
+        const justResolvedAbility = unresolvedAbilitiesForPlayer.find((context) =>
+            context.ability === resolver.context.ability &&
+            context.event === resolver.context.event
+        );
 
         // if we can't find the ability to remove from the list, we have to error or else get stuck in an infinite loop
         if (justResolvedAbility == null) {

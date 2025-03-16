@@ -103,7 +103,10 @@ class Game extends EventEmitter {
         this.registerGlobalRulesListeners();
 
         // TODO TWIN SUNS
-        Contract.assertArraySize(details.players, 2, 'Game must have exactly 2 players');
+        Contract.assertArraySize(
+            details.players, 2, `
+            Game must have exactly 2 players, received ${details.players.length}: ${details.players.map((player) => player.id).join(', ')}`
+        );
 
         details.players.forEach((player) => {
             this.playersAndSpectators[player.id] = new Player(
@@ -1287,7 +1290,7 @@ class Game extends EventEmitter {
 
             Contract.assertNotNullLike(tokenConstructor, `Token card data for ${tokenName} contained unknown id '${cardData.id}'`);
 
-            this.tokenFactories[tokenName] = (player) => new tokenConstructor(player, cardData);
+            this.tokenFactories[tokenName] = (player, additionalProperties) => new tokenConstructor(player, cardData, additionalProperties);
         }
     }
 
@@ -1304,10 +1307,11 @@ class Game extends EventEmitter {
      * adds it to all relevant card lists
      * @param {Player} player
      * @param {import('./Constants.js').TokenName} tokenName
+     * @param {any} additionalProperties
      * @returns {Card}
      */
-    generateToken(player, tokenName) {
-        const token = this.tokenFactories[tokenName](player);
+    generateToken(player, tokenName, additionalProperties = null) {
+        const token = this.tokenFactories[tokenName](player, additionalProperties);
 
         this.allCards.push(token);
         player.decklist.tokens.push(token);

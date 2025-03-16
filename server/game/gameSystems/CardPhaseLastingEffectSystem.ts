@@ -13,7 +13,6 @@ export type ICardPhaseLastingEffectProperties = Omit<ICardLastingEffectPropertie
 export class CardPhaseLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends CardLastingEffectSystem<TContext> {
     public override readonly name = 'applyCardPhaseLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
-    public override readonly effectDescription = 'apply an effect to {0} for the phase';
     protected override readonly defaultProperties: ICardLastingEffectProperties = {
         duration: null,
         effect: [],

@@ -18,7 +18,6 @@ export default class CrackshotVWing extends NonLeaderUnitCard {
                     trait: Trait.Fighter,
                     otherThan: context.source
                 }),
-                onTrue: AbilityHelper.immediateEffects.noAction(),
                 onFalse: AbilityHelper.immediateEffects.damage((context) => ({
                     target: context.source,
                     amount: 1

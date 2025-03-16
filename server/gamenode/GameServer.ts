@@ -116,7 +116,7 @@ export class GameServer {
         this.setupAppRoutes(app);
 
         app.use((err, req, res, next) => {
-            logger.error('Error in API route:', err);
+            logger.error('GameServer: Error in API route:', err);
             res.status(err.status || 500).json({
                 success: false,
                 error: err.message || 'Server error.',
@@ -124,7 +124,7 @@ export class GameServer {
         });
 
         server.listen(env.gameNodeSocketIoPort);
-        logger.info(`Game server listening on port ${env.gameNodeSocketIoPort}`);
+        logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
 
         // Setup socket server
         this.io = new IOServer(server, {
@@ -219,8 +219,7 @@ export class GameServer {
                     socket.disconnect();
                 });
             } catch (err) {
-                logger.error('Error in socket connection:', err);
-                socket.disconnect();
+                logger.error('GameServer: Error in socket connection:', err);
             }
         });
 
@@ -268,60 +267,97 @@ export class GameServer {
 
         app.get('/api/get-unimplemented', (req, res) => {
             return res.json(this.deckValidator.getUnimplementedCards());
+        app.get('/api/get-unimplemented', (req, res, next) => {
+            try {
+                return res.json(this.deckValidator.getUnimplementedCards());
+            } catch (err) {
+                logger.error('GameServer: Error in setupAppRoutes:', err);
+                next(err);
+            }
         });
 
-        app.get('/api/ongoing-games', (_, res) => {
-            return res.json(this.getOngoingGamesData());
+        app.get('/api/ongoing-games', (_, res, next) => {
+            try {
+                return res.json(this.getOngoingGamesData());
+            } catch (err) {
+                logger.error('GameServer: Error in ongoing-games:', err);
+                next(err);
+            }
         });
 
         app.post('/api/create-lobby', async (req, res, next) => {
-            const { user, deck, format, isPrivate, lobbyName } = req.body;
-            // Check if the user is already in a lobby
-            const userId = typeof user === 'string' ? user : user.id;
-            if (this.userLobbyMap.has(userId)) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'User is already in a lobby'
-                });
-            }
             try {
+                const { user, deck, format, isPrivate, lobbyName } = req.body;
+                // Check if the user is already in a lobby
+                const userId = typeof user === 'string' ? user : user.id;
+                if (!this.canUserJoinNewLobby(userId)) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'User is already in a lobby'
+                    });
+                }
                 await this.processDeckValidation(deck, format, res, async () => {
                     await this.createLobby(lobbyName, user, deck, format, isPrivate);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
+                logger.error('GameServer: Error in create lobby:', err);
                 next(err);
             }
         });
 
-        app.get('/api/available-lobbies', (_, res) => {
-            const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, lobby]) => ({
-                id,
-                name: lobby.name,
-                format: lobby.format,
-            }));
-            return res.json(availableLobbies);
+        app.get('/api/available-lobbies', (_, res, next) => {
+            try {
+                const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, lobby]) => ({
+                    id,
+                    name: lobby.name,
+                    format: lobby.format,
+                }));
+                return res.json(availableLobbies);
+            } catch (err) {
+                logger.error('GameServer: Error in available-lobbies:', err);
+                next(err);
+            }
         });
 
-        app.post('/api/join-lobby', (req, res) => {
-            const { lobbyId, user } = req.body;
+        app.post('/api/join-lobby', (req, res, next) => {
+            try {
+                const { lobbyId, user } = req.body;
 
-            const lobby = this.lobbies.get(lobbyId);
-            if (!lobby) {
-                return res.status(404).json({ success: false, message: 'Lobby not found' });
-            }
+                const userId = typeof user === 'string' ? user : user.id;
+                if (!this.canUserJoinNewLobby(userId)) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'User is already in a lobby'
+                    });
+                }
 
-            if (lobby.isFilled()) {
-                return res.status(400).json({ success: false, message: 'Lobby is full' });
+                const lobby = this.lobbies.get(lobbyId);
+                if (!lobby) {
+                    return res.status(404).json({ success: false, message: 'Lobby not found' });
+                }
+
+                if (lobby.isFilled()) {
+                    return res.status(400).json({ success: false, message: 'Lobby is full' });
+                }
+
+                // Add the user to the lobby
+                this.userLobbyMap.set(user.id, lobby.id);
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                logger.error('GameServer: Error in join-lobby:', err);
+                next(err);
             }
-            // Add the user to the lobby
-            this.userLobbyMap.set(user.id, lobby.id);
-            return res.status(200).json({ success: true });
         });
 
-        app.get('/api/test-game-setups', (_, res) => {
-            const testSetupFilenames = this.getTestSetupGames();
-            return res.json(testSetupFilenames);
+        app.get('/api/test-game-setups', (_, res, next) => {
+            try {
+                const testSetupFilenames = this.getTestSetupGames();
+                return res.json(testSetupFilenames);
+            } catch (err) {
+                logger.error('GameServer: Error in test-game=setups:', err);
+                next(err);
+            }
         });
 
         app.post('/api/start-test-game', async (req, res, next) => {
@@ -330,21 +366,22 @@ export class GameServer {
                 await this.startTestGame(filename);
                 return res.status(200).json({ success: true });
             } catch (err) {
+                logger.error('GameServer: Error in start-test=game:', err);
                 next(err);
             }
         });
 
         app.post('/api/enter-queue', async (req, res, next) => {
-            const { format, user, deck } = req.body;
-            // check if user is already in a lobby
-            const userId = typeof user === 'string' ? user : user.id;
-            if (this.userLobbyMap.has(userId)) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'User is already in a lobby'
-                });
-            }
             try {
+                const { format, user, deck } = req.body;
+                // check if user is already in a lobby
+                const userId = typeof user === 'string' ? user : user.id;
+                if (!this.canUserJoinNewLobby(userId)) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'User is already in a lobby'
+                    });
+                }
                 await this.processDeckValidation(deck, format, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
@@ -353,13 +390,47 @@ export class GameServer {
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
+                logger.error('GameServer: Error in enter-queue:', err);
                 next(err);
             }
         });
 
-        app.get('/api/health', (_, res) => {
-            return res.status(200).json({ success: true });
+        app.get('/api/health', (_, res, next) => {
+            try {
+                return res.status(200).json({ success: true });
+            } catch (err) {
+                logger.error('GameServer: Error in health:', err);
+                next(err);
+            }
         });
+    }
+
+    private canUserJoinNewLobby(userId: string) {
+        const previousLobbyForUser = this.userLobbyMap.get(userId);
+        if (previousLobbyForUser) {
+            const previousLobby = this.lobbies.get(previousLobbyForUser);
+            if (previousLobby) {
+                const userLastActivity = previousLobby.getLastActivityForUser(userId);
+
+                if (userLastActivity == null) {
+                    return true;
+                }
+
+                const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
+
+                if (elapsedSeconds < 60) {
+                    return false;
+                }
+
+                this.removeUserMaybeCleanupLobby(previousLobby, userId);
+            }
+        }
+
+        return true;
+    }
+
+    public getUserLobbyId(userId: string): string | undefined {
+        return this.userLobbyMap.get(userId);
     }
 
     // method for validating the deck via API
@@ -436,6 +507,7 @@ export class GameServer {
             format,
             this.cardDataGetter,
             this.deckValidator,
+            this,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -452,6 +524,7 @@ export class GameServer {
             SwuGameFormat.Open,
             this.cardDataGetter,
             this.deckValidator,
+            this,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -505,7 +578,7 @@ export class GameServer {
         }
 
         if (!ioSocket.data.user) {
-            logger.info('socket connected with no user, disconnecting');
+            logger.info('GameServer: socket connected with no user, disconnecting');
             ioSocket.disconnect();
             return;
         }
@@ -516,7 +589,8 @@ export class GameServer {
             const lobbyId = this.userLobbyMap.get(user.id);
             const lobby = this.lobbies.get(lobbyId);
             if (!lobby) {
-                logger.info('No lobby for', ioSocket.data.user.username, 'disconnecting');
+                this.userLobbyMap.delete(user.id);
+                logger.info('GameServer: No lobby for', ioSocket.data.user.username, 'disconnecting');
                 ioSocket.disconnect();
                 return;
             }
@@ -542,14 +616,14 @@ export class GameServer {
         if (requestedLobby.lobbyId) {
             const lobby = this.lobbies.get(requestedLobby.lobbyId);
             if (!lobby) {
-                logger.info('No lobby with this link for', ioSocket.data.user.username, 'disconnecting');
+                logger.info('GameServer: No lobby with this link for', ioSocket.data.user.username, 'disconnecting');
                 ioSocket.disconnect();
                 return;
             }
 
             // check if the lobby is full
             if (lobby.isFilled() || lobby.hasOngoingGame()) {
-                logger.info('Requested lobby', requestedLobby.lobbyId, 'is full or already in game, disconnecting');
+                logger.info('GameServer: Requested lobby', requestedLobby.lobbyId, 'is full or already in game, disconnecting');
                 ioSocket.disconnect();
                 return;
             }
@@ -586,7 +660,7 @@ export class GameServer {
         ioSocket.emit('connection_error', 'Error connecting to lobby/game');
         ioSocket.disconnect();
         // this can happen when someone tries to reconnect to the game but are out of the mapping TODO make a notification for the player
-        logger.info(`Error state when connecting to lobby/game ${user.id} disconnecting`);
+        logger.info(`GameServer: Error state when connecting to lobby/game ${user.id} disconnecting`);
     }
 
     /**
@@ -595,7 +669,7 @@ export class GameServer {
     private enterQueue(format: SwuGameFormat, user: any, deck: any): boolean {
         // Quick check: if they're already in a lobby, no queue
         if (this.userLobbyMap.has(user.id)) {
-            logger.info(`User ${user.id} already in a lobby, ignoring queue request.`);
+            logger.info(`GameServer: User ${user.id} already in a lobby, ignoring queue request.`);
             return false;
         }
 
@@ -637,6 +711,7 @@ export class GameServer {
             format,
             this.cardDataGetter,
             this.deckValidator,
+            this,
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
@@ -671,7 +746,7 @@ export class GameServer {
         lobby.setLobbyOwner(p1.user.id);
         // this needs to be here since we only send start game via the LobbyOwner.
         lobby.sendLobbyState();
-        logger.info(`Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
+        logger.info(`GameServer: Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
     }
 
     /**
@@ -704,41 +779,47 @@ export class GameServer {
         await this.matchmakeAllQueues();
     }
 
-    public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {
-        if (!this.userLobbyMap.has(id)) {
-            this.queue.removePlayer(id);
-            return;
+    private removeUserMaybeCleanupLobby(lobby: Lobby | null, userId: string) {
+        lobby?.removeUser(userId);
+        // Check if lobby is empty
+        if (lobby?.isEmpty()) {
+            // Start the cleanup process
+            lobby?.cleanLobby();
+            this.lobbies.delete(lobby?.id);
         }
-        const lobbyId = this.userLobbyMap.get(id);
-        const lobby = this.lobbies.get(lobbyId);
-        const wasManualDisconnect = !!socket?.data?.manualDisconnect;
-        if (wasManualDisconnect) {
-            this.userLobbyMap.delete(id);
-            lobby.removeUser(id);
+    }
 
-            // check if lobby is empty
-            if (lobby.isEmpty()) {
-                // cleanup process
-                lobby.cleanLobby();
-                this.lobbies.delete(lobbyId);
+    public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {
+        try {
+            if (!this.userLobbyMap.has(id)) {
+                this.queue.removePlayer(id);
+                return;
             }
-            return;
-        }
-        // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
-        //  without triggering onSocketDisconnect
-        lobby.setUserDisconnected(id);
-        setTimeout(() => {
-            // Check if the user is still disconnected after the timer
-            if (lobby.getUserState(id) === 'disconnected') {
+            const lobbyId = this.userLobbyMap.get(id);
+            const lobby = this.lobbies.get(lobbyId);
+
+            const wasManualDisconnect = !!socket?.data?.manualDisconnect;
+            if (wasManualDisconnect) {
                 this.userLobbyMap.delete(id);
-                lobby.removeUser(id);
-                // Check if lobby is empty
-                if (lobby.isEmpty()) {
-                    // Start the cleanup process
-                    lobby.cleanLobby();
-                    this.lobbies.delete(lobbyId);
-                }
+                this.removeUserMaybeCleanupLobby(lobby, id);
+                return;
             }
-        }, 20000);
+            // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
+            //  without triggering onSocketDisconnect
+            lobby?.setUserDisconnected(id);
+            setTimeout(() => {
+                try {
+                    // Check if the user is still disconnected after the timer
+                    if (lobby?.getUserState(id) === 'disconnected') {
+                        this.userLobbyMap.delete(id);
+                        this.removeUserMaybeCleanupLobby(lobby, id);
+                    }
+                } catch (err) {
+                    logger.error('Error in setTimeout for onSocketDisconnected:', err);
+                }
+            }, 20000);
+        } catch (err) {
+            logger.error('Error in onSocketDisconnected:', err);
+        }
     }
 }

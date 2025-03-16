@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MoveZoneDestination } from '../core/Constants';
-import { AbilityRestriction } from '../core/Constants';
+import { AbilityRestriction, EffectName } from '../core/Constants';
 import {
     CardType,
     DeckZoneDestination,
@@ -12,6 +12,7 @@ import {
 } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers.js';
+import type { AttachedUpgradeOverrideHandler } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 
@@ -31,9 +32,9 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
     destination: Exclude<MoveZoneDestination, ZoneName.Discard | ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource>;
     shuffle?: boolean;
     shuffleMovedCards?: boolean;
+    attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler;
 }
 
-// TODO: since there are already some more specific for moving to arena, hand, etc., what's the remaining use case for this? and can we rename it to be more specific?
 export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IMoveCardProperties> {
     public override readonly name = 'move';
     protected override readonly eventName = EventName.OnCardMoved;
@@ -91,10 +92,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
         super.updateEvent(event, card, context, additionalProperties);
+        const { attachedUpgradeOverrideHandler } = this.generatePropertiesFromContext(context, additionalProperties);
 
         // Check if the card is leaving play
         if (EnumHelpers.isArena(card.zoneName) && !EnumHelpers.isArena(event.destination)) {
-            this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties);
+            this.addLeavesPlayPropertiesToEvent(event, card, context, additionalProperties, attachedUpgradeOverrideHandler);
         }
     }
 
@@ -117,8 +119,11 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
                 return false;
             }
         } else {
+            // Used below. Units with leaders attached need to be considered basic units (tokens with leaders attached are handled above)
+            const isUnitWithLeaderAttached = card.isUnit() && card.hasOngoingEffect(EffectName.IsLeader);
+
             // Ensure that we have a valid destination and that the card can be moved there
-            if (!context.player.isLegalZoneForCardType(card.type, destination)) {
+            if (!context.player.isLegalZoneForCardType(isUnitWithLeaderAttached ? CardType.BasicUnit : card.type, destination)) {
                 return false;
             }
         }

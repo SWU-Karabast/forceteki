@@ -14,10 +14,9 @@ export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
             title: 'If you control Boba Fett or Jango Fett (as a leader or unit), ready this unit',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
-                    context.player.controlsLeaderOrUnitWithTitle('Boba Fett') ||
-                    context.player.controlsLeaderOrUnitWithTitle('Jango Fett'),
+                    context.player.controlsLeaderUnitOrUpgradeWithTitle('Boba Fett') ||
+                    context.player.controlsLeaderUnitOrUpgradeWithTitle('Jango Fett'),
                 onTrue: AbilityHelper.immediateEffects.ready((context) => ({ target: context.source })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
 

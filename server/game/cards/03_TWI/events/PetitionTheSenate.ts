@@ -16,7 +16,6 @@ export default class PetitionTheSenate extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.getUnitsInPlayWithTrait(Trait.Official).length >= 3,
                 onTrue: AbilityHelper.immediateEffects.draw({ amount: 3 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

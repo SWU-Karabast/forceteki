@@ -13,7 +13,7 @@ export default class JabbasRancorPateesa extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addDecreaseCostAbility({
             title: 'If you control Jabba the Hutt, this unit costs 1 resource less to play',
-            condition: (context) => context.player.controlsLeaderOrUnitWithTitle('Jabba the Hutt'),
+            condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Jabba the Hutt'),
             amount: 1
         });
 

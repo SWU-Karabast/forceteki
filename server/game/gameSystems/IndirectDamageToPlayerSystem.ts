@@ -1,6 +1,6 @@
 import * as EnumHelpers from '../core/utils/EnumHelpers.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
-import { EventName } from '../core/Constants.js';
+import { EffectName, EventName } from '../core/Constants.js';
 import type { GameEvent } from '../core/event/GameEvent.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
@@ -26,17 +26,31 @@ export class IndirectDamageToPlayerSystem<TContext extends AbilityContext = Abil
         super.queueGenerateEventGameSteps(events, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const indirectDamageAmount = this.calculateIndirectDamageAmount(properties.amount, context);
+
+        const choosingPlayer = EnumHelpers.asRelativePlayer(properties.target[0], context.player);
 
         new DistributeIndirectDamageToCardsSystem({
-            amountToDistribute: properties.amount,
-            player: EnumHelpers.asRelativePlayer(properties.target[0], context.player),
+            amountToDistribute: indirectDamageAmount,
+            player: choosingPlayer,
         }).queueGenerateEventGameSteps(events, context);
+    }
+
+    private calculateIndirectDamageAmount(baseAmount: number, context: TContext): number {
+        let totalIndirectDamage = baseAmount;
+        if (context.player.hasOngoingEffect(EffectName.ModifyIndirectDamage)) {
+            context.player.getOngoingEffectValues(EffectName.ModifyIndirectDamage).forEach((value) => {
+                totalIndirectDamage += value.amount;
+            });
+        }
+        return totalIndirectDamage;
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
+        const indirectDamageAmount = this.calculateIndirectDamageAmount(properties.amount, context);
 
-        return ['deal {0} indirect damage to {1}', [properties.amount, properties.target]];
+        return ['deal {0} indirect damage to {1}', [indirectDamageAmount, properties.target]];
     }
 
     public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {

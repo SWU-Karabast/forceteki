@@ -18,7 +18,6 @@ export default class ChamSyndullaRallyingRyloth extends NonLeaderUnitCard {
                 onTrue: AbilityHelper.immediateEffects.resourceCard((context) => ({
                     target: context.player.getTopCardOfDeck(),
                 })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

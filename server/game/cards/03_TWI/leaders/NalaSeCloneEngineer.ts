@@ -34,7 +34,7 @@ export default class NalaSeCloneEngineer extends LeaderUnitCard {
             ongoingEffect: AbilityHelper.ongoingEffects.gainAbility({
                 type: AbilityType.Triggered,
                 title: 'Heal 2 damage from your base',
-                when: { onCardDefeated: (event, context) => event.card === context.source },
+                when: { whenDefeated: true },
                 immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
                     amount: 2,
                     target: context.player.base

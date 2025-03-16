@@ -730,6 +730,30 @@ var customMatchers = {
             }
         };
     },
+    toBeAttachedTo: function () {
+        return {
+            compare: function (card, parentCard) {
+                if (typeof card === 'string' || typeof parentCard === 'string') {
+                    throw new TestSetupError('This expectation requires a card object, not a name');
+                }
+                let result = {};
+
+                if (card.zoneName !== 'capture' && !checkConsistentZoneState(card, result)) {
+                    return result;
+                }
+
+                result.pass = parentCard.upgrades.includes(card);
+
+                if (result.pass) {
+                    result.message = `Expected ${card.internalName} not to be attached to ${parentCard.internalName} but it is`;
+                } else {
+                    result.message = `Expected ${card.internalName} to be attached to ${parentCard.internalName} but it is in zone '${card.zone}'`;
+                }
+
+                return result;
+            }
+        };
+    },
     toHaveExactUpgradeNames: function () {
         return {
             compare: function (card, upgradeNames) {

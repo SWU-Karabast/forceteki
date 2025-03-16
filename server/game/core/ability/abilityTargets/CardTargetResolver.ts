@@ -112,16 +112,22 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         // these will appear to have no effect on any target, but should not be skipped
         if (
             !this.dependentTarget &&
-            this.immediateEffect &&
-            !legalTargets.some((target) => this.immediateEffect.canAffect(
-                target,
-                this.getContextCopy(target, context),
-                {},
-                GameStateChangeRequired.MustFullyOrPartiallyResolve
-            ))
+            this.immediateEffect
         ) {
-            targetResults.hasEffectiveTargets = targetResults.hasEffectiveTargets || false;
-            return;
+            let effectiveTargetFound = false;
+            for (const target of legalTargets) {
+                const contextWithTarget = this.getContextCopy(target, context);
+
+                if (this.immediateEffect.hasLegalTarget(contextWithTarget, {}, GameStateChangeRequired.MustFullyOrPartiallyResolve)) {
+                    effectiveTargetFound = true;
+                    break;
+                }
+            }
+
+            if (!effectiveTargetFound) {
+                targetResults.hasEffectiveTargets = targetResults.hasEffectiveTargets || false;
+                return;
+            }
         }
 
         targetResults.hasEffectiveTargets = true;
@@ -159,8 +165,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             if (passPrompt) {
                 buttons.push({ text: passPrompt.buttonText, arg: passPrompt.arg });
                 passPrompt.hasBeenShown = true;
-            }
-            if (this.selector.optional) {
+            } else if (this.selector.optional) {
                 // If the selector is for a single card and it will automatically fire on selection,
                 // uses the 'done' arg so that the prompt doesn't show both 'Choose no target' and 'Done' buttons.
                 buttons.push({

@@ -41,6 +41,19 @@ describe('Unity of Purpose', function () {
             expect(context.wampa.getPower()).toBe(4);
             expect(context.wampa.getHp()).toBe(5);
 
+            // check that modifier doesn't change with number of units
+            expect(context.battlefieldMarine.getPower()).toBe(5);
+            expect(context.battlefieldMarine.getHp()).toBe(5);
+
+            expect(set2Falcon.getPower()).toBe(7);
+            expect(set2Falcon.getHp()).toBe(7);
+
+            expect(set4Falcon.getPower()).toBe(5);
+            expect(set4Falcon.getHp()).toBe(6);
+
+            expect(context.atst.getPower()).toBe(6);
+            expect(context.atst.getHp()).toBe(7);
+
             context.moveToNextActionPhase();
 
             expect(context.battlefieldMarine.getPower()).toBe(3);

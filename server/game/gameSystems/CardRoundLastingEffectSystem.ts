@@ -13,7 +13,6 @@ export type ICardRoundLastingEffectProperties = Omit<ICardLastingEffectPropertie
 export class CardRoundLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends CardLastingEffectSystem<TContext> {
     public override readonly name = 'applyCardRoundLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
-    public override readonly effectDescription = 'apply an effect to {0} for the round';
     protected override readonly defaultProperties: ICardLastingEffectProperties = {
         duration: null,
         effect: [],
