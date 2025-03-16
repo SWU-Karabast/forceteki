@@ -30,7 +30,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         // @ts-expect-error state is a generic object that is defined by the deriving classes, it's essentially w/e the children want it to be.
         this.state = {};
         this.onSetupDefaultState();
-        this.game.gameObjectManager.registerGameObject(this);
+        this.game.gameObjectManager.register(this);
     }
 
     /** A overridable method so a child can set defaults for it's state. Always ensure to call super.onSetupGameState() as the first line if you do override this.  */

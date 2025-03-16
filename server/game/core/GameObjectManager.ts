@@ -19,7 +19,7 @@ export class GameObjectManager {
         return this._gameObjectMapping.get(gameObjectRef.uuid) as (T | undefined);
     }
 
-    public registerGameObject(gameObject: GameObjectBase | GameObjectBase[]) {
+    public register(gameObject: GameObjectBase | GameObjectBase[]) {
         gameObject = Helpers.asArray(gameObject);
 
         for (const obj of gameObject) {
