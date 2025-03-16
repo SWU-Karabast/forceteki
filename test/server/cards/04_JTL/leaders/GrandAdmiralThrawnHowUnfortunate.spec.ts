@@ -22,6 +22,29 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should do nothing when a unit without a When Defeated dies', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-admiral-thrawn#how-unfortunate',
+                        groundArena: ['wampa']
+                    },
+                    player2: {
+                        hand: ['rivals-fall']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.passAction();
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.wampa);
+
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+
+                expect(context.player1).toBeActivePlayer();
+            });
+
             it('should allow a When Defeated ability to be used a second time', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
