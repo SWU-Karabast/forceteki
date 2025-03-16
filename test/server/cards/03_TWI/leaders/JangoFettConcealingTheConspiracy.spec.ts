@@ -643,5 +643,68 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 expect(context.grogu.damage).toBe(1);
             });
         });
+
+        describe('Jango Fett\'s deployed leader ability', function() {
+            it('should trigger correctly on multiple targets based on the selected target from the trigger window', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: {
+                            card: 'jango-fett#concealing-the-conspiracy',
+                            deployed: true
+                        },
+                        hand: ['war-juggernaut']
+                    },
+                    player2: {
+                        leader: {
+                            card: 'admiral-piett#commanding-the-armada',
+                            deployed: true
+                        },
+                        groundArena: ['pantoran-starship-thief', 'captain-tarkin#full-forward-assault'],
+                        spaceArena: ['quasar-tie-carrier']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.warJuggernaut);
+                context.player1.clickCard(context.pantoranStarshipThief);
+                context.player1.clickCard(context.captainTarkin);
+                context.player1.clickCard(context.quasarTieCarrier);
+                context.player1.clickCard(context.admiralPiett);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Exhaust the damaged enemy unit: Pantoran Starship Thief',
+                    'Exhaust the damaged enemy unit: Admiral Piett',
+                    'Exhaust the damaged enemy unit: Captain Tarkin',
+                    'Exhaust the damaged enemy unit: Quasar TIE Carrier'
+                ]);
+
+                context.player1.clickPrompt('Exhaust the damaged enemy unit: Captain Tarkin');
+                context.player1.clickPrompt('Trigger');
+                expect(context.captainTarkin.exhausted).toBeTrue();
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Exhaust the damaged enemy unit: Pantoran Starship Thief',
+                    'Exhaust the damaged enemy unit: Admiral Piett',
+                    'Exhaust the damaged enemy unit: Quasar TIE Carrier'
+                ]);
+                context.player1.clickPrompt('Exhaust the damaged enemy unit: Pantoran Starship Thief');
+                context.player1.clickPrompt('Trigger');
+                expect(context.pantoranStarshipThief.exhausted).toBeTrue();
+
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Exhaust the damaged enemy unit: Admiral Piett',
+                    'Exhaust the damaged enemy unit: Quasar TIE Carrier'
+                ]);
+                context.player1.clickPrompt('Exhaust the damaged enemy unit: Quasar TIE Carrier');
+                context.player1.clickPrompt('Trigger');
+                expect(context.quasarTieCarrier.exhausted).toBeTrue();
+
+                context.player1.clickPrompt('Trigger');
+                expect(context.admiralPiett.exhausted).toBeTrue();
+            });
+        });
     });
 });
