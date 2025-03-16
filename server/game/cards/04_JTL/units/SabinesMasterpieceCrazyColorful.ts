@@ -21,7 +21,6 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
                         cardTypeFilter: CardType.Base,
                         innerSystem: AbilityHelper.immediateEffects.heal({ amount: 2 }),
                     }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 }),
                 AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.isAspectInPlay(Aspect.Command),
@@ -30,7 +29,6 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
                         cardTypeFilter: WildcardCardType.Unit,
                         innerSystem: AbilityHelper.immediateEffects.giveExperience()
                     }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 }),
                 AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.isAspectInPlay(Aspect.Aggression),
@@ -39,7 +37,6 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
                         cardTypeFilter: [CardType.Base, WildcardCardType.Unit],
                         innerSystem: AbilityHelper.immediateEffects.damage({ amount: 1 }),
                     }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 }),
                 AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.source.controller.isAspectInPlay(Aspect.Cunning),
@@ -54,7 +51,6 @@ export default class SabinesMasterpieceCrazyColorful extends NonLeaderUnitCard {
                             }),
                         })
                     }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 }),
             ])
         });

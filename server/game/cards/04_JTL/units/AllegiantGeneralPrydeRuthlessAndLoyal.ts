@@ -31,7 +31,6 @@ export default class AllegiantGeneralPrydeRuthlessAndLoyal extends NonLeaderUnit
                 onTrue: AbilityHelper.immediateEffects.selectPlayer({
                     innerSystem: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 2 }),
                 }),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
             })
         });
     }

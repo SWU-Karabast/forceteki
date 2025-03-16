@@ -233,7 +233,10 @@ export abstract class TriggerWindowBase extends BaseStep {
     protected postResolutionUpdate(resolver) {
         const unresolvedAbilitiesForPlayer = this.getCurrentlyResolvingAbilities();
 
-        const justResolvedAbility = unresolvedAbilitiesForPlayer.find((context) => context.ability === resolver.context.ability);
+        const justResolvedAbility = unresolvedAbilitiesForPlayer.find((context) =>
+            context.ability === resolver.context.ability &&
+            context.event === resolver.context.event
+        );
 
         // if we can't find the ability to remove from the list, we have to error or else get stuck in an infinite loop
         if (justResolvedAbility == null) {

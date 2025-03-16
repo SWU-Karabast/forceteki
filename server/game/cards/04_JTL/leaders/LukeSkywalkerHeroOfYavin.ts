@@ -32,7 +32,6 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
                         filter: (attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Fighter)
                     }),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction(),
                 })
             }
         });
