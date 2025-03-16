@@ -41,6 +41,7 @@ const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 const { GameObject } = require('./GameObject.js');
 const { GameObjectBase } = require('./GameObjectBase.js');
+const { GameObjectManager } = require('./GameObjectManager.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -56,7 +57,6 @@ class Game extends EventEmitter {
         validateGameConfiguration(details);
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
-        this.state = { nextId: 1 };
 
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
@@ -70,8 +70,7 @@ class Game extends EventEmitter {
         this.owner = details.owner;
         this.started = false;
         this.playStarted = false;
-        this.allGameObjects = [];
-        this.gameObjectMapping = new Map();
+        this.gameObjectManager = new GameObjectManager(this);
         this.createdAt = new Date();
         this.currentActionWindow = null;
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
@@ -366,16 +365,6 @@ class Game extends EventEmitter {
      */
     findAnyCardsInPlay(predicate = () => true) {
         return this.allArenas.getCards({ condition: predicate });
-    }
-
-    /**
-     *
-     * @template {GameObject} T
-     * @param {import('./GameObjectBase.js').GameObjectRef<T>} gameObjectRef
-     * @returns {T}
-     */
-    findAnyGameObjectByUuid(gameObjectRef) {
-        return this.gameObjectMapping.get(gameObjectRef.uuid);
     }
 
     /**
@@ -1351,23 +1340,6 @@ class Game extends EventEmitter {
         this.filterCardFromList(token, player.decklist.tokens);
         this.filterCardFromList(token, player.decklist.allCards);
         token.removeFromGame();
-    }
-
-    /** @param {GameObjectBase} gameObject */
-    registerGameObject(gameObject) {
-        Contract.assertIsNullLike(gameObject.uuid,
-            `Tried to register a Game Object that was already registered ${gameObject.uuid}`
-        );
-
-        gameObject.uuid = 'GameObject_' + this.state.nextId;
-        this.state.nextId += 1;
-        this.allGameObjects.push(gameObject);
-        this.gameObjectMapping.set(gameObject.uuid, gameObject);
-    }
-
-    /** @param {GameObjectBase[]} gameObjects */
-    registerGameObjects(gameObjects) {
-        gameObjects.forEach((gameObject) => this.registerGameObject(gameObject));
     }
 
     /**
