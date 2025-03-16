@@ -31,12 +31,14 @@ describe('Stolen AT-Hauler', () => {
                 // It should be in Player 1's discard pile
                 expect(context.stolenAthauler).toBeInZone('discard', context.player1);
 
-                // Player 1 cannot play it from discard
+                // Player 1 cannot play it from discarde
+                expect(context.player1).not.toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).not.toHaveAvailableActionWhenClickedBy(context.player1);
                 context.player1.passAction();
 
                 // Player 2 can play it from discard for free
                 const p2ReadyResources = context.player2.readyResourceCount;
+                expect(context.player2).toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).toHaveAvailableActionWhenClickedBy(context.player2);
                 expect(context.stolenAthauler).toBeInZone('spaceArena', context.player2);
 
@@ -55,11 +57,13 @@ describe('Stolen AT-Hauler', () => {
                 expect(context.stolenAthauler).toBeInZone('discard', context.player1);
 
                 // Player 1 cannot play it from discard
+                expect(context.player1).not.toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).not.toHaveAvailableActionWhenClickedBy(context.player1);
                 context.player1.passAction();
 
                 // Player 2 can play it from discard for free
                 const p2ReadyResources = context.player2.readyResourceCount;
+                expect(context.player2).toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).toHaveAvailableActionWhenClickedBy(context.player2);
                 expect(context.stolenAthauler).toBeInZone('spaceArena', context.player2);
 
@@ -74,11 +78,13 @@ describe('Stolen AT-Hauler', () => {
                 expect(context.stolenAthauler).toBeInZone('discard', context.player1);
 
                 // Player 2 cannot play it from discard
+                expect(context.player2).not.toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).not.toHaveAvailableActionWhenClickedBy(context.player2);
                 context.player2.passAction();
 
                 // Player 1 can play it from discard for free
                 const p1ReadyResources = context.player1.readyResourceCount;
+                expect(context.player1).toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
 
@@ -96,10 +102,12 @@ describe('Stolen AT-Hauler', () => {
                 context.moveToNextActionPhase();
 
                 // Player 2 cannot play it from discard
+                expect(context.player2).not.toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).not.toHaveAvailableActionWhenClickedBy(context.player2);
                 context.player2.passAction();
 
                 // Player 1 cannot play it from discard
+                expect(context.player1).not.toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
 
@@ -122,10 +130,12 @@ describe('Stolen AT-Hauler', () => {
                 expect(context.stolenAthauler).toBeInZone('discard', context.player1);
 
                 // Player 1 cannot play it from discard
+                expect(context.player1).not.toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).not.toHaveAvailableActionWhenClickedBy(context.player1);
                 context.player1.passAction();
 
                 // Player 2 cannot play it from discard
+                expect(context.player2).not.toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).not.toHaveAvailableActionWhenClickedBy(context.player2);
             });
 
@@ -144,11 +154,13 @@ describe('Stolen AT-Hauler', () => {
                 context.player1.clickCard(context.p2Base);
 
                 // Player 2 cannot play it from discard
+                expect(context.player2).not.toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).not.toHaveAvailableActionWhenClickedBy(context.player2);
                 context.player2.passAction();
 
                 // Player 1 can play it from discard for free
                 const p1ReadyResources = context.player1.readyResourceCount;
+                expect(context.player1).toBeAbleToSelect(context.stolenAthauler);
                 expect(context.stolenAthauler).toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.stolenAthauler).toBeInZone('spaceArena', context.player1);
 
