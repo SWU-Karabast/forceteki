@@ -51,6 +51,22 @@ describe('Grand Admiral Thrawn, How Unfortunate', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
+            it('should not allow a unit with a When Played/When Defeated ability to be used when played', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-admiral-thrawn#how-unfortunate',
+                        hand: ['ruthless-raider']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.ruthlessRaider);
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should resolve at the same time as abilities triggered during the resolution of the triggering When Defeated', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

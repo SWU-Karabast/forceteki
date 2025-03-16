@@ -14,7 +14,7 @@ export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
             title: 'Exhaust this leader',
             optional: true,
             when: {
-                onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated
+                onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated && event.ability.eventsTriggeredFor.some((event) => event.name === EventName.OnCardDefeated);
             },
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: (ifYouDoContext) => ({
