@@ -27,8 +27,9 @@ export class GameObjectManager {
                 `Tried to register a Game Object that was already registered ${obj.uuid}`
             );
 
-            this._lastId += 1;
-            obj.uuid = 'GameObject_' + this._lastId;
+            const nextId = this._lastId + 1;
+            obj.uuid = 'GameObject_' + nextId;
+            this._lastId = nextId;
             this._allGameObjects.push(obj);
             this._gameObjectMapping.set(obj.uuid, obj);
         }
