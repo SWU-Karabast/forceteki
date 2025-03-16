@@ -16,7 +16,7 @@ export default class RaddusHoldosFinalCommand extends NonLeaderUnitCard {
             condition: (context) => context.player.hasSomeArenaCard({
                 trait: Trait.Resistance,
                 otherThan: context.source
-            }),
+            }) || context.player.leader.hasSomeTrait(Trait.Resistance),
             matchTarget: (card, context) => card === context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
