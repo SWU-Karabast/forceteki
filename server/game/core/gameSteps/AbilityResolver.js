@@ -4,7 +4,7 @@ const { ZoneName, Stage, CardType, EventName, AbilityType, RelativePlayer } = re
 const { GameEvent } = require('../event/GameEvent.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
-    constructor(game, context, optional = false, canCancel = null, targetOverride = null) {
+    constructor(game, context, optional = false, canCancel = null, targetOverride = false) {
         super(game);
 
         this.context = context;
@@ -94,7 +94,6 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
 
         if (this.targetOverride) {
-            this.targetResults = this.targetOverride;
             return;
         }
 
