@@ -39,7 +39,7 @@ interface SocketData {
 /**
  * Represents a player waiting in the queue.
  */
-interface QueuedPlayer {
+interface IQueuedPlayer {
     deck: Deck;
     socket?: Socket;
     user: User;
@@ -50,7 +50,7 @@ enum UserRole {
     Spectator = 'spectator'
 }
 
-interface LobbyMapping {
+interface ILobbyMapping {
     lobbyId: string;
     role: UserRole;
 }
@@ -95,7 +95,7 @@ export class GameServer {
     }
 
     private readonly lobbies = new Map<string, Lobby>();
-    private readonly userLobbyMap = new Map<string, LobbyMapping>();
+    private readonly userLobbyMap = new Map<string, ILobbyMapping>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
@@ -393,7 +393,7 @@ export class GameServer {
 
     private lobbiesWithOpenSeat() {
         return new Map(
-            Array.from(this.lobbies.entries()).filter(([_, lobby]) =>
+            Array.from(this.lobbies.entries()).filter(([, lobby]) =>
                 !lobby.isFilled() && !lobby.isPrivate && !lobby.hasOngoingGame()
             )
         );
@@ -499,11 +499,11 @@ export class GameServer {
             return;
         }
 
-
+        const lobbyUserEntry = this.userLobbyMap.get(user.id);
         // 0. If user is spectator
         if (isSpectator) {
             // Check if user is registered as a spectator
-            if (!this.userLobbyMap.has(user.id) || this.userLobbyMap.get(user.id).role !== UserRole.Spectator) {
+            if (!lobbyUserEntry || lobbyUserEntry.role !== UserRole.Spectator) {
                 logger.info(`GameServer: User ${user.id} attempted to connect as spectator but is not registered`);
                 ioSocket.disconnect();
                 return;
@@ -526,9 +526,17 @@ export class GameServer {
         }
 
         // 1. If user is already in a lobby
-        if (this.userLobbyMap.has(user.id)) {
-            const lobbyId = this.userLobbyMap.get(user.id).lobbyId;
+        if (lobbyUserEntry) {
+            // we check the role if it is correct
+            if (lobbyUserEntry.role !== UserRole.Player) {
+                logger.info('GameServer: User ', user, 'tried  to join lobby with '
+                    , lobbyUserEntry.role, 'instead of ', UserRole.Player);
+                ioSocket.disconnect();
+                return;
+            }
+            const lobbyId = lobbyUserEntry.lobbyId;
             const lobby = this.lobbies.get(lobbyId);
+
             if (!lobby) {
                 this.userLobbyMap.delete(user.id);
                 logger.info('GameServer: No lobby for', ioSocket.data.user.username, 'disconnecting');
@@ -571,6 +579,12 @@ export class GameServer {
 
             const socket = new Socket(ioSocket);
 
+            // check if user is already in a lobby
+            if (lobbyUserEntry) {
+                logger.info('GameServer: User ', user, 'is already in a different lobby, disconnecting');
+                ioSocket.disconnect();
+                return;
+            }
             // anonymous user joining existing game
             if (!user.username) {
                 const newUser = { username: 'Player2', id: user.id };
@@ -589,6 +603,13 @@ export class GameServer {
         const queuedPlayer = this.queue.findPlayerInQueue(user.id);
         if (queuedPlayer) {
             queuedPlayer.socket = new Socket(ioSocket);
+
+            // we check here if user is already in a lobby just in case
+            if (lobbyUserEntry) {
+                logger.info('GameServer: Queued User ', queuedPlayer, 'is already in a different lobby, disconnecting');
+                ioSocket.disconnect();
+                return;
+            }
 
             // handle queue-specific events and add lobby disconnect
             queuedPlayer.socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
@@ -643,7 +664,7 @@ export class GameServer {
     /**
      * Matchmake two users in a queue
      */
-    private matchmakeQueuePlayers(format: SwuGameFormat, [p1, p2]: [QueuedPlayer, QueuedPlayer]): void {
+    private matchmakeQueuePlayers(format: SwuGameFormat, [p1, p2]: [IQueuedPlayer, IQueuedPlayer]): void {
         Contract.assertFalse(p1.user.id === p2.user.id, 'Cannot matchmake the same user');
         // Create a new Lobby
         const lobby = new Lobby(
@@ -732,12 +753,13 @@ export class GameServer {
 
     public onSpectatorDisconnect(id: string) {
         try {
-            if (!this.userLobbyMap.has(id)) {
+            const lobbyEntry = this.userLobbyMap.get(id);
+            if (!lobbyEntry) {
                 return;
             }
 
             // TODO test the scenario if both players left already but the spectator hasn't because the lobby doesn't exist anymore
-            const lobbyId = this.userLobbyMap.get(id).lobbyId;
+            const lobbyId = lobbyEntry.lobbyId;
             const lobby = this.lobbies.get(lobbyId);
             lobby?.removeSpectator(id);
             this.userLobbyMap.delete(id);
@@ -748,11 +770,12 @@ export class GameServer {
 
     public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {
         try {
-            if (!this.userLobbyMap.has(id)) {
+            const lobbyEntry = this.userLobbyMap.get(id);
+            if (!lobbyEntry) {
                 this.queue.removePlayer(id);
                 return;
             }
-            const lobbyId = this.userLobbyMap.get(id).lobbyId;
+            const lobbyId = lobbyEntry.lobbyId;
             const lobby = this.lobbies.get(lobbyId);
 
             const wasManualDisconnect = !!socket?.data?.manualDisconnect;
@@ -783,18 +806,22 @@ export class GameServer {
 
     /* possibly utility function for cleanup. */
     private startPeriodicCleanup() {
-        setInterval(() => {
-            // Check for empty lobbies or inconsistencies
-            this.ensureMappingConsistency();
+        try {
+            setInterval(() => {
+                // Check for empty lobbies or inconsistencies
+                this.ensureMappingConsistency();
 
-            // cleanup ghost lobbies.
-            for (const [lobbyId, lobby] of this.lobbies.entries()) {
-                if (lobby.isEmpty()) {
-                    logger.info(`Found empty lobby with id ${lobbyId} cleaning up.`);
-                    this.lobbies.delete(lobbyId);
+                // cleanup ghost lobbies.
+                for (const [lobbyId, lobby] of this.lobbies.entries()) {
+                    if (lobby.isEmpty()) {
+                        logger.info(`Found empty lobby with id ${lobbyId} cleaning up.`);
+                        this.lobbies.delete(lobbyId);
+                    }
                 }
-            }
-        }, 60000); // Check every minute
+            }, 60000); // Check every minute
+        } catch (err) {
+            logger.error('Error in startPeriodicCleanup:', err);
+        }
     }
 
     private ensureMappingConsistency() {
