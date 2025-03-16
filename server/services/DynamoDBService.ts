@@ -10,7 +10,7 @@ import {
 import { logger } from '../logger';
 
 // Define user interface
-export interface UserData {
+export interface IUserData {
     id: string;
     username: string;
     email?: string;
@@ -38,34 +38,41 @@ export class DynamoDBService {
         this.client = DynamoDBDocumentClient.from(dbClient);
     }
 
-    // Get an item by its primary key
-    public async getItem(pk: string, sk: string) {
+    /**
+     * A utility method to wrap DB operations in a try-catch block
+     * @param operation - The operation to perform
+     * @param errorMessage - The error message to log
+     * @returns The result of the operation
+     */
+    private async executeDbOperation<T>(operation: () => Promise<T>, errorMessage: string): Promise<T> {
         try {
-            const command = new GetCommand({
-                TableName: this.tableName,
-                Key: { pk, sk }
-            });
-
-            return await this.client.send(command);
+            return await operation();
         } catch (error) {
-            logger.error(`DynamoDB getItem error: ${error}`);
+            logger.error(`${errorMessage}: ${error}`);
             throw error;
         }
     }
 
+    // Get an item by its primary key
+    public async getItem(pk: string, sk: string) {
+        return await this.executeDbOperation(async () => {
+            const command = new GetCommand({
+                TableName: this.tableName,
+                Key: { pk, sk }
+            });
+            return await this.client.send(command);
+        }, 'DynamoDB getItem error');
+    }
+
     // Put an item
     public async putItem(item: Record<string, any>) {
-        try {
+        return await this.executeDbOperation(async () => {
             const command = new PutCommand({
                 TableName: this.tableName,
                 Item: item
             });
-
             return await this.client.send(command);
-        } catch (error) {
-            logger.error(`DynamoDB putItem error: ${error}`);
-            throw error;
-        }
+        }, 'DynamoDB putItem error');
     }
 
     // Query items with the same partition key
@@ -73,7 +80,7 @@ export class DynamoDBService {
         beginsWith?: string;
         filters?: Record<string, any>;
     } = {}) {
-        try {
+        return await this.executeDbOperation(async () => {
             let keyConditionExpression = 'pk = :pk';
             const expressionAttributeValues: Record<string, any> = { ':pk': pk };
 
@@ -90,15 +97,12 @@ export class DynamoDBService {
             });
 
             return await this.client.send(command);
-        } catch (error) {
-            logger.error(`DynamoDB queryItems error: ${error}`);
-            throw error;
-        }
+        }, 'DynamoDB queryItems error');
     }
 
     // Update an item
     public async updateItem(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>) {
-        try {
+        return await this.executeDbOperation(async () => {
             const command = new UpdateCommand({
                 TableName: this.tableName,
                 Key: { pk, sk },
@@ -108,32 +112,26 @@ export class DynamoDBService {
             });
 
             return await this.client.send(command);
-        } catch (error) {
-            logger.error(`DynamoDB updateItem error: ${error}`);
-            throw error;
-        }
+        }, 'DynamoDB updateItem error');
     }
 
     // Delete an item
     public async deleteItem(pk: string, sk: string) {
-        try {
+        return await this.executeDbOperation(async () => {
             const command = new DeleteCommand({
                 TableName: this.tableName,
                 Key: { pk, sk }
             });
 
             return await this.client.send(command);
-        } catch (error) {
-            logger.error(`DynamoDB deleteItem error: ${error}`);
-            throw error;
-        }
+        }, 'DynamoDB deleteItem error');
     }
 
     // User-specific methods
 
     // Save or update user
-    public async saveUser(userData: UserData) {
-        try {
+    public async saveUser(userData: IUserData) {
+        return await this.executeDbOperation(async () => {
             const item = {
                 pk: `USER#${userData.id}`,
                 sk: 'METADATA',
@@ -142,50 +140,38 @@ export class DynamoDBService {
             };
 
             return await this.putItem(item);
-        } catch (error) {
-            logger.error(`Error saving user to DynamoDB: ${error}`);
-            throw error;
-        }
+        }, 'Error saving user to DynamoDB');
     }
 
     // Get user by ID
     public async getUserById(userId: string) {
-        try {
+        return await this.executeDbOperation(async () => {
             const result = await this.getItem(`USER#${userId}`, 'METADATA');
-            return result.Item as UserData | undefined;
-        } catch (error) {
-            logger.error(`Error getting user from DynamoDB: ${error}`);
-            throw error;
-        }
+            return result.Item as IUserData | undefined;
+        }, 'Error getting user from DynamoDB');
     }
 
     // Update user's last login time
-    public async updateUserLogin(userId: string) {
-        try {
+    public async recordNewLogin(userId: string) {
+        return await this.executeDbOperation(async () => {
             return await this.updateItem(
                 `USER#${userId}`,
                 'METADATA',
                 'SET lastLogin = :lastLogin',
                 { ':lastLogin': new Date().toISOString() }
             );
-        } catch (error) {
-            logger.error(`Error updating user login time: ${error}`);
-            throw error;
-        }
+        }, 'Error updating user login time');
     }
 
     // Save user settings
     public async saveUserSettings(userId: string, settings: Record<string, any>) {
-        try {
+        return await this.executeDbOperation(async () => {
             return await this.updateItem(
                 `USER#${userId}`,
                 'METADATA',
                 'SET settings = :settings',
                 { ':settings': settings }
             );
-        } catch (error) {
-            logger.error(`Error saving user settings: ${error}`);
-            throw error;
-        }
+        }, 'Error saving user settings');
     }
 }

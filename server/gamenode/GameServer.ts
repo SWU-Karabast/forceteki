@@ -21,7 +21,7 @@ import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import QueueHandler from './QueueHandler';
 import { DynamoDBService } from '../services/DynamoDBService';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
-import jwt from 'jsonwebtoken';
+import { AuthService } from '../services/AuthenticationService';
 
 /**
  * Represents a user object
@@ -126,6 +126,11 @@ export class GameServer {
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
 
+        // check if NEXTAUTH variable is set
+        const secret = process.env.NEXTAUTH_SECRET || null;
+        if (!secret) {
+            logger.warn('GameServer: NEXTAUTH_SECRET not found in environment, authentication won\'t work correctly.');
+        }
         // Setup socket server
         this.io = new IOServer(server, {
             perMessageDeflate: false,
@@ -139,77 +144,44 @@ export class GameServer {
         // Setup Socket.IO middleware for Next-auth token verification
         this.io.use(async (socket, next) => {
             try {
+                const authService = new AuthService();
                 // Get token from handshake auth
                 const token = socket.handshake.auth.token;
-                // Get user from query (for backward compatibility)
-                const queryUser = socket.handshake.query.user
-                    ? JSON.parse(socket.handshake.query.user as string) : null;
+                let authenticated = false;
 
                 if (token) {
-                    try {
-                        // Verify JWT token
-                        const secret = process.env.NEXTAUTH_SECRET || '';
-
-                        // Try standard JWT verification first
-                        try {
-                            const decoded = jwt.verify(token, secret) as any;
-                            console.log(decoded);
-                            if (decoded && (decoded.id || decoded.sub)) {
-                                // Set authenticated user
-
-                                socket.data.user = {
-                                    id: decoded.id || decoded.sub,
-                                    username: decoded.name || 'Anonymous'
-                                };
-
-                                // Update login time in DB
-                                try {
-                                    const dbService = new DynamoDBService();
-                                    await dbService.updateUserLogin(socket.data.user.id);
-                                } catch (dbError) {
-                                    logger.warn('Failed to update user login time:', dbError);
-                                }
-                            }
-                        } catch (jwtError) {
-                            // If standard verification fails, the token might be from the session cookie
-                            logger.warn('Standard JWT verification failed:', jwtError.message);
-
-                            // Fall back to user ID in auth object if available
-                            if (socket.handshake.auth.userId) {
-                                const dbService = new DynamoDBService();
-                                const user = await dbService.getUserById(socket.handshake.auth.userId);
-
-                                if (user) {
-                                    socket.data.user = {
-                                        id: user.id,
-                                        username: user.username || 'Anonymous'
-                                    };
-                                }
-                            } else if (queryUser) {
-                                // Last resort: fall back to query user
-                                socket.data.user = queryUser;
-                            }
-                        }
-                    } catch (tokenError) {
-                        logger.warn('Token handling error:', tokenError);
-                        // Fall back to query user
-                        if (queryUser) {
-                            socket.data.user = queryUser;
-                        }
+                    const user = await authService.authenticateWithToken(token);
+                    // Try standard JWT verification first
+                    if (user) {
+                        socket.data.user = user;
+                        authenticated = true;
                     }
-                } else if (queryUser) {
-                    // No token, use query user
-                    socket.data.user = queryUser;
                 }
 
-                // Always continue to next middleware
+                // Fall back to query user if JWT authentication failed
+                if (!authenticated) {
+                    const queryUser = socket.handshake.query.user
+                        ? JSON.parse(socket.handshake.query.user as string)
+                        : null;
+
+                    if (queryUser) {
+                        socket.data.user = queryUser;
+                        authenticated = true;
+                    }
+                }
+
+                // If no authentication method succeeded, reject the connection
+                if (!authenticated) {
+                    logger.info('Socket connection rejected: No valid authentication provided');
+                    return next(new Error('Authentication failed'));
+                }
+                // Continue to next middleware if authenticated
                 next();
             } catch (error) {
                 logger.error('Socket auth middleware error:', error);
-                next();
+                next(new Error('Authentication error'));
             }
         });
-
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
         this.io.on('connection', async (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
             try {
@@ -264,9 +236,6 @@ export class GameServer {
                 });
             }
         });
-
-        app.get('/api/get-unimplemented', (req, res) => {
-            return res.json(this.deckValidator.getUnimplementedCards());
         app.get('/api/get-unimplemented', (req, res, next) => {
             try {
                 return res.json(this.deckValidator.getUnimplementedCards());
@@ -564,15 +533,10 @@ export class GameServer {
     // }
 
     public async onConnection(ioSocket) {
-        // First check if the user is authenticated via JWT
-        const authenticatedUser = ioSocket.data.user;
-
-        const queryUser = ioSocket.handshake.query.user ? JSON.parse(ioSocket.handshake.query.user) : null;
-        const user = authenticatedUser || queryUser;
+        const user = ioSocket.data.user;
 
         const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
 
-        // TODO maybe we need to add a check here and disconnect if user is null?
         if (user) {
             ioSocket.data.user = user;
         }

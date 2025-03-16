@@ -1,7 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
-import { DynamoDBService } from '../services/DynamoDBService';
-import jwt from 'jsonwebtoken';
 import { parse } from 'cookie';
+import { AuthService } from '../services/AuthenticationService';
 
 // Extend Express Request type
 declare global {
@@ -19,7 +18,7 @@ declare global {
 }
 
 export const authMiddleware = () => {
-    const dbService = new DynamoDBService();
+    const authService = new AuthService();
 
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -30,41 +29,22 @@ export const authMiddleware = () => {
                 // No token found, so no user info. We let the request proceed without an attached user.
                 return next();
             }
-            const secret = process.env.NEXTAUTH_SECRET || '';
-            const decoded = jwt.verify(token, secret) as any;
-            let user = await dbService.getUserById(decoded.id);
-
-            if (!user) {
-                const newUser = {
-                    id: decoded.id,
-                    username: decoded.name,
-                    email: decoded.email || null,
-                    provider: decoded.provider || 'unknown',
-                    avatarUrl: decoded.picture || null,
-                    lastLogin: new Date().toISOString(),
-                    createdAt: new Date().toISOString(),
-                    settings: { cardBack: 'default' }
-                };
-                await dbService.saveUser(newUser);
-                user = newUser;
-            } else {
-                await dbService.updateUserLogin(user.id);
+            const basicUser = await authService.authenticateWithToken(token);
+            if (!basicUser) {
+                return res.status(401).json({ error: 'Authentication failed' });
             }
 
-            // 6. Attach the user data to the request for downstream routes
-            req.user = {
-                userId: user.id,
-                username: user.username,
-                email: user.email,
-                provider: user.provider,
-                image: user.avatarUrl
-            };
+            // Get full user data for HTTP requests
+            const fullUser = await authService.getFullUserData(basicUser.id);
+            if (fullUser) {
+                req.user = fullUser;
+            }
+
+            return next();
         } catch (error) {
             console.error('Auth middleware error:', error);
+            return res.status(401).json({ error: 'Authentication failed' });
         }
-
-        // 7. Continue to the next middleware or route
-        return next();
     };
 };
 
