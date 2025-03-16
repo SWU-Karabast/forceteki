@@ -55,5 +55,31 @@ describe('Shielded keyword', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('When a unit with Shielded is captured', function() {
+            it('it should not regain its shield when it returns to play', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['wampa', 'wampa'],
+                        hand: ['sanctioners-shuttle']
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'seventh-fleet-defender', upgrades: ['shield'] }],
+                        hand: ['vanquish']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sanctionersShuttle);
+                context.player1.clickCard(context.seventhFleetDefender);
+                expect(context.seventhFleetDefender).toBeCapturedBy(context.sanctionersShuttle);
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.sanctionersShuttle);
+                expect(context.seventhFleetDefender).toBeInZone('spaceArena');
+                expect(context.seventhFleetDefender).not.toHaveExactUpgradeNames(['shield']);
+            });
+        });
     });
 });

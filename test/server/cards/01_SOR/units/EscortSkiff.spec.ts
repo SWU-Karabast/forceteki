@@ -21,10 +21,10 @@ describe('Escort Skiff', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.escortSkiff);
-                expect(context.player1).toHaveExactPromptButtons(['Ambush', 'Pass']);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
 
                 // ambush grogu
-                context.player1.clickPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
                 expect(context.escortSkiff.exhausted).toBeTrue();
                 expect(context.escortSkiff.damage).toBe(0);
                 expect(context.grogu.damage).toBe(4);

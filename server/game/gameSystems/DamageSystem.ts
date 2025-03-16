@@ -34,6 +34,8 @@ export interface IAbilityDamageProperties extends IDamagePropertiesBase {
 
     /** Whether this damage is indirect damage or not */
     isIndirect?: boolean;
+
+    isUnpreventable?: boolean;
 }
 
 /** Used for abilities that use the excess damage from another instance of damage (currently just Blizzard Assault AT-AT) */
@@ -80,7 +82,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
     protected override defaultProperties: IAbilityDamageProperties = {
         amount: null,
         type: DamageType.Ability,
-        isIndirect: false
+        isIndirect: false,
+        isUnpreventable: false
     };
 
     public eventHandler(event): void {
@@ -123,7 +126,10 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
 
         // check cases where a game state change is required
         if (properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) {
-            if (card.hasRestriction(AbilityRestriction.ReceiveDamage, context) && (properties.type !== DamageType.Ability || !properties.isIndirect)) {
+            if (
+                card.hasRestriction(AbilityRestriction.ReceiveDamage, context) &&
+                (properties.type !== DamageType.Ability || !properties.isIndirect && !properties.isUnpreventable)
+            ) {
                 return false;
             }
 
@@ -276,12 +282,34 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         event.amount = typeof properties.amount === 'function' ? (properties.amount as (Event) => number)(card) : properties.amount;
     }
 
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+        super.updateEvent(event, card, context, additionalProperties);
+
+        if (!card.isBase()) {
+            this.addLastKnownInformationToEvent(event, card);
+        }
+    }
+
     // TODO: might need to refactor getEffectMessage generally so that it has access to the event, doesn't really work for some of the damage scenarios currently
-    // public override getEffectMessage(context: TContext): [string, any[]] {
-    //     const properties = this.generatePropertiesFromContext(context);
+    public override getEffectMessage(context: TContext): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context);
 
-    //     const damageTypeStr = isCombatDamage ? ' combat' : '';
+        let amountStr = '';
+        if ('amount' in properties && typeof properties.amount === 'number') {
+            amountStr = `${properties.amount} `;
+        }
 
-    //     return ['deal {0}{1} damage to {2}', [amount, damageTypeStr, target]];
-    // }
+        let damageTypeStr = '';
+        if (properties.type === DamageType.Combat) {
+            damageTypeStr = 'combat ';
+        } else if ('isIndirect' in properties && properties.isIndirect) {
+            damageTypeStr = 'indirect ';
+        } else if ('isUnpreventable' in properties && properties.isUnpreventable) {
+            damageTypeStr = 'unpreventable ';
+        } else if (properties.type === DamageType.Overwhelm) {
+            damageTypeStr = 'overwhelm ';
+        }
+
+        return [`deal ${amountStr}${damageTypeStr}damage to {0}`, [properties.target]];
+    }
 }

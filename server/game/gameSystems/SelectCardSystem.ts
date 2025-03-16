@@ -9,10 +9,11 @@ import type { GameEvent } from '../core/event/GameEvent';
 import * as Contract from '../core/utils/Contract';
 import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetResolver';
 import type { AggregateSystem } from '../core/gameSystem/AggregateSystem';
+import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
 import * as Helpers from '../core/utils/Helpers';
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
-    activePromptTitle?: string;
+    activePromptTitle?: ((context: TContext) => string) | string;
     player?: RelativePlayer;
     cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
     controller?: RelativePlayerFilter;
@@ -21,7 +22,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     checkTarget?: boolean;
     message?: string;
     manuallyRaiseEvent?: boolean;
-    messageArgs?: (card: Card, properties: ISelectCardProperties<TContext>) => any[];
+    messageArgs?: (cards: Card[], properties: ISelectCardProperties<TContext>) => any[];
     innerSystem: CardTargetSystem<TContext> | AggregateSystem<TContext>;
     selector?: BaseCardSelector;
     mode?: TargetMode;
@@ -154,16 +155,19 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             mustSelect: mustSelect,
             buttons: buttons,
             source: context.source,
+            selectCardMode: properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             onCancel: properties.cancelHandler,
             onSelect: (cards) => {
                 this.addTargetToContext(cards, context, properties.name);
-                if (properties.message) {
-                    context.game.addMessage(properties.message, ...properties.messageArgs(cards, properties));
-                }
+
+                const updatedAdditionalProperties = { ...properties.innerSystemProperties(cards), ...additionalProperties };
+
+                this.addOnSelectEffectMessage(cards, context, properties, updatedAdditionalProperties);
+
                 properties.innerSystem.queueGenerateEventGameSteps(
                     events,
                     context,
-                    Object.assign(additionalProperties, properties.innerSystemProperties(cards))
+                    updatedAdditionalProperties
                 );
                 if (properties.manuallyRaiseEvent) {
                     context.game.openEventWindow(events);
@@ -196,7 +200,9 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             return;
         }
 
-        const finalProperties = Object.assign(defaultProperties, properties);
+        const finalProperties = Object.assign(defaultProperties, properties, {
+            activePromptTitle: typeof properties.activePromptTitle === 'function' ? properties.activePromptTitle(context) : properties.activePromptTitle
+        });
         if (player.autoSingleTarget) {
             if (legalTargets.length === 1) {
                 finalProperties.onSelect(legalTargets[0]);
@@ -205,6 +211,26 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         }
         context.game.promptForSelect(player, finalProperties);
         return;
+    }
+
+    private addOnSelectEffectMessage(
+        card: Card | Card[],
+        context: TContext,
+        properties: ISelectCardProperties<TContext>,
+        additionalInnerSystemProperties: any
+    ) {
+        const cards = Helpers.asArray(card);
+
+        if (properties.message) {
+            context.game.addMessage(properties.message, ...properties.messageArgs(cards, properties));
+            return;
+        }
+
+        const messageArgs = [context.player, ' uses ', context.source, ' to '];
+
+        const [effectMessage, effectArgs] = properties.innerSystem.getEffectMessage(context, additionalInnerSystemProperties);
+
+        context.game.addMessage('{0}{1}{2}{3}{4}{5}{6}{7}{8}', ...messageArgs, { message: context.game.gameChat.formatMessage(effectMessage, effectArgs) });
     }
 
     public override hasTargetsChosenByInitiatingPlayer(context: TContext, additionalProperties = {}): boolean {

@@ -1,3 +1,4 @@
+
 describe('Triple Dark Raid', function () {
     integration(function (contextRef) {
         describe('Triple Dark Raid\'s ability', function () {
@@ -13,6 +14,21 @@ describe('Triple Dark Raid', function () {
                         hand: ['change-of-heart', 'rivals-fall', 'waylay']
                     }
                 });
+            });
+
+            it('can choose to take nothing', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.tripleDarkRaid);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.grievoussWheelBike, context.atst, context.allianceXwing],
+                    invalid: [context.battlefieldMarine, context.pykeSentinel, context.rebelPathfinder, context.wampa]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                context.player1.clickPrompt('Take nothing');
+
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('Can put Vehicle unit into play', function () {
@@ -145,6 +161,41 @@ describe('Triple Dark Raid', function () {
                 // Move to next round, check in hand
                 context.moveToNextActionPhase();
                 expect(context.grievoussWheelBike).toBeInZone('hand', context.player1);
+            });
+        });
+
+        describe('Triple Dark Raid\'s ability', function () {
+            it('Will return chosen vehicle to hand and defeat an attached pilot leader', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'asajj-ventress#i-work-alone',
+                        hand: ['triple-dark-raid'],
+                        deck: ['grievouss-wheel-bike', 'atst', 'battlefield-marine', 'pyke-sentinel', 'wampa', 'alliance-xwing', 'rebel-pathfinder', 'consortium-starviper'],
+                        resources: 6
+                    },
+                    player2: {
+                        hand: ['change-of-heart', 'rivals-fall', 'waylay']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.tripleDarkRaid);
+                context.player1.clickCardInDisplayCardPrompt(context.atst);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.asajjVentress);
+                context.player1.clickPrompt('Deploy Asajj Ventress as a Pilot');
+                context.player1.clickCard(context.atst);
+
+                context.moveToNextActionPhase();
+
+                expect(context.atst).toBeInZone('hand');
+                expect(context.asajjVentress).toBeInZone('base');
+                context.player1.clickCard(context.asajjVentress);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

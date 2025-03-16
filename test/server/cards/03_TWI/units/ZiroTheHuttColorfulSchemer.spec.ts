@@ -33,7 +33,7 @@ describe('Ziro the Hutt, Colorful Schemer', function () {
 
                 // should exhaust an enemy resource
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust an enemy resource');
-                context.player1.clickPrompt('Exhaust an enemy resource');
+                context.player1.clickPrompt('Trigger');
 
                 expect(context.player2.exhaustedResourceCount).toBe(1);
                 expect(context.player2).toBeActivePlayer();

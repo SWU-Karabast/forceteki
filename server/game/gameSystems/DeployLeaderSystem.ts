@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import { DeployType } from '../core/Constants';
 import { CardType, EventName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
@@ -17,7 +18,8 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
 
     public eventHandler(event): void {
         Contract.assertTrue(event.card.isDeployableLeader());
-        event.card.deploy();
+
+        event.card.deploy({ type: DeployType.LeaderUnit });
     }
 
     public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {

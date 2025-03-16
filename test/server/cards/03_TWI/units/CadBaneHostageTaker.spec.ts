@@ -59,7 +59,7 @@ describe('Cad Bane, Hostage Taker', function() {
             // Player 2 rescues the Wampa and Player 1 draws 2 cards
             expect(context.player1.handSize).toBe(0);
             expect(context.player2).toHavePassAbilityPrompt('Rescue a card you own captured by Cad Bane and the opponent draws 2 cards');
-            context.player2.clickPrompt('Rescue a card you own captured by Cad Bane and the opponent draws 2 cards');
+            context.player2.clickPrompt('Trigger');
 
             // Player 2 can't rescue the Battlefield Marine because they don't own it
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.wingLeader]);

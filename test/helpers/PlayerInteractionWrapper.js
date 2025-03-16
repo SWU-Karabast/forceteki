@@ -1,4 +1,4 @@
-const { ZoneName, DeckZoneDestination } = require('../../server/game/core/Constants.js');
+const { ZoneName, DeckZoneDestination, DeployType } = require('../../server/game/core/Constants.js');
 const Game = require('../../server/game/core/Game.js');
 const Player = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
@@ -97,7 +97,7 @@ class PlayerInteractionWrapper {
         var leaderCard = this.player.leader;
 
         if (leaderOptions.deployed) {
-            leaderCard.deploy();
+            leaderCard.deploy({ type: DeployType.LeaderUnit });
 
             // mark the deploy epic action as used
             const deployAbility = leaderCard.getActionAbilities().find((ability) => ability.title.includes('Deploy'));
@@ -360,6 +360,7 @@ class PlayerInteractionWrapper {
             this.moveCard(card, 'resource');
             card.exhausted = false;
         });
+        Util.refreshGameState(this.game);
     }
 
     attachOpponentOwnedUpgrades(opponentOwnedUpgrades = []) {
@@ -516,10 +517,23 @@ class PlayerInteractionWrapper {
 
     hasPrompt(title) {
         var currentPrompt = this.player.currentPrompt();
+
+        // Evaluar si menuTitle es una función o un string
+        const menuTitle =
+    typeof currentPrompt.menuTitle === 'function'
+        ? currentPrompt.menuTitle(this.player.context)
+        : currentPrompt.menuTitle;
+
+        // Evaluar si promptTitle es una función o un string
+        const promptTitle =
+    typeof currentPrompt.promptTitle === 'function'
+        ? currentPrompt.promptTitle(this.player.context)
+        : currentPrompt.promptTitle;
+
         return (
             !!currentPrompt &&
-            ((currentPrompt.menuTitle && currentPrompt.menuTitle.toLowerCase() === title.toLowerCase()) ||
-              (currentPrompt.promptTitle && currentPrompt.promptTitle.toLowerCase() === title.toLowerCase()))
+            (menuTitle && menuTitle.toLowerCase() === title.toLowerCase()) ||
+            (promptTitle && promptTitle.toLowerCase() === title.toLowerCase())
         );
     }
 

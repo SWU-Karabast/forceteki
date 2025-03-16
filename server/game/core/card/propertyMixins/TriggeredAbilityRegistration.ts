@@ -2,9 +2,14 @@ import type { IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import type { Card, CardConstructor } from '../Card';
+import * as Contract from '../../utils/Contract';
 
 export interface ICardWithTriggeredAbilities {
     getTriggeredAbilities(): TriggeredAbility[];
+    addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string;
+    addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string;
+    removeGainedTriggeredAbility(removeAbilityUuid: string): void;
+    removeGainedReplacementEffectAbility(removeAbilityUuid: string): void;
 }
 
 /** Mixin function that adds the ability to register triggered abilities to a base card class. */
@@ -18,7 +23,6 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
         public getTriggeredAbilities(): TriggeredAbility[] {
             return this.triggeredAbilities;
         }
-
 
         public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
             return true;
@@ -41,6 +45,62 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseC
 
         public createReplacementEffectAbility<TSource extends Card = this>(properties: IReplacementEffectAbilityProps<TSource>): ReplacementEffectAbility {
             return new ReplacementEffectAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('replacement'), properties));
+        }
+
+        // ******************************************** ABILITY STATE MANAGEMENT ********************************************
+        /**
+             * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+             *
+             * @returns The uuid of the created triggered ability
+             */
+        public addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string {
+            const addedAbility = this.createTriggeredAbility(properties);
+            this.triggeredAbilities.push(addedAbility);
+            addedAbility.registerEvents();
+
+            return addedAbility.uuid;
+        }
+
+        /**
+             * Adds a dynamically gained triggered ability to the card and immediately registers its triggers. Used for "gain ability" effects.
+             *
+             * @returns The uuid of the created triggered ability
+             */
+        public addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string {
+            const addedAbility = this.createReplacementEffectAbility(properties);
+            this.triggeredAbilities.push(addedAbility);
+            addedAbility.registerEvents();
+
+            return addedAbility.uuid;
+        }
+
+        /** Removes a dynamically gained triggered ability and unregisters its effects */
+        public removeGainedTriggeredAbility(removeAbilityUuid: string): void {
+            let abilityToRemove: TriggeredAbility = null;
+            const remainingAbilities: TriggeredAbility[] = [];
+
+            for (const triggeredAbility of this.triggeredAbilities) {
+                if (triggeredAbility.uuid === removeAbilityUuid) {
+                    if (abilityToRemove) {
+                        Contract.fail(`Expected to find one instance of gained ability '${abilityToRemove.abilityIdentifier}' on card ${this.internalName} to remove but instead found multiple`);
+                    }
+
+                    abilityToRemove = triggeredAbility;
+                } else {
+                    remainingAbilities.push(triggeredAbility);
+                }
+            }
+
+            if (abilityToRemove == null) {
+                Contract.fail(`Did not find any instance of target gained ability to remove on card ${this.internalName}`);
+            }
+
+            this.triggeredAbilities = remainingAbilities;
+            abilityToRemove.unregisterEvents();
+        }
+
+        public removeGainedReplacementEffectAbility(removeAbilityUuid: string): void {
+            this.removeGainedTriggeredAbility(removeAbilityUuid);
         }
     };
 }

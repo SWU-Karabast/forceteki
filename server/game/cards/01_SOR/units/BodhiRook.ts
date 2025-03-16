@@ -14,7 +14,7 @@ export default class BodhiRookImperialDefector extends NonLeaderUnitCard {
             title: 'Look at an opponent\'s hand and discard a non-unit card from it.',
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndSelectCard((context) => ({
                 target: context.player.opponent.hand,
-                canChooseNothing: false,
+                canChooseFewer: false,
                 immediateEffect: AbilityHelper.immediateEffects.discardSpecificCard(),
                 cardCondition: (card) => !card.isUnit()
             }))

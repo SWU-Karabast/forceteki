@@ -18,7 +18,6 @@ export default class FennecShandLoyalSharpshooter extends NonLeaderUnitCard {
                     amount: new Set(context.player.discard.map((card) => card.cost)).size,
                     target: context.event.attack.target,
                 })),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
             })
         });
     }

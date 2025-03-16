@@ -42,7 +42,6 @@ export default class AsajjVentressUnparalleledAdversary extends LeaderUnitCard {
                     effect: [AbilityHelper.ongoingEffects.dealsDamageBeforeDefender(),
                         AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })]
                 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

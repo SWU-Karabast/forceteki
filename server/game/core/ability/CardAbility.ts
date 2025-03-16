@@ -71,10 +71,6 @@ export abstract class CardAbility extends CardAbilityStep {
             return 'player';
         }
 
-        if (this.card.isBlank() && this.printedAbility) {
-            return 'blank';
-        }
-
         if (
             (this.isActivatedAbility() && !this.card.canTriggerAbilities(context, ignoredRequirements)) ||
             (this.card.isEvent() && !this.card.canPlay(context, context.playType))
@@ -117,19 +113,6 @@ export abstract class CardAbility extends CardAbilityStep {
     }
 
     public override displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
-        if (
-            context.source.isEvent() &&
-            context.source.zoneName !== ZoneName.Discard
-        ) {
-            this.game.addMessage(
-                '{0} plays {1} from {2} {3}',
-                context.player,
-                context.source,
-                context.source.controller === context.player ? 'their' : 'their opponent\'s',
-                this.getZoneMessage(context.source.zoneName, context)
-            );
-        }
-
         if (this.properties.message) {
             let messageArgs = this.properties.messageArgs;
             if (typeof messageArgs === 'function') {

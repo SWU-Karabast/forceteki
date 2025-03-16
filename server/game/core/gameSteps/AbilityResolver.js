@@ -236,8 +236,8 @@ class AbilityResolver extends BaseStepWithPipeline {
         if (this.passAbilityHandler && !this.passAbilityHandler.hasBeenShown) {
             this.passAbilityHandler.hasBeenShown = true;
             this.game.promptWithHandlerMenu(this.passAbilityHandler.playerChoosing, {
-                activePromptTitle: `Trigger the ability '${this.context.ability.title}' or pass`,
-                choices: [this.context.ability.title, this.passAbilityHandler.buttonText],
+                activePromptTitle: `Trigger the ability '${this.getAbilityPromptTitle(this.context)}' or pass`,
+                choices: ['Trigger', this.passAbilityHandler.buttonText],
                 handlers: [
                     () => {},
                     () => {
@@ -246,6 +246,13 @@ class AbilityResolver extends BaseStepWithPipeline {
                 ]
             });
         }
+    }
+
+    getAbilityPromptTitle(context) {
+        if (context.overrideTitle) {
+            return context.overrideTitle;
+        }
+        return context.ability.title;
     }
 
     payCosts() {

@@ -11,6 +11,8 @@ import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers.js';
 import * as EnumHelpers from '../../utils/EnumHelpers.js';
 import type { GameSystem } from '../../gameSystem/GameSystem';
+import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
+import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 
 /**
  * Target resolver for selecting cards for the target of an effect.
@@ -110,16 +112,22 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         // these will appear to have no effect on any target, but should not be skipped
         if (
             !this.dependentTarget &&
-            this.immediateEffect &&
-            !legalTargets.some((target) => this.immediateEffect.canAffect(
-                target,
-                this.getContextCopy(target, context),
-                {},
-                GameStateChangeRequired.MustFullyOrPartiallyResolve
-            ))
+            this.immediateEffect
         ) {
-            targetResults.hasEffectiveTargets = targetResults.hasEffectiveTargets || false;
-            return;
+            let effectiveTargetFound = false;
+            for (const target of legalTargets) {
+                const contextWithTarget = this.getContextCopy(target, context);
+
+                if (this.immediateEffect.hasLegalTarget(contextWithTarget, {}, GameStateChangeRequired.MustFullyOrPartiallyResolve)) {
+                    effectiveTargetFound = true;
+                    break;
+                }
+            }
+
+            if (!effectiveTargetFound) {
+                targetResults.hasEffectiveTargets = targetResults.hasEffectiveTargets || false;
+                return;
+            }
         }
 
         targetResults.hasEffectiveTargets = true;
@@ -157,8 +165,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             if (passPrompt) {
                 buttons.push({ text: passPrompt.buttonText, arg: passPrompt.arg });
                 passPrompt.hasBeenShown = true;
-            }
-            if (this.selector.optional) {
+            } else if (this.selector.optional) {
                 // If the selector is for a single card and it will automatically fire on selection,
                 // uses the 'done' arg so that the prompt doesn't show both 'Choose no target' and 'Done' buttons.
                 buttons.push({
@@ -171,10 +178,12 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             card.getOngoingEffectValues(EffectName.MustBeChosen).some((restriction) => restriction.isMatch('target', context))
         );
 
-        const promptProperties = Object.assign(this.getDefaultProperties(context), {
+        const promptProperties: ISelectCardPromptProperties = {
+            ...this.getDefaultProperties(context),
             selector: this.selector,
             buttons: buttons,
             mustSelect: mustSelect,
+            selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             onSelect: (card) => {
                 this.setTargetResult(context, card);
                 return true;
@@ -202,7 +211,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
                         Contract.fail(`Unknown menu option '${arg}'`);
                 }
             }
-        });
+        };
         context.game.promptForSelect(player, Object.assign(promptProperties, extractedProperties));
     }
 

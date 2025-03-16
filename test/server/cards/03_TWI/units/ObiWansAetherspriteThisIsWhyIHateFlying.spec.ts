@@ -18,7 +18,7 @@ describe('Obi Wan\'s Aethersprite, This Is Why I Hate Flying', function () {
             // When played ability
             context.player1.clickCard(context.obiwansAetherspriteThisIsWhyIHateFlying);
             expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to this unit');
-            context.player1.clickPrompt('Deal 1 damage to this unit');
+            context.player1.clickPrompt('Trigger');
             expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.tielnFighter, context.corellianFreighter]);
             context.player1.clickCard(context.greenSquadronAwing);
 
@@ -32,7 +32,7 @@ describe('Obi Wan\'s Aethersprite, This Is Why I Hate Flying', function () {
             context.player1.clickCard(context.p2Base);
 
             expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to this unit');
-            context.player1.clickPrompt('Deal 1 damage to this unit');
+            context.player1.clickPrompt('Trigger');
             expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.tielnFighter, context.corellianFreighter]);
             context.player1.clickCard(context.corellianFreighter);
 

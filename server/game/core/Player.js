@@ -17,7 +17,8 @@ const {
     KeywordName,
     WildcardCardType,
     Trait,
-    WildcardRelativePlayer
+    WildcardRelativePlayer,
+    Stage
 } = require('./Constants');
 
 const EnumHelpers = require('./utils/EnumHelpers');
@@ -69,7 +70,7 @@ class Player extends GameObject {
         this.baseZone = null;
 
         /** @type {DeckZone} */
-        this.deckZone = null;
+        this.deckZone = new DeckZone(this);
 
         this.damageToBase = null;
 
@@ -80,6 +81,8 @@ class Player extends GameObject {
 
         /** @type {Deck} */
         this.decklistNames = null;
+
+        /** @type {CostAdjuster[]} */
         this.costAdjusters = [];
         this.abilityMaxByIdentifier = {}; // This records max limits for abilities
         this.promptedActionWindows = user.promptedActionWindows || {
@@ -232,8 +235,18 @@ class Player extends GameObject {
      * @param { String } title the title of the unit or leader to check for control of
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
-    controlsLeaderOrUnitWithTitle(title) {
-        return this.leader.title === title || this.hasSomeArenaUnit({ condition: (card) => card.title === title });
+    controlsLeaderUnitOrUpgradeWithTitle(title) {
+        return this.leader.title === title ||
+          this.hasSomeArenaUnit({ condition: (card) => card.title === title }) ||
+          this.hasSomeArenaUpgrade({ condition: (card) => card.title === title });
+    }
+
+    /**
+     * @param { Trait } trait the trait to look for
+     * @returns { boolean } true if this player controls a card with the trait
+     */
+    controlsCardWithTrait(trait, onlyUnique = false) {
+        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({ condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)) });
     }
 
     /**
@@ -272,6 +285,7 @@ class Player extends GameObject {
             case ZoneName.Hand:
                 return this.handZone.cards;
             case ZoneName.Deck:
+                Contract.assertNotNullLike(this.deckZone);
                 return this.deckZone.cards;
             case ZoneName.Discard:
                 return this.discardZone.cards;
@@ -486,6 +500,19 @@ class Player extends GameObject {
      * @param {PlayType} [playingType]
      */
     isCardInPlayableZone(card, playingType = null) {
+        // Check if card can be legally played by this player out of discard from an ongoing effect
+        if (
+            playingType === PlayType.PlayFromOutOfPlay &&
+            card.zoneName === ZoneName.Discard &&
+            card.hasOngoingEffect(EffectName.CanPlayFromDiscard)
+        ) {
+            return card
+                .getOngoingEffectValues(EffectName.CanPlayFromDiscard)
+                .map((value) => value.player ?? card.owner)
+                .includes(this);
+        }
+
+        // Default to checking if there is a zone that matches play type and includes the card
         return this.playableZones.some(
             (zone) => (!playingType || zone.playingType === playingType) && zone.includes(card)
         );
@@ -560,6 +587,16 @@ class Player extends GameObject {
         for (let card of this.drawDeck.slice(0, numCards)) {
             card.moveTo(ZoneName.Hand);
         }
+    }
+
+    getStartingHandSize() {
+        let startingHandSize = 6;
+        if (this.base.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
+            this.base.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
+                startingHandSize += value.amount;
+            });
+        }
+        return startingHandSize;
     }
 
     // /**
@@ -648,7 +685,7 @@ class Player extends GameObject {
         this.base = preparedDecklist.base;
         this.leader = preparedDecklist.leader;
 
-        this.deckZone = new DeckZone(this, preparedDecklist.deckCards);
+        this.deckZone.initialize(preparedDecklist.deckCards);
 
         // set up playable zones now that all relevant zones are created
         /** @type {PlayableZone[]} */
@@ -821,11 +858,25 @@ class Player extends GameObject {
         return Math.max(cost, 0);
     }
 
-    getMatchingCostAdjusters(context, penaltyAspect = null, additionalCostAdjusters = null, ignoreExploit = false) {
+    /**
+     * @param {AbilityContext} context
+     * @param {Aspect=} penaltyAspect
+     * @param {CostAdjuster[]=} additionalCostAdjusters
+     * @param {boolean} ignoreExploit
+     * @returns {CostAdjuster[]}
+     */
+    getMatchingCostAdjusters(context, penaltyAspect = null, additionalCostAdjusters = [], ignoreExploit = false) {
         const allMatchingAdjusters = this.costAdjusters.concat(additionalCostAdjusters)
-            .filter((adjuster) =>
-                adjuster?.canAdjust(context.playingType, context.source, context, context.target, penaltyAspect)
-            );
+            .filter((adjuster) => {
+                // TODO: Make this work with Piloting
+                if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
+                    const upgrade = context.source;
+                    return context.game.getArenaUnits()
+                        .filter((unit) => upgrade.canAttach(unit, context))
+                        .some((unit) => adjuster.canAdjust(context.playType, upgrade, context, unit, penaltyAspect));
+                }
+                return adjuster.canAdjust(context.playType, context.source, context, context.target, penaltyAspect);
+            });
 
         if (ignoreExploit) {
             return allMatchingAdjusters.filter((adjuster) => !adjuster.isExploit());
@@ -837,6 +888,8 @@ class Player extends GameObject {
         // if there are multiple Exploit adjusters, generate a single merged one to represent the total Exploit value
         const costAdjusters = nonExploitAdjusters;
         if (exploitAdjusters.length > 1) {
+            Contract.assertTrue(exploitAdjusters.every((adjuster) => adjuster.isExploit()));
+            Contract.assertTrue(context.source.hasCost());
             costAdjusters.unshift(new MergedExploitCostAdjuster(exploitAdjusters, context.source, context));
         } else {
             costAdjusters.unshift(...exploitAdjusters);
@@ -847,12 +900,14 @@ class Player extends GameObject {
 
     /**
      * Mark all cost adjusters which are valid for this card/target/playingType as used, and remove them if they have no uses remaining
-     * @param {String} playingType
-     * @param card DrawCard
-     * @param target BaseCard
+     * @param {PlayType} playingType
+     * @param {Card} card DrawCard
+     * @param {AbilityContext} context
+     * @param {Card=} target BaseCard
+     * @param {Aspect=} aspects
      */
     markUsedAdjusters(playingType, card, context, target = null, aspects = null) {
-        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(playingType, card, context, target, null, aspects));
+        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(playingType, card, context, target, aspects));
         matchingAdjusters.forEach((adjuster) => {
             adjuster.markUsed();
             if (adjuster.isExpired()) {
@@ -975,7 +1030,7 @@ class Player extends GameObject {
     }
 
     get drawDeck() {
-        return this.deckZone.deck;
+        return this.deckZone?.deck;
     }
 
     /**
@@ -1121,9 +1176,9 @@ class Player extends GameObject {
             ? this.drawDeck
             : this.getCardsInZone(zone);
 
-        return zoneCards.map((card) => {
+        return zoneCards?.map((card) => {
             return card.getSummary(activePlayer);
-        });
+        }) ?? [];
     }
 
     getSortedSummaryForCardList(list, activePlayer) {
@@ -1200,6 +1255,12 @@ class Player extends GameObject {
         let isActivePlayer = activePlayer === this;
         let promptState = isActivePlayer ? this.promptState.getState() : {};
         let { ...safeUser } = this.user;
+
+        let isActionPhaseActivePlayer = null;
+        if (this.game.actionPhaseActivePlayer != null) {
+            isActionPhaseActivePlayer = this.game.actionPhaseActivePlayer === this;
+        }
+
         let state = {
             cardPiles: {
                 hand: this.getSummaryForZone(ZoneName.Hand, activePlayer),
@@ -1214,8 +1275,8 @@ class Player extends GameObject {
             disconnected: this.disconnected,
             hasInitiative: this.hasInitiative(),
             availableResources: this.readyResourceCount,
-            leader: this.leader.getSummary(activePlayer),
-            base: this.base.getSummary(activePlayer),
+            leader: this.leader?.getSummary(activePlayer),
+            base: this.base?.getSummary(activePlayer),
             id: this.id,
             left: this.left,
             name: this.name,
@@ -1225,6 +1286,7 @@ class Player extends GameObject {
             // stats: this.getStats(),
             user: safeUser,
             promptState: promptState,
+            isActionPhaseActivePlayer
         };
 
         // if (this.showDeck) {

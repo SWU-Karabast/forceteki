@@ -17,8 +17,9 @@ describe('Cunning', function () {
                         spaceArena: [{ card: 'restored-arc170', exhausted: true, upgrades: ['shield'] }],
                     },
                     player2: {
+                        leader: 'asajj-ventress#i-work-alone',
                         groundArena: [{ card: 'atst', upgrades: ['experience'] }],
-                        spaceArena: [{ card: 'green-squadron-awing', upgrades: ['entrenched'] }],
+                        spaceArena: [{ card: 'green-squadron-awing' }],
                         hand: ['pyke-sentinel', 'moisture-farmer']
                     }
                 });
@@ -67,6 +68,36 @@ describe('Cunning', function () {
                 // exhaust
                 context.player1.clickPrompt(exhaustPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.theMandalorian, context.wampa, context.restoredArc170, context.atst, context.greenSquadronAwing]);
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.greenSquadronAwing);
+                context.player1.clickPrompt('Done');
+
+                expect(context.atst.exhausted).toBe(true);
+                expect(context.greenSquadronAwing.exhausted).toBe(true);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('cannot return an enemy unit with a leader attached to it', function () {
+                const { context } = contextRef;
+
+                // Attach Asajj
+                context.player1.passAction();
+                context.player2.clickCard(context.asajjVentress);
+                context.player2.clickPrompt('Deploy Asajj Ventress as a Pilot');
+                context.player2.clickCard(context.greenSquadronAwing);
+
+                context.player1.clickCard(context.cunning);
+
+                // return
+                context.player1.clickPrompt(returnPrompt);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.restoredArc170]);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine).toBeInZone('hand', context.player1);
+
+                expect(context.player1).toHaveEnabledPromptButtons([buffPrompt, exhaustPrompt, discardPrompt]);
+
+                // exhaust
+                context.player1.clickPrompt(exhaustPrompt);
                 context.player1.clickCard(context.atst);
                 context.player1.clickCard(context.greenSquadronAwing);
                 context.player1.clickPrompt('Done');

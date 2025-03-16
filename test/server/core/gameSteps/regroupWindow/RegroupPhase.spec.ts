@@ -83,6 +83,9 @@ describe('Regroup phase', function() {
                     expect(context.player2).toHaveExactPromptButtons(['Done']);
                     context.player2.clickPrompt('Done');
 
+                    expect(context.getChatLogs(4)).toContain('player1 has resourced 1 cards from hand');
+                    expect(context.getChatLogs(4)).toContain('player2 has not resourced any cards');
+
                     // check resources
                     expect(context.player1.resources.length).toBe(5);
                     expect(context.player2.hand).toEqual(oldHandPlayer2);
@@ -154,7 +157,7 @@ describe('Regroup phase', function() {
 
                     // We check the timing of General Krells "When Defeated"
                     expect(context.player1).toHavePrompt('Trigger the ability \'Draw a card\' or pass');
-                    context.player1.clickPrompt('Draw a card');
+                    context.player1.clickPrompt('Trigger');
 
                     // Check board state
                     expect(context.ardentSympathizer.zoneName).toBe('discard');

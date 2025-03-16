@@ -1,4 +1,4 @@
-import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { Aspect, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
@@ -14,7 +14,7 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
         this.addIgnoreSpecificAspectPenaltyAbility({
             title: 'While playing this unit, ignore her Heroism aspect penalty if you control Kylo Ren',
             ignoredAspects: Aspect.Heroism,
-            condition: (context) => context.player.controlsLeaderOrUnitWithTitle('Kylo Ren')
+            condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Kylo Ren')
         });
 
         this.addOnAttackAbility({
@@ -27,7 +27,6 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
                     AbilityHelper.immediateEffects.heal({ amount: 2 }),
                     AbilityHelper.immediateEffects.conditional({
                         condition: (context) => context.target.aspects.includes(Aspect.Heroism),
-                        onTrue: AbilityHelper.immediateEffects.noAction(),
                         onFalse: AbilityHelper.immediateEffects.giveShield()
                     })
                 ])

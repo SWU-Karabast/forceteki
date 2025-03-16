@@ -29,7 +29,7 @@ describe('Stolen Landspeeder', function () {
 
             // and collects the bounty
             expect(context.player1).toHavePassAbilityPrompt(bountyPrompt);
-            context.player1.clickPrompt(bountyPrompt);
+            context.player1.clickPrompt('Trigger');
 
             expect(context.stolenLandspeeder).toBeInZone('groundArena', context.player1);
             expect(context.stolenLandspeeder).toHaveExactUpgradeNames(['experience']);
@@ -40,7 +40,7 @@ describe('Stolen Landspeeder', function () {
 
             // and collects the bounty
             expect(context.player2).toHavePassAbilityPrompt(bountyPrompt);
-            context.player2.clickPrompt(bountyPrompt);
+            context.player2.clickPrompt('Trigger');
 
             // which does nothing
             expect(context.stolenLandspeeder).toBeInZone('discard', context.player1);

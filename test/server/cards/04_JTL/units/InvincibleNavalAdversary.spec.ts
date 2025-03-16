@@ -1,5 +1,22 @@
 describe('Invincible, Naval Adversary', function () {
     integration(function (contextRef) {
+        it('Invincible\'s ability should cost 1 resource less if we control a unique separatist leader', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['invincible#naval-adversary'],
+                    leader: 'count-dooku#face-of-the-confederacy',
+                    base: 'chopper-base'
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.invincible);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.player1.exhaustedResourceCount).toBe(5);
+        });
         it('Invincible\'s ability should cost 1 resource less if we control a unique separatist unit', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

@@ -18,7 +18,7 @@ describe('Cartel Turncoat', function() {
                 context.player1.clickCard(context.razorCrest);
 
                 expect(context.player2).toHavePassAbilityPrompt('Collect Bounty: Draw a card');
-                context.player2.clickPrompt('Collect Bounty: Draw a card');
+                context.player2.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(0);
                 expect(context.player2.handSize).toBe(1);

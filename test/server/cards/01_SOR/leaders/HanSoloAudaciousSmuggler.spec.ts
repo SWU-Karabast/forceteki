@@ -30,7 +30,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player2.clickPrompt('Done');
                 context.player1.clickPrompt('Done');
 
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.aggression, context.sparkOfRebellion, context.protector, context.atst]);
                 expect(context.player1).not.toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.aggression);
@@ -63,11 +63,11 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player2.clickPrompt('Done');
                 context.player1.clickPrompt('Done');
 
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('discard', context.player1);
 
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 context.player1.clickCard(context.liberatedSlaves);
                 expect(context.liberatedSlaves).toBeInZone('discard', context.player1);
 
@@ -91,7 +91,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player2.clickPrompt('Done');
                 context.player1.clickPrompt('Done');
 
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.aggression, context.sparkOfRebellion, context.protector, context.atst]);
                 expect(context.player1).not.toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.aggression);
@@ -112,7 +112,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player2.clickPrompt('Done');
                 context.player1.clickPrompt('Done');
 
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.vanquish, context.sparkOfRebellion, context.protector, context.atst]);
                 expect(context.player1).not.toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.vanquish);
@@ -139,13 +139,15 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1.readyResourceCount).toBe(7);
                 expect(context.wampa).toBeInZone('resource', context.player1);
+                // TODO: clean up the extranaeous 'and' that is being applied to some chat messages
+                expect(context.getChatLogs(2)).toContain('player1 uses Han Solo to move a card to player1\'s resources and apply a delayed effect and ');
 
                 context.player2.claimInitiative();
                 context.player1.passAction();
                 context.player2.clickPrompt('Done');
                 context.player1.clickPrompt('Done');
 
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('discard', context.player1);
                 expect(context.player1.readyResourceCount).toBe(6);
@@ -174,7 +176,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player2.clickPrompt('Done');
                 context.player1.clickPrompt('Done');
 
-                expect(context.player1).toHavePrompt('Defeat a resource you control');
+                expect(context.player1).toHavePrompt('Choose a resource to defeat');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cunning, context.aggression, context.sparkOfRebellion, context.protector, context.atst]);
                 expect(context.player1).not.toHaveChooseNoTargetButton();
                 context.player1.clickCard(context.cunning);
