@@ -15,7 +15,7 @@ export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
             title: 'Exhaust this leader',
             optional: true,
             when: {
-                onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated && event.ability.eventsTriggeredFor.some((event) => event.name === EventName.OnCardDefeated),
+                onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated && (event.ability.eventsTriggeredFor.some((event) => (event.name === EventName.OnCardDefeated)) || event.context.event.name === EventName.OnCardDefeated)
             },
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: (ifYouDoContext) => ({
@@ -35,7 +35,7 @@ export default class GrandAdmiralThrawnHowUnfortunate extends LeaderUnitCard {
             title: 'Use When Defeated ability again',
             optional: true,
             when: {
-                onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated
+                onCardAbilityInitiated: (event, context) => event.context.player === context.player && event.ability.isWhenDefeated && (event.ability.eventsTriggeredFor.some((event) => (event.name === EventName.OnCardDefeated)) || event.context.event.name === EventName.OnCardDefeated)
             },
             immediateEffect: AbilityHelper.immediateEffects.useWhenDefeatedAbility((context) => {
                 return {
