@@ -1,14 +1,14 @@
-import AbilityHelper from "../../../AbilityHelper";
-import { NonLeaderUnitCard } from "../../../core/card/NonLeaderUnitCard";
-import { AbilityType, RelativePlayer, WildcardCardType } from "../../../core/Constants";
+import AbilityHelper from '../../../AbilityHelper';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { AbilityType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class PadmeAmidalaPursuingPeace extends NonLeaderUnitCard {
-    static implemented: boolean;
+    public static implemented: boolean;
     protected override getImplementationId() {
         return {
             id: '8307804692',
             internalName: 'padme-amidala#pursuing-peace',
-        }
+        };
     }
 
     public override setupCardAbilities() {

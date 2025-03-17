@@ -36,8 +36,6 @@ describe('Padme Amidala, Pursuing Peace', function() {
                 }
             });
 
-
-
             const { context } = contextRef;
 
             // attack without coordinate and confirm no effect
@@ -45,5 +43,5 @@ describe('Padme Amidala, Pursuing Peace', function() {
             context.player1.clickCard(context.p2Base);
             expect(context.wampa.getPower()).toBe(4);
         });
-    })
-})
+    });
+});
