@@ -36,6 +36,10 @@ export function WithDamage<TBaseClass extends CardConstructor<TState>, TState ex
         // STATE TODO: How do we handle full objects? This would need to be saved as a activeAttackRef (likely it's UUID)
         private _activeAttack?: Attack = null;
 
+        protected override onSetupDefaultState(): void {
+            this.state.attackEnabled = false;
+        }
+
         public setActiveAttack(attack: Attack) {
             Contract.assertNotNullLike(attack);
             this.assertPropertyEnabledForZoneBoolean(this.state.attackEnabled, 'activeAttack');
