@@ -738,7 +738,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 return;
             }
 
-            if (this.damage >= this.getHp() && !this._pendingDefeat) {
+            if (this.damage >= this.getHp() && !this.state.pendingDefeat) {
                 // add defeat event to window
                 this.game.addSubwindowEvents(
                     new FrameworkDefeatCardSystem({ target: this, defeatSource: source })
@@ -746,7 +746,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 );
 
                 // mark that this unit has a defeat pending so that other effects targeting it will not resolve
-                this._pendingDefeat = true;
+                this.state.pendingDefeat = true;
             }
         }
 
