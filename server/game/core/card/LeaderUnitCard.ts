@@ -13,15 +13,10 @@ import { DeployLeaderSystem } from '../../gameSystems/DeployLeaderSystem';
 import type { ActionAbility } from '../ability/ActionAbility';
 import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import { WithLeaderProperties } from './propertyMixins/LeaderProperties';
-import type { IInPlayCardState } from './baseClasses/InPlayCard';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import AbilityHelper from '../../AbilityHelper';
 
-const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard<ILeaderUnitCardState>));
-
-export interface ILeaderUnitCardState extends IInPlayCardState {
-    deployed: boolean;
-}
+const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
 /** Represents a deployable leader in a deployed state (i.e., is also a unit) */
 export interface ILeaderUnitCard extends ILeaderCard, IUnitCard {}

@@ -3,15 +3,11 @@ import type { Aspect } from '../Constants';
 import { ZoneName } from '../Constants';
 import type { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithLeaderProperties, type ILeaderCard } from './propertyMixins/LeaderProperties';
-import type { IPlayableOrDeployableCardState } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { WithAllAbilityTypes } from './propertyMixins/AllAbilityTypeRegistrations';
 
-const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard<IDoubleSidedLeaderCardState>));
+const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
-export interface IDoubleSidedLeaderCardState extends IPlayableOrDeployableCardState {
-    onStartingSide: boolean;
-}
 
 export interface IDoubleSidedLeaderCard extends ILeaderCard {
     get onStartingSide(): boolean;
