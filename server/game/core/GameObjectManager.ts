@@ -15,7 +15,11 @@ export class GameObjectManager {
         this._gameObjectMapping = new Map<string, GameObjectBase>();
     }
 
-    public get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T {
+    public get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null {
+        if (!gameObjectRef?.uuid) {
+            return null;
+        }
+
         const ref = this._gameObjectMapping.get(gameObjectRef.uuid);
         Contract.assertNotNullLike(ref, `Tried to get a Game Object but the UUID is not registered ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`);
         return ref as T;
