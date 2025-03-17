@@ -5,6 +5,15 @@ export interface IGameObjectBaseState {
     uuid: string;
 }
 
+/**
+ * A wrapper object to contains a UUID. This should be used when saving any object reference to the state object.
+ * Never create an object with this interface manually, instead always use {@link GameObjectBase.getRef} to create an instance.
+ * @template T The template itself is unused, but it can provide some type safety, or at least awareness,
+ * of what type the GameObjectRef was created from. See the Card.controller set property for an example.
+ * @example this.state.controllerRef = player.getRef();
+ * // ... elsewhere
+ * const player = this.game.gameObjectManager.get(this.state.controllerRef);
+ */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
 export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
     __isRef: true;
