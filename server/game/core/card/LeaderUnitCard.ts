@@ -28,7 +28,7 @@ export interface IDeployableLeaderCard extends ILeaderUnitCard {
     undeploy(): void;
 }
 
-export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableLeaderCard {
+export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDeployableLeaderCard {
     protected _deployed = false;
     protected setupLeaderUnitSide;
     protected deployEpicActionLimit: EpicActionLimit;
@@ -232,4 +232,8 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
             epicDeployActionSpent: this.deployEpicActionLimit.isAtMax(this.owner)
         };
     }
+}
+
+export class LeaderUnitCard extends LeaderUnitCardInternal {
+    protected override state: never;
 }
