@@ -65,10 +65,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     public readonly printedUpgradeHp: number;
     public readonly printedUpgradePower: number;
 
-    protected _disableOngoingEffectsForDefeat?: boolean = null;
-    protected _mostRecentInPlayId = -1;
     protected _parentCard?: IUnitCard = null;
-    protected _pendingDefeat?: boolean = null;
 
     protected attachCondition: (card: Card) => boolean;
 
@@ -79,8 +76,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      * Can only be true if pendingDefeat is also true.
      */
     public get disableOngoingEffectsForDefeat() {
-        this.assertPropertyEnabledForZone(this._disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
-        return this._disableOngoingEffectsForDefeat;
+        this.assertPropertyEnabledForZone(this.state.disableOngoingEffectsForDefeat, 'disableOngoingEffectsForDefeat');
+        return this.state.disableOngoingEffectsForDefeat;
     }
 
     /**
@@ -90,7 +87,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      */
     public get inPlayId() {
         this.assertPropertyEnabledForZoneBoolean(EnumHelpers.isArena(this.zoneName), 'inPlayId');
-        return this._mostRecentInPlayId;
+        return this.state.mostRecentInPlayId;
     }
 
     /**
@@ -103,7 +100,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
             'mostRecentInPlayId'
         );
 
-        return this._mostRecentInPlayId;
+        return this.state.mostRecentInPlayId;
     }
 
     /** The card that this card is underneath */
@@ -122,8 +119,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
      * When this is true, most systems cannot target the card.
      */
     public get pendingDefeat() {
-        this.assertPropertyEnabledForZone(this._pendingDefeat, 'pendingDefeat');
-        return this._pendingDefeat;
+        this.assertPropertyEnabledForZone(this.state.pendingDefeat, 'pendingDefeat');
+        return this.state.pendingDefeat;
     }
 
     public constructor(owner: Player, cardData: any) {
@@ -157,8 +154,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     protected setPendingDefeatEnabled(enabledStatus: boolean) {
-        this._pendingDefeat = enabledStatus ? false : null;
-        this._disableOngoingEffectsForDefeat = enabledStatus ? false : null;
+        this.state.pendingDefeat = enabledStatus ? false : null;
+        this.state.disableOngoingEffectsForDefeat = enabledStatus ? false : null;
     }
 
     public checkIsAttachable(): void {
@@ -291,14 +288,14 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
             // increment to a new in-play id if we're entering play, indicating that we are now a new "copy" of this card (SWU 8.6.4)
             if (!EnumHelpers.isArena(prevZone)) {
-                this._mostRecentInPlayId += 1;
+                this.state.mostRecentInPlayId += 1;
             }
         } else {
             this.setPendingDefeatEnabled(false);
 
             // if we're moving from a visible zone (discard, capture) to a hidden zone, increment the in-play id to represent the loss of information (card becomes a new copy)
             if (EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self) && !EnumHelpers.isHiddenFromOpponent(prevZone, RelativePlayer.Self)) {
-                this._mostRecentInPlayId += 1;
+                this.state.mostRecentInPlayId += 1;
             }
         }
     }
@@ -320,8 +317,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     public registerPendingUniqueDefeat() {
         Contract.assertTrue(this.getDuplicatesInPlayForController().length === 1);
 
-        this._pendingDefeat = true;
-        this._disableOngoingEffectsForDefeat = true;
+        this.state.pendingDefeat = true;
+        this.state.disableOngoingEffectsForDefeat = true;
     }
 
     public checkUnique() {
