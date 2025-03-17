@@ -198,6 +198,7 @@ class ActionWindow extends UiPrompt {
     highlightSelectableCards() {
         const allPossibleCards = this.game.findAnyCardsInPlay().concat(
             this.activePlayer.discardZone.cards,
+            this.activePlayer.opponent.discardZone.cards,
             this.activePlayer.resourceZone.cards,
             this.activePlayer.handZone.cards,
             this.activePlayer.baseZone.cards

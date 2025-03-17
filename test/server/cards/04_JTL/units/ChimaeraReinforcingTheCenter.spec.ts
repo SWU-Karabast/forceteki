@@ -15,6 +15,23 @@ describe('Chimaera, Reinforcing the Center', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('cannot trigger an enemy When Defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['chimaera#reinforcing-the-center'],
+                    },
+                    player2: {
+                        groundArena: ['wartime-trade-official']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chimaera);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('should not defeat the selected unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

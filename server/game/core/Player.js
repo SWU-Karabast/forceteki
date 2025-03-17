@@ -52,7 +52,7 @@ class Player extends GameObject {
         // clockDetails is optional
 
         this.user = user;
-        this.id = id;
+        this.state.id = id;
         this.printedType = 'player';
         this.socket = null;
         this.disconnected = false;
