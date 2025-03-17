@@ -20,7 +20,6 @@ export default class TheForceIsWithMe extends EventCard {
                     AbilityHelper.immediateEffects.conditional({
                         condition: (context) => context.player.isTraitInPlay(Trait.Force),
                         onTrue: AbilityHelper.immediateEffects.giveShield({ amount: 1 }),
-                        onFalse: AbilityHelper.immediateEffects.noAction()
                     }),
                     AbilityHelper.immediateEffects.attack({ optional: true })
                 ])

@@ -11,10 +11,7 @@ describe('Rich Reward', function() {
                     player2: {
                         groundArena: ['wampa'],
                         spaceArena: ['concord-dawn-interceptors']
-                    },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
+                    }
                 });
 
                 const { context } = contextRef;
@@ -73,15 +70,13 @@ describe('Rich Reward', function() {
                     },
                     player2: {
                         groundArena: [{ card: 'phaseiii-dark-trooper', upgrades: ['rich-reward'] }]
-                    },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
+                    }
                 });
 
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.phaseiiiDarkTrooper);
 
                 // bounty trigger still appears even though there's no effect, b/c the player still needs to decide whether to "collect the bounty"
                 // Dark Trooper ability happens in same window

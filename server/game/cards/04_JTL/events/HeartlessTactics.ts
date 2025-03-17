@@ -28,7 +28,6 @@ export default class HeartlessTactics extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: () => thenContext.target.isNonLeaderUnit() && thenContext.target.getPower() === 0,
                     onTrue: AbilityHelper.immediateEffects.returnToHand({ target: thenContext.target }),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             })
         });

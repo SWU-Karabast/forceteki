@@ -214,7 +214,7 @@ class PlayerInteractionWrapper {
                 throw new TestSetupError('You must provide a card name');
             }
 
-            const opponentControlled = options.hasOwnProperty('owner') && options.owner !== this.player.nameField;
+            const opponentControlled = options.hasOwnProperty('owner') && options.owner !== this.player.name;
 
             var card;
             if (Util.isTokenUnit(options.card)) {
@@ -280,7 +280,7 @@ class PlayerInteractionWrapper {
     setCapturedUnits(card, capturedUnits, prevZones = 'any') {
         for (const capturedUnit of capturedUnits) {
             const capturedUnitName = (typeof capturedUnit === 'string') ? capturedUnit : capturedUnit.card;
-            const side = (capturedUnit.hasOwnProperty('owner') && capturedUnit.owner === this.player.nameField) ? 'self' : 'opponent';
+            const side = (capturedUnit.hasOwnProperty('owner') && capturedUnit.owner === this.player.name) ? 'self' : 'opponent';
             let capturedUnitCard;
             if (Util.isTokenUnit(capturedUnitName)) {
                 throw new TestSetupError(`Attempting to add token unit ${capturedUnitName} to ${card}`);
@@ -366,7 +366,7 @@ class PlayerInteractionWrapper {
     attachOpponentOwnedUpgrades(opponentOwnedUpgrades = []) {
         for (const upgrade of opponentOwnedUpgrades) {
             const upgradeCard = this.findCardByName(upgrade.card, 'any', 'opponent');
-            const attachedCardAlsoOpponentControlled = upgrade.hasOwnProperty('attachedToOwner') && upgrade.attachedToOwner !== this.player.nameField;
+            const attachedCardAlsoOpponentControlled = upgrade.hasOwnProperty('attachedToOwner') && upgrade.attachedToOwner !== this.player.name;
             const attachTo = attachedCardAlsoOpponentControlled ? this.findCardByName(upgrade.attachedTo, 'any', 'opponent') : this.findCardByName(upgrade.attachedTo);
             upgradeCard.attachTo(attachTo);
         }

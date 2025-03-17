@@ -273,7 +273,7 @@ class GameStateBuilder {
     convertNonDuplicateCardNamesToProperties(players, cardNames, controlSwapped = []) {
         let mapToPropertyNamesWithCards = (cardNames, player) => cardNames.map((cardName) =>
             this.internalNameToPropertyNames(cardName).map((propertyName) => {
-                const isControlSwapped = controlSwapped.filter((card) => card.card === cardName && card.ownerAndController !== player.player.nameField);
+                const isControlSwapped = controlSwapped.filter((card) => card.card === cardName && card.ownerAndController !== player.player.name);
                 return {
                     propertyName: propertyName,
                     cardObj: (isControlSwapped.length > 0) ? player.findCardByName(cardName, 'any', 'opponent') : player.findCardByName(cardName)

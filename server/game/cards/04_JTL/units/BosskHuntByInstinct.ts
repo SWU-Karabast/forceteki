@@ -35,7 +35,6 @@ export default class BosskHuntByInstinct extends NonLeaderUnitCard {
                 AbilityHelper.immediateEffects.exhaust((context) => ({ target: context.event.attack.target })),
                 AbilityHelper.immediateEffects.damage((context) => ({ amount: 1, target: context.event.attack.target }))
             ]),
-            onFalse: AbilityHelper.immediateEffects.noAction(),
         });
     }
 }

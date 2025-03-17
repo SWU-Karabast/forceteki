@@ -30,7 +30,6 @@ export default class DarthVaderVictorSquadronLeader extends LeaderUnitCard {
                     filter: (attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Vehicle) && !attack.attacker.isTokenUnit()
                 }),
                 onTrue: AbilityHelper.immediateEffects.createTieFighter(),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
             })
         });
     }

@@ -24,7 +24,6 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
                 title: 'If it has 5 or more damage on it, deal 1 damage to it',
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: () => thenContext.target.isUnit() && thenContext.target.damage >= 5,
-                    onFalse: AbilityHelper.immediateEffects.noAction(),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 1, target: thenContext.target })
                 })
             })

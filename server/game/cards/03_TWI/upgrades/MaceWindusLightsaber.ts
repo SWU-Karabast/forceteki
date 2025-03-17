@@ -19,7 +19,6 @@ export default class MaceWindusLightsaber extends UpgradeCard {
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.source.parentCard?.title === 'Mace Windu',
                 onTrue: AbilityHelper.immediateEffects.draw({ amount: 2 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

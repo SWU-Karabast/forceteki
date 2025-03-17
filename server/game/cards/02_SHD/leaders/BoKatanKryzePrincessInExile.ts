@@ -30,7 +30,6 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
                         filter: (attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)
                     }),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction(),
                 })
             }
         });
@@ -57,7 +56,6 @@ export default class BoKatanKryzePrincessInExile extends LeaderUnitCard {
                             filter: (attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Mandalorian)
                         }),
                         onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                        onFalse: AbilityHelper.immediateEffects.noAction(),
                     })
                 })
             ])

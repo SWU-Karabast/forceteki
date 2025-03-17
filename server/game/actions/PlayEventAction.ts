@@ -7,12 +7,6 @@ export class PlayEventAction extends PlayCardAction {
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isEvent());
 
-        context.game.addMessage(
-            '{0} plays {1}',
-            context.player,
-            context.source,
-        );
-
         this.moveEventToDiscard(context);
         context.game.resolveAbility(context.source.getEventAbility().createContext());
     }
