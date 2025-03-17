@@ -6,7 +6,7 @@ export interface IGameObjectBaseState {
 }
 
 /**
- * A wrapper object to contains a UUID. This should be used when saving any object reference to the state object.
+ * A wrapper object that contains a UUID. This should be used when saving any object reference to the state object.
  * Never create an object with this interface manually, instead always use {@link GameObjectBase.getRef} to create an instance.
  * @template T The template itself is unused, but it can provide some type safety, or at least awareness,
  * of what type the GameObjectRef was created from. See the Card.controller set property for an example.
