@@ -63,16 +63,14 @@ export interface IPlayableOrDeployableCardState extends ICardState {
  * as well as exhausted status.
  */
 export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> extends Card<T> {
-    private _exhausted?: boolean = null;
-
     public get exhausted(): boolean {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        return this._exhausted;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        return this.state.exhausted;
     }
 
     public set exhausted(val: boolean) {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = val;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = val;
     }
 
     // see Card constructor for list of expected args
@@ -188,13 +186,13 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
     }
 
     public exhaust() {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = true;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = true;
     }
 
     public ready() {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = false;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = false;
     }
 
     public override canBeExhausted(): this is IPlayableOrDeployableCard {
@@ -203,11 +201,11 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
     public override getSummary(activePlayer: Player) {
         return { ...super.getSummary(activePlayer),
-            exhausted: this._exhausted };
+            exhausted: this.state.exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {
-        this._exhausted = enabledStatus ? true : null;
+        this.state.exhausted = enabledStatus ? true : null;
     }
 
     /**
@@ -241,7 +239,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
             return;
         }
 
-        this._controller = newController;
+        this.controller = newController;
 
         const moveDestination = moveTo || this.zone.name;
 
