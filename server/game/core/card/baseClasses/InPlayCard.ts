@@ -4,7 +4,7 @@ import { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
 import type Player from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
-import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard } from './PlayableOrDeployableCard';
+import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
 import * as Contract from '../../utils/Contract';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
@@ -26,7 +26,14 @@ import * as Helpers from '../../utils/Helpers';
 const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
 // required for mixins to be based on this class
-export type InPlayCardConstructor = new (...args: any[]) => InPlayCard;
+export type InPlayCardConstructor<T extends IInPlayCardState = IInPlayCardState> = new (...args: any[]) => InPlayCard<T>;
+
+export interface IInPlayCardState extends IPlayableOrDeployableCardState {
+    disableOngoingEffectsForDefeat: boolean | null;
+    mostRecentInPlayId: number;
+    pendingDefeat: boolean | null;
+    movedFromZone: ZoneName | null;
+}
 
 export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities, ICardWithConstantAbilities, ICardWithTriggeredAbilities {
     readonly printedUpgradeHp: number;
@@ -54,7 +61,7 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
  * 2. Defeat state management
  * 3. Uniqueness management
  */
-export class InPlayCard extends InPlayCardParent implements IInPlayCard {
+export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends InPlayCardParent<T> implements IInPlayCard {
     public readonly printedUpgradeHp: number;
     public readonly printedUpgradePower: number;
 
