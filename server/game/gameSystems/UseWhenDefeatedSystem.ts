@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { EventName, GameStateChangeRequired, Stage, WildcardCardType } from '../core/Constants';
+import { EventName, GameStateChangeRequired, Stage, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import TriggeredAbility from '../core/ability/TriggeredAbility';
 import { DefeatCardSystem } from './DefeatCardSystem';
@@ -71,6 +71,14 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
         const { resolvedAbilityEvent } = this.generatePropertiesFromContext(context);
 
         if (resolvedAbilityEvent === null) {
+            if (
+                card.zoneName !== ZoneName.GroundArena &&
+                card.zoneName !== ZoneName.SpaceArena &&
+                card.zoneName !== ZoneName.Resource
+            ) {
+                return false;
+            }
+
             if (!card.canRegisterTriggeredAbilities() || !card.getTriggeredAbilities().some((ability) => ability.isWhenDefeated)) {
                 return false;
             }
