@@ -328,13 +328,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     protected buildLastKnownInformation(card: Card): ILastKnownInformation {
-        Contract.assertTrue(
-            card.zoneName === ZoneName.GroundArena ||
-            card.zoneName === ZoneName.SpaceArena ||
-            card.zoneName === ZoneName.Resource
-        );
-
-        if (card.zoneName === ZoneName.Resource) {
+        if (card.zoneName !== ZoneName.GroundArena && card.zoneName !== ZoneName.SpaceArena) {
             return {
                 card,
                 controller: card.controller,
