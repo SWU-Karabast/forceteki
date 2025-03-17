@@ -3,7 +3,6 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class PadmeAmidalaPursuingPeace extends NonLeaderUnitCard {
-    public static implemented: boolean;
     protected override getImplementationId() {
         return {
             id: '8307804692',
@@ -28,5 +27,3 @@ export default class PadmeAmidalaPursuingPeace extends NonLeaderUnitCard {
         });
     }
 }
-
-PadmeAmidalaPursuingPeace.implemented = true;
