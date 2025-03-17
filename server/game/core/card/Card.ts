@@ -271,6 +271,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.initializeStateForAbilitySetup();
     }
 
+    protected override onSetupDefaultState() {
+        super.onSetupDefaultState();
+
+        this.state.facedown = true;
+        this.state.hiddenForController = false;
+        this.state.hiddenForOpponent = false;
+        this.state.movedFromZone = null;
+    }
+
 
     // ******************************************* ABILITY GETTERS *******************************************
     /**
