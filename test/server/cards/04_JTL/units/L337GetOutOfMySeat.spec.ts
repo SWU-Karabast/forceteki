@@ -53,20 +53,20 @@ describe('L3-37, Get Out of my seat', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            // Todo: Should this test pass?
-            // it('let the opponent attach the L3-37 if they control it when defeated', function () {
-            //     const { context } = contextRef;
+            // Todo: This test should pass
+            it('let the opponent attach the L3-37 if they control it when defeated', function () {
+                const { context } = contextRef;
 
-            //     context.player1.passAction();
-            //     context.player2.clickCard(context.traitorous);
-            //     context.player2.clickCard(context.l337);
-            //     context.player1.clickCard(context.atst);
-            //     context.player1.clickCard(context.l337);
-            //     context.player2.clickPrompt('Trigger');
-            //     expect(context.player2).toBeAbleToSelectExactly([context.miningGuildTieFighter]);
-            //     context.player2.clickCard(context.miningGuildTieFighter);
-            //     expect(context.miningGuildTieFighter).toHaveExactUpgradeNames(['l337#get-out-of-my-seat']);
-            // });
+                context.player1.passAction();
+                context.player2.clickCard(context.traitorous);
+                context.player2.clickCard(context.l337);
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.l337);
+                context.player2.clickPrompt('Trigger');
+                expect(context.player2).toBeAbleToSelectExactly([context.miningGuildTieFighter]);
+                context.player2.clickCard(context.miningGuildTieFighter);
+                expect(context.miningGuildTieFighter).toHaveExactUpgradeNames(['l337#get-out-of-my-seat']);
+            });
         });
     });
 });
