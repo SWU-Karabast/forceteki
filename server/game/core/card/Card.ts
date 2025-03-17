@@ -1,6 +1,7 @@
 import type { IActionAbilityProps, IConstantAbilityProps, ISetId, Zone, ITriggeredAbilityProps } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import type { IOngoingEffectSourceState } from '../ongoingEffect/OngoingEffectSource';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
@@ -35,9 +36,22 @@ import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbil
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
+import type { GameObjectRef } from '../GameObjectBase';
 
 // required for mixins to be based on this class
-export type CardConstructor = new (...args: any[]) => Card;
+export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
+
+export interface ICardState extends IOngoingEffectSourceState {
+
+    facedown: boolean;
+    hasImplementationFile: boolean;
+    hiddenForController: boolean;
+    hiddenForOpponent: boolean;
+
+    controllerRef: GameObjectRef<Player>;
+
+    movedFromZone: ZoneName | null;
+}
 
 /**
  * The base class for all card types. Any shared properties among all cards will be present here.
@@ -46,7 +60,7 @@ export type CardConstructor = new (...args: any[]) => Card;
  * or {@link Card.canBeExhausted} to confirm that the card has the expected properties and then cast
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
-export class Card extends OngoingEffectSource {
+export class Card<T extends ICardState = ICardState> extends OngoingEffectSource<T> {
     public static checkHasNonKeywordAbilityText(cardData: ICardDataJson) {
         if (cardData.types.includes('leader')) {
             return true;
