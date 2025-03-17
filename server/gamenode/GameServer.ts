@@ -327,7 +327,7 @@ export class GameServer {
     }
 
     private canUserJoinNewLobby(userId: string) {
-        const previousLobbyForUser = this.userLobbyMap.get(userId).lobbyId;
+        const previousLobbyForUser = this.userLobbyMap.get(userId)?.lobbyId;
         if (previousLobbyForUser) {
             const previousLobby = this.lobbies.get(previousLobbyForUser);
             if (previousLobby) {
