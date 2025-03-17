@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 
 export default class ChimaeraReinforcingTheCenter extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -22,6 +22,7 @@ export default class ChimaeraReinforcingTheCenter extends NonLeaderUnitCard {
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,
+                zoneFilter: WildcardZoneName.AnyArena,
                 cardCondition: (card, context) => card !== context.source && card.canRegisterTriggeredAbilities() && card.getTriggeredAbilities().some((ability) => ability.isWhenDefeated),
                 immediateEffect: AbilityHelper.immediateEffects.useWhenDefeatedAbility()
             }
