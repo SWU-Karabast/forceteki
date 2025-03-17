@@ -50,6 +50,7 @@ export interface ICardState extends IOngoingEffectSourceState {
 
     controllerRef: GameObjectRef<Player>;
 
+    zone: GameObjectRef<Zone> | null;
     movedFromZone: ZoneName | null;
     nextAbilityIdx: number;
 }
@@ -116,9 +117,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected constantAbilities: IConstantAbility[] = [];
     protected disableWhenDefeatedCheck = false;
     protected triggeredAbilities: TriggeredAbility[] = [];
-
-    // STATE TODO: How do we store the zone in state?
-    private _zone: Zone;
 
     protected get hiddenForController() {
         return this.state.hiddenForController;
@@ -204,16 +202,17 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.printedType;
     }
 
-    public get zone(): Zone {
-        return this._zone;
+    // NOTE: In theory this should really only ever be null for "destroyed" tokens, but definitely do checks for this.
+    public get zone(): Zone | null {
+        return this.state.zone ? this.game.gameObjectManager.get(this.state.zone) : null;
     }
 
-    protected set zone(zone: Zone) {
-        this._zone = zone;
+    protected set zone(zone: Zone | null) {
+        this.state.zone = zone?.getRef();
     }
 
     public get zoneName(): ZoneName {
-        return this._zone?.name;
+        return this.zone?.name;
     }
 
     // *********************************************** CONSTRUCTOR ***********************************************
@@ -647,14 +646,14 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * @param targetZoneName Zone to move to
      */
     public moveTo(targetZoneName: MoveZoneDestination, initializeCardState = true) {
-        Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
+        Contract.assertNotNullLike(this.state.zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
         const prevZone = this.zoneName;
         const resetController = EnumHelpers.zoneMoveRequiresControllerReset(prevZone, targetZoneName);
 
         // if we're moving to deck top / bottom, don't bother checking if we're already in the zone
         if (!([DeckZoneDestination.DeckBottom, DeckZoneDestination.DeckTop] as MoveZoneDestination[]).includes(targetZoneName)) {
-            const originalZone = this._zone;
+            const originalZone = this.zone;
             const moveToZone = (resetController ? this.owner : this.controller)
                 .getZone(EnumHelpers.asConcreteZone(targetZoneName));
 
@@ -675,11 +674,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected removeFromCurrentZone() {
-        if (this._zone.name === ZoneName.Base) {
-            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${this._zone}`);
-            this._zone.removeLeader();
+        if (this.zone.name === ZoneName.Base) {
+            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${this.zone}`);
+            this.zone.removeLeader();
         } else {
-            this._zone.removeCard(this);
+            this.zone.removeCard(this);
         }
     }
 
@@ -702,9 +701,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public initializeZone(zone: Zone) {
-        Contract.assertIsNullLike(this._zone, `Attempting to initialize zone for card ${this.internalName} to ${zone.name} but it is already set`);
+        Contract.assertIsNullLike(this.state.zone, `Attempting to initialize zone for card ${this.internalName} to ${zone.name} but it is already set`);
 
-        this._zone = zone;
+        this.zone = zone;
 
         this.initializeForStartZone();
         this.initializeForCurrentZone(null);
@@ -718,52 +717,52 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     private addSelfToZone(zoneName: MoveZoneDestination) {
         switch (zoneName) {
             case ZoneName.Base:
-                this._zone = this.owner.baseZone;
+                this.zone = this.owner.baseZone;
                 Contract.assertTrue(this.isLeader());
-                this._zone.setLeader(this);
+                this.zone.setLeader(this);
                 break;
 
             case DeckZoneDestination.DeckBottom:
             case DeckZoneDestination.DeckTop:
-                this._zone = this.owner.deckZone;
+                this.zone = this.owner.deckZone;
                 Contract.assertTrue(this.isPlayable());
-                this._zone.addCard(this, zoneName);
+                this.zone.addCard(this, zoneName);
                 break;
 
             case ZoneName.Discard:
-                this._zone = this.owner.discardZone;
+                this.zone = this.owner.discardZone;
                 Contract.assertTrue(this.isPlayable());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             case ZoneName.GroundArena:
-                this._zone = this.game.groundArena;
+                this.zone = this.game.groundArena;
                 Contract.assertTrue(this.canBeInPlay());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             case ZoneName.Hand:
-                this._zone = this.owner.handZone;
+                this.zone = this.owner.handZone;
                 Contract.assertTrue(this.isPlayable());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             case ZoneName.OutsideTheGame:
-                this._zone = this.owner.outsideTheGameZone;
+                this.zone = this.owner.outsideTheGameZone;
                 Contract.assertTrue(this.isToken() || this.isPlayable());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             case ZoneName.Resource:
-                this._zone = this.controller.resourceZone;
+                this.zone = this.controller.resourceZone;
                 Contract.assertTrue(this.isPlayable());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             case ZoneName.SpaceArena:
-                this._zone = this.game.spaceArena;
+                this.zone = this.game.spaceArena;
                 Contract.assertTrue(this.canBeInPlay());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             default:
@@ -1056,7 +1055,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         const selectionState = activePlayer.getCardSelectionState(this);
 
         // If it is not the active player and in opposing hand or deck - return facedown card
-        if (this._zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this._zone.hiddenForPlayers === RelativePlayer.Opponent)) {
+        if (this.zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent)) {
             const state = {
                 controller: this.controller.getShortSummary(),
                 owner: this.owner.getShortSummary(),
