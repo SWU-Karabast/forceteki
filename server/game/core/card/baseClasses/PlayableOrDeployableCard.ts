@@ -12,13 +12,14 @@ import { CostAdjustType } from '../../cost/CostAdjuster';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
+import type { ICardState } from '../Card';
 import { Card } from '../Card';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
 // required for mixins to be based on this class
-export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
+export type PlayableOrDeployableCardConstructor<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> = new (...args: any[]) => PlayableOrDeployableCard<T>;
 
 export interface IDecreaseCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
@@ -52,12 +53,16 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
     buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
 }
 
+export interface IPlayableOrDeployableCardState extends ICardState {
+    exhausted: boolean | null;
+}
+
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
+export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> extends Card<T> {
     private _exhausted?: boolean = null;
 
     public get exhausted(): boolean {
