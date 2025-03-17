@@ -4,6 +4,7 @@ import { SimpleZone } from './SimpleZone';
 import * as Helpers from '../utils/Helpers.js';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
+import type Game from '../Game';
 
 export class ResourceZone extends SimpleZone<IPlayableCard> {
     public override readonly hiddenForPlayers: RelativePlayer.Opponent;
@@ -14,7 +15,7 @@ export class ResourceZone extends SimpleZone<IPlayableCard> {
     }
 
     public get exhaustedResources() {
-        return this._cards.filter((card) => card.exhausted);
+        return this.cards.filter((card) => card.exhausted);
     }
 
     public get readyResourceCount() {
@@ -22,11 +23,11 @@ export class ResourceZone extends SimpleZone<IPlayableCard> {
     }
 
     public get readyResources() {
-        return this._cards.filter((card) => !card.exhausted);
+        return this.cards.filter((card) => !card.exhausted);
     }
 
-    public constructor(owner: Player) {
-        super(owner);
+    public constructor(game: Game, owner: Player) {
+        super(game, owner);
 
         this.hiddenForPlayers = RelativePlayer.Opponent;
         this.name = ZoneName.Resource;
@@ -34,22 +35,27 @@ export class ResourceZone extends SimpleZone<IPlayableCard> {
 
     public rearrangeResourceExhaustState(context: AbilityContext, prioritizeSmuggle: boolean = false): void {
         const exhaustCount = this.exhaustedResourceCount;
-        this._cards.forEach((card) => card.exhausted = false);
-        Helpers.shuffleArray(this._cards, context.game.randomGenerator);
+        // Cards is an accessor and a copy of the array.
+        let cards = this.cards;
+        this.cards.forEach((card) => card.exhausted = false);
+        Helpers.shuffleArray(this.state.cards, context.game.randomGenerator);
+
+        // Reacquire cards array in new, shuffled order.
+        cards = this.cards;
 
         let exhausted = 0;
 
         if (prioritizeSmuggle) {
             for (let i = 0; i < exhaustCount; i++) {
-                if (this._cards[i].hasSomeKeyword(KeywordName.Smuggle)) {
-                    this._cards[i].exhausted = true;
+                if (cards[i].hasSomeKeyword(KeywordName.Smuggle)) {
+                    cards[i].exhausted = true;
                     exhausted++;
                 }
             }
         }
         for (let i = 0; i < exhaustCount; i++) {
-            if (this._cards[i].exhausted === false) {
-                this._cards[i].exhausted = true;
+            if (cards[i].exhausted === false) {
+                cards[i].exhausted = true;
                 exhausted++;
             }
             if (exhausted === exhaustCount) {

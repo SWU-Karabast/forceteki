@@ -36,11 +36,13 @@ import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
 import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
 import type { AbilityContext } from '../../ability/AbilityContext';
+import type { GameObjectRef } from '../../GameObjectBase';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
     // placeholder code, not used.
     defaultArenaInternal: Arena;
+    captureZone: GameObjectRef<CaptureZone> | null;
 }
 
 type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IAbilityPropsWithType<TTarget> & IGainCondition<TSource>;
@@ -122,7 +124,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         // ************************************* FIELDS AND PROPERTIES *************************************
         public readonly defaultArena: Arena;
 
-        protected _captureZone?: CaptureZone = null;
         protected _upgrades?: IUpgradeCard[] = null;
         protected pilotingActionAbilities: ActionAbility[];
         protected pilotingConstantAbilities: IConstantAbility[];
@@ -137,13 +138,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
 
         public get capturedUnits() {
-            this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
-            return this._captureZone.cards;
+            this.assertPropertyEnabledForZone(this.state.captureZone, 'capturedUnits');
+            return this.captureZone.cards;
         }
 
         public get captureZone() {
-            this.assertPropertyEnabledForZone(this._captureZone, 'captureZone');
-            return this._captureZone;
+            this.assertPropertyEnabledForZone(this.state.captureZone, 'captureZone');
+            return this.game.gameObjectManager.get(this.state.captureZone);
         }
 
         public get upgrades(): IUpgradeCard[] {
@@ -247,7 +248,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
-            this._captureZone = enabledStatus ? new CaptureZone(this.owner, this) : null;
+            const zone = enabledStatus ? new CaptureZone(this.game, this.owner, this) : null;
+            this.state.captureZone = zone?.getRef();
         }
 
         protected override setDamageEnabled(enabledStatus: boolean): void {

@@ -58,19 +58,19 @@ class Player extends GameObject {
         this.disconnected = false;
         this.left = false;
 
-        this.handZone = new HandZone(this);
-        this.resourceZone = new ResourceZone(this);
-        this.discardZone = new DiscardZone(this);
+        this.handZone = new HandZone(game, this);
+        this.resourceZone = new ResourceZone(game, this);
+        this.discardZone = new DiscardZone(game, this);
         this.canTakeActionsThisPhase = null;
 
         // mainly used for staging tokens when they are created / removed
-        this.outsideTheGameZone = new OutsideTheGameZone(this);
+        this.outsideTheGameZone = new OutsideTheGameZone(game, this);
 
         /** @type {BaseZone} */
         this.baseZone = null;
 
         /** @type {DeckZone} */
-        this.deckZone = new DeckZone(this);
+        this.deckZone = new DeckZone(game, this);
 
         this.damageToBase = null;
 
@@ -699,7 +699,7 @@ class Player extends GameObject {
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this.baseZone = new BaseZone(this, this.base, this.leader);
+        this.baseZone = new BaseZone(this.game, this, this.base, this.leader);
 
         this.decklist = preparedDecklist;
     }

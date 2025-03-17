@@ -1,6 +1,7 @@
 import type { IBaseCard } from '../card/BaseCard';
 import type { ILeaderCard } from '../card/propertyMixins/LeaderProperties';
 import { ZoneName } from '../Constants';
+import type Game from '../Game';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
 import type { IZoneCardFilterProperties } from './ZoneAbstract';
@@ -29,8 +30,8 @@ export class BaseZone extends ZoneAbstract<ILeaderCard | IBaseCard> {
         return this._leader;
     }
 
-    public constructor(owner: Player, base: IBaseCard, leader: ILeaderCard) {
-        super(owner);
+    public constructor(game: Game, owner: Player, base: IBaseCard, leader: ILeaderCard) {
+        super(game, owner);
 
         this.hiddenForPlayers = null;
         this.name = ZoneName.Base;
