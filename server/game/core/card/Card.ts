@@ -117,6 +117,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected triggeredAbilities: TriggeredAbility[] = [];
 
     private nextAbilityIdx = 0;
+    // STATE TODO: How do we store the zone in state?
     private _zone: Zone;
 
     protected get hiddenForController() {
