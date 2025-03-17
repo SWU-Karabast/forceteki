@@ -113,11 +113,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     protected actionAbilities: ActionAbility[] = [];
     protected constantAbilities: IConstantAbility[] = [];
-    protected _controller: Player;
     protected disableWhenDefeatedCheck = false;
-    protected _facedown = true;
-    protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
-    protected hiddenForOpponent = true;
     protected movedFromZone?: ZoneName = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
@@ -139,11 +135,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public get controller(): Player {
-        return this._controller;
+        return this.game.gameObjectManager.get(this.state.controllerRef);
+    }
+
+    public set controller(value: Player) {
+        this.state.controllerRef = value.getRef();
     }
 
     public get facedown(): boolean {
-        return this._facedown;
+        return this.state.facedown;
     }
 
     public get internalName(): string {
@@ -225,7 +225,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this._backSideTitle = cardData.backSideTitle;
         this._unique = cardData.unique;
 
-        this._controller = owner;
+        this.state.controllerRef = owner.getRef();
         this.id = cardData.id;
         this.canBeUpgrade = cardData.upgradeHp != null && cardData.upgradePower != null;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
@@ -642,7 +642,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.removeFromCurrentZone();
 
         if (resetController) {
-            this._controller = this.owner;
+            this.controller = this.owner;
         }
 
         this.addSelfToZone(targetZoneName);
@@ -688,7 +688,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
 
     protected initializeForStartZone(): void {
-        this._controller = this.owner;
+        this.controller = this.owner;
     }
 
     private addSelfToZone(zoneName: MoveZoneDestination) {
@@ -846,44 +846,44 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentZone(prevZone?: ZoneName) {
-        this.hiddenForOpponent = EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self);
+        this.state.hiddenForOpponent = EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self);
 
         switch (this.zoneName) {
             case ZoneName.SpaceArena:
             case ZoneName.GroundArena:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Base:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Resource:
-                this._facedown = true;
-                this.hiddenForController = false;
+                this.state.facedown = true;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Deck:
-                this._facedown = true;
-                this.hiddenForController = true;
+                this.state.facedown = true;
+                this.state.hiddenForController = true;
                 break;
 
             case ZoneName.Hand:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Capture:
-                this._facedown = true;
-                this.hiddenForController = false;
+                this.state.facedown = true;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Discard:
             case ZoneName.OutsideTheGame:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             default:
@@ -1081,9 +1081,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     private isHiddenForPlayer(player: Player) {
         switch (player) {
             case this.controller:
-                return this.hiddenForController;
+                return this.state.hiddenForController;
             case this.controller.opponent:
-                return this.hiddenForOpponent;
+                return this.state.hiddenForOpponent;
             default:
                 Contract.fail(`Unknown player: ${player}`);
                 return false;
