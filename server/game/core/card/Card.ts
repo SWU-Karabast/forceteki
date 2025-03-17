@@ -51,6 +51,7 @@ export interface ICardState extends IOngoingEffectSourceState {
     controllerRef: GameObjectRef<Player>;
 
     movedFromZone: ZoneName | null;
+    nextAbilityIdx: number;
 }
 
 /**
@@ -116,7 +117,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected disableWhenDefeatedCheck = false;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
-    private nextAbilityIdx = 0;
     // STATE TODO: How do we store the zone in state?
     private _zone: Zone;
 
@@ -434,8 +434,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     /** Increments the ability index counter used for adding an index number to an ability's ID */
     private getNextAbilityIdx() {
-        this.nextAbilityIdx++;
-        return this.nextAbilityIdx - 1;
+        this.state.nextAbilityIdx++;
+        return this.state.nextAbilityIdx - 1;
     }
 
 
