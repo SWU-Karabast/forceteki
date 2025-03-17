@@ -280,7 +280,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.movedFromZone = null;
     }
 
-
     // ******************************************* ABILITY GETTERS *******************************************
     /**
      * `SWU 7.2.1`: An action ability is an ability indicated by the bolded word “Action.” Most action
