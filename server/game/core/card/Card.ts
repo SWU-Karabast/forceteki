@@ -114,11 +114,26 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected actionAbilities: ActionAbility[] = [];
     protected constantAbilities: IConstantAbility[] = [];
     protected disableWhenDefeatedCheck = false;
-    protected movedFromZone?: ZoneName = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
     private nextAbilityIdx = 0;
     private _zone: Zone;
+
+    protected get hiddenForController() {
+        return this.state.hiddenForController;
+    }
+
+    protected get hiddenForOpponent() {
+        return this.state.hiddenForOpponent;
+    }
+
+    protected get movedFromZone() {
+        return this.state.movedFromZone;
+    }
+
+    protected set movedFromZone(value: ZoneName | null) {
+        this.state.movedFromZone = value;
+    }
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
