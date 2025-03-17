@@ -145,6 +145,14 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         }
     }
 
+    protected override onSetupDefaultState() {
+        super.onSetupDefaultState();
+
+        this.state.pendingDefeat = null;
+        this.state.mostRecentInPlayId = -1;
+        this.state.disableOngoingEffectsForDefeat = null;
+    }
+
     public isInPlay(): boolean {
         return EnumHelpers.isArena(this.zoneName);
     }
