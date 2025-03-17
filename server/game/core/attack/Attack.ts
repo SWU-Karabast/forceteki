@@ -71,7 +71,7 @@ export class Attack extends GameObject {
 
     // TODO: if we end up using this we need to refactor it to reflect attacks in SWU (i.e., show HP)
     public getTotalsForDisplay(): string {
-        return `${this.attacker.name}: ${this.getAttackerTotalPower()} vs ${this.getTargetTotalPower()}: ${this.target.name}`;
+        return `${this.attacker.title}: ${this.getAttackerTotalPower()} vs ${this.getTargetTotalPower()}: ${this.target.title}`;
     }
 
     private getUnitPower(involvedUnit: IUnitCard): StatisticTotal {
