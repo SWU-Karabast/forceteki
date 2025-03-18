@@ -90,7 +90,6 @@ export class Card extends OngoingEffectSource {
     protected readonly _unique: boolean;
 
     protected readonly canBeUpgrade: boolean;
-    protected override readonly id: string;
     protected readonly hasNonKeywordAbilityText: boolean;
     protected readonly hasImplementationFile: boolean;
     protected readonly overrideNotImplemented: boolean = false;

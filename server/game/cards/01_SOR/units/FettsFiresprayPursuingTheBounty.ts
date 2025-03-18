@@ -17,7 +17,6 @@ export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
                     context.player.controlsLeaderUnitOrUpgradeWithTitle('Boba Fett') ||
                     context.player.controlsLeaderUnitOrUpgradeWithTitle('Jango Fett'),
                 onTrue: AbilityHelper.immediateEffects.ready((context) => ({ target: context.source })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
 
