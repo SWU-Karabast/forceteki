@@ -81,6 +81,7 @@ describe('Han Solo Has His Moments', function () {
                     context.millenniumFalconLandosPride,
                     context.goldLeader
                 ]);
+                expect(context.player1).toHavePassAttackButton();
                 context.player1.clickCard(context.goldLeader);
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer).toBeInZone('discard');
