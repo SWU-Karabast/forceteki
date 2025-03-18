@@ -149,7 +149,6 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
 
         let buttons = [];
         buttons = properties.cancelHandler ? buttons.concat({ text: 'Cancel', arg: 'cancel' }) : buttons;
-        buttons = this.selectionIsOptional(properties, context) ? buttons.concat({ text: 'Choose no target', arg: 'noTarget' }) : buttons;
 
         const defaultProperties = {
             context: context,

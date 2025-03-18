@@ -79,7 +79,7 @@ describe('Lieutenant Childsen', function() {
                     // Reveal no Vigilance cards
                     context.player1.clickCard(context.lieutenantChildsen);
                     expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.systemPatrolCraft, context.cargoJuggernaut, context.resilient, context.vanquish]);
-                    context.player1.clickPrompt('Done');
+                    context.player1.clickPrompt('Choose no target');
 
                     expect(context.lieutenantChildsen).toHaveExactUpgradeNames([]);
                     expect(context.player2).toBeActivePlayer();

@@ -24,7 +24,7 @@ describe('There Is No Escape', function() {
                 context.fireball,
                 context.lurkingTiePhantom
             ]);
-            expect(context.player1).toHaveExactPromptButtons(['Choose no target', 'Done']);
+            expect(context.player1).toHaveChooseNoTargetButton();
 
             // Choose 3 units
             context.player1.clickCard(context.contractedHunter);
@@ -174,7 +174,7 @@ describe('There Is No Escape', function() {
                 context.fireball,
                 context.lurkingTiePhantom
             ]);
-            expect(context.player1).toHaveExactPromptButtons(['Choose no target', 'Done']);
+            expect(context.player1).toHaveChooseNoTargetButton();
 
             // Choose no target
             context.player1.clickPrompt('Choose no target');

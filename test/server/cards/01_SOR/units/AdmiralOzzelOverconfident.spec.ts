@@ -33,7 +33,7 @@ describe('Admiral Ozzel, Overconfident', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(6);
 
                 expect(context.player2).toHavePrompt('Ready a unit');
-                expect(context.player2).toHaveEnabledPromptButton('Done');
+                expect(context.player2).toHaveEnabledPromptButton('Choose no target');
                 expect(context.player2).toBeAbleToSelectExactly([context.atst, context.admiralOzzel, context.wampa, context.ruthlessRaider]);
 
                 context.player2.clickCard(context.wampa);

@@ -128,7 +128,7 @@ describe('War Juggernaut', function() {
                     context.ruthlessRaider
                 ]);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickPrompt('Choose no target');
 
                 // War Juggernaut should have 5 power (3 from card and 2 from damaged units)
                 expect(context.warJuggernaut.getPower()).toBe(5);

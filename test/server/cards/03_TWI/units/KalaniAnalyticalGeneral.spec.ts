@@ -100,7 +100,7 @@ describe('Kalani Analytical General ability\'s', function() {
                 context.allianceXwing
             ]);
             expect(context.player1).toHaveChooseNoTargetButton();
-            context.player1.clickPrompt('Done');
+            context.player1.clickPrompt('Choose no target');
             expect(context.yoda.getHp()).toBe(4);
             expect(context.yoda.getPower()).toBe(2);
             expect(context.allianceXwing.getHp()).toBe(3);

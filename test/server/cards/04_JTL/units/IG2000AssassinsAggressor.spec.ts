@@ -63,7 +63,7 @@ describe('IG-2000, Assassins\'s Aggressor', function () {
             context.player1.clickCard(context.ig2000);
             expect(context.player1).toHaveChooseNoTargetButton();
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tieAdvanced, context.ig2000]);
-            context.player1.clickPrompt('Done');
+            context.player1.clickPrompt('Choose no target');
 
             // Assert the damage
             expect(context.wampa.damage).toBe(0);

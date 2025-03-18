@@ -118,7 +118,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.consularSecurityForce);
 
                 expect(context.player1).toHavePrompt('Choose friendly units to lose all abilities for this round');
-                expect(context.player1).toHaveExactPromptButtons(['Done', 'Choose no target']);
+                expect(context.player1).toHaveChooseNoTargetButton();
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.contractedHunter,
                     context.k2so,
@@ -225,7 +225,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                     'Restore 2'
                 ]);
                 context.player1.clickPrompt('Restore 2');
-                context.player1.clickPrompt('Done');
+                context.player1.clickPrompt('Choose no target');
 
                 // Base HP is restored by 2
                 expect(context.p1Base.damage).toBe(6);
@@ -296,7 +296,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                 context.player1.clickCard(context.p2Base);
 
                 expect(context.player1).toHavePrompt('Choose friendly units to lose all abilities for this round');
-                expect(context.player1).toHaveExactPromptButtons(['Done', 'Choose no target']);
+                expect(context.player1).toHaveChooseNoTargetButton();
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.contractedHunter,
                     context.k2so,
@@ -410,7 +410,7 @@ describe('Kazuda Ziono, Best Pilot in the Galaxy', function() {
                     'Restore 2'
                 ]);
                 context.player1.clickPrompt('Restore 2');
-                context.player1.clickPrompt('Done');
+                context.player1.clickPrompt('Choose no target');
 
                 // Base HP is restored by 2
                 expect(context.p1Base.damage).toBe(6);

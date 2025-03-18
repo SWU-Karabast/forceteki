@@ -77,7 +77,7 @@ describe('Restock', function () {
                 // can select both discards
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.atst, context.battlefieldMarine, context.resupply, context.restock, context.consularSecurityForce, context.specforceSoldier, context.echoBaseDefender]);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickPrompt('Choose no target');
 
                 // no cards selected, all cards should be in discard
                 expect(context.pykeSentinel).toBeInZone('discard');
