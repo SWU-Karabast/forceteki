@@ -1,5 +1,5 @@
-import { DynamoDBClient, ListTablesCommand, CreateTableCommand } from '@aws-sdk/client-dynamodb';
-import { DynamoDBDocumentClient, PutCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
+import { DynamoDBClient, ListTablesCommand, CreateTableCommand, DeleteTableCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, PutCommand, GetCommand, DeleteCommand } from '@aws-sdk/lib-dynamodb';
 
 /**
  * A simple script to test connection to DynamoDB Local and perform basic operations
@@ -88,6 +88,31 @@ async function testDynamoDBLocal() {
         console.log('Retrieved item:', getResponse.Item);
 
         console.log('\nAll tests completed successfully!');
+
+        // Clean up - delete the test item
+        console.log('Cleaning up - deleting test item...');
+        await docClient.send(
+            new DeleteCommand({
+                TableName: tableName,
+                Key: {
+                    pk: 'USER#1',
+                    sk: 'METADATA'
+                }
+            })
+        );
+        console.log('Test item deleted successfully!');
+
+        // Optional: Delete the test table if needed
+        const shouldDeleteTable = true; // Set to true if you want to delete the table as well
+        if (shouldDeleteTable) {
+            console.log(`Deleting table: ${tableName}...`);
+            await client.send(
+                new DeleteTableCommand({
+                    TableName: tableName
+                })
+            );
+            console.log(`Table ${tableName} deleted successfully!`);
+        }
     } catch (error) {
         console.error('Error testing DynamoDB Local:', error);
     }
