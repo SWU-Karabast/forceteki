@@ -94,8 +94,8 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         }
     }
 
-    public override hasTargetsChosenByInitiatingPlayer(context) {
+    public override hasTargetsChosenByPlayer(context) {
         const properties = this.generatePropertiesFromContext(context);
-        return properties.gameSystems.some((gameSystem) => gameSystem.hasTargetsChosenByInitiatingPlayer(context));
+        return properties.gameSystems.some((gameSystem) => gameSystem.hasTargetsChosenByPlayer(context));
     }
 }

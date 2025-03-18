@@ -82,7 +82,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
     }
 
-    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
+    protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const legalTargets = this.selector.getAllLegalTargets(context, player);
         if (legalTargets.length === 0) {
             if (context.stage === Stage.PreTarget) {
@@ -249,20 +249,18 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
           this.selector.hasEnoughSelected(cards, context) && !this.selector.hasExceededLimit(cards, context));
     }
 
-    protected override hasTargetsChosenByInitiatingPlayer(context: AbilityContext) {
-        if (this.getChoosingPlayer(context) === context.player && (this.selector.optional || this.selector.hasEnoughTargets(context, context.player.opponent))) {
+    protected override hasTargetsChosenByPlayerInternal(context: AbilityContext, player: Player = context.player) {
+        if (this.selector.optional || this.selector.hasEnoughTargets(context, player)) {
             return true;
         }
-        return !this.properties.dependsOn && this.checkGameActionsForTargetsChosenByInitiatingPlayer(context);
-    }
 
-    private checkGameActionsForTargetsChosenByInitiatingPlayer(context: AbilityContext) {
         return this.getAllLegalTargets(context).some((card) => {
             const contextCopy = this.getContextCopy(card, context);
-            if (this.properties.immediateEffect && this.properties.immediateEffect.hasTargetsChosenByInitiatingPlayer(contextCopy)) {
+            if (this.properties.immediateEffect && this.properties.immediateEffect.hasTargetsChosenByPlayer(contextCopy, player)) {
                 return true;
-            } else if (this.dependentTarget) {
-                return this.dependentTarget.checkGameActionsForTargetsChosenByInitiatingPlayer(contextCopy);
+            }
+            if (this.dependentTarget) {
+                return this.dependentTarget.checkGameActionsForTargetsChosenByPlayer(contextCopy, player);
             }
             return false;
         });

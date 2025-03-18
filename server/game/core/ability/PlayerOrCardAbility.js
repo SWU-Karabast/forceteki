@@ -287,12 +287,12 @@ class PlayerOrCardAbility {
         return this.nonDependentTargets.every((target) => target.checkTarget(context));
     }
 
-    hasTargetsChosenByInitiatingPlayer(context) {
+    hasTargetsChosenByPlayer(context, player = context.player) {
         return (
-            this.targetResolvers.some((target) => target.hasTargetsChosenByInitiatingPlayer(context)) ||
-            this.immediateEffect.hasTargetsChosenByInitiatingPlayer(context) ||
+            this.targetResolvers.some((target) => target.hasTargetsChosenByPlayer(context, player)) ||
+            this.immediateEffect?.hasTargetsChosenByPlayer(context, player) ||
             this.getCosts(context).some(
-                (cost) => cost.hasTargetsChosenByInitiatingPlayer && cost.hasTargetsChosenByInitiatingPlayer(context)
+                (cost) => cost.hasTargetsChosenByInitiatingPlayer && cost.hasTargetsChosenByPlayer(context, player)
             )
         );
     }

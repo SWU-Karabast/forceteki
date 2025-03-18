@@ -1,11 +1,11 @@
-import { AbilityRestriction, ZoneName, PlayType } from '../core/Constants.js';
+import { AbilityRestriction, ZoneName, PlayType, RelativePlayer } from '../core/Constants.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import AbilityResolver from '../core/gameSteps/AbilityResolver.js';
 
 export class PlayEventAction extends PlayCardAction {
-    private earlyTargetResults?: any;
+    private earlyTargeting = false;
 
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isEvent());
@@ -24,7 +24,7 @@ export class PlayEventAction extends PlayCardAction {
         abilityContext.select = context.select;
         abilityContext.selects = context.selects;
 
-        context.game.queueStep(new AbilityResolver(context.game, abilityContext, false, null, true));
+        context.game.queueStep(new AbilityResolver(context.game, abilityContext, false, null, this.earlyTargeting));
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
@@ -50,11 +50,12 @@ export class PlayEventAction extends PlayCardAction {
 
         const eventAbility = context.source.getEventAbility();
 
-        // // if the opponent will be making any selections, then we need to do play in the correct order (i.e. move to discard first, then select)
-        // if (eventAbility.hasTargetsChosenByPlayer(context, context.player.opponent) || eventAbility.playerChoosingOptional === RelativePlayer.Opponent) {
-        //     return this.getDefaultTargetResults();
-        // }
+        // if the opponent will be making any selections, then we need to do play in the correct order (i.e. move to discard first, then select)
+        if (eventAbility.hasTargetsChosenByPlayer(context, context.player.opponent) || eventAbility.playerChoosingOptional === RelativePlayer.Opponent) {
+            return this.getDefaultTargetResults(context);
+        }
 
+        this.earlyTargeting = true;
         return eventAbility.resolveEarlyTargets(context, passHandler, canCancel);
     }
 

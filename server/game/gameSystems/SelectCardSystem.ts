@@ -11,6 +11,8 @@ import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetRes
 import type { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
 import * as Helpers from '../core/utils/Helpers';
+import type Player from '../core/Player';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     activePromptTitle?: ((context: TContext) => string) | string;
@@ -233,9 +235,14 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         context.game.addMessage('{0}{1}{2}{3}{4}{5}{6}{7}{8}', ...messageArgs, { message: context.game.gameChat.formatMessage(effectMessage, effectArgs) });
     }
 
-    public override hasTargetsChosenByInitiatingPlayer(context: TContext, additionalProperties = {}): boolean {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.checkTarget && properties.player !== RelativePlayer.Opponent;
+
+        if (properties.player === EnumHelpers.asRelativePlayer(context.player, player)) {
+            return true;
+        }
+
+        return properties.innerSystem.hasTargetsChosenByPlayer(context, player, properties.innerSystemProperties(context.target));
     }
 
     private selectionIsOptional(properties, context): boolean {

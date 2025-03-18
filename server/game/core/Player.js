@@ -781,8 +781,6 @@ class Player extends GameObject {
         return penaltyAspects;
     }
 
-    // UP NEXT: add support for "ignoreExploit" in here, and also figure out how to merge exploit adjusters for "PlayCardResourceCost.canPay"
-
     /**
      * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
      * Accounts for aspect penalties and any modifiers to those specifically
