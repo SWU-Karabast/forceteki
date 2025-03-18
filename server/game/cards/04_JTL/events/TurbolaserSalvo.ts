@@ -42,7 +42,6 @@ export default class TurbolaserSalvo extends EventCard {
                     };
                 })
             }),
-            onFalse: AbilityHelper.immediateEffects.noAction()
         }));
     }
 }

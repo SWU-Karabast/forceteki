@@ -37,8 +37,8 @@ describe('Consolidation of power', function () {
                     context.battlefieldMarine,
                     context.allianceXwing,
                 ]);
-                expect(context.player1).toHavePassAbilityButton();
-                context.player1.clickPrompt('Pass');
+                expect(context.player1).toHaveChooseNoTargetButton();
+                context.player1.clickPrompt('Choose no target');
                 expect(context.player2).toBeActivePlayer();
                 context.player2.passAction();
 

@@ -13,10 +13,7 @@ export default class RaddusHoldosFinalCommand extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'While you control another resistance card, this unit gains Sentinel',
-            condition: (context) => context.player.hasSomeArenaCard({
-                trait: Trait.Resistance,
-                otherThan: context.source
-            }),
+            condition: (context) => context.player.controlsCardWithTrait(Trait.Resistance, false, context.source),
             matchTarget: (card, context) => card === context.source,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
@@ -25,7 +22,9 @@ export default class RaddusHoldosFinalCommand extends NonLeaderUnitCard {
             targetResolver: {
                 cardCondition: (card, context) => card.controller !== context.player,
                 cardTypeFilter: WildcardCardType.Unit,
-                immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({ amount: context.event.lastKnownInformation.power }))
+                immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
+                    amount: context.event.lastKnownInformation.power
+                }))
             }
         });
     }
