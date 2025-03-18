@@ -289,7 +289,7 @@ class PlayerOrCardAbility {
 
     hasTargetsChosenByPlayer(context, player = context.player) {
         return (
-            this.targetResolvers.some((target) => target.hasTargetsChosenByPlayer(context, player)) ||
+            this.targetResolvers.some((target) => !target.dependsOnOtherTarget && target.hasTargetsChosenByPlayer(context, player)) ||
             this.immediateEffect?.hasTargetsChosenByPlayer(context, player) ||
             this.getCosts(context).some(
                 (cost) => cost.hasTargetsChosenByInitiatingPlayer && cost.hasTargetsChosenByPlayer(context, player)

@@ -10,11 +10,14 @@ import type Player from '../../Player';
  * Base class for all target resolvers.
  */
 export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityContext>> {
+    public readonly dependsOnOtherTarget;
+
     protected dependentTarget = null;
     protected dependentCost = null;
 
     public constructor(protected name: string, protected properties: TProps, ability: PlayerOrCardAbility = null) {
         if (this.properties.dependsOn) {
+            this.dependsOnOtherTarget = true;
             Contract.assertNotNullLike(ability);
 
             const dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
@@ -27,6 +30,8 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
             }
 
             dependsOnTarget.dependentTarget = this;
+        } else {
+            this.dependsOnOtherTarget = false;
         }
     }
 
@@ -86,7 +91,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
         }
 
         Contract.assertFalse(
-            this.properties.dependsOn &&
+            this.dependsOnOtherTarget &&
             context.targets[this.properties.dependsOn] == null &&
             context.selects[this.properties.dependsOn] == null,
             `Attempting to evaluate target resolver '${this.name}' but dependent target '${this.properties.dependsOn}' is not present in context`

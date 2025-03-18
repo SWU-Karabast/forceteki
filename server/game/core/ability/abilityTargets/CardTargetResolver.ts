@@ -250,7 +250,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     protected override hasTargetsChosenByPlayerInternal(context: AbilityContext, player: Player = context.player) {
-        if (this.selector.optional || this.selector.hasEnoughTargets(context, player)) {
+        if (this.getChoosingPlayer(context) === player && (this.selector.optional || this.selector.hasEnoughTargets(context, player))) {
             return true;
         }
 
@@ -260,7 +260,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
                 return true;
             }
             if (this.dependentTarget) {
-                return this.dependentTarget.checkGameActionsForTargetsChosenByPlayer(contextCopy, player);
+                return this.dependentTarget.hasTargetsChosenByPlayerInternal(contextCopy, player);
             }
             return false;
         });
