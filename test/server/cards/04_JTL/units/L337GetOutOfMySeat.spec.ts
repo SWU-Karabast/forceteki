@@ -53,7 +53,6 @@ describe('L3-37, Get Out of my seat', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            // Todo: This test should pass
             it('let the opponent attach the L3-37 if they control it when defeated', function () {
                 const { context } = contextRef;
 
