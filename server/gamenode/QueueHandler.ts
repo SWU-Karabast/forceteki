@@ -2,11 +2,7 @@ import { SwuGameFormat } from '../SwuGameFormat';
 import type { Deck } from '../utils/deck/Deck';
 import type Socket from '../socket';
 import { logger } from '../logger';
-
-interface User {
-    id: string;
-    username: string;
-}
+import type { User } from '../utils/user/User';
 
 interface QueuedPlayer {
     deck: Deck;
@@ -27,10 +23,10 @@ class QueueHandler {
 
 
     public addPlayer(format: SwuGameFormat, player: QueuedPlayer) {
-        const queuedPlayer = this.findPlayerInQueue(player.user.id);
+        const queuedPlayer = this.findPlayerInQueue(player.user.getId());
         if (queuedPlayer) {
-            logger.info(`User ${player.user.id} is already in queue, rejoining`);
-            this.removePlayer(player.user.id);
+            logger.info(`User ${player.user.getId()} is already in queue, rejoining`);
+            this.removePlayer(player.user.getId());
         }
         this.queues.get(format)?.push(player);
     }
@@ -38,7 +34,7 @@ class QueueHandler {
 
     public removePlayer(userId: string) {
         for (const queue of this.queues.values()) {
-            const index = queue.findIndex((p) => p.user.id === userId);
+            const index = queue.findIndex((p) => p.user.getId() === userId);
             if (index !== -1) {
                 queue.splice(index, 1);
                 return;
@@ -49,7 +45,7 @@ class QueueHandler {
 
     public findPlayerInQueue(userId: string): QueuedPlayer | null {
         for (const queue of this.queues.values()) {
-            const player = queue.find((p) => p.user.id === userId);
+            const player = queue.find((p) => p.user.getId() === userId);
             if (player) {
                 return player;
             }

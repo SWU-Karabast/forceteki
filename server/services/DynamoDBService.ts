@@ -58,7 +58,6 @@ export class DynamoDBService {
         let dbClientConfig: any = {
             region: process.env.AWS_REGION || 'us-east-1',
         };
-
         // Configure for local testing if in development environment or explicitly specified
         if (this.isLocalMode) {
             const endpoint = 'http://localhost:8000';

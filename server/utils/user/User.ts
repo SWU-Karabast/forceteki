@@ -48,7 +48,7 @@ export abstract class User {
  * Represents an authenticated user with a full account
  */
 export class AuthenticatedUser extends User {
-    private userData: IUserData;
+    public userData: IUserData;
 
     public constructor(userData: IUserData) {
         super();
@@ -95,8 +95,8 @@ export class AuthenticatedUser extends User {
  * Represents an anonymous user without an account
  */
 export class AnonymousUser extends User {
-    private id: string;
-    private username: string;
+    public id: string;
+    public username: string;
 
     public constructor(id: string, username: string = 'Anonymous') {
         super();

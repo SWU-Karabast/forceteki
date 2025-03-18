@@ -39,7 +39,7 @@ const { MergedExploitCostAdjuster } = require('../abilities/keyword/exploit/Merg
 class Player extends GameObject {
     /**
      * @param {string} id
-     * @param {import('../../Settings').User} user
+     * @param {import('../../Settings').IUser} user
      * @param {Game} game
      * @param {import('./clocks/ClockSelector.js').ClockConfig} [clockDetails]
      */

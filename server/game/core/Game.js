@@ -39,6 +39,7 @@ const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayC
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
 const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
+const { User } = require('../../utils/user/User');
 
 class Game extends EventEmitter {
     #debug;

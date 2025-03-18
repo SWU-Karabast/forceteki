@@ -1,8 +1,7 @@
 import type { User } from './User';
 import { AuthenticatedUser, AnonymousUser } from './User';
-import { DynamoDBService } from '../services/DynamoDBService';
-import { AuthService } from '../services/AuthenticationService';
-import { logger } from '../logger';
+import { AuthService } from '../../services/AuthenticationService';
+import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 
 /**
@@ -10,13 +9,7 @@ import { v4 as uuid } from 'uuid';
  * based on authentication status and data
  */
 export class UserFactory {
-    private dbService: DynamoDBService;
-    private authService: AuthService;
-
-    public constructor(dbService?: DynamoDBService, authService?: AuthService) {
-        this.dbService = dbService || new DynamoDBService();
-        this.authService = authService || new AuthService();
-    }
+    private authService = new AuthService();
 
     /**
      * Creates a user instance from a JWT token
@@ -31,7 +24,7 @@ export class UserFactory {
                 return this.createAnonymousUser();
             }
 
-            const userData = await this.dbService.getUserProfile(basicUser.id);
+            const userData = await this.authService.getUserProfile(basicUser.id);
             if (!userData) {
                 logger.warn(`User profile not found for authenticated user ${basicUser.id}`);
                 return this.createAnonymousUser();

@@ -11,13 +11,14 @@ export class AuthService {
      * @returns The authenticated user or null if authentication failed
      */
     public async authenticateWithToken(token: string): Promise<{ id: string; username: string } | null> {
-        if (!token) {
-            return null;
-        }
-
-        const secret = process.env.NEXTAUTH_SECRET || '';
-
         try {
+            if (!token) {
+                return null;
+            }
+
+            const secret = process.env.NEXTAUTH_SECRET || '';
+
+
             const decoded = jwt.verify(token, secret) as any;
 
             if (!decoded || (!decoded.id && !decoded.sub)) {
@@ -32,7 +33,6 @@ export class AuthService {
 
             // First try to find user by OAuth provider ID
             let dbUserId = await this.dbService.getUserIdByOAuth(provider, providerId);
-
             // If not found by OAuth and email is available, try to find by email
             if (!dbUserId && email) {
                 dbUserId = await this.dbService.getUserIdByEmail(email);
@@ -90,6 +90,11 @@ export class AuthService {
             logger.error('Authentication error:', error);
             return null;
         }
+    }
+
+
+    public async getUserProfile(userId: string) {
+        return await this.dbService.getUserProfile(userId);
     }
 
     /**

@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { parse } from 'cookie';
+import { UserFactory } from '../utils/user/UserFactory';
 
 // Extend Express Request type
 declare global {
@@ -26,12 +27,11 @@ export const authMiddleware = () => {
             const token = cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
             if (!token) {
                 // No token found, so no user info. We let the request proceed with an attached anon user.
-                req.user = userFactory.createAnonymousUser(req.user?.id, req.user?.username);
+                req.user = userFactory.createAnonymousUser(req.body.user?.id, req.body.user?.username);
                 return next();
             }
 
             req.user = await userFactory.createUserFromToken(token);
-
             return next();
         } catch (error) {
             console.error('Auth middleware error:', error);
