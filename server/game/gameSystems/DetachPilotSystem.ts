@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { Card } from '../core/card/Card';
+import { InitializeCardStateOption, type Card } from '../core/card/Card';
 import {
     EventName,
     GameStateChangeRequired,
@@ -21,7 +21,7 @@ export class DetachPilotSystem<TContext extends AbilityContext = AbilityContext>
 
     public eventHandler(event: any, additionalProperties = {}): void {
         event.card.unattach(event);
-        event.card.moveTo(ZoneName.GroundArena, false);
+        event.card.moveTo(ZoneName.GroundArena, InitializeCardStateOption.ForceInitialize);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

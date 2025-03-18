@@ -49,16 +49,6 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
     protected override initializeForCurrentZone(prevZone?: ZoneName): void {
         super.initializeForCurrentZone(prevZone);
 
-        // optimization for piloting
-        if (this.zoneName === ZoneName.SpaceArena && this.defaultArena === ZoneName.GroundArena) {
-            this.setActiveAttackEnabled(false);
-            this.setDamageEnabled(false);
-            this.setExhaustEnabled(false);
-            this.setUpgradesEnabled(false);
-            this.setCaptureZoneEnabled(false);
-            return;
-        }
-
         switch (this.zoneName) {
             case ZoneName.GroundArena:
             case ZoneName.SpaceArena:
@@ -85,6 +75,14 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
                 this.setCaptureZoneEnabled(false);
                 break;
         }
+    }
+
+    protected override updateStateOnAttach() {
+        this.setActiveAttackEnabled(false);
+        this.setDamageEnabled(false);
+        this.setExhaustEnabled(false);
+        this.setUpgradesEnabled(false);
+        this.setCaptureZoneEnabled(false);
     }
 
     public override checkIsAttachable(): void {
