@@ -224,5 +224,38 @@ describe('Endless Legions', function() {
 
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('Endless Legionsl\'s event ability should play no cards if no units are revealed', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'grand-moff-tarkin#oversector-governor',
+                    hand: ['endless-legions'],
+                    base: 'echo-base',
+                    resources: [
+                        'discerning-veteran',
+                        'snowspeeder',
+                        'specforce-soldier',
+                        'ruthless-raider',
+                        'tieln-fighter',
+                        'frozen-in-carbonite',
+                        'confiscate',
+                        'pyke-sentinel',
+                        'battlefield-marine',
+                        'admiral-piett#captain-of-the-executor',
+                        'relentless#konstantines-folly',
+                        'clone-commander-cody#commanding-the-212th',
+                        'arquitens-assault-cruiser',
+                        'resupply',
+                        'wrecker#boom',
+                    ]
+                },
+            });
+
+            const { context } = contextRef;
+            context.player1.clickCard(context.endlessLegions);
+            context.player1.clickPrompt('Choose no target');
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

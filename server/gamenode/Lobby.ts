@@ -513,11 +513,11 @@ export class Lobby {
         //     }
         // }
 
-        // if (game) {
-        //     game.addMessage(
-        //         'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
-        //     );
-        // }
+        if (game) {
+            game.addMessage(
+                `A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue. The error has been logged. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
+            );
+        }
     }
 
     public sendGameState(game: Game): void {
