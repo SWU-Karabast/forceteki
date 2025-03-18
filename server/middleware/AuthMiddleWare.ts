@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
 import { parse } from 'cookie';
-import { AuthService } from '../services/AuthenticationService';
 
 // Extend Express Request type
 declare global {
@@ -18,7 +17,7 @@ declare global {
 }
 
 export const authMiddleware = () => {
-    const authService = new AuthService();
+    const userFactory = new UserFactory();
 
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -26,19 +25,12 @@ export const authMiddleware = () => {
             const cookies = parse(req.headers.cookie || '');
             const token = cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
             if (!token) {
-                // No token found, so no user info. We let the request proceed without an attached user.
+                // No token found, so no user info. We let the request proceed with an attached anon user.
+                req.user = userFactory.createAnonymousUser(req.user?.id, req.user?.username);
                 return next();
             }
-            const basicUser = await authService.authenticateWithToken(token);
-            if (!basicUser) {
-                return res.status(401).json({ error: 'Authentication failed' });
-            }
 
-            // Get full user data for HTTP requests
-            const fullUser = await authService.getFullUserData(basicUser.id);
-            if (fullUser) {
-                req.user = fullUser;
-            }
+            req.user = await userFactory.createUserFromToken(token);
 
             return next();
         } catch (error) {
@@ -49,10 +41,21 @@ export const authMiddleware = () => {
 };
 
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user) {
+    if (!req.user || !req.user.isAuthenticatedUser()) {
         return res.status(401).json({
             success: false,
             message: 'Authentication required'
+        });
+    }
+    next();
+};
+
+// TODO this will be needed later on when we will have dedicated admin pages
+export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user || !req.user.isAuthenticatedUser() || !req.user.isAdmin()) {
+        return res.status(403).json({
+            success: false,
+            message: 'Admin access required'
         });
     }
     next();

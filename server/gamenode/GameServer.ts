@@ -9,6 +9,7 @@ import { Server as IOServer } from 'socket.io';
 import { logger } from '../logger';
 
 import { Lobby, MatchType } from './Lobby';
+import type { User } from './models/User';
 import Socket from '../socket';
 import * as env from '../env';
 import type { Deck } from '../utils/deck/Deck';
@@ -19,9 +20,8 @@ import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import QueueHandler from './QueueHandler';
-import { DynamoDBService } from '../services/DynamoDBService';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
-import { AuthService } from '../services/AuthenticationService';
+
 
 /**
  * Represents a user object
@@ -94,6 +94,7 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
+    private readonly userFactory: UserFactory;
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -114,6 +115,9 @@ export class GameServer {
         app.use(authMiddleware());
 
         this.setupAppRoutes(app);
+
+        // setup userfactory
+        this.userFactory = new UserFactory();
 
         app.use((err, req, res, next) => {
             logger.error('GameServer: Error in API route:', err);
@@ -144,39 +148,30 @@ export class GameServer {
         // Setup Socket.IO middleware for Next-auth token verification
         this.io.use(async (socket, next) => {
             try {
-                const authService = new AuthService();
                 // Get token from handshake auth
                 const token = socket.handshake.auth.token;
-                let authenticated = false;
+                let user: User | null = null;
 
                 if (token) {
-                    const user = await authService.authenticateWithToken(token);
+                    user = await this.userFactory.createUserFromToken(token);
                     // Try standard JWT verification first
-                    if (user) {
+                    if (user.isAuthenticatedUser()) {
                         socket.data.user = user;
-                        authenticated = true;
+                        return next();
                     }
                 }
 
-                // Fall back to query user if JWT authentication failed
-                if (!authenticated) {
-                    const queryUser = socket.handshake.query.user
-                        ? JSON.parse(socket.handshake.query.user as string)
-                        : null;
-
-                    if (queryUser) {
-                        socket.data.user = queryUser;
-                        authenticated = true;
-                    }
+                const queryUser = socket.handshake.query.user
+                    ? JSON.parse(socket.handshake.query.user as string)
+                    : null;
+                if (queryUser) {
+                    user = this.userFactory.createAnonymousUser(queryUser.id, queryUser.username);
+                    socket.data.user = user;
+                    return next();
                 }
 
-                // If no authentication method succeeded, reject the connection
-                if (!authenticated) {
-                    logger.info('Socket connection rejected: No valid authentication provided');
-                    return next(new Error('Authentication failed'));
-                }
-                // Continue to next middleware if authenticated
-                next();
+                logger.info('Socket connection rejected: No valid authentication provided');
+                return next(new Error('Authentication failed'));
             } catch (error) {
                 logger.error('Socket auth middleware error:', error);
                 next(new Error('Authentication error'));
@@ -201,41 +196,6 @@ export class GameServer {
     }
 
     private setupAppRoutes(app: express.Application) {
-        app.post('/api/test-dynamodb', async (req, res) => {
-            const { id, data } = req.body;
-
-            if (!id || !data) {
-                return res.status(400).json({ success: false, message: 'Missing required fields' });
-            }
-            try {
-                const dbService = new DynamoDBService();
-                // Create a test item
-                const item = {
-                    pk: `TEST#${id}`,
-                    sk: `TEST#${new Date().toISOString()}`,
-                    id,
-                    data,
-                    createdAt: new Date().toISOString()
-                };
-
-                // Write to DynamoDB
-                await dbService.putItem(item);
-
-                // Return success
-                return res.status(200).json({
-                    success: true,
-                    message: 'Item successfully added to DynamoDB',
-                    item
-                });
-            } catch (error) {
-                logger.error('Error writing to DynamoDB:', error);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Failed to write to DynamoDB',
-                    error: error.message
-                });
-            }
-        });
         app.get('/api/get-unimplemented', (req, res, next) => {
             try {
                 return res.json(this.deckValidator.getUnimplementedCards());
@@ -533,13 +493,8 @@ export class GameServer {
     // }
 
     public async onConnection(ioSocket) {
-        const user = ioSocket.data.user;
-
+        const user = ioSocket.data.user as User;
         const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
-
-        if (user) {
-            ioSocket.data.user = user;
-        }
 
         if (!ioSocket.data.user) {
             logger.info('GameServer: socket connected with no user, disconnecting');

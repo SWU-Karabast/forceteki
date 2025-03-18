@@ -1,6 +1,5 @@
 import { DynamoDBService, IUserData } from '../../../server/services/DynamoDBService';
 
-
 async function seedLocalDynamoDB() {
     console.log('Initializing local DynamoDB with test data...');
 
@@ -11,53 +10,141 @@ async function seedLocalDynamoDB() {
         await dbService.clearAllData();
         console.log('Cleared existing data');
 
-        // Create test users
+        // Create test users with separate email data
         const users: IUserData[] = [
             {
-                id: 'user1',
+                id: 'google_123456',
                 username: 'player1',
-                email: 'player1@example.com',
-                provider: 'local',
-                avatarUrl: 'https://example.com/avatar1.jpg',
                 lastLogin: new Date().toISOString(),
                 createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-                settings: {
+                username_set_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+                preferences: {
                     theme: 'dark',
-                    notifications: true
-                }
+                    notifications: true,
+                    cardback: 'imperial'
+                },
             },
             {
-                id: 'user2',
+                id: 'discord_789012',
                 username: 'player2',
-                email: 'player2@example.com',
-                provider: 'google',
-                avatarUrl: 'https://example.com/avatar2.jpg',
                 lastLogin: new Date().toISOString(),
                 createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-                settings: {
+                username_set_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+                preferences: {
                     theme: 'light',
-                    notifications: false
+                    notifications: false,
+                    cardback: 'rebel'
+                },
+            },
+            {
+                id: 'google_admin123',
+                username: 'admin',
+                lastLogin: new Date().toISOString(),
+                createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+                username_set_at: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+                preferences: {
+                    theme: 'system',
+                    notifications: true,
+                    isAdmin: true,
+                    cardback: 'admin'
+                },
+            }
+        ];
+
+        // Store email data separately
+        const userEmails = {
+            google_123456: 'player1@example.com',
+            discord_789012: 'player2@example.com',
+            google_admin123: 'admin@example.com'
+        };
+
+        // Create test decks
+        const decks = [
+            {
+                id: 'deck1',
+                userId: 'google_123456',
+                deck: {
+                    name: 'Player 1\'s First Deck',
+                    cards: [/* card data would go here */]
+                },
+                stats: {
+                    wins: 5,
+                    losses: 2
                 }
             },
             {
-                id: 'admin1',
-                username: 'admin',
-                email: 'admin@example.com',
-                provider: 'local',
-                lastLogin: new Date().toISOString(),
-                createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-                settings: {
-                    theme: 'system',
-                    notifications: true,
-                    isAdmin: true
+                id: 'deck2',
+                userId: 'google_123456',
+                deck: {
+                    name: 'Player 1\'s Second Deck',
+                    cards: [/* card data would go here */]
+                },
+                stats: {
+                    wins: 3,
+                    losses: 1
+                }
+            },
+            {
+                id: 'deck3',
+                userId: 'discord_789012',
+                deck: {
+                    name: 'Player 2\'s Deck',
+                    cards: [/* card data would go here */]
+                },
+                stats: {
+                    wins: 2,
+                    losses: 4
                 }
             }
         ];
 
-        // Save each test user
+        // Create test game records
+        const games = [
+            {
+                id: 'game1',
+                player1: 'google_123456',
+                player2: 'discord_789012',
+                firstTurn: 'google_123456',
+                winner: 'google_123456',
+                winnerBaseHealthRemaining: 12,
+                player1LeaderId: 'leader1',
+                player1BaseId: 'base1',
+                player2LeaderId: 'leader2',
+                player2BaseId: 'base2'
+            }
+        ];
+
+        // Save users with all their connections
         for (const user of users) {
-            await dbService.saveUser(user);
-            console.log(`Created user: ${user.username}`);
+            // Save user profile
+            await dbService.saveUserProfile(user);
+            console.log(`Created user profile: ${user.username}`);
+
+            // Create OAuth link - extract provider and ID from user ID
+            const [provider, providerId] = user.id.split('_');
+            if (provider && providerId) {
+                await dbService.saveOAuthLink(provider, providerId, user.id);
+                console.log(`Created OAuth link for ${user.username}`);
+            }
+
+            // Create email link
+            const email = userEmails[user.id];
+            if (email) {
+                await dbService.saveEmailLink(email, user.id);
+                console.log(`Created email link for ${user.username} (${email})`);
+            }
+        }
+
+        // Save decks
+        for (const deck of decks) {
+            await dbService.saveDeck(deck);
+            console.log(`Created deck: ${deck.deck.name}`);
+        }
+
+        // Save games
+        for (const game of games) {
+            await dbService.saveGameRecord(game);
+            console.log(`Created game record: ${game.id}`);
         }
 
         console.log('Successfully seeded local DynamoDB with test data!');

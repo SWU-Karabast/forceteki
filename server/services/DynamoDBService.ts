@@ -5,7 +5,8 @@ import {
     GetCommand,
     QueryCommand,
     UpdateCommand,
-    DeleteCommand
+    DeleteCommand,
+    ScanCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
 
@@ -13,12 +14,36 @@ import { logger } from '../logger';
 export interface IUserData {
     id: string;
     username: string;
-    email?: string;
-    provider: string;
-    avatarUrl?: string;
     lastLogin: string;
     createdAt: string;
-    settings?: Record<string, any>;
+    username_set_at?: string; // When username was set/changed
+    preferences?: Record<string, any>;
+}
+
+// Interface for deck data
+export interface IDeckData {
+    id: string;
+    userId: string;
+    deck: Record<string, any>;
+    stats?: {
+        wins: number;
+        losses: number;
+    };
+}
+
+// Interface for game record
+export interface IGameRecord {
+    id: string;
+    player1: string;
+    player2: string;
+    firstTurn: string;
+    winner: string;
+    winnerBaseHealthRemaining: number;
+    player1LeaderId: string;
+    player1BaseId: string;
+    player2LeaderId: string;
+    player2BaseId: string;
+    timestamp?: string;
 }
 
 export class DynamoDBService {
@@ -66,7 +91,7 @@ export class DynamoDBService {
     }
 
     /**
-     * Ensures the table exists in DynamoDB Local
+     * Ensures the table exists in DynamoDB Local with the appropriate GSI
      * This is only used in local development mode
      */
     private async ensureTableExists(): Promise<void> {
@@ -88,7 +113,7 @@ export class DynamoDBService {
                 return;
             }
 
-            // Create the table with the same schema as in production
+            // Create the table with GSI for retrieving users by OAuth ID or email
             await this.client.send(
                 new CreateTableCommand({
                     TableName: this.tableName,
@@ -98,13 +123,29 @@ export class DynamoDBService {
                     ],
                     AttributeDefinitions: [
                         { AttributeName: 'pk', AttributeType: 'S' },
-                        { AttributeName: 'sk', AttributeType: 'S' }
+                        { AttributeName: 'sk', AttributeType: 'S' },
+                        { AttributeName: 'GSI_PK', AttributeType: 'S' }
+                    ],
+                    GlobalSecondaryIndexes: [
+                        {
+                            IndexName: 'GSI_PK_INDEX',
+                            KeySchema: [
+                                { AttributeName: 'GSI_PK', KeyType: 'HASH' }
+                            ],
+                            Projection: {
+                                ProjectionType: 'ALL'
+                            },
+                            ProvisionedThroughput: {
+                                ReadCapacityUnits: 5,
+                                WriteCapacityUnits: 5
+                            }
+                        }
                     ],
                     BillingMode: 'PAY_PER_REQUEST'
                 })
             );
 
-            logger.info(`Created DynamoDB local table '${this.tableName}'`);
+            logger.info(`Created DynamoDB local table '${this.tableName}' with GSI`);
         } catch (error) {
             logger.error(`Error creating local DynamoDB table: ${error}`);
             throw error;
@@ -113,9 +154,6 @@ export class DynamoDBService {
 
     /**
      * A utility method to wrap DB operations in a try-catch block
-     * @param operation - The operation to perform
-     * @param errorMessage - The error message to log
-     * @returns The result of the operation
      */
     private async executeDbOperation<T>(operation: () => Promise<T>, errorMessage: string): Promise<T> {
         try {
@@ -126,7 +164,8 @@ export class DynamoDBService {
         }
     }
 
-    // Get an item by its primary key
+    // Basic CRUD operations
+
     public async getItem(pk: string, sk: string) {
         return await this.executeDbOperation(async () => {
             const command = new GetCommand({
@@ -137,7 +176,6 @@ export class DynamoDBService {
         }, 'DynamoDB getItem error');
     }
 
-    // Put an item
     public async putItem(item: Record<string, any>) {
         return await this.executeDbOperation(async () => {
             const command = new PutCommand({
@@ -148,7 +186,6 @@ export class DynamoDBService {
         }, 'DynamoDB putItem error');
     }
 
-    // Query items with the same partition key
     public async queryItems(pk: string, options: {
         beginsWith?: string;
         filters?: Record<string, any>;
@@ -173,7 +210,6 @@ export class DynamoDBService {
         }, 'DynamoDB queryItems error');
     }
 
-    // Update an item
     public async updateItem(pk: string, sk: string, updateExpression: string, expressionAttributeValues: Record<string, any>) {
         return await this.executeDbOperation(async () => {
             const command = new UpdateCommand({
@@ -188,7 +224,6 @@ export class DynamoDBService {
         }, 'DynamoDB updateItem error');
     }
 
-    // Delete an item
     public async deleteItem(pk: string, sk: string) {
         return await this.executeDbOperation(async () => {
             const command = new DeleteCommand({
@@ -200,6 +235,215 @@ export class DynamoDBService {
         }, 'DynamoDB deleteItem error');
     }
 
+    // Query by GSI_PK for OAuth and email lookups
+    public async queryByGSIPK(gsiPk: string) {
+        return await this.executeDbOperation(async () => {
+            const command = new QueryCommand({
+                TableName: this.tableName,
+                IndexName: 'GSI_PK_INDEX',
+                KeyConditionExpression: 'GSI_PK = :gsiPk',
+                ExpressionAttributeValues: { ':gsiPk': gsiPk }
+            });
+
+            return await this.client.send(command);
+        }, 'DynamoDB queryByGSIPK error');
+    }
+
+    // User Profile Methods
+
+    public async saveUserProfile(userData: IUserData) {
+        return await this.executeDbOperation(async () => {
+            const item = {
+                pk: `USER#${userData.id}`,
+                sk: 'PROFILE',
+                ...userData,
+                username_set_at: userData.username_set_at || new Date().toISOString(),
+                preferences: userData.preferences || { cardback: 'default' },
+            };
+
+            return await this.putItem(item);
+        }, 'Error saving user profile');
+    }
+
+    public async getUserProfile(userId: string) {
+        return await this.executeDbOperation(async () => {
+            const result = await this.getItem(`USER#${userId}`, 'PROFILE');
+            return result.Item as IUserData | undefined;
+        }, 'Error getting user profile');
+    }
+
+    public async updateUserProfile(userId: string, updates: Partial<IUserData>) {
+        return await this.executeDbOperation(async () => {
+            // Build update expression and expression attribute values
+            let updateExpression = 'SET';
+            const expressionAttributeValues: Record<string, any> = {};
+
+            for (const [key, value] of Object.entries(updates)) {
+                if (key !== 'id') { // Don't update primary key
+                    updateExpression += ` ${key} = :${key},`;
+                    expressionAttributeValues[`:${key}`] = value;
+                }
+            }
+
+            // Remove trailing comma
+            updateExpression = updateExpression.slice(0, -1);
+
+            return await this.updateItem(
+                `USER#${userId}`,
+                'PROFILE',
+                updateExpression,
+                expressionAttributeValues
+            );
+        }, 'Error updating user profile');
+    }
+
+    // OAuth Link Methods
+
+    public async saveOAuthLink(provider: string, providerId: string, userId: string) {
+        return await this.executeDbOperation(async () => {
+            const item = {
+                pk: `OAUTH#${provider}_${providerId}`,
+                sk: 'LINK',
+                GSI_PK: userId,
+                provider,
+                providerId
+            };
+
+            return await this.putItem(item);
+        }, 'Error saving OAuth link');
+    }
+
+    public async getUserIdByOAuth(provider: string, providerId: string) {
+        return await this.executeDbOperation(async () => {
+            const result = await this.getItem(`OAUTH#${provider}_${providerId}`, 'LINK');
+            return result.Item?.GSI_PK as string | undefined;
+        }, 'Error getting user ID by OAuth');
+    }
+
+    // Email Link Methods
+
+    public async saveEmailLink(email: string, userId: string) {
+        return await this.executeDbOperation(async () => {
+            const item = {
+                pk: `EMAIL#${email.toLowerCase()}`,
+                sk: 'LINK',
+                GSI_PK: userId,
+                email: email.toLowerCase()
+            };
+
+            return await this.putItem(item);
+        }, 'Error saving email link');
+    }
+
+    public async getUserIdByEmail(email: string) {
+        return await this.executeDbOperation(async () => {
+            const result = await this.getItem(`EMAIL#${email.toLowerCase()}`, 'LINK');
+            return result.Item?.GSI_PK as string | undefined;
+        }, 'Error getting user ID by email');
+    }
+
+    // User Deck Methods
+
+    public async saveDeck(deckData: IDeckData) {
+        return await this.executeDbOperation(async () => {
+            const item = {
+                pk: `USER#${deckData.userId}`,
+                sk: `DECK#${deckData.id}`,
+                ...deckData,
+                stats: deckData.stats || { wins: 0, losses: 0 }
+            };
+
+            return await this.putItem(item);
+        }, 'Error saving deck');
+    }
+
+    public async getDeck(userId: string, deckId: string) {
+        return await this.executeDbOperation(async () => {
+            const result = await this.getItem(`USER#${userId}`, `DECK#${deckId}`);
+            return result.Item as IDeckData | undefined;
+        }, 'Error getting deck');
+    }
+
+    public async getUserDecks(userId: string) {
+        return await this.executeDbOperation(async () => {
+            const result = await this.queryItems(`USER#${userId}`, { beginsWith: 'DECK#' });
+            return result.Items as IDeckData[] | undefined;
+        }, 'Error getting user decks');
+    }
+
+    public async updateDeckStats(userId: string, deckId: string, win: boolean) {
+        return await this.executeDbOperation(async () => {
+            const deck = await this.getDeck(userId, deckId);
+            if (!deck) {
+                throw new Error(`Deck with ID ${deckId} not found for user ${userId}`);
+            }
+
+            const stats = deck.stats || { wins: 0, losses: 0 };
+            if (win) {
+                stats.wins += 1;
+            } else {
+                stats.losses += 1;
+            }
+
+            return await this.updateItem(
+                `USER#${userId}`,
+                `DECK#${deckId}`,
+                'SET stats = :stats',
+                { ':stats': stats }
+            );
+        }, 'Error updating deck stats');
+    }
+
+    // Game Record Methods
+
+    public async saveGameRecord(gameData: IGameRecord) {
+        return await this.executeDbOperation(async () => {
+            const item = {
+                pk: `GAME#${gameData.id}`,
+                sk: 'INFO',
+                ...gameData,
+                timestamp: new Date().toISOString()
+            };
+
+            return await this.putItem(item);
+        }, 'Error saving game record');
+    }
+
+    public async getGameRecord(gameId: string) {
+        return await this.executeDbOperation(async () => {
+            const result = await this.getItem(`GAME#${gameId}`, 'INFO');
+            return result.Item as IGameRecord | undefined;
+        }, 'Error getting game record');
+    }
+
+    public async getUserById(userId: string) {
+        return await this.executeDbOperation(async () => {
+            return await this.getUserProfile(userId);
+        }, 'Error getting user by ID');
+    }
+
+    public async recordNewLogin(userId: string) {
+        return await this.executeDbOperation(async () => {
+            return await this.updateItem(
+                `USER#${userId}`,
+                'PROFILE',
+                'SET lastLogin = :lastLogin',
+                { ':lastLogin': new Date().toISOString() }
+            );
+        }, 'Error recording new login');
+    }
+
+    public async saveUserSettings(userId: string, settings: Record<string, any>) {
+        return await this.executeDbOperation(async () => {
+            return await this.updateItem(
+                `USER#${userId}`,
+                'PROFILE',
+                'SET preferences = :preferences',
+                { ':preferences': settings }
+            );
+        }, 'Error saving user settings');
+    }
+
     // Clear all data (for testing purposes only)
     public async clearAllData() {
         if (!this.isLocalMode) {
@@ -208,8 +452,6 @@ export class DynamoDBService {
 
         return await this.executeDbOperation(async () => {
             // For local testing only - scan and delete all items
-            const { ScanCommand } = await import('@aws-sdk/lib-dynamodb');
-
             const scanResult = await this.client.send(
                 new ScanCommand({
                     TableName: this.tableName
@@ -231,53 +473,5 @@ export class DynamoDBService {
             await Promise.all(deletePromises);
             logger.info(`Cleared all data from local DynamoDB table '${this.tableName}'`);
         }, 'Error clearing local DynamoDB data');
-    }
-
-    // User-specific methods
-
-    // Save or update user
-    public async saveUser(userData: IUserData) {
-        return await this.executeDbOperation(async () => {
-            const item = {
-                pk: `USER#${userData.id}`,
-                sk: 'METADATA',
-                ...userData,
-                lastLogin: userData.lastLogin || new Date().toISOString()
-            };
-
-            return await this.putItem(item);
-        }, 'Error saving user to DynamoDB');
-    }
-
-    // Get user by ID
-    public async getUserById(userId: string) {
-        return await this.executeDbOperation(async () => {
-            const result = await this.getItem(`USER#${userId}`, 'METADATA');
-            return result.Item as IUserData | undefined;
-        }, 'Error getting user from DynamoDB');
-    }
-
-    // Update user's last login time
-    public async recordNewLogin(userId: string) {
-        return await this.executeDbOperation(async () => {
-            return await this.updateItem(
-                `USER#${userId}`,
-                'METADATA',
-                'SET lastLogin = :lastLogin',
-                { ':lastLogin': new Date().toISOString() }
-            );
-        }, 'Error updating user login time');
-    }
-
-    // Save user settings
-    public async saveUserSettings(userId: string, settings: Record<string, any>) {
-        return await this.executeDbOperation(async () => {
-            return await this.updateItem(
-                `USER#${userId}`,
-                'METADATA',
-                'SET settings = :settings',
-                { ':settings': settings }
-            );
-        }, 'Error saving user settings');
     }
 }
