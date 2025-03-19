@@ -4,7 +4,8 @@ describe('Shaak Ti Unity Wins Wars', function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['shaak-ti#unity-wins-wars']
+                    groundArena: ['shaak-ti#unity-wins-wars'],
+                    spaceArena: ['tie-fighter', 'xwing']
 
                 },
                 player2: {
@@ -23,6 +24,9 @@ describe('Shaak Ti Unity Wins Wars', function() {
             expect(cloneTroopers[0].exhausted).toBeTrue();
             expect(cloneTroopers[0].getPower()).toBe(3);
             expect(cloneTroopers[0].getHp()).toBe(2);
+
+            expect(context.xwing.getPower()).toBe(3);
+            expect(context.tieFighter.getPower()).toBe(2);
         });
     });
 });
