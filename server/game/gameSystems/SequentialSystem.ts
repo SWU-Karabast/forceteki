@@ -5,6 +5,7 @@ import type { GameObject } from '../core/GameObject';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import type { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
+import type Player from '../core/Player';
 
 
 export interface ISequentialSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
@@ -71,10 +72,10 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
         return properties.gameSystems.some((gameSystem) => gameSystem.canAffect(target, context));
     }
 
-    public override hasTargetsChosenByInitiatingPlayer(context, additionalProperties = {}) {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties = {}) {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.gameSystems.some((gameSystem) =>
-            gameSystem.hasTargetsChosenByInitiatingPlayer(context, additionalProperties)
+            gameSystem.hasTargetsChosenByPlayer(context, player, additionalProperties)
         );
     }
 }

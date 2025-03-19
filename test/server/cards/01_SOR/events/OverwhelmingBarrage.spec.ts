@@ -27,7 +27,7 @@ describe('Overwhelming Barrage', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.leiaOrgana]);
                 context.player1.clickCard(context.wampa);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.leiaOrgana, context.atst, context.tielnFighter, context.hanSolo]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.atst, 2],
                     [context.battlefieldMarine, 2],

@@ -191,7 +191,7 @@ var customMatchers = {
             }
         };
     },
-    toHaveChooseNoTargetButton: function (util, customEqualityMatchers) {
+    toHaveChooseNothingButton: function (util, customEqualityMatchers) {
         return {
             compare: function (actual) {
                 var buttons = actual.currentPrompt().buttons;
@@ -199,13 +199,13 @@ var customMatchers = {
 
                 result.pass = buttons.some(
                     (button) => !button.disabled &&
-                      (util.equals(button.text, 'Choose no target', customEqualityMatchers) || util.equals(button.text, 'Choose no targets', customEqualityMatchers))
+                      (util.equals(button.text, 'Choose nothing', customEqualityMatchers) || util.equals(button.text, 'Choose no targets', customEqualityMatchers))
                 );
 
                 if (result.pass) {
-                    result.message = `Expected ${actual.name} not to have enabled prompt button 'Choose no target(s)' but it did.`;
+                    result.message = `Expected ${actual.name} not to have enabled prompt button 'Choose nothing(s)' but it did.`;
                 } else {
-                    result.message = `Expected ${actual.name} to have enabled prompt button 'Choose no target(s)' `;
+                    result.message = `Expected ${actual.name} to have enabled prompt button 'Choose nothing(s)' `;
 
                     if (buttons.length > 0) {
                         var buttonText = buttons.map(

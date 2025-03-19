@@ -4,6 +4,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { GameObject } from '../core/GameObject';
 import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
+import type Player from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 
 export interface IReplacementEffectSystemProperties<TContext extends TriggeredAbilityContext> extends IGameSystemProperties {
@@ -108,11 +109,11 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
         return context.event.card ? [context.event.card] : [];
     }
 
-    public override hasTargetsChosenByInitiatingPlayer(context: TContext, additionalProperties = {}): boolean {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties = {}): boolean {
         const { replacementImmediateEffect: replacementGameAction } = this.generatePropertiesFromContext(context);
         return (
             replacementGameAction &&
-            replacementGameAction.hasTargetsChosenByInitiatingPlayer(context, additionalProperties)
+            replacementGameAction.hasTargetsChosenByPlayer(context, player, additionalProperties)
         );
     }
 

@@ -28,7 +28,7 @@ describe('Planetary Invasion', function () {
                 context.battleDroid,
                 context.cloneTrooper
             ]);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
 
             context.player1.clickCard(context.battlefieldMarine);
             context.player1.clickCard(context.wampa);

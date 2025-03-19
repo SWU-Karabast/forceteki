@@ -26,7 +26,7 @@ describe('Headhunting', function() {
 
                 // first attack, bounty hunter
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter, context.theMandalorian, context.wampa]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.reputableHunter);
                 expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
                 expect(context.player1).toHavePassAttackButton();
@@ -38,7 +38,7 @@ describe('Headhunting', function() {
                 // second attack, non-bounty-hunter
                 context.setDamage(context.consularSecurityForce, 0);
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.theMandalorian, context.wampa]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.atst);
                 expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
                 expect(context.player1).toHavePassAttackButton();
@@ -50,7 +50,7 @@ describe('Headhunting', function() {
                 // third attack, leader bounty hunter
                 context.setDamage(context.consularSecurityForce, 0);
                 expect(context.player1).toBeAbleToSelectExactly([context.theMandalorian, context.wampa]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.theMandalorian);
                 expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
                 expect(context.player1).toHavePassAttackButton();
@@ -70,11 +70,11 @@ describe('Headhunting', function() {
 
                 // first attack - skip target resolution, go straight to next attack
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter, context.theMandalorian, context.wampa]);
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
 
                 // second attack - select an attacker and go to target resolution, then pass
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter, context.theMandalorian, context.wampa]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.atst);
                 expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
                 context.player1.clickPrompt('Pass attack');
@@ -82,7 +82,7 @@ describe('Headhunting', function() {
 
                 // third attack - let it resolve to confirm things are working
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter, context.theMandalorian, context.wampa]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.theMandalorian);
                 expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
                 expect(context.player1).toHavePassAttackButton();
@@ -120,7 +120,7 @@ describe('Headhunting', function() {
 
                 // first attack, bounty hunter
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.reputableHunter]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.reputableHunter);
                 expect(context.player1).toBeAbleToSelectExactly([context.bountyGuildInitiate, context.consularSecurityForce]);
                 expect(context.player1).toHavePassAttackButton();

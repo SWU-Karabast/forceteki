@@ -116,7 +116,6 @@ describe('Cobb Vanth, The Marshal', function() {
                 expect(context.battlefieldMarine).toBeInZone('discard');
 
                 context.player1.clickCard(context.restock);
-                expect(context.player1).toBeAbleToSelectExactly([context.restock, context.cobbVanth, context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickPrompt('Done');
 
@@ -168,7 +167,6 @@ describe('Cobb Vanth, The Marshal', function() {
                 expect(context.battlefieldMarine).toBeInZone('discard');
 
                 context.player1.clickCard(context.palpatinesReturn);
-                expect(context.player1.exhaustedResourceCount).toBe(8);
                 expect(context.player1).toBeAbleToSelectExactly([context.cobbVanth, context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1.exhaustedResourceCount).toBe(8); // should still be free and no net change

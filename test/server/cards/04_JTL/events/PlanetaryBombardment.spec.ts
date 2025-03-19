@@ -29,7 +29,7 @@ describe('Planetary Bombardment', function() {
             expect(context.player2).toHavePrompt('Distribute 12 indirect damage among targets');
 
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.lurkingTiePhantom, context.bobaFett, context.chirrutImwe, context.p2Base]);
-            expect(context.player2).not.toHaveChooseNoTargetButton();
+            expect(context.player2).not.toHaveChooseNothingButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.wampa, 4],
                 [context.p2Base, 3],

@@ -29,14 +29,14 @@ describe('Count Dooku, Fallen Jedi', function() {
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 // click needs to be non-checking b/c prompt remains unchanged
                 context.player1.clickCardNonChecking(context.atst);
                 expect(context.atst.damage).toBe(5);
 
                 // choose second damage target (from battle droid)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer.damage).toBe(1);
             });
@@ -54,13 +54,13 @@ describe('Count Dooku, Fallen Jedi', function() {
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
                 expect(context.atst.damage).toBe(0);
                 expect(context.cartelSpacer.damage).toBe(0);
 
                 // choose second damage target (from battle droid)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer.damage).toBe(1);
             });
@@ -78,13 +78,13 @@ describe('Count Dooku, Fallen Jedi', function() {
 
                 // choose first damage target (from wampa)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
                 expect(context.atst.damage).toBe(0);
                 expect(context.cartelSpacer.damage).toBe(0);
 
                 // choose second damage target (from battle droid)
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
                 expect(context.atst.damage).toBe(0);
                 expect(context.cartelSpacer.damage).toBe(0);
             });
@@ -101,7 +101,7 @@ describe('Count Dooku, Fallen Jedi', function() {
 
                 // choose damage target
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.cartelSpacer]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.atst);
                 expect(context.atst.damage).toBe(5);
 

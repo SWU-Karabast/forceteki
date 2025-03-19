@@ -21,7 +21,7 @@ describe('Sweep the Area', function() {
                 context.player1.clickCard(context.sweepTheArea);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.redThree, context.battlefieldMarine, context.greenSquadronAwing, context.specforceSoldier, context.cantinaBraggart, context.isbAgent]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.redThree);
 
@@ -38,7 +38,7 @@ describe('Sweep the Area', function() {
                 context.player1.clickCard(context.sweepTheArea);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.redThree, context.battlefieldMarine, context.greenSquadronAwing, context.specforceSoldier, context.cantinaBraggart, context.isbAgent]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.specforceSoldier);
 

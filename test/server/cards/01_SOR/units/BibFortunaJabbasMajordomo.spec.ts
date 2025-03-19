@@ -54,7 +54,7 @@ describe('Bib Fortuna', function() {
                 context.player1.clickCard(context.bibFortuna);
 
                 context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
 
                 expect(context.bibFortuna.exhausted).toBe(true);
 
