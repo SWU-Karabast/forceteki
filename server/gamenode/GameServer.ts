@@ -87,7 +87,7 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
-    private readonly userFactory: UserFactory = new UserFactory();
+    private readonly userFactory: UserFactory = UserFactory.getInstance();
 
     private constructor(
         cardDataGetter: CardDataGetter,

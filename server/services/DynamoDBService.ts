@@ -51,6 +51,18 @@ export class DynamoDBService {
     private tableName: string;
     private isLocalMode: boolean;
 
+    // singleton instance
+    private static instance: DynamoDBService;
+
+    // Static method to get the singleton instance
+    public static getInstance(localMode?: boolean): DynamoDBService {
+        if (!DynamoDBService.instance) {
+            DynamoDBService.instance = new DynamoDBService(localMode);
+        }
+        return DynamoDBService.instance;
+    }
+
+
     public constructor(localMode?: boolean) {
         this.isLocalMode = localMode || process.env.ENVIRONMENT === 'development';
         this.tableName = 'KarabastGlobalTable';

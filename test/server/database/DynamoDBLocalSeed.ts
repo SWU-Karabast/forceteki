@@ -117,20 +117,28 @@ async function seedLocalDynamoDB() {
         // Save users with all their connections
         for (const user of users) {
             // Save user profile
-            await dbService.saveUserProfile(user);
-            console.log(`Created user profile: ${user.username}`);
+            const result = await dbService.saveUserProfile(user);
+            const userId = result.Attributes?.id || user.id;
 
-            // Create OAuth link - extract provider and ID from user ID
-            const [provider, providerId] = user.id.split('_');
+            if (!userId) {
+                throw new Error(`Failed to get ID for user ${user.username}`);
+            }
+
+            console.log(`Created user profile: ${user.username} (${userId})`);
+
+            // Create OAuth link - extract provider and ID from user data
+            const provider = 'discord';
+            const providerId = user.id;
+
             if (provider && providerId) {
-                await dbService.saveOAuthLink(provider, providerId, user.id);
+                await dbService.saveOAuthLink(provider, providerId, userId);
                 console.log(`Created OAuth link for ${user.username}`);
             }
 
             // Create email link
             const email = userEmails[user.id];
             if (email) {
-                await dbService.saveEmailLink(email, user.id);
+                await dbService.saveEmailLink(email, userId);
                 console.log(`Created email link for ${user.username} (${email})`);
             }
         }

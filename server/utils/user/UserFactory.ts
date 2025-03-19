@@ -9,7 +9,20 @@ import { v4 as uuid } from 'uuid';
  * based on authentication status and data
  */
 export class UserFactory {
-    private authService = new AuthService();
+    private authService: AuthService;
+    private static instance: UserFactory;
+
+    // Singleton pattern
+    public static getInstance(): UserFactory {
+        if (!UserFactory.instance) {
+            UserFactory.instance = new UserFactory();
+        }
+        return UserFactory.instance;
+    }
+
+    private constructor() {
+        this.authService = AuthService.getInstance();
+    }
 
     /**
      * Creates a user instance from a JWT token

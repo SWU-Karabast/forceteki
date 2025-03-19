@@ -1,9 +1,25 @@
 import { DynamoDBService } from './DynamoDBService';
 import jwt from 'jsonwebtoken';
 import { logger } from '../logger';
+import { v4 as uuid } from 'uuid';
+
 
 export class AuthService {
-    private dbService = new DynamoDBService();
+    private dbService: DynamoDBService;
+    private static instance: AuthService;
+
+    // Singleton pattern
+    public static getInstance(): AuthService {
+        if (!AuthService.instance) {
+            AuthService.instance = new AuthService();
+        }
+        return AuthService.instance;
+    }
+
+    private constructor() {
+        // Use the singleton instance of DynamoDBService
+        this.dbService = DynamoDBService.getInstance();
+    }
 
     /**
      * Authenticate a user via JWT token
@@ -58,9 +74,8 @@ export class AuthService {
             }
 
             // If user not found, create a new one
-            const newUserId = `${provider}_${providerId}`;
             const newUser = {
-                id: newUserId,
+                id: uuid(),
                 username: username,
                 lastLogin: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
@@ -72,17 +87,17 @@ export class AuthService {
             await this.dbService.saveUserProfile(newUser);
 
             // Create OAuth link
-            await this.dbService.saveOAuthLink(provider, providerId, newUserId);
+            await this.dbService.saveOAuthLink(provider, providerId, newUser.id);
 
             // Create email link if email is available
             if (email) {
-                await this.dbService.saveEmailLink(email, newUserId);
+                await this.dbService.saveEmailLink(email, newUser.id);
             }
 
-            logger.info(`Created new user: ${newUserId} (${username}) with ${provider} authentication`);
+            logger.info(`Created new user: ${newUser.id} (${username}) with ${provider} authentication`);
 
             return {
-                id: newUserId,
+                id: newUser.id,
                 username: newUser.username
             };
         } catch (error) {
