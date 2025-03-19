@@ -150,6 +150,11 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             return [];
         }
 
+        if (playType === PlayType.PlayFromOutOfPlay && this.hasSomeKeyword(KeywordName.Piloting)) {
+            const pilotingAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Piloting, PlayType.Piloting);
+            return [defaultPlayAction, pilotingAction];
+        }
+
         const actions: PlayCardAction[] = [defaultPlayAction];
 
         return actions;

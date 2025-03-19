@@ -110,8 +110,17 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         // filter out actions that don't match the expected playType or aren't legal in the current play context (e.g. can't be paid for)
         return availableCardPlayActions.filter((action) => {
             const newContext = action.createContext(context.player);
-            return action.playType === properties.playType && action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
+            return this.checkActionPlayType(properties.playType, action.playType) && action.meetsRequirements(newContext, properties.ignoredRequirements) === '';
         });
+    }
+
+    private checkActionPlayType(playType: PlayType, actionPlayType: PlayType): boolean {
+        if (playType === actionPlayType) {
+            return true;
+        } else if (playType === PlayType.PlayFromOutOfPlay && actionPlayType === PlayType.Piloting) {
+            return true;
+        }
+        return false;
     }
 
     private buildPlayActionProperties(card: Card, properties: IPlayCardProperties, context: TContext, action: PlayCardAction = null) {
