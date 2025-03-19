@@ -23,10 +23,10 @@ class QueueHandler {
 
 
     public addPlayer(format: SwuGameFormat, player: QueuedPlayer) {
-        const queuedPlayer = this.findPlayerInQueue(player.user.getId());
+        const queuedPlayer = this.findPlayerInQueue(player.user.getPlayerId());
         if (queuedPlayer) {
-            logger.info(`User ${player.user.getId()} is already in queue, rejoining`);
-            this.removePlayer(player.user.getId());
+            logger.info(`User ${player.user.getPlayerId()} is already in queue, rejoining`);
+            this.removePlayer(player.user.getPlayerId());
         }
         this.queues.get(format)?.push(player);
     }
@@ -34,7 +34,7 @@ class QueueHandler {
 
     public removePlayer(userId: string) {
         for (const queue of this.queues.values()) {
-            const index = queue.findIndex((p) => p.user.getId() === userId);
+            const index = queue.findIndex((p) => p.user.getPlayerId() === userId);
             if (index !== -1) {
                 queue.splice(index, 1);
                 return;
@@ -45,7 +45,7 @@ class QueueHandler {
 
     public findPlayerInQueue(userId: string): QueuedPlayer | null {
         for (const queue of this.queues.values()) {
-            const player = queue.find((p) => p.user.getId() === userId);
+            const player = queue.find((p) => p.user.getPlayerId() === userId);
             if (player) {
                 return player;
             }

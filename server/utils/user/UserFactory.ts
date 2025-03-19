@@ -39,13 +39,12 @@ export class UserFactory {
                 return this.createAnonymousUser();
             }
 
-            const userData = await this.getUserProfile(basicUser.id);
+            const userData = await this.dynamoDbService.getUserProfile(basicUser.id);
             if (!userData) {
                 logger.warn(`User profile not found for authenticated user ${basicUser.id}`);
                 return this.createAnonymousUser();
             }
-
-            return new AuthenticatedUser(userData);
+            return new AuthenticatedUser({ ...userData, frontEndID: basicUser.providerId });
         } catch (error) {
             logger.error('Error creating user from token:', error);
             return this.createAnonymousUser();
@@ -135,7 +134,7 @@ export class UserFactory {
      * @param token JWT token
      * @returns The authenticated user or null if authentication failed
      */
-    private async authenticateWithToken(token: string): Promise<{ id: string; username: string } | null> {
+    private async authenticateWithToken(token: string): Promise<{ id: string; username: string; providerId: string } | null> {
         try {
             if (!token) {
                 return null;
@@ -177,6 +176,7 @@ export class UserFactory {
                     await this.dynamoDbService.recordNewLogin(dbUserId);
                     return {
                         id: dbUserId,
+                        providerId: providerId,
                         username: userProfile.username
                     };
                 }
@@ -207,21 +207,13 @@ export class UserFactory {
 
             return {
                 id: newUser.id,
-                username: newUser.username
+                username: newUser.username,
+                providerId: providerId
             };
         } catch (error) {
             // This catches both JWT verification errors and database errors
             logger.error('Authentication error:', error);
             return null;
         }
-    }
-
-    /**
-     * Retrieves a users profile
-     * @param userId The user ID
-     * @returns Object user profile object
-     */
-    private async getUserProfile(userId: string) {
-        return await this.dynamoDbService.getUserProfile(userId);
     }
 }
