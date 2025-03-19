@@ -47,7 +47,7 @@ describe('Relentless Pursuit', function() {
 
                 context.player1.clickCard(context.avenger);
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.wampa, context.cartelSpacer]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.cartelSpacer);
 

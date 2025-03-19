@@ -272,7 +272,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return this.generatePropertiesFromContext(context, additionalProperties).optional ?? false;
     }
 
-    public hasTargetsChosenByInitiatingPlayer(context: TContext, additionalProperties: any = {}): boolean {
+    public hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: any = {}): boolean {
         return false;
     }
 

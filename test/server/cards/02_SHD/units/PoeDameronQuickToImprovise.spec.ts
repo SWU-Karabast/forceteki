@@ -25,7 +25,7 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
                 'daring-raid',
                 'specforce-soldier',
             ]);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
 
             context.player1.clickCard(context.sneakAttack);
             context.player1.clickCard(context.battlefieldMarine);
@@ -76,7 +76,7 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
             context.player1.clickCard(context.p2Base);
 
             // can choose no targets
-            context.player1.clickPrompt('Choose no target');
+            context.player1.clickPrompt('Choose nothing');
             expect(context.player2).toBeActivePlayer();
 
             // Third Poe attacks we one card to defeat an upgrade

@@ -37,8 +37,8 @@ describe('Consolidation of power', function () {
                     context.battlefieldMarine,
                     context.allianceXwing,
                 ]);
-                expect(context.player1).toHaveChooseNoTargetButton();
-                context.player1.clickPrompt('Choose no target');
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
                 expect(context.player2).toBeActivePlayer();
                 context.player2.passAction();
 
@@ -73,7 +73,7 @@ describe('Consolidation of power', function () {
                     context.homeOneAllianceFlagship,
                     context.relentless,
                 ]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.homeOneAllianceFlagship);
                 expect(context.homeOneAllianceFlagship).toBeInZone('spaceArena');
                 expect([context.battlefieldMarine, context.theDarksaber, context.allianceXwing]).toAllBeInZone('discard');
@@ -100,8 +100,8 @@ describe('Consolidation of power', function () {
                 context.player1.clickCard(context.reinforcementWalker);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickPrompt('Done');
-                expect(context.player1).toHaveChooseNoTargetButton();
-                context.player1.clickPrompt('Choose no target');
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
                 expect(context.player2).toBeActivePlayer();
                 expect([context.reinforcementWalker, context.battlefieldMarine, context.theDarksaber]).toAllBeInZone('discard');
                 expect(context.allianceXwing).toBeInZone('spaceArena');

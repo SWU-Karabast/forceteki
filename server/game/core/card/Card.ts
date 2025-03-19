@@ -39,6 +39,12 @@ import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilit
 // required for mixins to be based on this class
 export type CardConstructor = new (...args: any[]) => Card;
 
+export enum InitializeCardStateOption {
+    Initialize = 'initialize',
+    DoNotInitialize = 'doNotInitialize',
+    ForceInitialize = 'forceInitialize'
+}
+
 /**
  * The base class for all card types. Any shared properties among all cards will be present here.
  *
@@ -611,7 +617,7 @@ export class Card extends OngoingEffectSource {
      *
      * @param targetZoneName Zone to move to
      */
-    public moveTo(targetZoneName: MoveZoneDestination, initializeCardState = true) {
+    public moveTo(targetZoneName: MoveZoneDestination, initializeCardState: InitializeCardStateOption = InitializeCardStateOption.Initialize) {
         Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
         const prevZone = this.zoneName;
@@ -624,6 +630,11 @@ export class Card extends OngoingEffectSource {
                 .getZone(EnumHelpers.asConcreteZone(targetZoneName));
 
             if (originalZone === moveToZone) {
+                // in ForceInitialize mode, we need to reinitialize the card even if it hasn't moved (e.g. ejected pilot)
+                if (initializeCardState === InitializeCardStateOption.ForceInitialize) {
+                    this.initializeForCurrentZone(this.zoneName);
+                }
+
                 return;
             }
         }
@@ -648,8 +659,8 @@ export class Card extends OngoingEffectSource {
         }
     }
 
-    protected postMoveSteps(movedFromZone: ZoneName, initializeCardState = true) {
-        if (initializeCardState) {
+    protected postMoveSteps(movedFromZone: ZoneName, initializeCardState: InitializeCardStateOption = InitializeCardStateOption.Initialize) {
+        if (initializeCardState === InitializeCardStateOption.Initialize || initializeCardState === InitializeCardStateOption.ForceInitialize) {
             this.initializeForCurrentZone(movedFromZone);
         }
 

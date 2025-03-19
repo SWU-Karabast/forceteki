@@ -59,14 +59,14 @@ describe('Smuggle keyword', function() {
                 context.player1.clickCard(context.covertStrength);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel]);
 
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.getPower()).toBe(5);
+                expect(context.wampa.getHp()).toBe(6);
+
                 // This costs 5 due to the lack of a blue aspect
                 expect(context.player1.exhaustedResourceCount).toBe(5);
                 expect(context.player1.readyResourceCount).toBe(13);
                 expect(context.mercenaryGunship).toBeInZone('resource');
-
-                context.player1.clickCard(context.wampa);
-                expect(context.wampa.getPower()).toBe(5);
-                expect(context.wampa.getHp()).toBe(6);
             });
 
             it('a card without Smuggle cannot be played from resources', function () {

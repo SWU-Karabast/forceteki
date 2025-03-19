@@ -26,7 +26,7 @@ export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
 export interface ILastKnownInformation {
     card: Card;
     controller: Player;
-    arena: ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Resource;
+    arena: ZoneName;
     power?: number;
     hp?: number;
     type?: CardType;

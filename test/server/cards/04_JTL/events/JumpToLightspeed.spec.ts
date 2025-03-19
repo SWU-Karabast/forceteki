@@ -33,8 +33,8 @@ describe('Jump to Lightspeed', function() {
                 context.player1.clickCard(context.jumpToLightspeed);
                 context.player1.clickCard(context.millenniumFalcon);
                 expect(context.player1).toBeAbleToSelectExactly([context.entrenched]);
-                expect(context.player1).toHaveChooseNoTargetButton();
-                context.player1.clickPrompt('Choose no target');
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -53,7 +53,7 @@ describe('Jump to Lightspeed', function() {
                 context.player1.clickCard(context.jumpToLightspeed);
                 context.player1.clickCard(context.millenniumFalcon);
                 expect(context.player1).toBeAbleToSelectExactly([context.entrenched, context.academyTraining, context.hardpointHeavyBlaster]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.entrenched);
                 context.player1.clickCard(context.academyTraining);
