@@ -316,8 +316,6 @@ export class DynamoDBService {
                 pk: `OAUTH#${provider}_${providerId}`,
                 sk: 'LINK',
                 GSI_PK: userId,
-                provider,
-                providerId
             };
 
             return await this.putItem(item);
