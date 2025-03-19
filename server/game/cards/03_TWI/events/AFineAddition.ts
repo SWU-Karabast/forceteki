@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { CardType, ZoneName } from '../../../core/Constants';
+import { KeywordName, PlayType, ZoneName } from '../../../core/Constants';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -34,18 +34,26 @@ export default class AFineAddition extends EventCard {
         this.setEventAbility({
             title: 'If an enemy unit was defeated this phase, play an upgrade from your hand or from any player\'s discard pile, ignoring its aspect penalty.',
             targetResolver: {
-                cardTypeFilter: CardType.BasicUpgrade,
                 zoneFilter: [ZoneName.Discard, ZoneName.Hand],
-                cardCondition: (card, context) => this.wasEnemyUnitDefeatedThisPhaseForPlayer(context.player.opponent) && this.checkZoneAndOwnershipOfCard(card, context.player),
+                cardCondition: (card, context) => this.wasEnemyUnitDefeatedThisPhaseForPlayer(context.player.opponent) && this.checkZoneAndOwnershipOfCard(card, context.player) &&
+                  (card.isUpgrade() || (card.isUnit() && card.hasSomeKeyword(KeywordName.Piloting))),
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.target.zoneName === ZoneName.Discard,
-                    onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
+                    condition: (context) => context.target.isUnit(),
+                    onTrue: AbilityHelper.immediateEffects.playCard((context) => ({
                         adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
-                        canPlayFromAnyZone: true
-                    }),
-                    onFalse: AbilityHelper.immediateEffects.playCardFromHand({
-                        adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects }
-                    }),
+                        canPlayFromAnyZone: true,
+                        playType: PlayType.Piloting
+                    })),
+                    onFalse: AbilityHelper.immediateEffects.conditional({
+                        condition: (context) => context.target.zoneName === ZoneName.Discard,
+                        onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
+                            adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
+                            canPlayFromAnyZone: true
+                        }),
+                        onFalse: AbilityHelper.immediateEffects.playCardFromHand({
+                            adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects }
+                        }),
+                    })
                 })
             }
         });

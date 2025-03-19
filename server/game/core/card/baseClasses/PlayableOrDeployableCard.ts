@@ -105,8 +105,12 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             playCardActions = this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
         }
 
-        if (this.zoneName === ZoneName.Discard && this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
-            playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+        if (this.zoneName === ZoneName.Discard) {
+            if (this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
+                playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+            } else if (propertyOverrides != null && propertyOverrides.canPlayFromAnyZone && this.hasSomeKeyword(KeywordName.Piloting)) {
+                playCardActions = this.buildPlayCardActions(PlayType.Piloting, propertyOverrides);
+            }
         }
 
         return playCardActions;
