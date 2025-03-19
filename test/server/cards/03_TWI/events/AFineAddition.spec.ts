@@ -117,6 +117,7 @@ describe('A Fine Addition', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
                     base: 'dagobah-swamp',
                     hand: ['a-fine-addition', 'vanquish', 'dagger-squadron-pilot'],
                     spaceArena: ['cartel-turncoat']
@@ -147,6 +148,7 @@ describe('A Fine Addition', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
                     base: 'dagobah-swamp',
                     hand: ['a-fine-addition', 'vanquish'],
                     discard: ['dagger-squadron-pilot'],
@@ -178,6 +180,7 @@ describe('A Fine Addition', function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
                     base: 'dagobah-swamp',
                     hand: ['a-fine-addition', 'vanquish'],
                     spaceArena: ['cartel-turncoat']
