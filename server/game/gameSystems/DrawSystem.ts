@@ -26,9 +26,9 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
         return ['draw ' + properties.amount + (properties.amount > 1 ? ' cards' : ' card'), []];
     }
 
-    public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.amount !== 0 && super.canAffect(player, context);
+        return properties.amount !== 0 && super.canAffectInternal(player, context);
     }
 
     public override defaultTargets(context: TContext): Player[] {

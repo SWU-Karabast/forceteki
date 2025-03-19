@@ -330,7 +330,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         try {
             return this.pipeline.continue(this.game);
         } catch (err) {
-            this.game.reportError(err);
+            this.game.reportError(err, true);
 
             // if we hit an error resolving an ability, try to close out the ability gracefully and move on
             // to see if we can preserve a playable game state

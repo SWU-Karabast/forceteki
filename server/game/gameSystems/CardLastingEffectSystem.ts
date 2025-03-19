@@ -92,12 +92,12 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         event.effectProperties = effectProperties;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
         const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context, additionalProperties);
 
         const effects = effectFactories.map((factory) => factory(context.game, context.source, effectProperties));
 
-        return super.canAffect(card, context) && this.filterApplicableEffects(card, effects).length > 0;
+        return super.canAffectInternal(card, context) && this.filterApplicableEffects(card, effects).length > 0;
     }
 
     private getEffectFactoriesAndProperties(card: Card, context: TContext, additionalProperties = {}) {

@@ -32,7 +32,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         return ['attach {0} {1}s to {2}', [properties.amount, this.getTokenType(), properties.target]];
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
         Contract.assertNotNullLike(context);
@@ -47,7 +47,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     protected abstract getTokenType(): TokenUpgradeName;

@@ -67,7 +67,7 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
         return gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
-    public override canAffect(target: GameObject, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(target: GameObject, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.gameSystems.some((gameSystem) => gameSystem.canAffect(target, context));
     }

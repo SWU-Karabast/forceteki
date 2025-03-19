@@ -111,7 +111,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         return event.sourceEventForExcessDamage.availableExcessDamage;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
         if (
             properties.type === DamageType.Overwhelm && 'contingentSourceEvent' in properties &&
@@ -152,7 +152,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             }
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties) {

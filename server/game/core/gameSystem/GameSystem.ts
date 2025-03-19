@@ -101,6 +101,10 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     // IMPORTANT: this method is referred to in the debugging guide. if we change the signature, we should upgrade the guide.
     public abstract eventHandler(event: GameEvent, additionalProperties: any): void;
 
+    protected canAffectInternal(target: GameObject | GameObject[], context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        return this.isTargetTypeValid(target);
+    }
+
     /**
      * Composes a property object for configuring the {@link GameSystem}'s execution using the following sources, in order of decreasing priority:
      * - `this.properties ?? this.propertyFactory(context)`
@@ -148,7 +152,13 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      */
     // IMPORTANT: this method is referred to in the debugging guide. if we change the signature, we should upgrade the guide.
     public canAffect(target: GameObject | GameObject[], context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        return this.isTargetTypeValid(target);
+        try {
+            return this.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
+        } catch (err) {
+            // if there's an error in the canAffect method, we want to report it but not throw an exception so as to try and preserve the game state
+            context.game?.reportError(err, false);
+            return false;
+        }
     }
 
     /**
