@@ -321,7 +321,6 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     protected addLastKnownInformationToEvent(event: any, card: Card): void {
-        Contract.assertTrue((card as any).damage === 0);
         // build last known information for the card before event window resolves to ensure that no state has yet changed
         event.setPreResolutionEffect((event) => {
             event.lastKnownInformation = this.buildLastKnownInformation(card);
