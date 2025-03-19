@@ -48,7 +48,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.endlessLegions, context.theDarksaber]);
 
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
 
                 expect(context.wampa).toBeInZone('hand');
                 expect(context.atst).toBeInZone('deck');

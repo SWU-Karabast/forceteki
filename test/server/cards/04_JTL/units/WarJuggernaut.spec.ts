@@ -78,7 +78,7 @@ describe('War Juggernaut', function() {
                 expect(context.warJuggernaut.damage).toBe(0);
 
                 expect(context.player1).toHavePrompt('Choose units to deal 1 damage to.');
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.warJuggernaut,
                     context.pykeSentinel,
@@ -117,7 +117,7 @@ describe('War Juggernaut', function() {
                 expect(context.warJuggernaut.damage).toBe(0);
 
                 expect(context.player1).toHavePrompt('Choose units to deal 1 damage to.');
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.warJuggernaut,
                     context.pykeSentinel,
@@ -128,7 +128,7 @@ describe('War Juggernaut', function() {
                     context.ruthlessRaider
                 ]);
 
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
 
                 // War Juggernaut should have 5 power (3 from card and 2 from damaged units)
                 expect(context.warJuggernaut.getPower()).toBe(5);

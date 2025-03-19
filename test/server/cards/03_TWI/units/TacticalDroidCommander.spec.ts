@@ -39,7 +39,7 @@ describe('Tactical Droid Commander', function() {
             // Play a Separatist event, no trigger
             context.player1.clickCard(context.planetaryInvasion);
             context.player1.clickPrompt('Play without Exploit');
-            context.player1.clickPrompt('Choose no target');
+            context.player1.clickPrompt('Choose nothing');
             expect(context.player2).toBeActivePlayer();
         });
     });

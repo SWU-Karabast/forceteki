@@ -100,7 +100,7 @@ declare namespace jasmine {
         toHaveDisabledPromptButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expecteds: string[]): boolean;
         toHavePassAbilityButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHavePassAttackButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
-        toHaveChooseNoTargetButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
+        toHaveChooseNothingButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toHaveClaimInitiativeAbilityButton<T extends PlayerInteractionWrapper>(this: Matchers<T>): boolean;
         toBeAbleToSelect<T extends PlayerInteractionWrapper>(this: Matchers<T>, card: any): boolean;
         toBeAbleToSelectAllOf<T extends PlayerInteractionWrapper>(this: Matchers<T>, cards: any[]): boolean;

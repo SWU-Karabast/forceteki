@@ -159,7 +159,7 @@ export class SelectCardPrompt extends UiPrompt {
         if (!this.selector.automaticFireOnSelect(this.context) || this.selector.optional) {
             if (buttons.every((button) => button.arg !== 'done')) {
                 if (this.selector.optional && this.selectedCards.length === 0) {
-                    buttons = [{ text: 'Choose no target', arg: 'done' }].concat(buttons);
+                    buttons = [{ text: 'Choose nothing', arg: 'done' }].concat(buttons);
                 } else if (this.selector.optional || this.selector.hasEnoughSelected(this.selectedCards, this.context)) {
                     buttons = [{ text: 'Done', arg: 'done' }].concat(buttons);
                 }
