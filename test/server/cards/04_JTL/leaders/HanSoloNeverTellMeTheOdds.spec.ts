@@ -18,6 +18,7 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 context.player1.clickPrompt('Reveal the top card of your deck');
                 expect(context.getChatLogs(1)[0]).toContain(context.daringRaid.title);
                 expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender]);
+                expect(context.hanSolo.exhausted).toBeTrue();
                 context.player1.clickCard(context.echoBaseDefender);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(5);
@@ -39,6 +40,7 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 context.player1.clickPrompt('Reveal the top card of your deck');
                 expect(context.getChatLogs(1)[0]).toContain(context.helloThere.title);
                 expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender]);
+                expect(context.hanSolo.exhausted).toBeTrue();
                 context.player1.clickCard(context.echoBaseDefender);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(4);
@@ -60,6 +62,7 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 context.player1.clickPrompt('Reveal the top card of your deck');
                 expect(context.getChatLogs(1)[0]).toContain(context.surpriseStrike.title);
                 expect(context.player1).toBeAbleToSelectExactly([context.moddedCohort]);
+                expect(context.hanSolo.exhausted).toBeTrue();
                 context.player1.clickCard(context.moddedCohort);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(4);
@@ -79,6 +82,7 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickPrompt('Reveal the top card of your deck');
                 expect(context.getChatLogs(1)[0]).toContain(context.helloThere.title);
+                expect(context.hanSolo.exhausted).toBeTrue();
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -99,6 +103,7 @@ describe('Han Solo, Never Tell Me the Odds', function() {
                 expect(context.getChatLogs(1)[0]).toContain('player1 uses Han Solo');
                 expect(context.getChatLogs(1)[0]).not.toContain('reveal');
                 expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender]);
+                expect(context.hanSolo.exhausted).toBeTrue();
                 context.player1.clickCard(context.echoBaseDefender);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(4);
