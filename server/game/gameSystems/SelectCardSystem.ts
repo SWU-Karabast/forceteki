@@ -83,7 +83,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                       Object.assign({}, additionalProperties, properties.innerSystemProperties(card)));
             };
 
-            properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition }));
+            properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition, optional: this.selectionIsOptional(properties, context) }));
         }
 
         if (properties.mode === TargetMode.UpTo || properties.mode === TargetMode.UpToVariable) {
@@ -245,7 +245,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     }
 
     private selectionIsOptional(properties, context): boolean {
-        if (properties.optional || properties.innerSystem.isOptional(context)) {
+        if (properties.optional || properties.innerSystem.isOptional(context) || properties.mode === TargetMode.UpTo) {
             return true;
         }
 

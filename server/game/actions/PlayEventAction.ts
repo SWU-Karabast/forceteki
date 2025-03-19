@@ -48,7 +48,9 @@ export class PlayEventAction extends PlayCardAction {
         if (
             eventAbility.hasTargetsChosenByPlayer(context, context.player.opponent) ||
             eventAbility.playerChoosingOptional === RelativePlayer.Opponent ||
-            eventAbility.optional
+            eventAbility.optional ||
+            this.usesExploit(context) ||
+            eventAbility.cannotTargetFirst
         ) {
             return this.getDefaultTargetResults(context);
         }

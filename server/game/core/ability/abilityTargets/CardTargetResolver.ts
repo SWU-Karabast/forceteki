@@ -65,9 +65,9 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
     }
 
-    private getContextCopy(card: Card, context: AbilityContext) {
+    private getContextCopy(card: Card, context: AbilityContext, targetMode?: TargetMode) {
         const contextCopy = context.copy();
-        contextCopy.targets[this.name] = card;
+        contextCopy.targets[this.name] = targetMode === TargetMode.Single || targetMode == null ? card : [card];
         if (this.name === 'target') {
             contextCopy.target = card;
         }
@@ -116,7 +116,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         ) {
             let effectiveTargetFound = false;
             for (const target of legalTargets) {
-                const contextWithTarget = this.getContextCopy(target, context);
+                const contextWithTarget = this.getContextCopy(target, context, this.properties.mode);
 
                 if (this.immediateEffect.hasLegalTarget(contextWithTarget, {}, GameStateChangeRequired.MustFullyOrPartiallyResolve)) {
                     effectiveTargetFound = true;
@@ -248,7 +248,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         }
 
         return this.getAllLegalTargets(context).some((card) => {
-            const contextCopy = this.getContextCopy(card, context);
+            const contextCopy = this.getContextCopy(card, context, this.properties.mode);
             if (this.properties.immediateEffect && this.properties.immediateEffect.hasTargetsChosenByPlayer(contextCopy, player)) {
                 return true;
             }
