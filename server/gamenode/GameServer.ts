@@ -175,7 +175,7 @@ export class GameServer {
                 const lobby = this.lobbies.get(gameId);
 
                 // if they are in a game already we give them 403 forbidden
-                if (this.canUserJoinNewLobby(user.id)) {
+                if (!this.canUserJoinNewLobby(user.id)) {
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a game'
