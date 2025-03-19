@@ -39,9 +39,6 @@ export class PlayEventAction extends PlayCardAction {
     public override resolveEarlyTargets(context, passHandler = null, canCancel = false) {
         Contract.assertTrue(context.source.isEvent());
 
-        // this.earlyTargetResults = context.source.getEventAbility().resolveEarlyTargets(context, passHandler, canCancel);
-        // return this.earlyTargetResults;
-
         const eventAbility = context.source.getEventAbility();
 
         // if the opponent will be making any selections or the ability is optional, then we need to do play in the correct order (i.e. move to discard first, then select)
