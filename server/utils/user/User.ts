@@ -69,7 +69,7 @@ export class AuthenticatedUser extends User {
     }
 
     public getPlayerId(): string {
-        return this.userData.frontEndID;
+        return this.userData.playerId;
     }
 
     public getUsername(): string {

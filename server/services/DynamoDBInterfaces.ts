@@ -2,7 +2,7 @@ export interface IUserData {
     id: string;
     username: string;
     preferences?: Record<string, any>;
-    frontEndID?: string;
+    playerId?: string;
 }
 
 // Define user interface

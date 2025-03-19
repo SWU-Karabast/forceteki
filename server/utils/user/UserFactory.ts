@@ -44,7 +44,7 @@ export class UserFactory {
                 logger.warn(`User profile not found for authenticated user ${basicUser.id}`);
                 return this.createAnonymousUser();
             }
-            return new AuthenticatedUser({ ...userData, frontEndID: basicUser.providerId });
+            return new AuthenticatedUser({ ...userData, playerId: basicUser.playerId });
         } catch (error) {
             logger.error('Error creating user from token:', error);
             return this.createAnonymousUser();
@@ -134,7 +134,7 @@ export class UserFactory {
      * @param token JWT token
      * @returns The authenticated user or null if authentication failed
      */
-    private async authenticateWithToken(token: string): Promise<{ id: string; username: string; providerId: string } | null> {
+    private async authenticateWithToken(token: string): Promise<{ id: string; username: string; playerId: string } | null> {
         try {
             if (!token) {
                 return null;
@@ -176,7 +176,7 @@ export class UserFactory {
                     await this.dynamoDbService.recordNewLogin(dbUserId);
                     return {
                         id: dbUserId,
-                        providerId: providerId,
+                        playerId: userId,
                         username: userProfile.username
                     };
                 }
@@ -208,7 +208,7 @@ export class UserFactory {
             return {
                 id: newUser.id,
                 username: newUser.username,
-                providerId: providerId
+                playerId: userId
             };
         } catch (error) {
             // This catches both JWT verification errors and database errors
