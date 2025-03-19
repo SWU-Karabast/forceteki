@@ -35,7 +35,7 @@ export class SelectPlayerSystem<TContext extends AbilityContext = AbilityContext
         return properties;
     }
 
-    public override canAffect(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
+    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         return properties.innerSystem.canAffect(target, context, additionalProperties, mustChangeGameState);
     }

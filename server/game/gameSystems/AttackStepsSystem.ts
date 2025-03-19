@@ -92,7 +92,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     /** This method is checking whether cards are a valid target for an attack. */
-    public override canAffect(targetCard: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(targetCard: Card, context: TContext, additionalProperties = {}): boolean {
         if (!targetCard.isUnit() && !targetCard.isBase()) {
             return false;
         }
@@ -104,7 +104,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         if (!properties.attacker.isInPlay()) {
             return false;
         }
-        if (!super.canAffect(targetCard, context)) {
+        if (!super.canAffectInternal(targetCard, context)) {
             return false;
         }
         if (targetCard === properties.attacker || targetCard.controller === properties.attacker.controller) {

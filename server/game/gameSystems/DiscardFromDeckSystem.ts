@@ -23,7 +23,7 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
         return ['discard ' + (properties.amount + (properties.amount > 1 ? ' cards' : ' card') + ' from deck'), []];
     }
 
-    public override canAffect(player: Player, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const players = Array.isArray(player) ? player : [player];
@@ -44,7 +44,7 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
                 return false;
             }
 
-            if (!super.canAffect(currentPlayer, context, additionalProperties)) {
+            if (!super.canAffectInternal(currentPlayer, context, additionalProperties)) {
                 return false;
             }
         }

@@ -75,7 +75,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         event.resourceControllingPlayer = this.getResourceControllingPlayer(properties, context);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { targetPlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
 
         const resourceControllingPlayer = this.getResourceControllingPlayer({ targetPlayer }, context);
@@ -96,7 +96,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     private getResourceControllingPlayer(properties: IResourceCardProperties, context: TContext) {
