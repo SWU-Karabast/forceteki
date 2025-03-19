@@ -326,6 +326,22 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     /** @override */
+    continue() {
+        try {
+            return this.pipeline.continue(this.game);
+        } catch (err) {
+            this.game.reportError(err);
+
+            // if we hit an error resolving an ability, try to close out the ability gracefully and move on
+            // to see if we can preserve a playable game state
+            this.cancelled = true;
+            this.resolutionComplete = true;
+
+            return true;
+        }
+    }
+
+    /** @override */
     toString() {
         return `'AbilityResolver: ${this.context.ability}'`;
     }
