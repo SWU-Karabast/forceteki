@@ -22,6 +22,7 @@ import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import QueueHandler from './QueueHandler';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { UserFactory } from '../utils/user/UserFactory';
+import { DeckService } from '../utils/deck/DeckService';
 
 
 /**
@@ -88,6 +89,7 @@ export class GameServer {
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
     private readonly userFactory: UserFactory = UserFactory.getInstance();
+    private readonly deckService: DeckService = DeckService.getInstance();
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -193,7 +195,16 @@ export class GameServer {
                 next(err);
             }
         });
-
+        // TODO work in progress
+        app.get('/api/get-decks', async (req, res, next) => {
+            try {
+                const usersDecks = await this.deckService.getUserDecksFavouritesFirst(req.user.id);
+                return res.status(200).json(usersDecks);
+            } catch (err) {
+                logger.error('GameServer: Error in getting a users decks: ', err);
+                next(err);
+            }
+        });
         app.get('/api/ongoing-games', (_, res, next) => {
             try {
                 return res.json(this.getOngoingGamesData());

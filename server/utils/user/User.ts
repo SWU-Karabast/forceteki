@@ -1,8 +1,4 @@
-export interface IUserData {
-    id: string;
-    username: string;
-    preferences?: Record<string, any>;
-}
+import type { IUserData } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class

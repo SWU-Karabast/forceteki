@@ -9,42 +9,7 @@ import {
     ScanCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
-
-// Define user interface
-export interface IUserData {
-    id: string;
-    username: string;
-    lastLogin: string;
-    createdAt: string;
-    username_set_at?: string; // When username was set/changed
-    preferences?: Record<string, any>;
-}
-
-// Interface for deck data
-export interface IDeckData {
-    id: string;
-    userId: string;
-    deck: Record<string, any>;
-    stats?: {
-        wins: number;
-        losses: number;
-    };
-}
-
-// Interface for game record
-export interface IGameRecord {
-    id: string;
-    player1: string;
-    player2: string;
-    firstTurn: string;
-    winner: string;
-    winnerBaseHealthRemaining: number;
-    player1LeaderId: string;
-    player1BaseId: string;
-    player2LeaderId: string;
-    player2BaseId: string;
-    timestamp?: string;
-}
+import type { IDeckData, IGameRecord, IUserProfileData } from './DynamoDBInterfaces';
 
 export class DynamoDBService {
     private client: DynamoDBDocumentClient;
@@ -262,7 +227,7 @@ export class DynamoDBService {
 
     // User Profile Methods
 
-    public async saveUserProfile(userData: IUserData) {
+    public async saveUserProfile(userData: IUserProfileData) {
         return await this.executeDbOperation(async () => {
             const item = {
                 pk: `USER#${userData.id}`,
@@ -279,11 +244,11 @@ export class DynamoDBService {
     public async getUserProfile(userId: string) {
         return await this.executeDbOperation(async () => {
             const result = await this.getItem(`USER#${userId}`, 'PROFILE');
-            return result.Item as IUserData | undefined;
+            return result.Item as IUserProfileData | undefined;
         }, 'Error getting user profile');
     }
 
-    public async updateUserProfile(userId: string, updates: Partial<IUserData>) {
+    public async updateUserProfile(userId: string, updates: Partial<IUserProfileData>) {
         return await this.executeDbOperation(async () => {
             // Build update expression and expression attribute values
             let updateExpression = 'SET';
@@ -352,7 +317,6 @@ export class DynamoDBService {
     }
 
     // User Deck Methods
-
     public async saveDeck(deckData: IDeckData) {
         return await this.executeDbOperation(async () => {
             const item = {
