@@ -24,7 +24,7 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
     }
 
     public override isNonLeaderUnit(): this is INonLeaderUnitCard {
-        return !this.isLeaderAttachedToThis();
+        return !this.isAttached() && !this.isLeaderAttachedToThis();
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
@@ -75,6 +75,14 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
                 this.setCaptureZoneEnabled(false);
                 break;
         }
+    }
+
+    protected override updateStateOnAttach() {
+        this.setActiveAttackEnabled(false);
+        this.setDamageEnabled(false);
+        this.setExhaustEnabled(false);
+        this.setUpgradesEnabled(false);
+        this.setCaptureZoneEnabled(false);
     }
 
     public override checkIsAttachable(): void {

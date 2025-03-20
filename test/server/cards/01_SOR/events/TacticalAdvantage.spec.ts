@@ -10,8 +10,7 @@ describe('Tactical Advantage', function () {
                     },
                     player2: {
                         groundArena: ['wampa']
-                    },
-                    autoSingleTarget: false
+                    }
                 });
             });
 
@@ -20,7 +19,7 @@ describe('Tactical Advantage', function () {
 
                 context.player1.clickCard(context.tacticalAdvantage);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa]);
-                expect(context.player1).not.toHaveEnabledPromptButton('Cancel');
+                expect(context.player1).toHaveEnabledPromptButton('Cancel');
 
                 context.player1.clickCard(context.pykeSentinel);
                 expect(context.pykeSentinel.getPower()).toBe(4);

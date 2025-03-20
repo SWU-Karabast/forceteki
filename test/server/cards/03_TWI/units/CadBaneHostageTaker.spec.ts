@@ -28,7 +28,7 @@ describe('Cad Bane, Hostage Taker', function() {
             context.player1.clickCard(context.cadBane);
 
             expect(context.player1).toHavePrompt('Choose up to 3 enemy non-leader units with a total of 8 or less remaining HP');
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.mercenaryCompany, context.wingLeader, context.consortiumStarviper, context.battlefieldMarine, context.deathStarStormtrooper]);
 
             context.player1.clickCard(context.wampa);

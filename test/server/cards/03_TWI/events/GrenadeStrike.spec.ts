@@ -29,13 +29,13 @@ describe('Grenade Strike', function() {
 
                 // can deal damage to each enemy units
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.deathTrooper, context.atst, context.corellianFreighter]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.deathTrooper);
 
                 // damage a ground unit, only other ground units selectable
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.atst);
 

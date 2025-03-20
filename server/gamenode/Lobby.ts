@@ -490,7 +490,7 @@ export class Lobby {
 
 
     // TODO: Review this to make sure we're getting the info we need for debugging
-    public handleError(game: Game, e: Error) {
+    public handleError(game: Game, e: Error, severeGameMessage = false) {
         logger.error(`Lobby ${this.id}: handleError: `, e);
 
         // const gameState = game.getState();
@@ -513,11 +513,11 @@ export class Lobby {
         //     }
         // }
 
-        // if (game) {
-        //     game.addMessage(
-        //         'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
-        //     );
-        // }
+        if (game && severeGameMessage) {
+            game.addMessage(
+                `A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue. The error has been logged. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
+            );
+        }
     }
 
     public sendGameState(game: Game): void {

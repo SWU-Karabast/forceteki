@@ -24,7 +24,7 @@ describe('IG-2000, Assassins\'s Aggressor', function () {
 
             // Play IG-2000, Assassins' Aggressor
             context.player1.clickCard(context.ig2000);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tieAdvanced, context.ig2000]);
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.atst);
@@ -44,7 +44,7 @@ describe('IG-2000, Assassins\'s Aggressor', function () {
 
             // Play IG-2000, Assassins' Aggressor and select only 2 units
             context.player1.clickCard(context.ig2000);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tieAdvanced, context.ig2000]);
             context.player1.clickCard(context.wampa);
             context.player1.clickCard(context.atst);
@@ -61,9 +61,9 @@ describe('IG-2000, Assassins\'s Aggressor', function () {
 
             // Play IG-2000, Assassins' Aggressor and select only 1 units
             context.player1.clickCard(context.ig2000);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.tieAdvanced, context.ig2000]);
-            context.player1.clickPrompt('Done');
+            context.player1.clickPrompt('Choose nothing');
 
             // Assert the damage
             expect(context.wampa.damage).toBe(0);
@@ -90,7 +90,7 @@ describe('IG-2000, Assassins\'s Aggressor', function () {
 
             // Play IG-2000, Assassins' Aggressor
             context.player1.clickCard(context.ig2000);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
             expect(context.player1).toBeAbleToSelectExactly([context.hanSoloAudaciousSmuggler, context.hanSoloReluctantHero, context.tieAdvanced, context.atst, context.ig2000]);
             context.player1.clickCard(context.hanSoloAudaciousSmuggler);
             context.player1.clickCard(context.hanSoloReluctantHero);

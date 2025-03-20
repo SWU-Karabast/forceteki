@@ -20,7 +20,7 @@ describe('Tactical Heavy Bomber', function() {
 
             // Player 2 distributes the indirect damage and chooses the base
             expect(context.player2).toBeAbleToSelectExactly([context.greenSquadronAwing, context.republicArc170, context.headhunterSquadron, context.p2Base]);
-            expect(context.player2).not.toHaveChooseNoTargetButton();
+            expect(context.player2).not.toHaveChooseNothingButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.greenSquadronAwing, 1],
                 [context.republicArc170, 1],
@@ -51,7 +51,7 @@ describe('Tactical Heavy Bomber', function() {
 
             // Player 2 distributes the indirect damage and chooses the base
             expect(context.player2).toBeAbleToSelectExactly([context.greenSquadronAwing, context.republicArc170, context.headhunterSquadron, context.p2Base]);
-            expect(context.player2).not.toHaveChooseNoTargetButton();
+            expect(context.player2).not.toHaveChooseNothingButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.greenSquadronAwing, 1],
                 [context.republicArc170, 1],

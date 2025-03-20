@@ -22,7 +22,7 @@ describe('Midnight Repairs', function () {
 
                 context.player1.clickCard(context.midnightRepairs);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.cartelSpacer, context.sabineWren, context.wampa, context.imperialInterceptor]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.pykeSentinel, 2],
                     [context.cartelSpacer, 2],

@@ -18,7 +18,7 @@ import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbi
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
-import type { Card } from '../Card';
+import { InitializeCardStateOption, type Card } from '../Card';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { StandardTriggeredAbilityType } from '../../Constants';
 import * as Helpers from '../../utils/Helpers';
@@ -197,11 +197,21 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         if (newController && newController !== this.controller) {
             this.takeControl(newController, newParentCard.zoneName);
         } else {
-            this.moveTo(newParentCard.zoneName);
+            this.moveTo(
+                newParentCard.zoneName,
+                EnumHelpers.isArena(this.zoneName) ? InitializeCardStateOption.DoNotInitialize : InitializeCardStateOption.Initialize
+            );
         }
 
+        this.updateStateOnAttach();
+
         newParentCard.attachUpgrade(this);
+
         this._parentCard = newParentCard;
+    }
+
+    protected updateStateOnAttach() {
+        return;
     }
 
     public isAttached(): boolean {

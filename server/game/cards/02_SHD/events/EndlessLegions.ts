@@ -20,6 +20,7 @@ export default class EndlessLegions extends EventCard {
             title: 'Reveal any number of resources you control',
             targetResolver: {
                 mode: TargetMode.Unlimited,
+                canChooseNoCards: true,
                 zoneFilter: ZoneName.Resource,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.reveal({

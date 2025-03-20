@@ -26,7 +26,7 @@ export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
 export interface ILastKnownInformation {
     card: Card;
     controller: Player;
-    arena: ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Resource;
+    arena: ZoneName;
     power?: number;
     hp?: number;
     type?: CardType;
@@ -70,7 +70,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         return ['defeat {0}', [properties.target]];
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
             return false;
         }
@@ -78,7 +78,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.BeDefeated, context)) {
             return false;
         }
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {

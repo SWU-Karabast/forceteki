@@ -20,7 +20,7 @@ describe('Devastator, Hunting the Rebellion', function () {
 
             expect(context.player1).toHavePrompt('Distribute 4 indirect damage among targets');
             expect(context.player1).toBeAbleToSelectExactly([context.firstOrderStormtrooper, context.cartelSpacer, context.p2Base]);
-            expect(context.player1).not.toHaveChooseNoTargetButton();
+            expect(context.player1).not.toHaveChooseNothingButton();
             context.player1.setDistributeIndirectDamagePromptState(new Map([
                 [context.cartelSpacer, 2],
                 [context.p2Base, 2],
@@ -39,7 +39,7 @@ describe('Devastator, Hunting the Rebellion', function () {
             // Player 1 assigns the indirect damage to the opponent
             expect(context.player1).toHavePrompt('Distribute 12 indirect damage among targets');
             expect(context.player1).toBeAbleToSelectExactly([context.firstOrderStormtrooper, context.cartelSpacer, context.p2Base]);
-            expect(context.player1).not.toHaveChooseNoTargetButton();
+            expect(context.player1).not.toHaveChooseNothingButton();
             context.player1.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 11],
                 [context.firstOrderStormtrooper, 1],
@@ -53,7 +53,7 @@ describe('Devastator, Hunting the Rebellion', function () {
             // Player 1 assigns the indirect damage because Devastator's ability doesn't affect player 2
             expect(context.player1).toHavePrompt('Distribute 1 indirect damage among targets');
             expect(context.player1).toBeAbleToSelectExactly([context.devastator, context.p1Base]);
-            expect(context.player1).not.toHaveChooseNoTargetButton();
+            expect(context.player1).not.toHaveChooseNothingButton();
             context.player1.setDistributeIndirectDamagePromptState(new Map([
                 [context.devastator, 1],
             ]));
@@ -70,7 +70,7 @@ describe('Devastator, Hunting the Rebellion', function () {
             // Player 2 assigns the indirect damage because Devastator is not in play anymore
             expect(context.player2).toHavePrompt('Distribute 8 indirect damage among targets');
             expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer, context.p2Base]);
-            expect(context.player2).not.toHaveChooseNoTargetButton();
+            expect(context.player2).not.toHaveChooseNothingButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 8],
             ]));
