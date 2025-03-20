@@ -250,8 +250,6 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
         // if we're changing controller and staying in play, tell the arena to update our controller
         if (this.zone.name === ZoneName.GroundArena || this.zone.name === ZoneName.SpaceArena) {
-            this.zone.updateController(this);
-
             // if we're staying in the same arena, no move needed
             if (moveDestination === this.zoneName) {
                 // register this transition with the engine so it can do uniqueness check if needed
