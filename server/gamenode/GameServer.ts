@@ -101,7 +101,6 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
-
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
@@ -119,7 +118,7 @@ export class GameServer {
         app.use(cors(corsOptions));
 
         this.setupAppRoutes(app);
-
+        this.startPeriodicCleanup();
         app.use((err, req, res, next) => {
             logger.error('GameServer: Error in API route:', err);
             res.status(err.status || 500).json({
@@ -328,6 +327,7 @@ export class GameServer {
     private canUserJoinNewLobby(userId: string) {
         const previousLobbyForUser = this.userLobbyMap.get(userId)?.lobbyId;
         if (previousLobbyForUser) {
+            const previousRole = this.userLobbyMap.get(userId)?.role;
             const previousLobby = this.lobbies.get(previousLobbyForUser);
             if (previousLobby) {
                 const userLastActivity = previousLobby.getLastActivityForUser(userId);
@@ -338,7 +338,7 @@ export class GameServer {
 
                 const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
 
-                if (elapsedSeconds < 60) {
+                if (elapsedSeconds < 60 && previousRole === UserRole.Player) {
                     return false;
                 }
 
@@ -518,7 +518,7 @@ export class GameServer {
             }
             const socket = new Socket(ioSocket);
             socket.registerEvent('disconnect', () => {
-                this.onSpectatorDisconnect(user.id);
+                this.onSocketDisconnected(ioSocket, user.id);
             });
             lobby.addSpectator(user, socket);
             return;
@@ -579,7 +579,7 @@ export class GameServer {
             const socket = new Socket(ioSocket);
 
             // check if user is already in a lobby
-            if (lobbyUserEntry) {
+            if (!this.canUserJoinNewLobby(user.id)) {
                 logger.info('GameServer: User ', user, 'is already in a different lobby, disconnecting');
                 ioSocket.disconnect();
                 return;
@@ -742,28 +742,12 @@ export class GameServer {
 
     private removeUserMaybeCleanupLobby(lobby: Lobby | null, userId: string) {
         lobby?.removeUser(userId);
+        lobby?.removeSpectator(userId);
         // Check if lobby is empty
         if (lobby?.isEmpty()) {
             // Start the cleanup process
             lobby?.cleanLobby();
             this.lobbies.delete(lobby?.id);
-        }
-    }
-
-    public onSpectatorDisconnect(id: string) {
-        try {
-            const lobbyEntry = this.userLobbyMap.get(id);
-            if (!lobbyEntry) {
-                return;
-            }
-
-            // TODO test the scenario if both players left already but the spectator hasn't because the lobby doesn't exist anymore
-            const lobbyId = lobbyEntry.lobbyId;
-            const lobby = this.lobbies.get(lobbyId);
-            lobby?.removeSpectator(id);
-            this.userLobbyMap.delete(id);
-        } catch (err) {
-            logger.error('Error in onSpectatorDisconnected:', err);
         }
     }
 

@@ -19,6 +19,7 @@ import type { GameServer } from './GameServer';
 interface LobbySpectator {
     id: string;
     username: string;
+    state: 'connected' | 'disconnected';
     socket?: Socket;
 }
 
@@ -181,8 +182,12 @@ export class Lobby {
             this.spectators.push({
                 id: user.id,
                 username: user.username,
-                socket
+                socket,
+                state: 'connected'
             });
+        } else {
+            existingSpectator.state = 'connected';
+            existingSpectator.socket = socket;
         }
         // If game is ongoing, send the current state to the spectator
         if (this.game) {
@@ -195,11 +200,12 @@ export class Lobby {
 
     public removeSpectator(id: string): void {
         const spectator = this.spectators.find((s) => s.id === id);
-        if (spectator) {
-            this.spectators = this.spectators.filter((s) => s.id !== id);
-            logger.info(`Lobby ${this.id}: removing spectator: ${spectator.username}, id: ${spectator.id}. Spectator count = ${this.spectators.length}`);
-            this.sendLobbyState();
+        if (!spectator) {
+            return;
         }
+        this.spectators = this.spectators.filter((s) => s.id !== id);
+        logger.info(`Lobby ${this.id}: removing spectator: ${spectator.username}, id: ${spectator.id}. Spectator count = ${this.spectators.length}`);
+        this.sendLobbyState();
     }
 
     public addLobbyUser(user, socket: Socket): void {
@@ -396,7 +402,11 @@ export class Lobby {
 
     public getUserState(id: string): string {
         const user = this.users.find((u) => u.id === id);
-        return user ? user.state : null;
+        if (user) {
+            return user.state;
+        }
+        const spectator = this.spectators.find((u) => u.id === id);
+        return spectator ? spectator.state : null;
     }
 
     public isFilled(): boolean {
