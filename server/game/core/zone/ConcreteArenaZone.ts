@@ -43,7 +43,7 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone<IConcret
         this._playerCards.set(player2, []);
     }
 
-    protected override onSetupDefaultState() {
+    protected override setupDefaultState() {
         this.state.cards = [];
     }
 
@@ -113,8 +113,8 @@ export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone<IConcret
     }
 
     // Unused but setup as an example for future use.
-    public override onAfterSetState() {
-        super.onAfterSetState();
+    public override afterSetState() {
+        super.afterSetState();
 
         this._playerCards.forEach((playerCards) => {
             // In JS, this will clear the array under the hood.

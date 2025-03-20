@@ -62,8 +62,8 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         this.validateCardAbilities(cardData.deployBox);
     }
 
-    protected override onSetupDefaultState() {
-        super.onSetupDefaultState();
+    protected override setupDefaultState() {
+        super.setupDefaultState();
         this.state.deployed = false;
     }
 

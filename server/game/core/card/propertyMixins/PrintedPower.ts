@@ -6,10 +6,6 @@ export interface ICardWithPrintedPowerProperty extends Card {
     getPower(): number;
 }
 
-// export interface IWithPrintedPowerState extends ICardState {
-//     printedPower: number;
-// }
-
 /** Mixin function that adds the `printedPower` property to a base class. */
 export function WithPrintedPower<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
     return class WithPrintedPower extends (BaseClass as TBaseClass & CardConstructor<TState>) {

@@ -24,8 +24,8 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
         this.setupLeaderBackSideAbilities(this);
     }
 
-    protected override onSetupDefaultState() {
-        super.onSetupDefaultState();
+    protected override setupDefaultState() {
+        super.setupDefaultState();
         this.state.onStartingSide = true;
     }
 

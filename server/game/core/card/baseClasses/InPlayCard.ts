@@ -145,8 +145,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         }
     }
 
-    protected override onSetupDefaultState() {
-        super.onSetupDefaultState();
+    protected override setupDefaultState() {
+        super.setupDefaultState();
 
         this.state.pendingDefeat = null;
         this.state.mostRecentInPlayId = -1;

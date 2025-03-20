@@ -44,7 +44,6 @@ export type CardConstructor<T extends ICardState = ICardState> = new (...args: a
 export interface ICardState extends IOngoingEffectSourceState {
 
     facedown: boolean;
-    hasImplementationFile: boolean;
     hiddenForController: boolean;
     hiddenForOpponent: boolean;
 
@@ -158,7 +157,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.game.gameObjectManager.get(this.state.controllerRef);
     }
 
-    public set controller(value: Player) {
+    protected set controller(value: Player) {
         this.state.controllerRef = value.getRef();
     }
 
@@ -208,7 +207,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.printedType;
     }
 
-    // NOTE: In theory this should really only ever be null for "destroyed" tokens, but definitely do checks for this.
     public get zone(): Zone | null {
         return this.state.zone ? this.game.gameObjectManager.get(this.state.zone) : null;
     }
@@ -246,7 +244,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this._backSideTitle = cardData.backSideTitle;
         this._unique = cardData.unique;
 
-        this.state.controllerRef = owner.getRef();
+        this.controller = owner;
         this.id = cardData.id;
         this.canBeUpgrade = cardData.upgradeHp != null && cardData.upgradePower != null;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
@@ -276,8 +274,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.initializeStateForAbilitySetup();
     }
 
-    protected override onSetupDefaultState() {
-        super.onSetupDefaultState();
+    protected override setupDefaultState() {
+        super.setupDefaultState();
 
         this.state.facedown = true;
         this.state.hiddenForController = false;

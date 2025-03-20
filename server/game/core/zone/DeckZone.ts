@@ -54,8 +54,8 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
         this.name = ZoneName.Deck;
     }
 
-    protected override onSetupDefaultState(): void {
-        super.onSetupDefaultState();
+    protected override setupDefaultState(): void {
+        super.setupDefaultState();
         this.state.deck = [];
         this.state.searchingCards = [];
     }

@@ -18,8 +18,6 @@ export abstract class SimpleZone<TCard extends Card> extends ZoneAbstract<TCard,
     public abstract override readonly name: ZoneName;
     public override readonly owner: Player;
 
-    // protected _cards: TCard[] = [];
-
     public override get cards(): TCard[] {
         return this.state.cards.map((x) => this.game.gameObjectManager.get(x));
     }
@@ -32,7 +30,7 @@ export abstract class SimpleZone<TCard extends Card> extends ZoneAbstract<TCard,
         super(game, owner);
     }
 
-    protected override onSetupDefaultState() {
+    protected override setupDefaultState() {
         this.state.cards = [];
     }
 

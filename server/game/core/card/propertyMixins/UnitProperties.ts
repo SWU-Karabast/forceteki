@@ -41,7 +41,6 @@ import type { GameObjectRef } from '../../GameObjectBase';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
-    // placeholder code, not used.
     defaultArenaInternal: Arena;
     captureZone: GameObjectRef<CaptureZone> | null;
 }
