@@ -18,6 +18,7 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
                 onCardPlayed: (event, context) => event.card === context.source
             },
             targetResolver: {
+                activePromptTitle: 'Choose a non-leader unit to defeat',
                 choosingPlayer: RelativePlayer.Opponent,
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
