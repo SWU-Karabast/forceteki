@@ -21,14 +21,18 @@ export default class UnrefusableOffer extends UpgradeCard {
             keyword: KeywordName.Bounty,
             ability: {
                 title: 'Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it',
-                immediateEffect: AbilityHelper.immediateEffects.playCard({
-                    entersReady: true,
-                    adjustCost: { costAdjustType: CostAdjustType.Free },
-                    playType: PlayType.PlayFromOutOfPlay,
-                    canPlayFromAnyZone: true,
+                immediateEffect: AbilityHelper.immediateEffects.conditional({
+                    condition: (context) => !context.source.isTokenUnit(),
+                    onTrue: AbilityHelper.immediateEffects.playCard({
+                        entersReady: true,
+                        adjustCost: { costAdjustType: CostAdjustType.Free },
+                        playType: PlayType.PlayFromOutOfPlay,
+                        canPlayFromAnyZone: true,
+                    })
                 }),
                 ifYouDo: (ifYouDoContext) => ({
                     title: 'At the start of the regroup phase, defeat it',
+                    ifYouDoCondition: (context) => context.events.filter((e) => e.name === 'playCard').length > 0,
                     immediateEffect: AbilityHelper.immediateEffects.delayedCardEffect({
                         title: 'Defeat it',
                         target: ifYouDoContext.events[0].card,
