@@ -31,7 +31,7 @@ describe('Trace Martez, Trusting Sister', function () {
                 context.player1.clickCard(context.corellianFreighter);
                 context.player1.clickCard(context.brightHope);
 
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.liberatedSlaves,
                     context.corellianFreighter,
@@ -69,7 +69,7 @@ describe('Trace Martez, Trusting Sister', function () {
                 context.player1.clickCard(context.corellianFreighter);
                 context.player1.clickCard(context.brightHope);
 
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([
                     context.liberatedSlaves,
                     context.corellianFreighter,

@@ -23,7 +23,7 @@ describe('First Order Stormtrooper', function () {
 
             expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.p2Base]);
-            expect(context.player2).not.toHaveChooseNoTargetButton();
+            expect(context.player2).not.toHaveChooseNothingButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.wampa, 1],
             ]));
@@ -42,7 +42,7 @@ describe('First Order Stormtrooper', function () {
 
             expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.p2Base]);
-            expect(context.player2).not.toHaveChooseNoTargetButton();
+            expect(context.player2).not.toHaveChooseNothingButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.cartelSpacer, 1],
             ]));

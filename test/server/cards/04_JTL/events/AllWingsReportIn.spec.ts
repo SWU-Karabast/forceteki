@@ -28,7 +28,7 @@ describe('All Wings Report In', function() {
 
                 // Exhaust up to 2 friendly space units
                 expect(context.player1).toHavePrompt('Exhaust up to 2 friendly space units');
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 // Select a space unit
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.redThree]);
@@ -79,7 +79,7 @@ describe('All Wings Report In', function() {
                 context.player1.clickCard(context.allWingsReportIn);
 
                 expect(context.player1).toHavePrompt('Exhaust up to 2 friendly space units');
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 // Select a space unit
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.redThree]);

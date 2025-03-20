@@ -16,8 +16,8 @@ export class DiscardSpecificCardSystem<TContext extends AbilityContext = Ability
         event.context.game.addMessage(`${event.card.owner.name} discards ${event.card.name}`);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: Record<string, any> = {}): boolean {
-        return card.zoneName !== ZoneName.Discard && super.canAffect(card, context, additionalProperties);
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Record<string, any> = {}): boolean {
+        return card.zoneName !== ZoneName.Discard && super.canAffectInternal(card, context, additionalProperties);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

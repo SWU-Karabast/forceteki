@@ -143,7 +143,8 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private checkUnsetActiveAttack(card: IAttackableCard) {
-        if (EnumHelpers.isArena(card.zoneName) || card.isBase()) {
+        // isUnit() check needed for pilots that may have become attached during the attack
+        if ((EnumHelpers.isArena(card.zoneName) && card.isUnit()) || card.isBase()) {
             card.unsetActiveAttack();
         }
     }

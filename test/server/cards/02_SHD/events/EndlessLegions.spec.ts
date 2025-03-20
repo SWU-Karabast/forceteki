@@ -91,7 +91,7 @@ describe('Endless Legions', function() {
             ]);
             context.player2.clickPrompt('Done');
 
-            expect(context.player1).not.toHaveEnabledPromptButton('Choose no target');
+            expect(context.player1).not.toHaveEnabledPromptButton('Choose nothing');
 
             // Only the units are selectable
             expect(context.player1).toBeAbleToSelectExactly([
@@ -254,7 +254,7 @@ describe('Endless Legions', function() {
 
             const { context } = contextRef;
             context.player1.clickCard(context.endlessLegions);
-            context.player1.clickPrompt('Choose no target');
+            context.player1.clickPrompt('Choose nothing');
             expect(context.player2).toBeActivePlayer();
         });
     });

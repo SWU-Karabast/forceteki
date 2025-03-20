@@ -4,6 +4,7 @@ import type { Card } from '../core/card/Card';
 import type { GameEvent } from '../core/event/GameEvent';
 import { MetaEventName } from '../core/Constants';
 import type { GameObject } from '../core/GameObject';
+import type Player from '../core/Player';
 
 export interface IExecuteHandlerSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     handler: (context: TContext) => void;
@@ -30,7 +31,7 @@ export class ExecuteHandlerSystem<TContext extends AbilityContext = AbilityConte
         return true;
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffectInternal(card: Card, context: TContext): boolean {
         return true;
     }
 
@@ -38,12 +39,12 @@ export class ExecuteHandlerSystem<TContext extends AbilityContext = AbilityConte
         events.push(this.generateEvent(context, additionalProperties));
     }
 
-    public override hasTargetsChosenByInitiatingPlayer(context: TContext, additionalProperties = {}) {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties = {}) {
         const { hasTargetsChosenByInitiatingPlayer } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         ) as IExecuteHandlerSystemProperties;
-        return hasTargetsChosenByInitiatingPlayer;
+        return hasTargetsChosenByInitiatingPlayer ? player === context.player : false;
     }
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)

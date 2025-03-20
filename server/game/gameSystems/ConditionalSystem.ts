@@ -6,6 +6,7 @@ import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import AbilityHelper from '../AbilityHelper';
 import { NoActionSystem } from './NoActionSystem';
 import * as Contract from '../core/utils/Contract';
+import type Player from '../core/Player';
 
 // TODO: allow providing only onTrue or onFalse in the properties so we don't need to use noAction()
 export interface IConditionalSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
@@ -31,7 +32,7 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
         return this.getGameAction(context).getEffectMessage(context);
     }
 
-    public override canAffect(target: any, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(target: any, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         return this.getGameAction(context, additionalProperties).canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
@@ -43,9 +44,10 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
         this.getGameAction(context, additionalProperties).queueGenerateEventGameSteps(events, context, additionalProperties);
     }
 
-    public override hasTargetsChosenByInitiatingPlayer(context: TContext, additionalProperties = {}): boolean {
-        return this.getGameAction(context, additionalProperties).hasTargetsChosenByInitiatingPlayer(
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties = {}): boolean {
+        return this.getGameAction(context, additionalProperties).hasTargetsChosenByPlayer(
             context,
+            player,
             additionalProperties
         );
     }

@@ -300,6 +300,12 @@ class PlayerInteractionWrapper {
             case 'clone-trooper':
                 tokenClassName = 'cloneTrooper';
                 break;
+            case 'tie-fighter':
+                tokenClassName = 'tieFighter';
+                break;
+            case 'xwing':
+                tokenClassName = 'xwing';
+                break;
             case 'experience':
             case 'shield':
                 tokenClassName = tokenName;

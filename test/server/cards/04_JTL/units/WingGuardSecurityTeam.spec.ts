@@ -16,7 +16,7 @@ describe('Wing Guard Security Team', function() {
 
             context.player1.clickCard(context.wingGuardSecurityTeam);
             expect(context.player1).toBeAbleToSelectExactly([context.wrecker, context.wingGuardSecurityTeam, context.distantPatroller]);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
 
             context.player1.clickCard(context.wrecker);
             context.player1.clickCard(context.distantPatroller);

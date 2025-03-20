@@ -27,7 +27,7 @@ describe('Doctor Pershing, Experimenting With Life', function() {
                 context.player1.clickCard(context.doctorPershing);
                 context.player1.clickPrompt('Draw a card');
                 expect(context.player1).toBeAbleToSelectExactly([context.doctorPershing, context.wampa, context.tielnFighter]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Target a space friendly unit
                 context.player1.clickCard(context.tielnFighter);
@@ -41,7 +41,7 @@ describe('Doctor Pershing, Experimenting With Life', function() {
                 context.player1.clickCard(context.doctorPershing);
                 context.player1.clickPrompt('Draw a card');
                 expect(context.player1).toBeAbleToSelectExactly([context.doctorPershing, context.wampa]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Target a shilded friendly unit
                 context.player1.clickCard(context.wampa);
@@ -56,7 +56,7 @@ describe('Doctor Pershing, Experimenting With Life', function() {
                 context.player1.clickCard(context.doctorPershing);
                 context.player1.clickPrompt('Draw a card');
                 expect(context.player1).toBeAbleToSelectExactly([context.doctorPershing, context.wampa]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Target self
                 context.player1.clickCard(context.doctorPershing);
