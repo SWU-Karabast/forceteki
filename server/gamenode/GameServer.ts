@@ -819,9 +819,9 @@ export class GameServer {
         // Ensure all users in lobbies are in the userLobbyMap correctly
         for (const [, lobby] of this.lobbies.entries()) {
             for (const user of lobby.users) {
-                if (!this.userLobbyMap.get(user.id)) {
+                if (this.userLobbyMap.get(user.id)?.lobbyId === lobby.id) {
                     logger.info(`Found misplaced user with id ${user.id} removing from lobby ${lobby.id}.`);
-                    lobby.removeUser(user.id);
+                    this.removeUserMaybeCleanupLobby(lobby, user.id);
                 }
             }
         }
