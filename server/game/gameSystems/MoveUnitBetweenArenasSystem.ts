@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { Card } from '../core/card/Card';
+import { InitializeCardStateOption, type Card } from '../core/card/Card';
 import {
     EventName,
     GameStateChangeRequired,
@@ -25,7 +25,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
     public override targetTypeFilter = [WildcardCardType.Unit];
 
     public eventHandler(event: any, additionalProperties = {}): void {
-        (event.card as Card).moveTo(event.destination, false);
+        (event.card as Card).moveTo(event.destination, InitializeCardStateOption.DoNotInitialize);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -74,7 +74,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
         event.destination = this.getDestination(properties);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { moveType } = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (
@@ -84,7 +84,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
             return false;
         }
 
-        return super.canAffect(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
     private getDestination(properties: IMoveUnitBetweenArenasProperties): ZoneName {

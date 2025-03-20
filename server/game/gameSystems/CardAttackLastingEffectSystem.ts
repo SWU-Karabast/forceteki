@@ -35,11 +35,11 @@ export class CardAttackLastingEffectSystem<TContext extends AbilityContext = Abi
         return super.updateEvent(event, target, context, additionalProperties);
     }
 
-    public override canAffect(card: Card, context: TContext) {
+    public override canAffectInternal(card: Card, context: TContext) {
         if (!card.isUnit()) {
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 }

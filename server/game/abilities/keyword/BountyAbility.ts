@@ -26,7 +26,7 @@ export class BountyAbility extends TriggeredAbility {
         card: Card,
         properties: Omit<ITriggeredAbilityBaseProps, 'canBeTriggeredBy'>,
     ) {
-        Contract.assertTrue(card.isUnit());
+        Contract.assertTrue(card.isUnit() || card.isDeployableLeader());
 
         const { title, optional } = properties;
 

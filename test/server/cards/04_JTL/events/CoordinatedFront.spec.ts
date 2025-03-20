@@ -24,13 +24,13 @@ describe('Coordinated Front', function () {
 
                 // Choose a ground unit
                 expect(context.player1).toBeAbleToSelectExactly([context.superBattleDroid, context.patrollingAat]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.superBattleDroid);
 
                 // Choose a space unit
                 expect(context.player1).toBeAbleToSelectExactly([context.tielnFighter, context.headhunterSquadron]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.tielnFighter);
 
@@ -56,15 +56,15 @@ describe('Coordinated Front', function () {
 
                 // Choose a ground unit
                 expect(context.player1).toBeAbleToSelectExactly([context.superBattleDroid, context.patrollingAat]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.superBattleDroid);
 
                 // Choose a space unit
                 expect(context.player1).toBeAbleToSelectExactly([context.tielnFighter, context.headhunterSquadron]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
 
                 expect(context.superBattleDroid.getPower()).toBe(6); // 4 base power + 2 from Coordinated Front ability
                 expect(context.superBattleDroid.getHp()).toBe(5); // 3 base HP + 2 from Coordinated Front ability
@@ -88,13 +88,13 @@ describe('Coordinated Front', function () {
 
                 // Choose a ground unit
                 expect(context.player1).toBeAbleToSelectExactly([context.superBattleDroid, context.patrollingAat]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
 
                 // Choose a space unit
                 expect(context.player1).toBeAbleToSelectExactly([context.tielnFighter, context.headhunterSquadron]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.tielnFighter);
 
@@ -120,15 +120,15 @@ describe('Coordinated Front', function () {
 
                 // Choose a ground unit
                 expect(context.player1).toBeAbleToSelectExactly([context.superBattleDroid, context.patrollingAat]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
 
                 // Choose a space unit
                 expect(context.player1).toBeAbleToSelectExactly([context.tielnFighter, context.headhunterSquadron]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
 
                 expect(context.superBattleDroid.getPower()).toBe(4);
                 expect(context.superBattleDroid.getHp()).toBe(3);

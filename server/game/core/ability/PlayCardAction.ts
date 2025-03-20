@@ -55,6 +55,8 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly playType: PlayType;
     public readonly canPlayFromAnyZone: boolean;
 
+    protected readonly playCost: PlayCardResourceCost;
+
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
     public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
@@ -104,10 +106,15 @@ export abstract class PlayCardAction extends PlayerAction {
         );
 
         this.playType = propertiesWithDefaults.playType;
+        this.playCost = playCost;
         this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
         this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
+    }
+
+    protected usesExploit(context: AbilityContext) {
+        return this.playCost.usesExploit(context);
     }
 
     private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true): string {

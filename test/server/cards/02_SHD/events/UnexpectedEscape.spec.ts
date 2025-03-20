@@ -25,7 +25,7 @@ describe('Unexpected Escape', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.discerningVeteran, context.tielnFighter, context.pykeSentinel]);
                 context.player1.clickCard(context.discerningVeteran);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.wampa);
 
                 expect(context.discerningVeteran.exhausted).toBeTrue();
@@ -46,8 +46,8 @@ describe('Unexpected Escape', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.discerningVeteran, context.tielnFighter, context.pykeSentinel]);
                 context.player1.clickCard(context.discerningVeteran);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst]);
-                expect(context.player1).toHaveChooseNoTargetButton();
-                context.player1.clickPrompt('Choose no target');
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
 
                 expect(context.discerningVeteran.exhausted).toBeTrue();
                 expect(context.atst).toBeCapturedBy(context.discerningVeteran);

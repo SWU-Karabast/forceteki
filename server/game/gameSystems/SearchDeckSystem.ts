@@ -74,7 +74,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
             return false;
         }
         const player = properties.player || context.player;
-        return this.getDeck(player).length > 0 && super.canAffect(player, context);
+        return this.getDeck(player).length > 0 && super.canAffectInternal(player, context);
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {

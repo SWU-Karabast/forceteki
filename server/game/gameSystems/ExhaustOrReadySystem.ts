@@ -11,7 +11,7 @@ export abstract class ExhaustOrReadySystem<TContext extends AbilityContext = Abi
     // TODO - do I add a WildcardCardType.Leader?
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, CardType.Event, WildcardCardType.Upgrade, CardType.Leader];
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (
             !EnumHelpers.isArena(card.zoneName) &&
             card.zoneName !== ZoneName.Resource &&
@@ -28,6 +28,6 @@ export abstract class ExhaustOrReadySystem<TContext extends AbilityContext = Abi
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 }

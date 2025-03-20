@@ -81,7 +81,7 @@ describe('Echo, Restored', function () {
 
                 // 2 units with the same title, can choose between them
                 expect(context.player1).toBeAbleToSelectExactly([friendlyGroundWampa, enemyGroundWampa]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 context.player1.clickCard(friendlyGroundWampa);
 
                 // friendly wampa should have 2 experiences tokens

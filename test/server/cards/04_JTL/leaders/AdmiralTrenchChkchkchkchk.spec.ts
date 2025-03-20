@@ -48,7 +48,7 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.endlessLegions, context.theDarksaber]);
 
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
 
                 expect(context.wampa).toBeInZone('hand');
                 expect(context.atst).toBeInZone('deck');
@@ -127,6 +127,81 @@ describe('Admiral Trench, Chk-chk-chk-chk', function() {
                 expect(context.wampa).toBeInZone('discard');
                 expect(context.cartelSpacer).toBeInZone('discard');
                 expect(context.theDarksaber).toBeInZone('hand');
+                expect(context.player1.deck).toEqual([
+                    context.evacuate,
+                ]);
+            });
+
+            it('reveals the top 4 cards of your deck, an opponent discards 2 of them, and you dray 1 of the remaining cards and discard the other (regardless of order of choice on the last one)', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'admiral-trench#chkchkchkchk',
+                        deck: ['wampa', 'cartel-spacer', 'endless-legions', 'the-darksaber', 'evacuate'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.admiralTrench);
+                context.player1.clickPrompt('Deploy Admiral Trench');
+
+                expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
+                expect(context.getChatLogs(1)[0]).toContain(context.cartelSpacer.title);
+                expect(context.getChatLogs(1)[0]).toContain(context.endlessLegions.title);
+                expect(context.getChatLogs(1)[0]).toContain(context.theDarksaber.title);
+
+                context.player1.clickPrompt('Done');
+
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selectable: [context.wampa, context.cartelSpacer, context.endlessLegions, context.theDarksaber]
+                });
+                expect(context.player2).toHaveDisabledPromptButton('Done');
+
+                context.player2.clickCardInDisplayCardPrompt(context.endlessLegions);
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selected: [context.endlessLegions],
+                    selectable: [context.wampa, context.cartelSpacer, context.theDarksaber]
+                });
+                expect(context.player2).toHaveDisabledPromptButton('Done');
+                context.player2.clickCardInDisplayCardPrompt(context.theDarksaber);
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selected: [context.endlessLegions, context.theDarksaber],
+                    selectable: [context.wampa, context.cartelSpacer]
+                });
+                expect(context.player2).toHaveEnabledPromptButton('Done');
+
+                // unselect and select another
+                context.player2.clickCardInDisplayCardPrompt(context.theDarksaber);
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selected: [context.endlessLegions],
+                    selectable: [context.wampa, context.cartelSpacer, context.theDarksaber]
+                });
+                expect(context.player2).toHaveDisabledPromptButton('Done');
+                context.player2.clickCardInDisplayCardPrompt(context.wampa);
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selected: [context.endlessLegions, context.wampa],
+                    selectable: [context.theDarksaber, context.cartelSpacer]
+                });
+                context.player2.clickPrompt('Done');
+
+                expect(context.endlessLegions).toBeInZone('discard');
+                expect(context.wampa).toBeInZone('discard');
+                expect(context.player1.deck).toEqual([
+                    context.cartelSpacer,
+                    context.theDarksaber,
+                    context.evacuate,
+                ]);
+
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.cartelSpacer, context.theDarksaber]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCardInDisplayCardPrompt(context.cartelSpacer);
+
+                expect(context.endlessLegions).toBeInZone('discard');
+                expect(context.wampa).toBeInZone('discard');
+                expect(context.cartelSpacer).toBeInZone('hand');
+                expect(context.theDarksaber).toBeInZone('discard');
                 expect(context.player1.deck).toEqual([
                     context.evacuate,
                 ]);

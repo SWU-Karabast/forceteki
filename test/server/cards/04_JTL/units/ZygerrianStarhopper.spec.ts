@@ -22,7 +22,7 @@ describe('Zygerrian Starhopper', function() {
             expect(context.player1).toHaveEnabledPromptButtons(['You', 'Opponent']);
             context.player1.clickPrompt('Opponent');
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
-            expect(context.player2).not.toHaveChooseNoTargetButton();
+            expect(context.player2).not.toHaveChooseNothingButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.wampa, 1],
                 [context.p2Base, 1]

@@ -22,7 +22,7 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
         return amount === 1 ? ['ready a resource', []] : ['ready {0} resources', [amount]];
     }
 
-    public override canAffect(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { isCost, amount } = this.generatePropertiesFromContext(context);
 
         // if this is a cost or an "if you do" condition, must ready all required resources
@@ -35,7 +35,7 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
             return false;
         }
 
-        return super.canAffect(player, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(player, context, additionalProperties, mustChangeGameState);
     }
 
     public override defaultTargets(context: TContext): Player[] {

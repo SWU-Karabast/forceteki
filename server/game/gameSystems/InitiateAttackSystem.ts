@@ -54,11 +54,11 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         event.optional = properties.optional ?? context.ability.optional;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (
             !card.isUnit() ||
-            !super.canAffect(card, context) ||
+            !super.canAffectInternal(card, context) ||
             !properties.attackerCondition(card, context)
         ) {
             return false;

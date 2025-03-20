@@ -69,7 +69,7 @@ describe('Enticing Reward', function () {
                 // must discard a card from hand
                 expect(context.player1).toBeAbleToSelectExactly([context.atst, context.scoutBikePursuer, context.devotion, context.waylay]);
                 expect(context.player1).not.toHavePassAbilityButton();
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.waylay);
                 expect(context.waylay).toBeInZone('discard');

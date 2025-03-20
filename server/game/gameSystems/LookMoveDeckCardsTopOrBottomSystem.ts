@@ -58,7 +58,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         return [context.player];
     }
 
-    public override canAffect(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
+    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
         let nonAraTarget: Player;
 
         if (Array.isArray(target)) {
@@ -77,7 +77,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
             return false;
         }
 
-        return super.canAffect(target, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
     }
 
     // Helper method for pushing the move card event into the events array.
