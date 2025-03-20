@@ -20,7 +20,7 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
         event.card.takeControl(event.newController);
     }
 
-    public override canAffect(card: Card, context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!card.canBeInPlay() || !card.isInPlay()) {
             return false;
         }
@@ -30,7 +30,7 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

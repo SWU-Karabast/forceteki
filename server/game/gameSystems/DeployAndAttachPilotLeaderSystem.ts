@@ -35,14 +35,14 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
         return ['deploy {0} and attach it to {1}', [properties.leaderPilotCard, properties.target]];
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffectInternal(card: Card, context: TContext): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
         if (!card.isUnit() || !card.canAttachPilot(properties.leaderPilotCard, PlayType.Piloting)) {
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {

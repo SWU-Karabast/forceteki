@@ -329,5 +329,24 @@ describe('Piloting keyword', function() {
             expect(context.idenVersio).toBeInZone('groundArena');
             expect(context.player1.exhaustedResourceCount).toBe(3); // +2 for sneak attack and +1 for iden (3pt discount)
         });
+
+        it('An attached pilot should not be returned by abilities searching for non-leader units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'tarkintown'
+                },
+                player2: {
+                    spaceArena: [{ card: 'ruthless-raider', damage: 1, upgrades: ['darth-vader#scourge-of-squadrons'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // no error should happen in this test
+            context.player1.clickCard(context.tarkintown);
+            context.player1.clickCard(context.ruthlessRaider);
+            expect(context.ruthlessRaider.damage).toBe(4);
+        });
     });
 });
