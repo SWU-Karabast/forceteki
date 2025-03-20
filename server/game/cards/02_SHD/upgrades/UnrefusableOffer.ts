@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { KeywordName, PhaseName, PlayType } from '../../../core/Constants';
+import { KeywordName, PhaseName, PlayType, ZoneName } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
@@ -22,7 +22,7 @@ export default class UnrefusableOffer extends UpgradeCard {
             ability: {
                 title: 'Play this unit for free (under your control). It enters play ready. At the start of the regroup phase, defeat it',
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => !context.source.isTokenUnit(),
+                    condition: (context) => context.source.zone.name === ZoneName.Discard || context.source.zone.name === ZoneName.Capture,
                     onTrue: AbilityHelper.immediateEffects.playCard({
                         entersReady: true,
                         adjustCost: { costAdjustType: CostAdjustType.Free },
