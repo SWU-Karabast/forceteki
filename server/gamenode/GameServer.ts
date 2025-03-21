@@ -118,7 +118,6 @@ export class GameServer {
         app.use(cors(corsOptions));
 
         this.setupAppRoutes(app);
-        this.startPeriodicCleanup();
         app.use((err, req, res, next) => {
             logger.error('GameServer: Error in API route:', err);
             res.status(err.status || 500).json({
@@ -783,47 +782,6 @@ export class GameServer {
             }, 20000);
         } catch (err) {
             logger.error('Error in onSocketDisconnected:', err);
-        }
-    }
-
-
-    /* possibly utility function for cleanup. */
-    private startPeriodicCleanup() {
-        try {
-            setInterval(() => {
-                // Check for empty lobbies or inconsistencies
-                this.ensureMappingConsistency();
-
-                // cleanup ghost lobbies.
-                for (const [lobbyId, lobby] of this.lobbies.entries()) {
-                    if (lobby.isEmpty()) {
-                        logger.info(`Found empty lobby with id ${lobbyId} cleaning up.`);
-                        this.lobbies.delete(lobbyId);
-                    }
-                }
-            }, 60000); // Check every minute
-        } catch (err) {
-            logger.error('Error in startPeriodicCleanup:', err);
-        }
-    }
-
-    private ensureMappingConsistency() {
-        // Remove any userLobbyMap entries that point to non-existent lobbies
-        for (const [userId, lobbymap] of this.userLobbyMap.entries()) {
-            if (!this.lobbies.has(lobbymap.lobbyId)) {
-                logger.info(`Found lobby that doesn't exist removing lobby ${lobbymap.lobbyId} from userLobbyMap.`);
-                this.userLobbyMap.delete(userId);
-            }
-        }
-
-        // Ensure all users in lobbies are in the userLobbyMap correctly
-        for (const [, lobby] of this.lobbies.entries()) {
-            for (const user of lobby.users) {
-                if (this.userLobbyMap.get(user.id)?.lobbyId === lobby.id) {
-                    logger.info(`Found misplaced user with id ${user.id} removing from lobby ${lobby.id}.`);
-                    this.removeUserMaybeCleanupLobby(lobby, user.id);
-                }
-            }
         }
     }
 }
