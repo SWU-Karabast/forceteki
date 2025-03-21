@@ -91,11 +91,13 @@ export interface ICostAdjustParameters {
 export class CostAdjuster {
     public readonly costAdjustType: CostAdjustType;
     public readonly ignoredAspect: Aspect;
-    private amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
-    private match?: (card: Card, adjusterSource: Card) => boolean;
-    private cardTypeFilter?: CardTypeFilter;
-    private attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
-    private limit?: IAbilityLimit;
+    private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
+    private readonly match?: (card: Card, adjusterSource: Card) => boolean;
+    private readonly cardTypeFilter?: CardTypeFilter;
+    private readonly attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
+    private readonly limit?: IAbilityLimit;
+    private readonly costStage: CostStage;
+    private readonly matchAbilityCosts: boolean;
 
     public constructor(
         private game: Game,
@@ -122,6 +124,9 @@ export class CostAdjuster {
         if (this.limit) {
             this.limit.registerEvents(game);
         }
+
+        this.costStage = properties.costStage || CostStage.Calculate;
+        this.matchAbilityCosts = !!properties.matchAbilityCosts;
     }
 
     public isExploit(): this is ExploitCostAdjuster {
@@ -132,6 +137,14 @@ export class CostAdjuster {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
         } else if (this.ignoredAspect && this.ignoredAspect !== adjustParams?.ignoredAspect) {
+            return false;
+        }
+
+        if (adjustParams?.isAbilityCost && !this.matchAbilityCosts) {
+            return false;
+        }
+
+        if (adjustParams?.costStage && adjustParams.costStage !== this.costStage) {
             return false;
         }
 
