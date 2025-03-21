@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
-import type { Aspect, CardTypeFilter, PlayType } from '../Constants';
+import type { Aspect, CardTypeFilter } from '../Constants';
 import { WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type Player from '../Player';
@@ -19,6 +19,15 @@ export enum CostAdjustType {
     IgnoreSpecificAspects = 'ignoreSpecificAspect'
 }
 
+/**
+ * Technically there are two stages of the cost step in SWU: calculating and paying.
+ * Almost all cost adjustments happen at the calculate stage, but some (like Starhawk) happen at the pay stage.
+ */
+export enum CostStage {
+    Calculate = 'calculate',
+    Pay = 'pay'
+}
+
 // TODO: refactor so we can add TContext for attachTargetCondition
 export interface ICostAdjusterPropertiesBase {
 
@@ -28,11 +37,17 @@ export interface ICostAdjusterPropertiesBase {
     /** The type of cost adjustment */
     costAdjustType: CostAdjustType;
 
-    /** The number of cost reductions permitted */
+    /** The number of cost reductions permitted. Defaults to unlimited. */
     limit?: IAbilityLimit;
 
     /** Conditional card matching for things like aspects, traits, etc. */
     match?: (card: Card, adjusterSource: Card) => boolean;
+
+    /** Whether the cost adjuster should adjust activation costs for abilities. Defaults to false. */
+    matchAbilityCosts?: boolean;
+
+    /** Which {@link CostStage} the adjuster applies to. Defaults to {@link CostStage.Calculate} */
+    costStage?: CostStage;
 
     /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
     attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext) => boolean;
@@ -106,7 +121,7 @@ export class CostAdjuster {
         return false;
     }
 
-    public canAdjust(playingType: PlayType, card: Card, context: AbilityContext, attachTarget?: Card, ignoredAspects?: Aspect): boolean {
+    public canAdjust(card: Card, context: AbilityContext, attachTarget?: Card, ignoredAspects?: Aspect): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
         } else if (this.ignoredAspects && this.ignoredAspects !== ignoredAspects) {

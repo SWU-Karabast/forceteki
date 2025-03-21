@@ -876,9 +876,9 @@ class Player extends GameObject {
                     const upgrade = context.source;
                     return context.game.getArenaUnits()
                         .filter((unit) => upgrade.canAttach(unit, context))
-                        .some((unit) => adjuster.canAdjust(context.playType, upgrade, context, unit, penaltyAspect));
+                        .some((unit) => adjuster.canAdjust(upgrade, context, unit, penaltyAspect));
                 }
-                return adjuster.canAdjust(context.playType, context.source, context, context.target, penaltyAspect);
+                return adjuster.canAdjust(context.source, context, context.target, penaltyAspect);
             });
 
         if (ignoreExploit) {
@@ -910,7 +910,7 @@ class Player extends GameObject {
      * @param {Aspect=} aspects
      */
     markUsedAdjusters(playingType, card, context, target = null, aspects = null) {
-        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(playingType, card, context, target, aspects));
+        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(card, context, target, aspects));
         matchingAdjusters.forEach((adjuster) => {
             adjuster.markUsed();
             if (adjuster.isExpired()) {
