@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { KeywordName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class SpareTheTarget extends EventCard {
     protected override getImplementationId() {
@@ -19,12 +19,8 @@ export default class SpareTheTarget extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.returnToHand(),
                     AbilityHelper.immediateEffects.collectBounty((context) => {
-                        const bountyAbilities = context.target.getTriggeredAbilities().filter(
-                            (ability) => ability.keyword === KeywordName.Bounty
-                        );
-
                         return {
-                            bountyProperties: bountyAbilities.map((bountyAbility) => bountyAbility.properties),
+                            bountyProperties: context.target.getBountyKeywords().map((bountyKeyword) => bountyKeyword.abilityProps),
                             bountySource: context.target
                         };
                     })

@@ -11,6 +11,7 @@ import * as Helpers from '../core/utils/Helpers';
 export interface ICollectBountyProperties extends ICardTargetSystemProperties {
     bountyProperties: ITriggeredAbilityBaseProps | ITriggeredAbilityBaseProps[];
     bountySource?: IUnitCard;
+    forceResolve?: boolean;
 }
 
 export class CollectBountySystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ICollectBountyProperties> {
@@ -31,6 +32,10 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
 
         Contract.assertTrue(bountyAbilities.length > 0, `Found empty bounty list for ability on card ${event.context.source.internalName}`);
 
+        this.resolveRemainingBountyAbilities(bountyAbilities, event);
+    }
+
+    private resolveRemainingBountyAbilities(bountyAbilities: BountyAbility[], event: any): void {
         if (bountyAbilities.length === 1) {
             this.resolveBountyAbility(bountyAbilities[0], event);
         } else {
@@ -43,10 +48,12 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
             };
 
             const handlers = bountyAbilities.map(
-                (bountyAbility) => {
-                    return () => {
-                        this.resolveBountyAbility(bountyAbility, event);
-                    };
+                (bountyAbility) => () => {
+                    this.resolveBountyAbility(bountyAbility, event);
+                    event.context.game.queueSimpleStep(
+                        () => this.resolveRemainingBountyAbilities(bountyAbilities.filter((ability) => ability !== bountyAbility), event),
+                        'resolveRemainingBountyAbilities'
+                    );
                 }
             );
 
@@ -62,15 +69,19 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
 
     // since the actual effect of the bounty is resolved in a sub-window, we don't check its effects here
     public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const { bountyProperties, bountySource } = this.generatePropertiesFromContext(context, additionalProperties);
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        if (properties.forceResolve) {
+            return true;
+        }
 
         if (mustChangeGameState !== GameStateChangeRequired.None) {
-            if (Helpers.asArray(bountyProperties).length === 0) {
+            if (Helpers.asArray(properties.bountyProperties).length === 0) {
                 return false;
             }
         }
 
-        return card === bountySource;
+        return card === properties.bountySource;
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
