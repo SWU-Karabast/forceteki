@@ -13,7 +13,7 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addIgnoreSpecificAspectPenaltyAbility({
             title: 'While playing this unit, ignore her Heroism aspect penalty if you control Kylo Ren',
-            ignoredAspects: Aspect.Heroism,
+            ignoredAspect: Aspect.Heroism,
             condition: (context) => context.player.controlsLeaderUnitOrUpgradeWithTitle('Kylo Ren')
         });
 

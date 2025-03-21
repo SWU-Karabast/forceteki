@@ -71,8 +71,8 @@ export interface IIgnoreAllAspectsCostAdjusterProperties extends ICostAdjusterPr
 export interface IIgnoreSpecificAspectsCostAdjusterProperties extends ICostAdjusterPropertiesBase {
     costAdjustType: CostAdjustType.IgnoreSpecificAspects;
 
-    /** The aspects to ignore the cost of */
-    ignoredAspects: Aspect | Aspect[];
+    /** The aspect to ignore the cost of */
+    ignoredAspect: Aspect;
 }
 
 export type ICostAdjusterProperties =
@@ -81,9 +81,16 @@ export type ICostAdjusterProperties =
   | IForFreeCostAdjusterProperties
   | IIgnoreSpecificAspectsCostAdjusterProperties;
 
+export interface ICostAdjustParameters {
+    attachTarget?: Card;
+    ignoredAspect?: Aspect;
+    costStage?: CostStage;
+    isAbilityCost?: boolean;
+}
+
 export class CostAdjuster {
     public readonly costAdjustType: CostAdjustType;
-    public readonly ignoredAspects: Aspect | Aspect[];
+    public readonly ignoredAspect: Aspect;
     private amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
     private match?: (card: Card, adjusterSource: Card) => boolean;
     private cardTypeFilter?: CardTypeFilter;
@@ -101,10 +108,10 @@ export class CostAdjuster {
         }
 
         if (properties.costAdjustType === CostAdjustType.IgnoreSpecificAspects) {
-            if (Array.isArray(properties.ignoredAspects)) {
-                Contract.assertTrue(properties.ignoredAspects.length > 0, 'Ignored Aspect array is empty');
+            if (Array.isArray(properties.ignoredAspect)) {
+                Contract.assertTrue(properties.ignoredAspect.length > 0, 'Ignored Aspect array is empty');
             }
-            this.ignoredAspects = properties.ignoredAspects;
+            this.ignoredAspect = properties.ignoredAspect;
         }
 
         this.match = properties.match;
@@ -121,16 +128,16 @@ export class CostAdjuster {
         return false;
     }
 
-    public canAdjust(card: Card, context: AbilityContext, attachTarget?: Card, ignoredAspects?: Aspect): boolean {
+    public canAdjust(card: Card, context: AbilityContext, adjustParams?: ICostAdjustParameters): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
-        } else if (this.ignoredAspects && this.ignoredAspects !== ignoredAspects) {
+        } else if (this.ignoredAspect && this.ignoredAspect !== adjustParams?.ignoredAspect) {
             return false;
         }
 
         return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) &&
           this.checkMatch(card) &&
-          this.checkAttachTargetCondition(context, attachTarget);
+          this.checkAttachTargetCondition(context, adjustParams?.attachTarget);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
