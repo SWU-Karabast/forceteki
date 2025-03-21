@@ -53,7 +53,12 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     private getSelector(properties: ICardTargetResolver<AbilityContext>) {
-        const cardCondition = (card, context) => {
+        const cardCondition = (card, context) => this.checkCardCondition(card, context, properties);
+        return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
+    }
+
+    private checkCardCondition(card: Card, context: AbilityContext, properties: ICardTargetResolver<AbilityContext>) {
+        try {
             const contextCopy = this.getContextCopy(card, context);
             if (context.stage === Stage.PreTarget && this.dependentCost && !this.dependentCost.canPay(contextCopy)) {
                 return false;
@@ -61,8 +66,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             return (this.immediateEffect || !this.dependentTarget || this.dependentTarget.properties.optional || this.dependentTarget.hasLegalTarget(contextCopy)) &&
               (!properties.cardCondition || properties.cardCondition(card, contextCopy)) &&
               (properties.immediateEffect == null || properties.immediateEffect.hasLegalTarget(contextCopy, this.properties.mustChangeGameState));
-        };
-        return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
+        } catch (err) {
+            // if an error happens while evaluating a card's condition, report it silently and return false so we have a chance to recover
+            context.game.reportError(err, false);
+            return false;
+        }
     }
 
     private getContextCopy(card: Card, context: AbilityContext, targetMode?: TargetMode) {

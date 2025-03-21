@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { PerGameAbilityLimit, type IAbilityLimit } from '../core/ability/AbilityLimit';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-import { Duration, EventName } from '../core/Constants';
+import { Duration, EventName, GameStateChangeRequired } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
@@ -137,5 +137,9 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
             default:
                 Contract.fail(`Unknown delayed effect type: ${delayedEffectType}`);
         }
+    }
+
+    protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        return this.isTargetTypeValid(target);
     }
 }

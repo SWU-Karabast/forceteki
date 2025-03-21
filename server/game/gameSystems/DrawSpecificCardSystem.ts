@@ -56,7 +56,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         ];
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
         const { changePlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IDrawSpecificCardProperties;
         return (
             (!changePlayer ||
@@ -64,7 +64,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
                 !card.anotherUniqueInPlay(context.player))) &&
                 (context.player.isLegalZoneForCardType(card.type, ZoneName.Hand)) &&
                 !EnumHelpers.isArena(card.zoneName) &&
-                super.canAffect(card, context)
+                super.canAffectInternal(card, context)
         );
     }
 

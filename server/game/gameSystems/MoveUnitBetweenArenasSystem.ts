@@ -74,7 +74,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
         event.destination = this.getDestination(properties);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { moveType } = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (
@@ -84,7 +84,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
             return false;
         }
 
-        return super.canAffect(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
     private getDestination(properties: IMoveUnitBetweenArenasProperties): ZoneName {
