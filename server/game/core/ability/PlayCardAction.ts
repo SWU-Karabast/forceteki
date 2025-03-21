@@ -15,6 +15,7 @@ import { GameEvent } from '../event/GameEvent';
 import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type Game from '../Game';
 import type Player from '../Player';
+import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -113,7 +114,7 @@ export abstract class PlayCardAction extends PlayerAction {
         this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
     }
 
-    protected usesExploit(context: AbilityContext) {
+    protected usesExploit(context: AbilityContext<ICardWithCostProperty>) {
         return this.playCost.usesExploit(context);
     }
 
