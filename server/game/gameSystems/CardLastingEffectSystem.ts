@@ -1,9 +1,10 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { EffectName, EventName, WildcardZoneName } from '../core/Constants';
+import { Duration, EffectName, EventName, WildcardZoneName } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
+import * as Contract from '../core/utils/Contract';
 
 export interface ICardLastingEffectProperties extends Omit<ILastingEffectPropertiesBase, 'target'>, ICardTargetSystemProperties {}
 
@@ -14,11 +15,11 @@ export interface ICardLastingEffectProperties extends Omit<ILastingEffectPropert
 export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ICardLastingEffectProperties> {
     public override readonly name: string = 'applyCardLastingEffect';
     public override readonly eventName = EventName.OnEffectApplied;
-    public override readonly effectDescription: string = 'apply a lasting effect to {0}';
     protected override readonly defaultProperties: ICardLastingEffectProperties = {
         duration: null,
         effect: [],
-        ability: null
+        ability: null,
+        ongoingEffectDescription: null
     };
 
     public eventHandler(event, additionalProperties?): void {
@@ -44,6 +45,35 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         return this.filterApplicableEffects(card, effects);
     }
 
+    public override getEffectMessage(context: TContext, additionalProperties?: any): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        const description = properties.ongoingEffectDescription ?? 'apply a lasting effect to';
+        let durationStr: string;
+        switch (properties.duration) {
+            case Duration.UntilEndOfAttack:
+                durationStr = ' for this attack';
+                break;
+            case Duration.UntilEndOfPhase:
+                durationStr = ' for this phase';
+                break;
+            case Duration.UntilEndOfRound:
+                durationStr = ' for the rest of the round';
+                break;
+            case Duration.WhileSourceInPlay:
+                durationStr = ' while in play';
+                break;
+            case Duration.Persistent:
+            case Duration.Custom:
+                durationStr = '';
+                break;
+            default:
+                Contract.fail(`Unknown duration: ${properties.duration}`);
+        }
+
+        return [`${description} {0}${durationStr}`, [properties.target]];
+    }
+
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): ICardLastingEffectProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         if (!Array.isArray(properties.effect)) {
@@ -62,12 +92,12 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         event.effectProperties = effectProperties;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
         const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context, additionalProperties);
 
         const effects = effectFactories.map((factory) => factory(context.game, context.source, effectProperties));
 
-        return super.canAffect(card, context) && this.filterApplicableEffects(card, effects).length > 0;
+        return super.canAffectInternal(card, context) && this.filterApplicableEffects(card, effects).length > 0;
     }
 
     private getEffectFactoriesAndProperties(card: Card, context: TContext, additionalProperties = {}) {

@@ -22,7 +22,7 @@ describe('Torpedo Barrage', function() {
             expect(context.player2).toHavePrompt('Distribute 5 indirect damage among targets');
 
             expect(context.player2).toBeAbleToSelectExactly([context.lurkingTiePhantom, context.p2Base]);
-            expect(context.player2).not.toHaveChooseNoTargetButton();
+            expect(context.player2).not.toHaveChooseNothingButton();
             context.player2.setDistributeIndirectDamagePromptState(new Map([
                 [context.p2Base, 4],
                 [context.lurkingTiePhantom, 1],

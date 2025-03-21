@@ -27,7 +27,6 @@ export default class CaptainRexFightingForHisBrothers extends LeaderUnitCard {
                     controller: context.player
                 }),
                 onTrue: AbilityHelper.immediateEffects.createCloneTrooper(),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

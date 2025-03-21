@@ -24,7 +24,7 @@ describe('Rhokai Gunship', function() {
 
                 // select a unit or a base
                 expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine, context.p1Base, context.p2Base]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(1);
                 expect(context.player1).toBeActivePlayer();

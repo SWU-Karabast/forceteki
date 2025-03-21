@@ -39,6 +39,9 @@ const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayC
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
 const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
+const { GameObject } = require('./GameObject.js');
+const { GameObjectBase } = require('./GameObjectBase.js');
+const { GameObjectManager } = require('./GameObjectManager.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -67,6 +70,7 @@ class Game extends EventEmitter {
         this.owner = details.owner;
         this.started = false;
         this.playStarted = false;
+        this.gameObjectManager = new GameObjectManager(this);
         this.createdAt = new Date();
         this.currentActionWindow = null;
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
@@ -139,8 +143,8 @@ class Game extends EventEmitter {
      * Reports errors from the game engine back to the router
      * @param {Error} e
      */
-    reportError(e) {
-        this.router.handleError(this, e);
+    reportError(e, severeGameMessage = false) {
+        this.router.handleError(this, e, severeGameMessage);
     }
 
     /**
@@ -1290,7 +1294,7 @@ class Game extends EventEmitter {
 
             Contract.assertNotNullLike(tokenConstructor, `Token card data for ${tokenName} contained unknown id '${cardData.id}'`);
 
-            this.tokenFactories[tokenName] = (player) => new tokenConstructor(player, cardData);
+            this.tokenFactories[tokenName] = (player, additionalProperties) => new tokenConstructor(player, cardData, additionalProperties);
         }
     }
 
@@ -1307,10 +1311,11 @@ class Game extends EventEmitter {
      * adds it to all relevant card lists
      * @param {Player} player
      * @param {import('./Constants.js').TokenName} tokenName
+     * @param {any} additionalProperties
      * @returns {Card}
      */
-    generateToken(player, tokenName) {
-        const token = this.tokenFactories[tokenName](player);
+    generateToken(player, tokenName, additionalProperties = null) {
+        const token = this.tokenFactories[tokenName](player, additionalProperties);
 
         this.allCards.push(token);
         player.decklist.tokens.push(token);

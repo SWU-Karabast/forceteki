@@ -27,11 +27,11 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
         return ['deploy {0}', [properties.target]];
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffectInternal(card: Card, context: TContext): boolean {
         if (!card.isLeader() || card.isDeployableLeader() && card.deployed) {
             return false;
         }
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {

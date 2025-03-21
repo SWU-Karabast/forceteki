@@ -28,13 +28,14 @@ describe('Enterprising Lackeys', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
 
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.superlaserTechnician);
 
                 // superlaser technician should be defeated and lackeys should be in resource
                 expect(context.superlaserTechnician).toBeInZone('discard');
                 expect(context.enterprisingLackeys).toBeInZone('resource');
+                expect(context.enterprisingLackeys.exhausted).toBe(true);
 
                 // battlefield marine should not be exhausted because we defeat a non-exhausted resource
                 expect(context.battlefieldMarine.exhausted).toBe(false);
@@ -52,7 +53,7 @@ describe('Enterprising Lackeys', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.battlefieldMarine, context.wildRancor, context.protector, context.devotion, context.restoredArc170]);
 
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 context.player1.clickPrompt('Pass');
 

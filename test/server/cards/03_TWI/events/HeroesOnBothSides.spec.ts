@@ -20,13 +20,13 @@ describe('Heroes on Both Sides', function () {
 
             // Choose a Republic unit
             expect(context.player1).toBeAbleToSelectExactly([context.cloneDiveTrooper, context.headhunterSquadron]);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
 
             context.player1.clickCard(context.cloneDiveTrooper);
 
             // Choose a Separatist unit
             expect(context.player1).toBeAbleToSelectExactly([context.superBattleDroid, context.patrollingAat]);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
 
             context.player1.clickCard(context.superBattleDroid);
 

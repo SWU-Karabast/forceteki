@@ -27,7 +27,7 @@ describe('Embo, Stoic and Resolute', function () {
                 context.player1.clickCard(context.embo);
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1).toBeAbleToSelectExactly([context.embo, context.escortSkiff, context.consularSecurityForce, context.swoopRacer, context.greenSquadronAwing, context.superlaserTechnician]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.escortSkiff, 2],
                 ]));
@@ -50,7 +50,7 @@ describe('Embo, Stoic and Resolute', function () {
                 context.player1.clickCard(context.superlaserTechnician);
                 context.player2.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.embo, context.escortSkiff, context.consularSecurityForce, context.swoopRacer, context.greenSquadronAwing]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.escortSkiff, 2],
                 ]));
@@ -95,7 +95,7 @@ describe('Embo, Stoic and Resolute', function () {
                 ]));
 
                 expect(context.player1).toBeAbleToSelectExactly([context.embo]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.embo, 2],
                 ]));

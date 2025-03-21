@@ -22,7 +22,6 @@ export default class ChainCodeCollector extends NonLeaderUnitCard {
                     target: context.event.attack.target,
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 }),
                 })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

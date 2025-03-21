@@ -21,7 +21,7 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
         return gameSystems.length === 0 || gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
-    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
+    protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const options = typeof this.properties.options === 'function' ? this.properties.options(context) : this.properties.options;
         if (options.length === 0) {
             return;
@@ -51,8 +51,7 @@ export class DropdownListTargetResolver extends TargetResolver<IDropdownListTarg
         return !!context.selects[this.name];
     }
 
-    protected override hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean {
-        return true;
+    protected override hasTargetsChosenByPlayerInternal(context: AbilityContext, player: Player = context.player) {
+        return this.getChoosingPlayer(context) === player;
     }
 }
-

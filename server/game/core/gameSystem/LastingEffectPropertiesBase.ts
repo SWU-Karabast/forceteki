@@ -9,6 +9,7 @@ interface ILastingEffectPropertiesAnyDuration extends IGameSystemProperties {
     ability?: PlayerOrCardAbility;
     condition?: (context: AbilityContext) => boolean;
     effect?: any;
+    ongoingEffectDescription?: string;
 }
 
 interface ILastingEffectPropertiesSetDuration extends ILastingEffectPropertiesAnyDuration {

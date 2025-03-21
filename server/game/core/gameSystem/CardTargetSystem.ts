@@ -135,7 +135,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     // override the base class behavior with a version that forces properties.target to be a scalar value
-    public override generateEvent(context: TContext, additionalProperties: any = {}): GameEvent {
+    public override generateEvent(context: TContext, additionalProperties: any = {}, addLastKnownInformation: boolean = false): GameEvent {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
 
         Contract.assertNotNullLike(target, 'Attempting to generate card target event with no provided target');
@@ -151,6 +151,9 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         }
 
         const event = this.createEvent(nonArrayTarget, context, additionalProperties);
+        if (addLastKnownInformation) {
+            (event as any).lastKnownInformation = this.buildLastKnownInformation(nonArrayTarget);
+        }
         this.updateEvent(event, nonArrayTarget, context, additionalProperties);
         return event;
     }
@@ -160,14 +163,14 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return this.canAffect(event.card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         // if a unit is pending defeat (damage >= hp but defeat not yet resolved), always return canAffect() = false unless
         // we're the system that is enacting the defeat
         if (card.isUnit() && card.isInPlay() && card.pendingDefeat) {
             return false;
         }
 
-        return super.canAffect(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: any = {}): void {
@@ -324,14 +327,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         });
     }
 
-    private buildLastKnownInformation(card: Card): ILastKnownInformation {
-        Contract.assertTrue(
-            card.zoneName === ZoneName.GroundArena ||
-            card.zoneName === ZoneName.SpaceArena ||
-            card.zoneName === ZoneName.Resource
-        );
-
-        if (card.zoneName === ZoneName.Resource) {
+    protected buildLastKnownInformation(card: Card): ILastKnownInformation {
+        if (card.zoneName !== ZoneName.GroundArena && card.zoneName !== ZoneName.SpaceArena) {
             return {
                 card,
                 controller: card.controller,

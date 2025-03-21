@@ -10,11 +10,14 @@ import type Player from '../../Player';
  * Base class for all target resolvers.
  */
 export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityContext>> {
+    public readonly dependsOnOtherTarget;
+
     protected dependentTarget = null;
     protected dependentCost = null;
 
     public constructor(protected name: string, protected properties: TProps, ability: PlayerOrCardAbility = null) {
         if (this.properties.dependsOn) {
+            this.dependsOnOtherTarget = true;
             Contract.assertNotNullLike(ability);
 
             const dependsOnTarget = ability.targetResolvers.find((target) => target.name === this.properties.dependsOn);
@@ -27,6 +30,8 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
             }
 
             dependsOnTarget.dependentTarget = this;
+        } else {
+            this.dependsOnOtherTarget = false;
         }
     }
 
@@ -34,9 +39,9 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
 
     protected abstract checkTarget(context: AbilityContext): boolean;
 
-    protected abstract hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean;
+    protected abstract hasTargetsChosenByPlayerInternal(context: AbilityContext, player?: Player): boolean;
 
-    protected abstract resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player);
+    protected abstract resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player);
 
     protected canResolve(context) {
         // if this depends on another target, that will check hasLegalTarget already
@@ -58,7 +63,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
             return;
         }
 
-        this.resolveInner(context, targetResults, passPrompt, player);
+        this.resolveInternal(context, targetResults, passPrompt, player);
     }
 
     protected getDefaultProperties(context: AbilityContext) {
@@ -80,7 +85,22 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
         }
     }
 
-    protected getChoosingPlayer(context) {
+    public hasTargetsChosenByPlayer(context: AbilityContext, player: Player = context.player) {
+        if (this.getChoosingPlayer(context) === player) {
+            return true;
+        }
+
+        Contract.assertFalse(
+            this.dependsOnOtherTarget &&
+            context.targets[this.properties.dependsOn] == null &&
+            context.selects[this.properties.dependsOn] == null,
+            `Attempting to evaluate target resolver '${this.name}' but dependent target '${this.properties.dependsOn}' is not present in context`
+        );
+
+        return this.hasTargetsChosenByPlayerInternal(context, player);
+    }
+
+    public getChoosingPlayer(context) {
         let playerProp = this.properties.choosingPlayer;
         if (typeof playerProp === 'function') {
             playerProp = playerProp(context);

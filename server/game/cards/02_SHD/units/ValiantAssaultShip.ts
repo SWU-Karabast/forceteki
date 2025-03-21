@@ -18,7 +18,6 @@ export default class ValiantAssaultShip extends NonLeaderUnitCard {
                     target: context.source,
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
                 })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

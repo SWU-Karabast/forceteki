@@ -1,4 +1,4 @@
-import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { Aspect, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
@@ -28,7 +28,6 @@ export default class KyloRenKillingThePast extends NonLeaderUnitCard {
                     }),
                     AbilityHelper.immediateEffects.conditional({
                         condition: (context) => context.target.aspects.includes(Aspect.Villainy),
-                        onTrue: AbilityHelper.immediateEffects.noAction(),
                         onFalse: AbilityHelper.immediateEffects.giveExperience()
                     })
                 ])

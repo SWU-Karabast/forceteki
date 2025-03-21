@@ -52,7 +52,7 @@ class Player extends GameObject {
         // clockDetails is optional
 
         this.user = user;
-        this.id = id;
+        this.state.id = id;
         this.printedType = 'player';
         this.socket = null;
         this.disconnected = false;
@@ -243,10 +243,15 @@ class Player extends GameObject {
 
     /**
      * @param { Trait } trait the trait to look for
+     * @param { boolean } onlyUnique only unique card
+     * @param { Card } otherThan excluded card
      * @returns { boolean } true if this player controls a card with the trait
      */
-    controlsCardWithTrait(trait, onlyUnique = false) {
-        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({ condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)) });
+    controlsCardWithTrait(trait, onlyUnique = false, otherThan = undefined) {
+        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({
+            condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)),
+            otherThan: otherThan
+        });
     }
 
     /**
@@ -500,6 +505,19 @@ class Player extends GameObject {
      * @param {PlayType} [playingType]
      */
     isCardInPlayableZone(card, playingType = null) {
+        // Check if card can be legally played by this player out of discard from an ongoing effect
+        if (
+            playingType === PlayType.PlayFromOutOfPlay &&
+            card.zoneName === ZoneName.Discard &&
+            card.hasOngoingEffect(EffectName.CanPlayFromDiscard)
+        ) {
+            return card
+                .getOngoingEffectValues(EffectName.CanPlayFromDiscard)
+                .map((value) => value.player ?? card.owner)
+                .includes(this);
+        }
+
+        // Default to checking if there is a zone that matches play type and includes the card
         return this.playableZones.some(
             (zone) => (!playingType || zone.playingType === playingType) && zone.includes(card)
         );
@@ -767,8 +785,6 @@ class Player extends GameObject {
 
         return penaltyAspects;
     }
-
-    // UP NEXT: add support for "ignoreExploit" in here, and also figure out how to merge exploit adjusters for "PlayCardResourceCost.canPay"
 
     /**
      * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.

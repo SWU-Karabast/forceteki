@@ -1,4 +1,4 @@
-import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { Aspect, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
@@ -27,7 +27,6 @@ export default class ReyKeepingThePast extends NonLeaderUnitCard {
                     AbilityHelper.immediateEffects.heal({ amount: 2 }),
                     AbilityHelper.immediateEffects.conditional({
                         condition: (context) => context.target.aspects.includes(Aspect.Heroism),
-                        onTrue: AbilityHelper.immediateEffects.noAction(),
                         onFalse: AbilityHelper.immediateEffects.giveShield()
                     })
                 ])

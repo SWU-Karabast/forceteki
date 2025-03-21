@@ -19,7 +19,6 @@ export default class CartelSpacer extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.player.isAspectInPlay(Aspect.Cunning, context.source),
                     onTrue: AbilityHelper.immediateEffects.exhaust(),
-                    onFalse: AbilityHelper.immediateEffects.noAction()
                 })
             }
         });

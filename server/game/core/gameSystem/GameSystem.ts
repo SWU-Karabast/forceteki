@@ -101,6 +101,10 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     // IMPORTANT: this method is referred to in the debugging guide. if we change the signature, we should upgrade the guide.
     public abstract eventHandler(event: GameEvent, additionalProperties: any): void;
 
+    protected canAffectInternal(target: GameObject | GameObject[], context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        return this.isTargetTypeValid(target);
+    }
+
     /**
      * Composes a property object for configuring the {@link GameSystem}'s execution using the following sources, in order of decreasing priority:
      * - `this.properties ?? this.propertyFactory(context)`
@@ -148,7 +152,13 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      */
     // IMPORTANT: this method is referred to in the debugging guide. if we change the signature, we should upgrade the guide.
     public canAffect(target: GameObject | GameObject[], context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        return this.isTargetTypeValid(target);
+        try {
+            return this.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
+        } catch (err) {
+            // if there's an error in the canAffect method, we want to report it but not throw an exception so as to try and preserve the game state
+            context.game?.reportError(err, false);
+            return false;
+        }
     }
 
     /**
@@ -216,7 +226,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
      */
-    public generateEvent(context: TContext, additionalProperties: any = {}): GameEvent {
+    public generateEvent(context: TContext, additionalProperties: any = {}, addLastKnownInformation: boolean = false): GameEvent {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
 
         const event = this.createEvent(target, context, additionalProperties);
@@ -272,7 +282,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return this.generatePropertiesFromContext(context, additionalProperties).optional ?? false;
     }
 
-    public hasTargetsChosenByInitiatingPlayer(context: TContext, additionalProperties: any = {}): boolean {
+    public hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: any = {}): boolean {
         return false;
     }
 

@@ -32,7 +32,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         return ['attach {0} {1}s to {2}', [properties.amount, this.getTokenType(), properties.target]];
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
         Contract.assertNotNullLike(context);
@@ -47,10 +47,14 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     protected abstract getTokenType(): TokenUpgradeName;
+
+    protected generateToken(context: TContext) {
+        return context.game.generateToken(context.player, this.getTokenType());
+    }
 
     protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
         super.updateEvent(event, card, context, additionalProperties);
@@ -61,7 +65,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         // it's fine if this event ends up being cancelled, unused tokens are cleaned up at the end of every round
         event.generatedTokens = [];
         for (let i = 0; i < properties.amount; i++) {
-            event.generatedTokens.push(context.game.generateToken(context.player, this.getTokenType()));
+            event.generatedTokens.push(this.generateToken(context));
         }
 
         // add contingent events for attaching the generated upgrade token(s)

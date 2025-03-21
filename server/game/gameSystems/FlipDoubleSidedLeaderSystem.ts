@@ -25,10 +25,10 @@ export class FlipDoubleSidedLeaderSystem<TContext extends AbilityContext = Abili
         return ['deploy {0}', [properties.target]];
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffectInternal(card: Card, context: TContext): boolean {
         if (!card.isDoubleSidedLeader()) {
             return false;
         }
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 }
