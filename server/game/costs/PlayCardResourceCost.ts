@@ -30,16 +30,6 @@ export class PlayCardResourceCost<TContext extends AbilityContext = AbilityConte
             return false;
         }
 
-        // if this play card action has an exploit adjuster that can't activate, the action won't fire
-        // (we will have also generated a non-exploit version of the same play card action that still can)
-
-        // TODO THIS PR: do we still need this check?
-
-        const exploitAdjuster = this.getMatchingCostAdjusters(context).find((adjuster) => adjuster.isExploit());
-        if (exploitAdjuster && !exploitAdjuster.canAdjust(this.playType, context.source, context)) {
-            return false;
-        }
-
         return super.canPay(context);
     }
 
