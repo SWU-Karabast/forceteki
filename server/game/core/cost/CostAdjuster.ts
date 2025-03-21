@@ -31,9 +31,6 @@ export interface ICostAdjusterPropertiesBase {
     /** The number of cost reductions permitted */
     limit?: IAbilityLimit;
 
-    /** @deprecated (not yet tested) Which playType this reduction is active for */
-    playingTypes?: PlayType;
-
     /** Conditional card matching for things like aspects, traits, etc. */
     match?: (card: Card, adjusterSource: Card) => boolean;
 
@@ -77,7 +74,6 @@ export class CostAdjuster {
     private cardTypeFilter?: CardTypeFilter;
     private attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
     private limit?: IAbilityLimit;
-    private playingTypes?: PlayType[];
 
     public constructor(
         private game: Game,
@@ -100,10 +96,6 @@ export class CostAdjuster {
         this.cardTypeFilter = properties.cardTypeFilter ?? WildcardCardType.Any;
         this.attachTargetCondition = properties.attachTargetCondition;
 
-        this.playingTypes =
-            properties.playingTypes &&
-            (Array.isArray(properties.playingTypes) ? properties.playingTypes : [properties.playingTypes]);
-
         this.limit = properties.limit;
         if (this.limit) {
             this.limit.registerEvents(game);
@@ -116,8 +108,6 @@ export class CostAdjuster {
 
     public canAdjust(playingType: PlayType, card: Card, context: AbilityContext, attachTarget?: Card, ignoredAspects?: Aspect): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
-            return false;
-        } else if (this.playingTypes && !this.playingTypes.includes(playingType)) {
             return false;
         } else if (this.ignoredAspects && this.ignoredAspects !== ignoredAspects) {
             return false;
