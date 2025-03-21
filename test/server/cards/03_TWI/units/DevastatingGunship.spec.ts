@@ -21,7 +21,7 @@ describe('Devastating Gunship', function () {
                 context.player1.clickCard(context.devastatingGunship);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.lurkingTiePhantom]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.battlefieldMarine);
 

@@ -17,6 +17,7 @@ export default class TheCloneWars extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Pay any number of resources.',
+            cannotTargetFirst: true,
             targetResolver: {
                 mode: TargetMode.DropdownList,
                 options: (context) => Array.from({ length: this.readyResourcesCount(context) + 1 }, (x, i) => `${i}`),

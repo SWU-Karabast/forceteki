@@ -25,6 +25,7 @@ export default class Bamboozle extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Defeat an upgrade',
+            cannotTargetFirst: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([

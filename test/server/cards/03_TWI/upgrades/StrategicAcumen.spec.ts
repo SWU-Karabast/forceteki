@@ -18,7 +18,7 @@ describe('Strategic Acumen', function() {
             expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play a unit from your hand. It costs 1 less']);
             context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
             expect(context.player1).toBeAbleToSelectExactly([context.consortiumStarviper, context.jawaScavenger, context.swoopRacer, context.battlefieldMarine]);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
             context.player1.clickCard(context.jawaScavenger);
             expect(context.wampa.exhausted).toBe(true);
             expect(context.jawaScavenger).toBeInZone('groundArena');
@@ -35,10 +35,10 @@ describe('Strategic Acumen', function() {
             context.player2.passAction();
             context.wampa.exhausted = false;
 
-            // can choose no target and play it later without discount
+            // can choose nothing and play it later without discount
             context.player1.clickCard(context.wampa);
             context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
-            context.player1.clickPrompt('Choose no target');
+            context.player1.clickPrompt('Choose nothing');
             expect(context.wampa.exhausted).toBe(true);
 
             context.player2.passAction();
@@ -55,7 +55,7 @@ describe('Strategic Acumen', function() {
             context.player1.clickCard(context.wampa);
             context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
             expect(context.player1).toBeAbleToSelectExactly([context.consortiumStarviper]);
-            expect(context.player1).toHaveChooseNoTargetButton();
+            expect(context.player1).toHaveChooseNothingButton();
             context.player1.clickCard(context.consortiumStarviper);
             expect(context.consortiumStarviper).toBeInZone('spaceArena');
             expect(context.player1.exhaustedResourceCount).toBe(2);

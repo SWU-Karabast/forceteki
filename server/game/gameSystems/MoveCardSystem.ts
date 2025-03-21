@@ -108,7 +108,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         event.shuffle = properties.shuffle;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         const { destination } = properties;
 
@@ -142,7 +142,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         }
 
         // Call the super implementation
-        return super.canAffect(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
     protected override processTargets(target: Card | Card[], context: TContext) {

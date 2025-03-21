@@ -158,7 +158,7 @@ describe('Medal Ceremony', function() {
                 context.player1.clickCard(context.medalCeremony);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.consularSecurityForce]);
 
-                context.player1.clickPrompt('Done');
+                context.player1.clickPrompt('Choose nothing');
                 expect(context.consularSecurityForce.isUpgraded()).toBe(false);
                 expect(context.consularSecurityForce.isUpgraded()).toBe(false);
                 expect(context.player2).toBeActivePlayer();

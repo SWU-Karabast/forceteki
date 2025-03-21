@@ -1,11 +1,7 @@
 import * as winston from 'winston';
-import DailyRotateFile from 'winston-daily-rotate-file';
 
-const rotate = new DailyRotateFile({
-    filename: __dirname + '/logs/forceteki',
-    json: false,
-    zippedArchive: true
-});
+
+const isRunningInAWS = !!process.env.AWS_EXECUTION_ENV;
 
 const logFormatter = winston.format.printf(({ timestamp, level, message, stack }) => {
     const log = `${timestamp} [${level}]: ${message}`;
@@ -13,10 +9,10 @@ const logFormatter = winston.format.printf(({ timestamp, level, message, stack }
 });
 
 export const logger = winston.createLogger({
-    transports: [new winston.transports.Console(), rotate],
+    transports: [new winston.transports.Console()],
     format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.errors({ stack: true }),
-        logFormatter
+        isRunningInAWS ? winston.format.json() : logFormatter
     )
 });

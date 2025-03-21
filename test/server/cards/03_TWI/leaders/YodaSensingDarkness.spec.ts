@@ -29,7 +29,7 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.handSize).toBe(3);
                 expect(context.entrenched).toBeInZone('hand');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.kraytDragon, context.entrenched]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Select Card, Then Choose Top
                 context.player1.clickCard(context.kraytDragon);
@@ -67,7 +67,7 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.handSize).toBe(3);
                 expect(context.entrenched).toBeInZone('hand');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.kraytDragon, context.entrenched]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Select Card, Then Choose Top
                 context.player1.clickCard(context.kraytDragon);
@@ -106,7 +106,7 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.handSize).toBe(4);
                 expect(context.entrenched).toBeInZone('hand');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.kraytDragon, context.entrenched, context.craftySmuggler]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Select Card, Then Choose Top
                 context.player1.clickCard(context.kraytDragon);
@@ -157,7 +157,7 @@ describe('Yoda, Sensing Darkness', function () {
                 expect(context.player1.handSize).toBe(4);
                 expect(context.entrenched).toBeInZone('hand');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.kraytDragon, context.entrenched, context.r2d2]);
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
 
                 // Select Card, Then Choose Top
                 context.player1.clickCard(context.kraytDragon);

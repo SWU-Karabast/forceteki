@@ -127,7 +127,7 @@ function formatDropdownListOptions(options) {
 }
 
 function isTokenUnit(cardName) {
-    return ['battle-droid', 'clone-trooper'].includes(cardName);
+    return ['battle-droid', 'clone-trooper', 'tie-fighter', 'xwing'].includes(cardName);
 }
 
 function isTokenUpgrade(cardName) {

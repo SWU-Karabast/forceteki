@@ -34,8 +34,45 @@ describe('Play event from hand', function() {
                 expect(context.repair).toBeInZone('discard');
                 expect(context.player1.exhaustedResourceCount).toBe(4);
             });
+        });
 
-            // TODO: add a test of Restock to make sure it can target itself in the discard pile
+
+        it('When an event is played, it can be cancelled and then triggered successfully', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['tactical-advantage'],
+                    groundArena: ['pyke-sentinel']
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.tacticalAdvantage);
+            expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa]);
+            expect(context.player1).toHaveEnabledPromptButton('Cancel');
+
+            context.player1.clickPrompt('Cancel');
+            expect(context.player1).toBeActivePlayer();
+            expect(context.tacticalAdvantage).toBeInZone('hand');
+            expect(context.player1.exhaustedResourceCount).toBe(0);
+
+            context.player1.clickCard(context.tacticalAdvantage);
+            expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa]);
+            expect(context.player1).toHaveEnabledPromptButton('Cancel');
+
+            context.player1.clickCard(context.pykeSentinel);
+            expect(context.pykeSentinel.getPower()).toBe(4);
+            expect(context.pykeSentinel.getHp()).toBe(5);
+
+            context.player2.clickCard(context.wampa);
+            context.player2.clickCard(context.pykeSentinel);
+            expect(context.wampa.damage).toBe(4);
+            expect(context.pykeSentinel.damage).toBe(4);
+            expect(context.pykeSentinel).toBeInZone('groundArena');
         });
     });
 });

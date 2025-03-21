@@ -39,6 +39,9 @@ const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayC
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
 const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
+const { GameObject } = require('./GameObject.js');
+const { GameObjectBase } = require('./GameObjectBase.js');
+const { GameObjectManager } = require('./GameObjectManager.js');
 const { User } = require('../../utils/user/User');
 
 class Game extends EventEmitter {
@@ -68,6 +71,7 @@ class Game extends EventEmitter {
         this.owner = details.owner;
         this.started = false;
         this.playStarted = false;
+        this.gameObjectManager = new GameObjectManager(this);
         this.createdAt = new Date();
         this.currentActionWindow = null;
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
@@ -140,8 +144,8 @@ class Game extends EventEmitter {
      * Reports errors from the game engine back to the router
      * @param {Error} e
      */
-    reportError(e) {
-        this.router.handleError(this, e);
+    reportError(e, severeGameMessage = false) {
+        this.router.handleError(this, e, severeGameMessage);
     }
 
     /**

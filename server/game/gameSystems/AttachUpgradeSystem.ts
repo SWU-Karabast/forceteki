@@ -40,7 +40,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         return ['attach {1} to {0}', [properties.target, properties.upgrade]];
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const contextCopy = context.copy({ source: card });
 
@@ -64,7 +64,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     public override checkEventCondition(event, additionalProperties): boolean {

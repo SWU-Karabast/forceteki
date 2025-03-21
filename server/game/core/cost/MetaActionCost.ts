@@ -6,6 +6,7 @@ import type { ISelectCardProperties } from '../../gameSystems/SelectCardSystem';
 import { randomItem } from '../utils/Helpers';
 import { GameSystemCost } from './GameSystemCost';
 import type { GameEvent } from '../event/GameEvent';
+import type Player from '../Player';
 
 export class MetaActionCost<TContext extends AbilityContext = AbilityContext> extends GameSystemCost<TContext> implements ICost<TContext> {
     public constructor(
@@ -55,8 +56,8 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
         this.gameSystem.queueGenerateEventGameSteps(events, context, additionalProps);
     }
 
-    public hasTargetsChosenByInitiatingPlayer(context: TContext): boolean {
-        return this.gameSystem.hasTargetsChosenByInitiatingPlayer(context);
+    public hasTargetsChosenByPlayer(context: TContext, player: Player = context.player): boolean {
+        return this.gameSystem.hasTargetsChosenByPlayer(context, player);
     }
 
     public override getCostMessage(context: TContext): [string, any[]] {

@@ -117,7 +117,7 @@ export abstract class DistributeAmongTargetsSystem<
         return properties;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player =
             (properties.player === RelativePlayer.Opponent && context.player.opponent) ||

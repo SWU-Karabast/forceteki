@@ -74,9 +74,8 @@ describe('Twin Laser Turret', function() {
                     context.battlefieldMarine,
                 ]);
 
-                expect(context.player1).toHaveChooseNoTargetButton();
-                context.player1.clickCard(context.wampa);
-                context.player1.clickPrompt('Choose no target');
+                expect(context.player1).toHaveChooseNothingButton();
+                context.player1.clickPrompt('Choose nothing');
                 expect(context.wampa.damage).toBe(0);
                 expect(context.battlefieldMarine.isUpgraded()).toBeTrue();
                 expect(context.battlefieldMarine.damage).toBe(0);
@@ -99,7 +98,7 @@ describe('Twin Laser Turret', function() {
                     context.greenSquadronAwing,
                 ]);
 
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.greenSquadronAwing);
                 context.player1.clickPrompt('Done');
                 expect(context.greenSquadronAwing.damage).toBe(1);

@@ -26,7 +26,7 @@ export class NoActionSystem<TContext extends AbilityContext = AbilityContext> ex
         return allowTargetSelection;
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffectInternal(card: Card, context: TContext): boolean {
         const { hasLegalTarget: allowTargetSelection } = this.generatePropertiesFromContext(context);
         return allowTargetSelection;
     }

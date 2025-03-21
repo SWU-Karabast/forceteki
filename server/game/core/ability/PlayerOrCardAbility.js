@@ -232,11 +232,27 @@ class PlayerOrCardAbility {
         return this.nonDependentTargets.some((target) => target.canResolve(context));
     }
 
+    resolveEarlyTargets(context, passHandler = null, canCancel = false) {
+        return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
+    }
+
     /**
      * Prompts the current player to choose each target defined for the ability.
      */
     resolveTargets(context, passHandler = null, canCancel = false) {
-        let targetResults = {
+        return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
+    }
+
+    resolveTargetsInner(targetResolvers, context, passHandler, canCancel) {
+        let targetResults = this.getDefaultTargetResults(context, canCancel);
+        for (let target of targetResolvers) {
+            context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
+        }
+        return targetResults;
+    }
+
+    getDefaultTargetResults(context, canCancel) {
+        return {
             canIgnoreAllCosts:
                 context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,
             cancelled: false,
@@ -244,10 +260,6 @@ class PlayerOrCardAbility {
             delayTargeting: null,
             canCancel
         };
-        for (let target of this.targetResolvers) {
-            context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
-        }
-        return targetResults;
     }
 
     resolveRemainingTargets(context, nextTarget, passHandler = null) {
@@ -275,12 +287,12 @@ class PlayerOrCardAbility {
         return this.nonDependentTargets.every((target) => target.checkTarget(context));
     }
 
-    hasTargetsChosenByInitiatingPlayer(context) {
+    hasTargetsChosenByPlayer(context, player = context.player) {
         return (
-            this.targetResolvers.some((target) => target.hasTargetsChosenByInitiatingPlayer(context)) ||
-            this.immediateEffect.hasTargetsChosenByInitiatingPlayer(context) ||
+            this.targetResolvers.some((target) => !target.dependsOnOtherTarget && target.hasTargetsChosenByPlayer(context, player)) ||
+            this.immediateEffect?.hasTargetsChosenByPlayer(context, player) ||
             this.getCosts(context).some(
-                (cost) => cost.hasTargetsChosenByInitiatingPlayer && cost.hasTargetsChosenByInitiatingPlayer(context)
+                (cost) => cost.hasTargetsChosenByInitiatingPlayer && cost.hasTargetsChosenByPlayer(context, player)
             )
         );
     }
