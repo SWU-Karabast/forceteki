@@ -201,7 +201,7 @@ export class Lobby {
     public removeSpectator(id: string): void {
         const spectator = this.spectators.find((s) => s.id === id);
         if (!spectator) {
-            logger.info(`Attempted to remove spectator: ${spectator.username}, id: ${spectator.id} from Lobby ${this.id}, but they were not found`);
+            logger.info(`Attempted to remove spectator from Lobby ${this.id}, but they were not found`);
             return;
         }
         this.spectators = this.spectators.filter((s) => s.id !== id);
