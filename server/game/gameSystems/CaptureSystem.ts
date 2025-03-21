@@ -23,7 +23,7 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
         this.leavesPlayEventHandler(event.card, ZoneName.Capture, event.context, () => event.card.moveToCaptureZone(event.captor.captureZone));
     }
 
-    public override canAffect(card: Card, context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!card.isUnit() || !card.isInPlay()) {
             return false;
         }
@@ -33,7 +33,7 @@ export class CaptureSystem<TContext extends AbilityContext = AbilityContext, TPr
             return false;
         }
 
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties?: any) {

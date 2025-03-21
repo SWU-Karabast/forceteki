@@ -67,7 +67,7 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
     }
 
     // Since the actual When Defeated effect is resolved in a sub-window, we don't check its effects here
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { resolvedAbilityEvent } = this.generatePropertiesFromContext(context);
 
         if (resolvedAbilityEvent === null) {
@@ -106,7 +106,7 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
             }
         }
 
-        return super.canAffect(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
     private getOnDefeatEvent(resolvedAbilityEvent: any) {

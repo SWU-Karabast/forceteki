@@ -49,10 +49,10 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         return ['put {0} into play', [target]];
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffectInternal(card: Card, context: TContext): boolean {
         const contextCopy = context.copy({ source: card });
         const player = this.getPutIntoPlayPlayer(contextCopy, card);
-        if (!super.canAffect(card, context)) {
+        if (!super.canAffectInternal(card, context)) {
             return false;
         } else if (!card.canBeInPlay() || card.isInPlay()) {
             return false;

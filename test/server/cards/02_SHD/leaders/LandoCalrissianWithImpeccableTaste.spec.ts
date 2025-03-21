@@ -100,7 +100,7 @@ describe('Lando Calrissian With Impeccable Taste', function () {
             expect(context.player1).toBeAbleToSelectExactly([context.zoriiBliss, context.dj]);
 
             // Choose to not play a card
-            context.player1.clickPrompt('Choose no target');
+            context.player1.clickPrompt('Choose nothing');
 
             // Still requires to defeat a resource
             expect(context.player1).toHavePrompt('Defeat a resource you own and control');

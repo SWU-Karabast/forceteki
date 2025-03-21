@@ -25,7 +25,7 @@ describe('Finalizer, Might of the First Order', function() {
 
                 // Can select any friendly unit
                 expect(context.player1).toBeAbleToSelectExactly([context.finalizer, context.cartelSpacer, context.wampa, context.atst, context.idenVersio]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.cartelSpacer);
 

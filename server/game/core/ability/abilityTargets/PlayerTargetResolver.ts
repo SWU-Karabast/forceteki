@@ -23,8 +23,26 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         return true;
     }
 
-    protected override hasTargetsChosenByInitiatingPlayer(context: AbilityContext): boolean {
-        return this.getChoosingPlayer(context) === context.player;
+    protected override hasTargetsChosenByPlayerInternal(context: AbilityContext, player: Player = context.player) {
+        return [context.player, context.player.opponent].some((player) => {
+            const contextCopy = this.getContextCopy(player, context);
+            if (this.properties.immediateEffect && this.properties.immediateEffect.hasTargetsChosenByPlayer(contextCopy, player)) {
+                return true;
+            }
+            if (this.dependentTarget) {
+                return this.dependentTarget.checkGameActionsForTargetsChosenByPlayer(contextCopy, player);
+            }
+            return false;
+        });
+    }
+
+    private getContextCopy(player: Player, context: AbilityContext) {
+        const contextCopy = context.copy();
+        contextCopy.targets[this.name] = player;
+        if (this.name === 'target') {
+            contextCopy.target = player;
+        }
+        return contextCopy;
     }
 
     protected override checkTarget(context: AbilityContext): boolean {
@@ -37,7 +55,7 @@ export class PlayerTargetResolver extends TargetResolver<IPlayerTargetResolver<A
         return context.game.getPlayers().includes(context.targets[this.name]);
     }
 
-    protected override resolveInner(context: AbilityContext, targetResults, passPrompt, player: Player) {
+    protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
         const promptProperties = this.getDefaultProperties(context);
 
         const choices = ['You', 'Opponent'];
