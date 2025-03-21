@@ -12,7 +12,7 @@ export default class ShadowCasterJustBusiness extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'When a friendly unit is defeated, you may use all of its When Defeated abilities again',
+            title: 'Use the When Defeated ability again',
             optional: true,
             when: {
                 // This is technically a little incorrect from a rules perspective, but it's better for user experience
@@ -20,8 +20,7 @@ export default class ShadowCasterJustBusiness extends NonLeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.useWhenDefeatedAbility((context) => ({
                 target: context.event.card,
-                resolvedAbilityEvent: context.event,
-                triggerAll: true
+                resolvedAbilityEvent: context.event
             }))
         });
     }
