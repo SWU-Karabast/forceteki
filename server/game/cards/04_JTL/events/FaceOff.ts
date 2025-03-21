@@ -18,14 +18,13 @@ export default class FaceOff extends EventCard {
                 condition: (context) => !context.game.isInitiativeClaimed,
                 activePromptTitle: 'Choose an enemy unit to ready',
                 controller: RelativePlayer.Opponent,
-                cardCondition: (card) => card.canBeExhausted() && card.exhausted,
                 immediateEffect: AbilityHelper.immediateEffects.ready((context) => context.target),
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Ready a friendly unit in the same arena',
                 targetResolver: {
                     controller: RelativePlayer.Self,
-                    cardCondition: (card) => card.canBeExhausted() && card.exhausted && card.zone === ifYouDoContext.target.zone,
+                    cardCondition: (card) => card.canBeExhausted() && card.exhausted && card.zoneName === ifYouDoContext.target.zoneName,
                     immediateEffect: AbilityHelper.immediateEffects.ready((context) => context.target),
                 }
             }),

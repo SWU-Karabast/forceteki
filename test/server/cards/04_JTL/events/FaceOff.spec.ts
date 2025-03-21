@@ -22,7 +22,7 @@ describe('FaceOff', function () {
 
                     context.player1.clickCard(context.faceOff);
                     expect(context.player1).toHavePrompt('Choose an enemy unit to ready');
-                    expect(context.player1).toBeAbleToSelectExactly(context.seasonedShoretrooper);
+                    expect(context.player1).toBeAbleToSelectExactly([context.seasonedShoretrooper, context.sabineWrenGalvanizedRevolutionary]);
 
                     context.player1.clickCard(context.seasonedShoretrooper);
                     expect(context.seasonedShoretrooper.exhausted).toBe(false);
@@ -58,7 +58,7 @@ describe('FaceOff', function () {
 
                     context.player1.clickCard(context.faceOff);
                     expect(context.player1).toHavePrompt('Choose an enemy unit to ready');
-                    expect(context.player1).toBeAbleToSelectExactly(context.seasonedShoretrooper);
+                    expect(context.player1).toBeAbleToSelectExactly([context.seasonedShoretrooper, context.sabineWrenGalvanizedRevolutionary]);
 
                     context.player1.clickCard(context.seasonedShoretrooper);
                     expect(context.seasonedShoretrooper.exhausted).toBe(false);
