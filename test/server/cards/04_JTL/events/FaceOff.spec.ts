@@ -28,7 +28,7 @@ describe('FaceOff', function () {
                     expect(context.seasonedShoretrooper.exhausted).toBe(false);
 
                     expect(context.player1).toHavePrompt('Ready a friendly unit in the same arena');
-                    expect(context.player1).toBeAbleToSelectExactly(context.superlaserTechnician);
+                    expect(context.player1).toBeAbleToSelectExactly([context.superlaserTechnician, context.bobaFettDaimyo]);
 
                     context.player1.clickCard(context.superlaserTechnician);
                     expect(context.superlaserTechnician.exhausted).toBe(false);

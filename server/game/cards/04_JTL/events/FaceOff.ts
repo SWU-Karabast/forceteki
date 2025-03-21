@@ -24,7 +24,7 @@ export default class FaceOff extends EventCard {
                 title: 'Ready a friendly unit in the same arena',
                 targetResolver: {
                     controller: RelativePlayer.Self,
-                    cardCondition: (card) => card.canBeExhausted() && card.exhausted && card.zoneName === ifYouDoContext.target.zoneName,
+                    cardCondition: (card) => card.zoneName === ifYouDoContext.target.zoneName,
                     immediateEffect: AbilityHelper.immediateEffects.ready((context) => context.target),
                 }
             }),
