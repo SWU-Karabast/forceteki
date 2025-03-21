@@ -8,8 +8,8 @@ import type Player from '../Player';
 import * as Contract from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type { ICostResult } from './ICost';
-import type { PlayCardResourceCost } from '../../costs/PlayCardResourceCost';
 import * as EnumHelpers from '../utils/EnumHelpers';
+import type { ResourceCost } from '../../costs/ResourceCost';
 
 export enum CostAdjustType {
     Increase = 'increase',
@@ -129,7 +129,7 @@ export class CostAdjuster {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public queueGenerateEventGameSteps(events: any[], context: AbilityContext, resourceCost: PlayCardResourceCost, result?: ICostResult): void {}
+    public queueGenerateEventGameSteps(events: any[], context: AbilityContext, resourceCost: ResourceCost, result?: ICostResult): void {}
 
     public getAmount(card: Card, player: Player, context: AbilityContext): number {
         return typeof this.amount === 'function' ? this.amount(card, player, context) : this.amount;
