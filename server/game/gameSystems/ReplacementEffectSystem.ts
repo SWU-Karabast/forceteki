@@ -121,4 +121,8 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
     protected override isTargetTypeValid(target: GameObject): boolean {
         return false;
     }
+
+    protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        return this.isTargetTypeValid(target);
+    }
 }

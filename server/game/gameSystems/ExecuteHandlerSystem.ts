@@ -31,7 +31,7 @@ export class ExecuteHandlerSystem<TContext extends AbilityContext = AbilityConte
         return true;
     }
 
-    public override canAffect(card: Card, context: TContext): boolean {
+    public override canAffectInternal(card: Card, context: TContext): boolean {
         return true;
     }
 

@@ -143,8 +143,8 @@ class Game extends EventEmitter {
      * Reports errors from the game engine back to the router
      * @param {Error} e
      */
-    reportError(e) {
-        this.router.handleError(this, e);
+    reportError(e, severeGameMessage = false) {
+        this.router.handleError(this, e, severeGameMessage);
     }
 
     /**

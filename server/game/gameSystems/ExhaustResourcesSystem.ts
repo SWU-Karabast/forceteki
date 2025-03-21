@@ -36,11 +36,11 @@ export class ExhaustResourcesSystem<TContext extends AbilityContext = AbilityCon
         return ['spending {1} resources', [properties.amount]];
     }
 
-    public override canAffect(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.amount > 0 &&
           player.readyResourceCount > 0 &&
-          super.canAffect(player, context, additionalProperties, mustChangeGameState) &&
+          super.canAffectInternal(player, context, additionalProperties, mustChangeGameState) &&
             player.readyResourceCount >= properties.amount;
     }
 

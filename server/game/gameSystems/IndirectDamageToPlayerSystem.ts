@@ -53,14 +53,14 @@ export class IndirectDamageToPlayerSystem<TContext extends AbilityContext = Abil
         return ['deal {0} indirect damage to {1}', [indirectDamageAmount, properties.target]];
     }
 
-    public override canAffect(player: Player, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.amount <= 0) {
             return false;
         }
 
-        return super.canAffect(player, context);
+        return super.canAffectInternal(player, context);
     }
 
     public override defaultTargets(context: TContext): Player[] {

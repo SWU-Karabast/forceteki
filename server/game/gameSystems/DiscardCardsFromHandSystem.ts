@@ -48,7 +48,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         return ['make {0} {1}discard {2} cards from {3}', [context.player, properties.random ? 'randomly ' : '', properties.amount, properties.target]];
     }
 
-    public override canAffect(playerOrPlayers: Player | Player[], context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(playerOrPlayers: Player | Player[], context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         for (const player of Helpers.asArray(playerOrPlayers)) {
             const properties = this.generatePropertiesFromContext(context, additionalProperties);
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context) && EnumHelpers.cardTypeMatches(card.type, properties.cardTypeFilter));
@@ -61,7 +61,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 return false;
             }
 
-            if (!super.canAffect(player, context, additionalProperties)) {
+            if (!super.canAffectInternal(player, context, additionalProperties)) {
                 return false;
             }
         }

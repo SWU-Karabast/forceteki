@@ -79,12 +79,12 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         event.optional = properties.optional ?? context.ability.optional;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
         if (!card.isPlayable()) {
             return false;
         }
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (!super.canAffect(card, context)) {
+        if (!super.canAffectInternal(card, context)) {
             return false;
         }
 

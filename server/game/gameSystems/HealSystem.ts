@@ -24,7 +24,7 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
         return ['heal {1} damage from {0}', [amount, target]];
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
         if (!card.canBeDamaged()) {
             return false;
@@ -35,7 +35,7 @@ export class HealSystem<TContext extends AbilityContext = AbilityContext> extend
         if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && (properties.amount === 0 || card.damage === 0 || card.hasRestriction(AbilityRestriction.BeHealed, context))) {
             return false;
         }
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {

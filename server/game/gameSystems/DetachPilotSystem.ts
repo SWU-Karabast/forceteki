@@ -48,11 +48,11 @@ export class DetachPilotSystem<TContext extends AbilityContext = AbilityContext>
         ]);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!EnumHelpers.isUnitUpgrade(card.type)) {
             return false;
         }
 
-        return super.canAffect(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 }
