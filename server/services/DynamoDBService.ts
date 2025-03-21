@@ -228,17 +228,14 @@ export class DynamoDBService {
     // User Profile Methods
 
     public async saveUserProfile(userData: IUserProfileData) {
-        return await this.executeDbOperation(async () => {
-            const item = {
-                pk: `USER#${userData.id}`,
-                sk: 'PROFILE',
-                ...userData,
-                username_set_at: userData.username_set_at || new Date().toISOString(),
-                preferences: userData.preferences || { cardback: 'default' },
-            };
-
-            return await this.putItem(item);
-        }, 'Error saving user profile');
+        const item = {
+            pk: `USER#${userData.id}`,
+            sk: 'PROFILE',
+            ...userData,
+            username_set_at: userData.username_set_at || new Date().toISOString(),
+            preferences: userData.preferences || { cardback: 'default' },
+        };
+        return await this.putItem(item);
     }
 
     public async getUserProfile(userId: string) {
@@ -273,18 +270,30 @@ export class DynamoDBService {
         }, 'Error updating user profile');
     }
 
-    // OAuth Link Methods
-
-    public async saveOAuthLink(provider: string, providerId: string, userId: string) {
+    /**
+     * Put an item with a condition expression
+     */
+    public async putItemWithCondition(item: Record<string, any>, conditionExpression: string) {
         return await this.executeDbOperation(async () => {
-            const item = {
+            const command = new PutCommand({
+                TableName: this.tableName,
+                Item: item,
+                ConditionExpression: conditionExpression
+            });
+            return await this.client.send(command);
+        }, 'DynamoDB putItemWithCondition error');
+    }
+
+    // OAuth Link Methods
+    public async saveOAuthLink(provider: string, providerId: string, userId: string) {
+        await this.putItemWithCondition(
+            {
                 pk: `OAUTH#${provider}_${providerId}`,
                 sk: 'LINK',
                 GSI_PK: userId,
-            };
-
-            return await this.putItem(item);
-        }, 'Error saving OAuth link');
+            },
+            'attribute_not_exists(pk)'
+        );
     }
 
     public async getUserIdByOAuth(provider: string, providerId: string) {

@@ -192,11 +192,12 @@ export class UserFactory {
                 preferences: { cardback: 'default' },
             };
 
+            // Create OAuth link
+            await this.dynamoDbService.saveOAuthLink(provider, providerId, newUser.id);
+
             // Save the user profile
             await this.dynamoDbService.saveUserProfile(newUser);
 
-            // Create OAuth link
-            await this.dynamoDbService.saveOAuthLink(provider, providerId, newUser.id);
 
             // Create email link if email is available
             if (email) {
@@ -211,6 +212,11 @@ export class UserFactory {
                 playerId: userId
             };
         } catch (error) {
+            // This should never happen but if it does its so we don't create two accounts
+            if (error.name === 'ConditionalCheckFailedException') {
+                logger.info('Concurrent user creation detected');
+                return null;
+            }
             // This catches both JWT verification errors and database errors
             logger.error('Authentication error:', error);
             return null;

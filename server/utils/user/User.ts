@@ -61,7 +61,7 @@ export class AuthenticatedUser extends User {
     }
 
     public isAnonymousUser(): boolean {
-        return true;
+        return false;
     }
 
     public getId(): string {

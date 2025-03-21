@@ -107,8 +107,6 @@ export class GameServer {
         };
         app.use(cors(corsOptions));
 
-        app.use(authMiddleware());
-
         this.setupAppRoutes(app);
 
         app.use((err, req, res, next) => {
@@ -195,10 +193,26 @@ export class GameServer {
                 next(err);
             }
         });
+
         // TODO work in progress
-        app.get('/api/get-decks', async (req, res, next) => {
+        app.post('/api/get-decks', authMiddleware(), async (req, res, next) => {
+            const { decks } = req.body;
+            const user = req.user as User;
+            if (user.isAnonymousUser()) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'User is not logged in'
+                });
+            }
+            // we try to sync the decks first
             try {
-                const usersDecks = await this.deckService.getUserDecksFavouritesFirst(req.user.id);
+                await this.deckService.syncDecks(user.getId(), decks);
+            } catch (err) {
+                logger.error('GameServer: Error with syncing decks:', err);
+            }
+            // we retrieve the decks for the FE
+            try {
+                const usersDecks = await this.deckService.getUserDecksFavouritesFirst(user.getId());
                 return res.status(200).json(usersDecks);
             } catch (err) {
                 logger.error('GameServer: Error in getting a users decks: ', err);
@@ -214,7 +228,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/create-lobby', async (req, res, next) => {
+        app.post('/api/create-lobby', authMiddleware(), async (req, res, next) => {
             try {
                 const { deck, format, isPrivate, lobbyName } = req.body;
                 const user = req.user;
@@ -249,7 +263,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/join-lobby', (req, res, next) => {
+        app.post('/api/join-lobby', authMiddleware(), (req, res, next) => {
             try {
                 const { lobbyId } = req.body;
                 const user = req.user;
@@ -299,7 +313,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/enter-queue', async (req, res, next) => {
+        app.post('/api/enter-queue', authMiddleware(), async (req, res, next) => {
             try {
                 const { format, deck } = req.body;
                 const user = req.user;

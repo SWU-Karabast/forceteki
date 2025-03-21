@@ -15,6 +15,16 @@ export interface IUserProfileData extends IUserData {
     preferences?: Record<string, any>;
 }
 
+export interface ILocalStorageDeckData {
+    leader: { id: string };
+    base: { id: string };
+    name: string;
+    favourite: boolean;
+    deckLink: string;
+    deckLID: string;
+    source?: string;
+}
+
 // Interface for deck data
 export interface IDeckData {
     id: string;
