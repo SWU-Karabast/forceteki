@@ -242,6 +242,54 @@ describe('The Starhawk, Prototype Battleship', function() {
             expect(context.player1.exhaustedResourceCount).toBe(2);
         });
 
+        it('Starhawk\'s constant ability should work with Exploit', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'doctor-aphra#rapacious-archaeologist',
+                    spaceArena: ['the-starhawk#prototype-battleship'],
+                    hand: ['infiltrating-demolisher'],
+                    resources: 1
+                }
+            });
+
+            const { context } = contextRef;
+
+            expect(context.player1).toBeAbleToSelect(context.infiltratingDemolisher);
+            context.player1.clickCard(context.infiltratingDemolisher);
+            context.player1.clickPrompt('Trigger Exploit');
+            context.player1.clickCard(context.theStarhawk);
+            context.player1.clickPrompt('Done');
+
+            expect(context.player1.exhaustedResourceCount).toBe(1);
+        });
+
+        it('Starhawk\'s constant ability should work correctly with abilities that check the resource cost paid', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'emperor-palpatine#galactic-ruler',
+                    spaceArena: ['the-starhawk#prototype-battleship'],
+                    hand: ['osi-sobeck#warden-of-the-citadel']
+                },
+                player2: {
+                    groundArena: ['battlefield-marine', 'wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.osiSobeck);
+            context.player1.clickPrompt('Play without Exploit');
+
+            // Osi ability triggers, can only target something with cost 3 or lower
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            expect(context.battlefieldMarine).toBeCapturedBy(context.osiSobeck);
+            expect(context.player1.exhaustedResourceCount).toBe(3);
+        });
+
         describe('Starhawk\'s constant ability', function() {
             beforeEach(function() {
                 return contextRef.setupTestAsync({
