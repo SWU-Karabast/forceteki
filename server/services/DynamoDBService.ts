@@ -1,15 +1,15 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import {
-    DynamoDBDocumentClient,
-    PutCommand,
-    GetCommand,
-    QueryCommand,
-    UpdateCommand,
     DeleteCommand,
-    ScanCommand
+    DynamoDBDocumentClient,
+    GetCommand,
+    PutCommand,
+    QueryCommand,
+    ScanCommand,
+    UpdateCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
-import type { IDeckData, IGameRecord, IUserProfileData } from './DynamoDBInterfaces';
+import type { IDeckData, IUserProfileData } from './DynamoDBInterfaces';
 
 export class DynamoDBService {
     private client: DynamoDBDocumentClient;
@@ -211,20 +211,6 @@ export class DynamoDBService {
         }, 'DynamoDB deleteItem error');
     }
 
-    // Query by GSI_PK for OAuth and email lookups
-    public async queryByGSIPK(gsiPk: string) {
-        return await this.executeDbOperation(async () => {
-            const command = new QueryCommand({
-                TableName: this.tableName,
-                IndexName: 'GSI_PK_INDEX',
-                KeyConditionExpression: 'GSI_PK = :gsiPk',
-                ExpressionAttributeValues: { ':gsiPk': gsiPk }
-            });
-
-            return await this.client.send(command);
-        }, 'DynamoDB queryByGSIPK error');
-    }
-
     // User Profile Methods
 
     public async saveUserProfile(userData: IUserProfileData) {
@@ -346,6 +332,29 @@ export class DynamoDBService {
         }, 'Error getting deck');
     }
 
+
+    /**
+     * Find a deck by its deckLink property
+     * @param userId The user ID
+     * @param deckLink The deck link to search for
+     * @returns The deck data if found, undefined otherwise
+     */
+    public async getDeckByLink(userId: string, deckLink: string): Promise<IDeckData | undefined> {
+        return await this.executeDbOperation(async () => {
+            // Query all decks for this user
+            const result = await this.queryItems(`USER#${userId}`, { beginsWith: 'DECK#' });
+
+            if (!result.Items || result.Items.length === 0) {
+                return undefined;
+            }
+
+            // Find the deck with matching deckLink
+            return result.Items.find((item: any) =>
+                item.deck && item.deck.deckLink === deckLink
+            ) as IDeckData | undefined;
+        }, 'Error finding deck by link');
+    }
+
     public async getUserDecks(userId: string) {
         return await this.executeDbOperation(async () => {
             const result = await this.queryItems(`USER#${userId}`, { beginsWith: 'DECK#' });
@@ -374,34 +383,6 @@ export class DynamoDBService {
                 { ':stats': stats }
             );
         }, 'Error updating deck stats');
-    }
-
-    // Game Record Methods
-
-    public async saveGameRecord(gameData: IGameRecord) {
-        return await this.executeDbOperation(async () => {
-            const item = {
-                pk: `GAME#${gameData.id}`,
-                sk: 'INFO',
-                ...gameData,
-                timestamp: new Date().toISOString()
-            };
-
-            return await this.putItem(item);
-        }, 'Error saving game record');
-    }
-
-    public async getGameRecord(gameId: string) {
-        return await this.executeDbOperation(async () => {
-            const result = await this.getItem(`GAME#${gameId}`, 'INFO');
-            return result.Item as IGameRecord | undefined;
-        }, 'Error getting game record');
-    }
-
-    public async getUserById(userId: string) {
-        return await this.executeDbOperation(async () => {
-            return await this.getUserProfile(userId);
-        }, 'Error getting user by ID');
     }
 
     public async recordNewLogin(userId: string) {

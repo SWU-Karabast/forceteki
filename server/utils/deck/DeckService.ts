@@ -2,6 +2,7 @@ import { DynamoDBService } from '../../services/DynamoDBService';
 import type { IDeckData, ILocalStorageDeckData } from '../../services/DynamoDBInterfaces';
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
+import {User} from "../user/User";
 
 /**
  * Service class for handling deck-related operations
@@ -92,8 +93,8 @@ export class DeckService {
                     id: uuid(), // Generate a unique ID for the deck
                     userId: userId,
                     deck: {
-                        leader: { id: unsyncedDeck.leader.id },
-                        base: { id: unsyncedDeck.base.id },
+                        leader: {id: unsyncedDeck.leader.id},
+                        base: {id: unsyncedDeck.base.id},
                         name: unsyncedDeck.name,
                         favourite: unsyncedDeck.favourite,
                         deckLink: unsyncedDeck.deckLink,
@@ -110,6 +111,59 @@ export class DeckService {
             }
         } catch (error) {
             logger.error(`Error syncing decks ${unsyncedDecks} for user ${userId}: `, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Save a deck to the database, checking first if a deck with the same link already exists
+     * @param deckData The deck data to save
+     * @param user submitting user
+     * @returns Promise that resolves to the saved deck ID
+     */
+    public async saveDeck(deckData: IDeckData, user: User): Promise<string> {
+        try {
+            // Make sure the deck has the required fields
+            if (!deckData.userId || !deckData.deck) {
+                throw new Error('Deck data is missing required fields');
+            }
+
+            // Check if a deck with this link already exists for this user
+            const deckLink = deckData.deck.deckLink;
+            if (deckLink) {
+                const existingDeck = await this.dbService.getDeckByLink(user.getId(), deckLink);
+
+                if (existingDeck) {
+                    // If the deck already exists, update it instead of creating a new one TODO delete this after dev
+                    logger.info(`DeckService: Deck with link ${deckLink} already exists for user ${user.getUsername()}, updating existing deck`);
+
+                    // Use the existing deck's ID
+                    const updatedDeckData = {
+                        ...deckData,
+                        id: existingDeck.id
+                    };
+
+                    // Update existing deck
+                    await this.dbService.saveDeck(updatedDeckData);
+                    return existingDeck.id;
+                }
+            }
+
+            // If no existing deck with the same link, or no link provided, create a new deck
+            const newDeckId = deckData.id || uuid();
+            const newDeckData = {
+                ...deckData,
+                userId: user.getId(),
+                id: newDeckId
+            };
+
+            // Save the new deck to the database
+            await this.dbService.saveDeck(newDeckData);
+
+            logger.info(`DeckService: Saved new deck ${newDeckId} for user ${deckData.userId}`);
+            return newDeckId;
+        } catch (error) {
+            logger.error(`Error saving deck for user ${deckData.userId}:`, error);
             throw error;
         }
     }

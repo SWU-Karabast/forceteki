@@ -230,7 +230,7 @@ export class GameServer {
             }
         });
 
-        // TODO work in progress
+        // user DECKS
         app.post('/api/get-decks', authMiddleware(), async (req, res, next) => {
             const { decks } = req.body;
             const user = req.user as User;
@@ -255,6 +255,30 @@ export class GameServer {
                 next(err);
             }
         });
+
+        app.post('/api/save-deck', authMiddleware(), async (req, res, next) => {
+            try {
+                const { deck } = req.body;
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'User is not logged in'
+                    });
+                }
+                // we save the deck
+                await this.deckService.saveDeck(deck, user);
+                return res.status(200).json({
+                    success: true,
+                    message: 'Deck saved successfully',
+                    deckId: deck.id
+                });
+            } catch (err) {
+                logger.error('GameServer: Error in saving deck: ', err);
+                next(err);
+            }
+        });
+
         app.get('/api/ongoing-games', (_, res, next) => {
             try {
                 return res.json(this.getOngoingGamesData());
