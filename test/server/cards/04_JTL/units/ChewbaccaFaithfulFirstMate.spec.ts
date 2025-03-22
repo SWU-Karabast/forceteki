@@ -131,6 +131,39 @@ describe('Chewbacca, Faithful First Mate', function() {
                 expect(context.player1).toBeActivePlayer();
             });
 
+            it('should allow the attached unit to be defeated by friendly card abilities when stolen', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca with Piloting');
+                context.player1.clickCard(context.homeOne);
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.homeOne);
+
+                expect(context.homeOne).toBeInZone('discard');
+                expect(context.chewbacca).toBeInZone('discard');
+            });
+
+            it('should allow the attached unit to be returned to its owner\'s hand by friendly card abilities when stolen', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca with Piloting');
+                context.player1.clickCard(context.homeOne);
+
+                context.player2.clickCard(context.changeOfHeart);
+                context.player2.clickCard(context.homeOne);
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.homeOne);
+
+                expect(context.homeOne).toBeInZone('hand', context.player1);
+                expect(context.chewbacca).toBeInZone('discard', context.player1);
+            });
+
             // TODO: Add test interaction with Force Lightning or Imprisioned
 
             // Unit tests for unit side of the card
