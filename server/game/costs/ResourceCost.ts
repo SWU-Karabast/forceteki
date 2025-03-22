@@ -1,5 +1,4 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type { Aspect } from '../core/Constants';
 import { EventName } from '../core/Constants';
 import type { ICost, ICostResult } from '../core/cost/ICost';
 import { GameEvent } from '../core/event/GameEvent';
@@ -12,7 +11,6 @@ import type { Card } from '../core/card/Card';
  * any cost adjusters in play that increase or decrease the play cost for the relevant card.
  */
 export abstract class ResourceCost<TCard extends Card = Card> implements ICost<AbilityContext<TCard>> {
-    public readonly card: Card;
     public readonly resources: number;
 
     public abstract readonly isPlayCost;
@@ -20,8 +18,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     // used for extending this class if any cards have unique after pay hooks
     protected afterPayHook?: ((event: any) => void) = null;
 
-    public constructor(resources: number, card: Card, aspects: Aspect[] = []) {
-        this.card = card;
+    public constructor(resources: number) {
         this.resources = resources;
     }
 

@@ -9,10 +9,10 @@ import { DefeatCardSystem } from '../gameSystems/DefeatCardSystem';
 import { DiscardSpecificCardSystem } from '../gameSystems/DiscardSpecificCardSystem';
 import { DamageSystem } from '../gameSystems/DamageSystem';
 import { MoveCardSystem } from '../gameSystems/MoveCardSystem';
-import { ExhaustResourcesSystem } from '../gameSystems/ExhaustResourcesSystem';
 import { SelectCardSystem, type ISelectCardProperties } from '../gameSystems/SelectCardSystem';
 import { ExhaustSystem } from '../gameSystems/ExhaustSystem';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
+import { AbilityResourceCost } from './AbilityResourceCost';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISelectCardProperties<TContext>, 'innerSystem'>;
@@ -28,6 +28,15 @@ function getSelectCost<TContext extends AbilityContext = AbilityContext>(
         new SelectCardSystem(Object.assign({ innerSystem: gameSystem }, properties)),
         activePromptTitle
     );
+}
+
+/**
+ * Cost in which a player must pay a resource cost to use an ability. Can be reduced by specific effects such as Starhawk.
+ * IMPORTANT: this must be used _only_ for the cost part of an ability, not an effect.
+ * For example, it should not be used for In Debt to Crimson Dawn.
+ */
+export function abilityResourceCost<TContext extends AbilityContext = AbilityContext>(amount: number): ICost<TContext> {
+    return new AbilityResourceCost(amount);
 }
 
 /**
@@ -278,17 +287,6 @@ export function returnSelfToHandFromPlay<TContext extends AbilityContext = Abili
 // export function payTargetDependentFateCost(targetName: string, ignoreType = false): Cost {
 //     return new TargetDependentFateCost(ignoreType, targetName);
 // }
-
-/**
- * Cost in which the player must pay a fixed, non-reduceable amount of fate.
- */
-export function abilityResourceCost<TContext extends AbilityContext = AbilityContext>(amount: number | ((context: TContext) => number)): ICost<TContext> {
-    return new GameSystemCost<TContext>(
-        typeof amount === 'function'
-            ? new ExhaustResourcesSystem<TContext>((context) => ({ isCost: true, target: context.player, amount: amount(context) }))
-            : new ExhaustResourcesSystem<TContext>((context) => ({ isCost: true, target: context.player, amount }))
-    );
-}
 
 // TODO: reuse variable methods for swu cards
 // export function variableHonorCost(amountFunc: (context: TriggeredAbilityContext) => number): Cost {

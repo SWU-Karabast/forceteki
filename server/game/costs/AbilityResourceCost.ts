@@ -1,5 +1,4 @@
 import { ResourceCost } from './ResourceCost';
-import type { CardAbility } from '../core/ability/CardAbility';
 import type { Card } from '../core/card/Card';
 
 /**
@@ -8,12 +7,4 @@ import type { Card } from '../core/card/Card';
  */
 export class AbilityResourceCost extends ResourceCost<Card> {
     public readonly isPlayCost = false;
-
-    private readonly sourceAbility: CardAbility;
-
-    public constructor(resources: number, sourceCard: Card, sourceAbility: CardAbility) {
-        super(resources, sourceCard);
-
-        this.sourceAbility = sourceAbility;
-    }
 }

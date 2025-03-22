@@ -95,7 +95,7 @@ export abstract class PlayCardAction extends PlayerAction {
             aspects = card.aspects;
         }
 
-        const playCost = new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
+        const playCost = new PlayCardResourceCost(propertiesWithDefaults.playType, cost, aspects);
 
         super(
             game,

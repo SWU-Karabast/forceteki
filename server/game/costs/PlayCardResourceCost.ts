@@ -15,8 +15,8 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
     public readonly playType: PlayType;
     public readonly aspects: Aspect[];
 
-    public constructor(card: ICardWithCostProperty, playType: PlayType, resources: number = null, aspects: Aspect[] = null) {
-        super(resources, card, aspects);
+    public constructor(playType: PlayType, resources: number = null, aspects: Aspect[] = null) {
+        super(resources);
 
         this.playType = playType;
         this.aspects = aspects;

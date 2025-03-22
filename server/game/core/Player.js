@@ -892,7 +892,7 @@ class Player extends GameObject {
         /** @type {import('./cost/CostAdjuster').ICanAdjustProperties} */
         const canAdjustProps = { ...properties, isAbilityCost: !context.ability.isPlayCardAbility() };
 
-        const allMatchingAdjusters = this.costAdjusters.concat(properties.additionalCostAdjusters ?? [])
+        const allMatchingAdjusters = this.costAdjusters.concat(properties?.additionalCostAdjusters ?? [])
             .filter((adjuster) => {
                 // TODO: Make this work with Piloting
                 if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
@@ -905,7 +905,7 @@ class Player extends GameObject {
                 return adjuster.canAdjust(context.source, context, { attachTarget: context.target, ...canAdjustProps });
             });
 
-        if (properties.ignoreExploit) {
+        if (properties?.ignoreExploit) {
             return allMatchingAdjusters.filter((adjuster) => !adjuster.isExploit());
         }
 
