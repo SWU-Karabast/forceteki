@@ -6,7 +6,12 @@ describe('The Starhawk, Prototype Battleship', function() {
                     phase: 'action',
                     player1: {
                         leader: 'captain-rex#fighting-for-his-brothers',
-                        hand: ['raddus#holdos-final-command', 'blue-leader#scarif-air-support'],
+                        hand: [
+                            'raddus#holdos-final-command',
+                            'blue-leader#scarif-air-support',
+                            'encouraging-leadership',
+                            'hardpoint-heavy-blaster'
+                        ],
                         spaceArena: ['the-starhawk#prototype-battleship'],
                         groundArena: [{ card: 'crosshair#following-orders', exhausted: true }]
                     },
@@ -19,7 +24,7 @@ describe('The Starhawk, Prototype Battleship', function() {
                 });
             });
 
-            it('should decrease the play cost of a card at pay time by half, rounded up', function() {
+            it('should decrease the play cost of a unit at pay time by half, rounded up', function() {
                 const { context } = contextRef;
 
                 // exhaust resources down to the expected amount to confirm that cost evaluation before play works and the card shows as selectable
@@ -29,6 +34,33 @@ describe('The Starhawk, Prototype Battleship', function() {
 
                 expect(context.player1).toBeAbleToSelect(context.raddus);
                 context.player1.clickCard(context.raddus);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
+            });
+
+            it('should decrease the play cost of an event at pay time by half, rounded up', function() {
+                const { context } = contextRef;
+
+                // exhaust resources down to the expected amount to confirm that cost evaluation before play works and the card shows as selectable
+                const expectedResourceCost = 2;
+                context.player1.exhaustResources(context.player1.readyResourceCount - expectedResourceCost);
+                const exhaustedResourceCountBefore = context.player1.exhaustedResourceCount;
+
+                expect(context.player1).toBeAbleToSelect(context.encouragingLeadership);
+                context.player1.clickCard(context.encouragingLeadership);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
+            });
+
+            it('should decrease the play cost of an upgrade at pay time by half, rounded up', function() {
+                const { context } = contextRef;
+
+                // exhaust resources down to the expected amount to confirm that cost evaluation before play works and the card shows as selectable
+                const expectedResourceCost = 1;
+                context.player1.exhaustResources(context.player1.readyResourceCount - expectedResourceCost);
+                const exhaustedResourceCountBefore = context.player1.exhaustedResourceCount;
+
+                expect(context.player1).toBeAbleToSelect(context.hardpointHeavyBlaster);
+                context.player1.clickCard(context.hardpointHeavyBlaster);
+                context.player1.clickCard(context.theStarhawk);
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
             });
 
@@ -97,6 +129,59 @@ describe('The Starhawk, Prototype Battleship', function() {
                 context.player2.clickCard(context.fettsFirespray);
                 context.player2.clickPrompt('Exhaust a non-unique unit');
                 expect(context.player2.exhaustedResourceCount).toBe(2);
+            });
+        });
+
+        describe('Starhawk\'s constant ability', function() {
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'emperor-palpatine#galactic-ruler',
+                        base: 'energy-conversion-lab',
+                        hand: [
+                            'arquitens-assault-cruiser',
+                            'unity-of-purpose'
+                        ],
+                        groundArena: ['bendu#the-one-in-the-middle'],
+                        spaceArena: ['the-starhawk#prototype-battleship']
+                    },
+                    player2: {
+                        groundArena: ['del-meeko#providing-overwatch']
+                    }
+                });
+            });
+
+            it('should calculate its cost reduction after cost increases have been applied', function() {
+                const { context } = contextRef;
+
+                // exhaust resources down to the expected amount to confirm that cost evaluation before play works and the card shows as selectable
+                const expectedResourceCost = 4;
+                context.player1.exhaustResources(context.player1.readyResourceCount - expectedResourceCost);
+                const exhaustedResourceCountBefore = context.player1.exhaustedResourceCount;
+
+                expect(context.player1).toBeAbleToSelect(context.unityOfPurpose);
+                context.player1.clickCard(context.unityOfPurpose);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
+            });
+
+            it('should calculate its cost reduction after other cost decreases have been applied', function() {
+                const { context } = contextRef;
+
+                // exhaust resources down to the expected amount to confirm that cost evaluation before play works and the card shows as selectable
+                const expectedResourceCost = 3;
+                context.player1.exhaustResources(context.player1.readyResourceCount - expectedResourceCost);
+                const exhaustedResourceCountBefore = context.player1.exhaustedResourceCount;
+
+                // attack with Bendu to trigger his ability
+                context.player1.clickCard(context.bendu);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                expect(context.player1).toBeAbleToSelect(context.arquitensAssaultCruiser);
+                context.player1.clickCard(context.arquitensAssaultCruiser);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
             });
         });
     });
