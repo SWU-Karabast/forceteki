@@ -11,7 +11,16 @@ describe('Chewbacca, Faithful First Mate', function() {
                     },
                     player2: {
                         spaceArena: ['avenger#hunting-star-destroyer'],
-                        hand: ['waylay', 'rivals-fall', 'confiscate', 'open-fire', 'bamboozle', 'emperor-palpatine#master-of-the-dark-side'],
+                        hand: [
+                            'waylay',
+                            'rivals-fall',
+                            'confiscate',
+                            'open-fire',
+                            'bamboozle',
+                            'emperor-palpatine#master-of-the-dark-side',
+                            'no-glory-only-results',
+                            'change-of-heart'
+                        ],
                     }
                 });
             });
@@ -194,6 +203,35 @@ describe('Chewbacca, Faithful First Mate', function() {
 
                 expect(context.chewbacca).toBeInZone('discard', context.player1);
                 expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should be defeated by friendly card abilities when stolen as a unit', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca');
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.chewbacca);
+
+                expect(context.chewbacca).toBeInZone('discard');
+            });
+
+            it('should be returned to owner\'s hand by friendly card abilities when stolen as a unit', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chewbacca);
+                context.player1.clickPrompt('Play Chewbacca');
+
+                context.player2.clickCard(context.changeOfHeart);
+                context.player2.clickCard(context.chewbacca);
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.waylay);
+                context.player2.clickCard(context.chewbacca);
+
+                expect(context.chewbacca).toBeInZone('hand', context.player1);
             });
 
             // TODO: Add test interaction with Force Lightning or Imprisioned
