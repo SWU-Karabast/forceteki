@@ -10,7 +10,9 @@ describe('The Starhawk, Prototype Battleship', function() {
                             'raddus#holdos-final-command',
                             'blue-leader#scarif-air-support',
                             'encouraging-leadership',
-                            'hardpoint-heavy-blaster'
+                            'hardpoint-heavy-blaster',
+                            'poe-dameron#one-hell-of-a-pilot',
+                            'pirate-battle-tank'
                         ],
                         spaceArena: ['the-starhawk#prototype-battleship'],
                         groundArena: [{ card: 'crosshair#following-orders', exhausted: true }]
@@ -62,6 +64,44 @@ describe('The Starhawk, Prototype Battleship', function() {
                 context.player1.clickCard(context.hardpointHeavyBlaster);
                 context.player1.clickCard(context.theStarhawk);
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
+            });
+
+            it('should decrease the play cost of a unit played with piloting', function() {
+                const { context } = contextRef;
+
+                // exhaust resources down to the expected amount to confirm that cost evaluation before play works and the card shows as selectable
+                const expectedResourceCost = 1;
+                context.player1.exhaustResources(context.player1.readyResourceCount - expectedResourceCost);
+                const exhaustedResourceCountBefore = context.player1.exhaustedResourceCount;
+
+                // jumps directly to the piloting vehicle target prompt because regular Poe cost can't be paid
+                expect(context.player1).toBeAbleToSelect(context.poeDameron);
+                context.player1.clickCard(context.poeDameron);
+                context.player1.clickCard(context.theStarhawk);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
+            });
+
+            it('should account for play cost after aspect penalties, paying the correct cost', function() {
+                const { context } = contextRef;
+
+                // exhaust resources down to the expected amount to confirm that cost evaluation before play works and the card shows as selectable
+                const expectedResourceCost = 4;
+                context.player1.exhaustResources(context.player1.readyResourceCount - expectedResourceCost);
+                const exhaustedResourceCountBefore = context.player1.exhaustedResourceCount;
+
+                // jumps directly to the piloting vehicle target prompt because regular Poe cost can't be paid
+                expect(context.player1).toBeAbleToSelect(context.pirateBattleTank);
+                context.player1.clickCard(context.pirateBattleTank);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
+            });
+
+            it('should account for play cost after aspect penalties, not allowing to be played if too high', function() {
+                const { context } = contextRef;
+
+                context.player1.exhaustResources(context.player1.readyResourceCount - 3);
+
+                expect(context.player1).not.toBeAbleToSelect(context.pirateBattleTank);
+                expect(context.pirateBattleTank).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
 
             it('should decrease the activation cost of a leader ability', function() {
@@ -183,6 +223,75 @@ describe('The Starhawk, Prototype Battleship', function() {
                 context.player1.clickCard(context.arquitensAssaultCruiser);
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCountBefore + expectedResourceCost);
             });
+        });
+
+        it('Starhawk\'s constant ability should work with Smuggle', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'emperor-palpatine#galactic-ruler',
+                    spaceArena: ['the-starhawk#prototype-battleship'],
+                    resources: ['collections-starhopper', 'atst']
+                }
+            });
+
+            const { context } = contextRef;
+
+            expect(context.player1).toBeAbleToSelect(context.collectionsStarhopper);
+            context.player1.clickCard(context.collectionsStarhopper);
+            expect(context.player1.exhaustedResourceCount).toBe(2);
+        });
+
+        describe('Starhawk\'s constant ability', function() {
+            beforeEach(function() {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'captain-rex#fighting-for-his-brothers',
+                        hand: ['the-starhawk#prototype-battleship'],
+                        resources: 9
+                    },
+                });
+            });
+
+            it('should not affect its own play cost (pay full cost when played)', function() {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.theStarhawk);
+                expect(context.player1.exhaustedResourceCount).toBe(9);
+            });
+
+            it('should not affect its own play cost (cannot target for play with not enough resources)', function() {
+                const { context } = contextRef;
+
+                context.player1.exhaustResources(2);
+
+                expect(context.player1).not.toBeAbleToSelect(context.theStarhawk);
+                expect(context.theStarhawk).not.toHaveAvailableActionWhenClickedBy(context.player1);
+            });
+        });
+
+        it('Starhawk\'s constant ability should work on other copies of Starhawk', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'captain-rex#fighting-for-his-brothers',
+                    hand: ['the-starhawk#prototype-battleship'],
+                    spaceArena: ['the-starhawk#prototype-battleship'],
+                    resources: 5
+                }
+            });
+
+            const { context } = contextRef;
+
+            const starhawkInHand = context.player1.findCardByName('the-starhawk#prototype-battleship', 'hand');
+            const starhawkInPlay = context.player1.findCardByName('the-starhawk#prototype-battleship', 'spaceArena');
+
+            expect(context.player1).toBeAbleToSelect(starhawkInHand);
+            context.player1.clickCard(starhawkInHand);
+            expect(context.player1.exhaustedResourceCount).toBe(5);
+
+            context.player1.clickCard(starhawkInPlay);
         });
     });
 });
