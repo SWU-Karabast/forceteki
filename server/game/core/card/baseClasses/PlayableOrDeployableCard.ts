@@ -93,11 +93,10 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         let playCardActions: PlayCardAction[] = [];
 
         if (this.zoneName === ZoneName.Hand) {
-            let playActions = this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
+            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides));
             if (this.hasSomeKeyword(KeywordName.Piloting)) {
-                playActions = playActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+                playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
             }
-            return playActions;
         }
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
@@ -107,6 +106,9 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         if (this.zoneName === ZoneName.Discard) {
             if (this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
                 playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+                if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                    playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+                }
             }
         }
 

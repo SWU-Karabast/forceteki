@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
+import type { CardType, WildcardCardType } from '../core/Constants.js';
 import { PlayType } from '../core/Constants.js';
 import { CostAdjustType } from '../core/cost/CostAdjuster.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
@@ -14,6 +15,7 @@ export interface IPlayMultipleCardsFromDeckProperties<TContext extends AbilityCo
       | 'selectedCardsHandler'
       | 'remainingCardsHandler'> {
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[], context: TContext) => boolean;
+    playAsType?: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
 }
 
 export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = AbilityContext> extends SearchDeckSystem<TContext, IPlayMultipleCardsFromDeckProperties<TContext>> {
@@ -26,7 +28,8 @@ export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = A
                     nested: true,
                     adjustCost: {
                         costAdjustType: CostAdjustType.Free
-                    }
+                    },
+                    playAsType: propertiesOrPropertyFactory instanceof Function ? propertiesOrPropertyFactory().playAsType : propertiesOrPropertyFactory.playAsType,
                 })
             }
         );
