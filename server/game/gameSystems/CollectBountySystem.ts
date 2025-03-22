@@ -68,7 +68,7 @@ export class CollectBountySystem<TContext extends AbilityContext = AbilityContex
     }
 
     // since the actual effect of the bounty is resolved in a sub-window, we don't check its effects here
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.forceResolve) {
