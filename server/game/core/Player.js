@@ -853,7 +853,7 @@ class Player extends GameObject {
         // run any cost adjusters that affect the "pay costs" stage last
         const payStageAdjustment = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.ModifyPayStage)
-            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context), 0);
+            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context, reducedCost), 0);
 
         reducedCost += payStageAdjustment;
 

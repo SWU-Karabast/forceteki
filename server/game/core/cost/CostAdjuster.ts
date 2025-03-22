@@ -77,7 +77,7 @@ export interface IModifyPayStageCostAdjusterProperties extends ICostAdjusterProp
     costAdjustType: CostAdjustType.ModifyPayStage;
 
     /** The amount to adjust the cost by */
-    amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
+    amount?: number | ((card: Card, player: Player, context: AbilityContext, currentAmount: number) => number);
 }
 
 export type ICostAdjusterProperties =
@@ -97,7 +97,7 @@ export interface ICanAdjustProperties {
 export class CostAdjuster {
     public readonly costAdjustType: CostAdjustType;
     public readonly ignoredAspect: Aspect;
-    private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
+    private readonly amount?: number | ((card: Card, player: Player, context: AbilityContext, currentAmount?: number) => number);
     private readonly match?: (card: Card, adjusterSource: Card) => boolean;
     private readonly cardTypeFilter?: CardTypeFilter;
     private readonly attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext<any>) => boolean;
@@ -111,7 +111,9 @@ export class CostAdjuster {
         properties: ICostAdjusterProperties
     ) {
         this.costAdjustType = properties.costAdjustType;
-        if (properties.costAdjustType === CostAdjustType.Increase || properties.costAdjustType === CostAdjustType.Decrease) {
+        if (properties.costAdjustType === CostAdjustType.Increase ||
+          properties.costAdjustType === CostAdjustType.Decrease ||
+          properties.costAdjustType === CostAdjustType.ModifyPayStage) {
             this.amount = properties.amount || 1;
         }
 
@@ -157,8 +159,10 @@ export class CostAdjuster {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public queueGenerateEventGameSteps(events: any[], context: AbilityContext, resourceCost: ResourceCost, result?: ICostResult): void {}
 
-    public getAmount(card: Card, player: Player, context: AbilityContext): number {
-        return typeof this.amount === 'function' ? this.amount(card, player, context) : this.amount;
+    public getAmount(card: Card, player: Player, context: AbilityContext, currentAmount: number = null): number {
+        Contract.assertFalse(this.costAdjustType === CostAdjustType.ModifyPayStage && currentAmount === null, 'currentAmount must be provided for ModifyPayStage cost adjusters');
+
+        return typeof this.amount === 'function' ? this.amount(card, player, context, currentAmount) : this.amount;
     }
 
     public markUsed(): void {
