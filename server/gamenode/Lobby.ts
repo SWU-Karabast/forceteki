@@ -163,7 +163,7 @@ export class Lobby {
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck
         }));
-        logger.info(`Creating username: ${user.username}, id: ${user.id} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id });
+        logger.info(`Creating username: ${user.username}, id: ${user.id} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.username, userId: user.id });
         this.gameChat.addMessage(`${user.username} has created and joined the lobby`);
 
         this.updateUserLastActivity(user.id);
@@ -195,7 +195,7 @@ export class Lobby {
         } else {
             this.sendLobbyStateToSpectator(socket);
         }
-        logger.info(`Lobby ${this.id}: adding spectator: ${user.username}, id: ${user.id} (${this.spectators.length} spectator(s))`);
+        logger.info(`Adding spectator: ${user.username}, id: ${user.id} (${this.spectators.length} spectator(s))`, { lobbyId: this.id, userName: user.username, userId: user.id });
     }
 
     public removeSpectator(id: string): void {
@@ -206,7 +206,7 @@ export class Lobby {
             return;
         }
         this.spectators = this.spectators.filter((s) => s.id !== id);
-        logger.info(`Lobby ${this.id}: removing spectator: ${spectator.username}, id: ${spectator.id}. Spectator count = ${this.spectators.length}`);
+        logger.info(`Removing spectator: ${spectator.username}, id: ${spectator.id}. Spectator count = ${this.spectators.length}`, { lobbyId: this.id, userName: spectator.username, userId: spectator.id });
         this.sendLobbyState();
     }
 
@@ -230,7 +230,7 @@ export class Lobby {
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
-            logger.info(`addLobbyUser: setting state to connected for existing user: ${user.username}`, { lobbyId: this.id });
+            logger.info(`addLobbyUser: setting state to connected for existing user: ${user.username}`, { lobbyId: this.id, userName: user.username, userId: user.id });
         } else {
             this.users.push({
                 id: user.id,
@@ -239,7 +239,7 @@ export class Lobby {
                 ready: false,
                 socket
             });
-            logger.info(`addLobbyUser: adding username: ${user.username}, id: ${user.id} to users list (${this.users.length} user(s))`, { lobbyId: this.id });
+            logger.info(`addLobbyUser: adding username: ${user.username}, id: ${user.id} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.username, userId: user.id });
             this.gameChat.addMessage(`${user.username} has joined the lobby`);
         }
 
@@ -250,7 +250,7 @@ export class Lobby {
         } else {
             // do a check to make sure that the lobby owner is still registered in the lobby. if not, set the incoming user as the new lobby owner.
             if (this.server.getUserLobbyId(this.lobbyOwnerId) !== this.id) {
-                logger.info(`Lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.id}`, { lobbyId: this.id });
+                logger.info(`Lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.id}`, { lobbyId: this.id, userName: user.username, userId: user.id });
                 this.removeUser(this.lobbyOwnerId);
                 this.lobbyOwnerId = user.id;
             }
@@ -266,7 +266,7 @@ export class Lobby {
             return;
         }
         currentUser.ready = args[0];
-        logger.info(`User: ${currentUser.username} set ready status: ${args[0]}`, { lobbyId: this.id });
+        logger.info(`User: ${currentUser.username} set ready status: ${args[0]}`, { lobbyId: this.id, userName: currentUser.username, userId: currentUser.id });
         this.updateUserLastActivity(currentUser.id);
     }
 
@@ -278,7 +278,7 @@ export class Lobby {
             return;
         }
 
-        logger.info(`User: ${existingUser.username} sent chat message: ${args[0]}`, { lobbyId: this.id });
+        logger.info(`User: ${existingUser.username} sent chat message: ${args[0]}`, { lobbyId: this.id, userName: existingUser.username, userId: existingUser.id });
         this.gameChat.addChatMessage(existingUser, args[0]);
         this.sendLobbyState();
     }
@@ -295,7 +295,7 @@ export class Lobby {
                 initiator: socket.user.id,
                 mode,
             };
-            logger.info(`User: ${socket.user.id} requested a rematch (${mode})`, { lobbyId: this.id });
+            logger.info(`User: ${socket.user.id} requested a rematch (${mode})`, { lobbyId: this.id, userName: socket.user.username, userId: socket.user.id });
         }
         this.sendLobbyState();
     }
@@ -327,7 +327,7 @@ export class Lobby {
                 this.gameFormat);
             activeUser.importDeckValidationErrors = null;
         }
-        logger.info(`User: ${activeUser.username} changing deck`, { lobbyId: this.id });
+        logger.info(`User: ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
         this.updateUserLastActivity(activeUser.id);
     }
@@ -351,7 +351,7 @@ export class Lobby {
         // we need to clear any importDeckValidation errors otherwise they can persist
         user.importDeckValidationErrors = null;
 
-        logger.info(`User: ${user.username} updating deck`, { lobbyId: this.id });
+        logger.info(`User: ${user.username} updating deck`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         this.updateUserLastActivity(user.id);
     }
@@ -366,7 +366,7 @@ export class Lobby {
         const user = this.users.find((u) => u.id === id);
         if (user) {
             user.state = 'disconnected';
-            logger.info(`Setting user: ${user.username} to disconnected!`, { lobbyId: this.id });
+            logger.info(`Setting user: ${user.username} to disconnected!`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
     }
 
@@ -438,7 +438,7 @@ export class Lobby {
             this.lobbyOwnerId = newOwner?.id;
         }
         this.users = this.users.filter((u) => u.id !== id);
-        logger.info(`Removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`, { lobbyId: this.id });
+        logger.info(`Removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         this.sendLobbyState();
     }
