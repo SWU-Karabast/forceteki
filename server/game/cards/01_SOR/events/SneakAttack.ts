@@ -21,7 +21,8 @@ export default class SneakAttack extends EventCard {
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                     entersReady: true,
-                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 }
+                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 },
+                    playAsType: WildcardCardType.Unit
                 }),
             },
             ifYouDo: (ifYouDoContext) => ({

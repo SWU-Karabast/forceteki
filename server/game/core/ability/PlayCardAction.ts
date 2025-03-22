@@ -1,7 +1,7 @@
 import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
-import type { Aspect, CardType } from '../Constants';
+import type { Aspect, CardType, WildcardCardType } from '../Constants';
 import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
@@ -18,6 +18,7 @@ import type Player from '../Player';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
+    playAsType?: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
     title?: string;
     triggerHandlingMode?: TriggerHandlingMode;
     costAdjusters?: CostAdjuster | CostAdjuster[];
@@ -234,7 +235,7 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     /** This is used for overriding a card's type when it hits the board, such as Pilots played as upgrades */
-    protected getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
+    public getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
         return card.type;
     }
 

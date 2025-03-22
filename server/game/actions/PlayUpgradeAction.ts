@@ -45,7 +45,7 @@ export class PlayUpgradeAction extends PlayCardAction {
         context.game.openEventWindow(events);
     }
 
-    protected override getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
+    public override getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
         // We need to override this method to ensure Pilots are marked as upgrades in the onCardPlayed event
         return playType === PlayType.Piloting && card.isUnit() ? CardType.NonLeaderUnitUpgrade : card.type;
     }

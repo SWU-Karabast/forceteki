@@ -112,5 +112,100 @@ describe('A Fine Addition', function () {
             expect(context.battlefieldMarine).toHaveExactUpgradeNames([context.jediLightsaber.internalName, context.lukesLightsaber.internalName, context.ahsokasPadawanLightsaber.internalName]);
             expect(context.player1.exhaustedResourceCount).toBe(6); // +1 for lukes lightsaber
         });
+
+        it('A Fine Addition\'s ability should play a pilot as an upgrade from your hand, ignoring aspect penalty, if an enemy was defeated this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'dagobah-swamp',
+                    hand: ['a-fine-addition', 'vanquish', 'dagger-squadron-pilot'],
+                    spaceArena: ['cartel-turncoat']
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.vanquish);
+            context.player1.clickCard(context.wampa);
+            context.player2.passAction();
+
+            context.player1.clickCard(context.aFineAddition);
+            expect(context.player1).toBeAbleToSelectExactly([context.daggerSquadronPilot]);
+            context.player1.clickCard(context.daggerSquadronPilot);
+            expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat]);
+            context.player1.clickCard(context.cartelTurncoat);
+            expect(context.daggerSquadronPilot).toBeAttachedTo(context.cartelTurncoat);
+
+            expect(context.player1.exhaustedResourceCount).toBe(6);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A Fine Addition\'s ability should play a pilot as an upgrade from your discard, ignoring aspect penalty, if an enemy was defeated this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'dagobah-swamp',
+                    hand: ['a-fine-addition', 'vanquish'],
+                    discard: ['dagger-squadron-pilot'],
+                    spaceArena: ['cartel-turncoat']
+                },
+                player2: {
+                    groundArena: ['wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.vanquish);
+            context.player1.clickCard(context.wampa);
+            context.player2.passAction();
+
+            context.player1.clickCard(context.aFineAddition);
+            expect(context.player1).toBeAbleToSelectExactly([context.daggerSquadronPilot]);
+            context.player1.clickCard(context.daggerSquadronPilot);
+            expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat]);
+            context.player1.clickCard(context.cartelTurncoat);
+            expect(context.daggerSquadronPilot).toBeAttachedTo(context.cartelTurncoat);
+
+            expect(context.player1.exhaustedResourceCount).toBe(6);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('A Fine Addition\'s ability should play a pilot as an upgrade from your opponent\'s discard, ignoring aspect penalty, if an enemy was defeated this phase', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    base: 'dagobah-swamp',
+                    hand: ['a-fine-addition', 'vanquish'],
+                    spaceArena: ['cartel-turncoat']
+                },
+                player2: {
+                    groundArena: ['wampa'],
+                    discard: ['dagger-squadron-pilot'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.vanquish);
+            context.player1.clickCard(context.wampa);
+            context.player2.passAction();
+
+            context.player1.clickCard(context.aFineAddition);
+            expect(context.player1).toBeAbleToSelectExactly([context.daggerSquadronPilot]);
+            context.player1.clickCard(context.daggerSquadronPilot);
+            expect(context.player1).toBeAbleToSelectExactly([context.cartelTurncoat]);
+            context.player1.clickCard(context.cartelTurncoat);
+            expect(context.daggerSquadronPilot).toBeAttachedTo(context.cartelTurncoat);
+
+            expect(context.player1.exhaustedResourceCount).toBe(6);
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
