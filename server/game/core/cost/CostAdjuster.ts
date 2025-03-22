@@ -81,9 +81,9 @@ export type ICostAdjusterProperties =
   | IForFreeCostAdjusterProperties
   | IIgnoreSpecificAspectsCostAdjusterProperties;
 
-export interface ICostAdjustParameters {
+export interface ICanAdjustProperties {
     attachTarget?: Card;
-    ignoredAspect?: Aspect;
+    penaltyAspect?: Aspect;
     costStage?: CostStage;
     isAbilityCost?: boolean;
 }
@@ -133,10 +133,10 @@ export class CostAdjuster {
         return false;
     }
 
-    public canAdjust(card: Card, context: AbilityContext, adjustParams?: ICostAdjustParameters): boolean {
+    public canAdjust(card: Card, context: AbilityContext, adjustParams?: ICanAdjustProperties): boolean {
         if (this.limit && this.limit.isAtMax(this.source.controller)) {
             return false;
-        } else if (this.ignoredAspect && this.ignoredAspect !== adjustParams?.ignoredAspect) {
+        } else if (this.ignoredAspect && this.ignoredAspect !== adjustParams?.penaltyAspect) {
             return false;
         }
 

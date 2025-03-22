@@ -27,11 +27,21 @@ export class PlayCardResourceCost extends ResourceCost<ICardWithCostProperty> {
     }
 
     protected override getMatchingCostAdjusters(context: AbilityContext<ICardWithCostProperty>, ignoreExploit = false): CostAdjuster[] {
-        return context.player.getMatchingCostAdjusters(context, null, this.getCostAdjustersFromAbility(context), ignoreExploit);
+        const matchingCostAdjusterProperties = {
+            ignoreExploit,
+            additionalCostAdjusters: this.getCostAdjustersFromAbility(context)
+        };
+
+        return context.player.getMatchingCostAdjusters(context, matchingCostAdjusterProperties);
     }
 
     public override getAdjustedCost(context: AbilityContext<ICardWithCostProperty>, ignoreExploit = false): number {
-        return context.player.getAdjustedCost(this.resources, this.aspects, context, this.getCostAdjustersFromAbility(context), ignoreExploit);
+        const runCostAdjustmentProperties = {
+            ignoreExploit,
+            additionalCostAdjusters: this.getCostAdjustersFromAbility(context)
+        };
+
+        return context.player.getAdjustedPlayCardCost(this.resources, this.aspects, context, runCostAdjustmentProperties);
     }
 
     public override canPay(context: AbilityContext<ICardWithCostProperty>): boolean {

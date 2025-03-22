@@ -47,7 +47,7 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     }
 
     public getAdjustedCost(context: AbilityContext<TCard>): number {
-        return context.player.getAdjustedCost(this.resources, [], context);
+        return context.player.getAdjustedPlayCardCost(this.resources, [], context);
     }
 
     public queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext<TCard>, result: ICostResult) {
