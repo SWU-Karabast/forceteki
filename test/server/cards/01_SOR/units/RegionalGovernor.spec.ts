@@ -110,7 +110,7 @@ describe('Regional Governor', function () {
             expect(player2Falcon1Hand).toBeInZone('spaceArena');
         });
 
-        it('Regional Governor\'s ability should name a card and opponent can\'t play named cards', async function () {
+        it('Regional Governor\'s ability should disallow playing a unit as a pilot', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
