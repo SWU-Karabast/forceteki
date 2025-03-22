@@ -299,8 +299,8 @@ export class GameServer {
                         message: 'User is already in a lobby'
                     });
                 }
-                await this.processDeckValidation(deck, format, res, async () => {
-                    await this.createLobby(lobbyName, user, deck, format, isPrivate);
+                await this.processDeckValidation(deck, format, res, () => {
+                    this.createLobby(lobbyName, user, deck, format, isPrivate);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {

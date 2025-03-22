@@ -2,7 +2,7 @@ import { DynamoDBService } from '../../services/DynamoDBService';
 import type { IDeckData, ILocalStorageDeckData } from '../../services/DynamoDBInterfaces';
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
-import {User} from "../user/User";
+import type { User } from '../user/User';
 
 /**
  * Service class for handling deck-related operations
@@ -93,8 +93,8 @@ export class DeckService {
                     id: uuid(), // Generate a unique ID for the deck
                     userId: userId,
                     deck: {
-                        leader: {id: unsyncedDeck.leader.id},
-                        base: {id: unsyncedDeck.base.id},
+                        leader: { id: unsyncedDeck.leader.id },
+                        base: { id: unsyncedDeck.base.id },
                         name: unsyncedDeck.name,
                         favourite: unsyncedDeck.favourite,
                         deckLink: unsyncedDeck.deckLink,
@@ -114,6 +114,7 @@ export class DeckService {
             throw error;
         }
     }
+
 
     /**
      * Save a deck to the database, checking first if a deck with the same link already exists
@@ -150,11 +151,12 @@ export class DeckService {
             }
 
             // If no existing deck with the same link, or no link provided, create a new deck
-            const newDeckId = deckData.id || uuid();
+            const newDeckId = uuid();
+            deckData.deck.favourite = false;
             const newDeckData = {
                 ...deckData,
                 userId: user.getId(),
-                id: newDeckId
+                id: newDeckId,
             };
 
             // Save the new deck to the database
@@ -163,8 +165,10 @@ export class DeckService {
             logger.info(`DeckService: Saved new deck ${newDeckId} for user ${deckData.userId}`);
             return newDeckId;
         } catch (error) {
-            logger.error(`Error saving deck for user ${deckData.userId}:`, error);
+            logger.error(`Error saving deck for user ${user.getId()}:`, error);
             throw error;
         }
     }
 }
+
+
