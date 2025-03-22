@@ -16,7 +16,7 @@ export default class AdmiralTrenchChkchkchkchk extends LeaderUnitCard {
             limit: AbilityHelper.limit.unlimited(),
             cost: [
                 AbilityHelper.costs.exhaustSelf<AbilityContext<this>>(),
-                AbilityHelper.costs.abilityResourceCost<AbilityContext<this>>(3),
+                AbilityHelper.costs.abilityActivationResourceCost<AbilityContext<this>>(3),
             ],
         };
     }

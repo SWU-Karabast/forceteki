@@ -15,7 +15,7 @@ export default class RioDurantWisecrackingWheelman extends LeaderUnitCard {
 
         this.addActionAbility({
             title: 'Attack with a space unit. It gets +1/+0 and gains Saboteur for this attack',
-            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityResourceCost(1)],
+            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.SpaceArena,

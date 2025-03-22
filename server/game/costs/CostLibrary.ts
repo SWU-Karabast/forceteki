@@ -31,11 +31,11 @@ function getSelectCost<TContext extends AbilityContext = AbilityContext>(
 }
 
 /**
- * Cost in which a player must pay a resource cost to use an ability. Can be reduced by specific effects such as Starhawk.
+ * Cost in which a player must pay a resource cost to activate an ability. Can be reduced by specific effects such as Starhawk.
  * IMPORTANT: this must be used _only_ for the cost part of an ability, not an effect.
  * For example, it should not be used for In Debt to Crimson Dawn.
  */
-export function abilityResourceCost<TContext extends AbilityContext = AbilityContext>(amount: number): ICost<TContext> {
+export function abilityActivationResourceCost<TContext extends AbilityContext = AbilityContext>(amount: number): ICost<TContext> {
     return new AbilityResourceCost(amount);
 }
 

@@ -13,7 +13,8 @@ export default class TheStarhawkPrototypeBattleship extends NonLeaderUnitCard {
         this.addConstantAbility({
             title: 'While paying costs, you pay half as many resources, rounded up',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyPayStageCost({
-                amount: (_card, _player, _context, amount) => -Math.floor(amount / 2)
+                amount: (_card, _player, _context, amount) => -Math.floor(amount / 2),
+                matchAbilityCosts: true
             })
         });
     }

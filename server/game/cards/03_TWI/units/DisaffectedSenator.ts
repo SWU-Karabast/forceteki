@@ -13,7 +13,7 @@ export default class DisaffectedSenator extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addActionAbility({
             title: 'Deal 2 damage to a base.',
-            cost: [AbilityHelper.costs.abilityResourceCost(2), AbilityHelper.costs.exhaustSelf()],
+            cost: [AbilityHelper.costs.abilityActivationResourceCost(2), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 cardTypeFilter: CardType.Base,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 2 })

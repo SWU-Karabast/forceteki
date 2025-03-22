@@ -13,7 +13,7 @@ export default class AhsokaTanoAlwaysReadyForTrouble extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addActionAbility({
             title: 'Return to hand',
-            cost: AbilityHelper.costs.abilityResourceCost(2),
+            cost: AbilityHelper.costs.abilityActivationResourceCost(2),
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.returnToHand((context) => ({
                     target: context.source.upgrades
