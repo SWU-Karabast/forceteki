@@ -136,7 +136,7 @@ describe('Shadow Caster, Just Business', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should work with a When Defeated ability gained from an event', async function () {
+            it('should be able to trigger after Thrawn\'s ability', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -165,6 +165,40 @@ describe('Shadow Caster, Just Business', function() {
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
 
                 expect(context.player1).toHavePassAbilityPrompt('Use the When Defeated ability again');
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1.findCardsByName('clone-trooper').length).toBe(3);
+
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should be able to trigger after Thrawn\'s ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'grand-admiral-thrawn#how-unfortunate',
+                        hand: ['in-defense-of-kamino'],
+                        spaceArena: ['padawan-starfighter', 'shadow-caster#just-business']
+                    },
+                    player2: {
+                        hand: ['rivals-fall']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.inDefenseOfKamino);
+                context.player2.clickCard(context.rivalsFall);
+                context.player2.clickCard(context.padawanStarfighter);
+
+                expect(context.player1.findCardsByName('clone-trooper').length).toBe(1);
+
+                expect(context.player1).toHaveExactPromptButtons(['Exhaust this leader', 'Use the When Defeated ability again']);
+                context.player1.clickPrompt('Use the When Defeated ability again');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(3);
 
