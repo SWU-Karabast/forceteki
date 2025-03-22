@@ -13,6 +13,7 @@ import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { IPlayableOrDeployableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
 import type { IUpgradeCard } from '../card/CardInterfaces';
+import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
@@ -244,7 +245,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             // if no override, the default behavior is to defeat the attachment
             if (!removeUpgradeEvent) {
                 removeUpgradeEvent = context.game.actions
-                    .defeat({ target: upgrade })
+                    .frameworkDefeat({ target: upgrade, defeatSource: DefeatSourceType.FrameworkEffect })
                     .generateEvent(context.game.getFrameworkContext());
             }
 
