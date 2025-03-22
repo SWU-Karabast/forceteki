@@ -7,7 +7,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import type Player from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
-import { DamageSourceType, DefeatSourceType } from '../IDamageOrDefeatSource';
+import { DefeatSourceType } from '../IDamageOrDefeatSource';
 
 export interface IDefeatCardPropertiesBase extends ICardTargetSystemProperties {
     defeatSource?: IDamageSource | DefeatSourceType.Ability | DefeatSourceType.UniqueRule | DefeatSourceType.FrameworkEffect;
@@ -95,13 +95,16 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         event.isDefeatedByAttackerDamage = false;
         if (typeof defeatSource === 'object') {
-            eventDefeatSource = defeatSource;
+            eventDefeatSource = { ...defeatSource };
 
             event.isDefeatedByAttackerDamage =
-                eventDefeatSource.type === DamageSourceType.Attack &&
+                eventDefeatSource.type === DefeatSourceType.Attack &&
                 eventDefeatSource.damageDealtBy === eventDefeatSource.attack.attacker;
-            if (eventDefeatSource?.type === DamageSourceType.Attack) {
+
+            if (eventDefeatSource?.type === DefeatSourceType.Attack) {
                 eventDefeatSource.player = eventDefeatSource.damageDealtBy.controller;
+            } else {
+                eventDefeatSource.type = DefeatSourceType.NonCombatDamage;
             }
         } else {
             eventDefeatSource = this.buildDefeatSourceForType(defeatSource, event, context);
@@ -115,7 +118,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
         return {
-            type: DamageSourceType.Ability,
+            type: DefeatSourceType.Ability,
             player: context.player,
             card: context.source,
             event
