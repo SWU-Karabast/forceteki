@@ -792,9 +792,9 @@ class Player extends GameObject {
      * @param {number} cost
      * @param {Aspect[]} aspects
      * @param {AbilityContext} context
-     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} params Additional parameters for determining cost adjustment
+     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
      */
-    getAdjustedPlayCardCost(cost, aspects, context, params = null) {
+    getAdjustedPlayCardCost(cost, aspects, context, properties = null) {
         Contract.assertNonNegative(cost);
 
         const card = context.source;
@@ -804,12 +804,12 @@ class Player extends GameObject {
 
         const penaltyAspects = this.getPenaltyAspects(aspects);
         for (const penaltyAspect of penaltyAspects) {
-            const penaltyAspectParams = { ...params, penaltyAspect };
+            const penaltyAspectParams = { ...properties, penaltyAspect };
             aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(2, context, penaltyAspectParams);
         }
 
         const penalizedCost = cost + aspectPenaltiesTotal;
-        return this.runAdjustersForCost(penalizedCost, card, context, params);
+        return this.runAdjustersForCost(penalizedCost, card, context, properties);
     }
 
     /**
@@ -817,14 +817,14 @@ class Player extends GameObject {
      * Accounts for aspect penalties and any modifiers to those specifically
      * @param {number} cost
      * @param {AbilityContext} context
-     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} params Additional parameters for determining cost adjustment
+     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
      */
-    getAdjustedAbilityCost(cost, context, params = null) {
+    getAdjustedAbilityCost(cost, context, properties = null) {
         Contract.assertNonNegative(cost);
 
         const card = context.source;
 
-        return this.runAdjustersForCost(cost, card, context, params);
+        return this.runAdjustersForCost(cost, card, context, properties);
     }
 
     /**
@@ -832,10 +832,10 @@ class Player extends GameObject {
      * @param {number} baseCost
      * @param card
      * @param target
-     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} params Additional parameters for determining cost adjustment
+     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
      */
-    runAdjustersForCost(baseCost, card, context, params) {
-        const matchingAdjusters = this.getMatchingCostAdjusters(context, params);
+    runAdjustersForCost(baseCost, card, context, properties) {
+        const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
         const costIncreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
             .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context), 0);
@@ -857,10 +857,10 @@ class Player extends GameObject {
     /**
      * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
      * @param {number} baseCost
-     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} params Additional parameters for determining cost adjustment
+     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
      */
-    runAdjustersForAspectPenalties(baseCost, context, params) {
-        const matchingAdjusters = this.getMatchingCostAdjusters(context, params);
+    runAdjustersForAspectPenalties(baseCost, context, properties) {
+        const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
 
         const ignoreAllAspectPenalties = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects).length > 0;
@@ -878,24 +878,24 @@ class Player extends GameObject {
 
     /**
      * @param {AbilityContext} context
-     * @param {import('./cost/CostInterfaces').IGetMatchingCostAdjusterProperties} params Additional parameters for determining cost adjustment
+     * @param {import('./cost/CostInterfaces').IGetMatchingCostAdjusterProperties} properties Additional parameters for determining cost adjustment
      * @returns {CostAdjuster[]}
      */
-    getMatchingCostAdjusters(context, params = null) {
-        const allMatchingAdjusters = this.costAdjusters.concat(params.additionalCostAdjusters ?? [])
+    getMatchingCostAdjusters(context, properties = null) {
+        const allMatchingAdjusters = this.costAdjusters.concat(properties.additionalCostAdjusters ?? [])
             .filter((adjuster) => {
                 // TODO: Make this work with Piloting
                 if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
                     const upgrade = context.source;
                     return context.game.getArenaUnits()
                         .filter((unit) => upgrade.canAttach(unit, context))
-                        .some((unit) => adjuster.canAdjust(upgrade, context, { attachTarget: unit, ...params }));
+                        .some((unit) => adjuster.canAdjust(upgrade, context, { attachTarget: unit, ...properties }));
                 }
 
-                return adjuster.canAdjust(context.source, context, { attachTarget: context.target, ...params });
+                return adjuster.canAdjust(context.source, context, { attachTarget: context.target, ...properties });
             });
 
-        if (params.ignoreExploit) {
+        if (properties.ignoreExploit) {
             return allMatchingAdjusters.filter((adjuster) => !adjuster.isExploit());
         }
 
