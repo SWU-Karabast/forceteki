@@ -16,7 +16,8 @@ export enum CostAdjustType {
     Decrease = 'decrease',
     Free = 'free',
     IgnoreAllAspects = 'ignoreAllAspects',
-    IgnoreSpecificAspects = 'ignoreSpecificAspect'
+    IgnoreSpecificAspects = 'ignoreSpecificAspect',
+    ModifyPayStage = 'modifyPayStage'
 }
 
 /**
@@ -46,9 +47,6 @@ export interface ICostAdjusterPropertiesBase {
     /** Whether the cost adjuster should adjust activation costs for abilities. Defaults to false. */
     matchAbilityCosts?: boolean;
 
-    /** Which {@link CostStage} the adjuster applies to. Defaults to {@link CostStage.Calculate} */
-    costStage?: CostStage;
-
     /** If the cost adjustment is related to upgrades, this creates a condition for the card that the upgrade is being attached to */
     attachTargetCondition?: (attachTarget: Card, adjusterSource: Card, context: AbilityContext) => boolean;
 }
@@ -75,11 +73,19 @@ export interface IIgnoreSpecificAspectsCostAdjusterProperties extends ICostAdjus
     ignoredAspect: Aspect;
 }
 
+export interface IModifyPayStageCostAdjusterProperties extends ICostAdjusterPropertiesBase {
+    costAdjustType: CostAdjustType.ModifyPayStage;
+
+    /** The amount to adjust the cost by */
+    amount?: number | ((card: Card, player: Player, context: AbilityContext) => number);
+}
+
 export type ICostAdjusterProperties =
   | IIgnoreAllAspectsCostAdjusterProperties
   | IIncreaseOrDecreaseCostAdjusterProperties
   | IForFreeCostAdjusterProperties
-  | IIgnoreSpecificAspectsCostAdjusterProperties;
+  | IIgnoreSpecificAspectsCostAdjusterProperties
+  | IModifyPayStageCostAdjusterProperties;
 
 export interface ICanAdjustProperties {
     attachTarget?: Card;
@@ -125,7 +131,6 @@ export class CostAdjuster {
             this.limit.registerEvents(game);
         }
 
-        this.costStage = properties.costStage || CostStage.Calculate;
         this.matchAbilityCosts = !!properties.matchAbilityCosts;
     }
 
@@ -141,10 +146,6 @@ export class CostAdjuster {
         }
 
         if (adjustParams?.isAbilityCost && !this.matchAbilityCosts) {
-            return false;
-        }
-
-        if (adjustParams?.costStage && adjustParams.costStage !== this.costStage) {
             return false;
         }
 

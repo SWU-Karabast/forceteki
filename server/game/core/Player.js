@@ -850,6 +850,13 @@ class Player extends GameObject {
             reducedCost = 0;
         }
 
+        // run any cost adjusters that affect the "pay costs" stage last
+        const payStageAdjustment = matchingAdjusters
+            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.ModifyPayStage)
+            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context), 0);
+
+        reducedCost += payStageAdjustment;
+
         return Math.max(reducedCost, 0);
     }
 
@@ -882,6 +889,9 @@ class Player extends GameObject {
      * @returns {CostAdjuster[]}
      */
     getMatchingCostAdjusters(context, properties = null) {
+        /** @type {import('./cost/CostAdjuster').ICanAdjustProperties} */
+        const canAdjustProps = { ...properties, isAbilityCost: !context.ability.isPlayCardAbility() };
+
         const allMatchingAdjusters = this.costAdjusters.concat(properties.additionalCostAdjusters ?? [])
             .filter((adjuster) => {
                 // TODO: Make this work with Piloting
@@ -889,10 +899,10 @@ class Player extends GameObject {
                     const upgrade = context.source;
                     return context.game.getArenaUnits()
                         .filter((unit) => upgrade.canAttach(unit, context))
-                        .some((unit) => adjuster.canAdjust(upgrade, context, { attachTarget: unit, ...properties }));
+                        .some((unit) => adjuster.canAdjust(upgrade, context, { attachTarget: unit, ...canAdjustProps }));
                 }
 
-                return adjuster.canAdjust(context.source, context, { attachTarget: context.target, ...properties });
+                return adjuster.canAdjust(context.source, context, { attachTarget: context.target, ...canAdjustProps });
             });
 
         if (properties.ignoreExploit) {
