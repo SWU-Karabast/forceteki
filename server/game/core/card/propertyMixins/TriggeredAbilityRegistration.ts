@@ -1,7 +1,7 @@
 import type { IReplacementEffectAbilityProps, ITriggeredAbilityProps } from '../../../Interfaces';
 import ReplacementEffectAbility from '../../ability/ReplacementEffectAbility';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
-import type { Card, CardConstructor } from '../Card';
+import type { Card, CardConstructor, ICardState } from '../Card';
 import * as Contract from '../../utils/Contract';
 
 export interface ICardWithTriggeredAbilities {
@@ -13,7 +13,7 @@ export interface ICardWithTriggeredAbilities {
 }
 
 /** Mixin function that adds the ability to register triggered abilities to a base card class. */
-export function WithTriggeredAbilities<TBaseClass extends CardConstructor>(BaseClass: TBaseClass) {
+export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState>, TState extends ICardState>(BaseClass: TBaseClass) {
     return class WithTriggeredAbilities extends BaseClass {
         /**
          * `SWU 7.6.1`: Triggered abilities have bold text indicating their triggering condition, starting with the word

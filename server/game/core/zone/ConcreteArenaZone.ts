@@ -2,96 +2,69 @@ import type { IInPlayCard } from '../card/baseClasses/InPlayCard';
 import type { Card } from '../card/Card';
 import type { ZoneName } from '../Constants';
 import type Game from '../Game';
+import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import type Player from '../Player';
 import * as Contract from '../utils/Contract';
 import type { IArenaZoneCardFilterProperties } from './ConcreteOrMetaArenaZone';
 import { ConcreteOrMetaArenaZone } from './ConcreteOrMetaArenaZone';
 import type { IAddRemoveZone } from './ZoneAbstract';
 
+export interface IConcreteArenaZoneState extends IGameObjectBaseState {
+    cards: GameObjectRef<IInPlayCard>[];
+}
+
 /**
  * Base class for the "concrete" arena zones - ground and space - which are not the meta-zone AllArenasZone
  */
-export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone implements IAddRemoveZone {
+export abstract class ConcreteArenaZone extends ConcreteOrMetaArenaZone<IConcreteArenaZoneState> implements IAddRemoveZone {
     public override readonly hiddenForPlayers: null;
     public abstract override readonly name: ZoneName;
     public override readonly owner: Game;
 
-    protected _cards = new Map<Player, IInPlayCard[]>();
-
     public override get cards(): IInPlayCard[] {
-        return Array.from(this._cards.values()).flat();
+        return this.state.cards.map((x) => this.game.gameObjectManager.get(x));
     }
 
     public override get count() {
-        let cardCount = 0;
-        this._cards.forEach((cards) => cardCount += cards.length);
-        return cardCount;
+        return this.state.cards.length;
     }
 
     public constructor(owner: Game, player1: Player, player2: Player) {
         super(owner);
 
         this.hiddenForPlayers = null;
+    }
 
-        this._cards.set(player1, []);
-        this._cards.set(player2, []);
+    protected override setupDefaultState() {
+        this.state.cards = [];
     }
 
     public override getCards(filter?: IArenaZoneCardFilterProperties): IInPlayCard[] {
         const filterFn = this.buildFilterFn(filter);
 
-        let cards: IInPlayCard[] = [];
-
-        for (const [player, playerCards] of this._cards) {
-            if (!filter?.controller || filter.controller === player) {
-                cards = cards.concat(playerCards.filter(filterFn));
-            }
+        let cards: IInPlayCard[] = this.cards;
+        if (filter?.controller) {
+            cards = cards.filter((card) => card.controller === filter.controller);
         }
 
-        return cards;
+        return cards.filter(filterFn);
     }
 
     public addCard(card: IInPlayCard) {
-        const controller = card.controller;
-        const cardListForController = this._cards.get(controller);
+        const cardIdx = this.state.cards.findIndex((x) => x.uuid === card.uuid);
 
-        Contract.assertHasKey(this._cards, controller, `Attempting to add card ${card.internalName} to ${this} but the controller ${controller} is not registered`);
-        Contract.assertFalse(this._cards.get(controller.opponent).includes(card), `Attempting to add card ${card.internalName} for ${controller} to ${this} but it is already in the arena for the opponent`);
-        Contract.assertFalse(cardListForController.includes(card), `Attempting to add card ${card.internalName} for ${controller} to ${this} twice`);
+        Contract.assertTrue(cardIdx === -1, `Attempting to add card ${card.internalName} to ${this} twice`);
 
-        cardListForController.push(card);
+        this.state.cards.push(card.getRef());
     }
 
     public removeCard(card: Card) {
         Contract.assertTrue(card.canBeInPlay());
 
-        const controller = card.controller;
-        const cardListForController = this._cards.get(controller);
-        const cardIdx = cardListForController.indexOf(card);
+        const cardIdx = this.state.cards.findIndex((x) => x.uuid === card.uuid);
 
-        Contract.assertHasKey(this._cards, controller, `Attempting to add card ${card.internalName} to ${this} but the controller ${controller} is not registered`);
-        Contract.assertFalse(this._cards.get(controller.opponent).includes(card), `Attempting to remove card ${card.internalName} for controller ${controller} from ${this} but it is in the arena for the opponent`);
-        Contract.assertFalse(cardIdx === -1, `Attempting to remove card ${card.internalName} for ${controller} from ${this} but it does not exist`);
+        Contract.assertFalse(cardIdx === -1, `Attempting to remove card ${card.internalName} from ${this} but it does not exist`);
 
-        cardListForController.splice(cardIdx, 1);
-    }
-
-    public updateController(card: Card) {
-        Contract.assertTrue(card.canBeInPlay());
-
-        const controllerCardsList = this._cards.get(card.controller);
-
-        // card is already in its controller's list, nothing to do
-        if (controllerCardsList.includes(card)) {
-            return;
-        }
-
-        const opponentCardsList = this._cards.get(card.controller.opponent);
-        const removeCardIdx = opponentCardsList.indexOf(card);
-
-        Contract.assertTrue(removeCardIdx !== -1, `Attempting to update controller of card ${card.internalName} to ${card.controller} in ${this} but it is not in the arena`);
-
-        opponentCardsList.splice(removeCardIdx, 1);
-        controllerCardsList.push(card);
+        this.state.cards.splice(cardIdx, 1);
     }
 }
