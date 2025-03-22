@@ -42,6 +42,7 @@ const { validateGameConfiguration, validateGameOptions } = require('./GameInterf
 const { GameObject } = require('./GameObject.js');
 const { GameObjectBase } = require('./GameObjectBase.js');
 const { GameObjectManager } = require('./GameObjectManager.js');
+const { User } = require('../../utils/user/User');
 
 class Game extends EventEmitter {
     #debug;

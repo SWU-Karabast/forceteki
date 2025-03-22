@@ -12,7 +12,7 @@ const defaultSettings = {
     },
 };
 
-export interface User {
+export interface IUser {
     username: string;
     id: string;
     blockList: string[];
@@ -24,7 +24,7 @@ export interface User {
     }>;
 }
 
-export function getUserWithDefaultsSet(user?: Partial<User> & Pick<User, 'username' | 'id'>): User | undefined {
+export function getUserWithDefaultsSet(user?: Partial<IUser> & Pick<IUser, 'username' | 'id'>): IUser | undefined {
     if (!user) {
         return undefined;
     }
