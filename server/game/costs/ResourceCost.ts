@@ -13,7 +13,6 @@ import type { Card } from '../core/card/Card';
  */
 export abstract class ResourceCost<TCard extends Card = Card> implements ICost<AbilityContext<TCard>> {
     public readonly card: Card;
-    public readonly aspects: Aspect[];
     public readonly resources: number;
 
     public abstract readonly isPlayCost;
@@ -22,7 +21,6 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
     protected afterPayHook?: ((event: any) => void) = null;
 
     public constructor(resources: number, card: Card, aspects: Aspect[] = []) {
-        this.aspects = aspects;
         this.card = card;
         this.resources = resources;
     }
@@ -35,8 +33,8 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         return context.player.readyResourceCount >= minCost;
     }
 
-    protected getMatchingCostAdjusters(context: AbilityContext<TCard>, ignoreExploit = false): CostAdjuster[] {
-        return context.player.getMatchingCostAdjusters(context, null, this.getAdditionalCostAdjusters(context), ignoreExploit);
+    protected getMatchingCostAdjusters(context: AbilityContext<TCard>): CostAdjuster[] {
+        return context.player.getMatchingCostAdjusters(context);
     }
 
     public resolve(context: AbilityContext<TCard>, result: ICostResult): void {
@@ -48,8 +46,8 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
         }
     }
 
-    public getAdjustedCost(context: AbilityContext<TCard>, ignoreExploit = false): number {
-        return context.player.getAdjustedCost(this.resources, this.aspects, context, this.getAdditionalCostAdjusters(context), ignoreExploit);
+    public getAdjustedCost(context: AbilityContext<TCard>): number {
+        return context.player.getAdjustedCost(this.resources, [], context);
     }
 
     public queueGenerateEventGameSteps(events: GameEvent[], context: AbilityContext<TCard>, result: ICostResult) {
@@ -79,10 +77,5 @@ export abstract class ResourceCost<TCard extends Card = Card> implements ICost<A
                 this.afterPayHook(event);
             }
         });
-    }
-
-    // exists to be overriden by subclasses
-    protected getAdditionalCostAdjusters(context: AbilityContext<TCard>): CostAdjuster[] {
-        return [];
     }
 }
