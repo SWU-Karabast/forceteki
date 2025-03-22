@@ -40,7 +40,8 @@ export default class BosskHuntingHisPrey extends LeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.collectBounty((context) => ({
                 bountyProperties: context.event.bountyProperties,
-                bountySource: context.event.card
+                bountySource: context.event.card,
+                forceResolve: true
             })),
             limit: AbilityHelper.limit.perRound(1)
         });
