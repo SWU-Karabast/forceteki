@@ -94,7 +94,6 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
         if (this.zoneName === ZoneName.Hand) {
             let playActions = this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
-            // TODO: update this once we suppport Piloting from discard
             if (this.hasSomeKeyword(KeywordName.Piloting)) {
                 playActions = playActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
             }
@@ -108,8 +107,6 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         if (this.zoneName === ZoneName.Discard) {
             if (this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
                 playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
-            } else if (propertyOverrides != null && propertyOverrides.canPlayFromAnyZone && this.hasSomeKeyword(KeywordName.Piloting)) {
-                playCardActions = this.buildPlayCardActions(PlayType.Piloting, propertyOverrides);
             }
         }
 
@@ -128,7 +125,13 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             `Attempting to get "play from out of play" actions for card ${this.internalName} in invalid zone: ${this.zoneName}`
         );
 
-        return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+        let playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+
+        if (this.hasSomeKeyword(KeywordName.Piloting)) {
+            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+        }
+
+        return playCardActions;
     }
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {
@@ -152,11 +155,6 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
         // if there's not a basic play action available for the requested play type, return nothing
         if (defaultPlayAction == null) {
             return [];
-        }
-
-        if (playType === PlayType.PlayFromOutOfPlay && this.hasSomeKeyword(KeywordName.Piloting)) {
-            const pilotingAction = this.buildCheapestAlternatePlayAction(propertyOverridesWithExploit, KeywordName.Piloting, PlayType.Piloting);
-            return [defaultPlayAction, pilotingAction];
         }
 
         const actions: PlayCardAction[] = [defaultPlayAction];

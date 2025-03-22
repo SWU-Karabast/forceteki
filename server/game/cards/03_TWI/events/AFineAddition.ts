@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { KeywordName, PlayType, ZoneName } from '../../../core/Constants';
+import { KeywordName, WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -38,22 +38,16 @@ export default class AFineAddition extends EventCard {
                 cardCondition: (card, context) => this.wasEnemyUnitDefeatedThisPhaseForPlayer(context.player.opponent) && this.checkZoneAndOwnershipOfCard(card, context.player) &&
                   (card.isUpgrade() || (card.isUnit() && card.hasSomeKeyword(KeywordName.Piloting))),
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.target.isUnit(),
-                    onTrue: AbilityHelper.immediateEffects.playCard((context) => ({
+                    condition: (context) => context.target.zoneName === ZoneName.Discard,
+                    onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                         adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
                         canPlayFromAnyZone: true,
-                        playType: PlayType.Piloting
-                    })),
-                    onFalse: AbilityHelper.immediateEffects.conditional({
-                        condition: (context) => context.target.zoneName === ZoneName.Discard,
-                        onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                            adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
-                            canPlayFromAnyZone: true
-                        }),
-                        onFalse: AbilityHelper.immediateEffects.playCardFromHand({
-                            adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects }
-                        }),
-                    })
+                        playAsType: WildcardCardType.Upgrade,
+                    }),
+                    onFalse: AbilityHelper.immediateEffects.playCardFromHand({
+                        adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
+                        playAsType: WildcardCardType.Upgrade
+                    }),
                 })
             }
         });
