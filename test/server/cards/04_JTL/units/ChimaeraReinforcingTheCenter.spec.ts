@@ -1,6 +1,6 @@
 describe('Chimaera, Reinforcing the Center', function() {
     integration(function(contextRef) {
-        describe('Chimaera\'s When Playedability', function() {
+        describe('Chimaera\'s When Played ability', function() {
             it('cannot trigger itself', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
