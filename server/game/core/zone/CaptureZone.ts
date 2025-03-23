@@ -6,6 +6,7 @@ import type Player from '../Player';
 import * as Contract from '../utils/Contract';
 import { SimpleZone } from './SimpleZone';
 
+// STATE TODO: Because these spawn during the Game's life span, do we need to make the captor a Ref? Hm, in-place no, but for file saves yes.
 export class CaptureZone extends SimpleZone<IUnitCard> {
     public readonly captor: IUnitCard;
     public override readonly hiddenForPlayers: null;
@@ -23,10 +24,8 @@ export class CaptureZone extends SimpleZone<IUnitCard> {
     }
 
     public override addCard(card: IUnitCard) {
-        Contract.assertFalse(this.cards.includes(card), `Attempting to add card ${card.internalName} to ${this} twice`);
         Contract.assertTrue(card.isNonLeaderUnit(), `Attempting to add card ${card.internalName} to ${this} but it is not a non-leader unit card`);
-
-        this.state.cards.push(card.getRef());
+        super.addCard(card);
     }
 
     public override toString() {
