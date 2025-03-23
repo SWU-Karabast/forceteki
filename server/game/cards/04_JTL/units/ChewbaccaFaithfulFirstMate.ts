@@ -1,6 +1,6 @@
-import AbilityHelper from '../../../../../server/game/AbilityHelper';
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
-import { AbilityRestriction, AbilityType } from '../../../../../server/game/core/Constants';
+import { AbilityType, ZoneName } from '../../../../../server/game/core/Constants';
+import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 
 export default class ChewbaccaFaithfulFirstMate extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -11,33 +11,33 @@ export default class ChewbaccaFaithfulFirstMate extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
-        this.addConstantAbility({
+        this.addReplacementEffectAbility({
             title: 'This unit can\'t be defeated or returned to hand by enemy card abilities',
-            ongoingEffect: [
-                AbilityHelper.ongoingEffects.cardCannot({
-                    cannot: AbilityRestriction.ReturnToHand,
-                    restrictedActionCondition: (context) => context.player !== this.controller,
-                }),
-                AbilityHelper.ongoingEffects.cardCannot({
-                    cannot: AbilityRestriction.BeDefeated,
-                    restrictedActionCondition: (context) => context.player !== this.controller,
-                })
-            ]
+            when: {
+                onCardDefeated: (event, context) =>
+                    event.card === context.source &&
+                    event.defeatSource.type === DefeatSourceType.Ability &&
+                    event.defeatSource.player !== context.player,
+                onCardMoved: (event, context) =>
+                    event.card === context.source &&
+                    event.destination === ZoneName.Hand &&
+                    event.context.player !== context.player
+            }
         });
 
         this.addPilotingGainAbilityTargetingAttached({
-            type: AbilityType.Constant,
-            title: 'This unit can\'t be captured or damaged by enemy card abilities',
-            ongoingEffect: [
-                AbilityHelper.ongoingEffects.cardCannot({
-                    cannot: AbilityRestriction.ReturnToHand,
-                    restrictedActionCondition: (context) => context.player !== this.controller,
-                }),
-                AbilityHelper.ongoingEffects.cardCannot({
-                    cannot: AbilityRestriction.BeDefeated,
-                    restrictedActionCondition: (context) => context.player !== this.controller,
-                })
-            ]
+            type: AbilityType.ReplacementEffect,
+            title: 'This unit can\'t be defeated or returned to hand by enemy card abilities',
+            when: {
+                onCardDefeated: (event, context) =>
+                    event.card === context.source &&
+                    event.defeatSource.type === DefeatSourceType.Ability &&
+                    event.defeatSource.player !== context.player,
+                onCardMoved: (event, context) =>
+                    event.card === context.source &&
+                    event.destination === ZoneName.Hand &&
+                    event.context.player !== context.player
+            }
         });
     }
 }

@@ -21,7 +21,7 @@ export default class PreVizslaPursuingTheThrone extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'Deal damage to a unit equal to the number of cards you\'ve drawn this phase',
-            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityResourceCost(1)],
+            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({

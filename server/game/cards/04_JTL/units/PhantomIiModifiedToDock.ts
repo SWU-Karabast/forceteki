@@ -32,7 +32,7 @@ export default class PhantomIiModifiedToDock extends NonLeaderUnitCard {
     public override setupCardAbilities () {
         this.addActionAbility({
             title: 'Attach this as an upgrade to The Ghost',
-            cost: [AbilityHelper.costs.abilityResourceCost(1)],
+            cost: [AbilityHelper.costs.abilityActivationResourceCost(1)],
             condition: () => this.isUnit(),
             targetResolver: {
                 cardCondition: (card) => card.title === 'The Ghost',
