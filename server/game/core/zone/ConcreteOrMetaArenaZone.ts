@@ -19,6 +19,8 @@ export abstract class ConcreteOrMetaArenaZone<TState extends IZoneState<IInPlayC
     public override readonly hiddenForPlayers: null;
     public override readonly owner: Game;
 
+    public abstract override getCards(filter?: IArenaZoneCardFilterProperties): IInPlayCard[];
+
     public override hasSomeCard(filter: IArenaZoneCardFilterProperties): boolean {
         return super.hasSomeCard(filter);
     }
