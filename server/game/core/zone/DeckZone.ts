@@ -117,7 +117,7 @@ export class DeckZone extends ZoneAbstract<IPlayableCard, IDeckZoneState> implem
 
     public removeTopCard(): IPlayableCard | null {
         const card = this.state.deck.pop();
-        return card ? this.game.gameObjectManager.get(card) : null;
+        return this.game.gameObjectManager.get(card);
     }
 
     public removeCard(card: Card) {
