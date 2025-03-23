@@ -33,7 +33,7 @@ export interface IIgnoreAllAspectPenaltiesProps<TSource extends Card = Card> ext
 
 export interface IIgnoreSpecificAspectPenaltyProps<TSource extends Card = Card> extends Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
-    ignoredAspects: Aspect | Aspect[];
+    ignoredAspect: Aspect;
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
 
@@ -303,12 +303,12 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
 
     /** Create constant ability props on the card that decreases its cost under the given condition */
     protected generateIgnoreSpecificAspectPenaltiesAbilityProps(properties: IIgnoreSpecificAspectPenaltyProps<this>): IConstantAbilityProps {
-        const { title, ignoredAspects, condition, ...otherProps } = properties;
+        const { title, ignoredAspect, condition, ...otherProps } = properties;
 
         const costAdjusterProps: ICostAdjusterProperties = {
             ...this.buildCostAdjusterGenericProperties(),
             costAdjustType: CostAdjustType.IgnoreSpecificAspects,
-            ignoredAspects: ignoredAspects,
+            ignoredAspect: ignoredAspect,
             ...otherProps
         };
 

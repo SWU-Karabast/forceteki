@@ -13,7 +13,7 @@ export default class QiraIAloneSuvived extends LeaderUnitCard {
     protected override setupLeaderSideAbilities () {
         this.addActionAbility({
             title: 'Deal 2 damage to a friendly unit. Then, give a Shield token to it',
-            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityResourceCost(1)],
+            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,

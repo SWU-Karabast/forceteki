@@ -63,6 +63,8 @@ import type { IExhaustSystemProperties } from './ExhaustSystem';
 import { ExhaustSystem } from './ExhaustSystem';
 import type { IFlipDoubleSidedLeaderProperties } from './FlipDoubleSidedLeaderSystem';
 import { FlipDoubleSidedLeaderSystem } from './FlipDoubleSidedLeaderSystem';
+import type { IFrameworkDefeatCardProperties } from './FrameworkDefeatCardSystem';
+import { FrameworkDefeatCardSystem } from './FrameworkDefeatCardSystem';
 import type { IGiveExperienceProperties } from './GiveExperienceSystem';
 import { GiveExperienceSystem } from './GiveExperienceSystem';
 import type { IGiveShieldProperties } from './GiveShieldSystem';
@@ -254,6 +256,9 @@ export function forThisRoundCardEffect<TContext extends AbilityContext = Ability
 }
 export function forThisAttackCardEffect<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICardAttackLastingEffectProperties, TContext>) {
     return new CardAttackLastingEffectSystem<TContext>(propertyFactory);
+}
+export function frameworkDefeat<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IFrameworkDefeatCardProperties, TContext>) {
+    return new FrameworkDefeatCardSystem<TContext>(propertyFactory);
 }
 export function giveExperience<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IGiveExperienceProperties, TContext> = {}) {
     return new GiveExperienceSystem<TContext>(propertyFactory);
