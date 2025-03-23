@@ -169,6 +169,54 @@ export class DeckService {
             throw error;
         }
     }
+
+    /**
+     * Delete multiple decks for a user
+     * @param userId The user ID
+     * @param deckIds Array of deck IDs to delete
+     * @returns Promise that resolves to an array of successfully deleted deck IDs
+     */
+    public async deleteDecks(userId: string, deckIds: string[]): Promise<string[]> {
+        try {
+            if (!userId || !deckIds || deckIds.length === 0) {
+                logger.warn(`DeckService: Invalid parameters for delete operation. userId: ${userId}, deckIds: ${deckIds}`);
+                return [];
+            }
+
+            const deletedDeckIds: string[] = [];
+            const failedDeckIds: string[] = [];
+
+            // Process each deck deletion individually to handle errors gracefully
+            for (const deckId of deckIds) {
+                try {
+                    // Verify the deck belongs to this user before deleting
+                    const deck = await this.dbService.getDeck(userId, deckId);
+                    if (!deck) {
+                        logger.warn(`DeckService: Deck ${deckId} not found for user ${userId} or does not belong to them.`);
+                        failedDeckIds.push(deckId);
+                        continue;
+                    }
+
+                    // Delete the deck
+                    await this.dbService.deleteItem(`USER#${userId}`, `DECK#${deckId}`);
+                    deletedDeckIds.push(deckId);
+                    logger.info(`DeckService: Successfully deleted deck ${deckId} for user ${userId}`);
+                } catch (error) {
+                    logger.error(`DeckService: Error deleting deck ${deckId} for user ${userId}:`, error);
+                    failedDeckIds.push(deckId);
+                }
+            }
+
+            if (failedDeckIds.length > 0) {
+                logger.warn(`DeckService: Failed to delete ${failedDeckIds.length} decks: ${failedDeckIds.join(', ')}`);
+            }
+
+            return deletedDeckIds;
+        } catch (error) {
+            logger.error(`DeckService: Error during batch delete operation for user ${userId}:`, error);
+            throw error;
+        }
+    }
 }
 
 

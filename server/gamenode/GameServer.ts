@@ -279,6 +279,39 @@ export class GameServer {
             }
         });
 
+        app.post('/api/delete-decks', authMiddleware(), async (req, res, next) => {
+            try {
+                const { deckIds } = req.body;
+                const user = req.user as User;
+
+                if (!user || user.isAnonymousUser()) {
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required'
+                    });
+                }
+
+                if (!deckIds || !Array.isArray(deckIds) || deckIds.length === 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'deckIds must be a non-empty array of deck IDs'
+                    });
+                }
+
+                // Delete the decks
+                const deletedDeckIds = await this.deckService.deleteDecks(user.getId(), deckIds);
+
+                return res.status(200).json({
+                    success: true,
+                    message: `Successfully deleted ${deletedDeckIds.length} decks`,
+                    deletedDeckIds
+                });
+            } catch (err) {
+                logger.error('GameServer: Error in delete-decks:', err);
+                next(err);
+            }
+        });
+
         app.get('/api/ongoing-games', (_, res, next) => {
             try {
                 return res.json(this.getOngoingGamesData());
