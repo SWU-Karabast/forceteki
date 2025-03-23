@@ -4,6 +4,10 @@ import type { Aspect, CardTypeFilter, KeywordName, MoveZoneDestination, Trait } 
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { ZoneAbstract } from './ZoneAbstract';
 
+export interface ISimpleZoneState<TCard extends Card> extends IGameObjectBaseState {
+    cards: GameObjectRef<TCard>[];
+}
+
 /**
  * Collection of filters for searching cards in a zone.
  * If a list of values is provided, cards are matched with OR logic (just have to match one).
@@ -42,6 +46,7 @@ export abstract class SimpleZone<TCard extends Card, TState extends IZoneState<T
 
     public override get cards(): TCard[] {
         return this.state.cards.map((x) => this.game.gameObjectManager.get(x));
+        return this.state.cards.map((x) => this.game.gameObjectManager.get(x));
     }
 
     protected override setupDefaultState() {
@@ -57,6 +62,7 @@ export abstract class SimpleZone<TCard extends Card, TState extends IZoneState<T
     public addCard(card: TCard) {
         Contract.assertFalse(this.cards.includes(card), `Attempting to add card ${card.internalName} to ${this} twice`);
 
+        this.state.cards.push(card.getRef());
         this.state.cards.push(card.getRef());
     }
 

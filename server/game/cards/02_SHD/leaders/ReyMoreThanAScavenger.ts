@@ -12,7 +12,7 @@ export default class ReyMoreThanAScavenger extends LeaderUnitCard {
     protected override setupLeaderSideAbilities () {
         this.addActionAbility({
             title: 'Give an Experience token to a unit with 2 or less power',
-            cost: [AbilityHelper.costs.abilityResourceCost(1), AbilityHelper.costs.exhaustSelf()],
+            cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 cardCondition: (card, _) => card.isUnit() && card.getPower() <= 2,
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()

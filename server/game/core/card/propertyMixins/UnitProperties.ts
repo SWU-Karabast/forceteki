@@ -614,7 +614,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
          * Also adds a listener to remove the registered abilities after the effect resolves.
          */
         public checkRegisterWhenDefeatedKeywordAbilities(event: GameEvent) {
-            const bountyKeywords = this.getBountyAbilities();
+            const bountyKeywords = this.getBountyKeywords();
             if (bountyKeywords.length === 0) {
                 return;
             }
@@ -634,7 +634,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
          * Also adds a listener to remove the registered abilities after the effect resolves.
          */
         public checkRegisterWhenCapturedKeywordAbilities(event: GameEvent) {
-            const bountyKeywords = this.getBountyAbilities();
+            const bountyKeywords = this.getBountyKeywords();
             if (bountyKeywords.length === 0) {
                 return;
             }
@@ -664,7 +664,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return registeredAbilities;
         }
 
-        private getBountyAbilities() {
+        private getBountyKeywords() {
             return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Bounty)
                 .map((keyword) => keyword as BountyKeywordInstance)
                 .filter((keyword) => keyword.isFullyImplemented);

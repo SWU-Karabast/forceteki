@@ -15,7 +15,7 @@ export default class GrandAdmiralThrawnPatientAndInsightful extends LeaderUnitCa
 
         this.addActionAbility({
             title: 'Reveal the top card of any player\'s deck',
-            cost: [AbilityHelper.costs.abilityResourceCost(1), AbilityHelper.costs.exhaustSelf()],
+            cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 mode: TargetMode.Select,
                 showUnresolvable: true,
