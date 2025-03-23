@@ -1,5 +1,5 @@
 import { DynamoDBService } from '../../services/DynamoDBService';
-import type { IDeckData, ILocalStorageDeckData } from '../../services/DynamoDBInterfaces';
+import type {IDeckData, IDeckStats, ILocalStorageDeckData} from '../../services/DynamoDBInterfaces';
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import type { User } from '../user/User';
@@ -104,7 +104,8 @@ export class DeckService {
                     stats: {
                         wins: 0,
                         losses: 0,
-                        draws: 0
+                        draws: 0,
+                        opponentStats: []
                     }
                 };
                 await this.dbService.saveDeck(deckData);
@@ -217,6 +218,134 @@ export class DeckService {
             throw error;
         }
     }
+
+    /**
+     * Update deck statistics after a game
+     * @param userId User ID
+     * @param deckId Deck ID
+     * @param result Game result ('win', 'loss', or 'draw')
+     * @param opponentLeaderId Opponent's leader ID
+     * @param opponentBaseId Opponent's base ID
+     * @returns Promise that resolves to the updated deck stats
+     */
+    public async updateDeckStats(
+        userId: string,
+        deckId: string,
+        result: 'win' | 'loss' | 'draw',
+        opponentLeaderId: string,
+        opponentBaseId: string
+    ): Promise<IDeckStats> {
+        try {
+            // Get the deck using our new flexible lookup method
+            const deck = await this.getDeckById(userId, deckId);
+
+            // If not found after all lookup methods, throw error
+            if (!deck) {
+                throw new Error(`Deck with ID ${deckId} not found for user ${userId}`);
+            }
+
+            // Initialize stats if they don't exist
+            const stats: IDeckStats = deck.stats || {
+                wins: 0,
+                losses: 0,
+                draws: 0,
+                opponentStats: []
+            };
+
+            // Ensure opponentStats exists
+            if (!stats.opponentStats) {
+                stats.opponentStats = [];
+            }
+
+            // Update overall stats
+            if (result === 'win') {
+                stats.wins += 1;
+            } else if (result === 'loss') {
+                stats.losses += 1;
+            } else {
+                stats.draws += 1;
+            }
+
+            // Find or create opponent stat
+            let opponentStat = stats.opponentStats.find((stat) =>
+                stat.leaderId === opponentLeaderId && stat.baseId === opponentBaseId
+            );
+            if (!opponentStat) {
+                opponentStat = {
+                    leaderId: opponentLeaderId,
+                    baseId: opponentBaseId,
+                    wins: 0,
+                    losses: 0,
+                    draws: 0
+                };
+                stats.opponentStats.push(opponentStat);
+            }
+
+            // Update opponent-specific stats
+            if (result === 'win') {
+                opponentStat.wins += 1;
+            } else if (result === 'loss') {
+                opponentStat.losses += 1;
+            } else {
+                opponentStat.draws += 1;
+            }
+
+            // Save updated stats
+            await this.dbService.updateItem(
+                `USER#${userId}`,
+                `DECK#${deckId}`,
+                'SET stats = :stats',
+                { ':stats': stats }
+            );
+
+            logger.info(`DeckService: Updated stats for deck ${deckId}, user ${userId}, result: ${result}, opponent leader: ${opponentLeaderId}, opponent base: ${opponentBaseId}`);
+            return stats;
+        } catch (error) {
+            logger.error(`Error updating deck stats for deck ${deckId}, user ${userId}:`, error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get a deck by its ID, with fallback to check deckID and deckLID properties
+     * @param userId User ID
+     * @param deckId Deck ID, deckID, or deckLID to search for
+     * @returns Promise that resolves to the deck data if found, null otherwise
+     */
+    public async getDeckById(userId: string, deckId: string): Promise<IDeckData | null> {
+        try {
+            // First, try direct lookup by ID
+            let deck = await this.dbService.getDeck(userId, deckId);
+
+            // If found directly, return it
+            if (deck) {
+                return deck;
+            }
+
+            // If not found directly, try to find by deckID or deckLID property
+            logger.info(`DeckService: Deck with ID ${deckId} not found directly for user ${userId}, trying to find by deckID/deckLID properties`);
+
+            // Get all decks for the user
+            const allDecks = await this.dbService.getUserDecks(userId);
+
+            if (allDecks && allDecks.length > 0) {
+                // Find a deck where deck.deck.deckLID or deck.deck.deckID matches the provided deckId
+                deck = allDecks.find((d) =>
+                    (d.deck.deckLID && d.deck.deckLID === deckId)
+                );
+
+                if (deck) {
+                    logger.info(`DeckService: Found deck with matching deckID/deckLID property: ${deck.id}`);
+                    return deck;
+                }
+            }
+
+            // Not found by any method
+            logger.info(`DeckService: Deck with ID ${deckId} not found for user ${userId} (checked both direct ID and deckID/deckLID properties)`);
+            return null;
+        } catch (error) {
+            logger.error(`Error getting deck by ID ${deckId} for user ${userId}:`, error);
+            return null;
+        }
+    }
 }
-
-

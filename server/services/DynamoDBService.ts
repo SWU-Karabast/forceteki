@@ -318,7 +318,7 @@ export class DynamoDBService {
                 pk: `USER#${deckData.userId}`,
                 sk: `DECK#${deckData.id}`,
                 ...deckData,
-                stats: deckData.stats || { wins: 0, losses: 0 }
+                stats: deckData.stats || { wins: 0, losses: 0, draws: 0 }
             };
 
             return await this.putItem(item);
@@ -360,29 +360,6 @@ export class DynamoDBService {
             const result = await this.queryItems(`USER#${userId}`, { beginsWith: 'DECK#' });
             return result.Items as IDeckData[] | undefined;
         }, 'Error getting user decks');
-    }
-
-    public async updateDeckStats(userId: string, deckId: string, win: boolean) {
-        return await this.executeDbOperation(async () => {
-            const deck = await this.getDeck(userId, deckId);
-            if (!deck) {
-                throw new Error(`Deck with ID ${deckId} not found for user ${userId}`);
-            }
-
-            const stats = deck.stats || { wins: 0, losses: 0 };
-            if (win) {
-                stats.wins += 1;
-            } else {
-                stats.losses += 1;
-            }
-
-            return await this.updateItem(
-                `USER#${userId}`,
-                `DECK#${deckId}`,
-                'SET stats = :stats',
-                { ':stats': stats }
-            );
-        }, 'Error updating deck stats');
     }
 
     public async recordNewLogin(userId: string) {

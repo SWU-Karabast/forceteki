@@ -99,7 +99,7 @@ export class GameServer {
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
     private readonly userFactory: UserFactory = UserFactory.getInstance();
-    private readonly deckService: DeckService = DeckService.getInstance();
+    public readonly deckService: DeckService = DeckService.getInstance();
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -193,6 +193,14 @@ export class GameServer {
         this.deckValidator = deckValidator;
     }
 
+    /**
+     * Gets the DeckService instance
+     * @returns The DeckService instance
+     */
+    public getDeckService(): DeckService {
+        return this.deckService;
+    }
+
     private setupAppRoutes(app: express.Application) {
         app.get('/api/get-unimplemented', (req, res, next) => {
             try {
@@ -252,6 +260,51 @@ export class GameServer {
                 return res.status(200).json(usersDecks);
             } catch (err) {
                 logger.error('GameServer: Error in getting a users decks: ', err);
+                next(err);
+            }
+        });
+
+        // Add this to the setupAppRoutes method in GameServer.ts
+        app.get('/api/get-deck/:deckId', authMiddleware(), async (req, res, next) => {
+            try {
+                const { deckId } = req.params;
+                const user = req.user;
+
+                if (!user || user.isAnonymousUser()) {
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required'
+                    });
+                }
+
+                if (!deckId) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'deckId parameter is required'
+                    });
+                }
+
+                // Get the deck using the flexible lookup method
+                const deck = await this.deckService.getDeckById(user.getId(), deckId);
+                if (!deck) {
+                    return res.status(404).json({
+                        success: false,
+                        message: `Deck with ID ${deckId} not found`
+                    });
+                }
+                // Clean up the response data - remove internal DB fields
+                const cleanDeck = {
+                    id: deck.id,
+                    userId: deck.userId,
+                    deck: deck.deck,
+                    stats: deck.stats
+                };
+                return res.status(200).json({
+                    success: true,
+                    deck: cleanDeck
+                });
+            } catch (err) {
+                logger.error('GameServer: Error in get-deck:', err);
                 next(err);
             }
         });

@@ -70,6 +70,7 @@ class Game extends EventEmitter {
         this.allowSpectators = details.allowSpectators;
         this.owner = details.owner;
         this.started = false;
+        this.statsUpdated = false;
         this.playStarted = false;
         this.gameObjectManager = new GameObjectManager(this);
         this.createdAt = new Date();

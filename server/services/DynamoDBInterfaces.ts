@@ -5,6 +5,23 @@ export interface IUserData {
     playerId?: string;
 }
 
+// Interface for opponent stats
+export interface IOpponentStat {
+    leaderId: string;
+    baseId: string;
+    wins: number;
+    losses: number;
+    draws: number;
+}
+
+// Updated stats interface
+export interface IDeckStats {
+    wins: number;
+    losses: number;
+    draws: number;
+    opponentStats?: IOpponentStat[];
+}
+
 // Define user interface
 export interface IUserProfileData extends IUserData {
     id: string;
@@ -38,11 +55,7 @@ export interface IDeckData {
         deckLID: string;
         source?: string;
     };
-    stats?: {
-        wins: number;
-        losses: number;
-        draws: number;
-    };
+    stats?: IDeckStats;
 }
 
 // Interface for game record

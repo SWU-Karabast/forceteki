@@ -585,6 +585,124 @@ export class Lobby {
         }
     }
 
+    /**
+     * Updates deck statistics when a game ends
+     * @param game The game that has ended
+     */
+    private async endGameUpdateStats(game: Game): Promise<void> {
+        try {
+            // Only update stats if the game has a winner
+            if (!game.winner || !game.finishedAt) {
+                return;
+            }
+
+            logger.info(`Lobby ${this.id}: Updating deck stats for game ${game.id}`);
+
+            // Get the players from the game
+            const players = game.getPlayers();
+            if (players.length !== 2) {
+                logger.warn(`Lobby ${this.id}: Cannot update stats for game with ${players.length} players`);
+                return;
+            }
+
+            const [player1, player2] = players;
+
+            // Determine the winner and loser
+            let winner, loser;
+            if (game.winner.includes(player1.name)) {
+                winner = player1;
+                loser = player2;
+            } else if (game.winner.includes(player2.name)) {
+                winner = player2;
+                loser = player1;
+            }
+
+            // If we have a draw (or couldn't determine winner/loser), set as draw
+            const isDraw = !winner || !loser || game.winner.length > 1;
+
+            // Get the user & deck information for each player
+            const player1User = this.users.find((u) => u.id === player1.id);
+            const player2User = this.users.find((u) => u.id === player2.id);
+
+            if (!player1User?.deck || !player2User?.deck) {
+                logger.warn(`Lobby ${this.id}: Missing deck information for one or both players`);
+                return;
+            }
+
+            // Get the leader & base IDs for each player
+            const player1LeaderId = player1User.deck.leader.id;
+            const player1BaseId = player1User.deck.base.id;
+            const player2LeaderId = player2User.deck.leader.id;
+            const player2BaseId = player2User.deck.base.id;
+
+            // Get the deck service
+            const deckService = this.server.getDeckService();
+            if (!deckService) {
+                logger.warn(`Lobby ${this.id}: Could not get DeckService`);
+                return;
+            }
+            if (player1User.socket.user.isAuthenticatedUser()) {
+                // Update stats for player 1's deck
+                if (isDraw) {
+                    await deckService.updateDeckStats(
+                        player1User.socket.user.getId(),
+                        player1User.deck.id,
+                        'draw',
+                        player2LeaderId,
+                        player2BaseId
+                    );
+                } else if (winner === player1) {
+                    await deckService.updateDeckStats(
+                        player1User.socket.user.getId(),
+                        player1User.deck.id,
+                        'win',
+                        player2LeaderId,
+                        player2BaseId
+                    );
+                } else {
+                    await deckService.updateDeckStats(
+                        player1User.id,
+                        player1User.deck.id,
+                        'loss',
+                        player2LeaderId,
+                        player2BaseId
+                    );
+                }
+            }
+            if (player2User.socket.user.isAuthenticatedUser()) {
+                // Update stats for player 2's deck
+                if (isDraw) {
+                    await deckService.updateDeckStats(
+                        player2User.id,
+                        player2User.deck.id,
+                        'draw',
+                        player1LeaderId,
+                        player1BaseId
+                    );
+                } else if (winner === player2) {
+                    await deckService.updateDeckStats(
+                        player2User.id,
+                        player2User.deck.id,
+                        'win',
+                        player1LeaderId,
+                        player1BaseId
+                    );
+                } else {
+                    await deckService.updateDeckStats(
+                        player2User.id,
+                        player2User.deck.id,
+                        'loss',
+                        player1LeaderId,
+                        player1BaseId
+                    );
+                }
+            }
+            logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
+        } catch (error) {
+            logger.error(`Lobby ${this.id}: Error updating deck stats:`, error);
+        }
+    }
+
     private sendGameStateToSpectator(socket: Socket, spectatorId: string): void {
         if (this.game) {
             socket.send('gamestate', this.game.getState(spectatorId));
@@ -596,6 +714,14 @@ export class Lobby {
     }
 
     public sendGameState(game: Game): void {
+        // we check here if the game ended and update the stats.
+        if (game.winner && game.finishedAt && !game.statsUpdated) {
+            // Update deck stats asynchronously
+            game.statsUpdated = true;
+            this.endGameUpdateStats(game).catch((error) => {
+                logger.error(`Lobby ${this.id}: Failed to update deck stats:`, error);
+            });
+        }
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
                 user.socket.send('gamestate', game.getState(user.id));

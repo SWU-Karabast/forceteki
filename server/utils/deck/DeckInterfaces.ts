@@ -18,6 +18,7 @@ export interface ISwuDbDecklist {
     base?: ISwuDbCardEntry;
     deck?: ISwuDbCardEntry[];
     sideboard?: ISwuDbCardEntry[];
+    deckID?: string;
 }
 
 export interface IDecklistInternal {
@@ -25,6 +26,7 @@ export interface IDecklistInternal {
     base: IInternalCardEntry;
     deck: IInternalCardEntry[];
     sideboard?: IInternalCardEntry[];
+    deckID?: string;
 }
 
 export interface ICardIdAndName {
