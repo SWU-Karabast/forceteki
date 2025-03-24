@@ -81,7 +81,7 @@ export class UnitsDefeatedThisPhaseWatcher extends StateWatcher<DefeatedUnitEntr
                 onCardDefeated: (event) => EnumHelpers.isUnit(event.lastKnownInformation.type)
             },
             update: (currentState: IUnitsDefeatedThisPhase, event: any) =>
-                currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.card.controller, defeatedBy: event.defeatSource.player })
+                currentState.concat({ unit: event.card, inPlayId: event.card.mostRecentInPlayId, controlledBy: event.lastKnownInformation.controller, defeatedBy: event.defeatSource.player })
         });
     }
 
