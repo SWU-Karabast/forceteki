@@ -24,6 +24,7 @@ import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/
 import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl/PlayFromDiscardProperties';
+import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -67,6 +68,7 @@ export = {
     //        unapply: () => true
     //    }),
 
+    canAttackMultipleUnitsSimultaneously: (effectImpl: CanAttackMultipleUnitsSimultaneously) => OngoingEffectBuilder.player.static(EffectName.CanAttackMultipleUnitsSimultaneously, effectImpl),
     canPlayFromDiscard: (properties: PlayFromDiscardProperties = {}) => OngoingEffectBuilder.card
         .static(EffectName.CanPlayFromDiscard, properties),
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
