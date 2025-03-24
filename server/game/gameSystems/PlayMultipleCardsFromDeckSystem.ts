@@ -4,7 +4,6 @@ import type { CardType, WildcardCardType } from '../core/Constants.js';
 import { PlayType } from '../core/Constants.js';
 import { CostAdjustType } from '../core/cost/CostAdjuster.js';
 import type { IDisplayCardsSelectProperties } from '../core/gameSteps/PromptInterfaces.js';
-import { GameSystem } from '../core/gameSystem/GameSystem.js';
 import { PlayCardSystem } from './PlayCardSystem.js';
 import { SearchDeckSystem, type ISearchDeckProperties } from './SearchDeckSystem.js';
 
@@ -22,18 +21,16 @@ export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = A
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): IPlayMultipleCardsFromDeckProperties<TContext> {
         const properties = super.generatePropertiesFromContext(context, additionalProperties) as IPlayMultipleCardsFromDeckProperties<TContext>;
 
-        const propsWithViewType = GameSystem.appendToPropertiesOrPropertyFactory<ISearchDeckProperties<TContext>, 'selectedCardsImmediateEffect'>(properties,
-            {
-                selectedCardsImmediateEffect: new PlayCardSystem({
-                    playType: PlayType.PlayFromOutOfPlay,
-                    nested: true,
-                    adjustCost: {
-                        costAdjustType: CostAdjustType.Free
-                    },
-                    playAsType: properties.playAsType,
-                })
-            }
-        );
+        const selectedCardsImmediateEffect = new PlayCardSystem({
+            playType: PlayType.PlayFromOutOfPlay,
+            nested: true,
+            adjustCost: {
+                costAdjustType: CostAdjustType.Free
+            },
+            playAsType: properties.playAsType,
+        });
+
+        const propsWithViewType = { ...properties, selectedCardsImmediateEffect: selectedCardsImmediateEffect };
 
         return propsWithViewType as IPlayMultipleCardsFromDeckProperties<TContext>;
     }
