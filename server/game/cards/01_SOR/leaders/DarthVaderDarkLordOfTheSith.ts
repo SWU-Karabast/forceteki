@@ -21,7 +21,7 @@ export default class DarthVaderDarkLordOfTheSith extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'Deal 1 damage to a unit and 1 damage to a base',
-            cost: [AbilityHelper.costs.abilityResourceCost(1), AbilityHelper.costs.exhaustSelf()],
+            cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolvers: {
                 unit: {
                     cardTypeFilter: WildcardCardType.Unit,

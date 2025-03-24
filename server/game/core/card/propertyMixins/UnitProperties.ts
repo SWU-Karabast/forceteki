@@ -4,7 +4,7 @@ import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, Keywo
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
-import type { IInPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import type { IInPlayCard, IInPlayCardState, InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { InPlayCard } from '../baseClasses/InPlayCard';
 import type { ICardWithDamageProperty } from './Damage';
 import { WithDamage } from './Damage';
@@ -38,8 +38,13 @@ import type { ILeaderUnitCard } from '../LeaderUnitCard';
 import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
+import type { GameObjectRef } from '../../GameObjectBase';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
+export interface IUnitPropertiesCardState extends IInPlayCardState {
+    defaultArenaInternal: Arena;
+    captureZone: GameObjectRef<CaptureZone> | null;
+}
 
 type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IAbilityPropsWithType<TTarget> & IGainCondition<TSource>;
 
@@ -79,11 +84,11 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
  * - the {@link InitiateAttackAction} ability so that the card can attack
  * - the ability to have attached upgrades
  */
-export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(BaseClass: TBaseClass) {
+export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TState>, TState extends IInPlayCardState>(BaseClass: TBaseClass) {
     // create a "base" class that has the damage, hp, and power properties from other mixins
     const StatsAndDamageClass = WithDamage(WithPrintedPower(BaseClass));
 
-    return class AsUnit extends StatsAndDamageClass implements IUnitCard {
+    return class AsUnit extends (StatsAndDamageClass as typeof StatsAndDamageClass & InPlayCardConstructor<TState & IUnitPropertiesCardState>) implements IUnitCard {
         public static registerRulesListeners(game: Game) {
             // register listeners for when-played keyword abilities (see comment in EventWindow.ts for explanation of 'postResolve')
             game.on(EventName.OnUnitEntersPlay + ':postResolve', (event) => {
@@ -120,7 +125,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         // ************************************* FIELDS AND PROPERTIES *************************************
         public readonly defaultArena: Arena;
 
-        protected _captureZone?: CaptureZone = null;
         protected _upgrades?: IUpgradeCard[] = null;
         protected pilotingActionAbilities: ActionAbility[];
         protected pilotingConstantAbilities: IConstantAbility[];
@@ -135,13 +139,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
 
         public get capturedUnits() {
-            this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
-            return this._captureZone.cards;
+            this.assertPropertyEnabledForZone(this.state.captureZone, 'capturedUnits');
+            return this.captureZone.cards;
         }
 
         public get captureZone() {
-            this.assertPropertyEnabledForZone(this._captureZone, 'captureZone');
-            return this._captureZone;
+            this.assertPropertyEnabledForZone(this.state.captureZone, 'captureZone');
+            return this.game.gameObjectManager.get(this.state.captureZone);
         }
 
         public get upgrades(): IUpgradeCard[] {
@@ -245,7 +249,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
-            this._captureZone = enabledStatus ? new CaptureZone(this.owner, this) : null;
+            const zone = enabledStatus ? new CaptureZone(this.game, this.owner, this) : null;
+            this.state.captureZone = zone?.getRef();
         }
 
         protected override setDamageEnabled(enabledStatus: boolean): void {
@@ -750,7 +755,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return;
             }
 
-            if (this.damage >= this.getHp() && !this._pendingDefeat) {
+            if (this.damage >= this.getHp() && !this.state.pendingDefeat) {
                 // add defeat event to window
                 this.game.addSubwindowEvents(
                     new FrameworkDefeatCardSystem({ target: this, defeatSource: source })
@@ -758,7 +763,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 );
 
                 // mark that this unit has a defeat pending so that other effects targeting it will not resolve
-                this._pendingDefeat = true;
+                this.state.pendingDefeat = true;
             }
         }
 

@@ -14,7 +14,7 @@ export default class AdmiralHoldoWereNotAlone extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'Give a Resistance unit or a unit with a Resistance upgrade on it +2/+2 for this phase',
-            cost: [AbilityHelper.costs.abilityResourceCost(1), AbilityHelper.costs.exhaustSelf()],
+            cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 cardCondition: (card) => card.isUnit() && this.isResistanceOrHasResistanceUpgrade(card),

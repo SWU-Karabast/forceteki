@@ -110,7 +110,7 @@ export class Deck {
             const cardCopies = await this.buildCardsFromSetCodeAsync(cardSetCode, player, cardDataGetter, count);
 
             for (const cardCopy of cardCopies) {
-                Contract.assertTrue(cardCopy.isPlayable());
+                Contract.assertTrue(cardCopy.isPlayable(), `Card ${cardCopy.internalName} cannot be in the deck`);
                 result.deckCards.push(cardCopy);
             }
         }

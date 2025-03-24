@@ -12,13 +12,14 @@ import { CostAdjustType } from '../../cost/CostAdjuster';
 import type Player from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as Helpers from '../../utils/Helpers';
+import type { ICardState } from '../Card';
 import { Card } from '../Card';
 import type { ICardWithCostProperty } from '../propertyMixins/Cost';
 
 export type IPlayCardActionOverrides = Omit<IPlayCardActionPropertiesBase, 'playType'>;
 
 // required for mixins to be based on this class
-export type PlayableOrDeployableCardConstructor = new (...args: any[]) => PlayableOrDeployableCard;
+export type PlayableOrDeployableCardConstructor<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> = new (...args: any[]) => PlayableOrDeployableCard<T>;
 
 export interface IDecreaseCostAbilityProps<TSource extends Card = Card> extends Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
@@ -32,7 +33,7 @@ export interface IIgnoreAllAspectPenaltiesProps<TSource extends Card = Card> ext
 
 export interface IIgnoreSpecificAspectPenaltyProps<TSource extends Card = Card> extends Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'cardTypeFilter' | 'match' | 'costAdjustType'> {
     title: string;
-    ignoredAspects: Aspect | Aspect[];
+    ignoredAspect: Aspect;
     condition?: (context: AbilityContext<TSource>) => boolean;
 }
 
@@ -52,22 +53,24 @@ export interface IPlayableCard extends IPlayableOrDeployableCard, ICardWithCostP
     buildPlayCardAction(properties: IPlayCardActionProperties): PlayCardAction;
 }
 
+export interface IPlayableOrDeployableCardState extends ICardState {
+    exhausted: boolean | null;
+}
+
 /**
  * Subclass of {@link Card} that represents shared features of all non-base cards.
  * Implements the basic pieces for a card to be able to be played (non-leader) or deployed (leader),
  * as well as exhausted status.
  */
-export class PlayableOrDeployableCard extends Card implements IPlayableOrDeployableCard {
-    private _exhausted?: boolean = null;
-
+export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState = IPlayableOrDeployableCardState> extends Card<T> {
     public get exhausted(): boolean {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        return this._exhausted;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        return this.state.exhausted;
     }
 
     public set exhausted(val: boolean) {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = val;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = val;
     }
 
     // see Card constructor for list of expected args
@@ -192,13 +195,13 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
     }
 
     public exhaust() {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = true;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = true;
     }
 
     public ready() {
-        this.assertPropertyEnabledForZone(this._exhausted, 'exhausted');
-        this._exhausted = false;
+        this.assertPropertyEnabledForZone(this.state.exhausted, 'exhausted');
+        this.state.exhausted = false;
     }
 
     public override canBeExhausted(): this is IPlayableOrDeployableCard {
@@ -207,11 +210,11 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     public override getSummary(activePlayer: Player) {
         return { ...super.getSummary(activePlayer),
-            exhausted: this._exhausted };
+            exhausted: this.state.exhausted };
     }
 
     protected setExhaustEnabled(enabledStatus: boolean) {
-        this._exhausted = enabledStatus ? true : null;
+        this.state.exhausted = enabledStatus ? true : null;
     }
 
     /**
@@ -245,7 +248,7 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
             return;
         }
 
-        this._controller = newController;
+        this.controller = newController;
 
         const moveDestination = moveTo || this.zone.name;
 
@@ -256,8 +259,6 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
         // if we're changing controller and staying in play, tell the arena to update our controller
         if (this.zone.name === ZoneName.GroundArena || this.zone.name === ZoneName.SpaceArena) {
-            this.zone.updateController(this);
-
             // if we're staying in the same arena, no move needed
             if (moveDestination === this.zoneName) {
                 // register this transition with the engine so it can do uniqueness check if needed
@@ -311,12 +312,12 @@ export class PlayableOrDeployableCard extends Card implements IPlayableOrDeploya
 
     /** Create constant ability props on the card that decreases its cost under the given condition */
     protected generateIgnoreSpecificAspectPenaltiesAbilityProps(properties: IIgnoreSpecificAspectPenaltyProps<this>): IConstantAbilityProps {
-        const { title, ignoredAspects, condition, ...otherProps } = properties;
+        const { title, ignoredAspect, condition, ...otherProps } = properties;
 
         const costAdjusterProps: ICostAdjusterProperties = {
             ...this.buildCostAdjusterGenericProperties(),
             costAdjustType: CostAdjustType.IgnoreSpecificAspects,
-            ignoredAspects: ignoredAspects,
+            ignoredAspect: ignoredAspect,
             ...otherProps
         };
 

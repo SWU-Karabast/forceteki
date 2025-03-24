@@ -15,6 +15,7 @@ import { GameEvent } from '../event/GameEvent';
 import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type Game from '../Game';
 import type Player from '../Player';
+import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -95,7 +96,7 @@ export abstract class PlayCardAction extends PlayerAction {
             aspects = card.aspects;
         }
 
-        const playCost = new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
+        const playCost = new PlayCardResourceCost(propertiesWithDefaults.playType, cost, aspects);
 
         super(
             game,
@@ -114,7 +115,7 @@ export abstract class PlayCardAction extends PlayerAction {
         this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
     }
 
-    protected usesExploit(context: AbilityContext) {
+    protected usesExploit(context: AbilityContext<ICardWithCostProperty>) {
         return this.playCost.usesExploit(context);
     }
 

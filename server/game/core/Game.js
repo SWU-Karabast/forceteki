@@ -127,10 +127,8 @@ class Game extends EventEmitter {
             this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator);
         });
 
-        const [player1, player2] = this.getPlayers();
-
-        this.spaceArena = new SpaceArenaZone(this, player1, player2);
-        this.groundArena = new GroundArenaZone(this, player1, player2);
+        this.spaceArena = new SpaceArenaZone(this);
+        this.groundArena = new GroundArenaZone(this);
         this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
 
         this.setMaxListeners(0);

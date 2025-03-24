@@ -15,7 +15,7 @@ export default class PoeDameronICanFlyAnything extends LeaderUnitCard {
             title: `Flip ${this.title} and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it`,
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
-                AbilityHelper.costs.abilityResourceCost(1),
+                AbilityHelper.costs.abilityActivationResourceCost(1),
             ],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
@@ -32,7 +32,7 @@ export default class PoeDameronICanFlyAnything extends LeaderUnitCard {
         this.addPilotingAbility({
             type: AbilityType.Action,
             title: 'Attach this upgrade to a friendly Vehicle unit without a Pilot on it',
-            cost: AbilityHelper.costs.abilityResourceCost(1),
+            cost: AbilityHelper.costs.abilityActivationResourceCost(1),
             limit: AbilityHelper.limit.perRound(1),
             zoneFilter: WildcardZoneName.AnyArena,
             targetResolver: {

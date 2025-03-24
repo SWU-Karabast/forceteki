@@ -13,7 +13,7 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'Deal 1 damage to a damaged enemy unit. Then, if it has 5 or more damage on it, deal 1 damage to it.',
-            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityResourceCost(1)],
+            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Opponent,

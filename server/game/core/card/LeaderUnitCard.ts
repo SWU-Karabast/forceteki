@@ -28,21 +28,20 @@ export interface IDeployableLeaderCard extends ILeaderUnitCard {
     undeploy(): void;
 }
 
-export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableLeaderCard {
-    protected _deployed = false;
+export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDeployableLeaderCard {
     protected setupLeaderUnitSide;
     protected deployEpicActionLimit: EpicActionLimit;
     protected deployEpicActions: ActionAbility[];
 
     public get deployed() {
-        return this._deployed;
+        return this.state.deployed;
     }
 
     public override getType(): CardType {
         if (this.canBeUpgrade && this.isAttached()) {
             return CardType.LeaderUpgrade;
         }
-        return this._deployed ? CardType.LeaderUnit : CardType.Leader;
+        return this.state.deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
     public constructor(owner: Player, cardData: any) {
@@ -63,6 +62,11 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
         this.validateCardAbilities(cardData.deployBox);
     }
 
+    protected override setupDefaultState() {
+        super.setupDefaultState();
+        this.state.deployed = false;
+    }
+
     protected deployActionAbilityProps(): Omit<IActionAbilityProps<this>, 'title' | 'condition' | 'zoneFilter' | 'immediateEffect'> {
         return {};
     }
@@ -74,7 +78,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     }
 
     public override isUnit(): this is IUnitCard {
-        return this._deployed;
+        return this.state.deployed;
     }
 
     public override isDeployableLeader(): this is IDeployableLeaderCard {
@@ -86,7 +90,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
     }
 
     public override isLeaderUnit(): this is ILeaderUnitCard {
-        return this._deployed;
+        return this.state.deployed;
     }
 
     public override initializeForStartZone(): void {
@@ -103,9 +107,9 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
 
     /** Deploy the leader to the arena. Handles the move operation and state changes. */
     public deploy(deployProps: { type: DeployType.LeaderUnit } | { type: DeployType.LeaderUpgrade; parentCard: IUnitCard }) {
-        Contract.assertFalse(this._deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
+        Contract.assertFalse(this.state.deployed, `Attempting to deploy already deployed leader ${this.internalName}`);
 
-        this._deployed = true;
+        this.state.deployed = true;
 
         switch (deployProps.type) {
             case DeployType.LeaderUpgrade:
@@ -120,9 +124,9 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
 
     /** Return the leader from the arena to the base zone. Handles the move operation and state changes. */
     public undeploy() {
-        Contract.assertTrue(this._deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`);
+        Contract.assertTrue(this.state.deployed, `Attempting to un-deploy leader ${this.internalName} while it is not deployed`);
 
-        this._deployed = false;
+        this.state.deployed = false;
         this.moveTo(ZoneName.Base);
     }
 
@@ -207,7 +211,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
         switch (this.zoneName) {
             case ZoneName.GroundArena:
             case ZoneName.SpaceArena:
-                this._deployed = true;
+                this.state.deployed = true;
                 this.setDamageEnabled(true);
                 this.setActiveAttackEnabled(true);
                 this.setUpgradesEnabled(true);
@@ -216,7 +220,7 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
                 break;
 
             case ZoneName.Base:
-                this._deployed = false;
+                this.state.deployed = false;
                 this.setDamageEnabled(false);
                 this.setActiveAttackEnabled(false);
                 this.setUpgradesEnabled(false);
@@ -232,4 +236,8 @@ export class LeaderUnitCard extends LeaderUnitCardParent implements IDeployableL
             epicDeployActionSpent: this.deployEpicActionLimit.isAtMax(this.owner)
         };
     }
+}
+
+export class LeaderUnitCard extends LeaderUnitCardInternal {
+    protected override state: never;
 }

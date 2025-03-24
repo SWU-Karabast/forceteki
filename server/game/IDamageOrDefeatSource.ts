@@ -18,7 +18,8 @@ export enum DamageSourceType {
 export enum DefeatSourceType {
     Ability = 'ability',
     Attack = 'attack',
-    FrameworkEffect = 'frameworkEffect', // TODO: this is a workaround until we get the comp 3.0 rules
+    NonCombatDamage = 'nonCombatDamage',
+    FrameworkEffect = 'frameworkEffect',
     UniqueRule = 'uniqueRule'
 }
 
@@ -31,7 +32,7 @@ export interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
 }
 
 export interface IDamagedOrDefeatedByAbility extends IDamageOrDefeatSourceBase {
-    type: DamageSourceType.Ability | DefeatSourceType.Ability;
+    type: DamageSourceType.Ability | DefeatSourceType.Ability | DefeatSourceType.NonCombatDamage;
     card: Card;
     // TODO: We should eventually make this non-optional when we can update all the
     //       existing code and guarantee that it's always set.
