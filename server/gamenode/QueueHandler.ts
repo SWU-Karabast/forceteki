@@ -2,6 +2,7 @@ import { SwuGameFormat } from '../SwuGameFormat';
 import type { Deck } from '../utils/deck/Deck';
 import type Socket from '../socket';
 import { logger } from '../logger';
+import * as Contract from '../game/core/utils/Contract';
 
 interface User {
     id: string;
@@ -14,7 +15,7 @@ interface QueuedPlayer {
     user: User;
 }
 
-class QueueHandler {
+export class QueueHandler {
     private queues: Map<SwuGameFormat, QueuedPlayer[]>;
 
     public constructor() {
@@ -27,6 +28,9 @@ class QueueHandler {
 
 
     public addPlayer(format: SwuGameFormat, player: QueuedPlayer) {
+        Contract.assertNotNullLike(player);
+        Contract.assertNotNullLike(format);
+
         const queuedPlayer = this.findPlayerInQueue(player.user.id);
         if (queuedPlayer) {
             logger.info(`User ${player.user.id} is already in queue, rejoining`);
@@ -77,5 +81,3 @@ class QueueHandler {
             .map(([format]) => format);
     }
 }
-
-export default QueueHandler;
