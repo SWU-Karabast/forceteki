@@ -19,7 +19,7 @@ describe('Poe Dameron, I Can Fly Anything', function() {
                 context.player1.clickCard(context.poeDameron);
                 context.player1.clickPrompt('Flip Poe Dameron and attach him as an upgrade to a friendly Vehicle unit without a Pilot on it');
 
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.reinforcementWalker, context.tieBomber]);
 
                 context.player1.clickCard(context.reinforcementWalker);

@@ -14,6 +14,7 @@ export default class SneakAttack extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Play a unit from your hand. It costs 3 less and enters play ready. At the start of the regroup phase, defeat it.',
+            cannotTargetFirst: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,

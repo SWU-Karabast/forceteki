@@ -33,14 +33,14 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
         }
     }
 
-    public override canAffect(player: Player | Player[], context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(player: Player | Player[], context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const takingResourcePlayer = this.playerFromArray(player);
 
         if (mustChangeGameState !== GameStateChangeRequired.None && takingResourcePlayer.opponent.resources.length === 0) {
             return false;
         }
 
-        return super.canAffect(takingResourcePlayer, context);
+        return super.canAffectInternal(takingResourcePlayer, context);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {

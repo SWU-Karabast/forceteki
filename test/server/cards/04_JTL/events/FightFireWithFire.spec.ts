@@ -23,12 +23,12 @@ describe('Fight Fire With Fire', function() {
 
                 // Choose a friendly unit space
                 expect(context.player1).toHavePrompt('Choose a friendly unit and an enemy unit in the same arena. If you do, deal 3 damage to each of them.');
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.ruthlessRaider]);
                 context.player1.clickCard(context.ruthlessRaider);
 
                 // Choose an enemy unit in the same arena
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.brightHope]);
                 context.player1.clickCard(context.brightHope);
 
@@ -44,12 +44,12 @@ describe('Fight Fire With Fire', function() {
 
                 // Choose a friendly unit ground
                 expect(context.player1).toHavePrompt('Choose a friendly unit and an enemy unit in the same arena. If you do, deal 3 damage to each of them.');
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.ruthlessRaider]);
                 context.player1.clickCard(context.wampa);
 
                 // Choose an enemy unit in the same arena
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.cargoJuggernaut]);
                 context.player1.clickCard(context.cargoJuggernaut);
 
@@ -72,12 +72,12 @@ describe('Fight Fire With Fire', function() {
 
                 // Choose a friendly unit ground
                 expect(context.player1).toHavePrompt('Choose a friendly unit and an enemy unit in the same arena. If you do, deal 3 damage to each of them.');
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.ruthlessRaider]);
                 context.player1.clickCard(context.ruthlessRaider);
 
                 // Choose an enemy unit in the same arena
-                expect(context.player1).not.toHaveChooseNoTargetButton();
+                expect(context.player1).not.toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.brightHope]);
                 context.player1.clickCard(context.brightHope);
 

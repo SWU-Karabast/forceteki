@@ -28,7 +28,6 @@ export default class BobaFettDisintegrator extends NonLeaderUnitCard {
                     playedCardEntry.playedBy === attackContext.source.activeAttack?.target.owner && attackContext.source.activeAttack?.target === playedCardEntry.card).length === 0 &&
                     attackContext.source.activeAttack?.target.isUnit() && attackContext.source.activeAttack?.target.exhausted,
                 onTrue: AbilityHelper.immediateEffects.damage({ target: attackContext.source.activeAttack?.target, amount: 3 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })),
         });
     }

@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { RelativePlayer } from '../core/Constants';
-import { EventName } from '../core/Constants';
+import { EventName, GameStateChangeRequired } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { GameObject } from '../core/GameObject';
 import { GameSystem } from '../core/gameSystem/GameSystem';
@@ -53,5 +53,9 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
     protected override isTargetTypeValid(target: GameObject): boolean {
         return false;
+    }
+
+    protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        return this.isTargetTypeValid(target);
     }
 }

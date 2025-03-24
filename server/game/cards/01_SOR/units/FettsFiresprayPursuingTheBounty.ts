@@ -17,13 +17,12 @@ export default class FettsFiresprayPursuingTheBounty extends NonLeaderUnitCard {
                     context.player.controlsLeaderUnitOrUpgradeWithTitle('Boba Fett') ||
                     context.player.controlsLeaderUnitOrUpgradeWithTitle('Jango Fett'),
                 onTrue: AbilityHelper.immediateEffects.ready((context) => ({ target: context.source })),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
 
         this.addActionAbility({
             title: 'Exhaust a non-unique unit',
-            cost: AbilityHelper.costs.abilityResourceCost(2),
+            cost: AbilityHelper.costs.abilityActivationResourceCost(2),
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && !card.unique,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust(),

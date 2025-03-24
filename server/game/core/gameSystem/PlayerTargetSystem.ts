@@ -30,8 +30,8 @@ export abstract class PlayerTargetSystem<TContext extends AbilityContext = Abili
     }
 
     // override to force the argument type to be Player
-    public override canAffect(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
-        return super.canAffect(target, context, additionalProperties, mustChangeGameState);
+    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
+        return super.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
     }
 
     // override to force the argument type to be Player

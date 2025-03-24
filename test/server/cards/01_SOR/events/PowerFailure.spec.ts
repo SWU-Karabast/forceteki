@@ -23,7 +23,7 @@ describe('Power Failure', function() {
 
                 context.player1.clickCard(context.pykeSentinel);
 
-                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
                 expect(context.player1).toBeAbleToSelectExactly([context.devotion, context.entrenched]);
 
                 context.player1.clickCard(context.devotion);
@@ -42,7 +42,7 @@ describe('Power Failure', function() {
 
                 context.player1.clickCard(context.powerFailure);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
-                expect(context.player1).toHavePassAbilityButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 context.player1.clickCard(context.imperialInterceptor);
                 context.player1.clickCard(context.shield);
@@ -58,7 +58,7 @@ describe('Power Failure', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
 
                 context.player1.clickCard(context.pykeSentinel);
-                context.player1.clickPrompt('Pass');
+                context.player1.clickPrompt('Choose nothing');
 
                 expect(context.imperialInterceptor).toHaveExactUpgradeNames(['academy-training', 'shield']);
                 expect(context.pykeSentinel).toHaveExactUpgradeNames(['entrenched', 'devotion']);

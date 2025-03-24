@@ -15,7 +15,7 @@ const NonLeaderUnitCardParent = WithUnitProperties(WithStandardAbilitySetup(InPl
 
 export interface INonLeaderUnitCard extends IUnitCard, IPlayableCard {}
 
-export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLeaderUnitCard, ICardCanChangeControllers {
+export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implements INonLeaderUnitCard, ICardCanChangeControllers {
     public constructor(owner: Player, cardData: any) {
         super(owner, cardData);
 
@@ -24,7 +24,7 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
     }
 
     public override isNonLeaderUnit(): this is INonLeaderUnitCard {
-        return !this.isLeaderAttachedToThis();
+        return !this.isAttached() && !this.isLeaderAttachedToThis();
     }
 
     public override canChangeController(): this is ICardCanChangeControllers {
@@ -77,7 +77,20 @@ export class NonLeaderUnitCard extends NonLeaderUnitCardParent implements INonLe
         }
     }
 
+    protected override updateStateOnAttach() {
+        this.setActiveAttackEnabled(false);
+        this.setDamageEnabled(false);
+        this.setExhaustEnabled(false);
+        this.setUpgradesEnabled(false);
+        this.setCaptureZoneEnabled(false);
+    }
+
     public override checkIsAttachable(): void {
         Contract.assertTrue(this.hasSomeTrait(Trait.Pilot));
     }
+}
+
+/** used for derived implementations classes. */
+export class NonLeaderUnitCard extends NonLeaderUnitCardInternal {
+    protected override state: never;
 }

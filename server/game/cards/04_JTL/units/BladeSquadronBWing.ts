@@ -19,7 +19,6 @@ export default class BladeSquadronBWing extends NonLeaderUnitCard {
                     cardTypeFilter: WildcardCardType.Unit,
                     innerSystem: AbilityHelper.immediateEffects.giveShield()
                 }),
-                onFalse: AbilityHelper.immediateEffects.noAction()
             })
         });
     }

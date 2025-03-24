@@ -14,17 +14,23 @@ import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { getUserWithDefaultsSet, type User } from '../Settings';
 import { GameMode } from '../GameMode';
+import type { GameServer } from './GameServer';
 
-interface LobbyUser {
+interface LobbySpectator {
     id: string;
     username: string;
     state: 'connected' | 'disconnected';
-    ready: boolean;
     socket?: Socket;
+}
+
+interface LobbyUser extends LobbySpectator {
+    state: 'connected' | 'disconnected';
+    ready: boolean;
     deck?: Deck;
     deckValidationErrors?: IDeckValidationFailures;
     importDeckValidationErrors?: IDeckValidationFailures;
 }
+
 export enum MatchType {
     Custom = 'Custom',
     Private = 'Private',
@@ -45,9 +51,11 @@ export class Lobby {
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
+    private readonly server: GameServer;
 
     private game: Game;
     public users: LobbyUser[] = [];
+    public spectators: LobbySpectator[] = [];
     private lobbyOwnerId: string;
     public gameType: MatchType;
     public gameFormat: SwuGameFormat;
@@ -60,6 +68,7 @@ export class Lobby {
         lobbyGameFormat: SwuGameFormat,
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
+        gameServer: GameServer,
         testGameBuilder?: any
     ) {
         Contract.assertTrue(
@@ -76,6 +85,7 @@ export class Lobby {
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
         this.gameFormat = lobbyGameFormat;
+        this.server = gameServer;
     }
 
     public get id(): string {
@@ -105,6 +115,10 @@ export class Lobby {
                 unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist()),
                 minDeckSize: u.deck?.base.id ? this.deckValidator.getMinimumSideboardedDeckSize(u.deck?.base.id) : 50,
                 maxSideBoard: this.deckValidator.getMaxSideboardSize(this.format)
+            })),
+            spectators: this.spectators.map((s) => ({
+                id: s.id,
+                username: s.username,
             })),
             gameOngoing: !!this.game,
             gameChat: this.gameChat,
@@ -149,14 +163,62 @@ export class Lobby {
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck
         }));
-        logger.info(`Lobby ${this.id}: Creating username: ${user.username}, id: ${user.id} and adding to users list (${this.users.length} user(s))`);
+        logger.info(`Creating username: ${user.username}, id: ${user.id} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.username, userId: user.id });
         this.gameChat.addMessage(`${user.username} has created and joined the lobby`);
 
         this.updateUserLastActivity(user.id);
     }
 
+    public addSpectator(user: User, socket: Socket): void {
+        const existingSpectator = this.spectators.find((s) => s.id === user.id);
+        const existingPlayer = this.users.find((s) => s.id === user.id);
+        if (existingPlayer) {
+            // we remove the player and disconnect since the user should not come here
+            this.removeUser(user.id);
+            socket.disconnect();
+            return;
+        }
+        if (!existingSpectator) {
+            this.spectators.push({
+                id: user.id,
+                username: user.username,
+                socket,
+                state: 'connected'
+            });
+        } else {
+            existingSpectator.state = 'connected';
+            existingSpectator.socket = socket;
+        }
+        // If game is ongoing, send the current state to the spectator
+        if (this.game) {
+            this.sendGameStateToSpectator(socket, user.id);
+        } else {
+            this.sendLobbyStateToSpectator(socket);
+        }
+        logger.info(`Adding spectator: ${user.username}, id: ${user.id} (${this.spectators.length} spectator(s))`, { lobbyId: this.id, userName: user.username, userId: user.id });
+    }
+
+    public removeSpectator(id: string): void {
+        const spectator = this.spectators.find((s) => s.id === id);
+        if (!spectator) {
+            // TODO: re-add this if we want to start doing verbose logging
+            // logger.info(`Attempted to remove spectator from Lobby ${this.id}, but they were not found`);
+            return;
+        }
+        this.spectators = this.spectators.filter((s) => s.id !== id);
+        logger.info(`Removing spectator: ${spectator.username}, id: ${spectator.id}. Spectator count = ${this.spectators.length}`, { lobbyId: this.id, userName: spectator.username, userId: spectator.id });
+        this.sendLobbyState();
+    }
+
     public addLobbyUser(user, socket: Socket): void {
         const existingUser = this.users.find((u) => u.id === user.id);
+        const existingSpectator = this.spectators.find((s) => s.id === user.id);
+        if (existingSpectator) {
+            // we remove the spectator and disconnect since the user should not come here
+            this.removeSpectator(user.id);
+            socket.disconnect();
+            return;
+        }
         // we check if listeners for the events already exist
         if (socket.eventContainsListener('game') || socket.eventContainsListener('lobby')) {
             socket.removeEventsListeners(['game', 'lobby']);
@@ -168,7 +230,7 @@ export class Lobby {
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
-            logger.info(`Lobby ${this.id}: addLobbyUser: setting state to connected for existing user: ${user.username}`);
+            logger.info(`addLobbyUser: setting state to connected for existing user: ${user.username}`, { lobbyId: this.id, userName: user.username, userId: user.id });
         } else {
             this.users.push({
                 id: user.id,
@@ -177,7 +239,7 @@ export class Lobby {
                 ready: false,
                 socket
             });
-            logger.info(`Lobby ${this.id}: addLobbyUser: adding username: ${user.username}, id: ${user.id} to users list (${this.users.length} user(s))`);
+            logger.info(`addLobbyUser: adding username: ${user.username}, id: ${user.id} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.username, userId: user.id });
             this.gameChat.addMessage(`${user.username} has joined the lobby`);
         }
 
@@ -186,6 +248,13 @@ export class Lobby {
         if (this.game) {
             this.sendGameState(this.game);
         } else {
+            // do a check to make sure that the lobby owner is still registered in the lobby. if not, set the incoming user as the new lobby owner.
+            if (this.server.getUserLobbyId(this.lobbyOwnerId) !== this.id) {
+                logger.info(`Lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.id}`, { lobbyId: this.id, userName: user.username, userId: user.id });
+                this.removeUser(this.lobbyOwnerId);
+                this.lobbyOwnerId = user.id;
+            }
+
             this.sendLobbyState();
         }
     }
@@ -197,7 +266,7 @@ export class Lobby {
             return;
         }
         currentUser.ready = args[0];
-        logger.info(`Lobby ${this.id}: User: ${currentUser.username} set ready status: ${args[0]}`);
+        logger.info(`User: ${currentUser.username} set ready status: ${args[0]}`, { lobbyId: this.id, userName: currentUser.username, userId: currentUser.id });
         this.updateUserLastActivity(currentUser.id);
     }
 
@@ -209,7 +278,7 @@ export class Lobby {
             return;
         }
 
-        logger.info(`Lobby ${this.id}: User: ${existingUser.username} sent chat message: ${args[0]}`);
+        logger.info(`User: ${existingUser.username} sent chat message: ${args[0]}`, { lobbyId: this.id, userName: existingUser.username, userId: existingUser.id });
         this.gameChat.addChatMessage(existingUser, args[0]);
         this.sendLobbyState();
     }
@@ -226,7 +295,7 @@ export class Lobby {
                 initiator: socket.user.id,
                 mode,
             };
-            logger.info(`Lobby ${this.id}: User: ${socket.user.id} requested a rematch (${mode})`);
+            logger.info(`User: ${socket.user.id} requested a rematch (${mode})`, { lobbyId: this.id, userName: socket.user.username, userId: socket.user.id });
         }
         this.sendLobbyState();
     }
@@ -258,7 +327,7 @@ export class Lobby {
                 this.gameFormat);
             activeUser.importDeckValidationErrors = null;
         }
-        logger.info(`Lobby ${this.id}: User: ${activeUser.username} changing deck`);
+        logger.info(`User: ${activeUser.username} changing deck`, { lobbyId: this.id, userName: activeUser.username, userId: activeUser.id });
 
         this.updateUserLastActivity(activeUser.id);
     }
@@ -282,7 +351,7 @@ export class Lobby {
         // we need to clear any importDeckValidation errors otherwise they can persist
         user.importDeckValidationErrors = null;
 
-        logger.info(`Lobby ${this.id}: User: ${user.username} updating deck`);
+        logger.info(`User: ${user.username} updating deck`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         this.updateUserLastActivity(user.id);
     }
@@ -297,7 +366,7 @@ export class Lobby {
         const user = this.users.find((u) => u.id === id);
         if (user) {
             user.state = 'disconnected';
-            logger.info(`Lobby ${this.id}: setting user: ${user.username} to disconnected!`);
+            logger.info(`Setting user: ${user.username} to disconnected!`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
     }
 
@@ -321,20 +390,27 @@ export class Lobby {
             const player2 = this.users[1];
 
             return {
+                id: this.id,
+                isPrivate: this.isPrivate,
                 player1Leader: player1.deck.leader,
                 player1Base: player1.deck.base,
                 player2Leader: player2.deck.leader,
                 player2Base: player2.deck.base,
             };
         } catch (error) {
-            logger.error(`Lobby ${this.id}: Error retrieving lobby game data`, error);
+            logger.error('Error retrieving lobby game data',
+                { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
             return null;
         }
     }
 
     public getUserState(id: string): string {
         const user = this.users.find((u) => u.id === id);
-        return user ? user.state : null;
+        if (user) {
+            return user.state;
+        }
+        const spectator = this.spectators.find((u) => u.id === id);
+        return spectator?.state;
     }
 
     public isFilled(): boolean {
@@ -359,12 +435,10 @@ export class Lobby {
 
         if (this.lobbyOwnerId === id) {
             const newOwner = this.users.find((u) => u.id !== id);
-            if (newOwner) {
-                this.lobbyOwnerId = newOwner.id;
-            }
+            this.lobbyOwnerId = newOwner?.id;
         }
         this.users = this.users.filter((u) => u.id !== id);
-        logger.info(`Lobby ${this.id}: removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`);
+        logger.info(`Removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         this.sendLobbyState();
     }
@@ -376,7 +450,8 @@ export class Lobby {
     public cleanLobby(): void {
         this.game = null;
         this.users = [];
-        logger.info(`Lobby ${this.id}: cleaning lobby`);
+        this.spectators = [];
+        logger.info('Cleaning lobby', { lobbyId: this.id });
     }
 
     public async startTestGameAsync(filename: string) {
@@ -411,7 +486,7 @@ export class Lobby {
         this.game = game;
         game.started = true;
 
-        logger.info(`Lobby ${this.id}: starting game id: ${game.id}`);
+        logger.info(`Starting game id: ${game.id}`, { lobbyId: this.id });
 
         // For each user, if they have a deck, select it in the game
         this.users.forEach((user) => {
@@ -481,8 +556,8 @@ export class Lobby {
 
 
     // TODO: Review this to make sure we're getting the info we need for debugging
-    public handleError(game: Game, e: Error) {
-        logger.error(`Lobby ${this.id}: handleError: `, e);
+    public handleError(game: Game, error: Error, severeGameMessage = false) {
+        logger.error('handleError: ', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
 
         // const gameState = game.getState();
         // const debugData: any = {};
@@ -504,16 +579,31 @@ export class Lobby {
         //     }
         // }
 
-        // if (game) {
-        //     game.addMessage(
-        //         'A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue.  The error has been logged.'
-        //     );
-        // }
+        if (game && severeGameMessage) {
+            game.addMessage(
+                `A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue. The error has been logged. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
+            );
+        }
+    }
+
+    private sendGameStateToSpectator(socket: Socket, spectatorId: string): void {
+        if (this.game) {
+            socket.send('gamestate', this.game.getState(spectatorId));
+        }
+    }
+
+    private sendLobbyStateToSpectator(socket: Socket): void {
+        socket.socket.send('lobbystate', this.getLobbyState());
     }
 
     public sendGameState(game: Game): void {
         for (const user of this.users) {
             if (user.state === 'connected' && user.socket) {
+                user.socket.send('gamestate', game.getState(user.id));
+            }
+        }
+        for (const user of this.spectators) {
+            if (user.socket) {
                 user.socket.send('gamestate', game.getState(user.id));
             }
         }

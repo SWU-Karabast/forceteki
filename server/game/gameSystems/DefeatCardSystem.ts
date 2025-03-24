@@ -7,7 +7,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import type Player from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
-import { DamageSourceType, DefeatSourceType } from '../IDamageOrDefeatSource';
+import { DefeatSourceType } from '../IDamageOrDefeatSource';
 
 export interface IDefeatCardPropertiesBase extends ICardTargetSystemProperties {
     defeatSource?: IDamageSource | DefeatSourceType.Ability | DefeatSourceType.UniqueRule | DefeatSourceType.FrameworkEffect;
@@ -26,7 +26,7 @@ export interface IDefeatCardProperties extends IDefeatCardPropertiesBase {
 export interface ILastKnownInformation {
     card: Card;
     controller: Player;
-    arena: ZoneName.GroundArena | ZoneName.SpaceArena | ZoneName.Resource;
+    arena: ZoneName;
     power?: number;
     hp?: number;
     type?: CardType;
@@ -70,7 +70,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         return ['defeat {0}', [properties.target]];
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
             return false;
         }
@@ -78,7 +78,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && card.hasRestriction(AbilityRestriction.BeDefeated, context)) {
             return false;
         }
-        return super.canAffect(card, context);
+        return super.canAffectInternal(card, context);
     }
 
     protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
@@ -95,13 +95,16 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         event.isDefeatedByAttackerDamage = false;
         if (typeof defeatSource === 'object') {
-            eventDefeatSource = defeatSource;
+            eventDefeatSource = { ...defeatSource };
 
             event.isDefeatedByAttackerDamage =
-                eventDefeatSource.type === DamageSourceType.Attack &&
+                eventDefeatSource.type === DefeatSourceType.Attack &&
                 eventDefeatSource.damageDealtBy === eventDefeatSource.attack.attacker;
-            if (eventDefeatSource?.type === DamageSourceType.Attack) {
+
+            if (eventDefeatSource?.type === DefeatSourceType.Attack) {
                 eventDefeatSource.player = eventDefeatSource.damageDealtBy.controller;
+            } else {
+                eventDefeatSource.type = DefeatSourceType.NonCombatDamage;
             }
         } else {
             eventDefeatSource = this.buildDefeatSourceForType(defeatSource, event, context);
@@ -115,7 +118,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         // TODO: confirm that this works when the player controlling the ability is different than the player controlling the card (e.g., bounty)
         return {
-            type: DamageSourceType.Ability,
+            type: DefeatSourceType.Ability,
             player: context.player,
             card: context.source,
             event

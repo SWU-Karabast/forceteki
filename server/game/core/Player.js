@@ -52,25 +52,25 @@ class Player extends GameObject {
         // clockDetails is optional
 
         this.user = user;
-        this.id = id;
+        this.state.id = id;
         this.printedType = 'player';
         this.socket = null;
         this.disconnected = false;
         this.left = false;
 
-        this.handZone = new HandZone(this);
-        this.resourceZone = new ResourceZone(this);
-        this.discardZone = new DiscardZone(this);
+        this.handZone = new HandZone(game, this);
+        this.resourceZone = new ResourceZone(game, this);
+        this.discardZone = new DiscardZone(game, this);
         this.canTakeActionsThisPhase = null;
 
         // mainly used for staging tokens when they are created / removed
-        this.outsideTheGameZone = new OutsideTheGameZone(this);
+        this.outsideTheGameZone = new OutsideTheGameZone(game, this);
 
         /** @type {BaseZone} */
         this.baseZone = null;
 
         /** @type {DeckZone} */
-        this.deckZone = new DeckZone(this);
+        this.deckZone = new DeckZone(game, this);
 
         this.damageToBase = null;
 
@@ -243,10 +243,15 @@ class Player extends GameObject {
 
     /**
      * @param { Trait } trait the trait to look for
+     * @param { boolean } onlyUnique only unique card
+     * @param { Card } otherThan excluded card
      * @returns { boolean } true if this player controls a card with the trait
      */
-    controlsCardWithTrait(trait, onlyUnique = false) {
-        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({ condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)) });
+    controlsCardWithTrait(trait, onlyUnique = false, otherThan = undefined) {
+        return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({
+            condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)),
+            otherThan: otherThan
+        });
     }
 
     /**
@@ -500,6 +505,19 @@ class Player extends GameObject {
      * @param {PlayType} [playingType]
      */
     isCardInPlayableZone(card, playingType = null) {
+        // Check if card can be legally played by this player out of discard from an ongoing effect
+        if (
+            playingType === PlayType.PlayFromOutOfPlay &&
+            card.zoneName === ZoneName.Discard &&
+            card.hasOngoingEffect(EffectName.CanPlayFromDiscard)
+        ) {
+            return card
+                .getOngoingEffectValues(EffectName.CanPlayFromDiscard)
+                .map((value) => value.player ?? card.owner)
+                .includes(this);
+        }
+
+        // Default to checking if there is a zone that matches play type and includes the card
         return this.playableZones.some(
             (zone) => (!playingType || zone.playingType === playingType) && zone.includes(card)
         );
@@ -686,7 +704,7 @@ class Player extends GameObject {
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this.baseZone = new BaseZone(this, this.base, this.leader);
+        this.baseZone = new BaseZone(this.game, this, this.base, this.leader);
 
         this.decklist = preparedDecklist;
     }
@@ -768,29 +786,45 @@ class Player extends GameObject {
         return penaltyAspects;
     }
 
-    // UP NEXT: add support for "ignoreExploit" in here, and also figure out how to merge exploit adjusters for "PlayCardResourceCost.canPay"
-
     /**
      * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
      * Accounts for aspect penalties and any modifiers to those specifically
      * @param {number} cost
      * @param {Aspect[]} aspects
      * @param {AbilityContext} context
-     * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
+     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
      */
-    getAdjustedCost(cost, aspects, context, additionalCostAdjusters = null, ignoreExploit = false) {
+    getAdjustedPlayCardCost(cost, aspects, context, properties = null) {
+        Contract.assertNonNegative(cost);
+
         const card = context.source;
 
         // if any aspect penalties, check modifiers for them separately
         let aspectPenaltiesTotal = 0;
 
-        let penaltyAspects = this.getPenaltyAspects(aspects);
-        for (const aspect of penaltyAspects) {
-            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(2, context, aspect, additionalCostAdjusters, ignoreExploit);
+        const penaltyAspects = this.getPenaltyAspects(aspects);
+        for (const penaltyAspect of penaltyAspects) {
+            const penaltyAspectParams = { ...properties, penaltyAspect };
+            aspectPenaltiesTotal += this.runAdjustersForAspectPenalties(2, context, penaltyAspectParams);
         }
 
-        let penalizedCost = cost + aspectPenaltiesTotal;
-        return this.runAdjustersForCostType(penalizedCost, card, context, additionalCostAdjusters, ignoreExploit);
+        const penalizedCost = cost + aspectPenaltiesTotal;
+        return this.runAdjustersForCost(penalizedCost, card, context, properties);
+    }
+
+    /**
+     * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
+     * Accounts for aspect penalties and any modifiers to those specifically
+     * @param {number} cost
+     * @param {AbilityContext} context
+     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
+     */
+    getAdjustedAbilityCost(cost, context, properties = null) {
+        Contract.assertNonNegative(cost);
+
+        const card = context.source;
+
+        return this.runAdjustersForCost(cost, card, context, properties);
     }
 
     /**
@@ -798,10 +832,10 @@ class Player extends GameObject {
      * @param {number} baseCost
      * @param card
      * @param target
-     * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
+     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
      */
-    runAdjustersForCostType(baseCost, card, context, additionalCostAdjusters = null, ignoreExploit = false) {
-        const matchingAdjusters = this.getMatchingCostAdjusters(context, null, additionalCostAdjusters, ignoreExploit);
+    runAdjustersForCost(baseCost, card, context, properties) {
+        const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
         const costIncreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
             .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context), 0);
@@ -816,6 +850,13 @@ class Player extends GameObject {
             reducedCost = 0;
         }
 
+        // run any cost adjusters that affect the "pay costs" stage last
+        const payStageAdjustment = matchingAdjusters
+            .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.ModifyPayStage)
+            .reduce((cost, adjuster) => cost + adjuster.getAmount(card, this, context, reducedCost), 0);
+
+        reducedCost += payStageAdjustment;
+
         return Math.max(reducedCost, 0);
     }
 
@@ -823,13 +864,10 @@ class Player extends GameObject {
     /**
      * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
      * @param {number} baseCost
-     * @param card
-     * @param target
-     * @param penaltyAspect Aspect that is not present on the current base or leader
-     * @param {CostAdjuster[]} additionalCostAdjusters Used by abilities to add their own specific cost adjuster if necessary
+     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
      */
-    runAdjustersForAspectPenalties(baseCost, context, penaltyAspect, additionalCostAdjusters = null, ignoreExploit = false) {
-        const matchingAdjusters = this.getMatchingCostAdjusters(context, penaltyAspect, additionalCostAdjusters, ignoreExploit);
+    runAdjustersForAspectPenalties(baseCost, context, properties) {
+        const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
 
         const ignoreAllAspectPenalties = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.IgnoreAllAspects).length > 0;
@@ -847,25 +885,27 @@ class Player extends GameObject {
 
     /**
      * @param {AbilityContext} context
-     * @param {Aspect=} penaltyAspect
-     * @param {CostAdjuster[]=} additionalCostAdjusters
-     * @param {boolean} ignoreExploit
+     * @param {import('./cost/CostInterfaces').IGetMatchingCostAdjusterProperties} properties Additional parameters for determining cost adjustment
      * @returns {CostAdjuster[]}
      */
-    getMatchingCostAdjusters(context, penaltyAspect = null, additionalCostAdjusters = [], ignoreExploit = false) {
-        const allMatchingAdjusters = this.costAdjusters.concat(additionalCostAdjusters)
+    getMatchingCostAdjusters(context, properties = null) {
+        /** @type {import('./cost/CostAdjuster').ICanAdjustProperties} */
+        const canAdjustProps = { ...properties, isAbilityCost: !context.ability.isPlayCardAbility() };
+
+        const allMatchingAdjusters = this.costAdjusters.concat(properties?.additionalCostAdjusters ?? [])
             .filter((adjuster) => {
                 // TODO: Make this work with Piloting
                 if (context.stage === Stage.Cost && !context.target && context.source.isUpgrade()) {
                     const upgrade = context.source;
                     return context.game.getArenaUnits()
                         .filter((unit) => upgrade.canAttach(unit, context))
-                        .some((unit) => adjuster.canAdjust(context.playType, upgrade, context, unit, penaltyAspect));
+                        .some((unit) => adjuster.canAdjust(upgrade, context, { attachTarget: unit, ...canAdjustProps }));
                 }
-                return adjuster.canAdjust(context.playType, context.source, context, context.target, penaltyAspect);
+
+                return adjuster.canAdjust(context.source, context, { attachTarget: context.target, ...canAdjustProps });
             });
 
-        if (ignoreExploit) {
+        if (properties?.ignoreExploit) {
             return allMatchingAdjusters.filter((adjuster) => !adjuster.isExploit());
         }
 
@@ -894,7 +934,7 @@ class Player extends GameObject {
      * @param {Aspect=} aspects
      */
     markUsedAdjusters(playingType, card, context, target = null, aspects = null) {
-        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(playingType, card, context, target, aspects));
+        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(card, context, { attachTarget: target, penaltyAspect: aspects }));
         matchingAdjusters.forEach((adjuster) => {
             adjuster.markUsed();
             if (adjuster.isExpired()) {

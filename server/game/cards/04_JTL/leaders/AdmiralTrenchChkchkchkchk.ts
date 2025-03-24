@@ -16,7 +16,7 @@ export default class AdmiralTrenchChkchkchkchk extends LeaderUnitCard {
             limit: AbilityHelper.limit.unlimited(),
             cost: [
                 AbilityHelper.costs.exhaustSelf<AbilityContext<this>>(),
-                AbilityHelper.costs.abilityResourceCost<AbilityContext<this>>(3),
+                AbilityHelper.costs.abilityActivationResourceCost<AbilityContext<this>>(3),
             ],
         };
     }
@@ -76,10 +76,10 @@ export default class AdmiralTrenchChkchkchkchk extends LeaderUnitCard {
                                 activePromptTitle: 'Choose a card to draw (the other will be discarded)',
                                 canChooseFewer: false,
                                 target: context.player.getTopCardsOfDeck(2),
-                                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                                immediateEffect: AbilityHelper.immediateEffects.sequential([
                                     AbilityHelper.immediateEffects.drawSpecificCard(),
                                     AbilityHelper.immediateEffects.discardSpecificCard((context) => ({
-                                        target: context.player.getTopCardsOfDeck(2).find((card) => card !== context.target)
+                                        target: context.player.getTopCardsOfDeck(1)
                                     })),
                                 ]),
                                 useDisplayPrompt: true

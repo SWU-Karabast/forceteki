@@ -15,7 +15,7 @@ export default class HunterOutcastSergeant extends LeaderUnitCard {
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
             title: 'Reveal a resource you control. If it shares a name with a friendly unique unit, return the resource to its owner’s hand and put the top card of your deck into play as a resource',
-            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityResourceCost(1)],
+            cost: [AbilityHelper.costs.exhaustSelf(), AbilityHelper.costs.abilityActivationResourceCost(1)],
             targetResolver: this.hunterAbility()
         });
     }
@@ -37,7 +37,6 @@ export default class HunterOutcastSergeant extends LeaderUnitCard {
                     context.player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.unique)
                         .map((unit) => unit.title)
                         .includes(context.target?.title),
-                onFalse: AbilityHelper.immediateEffects.noAction(),
                 onTrue: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.returnToHand(),
                     AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.player.getTopCardOfDeck() }))

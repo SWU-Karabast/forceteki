@@ -165,7 +165,7 @@ export abstract class TriggerWindowBase extends BaseStep {
     /** Get the set of yet-unresolved abilities for the player whose turn it is to do resolution */
     private getCurrentlyResolvingAbilities() {
         Contract.assertNotNullLike(this.currentlyResolvingPlayer);
-        Contract.assertHasKey(this.unresolved, this.currentlyResolvingPlayer);
+        Contract.assertMapHasKey(this.unresolved, this.currentlyResolvingPlayer);
 
         return this.unresolved.get(this.currentlyResolvingPlayer);
     }
@@ -233,7 +233,10 @@ export abstract class TriggerWindowBase extends BaseStep {
     protected postResolutionUpdate(resolver) {
         const unresolvedAbilitiesForPlayer = this.getCurrentlyResolvingAbilities();
 
-        const justResolvedAbility = unresolvedAbilitiesForPlayer.find((context) => context.ability === resolver.context.ability);
+        const justResolvedAbility = unresolvedAbilitiesForPlayer.find((context) =>
+            context.ability === resolver.context.ability &&
+            context.event === resolver.context.event
+        );
 
         // if we can't find the ability to remove from the list, we have to error or else get stuck in an infinite loop
         if (justResolvedAbility == null) {

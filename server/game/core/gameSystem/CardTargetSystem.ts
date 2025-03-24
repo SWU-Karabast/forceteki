@@ -12,10 +12,18 @@ import type { GameObject } from '../GameObject';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { IPlayableOrDeployableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
+import type { IUpgradeCard } from '../card/CardInterfaces';
+import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 
 export interface ICardTargetSystemProperties extends IGameSystemProperties {
     target?: Card | Card[];
 }
+
+/**
+ * Signature for a method that can override the default behavior for an upgrade attached to a unit leaving the arena (being defeated).
+ * Returns `null` if it has no override for the passed upgrade card.
+ */
+export type AttachedUpgradeOverrideHandler = (card: IUpgradeCard, context: AbilityContext) => CardTargetSystem<AbilityContext> | null;
 
 /**
  * A {@link GameSystem} which targets a card or cards for its effect
@@ -128,7 +136,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     // override the base class behavior with a version that forces properties.target to be a scalar value
-    public override generateEvent(context: TContext, additionalProperties: any = {}): GameEvent {
+    public override generateEvent(context: TContext, additionalProperties: any = {}, addLastKnownInformation: boolean = false): GameEvent {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
 
         Contract.assertNotNullLike(target, 'Attempting to generate card target event with no provided target');
@@ -144,6 +152,9 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         }
 
         const event = this.createEvent(nonArrayTarget, context, additionalProperties);
+        if (addLastKnownInformation) {
+            (event as any).lastKnownInformation = this.buildLastKnownInformation(nonArrayTarget);
+        }
         this.updateEvent(event, nonArrayTarget, context, additionalProperties);
         return event;
     }
@@ -153,14 +164,14 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return this.canAffect(event.card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve);
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         // if a unit is pending defeat (damage >= hp but defeat not yet resolved), always return canAffect() = false unless
         // we're the system that is enacting the defeat
         if (card.isUnit() && card.isInPlay() && card.pendingDefeat) {
             return false;
         }
 
-        return super.canAffect(card, context, additionalProperties, mustChangeGameState);
+        return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
     protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: any = {}): void {
@@ -172,7 +183,13 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return [context.source];
     }
 
-    protected addLeavesPlayPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected addLeavesPlayPropertiesToEvent(
+        event,
+        card: Card,
+        context: TContext,
+        additionalProperties,
+        attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler,
+    ): void {
         Contract.assertTrue(card.canBeInPlay() && card.isInPlay(), `Attempting to add leaves play contingent events to card ${card.internalName} but is in zone ${card.zone}`);
 
         event.setContingentEventsGenerator((event) => {
@@ -188,7 +205,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
             if (card.isUnit()) {
                 // add events to defeat any upgrades attached to this card and free any captured units. the events will
                 // be added as "contingent events" in the event window, so they'll resolve in the same window but after the primary event
-                contingentEvents = contingentEvents.concat(this.buildUnitCleanupContingentEvents(card, context, event));
+                contingentEvents = contingentEvents.concat(this.buildUnitCleanupContingentEvents(card, context, event, attachedUpgradeOverrideHandler));
             }
 
             if (card.isUpgrade()) {
@@ -208,28 +225,37 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         });
     }
 
-    protected buildUnitCleanupContingentEvents(card: IUnitCard, context: TContext, event: any): any[] {
+    protected buildUnitCleanupContingentEvents(card: IUnitCard, context: TContext, event: any, attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler): any[] {
         let contingentEvents = [];
-        contingentEvents = contingentEvents.concat(this.generateUpgradeDefeatEvents(card, context, event));
+        contingentEvents = contingentEvents.concat(this.generateRemoveUpgradeEvents(card, context, event, attachedUpgradeOverrideHandler));
         contingentEvents = contingentEvents.concat(this.generateRescueEvents(card, context, event));
         return contingentEvents;
     }
 
-    private generateUpgradeDefeatEvents(card: IUnitCard, context: TContext, event: any): any[] {
-        const defeatEvents = [];
+    private generateRemoveUpgradeEvents(card: IUnitCard, context: TContext, event: any, attachedUpgradeOverrideHandler?: AttachedUpgradeOverrideHandler): any[] {
+        const removeUpgradeEvents = [];
 
         for (const upgrade of card.upgrades) {
-            const defeatEvent = context.game.actions
-                .defeat({ target: upgrade })
-                .generateEvent(context.game.getFrameworkContext());
+            let removeUpgradeEvent: GameEvent = null;
 
-            defeatEvent.order = event.order - 1;
+            if (attachedUpgradeOverrideHandler) {
+                removeUpgradeEvent = attachedUpgradeOverrideHandler(upgrade, context)?.generateEvent(context);
+            }
 
-            defeatEvent.isContingent = true;
-            defeatEvents.push(defeatEvent);
+            // if no override, the default behavior is to defeat the attachment
+            if (!removeUpgradeEvent) {
+                removeUpgradeEvent = context.game.actions
+                    .frameworkDefeat({ target: upgrade, defeatSource: DefeatSourceType.FrameworkEffect })
+                    .generateEvent(context.game.getFrameworkContext());
+            }
+
+            removeUpgradeEvent.order = event.order - 1;
+
+            removeUpgradeEvent.isContingent = true;
+            removeUpgradeEvents.push(removeUpgradeEvent);
         }
 
-        return defeatEvents;
+        return removeUpgradeEvents;
     }
 
     private generateRescueEvents(card: IUnitCard, context: TContext, event: any): any[] {
@@ -302,14 +328,8 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         });
     }
 
-    private buildLastKnownInformation(card: Card): ILastKnownInformation {
-        Contract.assertTrue(
-            card.zoneName === ZoneName.GroundArena ||
-            card.zoneName === ZoneName.SpaceArena ||
-            card.zoneName === ZoneName.Resource
-        );
-
-        if (card.zoneName === ZoneName.Resource) {
+    protected buildLastKnownInformation(card: Card): ILastKnownInformation {
+        if (card.zoneName !== ZoneName.GroundArena && card.zoneName !== ZoneName.SpaceArena) {
             return {
                 card,
                 controller: card.controller,

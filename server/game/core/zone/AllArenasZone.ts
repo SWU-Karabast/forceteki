@@ -24,7 +24,6 @@ export type IAllArenasForPlayerSpecificTypeCardFilterProperties = Omit<IAllArena
 export class AllArenasZone extends ConcreteOrMetaArenaZone {
     public override readonly hiddenForPlayers: null;
     public override readonly name: WildcardZoneName.AnyArena;
-    public override readonly owner: Game;
 
     private groundArena: GroundArenaZone;
     private spaceArena: SpaceArenaZone;

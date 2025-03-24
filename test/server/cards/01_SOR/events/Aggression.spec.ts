@@ -90,10 +90,10 @@ describe('Aggression', function () {
                 // defeat up to 2 upgrades
                 context.player1.clickPrompt(defeatPrompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.shield, context.experience, context.entrenched]);
-                expect(context.player1).toHaveChooseNoTargetButton();
+                expect(context.player1).toHaveChooseNothingButton();
 
                 // can choose no targets
-                context.player1.clickPrompt('Choose no target');
+                context.player1.clickPrompt('Choose nothing');
 
                 expect(context.restoredArc170.isUpgraded()).toBeTrue();
                 expect(context.atst.isUpgraded()).toBeTrue();

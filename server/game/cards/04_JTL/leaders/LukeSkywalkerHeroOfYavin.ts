@@ -1,7 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { AbilityRestriction, AbilityType, Trait, WildcardCardType } from '../../../core/Constants';
+import { AbilityType, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
+import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import type { AttacksThisPhaseWatcher } from '../../../stateWatchers/AttacksThisPhaseWatcher';
 
 export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
@@ -32,7 +33,6 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
                         filter: (attack) => context.source !== attack.attacker && attack.attacker.hasSomeTrait(Trait.Fighter)
                     }),
                     onTrue: AbilityHelper.immediateEffects.damage({ amount: 1 }),
-                    onFalse: AbilityHelper.immediateEffects.noAction(),
                 })
             }
         });
@@ -40,18 +40,15 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addPilotingAbility({
+            type: AbilityType.ReplacementEffect,
             title: 'This upgrade can\'t be defeated by enemy card abilities',
-            type: AbilityType.Constant,
-            ongoingEffect: [
-                AbilityHelper.ongoingEffects.cardCannot({
-                    cannot: AbilityRestriction.BeDefeated,
-                    restrictedActionCondition: (context) => context.player !== this.controller && context.target === this,
-                }),
-                AbilityHelper.ongoingEffects.cardCannot({
-                    cannot: AbilityRestriction.ReturnToHand,
-                    restrictedActionCondition: (context) => context.player !== this.controller && context.target === this,
-                })
-            ]
+            zoneFilter: WildcardZoneName.AnyArena,
+            when: {
+                onCardDefeated: (event, context) =>
+                    event.card === context.source &&
+                    event.defeatSource.type === DefeatSourceType.Ability &&
+                    event.defeatSource.player !== context.player
+            }
         });
 
         this.addPilotingGainAbilityTargetingAttached({

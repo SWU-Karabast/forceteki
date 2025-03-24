@@ -1,10 +1,10 @@
 import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
-import type { Arena } from '../../Constants';
+import type { Arena, MoveZoneDestination } from '../../Constants';
 import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, PlayType, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
 import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
-import type { IInPlayCard, InPlayCardConstructor } from '../baseClasses/InPlayCard';
+import type { IInPlayCard, IInPlayCardState, InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { InPlayCard } from '../baseClasses/InPlayCard';
 import type { ICardWithDamageProperty } from './Damage';
 import { WithDamage } from './Damage';
@@ -12,6 +12,7 @@ import type { ICardWithPrintedPowerProperty } from './PrintedPower';
 import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
+import { InitializeCardStateOption } from '../Card';
 import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
@@ -36,8 +37,13 @@ import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
 import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
 import type { AbilityContext } from '../../ability/AbilityContext';
+import type { GameObjectRef } from '../../GameObjectBase';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
+export interface IUnitPropertiesCardState extends IInPlayCardState {
+    defaultArenaInternal: Arena;
+    captureZone: GameObjectRef<CaptureZone> | null;
+}
 
 type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IAbilityPropsWithType<TTarget> & IGainCondition<TSource>;
 
@@ -77,11 +83,11 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
  * - the {@link InitiateAttackAction} ability so that the card can attack
  * - the ability to have attached upgrades
  */
-export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(BaseClass: TBaseClass) {
+export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TState>, TState extends IInPlayCardState>(BaseClass: TBaseClass) {
     // create a "base" class that has the damage, hp, and power properties from other mixins
     const StatsAndDamageClass = WithDamage(WithPrintedPower(BaseClass));
 
-    return class AsUnit extends StatsAndDamageClass implements IUnitCard {
+    return class AsUnit extends (StatsAndDamageClass as typeof StatsAndDamageClass & InPlayCardConstructor<TState & IUnitPropertiesCardState>) implements IUnitCard {
         public static registerRulesListeners(game: Game) {
             // register listeners for when-played keyword abilities (see comment in EventWindow.ts for explanation of 'postResolve')
             game.on(EventName.OnUnitEntersPlay + ':postResolve', (event) => {
@@ -118,7 +124,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         // ************************************* FIELDS AND PROPERTIES *************************************
         public readonly defaultArena: Arena;
 
-        protected _captureZone?: CaptureZone = null;
         protected _upgrades?: IUpgradeCard[] = null;
         protected pilotingActionAbilities: ActionAbility[];
         protected pilotingConstantAbilities: IConstantAbility[];
@@ -133,13 +138,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
 
         public get capturedUnits() {
-            this.assertPropertyEnabledForZone(this._captureZone, 'capturedUnits');
-            return this._captureZone.cards;
+            this.assertPropertyEnabledForZone(this.state.captureZone, 'capturedUnits');
+            return this.captureZone.cards;
         }
 
         public get captureZone() {
-            this.assertPropertyEnabledForZone(this._captureZone, 'captureZone');
-            return this._captureZone;
+            this.assertPropertyEnabledForZone(this.state.captureZone, 'captureZone');
+            return this.game.gameObjectManager.get(this.state.captureZone);
         }
 
         public get upgrades(): IUpgradeCard[] {
@@ -243,7 +248,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
         }
 
         protected setCaptureZoneEnabled(enabledStatus: boolean) {
-            this._captureZone = enabledStatus ? new CaptureZone(this.owner, this) : null;
+            const zone = enabledStatus ? new CaptureZone(this.game, this.owner, this) : null;
+            this.state.captureZone = zone?.getRef();
         }
 
         protected override setDamageEnabled(enabledStatus: boolean): void {
@@ -285,6 +291,20 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             this.zone = targetZone;
 
             this.postMoveSteps(prevZone);
+        }
+
+        public override moveTo(targetZoneName: MoveZoneDestination, initializeCardState: InitializeCardStateOption = InitializeCardStateOption.Initialize) {
+            const preMoveZone = this.zoneName;
+
+            super.moveTo(targetZoneName, initializeCardState);
+
+            if (this.zoneName === preMoveZone && EnumHelpers.isArena(this.zoneName)) {
+                this.updateStateOnDetach();
+            }
+        }
+
+        protected updateStateOnDetach() {
+            return;
         }
 
         // ***************************************** ABILITY HELPERS *****************************************
@@ -594,7 +614,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Also adds a listener to remove the registered abilities after the effect resolves.
          */
         public checkRegisterWhenDefeatedKeywordAbilities(event: GameEvent) {
-            const bountyKeywords = this.getBountyAbilities();
+            const bountyKeywords = this.getBountyKeywords();
             if (bountyKeywords.length === 0) {
                 return;
             }
@@ -614,7 +634,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
          * Also adds a listener to remove the registered abilities after the effect resolves.
          */
         public checkRegisterWhenCapturedKeywordAbilities(event: GameEvent) {
-            const bountyKeywords = this.getBountyAbilities();
+            const bountyKeywords = this.getBountyKeywords();
             if (bountyKeywords.length === 0) {
                 return;
             }
@@ -644,7 +664,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             return registeredAbilities;
         }
 
-        private getBountyAbilities() {
+        private getBountyKeywords() {
             return this.getKeywords().filter((keyword) => keyword.name === KeywordName.Bounty)
                 .map((keyword) => keyword as BountyKeywordInstance)
                 .filter((keyword) => keyword.isFullyImplemented);
@@ -734,7 +754,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 return;
             }
 
-            if (this.damage >= this.getHp() && !this._pendingDefeat) {
+            if (this.damage >= this.getHp() && !this.state.pendingDefeat) {
                 // add defeat event to window
                 this.game.addSubwindowEvents(
                     new FrameworkDefeatCardSystem({ target: this, defeatSource: source })
@@ -742,7 +762,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
                 );
 
                 // mark that this unit has a defeat pending so that other effects targeting it will not resolve
-                this._pendingDefeat = true;
+                this.state.pendingDefeat = true;
             }
         }
 
@@ -772,18 +792,20 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor>(Bas
             const modifierEffects: IOngoingCardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
             const wrappedStatsModifiers = modifierEffects.map((modifierEffect) => StatsModifierWrapper.fromEffect(modifierEffect, this));
 
-            // add stat bonuses from attached upgrades
-            this.upgrades.forEach((upgrade) => wrappedStatsModifiers.push(StatsModifierWrapper.fromPrintedValues(upgrade)));
+            if (!this.isAttached()) {
+                // add stat bonuses from attached upgrades
+                this.upgrades.forEach((upgrade) => wrappedStatsModifiers.push(StatsModifierWrapper.fromPrintedValues(upgrade)));
 
-            if (this.hasSomeKeyword(KeywordName.Grit)) {
-                const gritModifier = { power: this.damage, hp: 0 };
-                wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
-            }
+                if (this.hasSomeKeyword(KeywordName.Grit)) {
+                    const gritModifier = { power: this.damage, hp: 0 };
+                    wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
+                }
 
-            const raidAmount = this.getNumericKeywordSum(KeywordName.Raid);
-            if (this.isAttacking() && raidAmount > 0) {
-                const raidModifier = { power: raidAmount, hp: 0 };
-                wrappedStatsModifiers.push(new StatsModifierWrapper(raidModifier, 'Raid', false, this.type));
+                const raidAmount = this.getNumericKeywordSum(KeywordName.Raid);
+                if (this.isAttacking() && raidAmount > 0) {
+                    const raidModifier = { power: raidAmount, hp: 0 };
+                    wrappedStatsModifiers.push(new StatsModifierWrapper(raidModifier, 'Raid', false, this.type));
+                }
             }
 
             return wrappedStatsModifiers;

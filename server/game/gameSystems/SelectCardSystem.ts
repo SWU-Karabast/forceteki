@@ -11,6 +11,8 @@ import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetRes
 import type { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
 import * as Helpers from '../core/utils/Helpers';
+import type Player from '../core/Player';
+import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     activePromptTitle?: ((context: TContext) => string) | string;
@@ -22,7 +24,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     checkTarget?: boolean;
     message?: string;
     manuallyRaiseEvent?: boolean;
-    messageArgs?: (card: Card, properties: ISelectCardProperties<TContext>) => any[];
+    messageArgs?: (cards: Card[], properties: ISelectCardProperties<TContext>) => any[];
     innerSystem: CardTargetSystem<TContext> | AggregateSystem<TContext>;
     selector?: BaseCardSelector;
     mode?: TargetMode;
@@ -81,7 +83,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
                       Object.assign({}, additionalProperties, properties.innerSystemProperties(card)));
             };
 
-            properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition }));
+            properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition, optional: this.selectionIsOptional(properties, context) }));
         }
 
         if (properties.mode === TargetMode.UpTo || properties.mode === TargetMode.UpToVariable) {
@@ -95,7 +97,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         return properties;
     }
 
-    public override canAffect(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player =
             (properties.checkTarget && context.choosingPlayerOverride) ||
@@ -147,7 +149,6 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
 
         let buttons = [];
         buttons = properties.cancelHandler ? buttons.concat({ text: 'Cancel', arg: 'cancel' }) : buttons;
-        buttons = this.selectionIsOptional(properties, context) ? buttons.concat({ text: 'Choose no target', arg: 'noTarget' }) : buttons;
 
         const defaultProperties = {
             context: context,
@@ -159,13 +160,15 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             onCancel: properties.cancelHandler,
             onSelect: (cards) => {
                 this.addTargetToContext(cards, context, properties.name);
-                if (properties.message) {
-                    context.game.addMessage(properties.message, ...properties.messageArgs(cards, properties));
-                }
+
+                const updatedAdditionalProperties = { ...properties.innerSystemProperties(cards), ...additionalProperties };
+
+                this.addOnSelectEffectMessage(cards, context, properties, updatedAdditionalProperties);
+
                 properties.innerSystem.queueGenerateEventGameSteps(
                     events,
                     context,
-                    Object.assign(additionalProperties, properties.innerSystemProperties(cards))
+                    updatedAdditionalProperties
                 );
                 if (properties.manuallyRaiseEvent) {
                     context.game.openEventWindow(events);
@@ -211,13 +214,38 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         return;
     }
 
-    public override hasTargetsChosenByInitiatingPlayer(context: TContext, additionalProperties = {}): boolean {
+    private addOnSelectEffectMessage(
+        card: Card | Card[],
+        context: TContext,
+        properties: ISelectCardProperties<TContext>,
+        additionalInnerSystemProperties: any
+    ) {
+        const cards = Helpers.asArray(card);
+
+        if (properties.message) {
+            context.game.addMessage(properties.message, ...properties.messageArgs(cards, properties));
+            return;
+        }
+
+        const messageArgs = [context.player, ' uses ', context.source, ' to '];
+
+        const [effectMessage, effectArgs] = properties.innerSystem.getEffectMessage(context, additionalInnerSystemProperties);
+
+        context.game.addMessage('{0}{1}{2}{3}{4}{5}{6}{7}{8}', ...messageArgs, { message: context.game.gameChat.formatMessage(effectMessage, effectArgs) });
+    }
+
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.checkTarget && properties.player !== RelativePlayer.Opponent;
+
+        if (properties.player === EnumHelpers.asRelativePlayer(context.player, player)) {
+            return true;
+        }
+
+        return properties.innerSystem.hasTargetsChosenByPlayer(context, player, properties.innerSystemProperties(context.target));
     }
 
     private selectionIsOptional(properties, context): boolean {
-        if (properties.optional || properties.innerSystem.isOptional(context)) {
+        if (properties.optional || properties.innerSystem.isOptional(context) || properties.mode === TargetMode.UpTo) {
             return true;
         }
 

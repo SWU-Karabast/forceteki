@@ -14,7 +14,7 @@ import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import type { IAbilityPropsWithType, IKeywordProperties, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
-import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../core/cost/CostAdjuster';
+import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
 import type { CalculateOngoingEffect } from '../core/ongoingEffect/effectImpl/DynamicOngoingEffectImpl';
 import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
@@ -23,6 +23,7 @@ import type { PilotLimitModifier } from '../core/ongoingEffect/effectImpl/PilotL
 import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/StartingHandSizeModifier';
 import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
 import type { AbilityContext } from '../core/ability/AbilityContext';
+import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl/PlayFromDiscardProperties';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -66,7 +67,8 @@ export = {
     //        unapply: () => true
     //    }),
 
-    canPlayFromDiscard: () => OngoingEffectBuilder.card.static(EffectName.CanPlayFromDiscard),
+    canPlayFromDiscard: (properties: PlayFromDiscardProperties = {}) => OngoingEffectBuilder.card
+        .static(EffectName.CanPlayFromDiscard, properties),
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
     // canBeTriggeredByOpponent: () => OngoingEffectBuilder.card.static(EffectName.CanBeTriggeredByOpponent),
     // canOnlyBeDeclaredAsAttackerWithElement: (element) =>
@@ -245,6 +247,7 @@ export = {
     //     }),
     increaseCost: (properties: Omit<IIncreaseOrDecreaseCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Increase, ...properties }),
     forFree: (properties: Omit<IForFreeCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.Free, ...properties }),
+    modifyPayStageCost: (properties: Omit<IModifyPayStageCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.ModifyPayStage, ...properties }),
     ignoreAllAspectPenalties: (properties: Omit<IIgnoreAllAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreAllAspects, ...properties }),
     ignoreSpecificAspectPenalties: (properties: Omit<IIgnoreSpecificAspectsCostAdjusterProperties, 'costAdjustType'>) => modifyCost({ costAdjustType: CostAdjustType.IgnoreSpecificAspects, ...properties }),
     ignorePilotingPilotLimit: () => OngoingEffectBuilder.card.static(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit),

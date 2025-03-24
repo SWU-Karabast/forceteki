@@ -15,6 +15,7 @@ import { GameEvent } from '../event/GameEvent';
 import { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type Game from '../Game';
 import type Player from '../Player';
+import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
@@ -55,6 +56,8 @@ export abstract class PlayCardAction extends PlayerAction {
     public readonly playType: PlayType;
     public readonly canPlayFromAnyZone: boolean;
 
+    protected readonly playCost: PlayCardResourceCost;
+
     protected readonly createdWithProperties: IPlayCardActionProperties;
 
     public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
@@ -92,7 +95,7 @@ export abstract class PlayCardAction extends PlayerAction {
             aspects = card.aspects;
         }
 
-        const playCost = new PlayCardResourceCost(card, propertiesWithDefaults.playType, cost, aspects);
+        const playCost = new PlayCardResourceCost(propertiesWithDefaults.playType, cost, aspects);
 
         super(
             game,
@@ -104,10 +107,15 @@ export abstract class PlayCardAction extends PlayerAction {
         );
 
         this.playType = propertiesWithDefaults.playType;
+        this.playCost = playCost;
         this.costAdjusters = Helpers.asArray(propertiesWithDefaults.costAdjusters);
         this.exploitValue = properties.exploitValue;
         this.createdWithProperties = { ...properties };
         this.canPlayFromAnyZone = !!properties.canPlayFromAnyZone;
+    }
+
+    protected usesExploit(context: AbilityContext<ICardWithCostProperty>) {
+        return this.playCost.usesExploit(context);
     }
 
     private static getTitle(title: string, playType: PlayType, appendToTitle: boolean = true): string {

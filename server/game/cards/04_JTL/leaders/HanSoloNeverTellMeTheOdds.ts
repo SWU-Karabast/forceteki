@@ -19,6 +19,7 @@ export default class HanSoloNeverTellMeTheOdds extends LeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
                 target: context.player.getTopCardOfDeck()
             })),
+            cost: AbilityHelper.costs.exhaustSelf(),
             then: (thenContext) => ({
                 title: 'Attack with a unit',
                 initiateAttack: {
