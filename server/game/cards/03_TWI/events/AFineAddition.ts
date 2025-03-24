@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { KeywordName, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
@@ -35,8 +35,7 @@ export default class AFineAddition extends EventCard {
             title: 'If an enemy unit was defeated this phase, play an upgrade from your hand or from any player\'s discard pile, ignoring its aspect penalty.',
             targetResolver: {
                 zoneFilter: [ZoneName.Discard, ZoneName.Hand],
-                cardCondition: (card, context) => this.wasEnemyUnitDefeatedThisPhaseForPlayer(context.player.opponent) && this.checkZoneAndOwnershipOfCard(card, context.player) &&
-                  (card.isUpgrade() || (card.isUnit() && card.hasSomeKeyword(KeywordName.Piloting))),
+                cardCondition: (card, context) => this.wasEnemyUnitDefeatedThisPhaseForPlayer(context.player.opponent) && this.checkZoneAndOwnershipOfCard(card, context.player),
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.target.zoneName === ZoneName.Discard,
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({

@@ -6,7 +6,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Contract from '../core/utils/Contract';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers';
-import type { WildcardCardType } from '../core/Constants';
+import { KeywordName, WildcardCardType } from '../core/Constants';
 import { CardType, PlayType, MetaEventName } from '../core/Constants';
 import type { PlayCardAction } from '../core/ability/PlayCardAction';
 import { TriggerHandlingMode } from '../core/event/EventWindow';
@@ -88,7 +88,21 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         if (!card.isPlayable()) {
             return false;
         }
+
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        if (properties.playAsType != null) {
+            if (properties.playAsType === WildcardCardType.Upgrade && card.isUnit()) {
+                if (!card.hasSomeKeyword(KeywordName.Piloting)) {
+                    return false;
+                }
+            } else {
+                if (!EnumHelpers.cardTypeMatches(card.type, properties.playAsType)) {
+                    return false;
+                }
+            }
+        }
+
         if (!super.canAffectInternal(card, context)) {
             return false;
         }
