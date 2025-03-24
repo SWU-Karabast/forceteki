@@ -1,7 +1,7 @@
 import { resourceCard } from '../../gameSystems/GameSystemLibrary';
 import type { IActionTargetResolver } from '../../TargetInterfaces';
 import type { Card } from '../card/Card';
-import type { Aspect, CardType, WildcardCardType } from '../Constants';
+import type { Aspect, CardType } from '../Constants';
 import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
@@ -19,7 +19,6 @@ import type { ICardWithCostProperty } from '../card/propertyMixins/Cost';
 
 export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
-    playAsType?: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
     title?: string;
     triggerHandlingMode?: TriggerHandlingMode;
     costAdjusters?: CostAdjuster | CostAdjuster[];
