@@ -28,8 +28,8 @@ describe('Inferno Four - Unforgetting', function() {
                 expect(context.getChatLogs(4)).toEqual([
                     'player1 plays Inferno Four',
                     'player1 uses Inferno Four to look at the top 2 cards of their deck and they put any number of them on the bottom of their deck and the rest on top in any order',
-                    'player1 chooses to move Pyke Sentinel to the top of their deck',
-                    'player1 chooses to move Foundling to the bottom of their deck',
+                    'player1 chooses to move a card to the top of their deck',
+                    'player1 chooses to move a card to the bottom of their deck',
                 ]);
 
                 // check board state
