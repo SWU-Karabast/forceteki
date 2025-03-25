@@ -23,6 +23,7 @@ export class Deck {
 
     public readonly base: IInternalCardEntry;
     public readonly leader: IInternalCardEntry;
+    public readonly id?: string;
 
     private readonly cardDataGetter: CardDataGetter;
 
@@ -32,7 +33,7 @@ export class Deck {
     public constructor(decklist: ISwuDbDecklist | IDecklistInternal, cardDataGetter: CardDataGetter) {
         this.base = Deck.buildDecklistEntry(decklist.base.id, 1, cardDataGetter);
         this.leader = Deck.buildDecklistEntry(decklist.leader.id, 1, cardDataGetter);
-
+        this.id = decklist.deckID;
         const sideboard = decklist.sideboard ?? [];
 
         const allCardIds = new Set(

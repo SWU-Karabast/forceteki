@@ -42,6 +42,7 @@ const { validateGameConfiguration, validateGameOptions } = require('./GameInterf
 const { GameObject } = require('./GameObject.js');
 const { GameObjectBase } = require('./GameObjectBase.js');
 const { GameObjectManager } = require('./GameObjectManager.js');
+const { User } = require('../../utils/user/User');
 
 class Game extends EventEmitter {
     #debug;
@@ -69,6 +70,7 @@ class Game extends EventEmitter {
         this.allowSpectators = details.allowSpectators;
         this.owner = details.owner;
         this.started = false;
+        this.statsUpdated = false;
         this.playStarted = false;
         this.gameObjectManager = new GameObjectManager(this);
         this.createdAt = new Date();

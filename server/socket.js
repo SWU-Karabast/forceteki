@@ -67,7 +67,7 @@ class Socket extends EventEmitter {
     }
 
     onAuthenticate(token) {
-        jwt.verify(token, env.secret, (err, user) => {
+        jwt.verify(token, env.NEXTAUTH_SECRET, (err, user) => {
             if (err) {
                 logger.info(err);
                 return;
