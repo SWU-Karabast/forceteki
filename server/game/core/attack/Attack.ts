@@ -9,7 +9,7 @@ import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 type StatisticTotal = number;
 
 export class Attack {
-    #game: Game;
+    private readonly game: Game;
     public readonly attacker: IUnitCard;
     public readonly attackerInPlayId: number;
     public readonly isAmbush: boolean;
@@ -24,7 +24,7 @@ export class Attack {
         target: IAttackableCard,
         isAmbush: boolean = false
     ) {
-        this.#game = game;
+        this.game = game;
         this.attacker = attacker;
         this.target = target;
 
