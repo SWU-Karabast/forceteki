@@ -47,7 +47,7 @@ describe('Ephant Mon, Hea of Security', function () {
             expect(context.cantinaBraggart).toBeCapturedBy(context.battlefieldMarine);
             expect(context.player2).toBeActivePlayer();
 
-            context.ephantMon.exhausted = false;
+            context.readyCard(context.ephantMon);
             context.player1.moveCard(context.millenniumFalcon, 'discard');
 
             // enemy wampa attack base

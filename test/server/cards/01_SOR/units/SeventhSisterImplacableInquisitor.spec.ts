@@ -16,10 +16,10 @@ describe('Seventh Sister', function () {
             const { context } = contextRef;
 
             const reset = (passAction = true) => {
-                context.seventhSisterImplacableInquisitor.exhausted = false;
-                context.seventhSisterImplacableInquisitor.damage = 0;
-                context.wampa.damage = 0;
-                context.chopperBase.damage = 0;
+                context.readyCard(context.seventhSisterImplacableInquisitor);
+                context.setDamage(context.seventhSisterImplacableInquisitor, 0);
+                context.setDamage(context.wampa, 0);
+                context.setDamage(context.chopperBase, 0);
                 if (passAction) {
                     context.player2.passAction();
                 }

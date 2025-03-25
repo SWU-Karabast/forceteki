@@ -47,7 +47,7 @@ describe('IG-88, Murderous Phlutdroid', function() {
                 context.player2.passAction();
 
                 // defeat wampa to remove it, disabling the IG-88 ability
-                context.ig88.exhausted = false;
+                context.readyCard(context.ig88);
                 context.player1.clickCard(context.ig88);
                 context.player1.clickCard(context.wampa);
                 expect(context.ig88.getPower()).toBe(4);

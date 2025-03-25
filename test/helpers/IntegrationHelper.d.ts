@@ -61,6 +61,8 @@ interface SwuTestContext {
     nextPhase();
     selectInitiativePlayer(player: PlayerInteractionWrapper);
     setDamage(card: CardWithDamageProperty, amount: number);
+    exhaustCard(card: ICardWithExhaustProperty);
+    readyCard(card: ICardWithExhaustProperty);
     skipSetupPhase();
     startGameAsync(): Promise;
 

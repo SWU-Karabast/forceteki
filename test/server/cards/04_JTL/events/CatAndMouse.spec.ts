@@ -36,7 +36,7 @@ describe('Cat and Mouse', function () {
             it('should exhaust an enemy unit and not ready a friendly unit because enemy unit was already exhausted', function () {
                 const { context } = contextRef;
 
-                context.sabineWren.exhausted = true;
+                context.exhaustCard(context.sabineWren);
 
                 context.player1.clickCard(context.catAndMouse);
 

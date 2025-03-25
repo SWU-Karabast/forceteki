@@ -27,7 +27,7 @@ describe('Boba Fett, Collecting the Bounty', function() {
                 const reset = () => {
                     context.player2.passAction();
                     context.player1.setResourceCount(6);
-                    context.bobaFett.exhausted = false;
+                    context.readyCard(context.bobaFett);
                 };
 
                 // Case 1 - when defeating an enemy unit

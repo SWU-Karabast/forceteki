@@ -19,10 +19,10 @@ describe('Ketsu Onyo, Old friend', function() {
                 const { context } = contextRef;
 
                 const reset = (passAction = true) => {
-                    context.ketsuOnyoOldFriend.exhausted = false;
-                    context.ketsuOnyoOldFriend.damage = 0;
-                    context.groguIrresistible.damage = 0;
-                    context.chopperBase.damage = 0;
+                    context.readyCard(context.ketsuOnyoOldFriend);
+                    context.setDamage(context.ketsuOnyoOldFriend, 0);
+                    context.setDamage(context.groguIrresistible, 0);
+                    context.setDamage(context.chopperBase, 0);
                     if (passAction) {
                         context.player2.passAction();
                     }

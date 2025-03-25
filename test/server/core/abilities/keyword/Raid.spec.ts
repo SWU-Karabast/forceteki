@@ -26,7 +26,7 @@ describe('Raid keyword', function() {
                 expect(context.cantinaBraggart.getPower()).toBe(0);
                 expect(context.p2Base.damage).toBe(2);
 
-                context.cantinaBraggart.exhausted = false;
+                context.readyCard(context.cantinaBraggart);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.cantinaBraggart);
@@ -53,7 +53,7 @@ describe('Raid keyword', function() {
                 context.player2.clickCard(context.cantinaBraggart);
 
                 context.player1.clickCard(context.cantinaBraggart);
-                context.cantinaBraggart.exhausted = false;
+                context.readyCard(context.cantinaBraggart);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.cantinaBraggart);

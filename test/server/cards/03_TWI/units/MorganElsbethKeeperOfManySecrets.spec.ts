@@ -31,7 +31,7 @@ describe('Morgan Elsbeth, Keeper of Many Secrets', function () {
                 expect(context.wampa).toBeInZone('discard');
                 expect(context.player1.hand.length).toBe(1);
 
-                context.morganElsbeth.exhausted = false;
+                context.readyCard(context.morganElsbeth);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.morganElsbeth);

@@ -33,9 +33,9 @@ describe('Regroup phase', function() {
                     const oldResourcesPlayer2 = [...context.player2.resources];
 
                     // Setup for Case 1
-                    context.allianceXwing.exhausted = true;
-                    context.wampa.exhausted = true;
-                    context.tielnFighter.exhausted = true;
+                    context.exhaustCard(context.allianceXwing);
+                    context.exhaustCard(context.wampa);
+                    context.exhaustCard(context.tielnFighter);
 
                     // Case 1 check if regroup phase flows correctly
                     context.player1.passAction();

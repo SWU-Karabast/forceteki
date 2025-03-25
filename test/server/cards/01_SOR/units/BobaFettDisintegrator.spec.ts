@@ -22,9 +22,9 @@ describe('Boba Fett, Disintegrator', function() {
 
                 const reset = () => {
                     context.setDamage(context.bobaFett, 0);
-                    context.bobaFett.exhausted = false;
+                    context.readyCard(context.bobaFett);
                     context.setDamage(context.consularSecurityForce, 0);
-                    context.consularSecurityForce.exhausted = false;
+                    context.readyCard(context.consularSecurityForce);
                 };
                 // Case 1 attacking a ready card
                 context.player1.passAction();
@@ -60,7 +60,7 @@ describe('Boba Fett, Disintegrator', function() {
                 reset();
 
                 // Case 3 Ability activates when attacking an exhausted unit not played in this phase
-                context.consularSecurityForce.exhausted = true;
+                context.exhaustCard(context.consularSecurityForce);
                 context.player2.passAction();
                 context.player1.clickCard(context.bobaFett);
                 context.player1.clickCard(context.consularSecurityForce);
@@ -76,7 +76,7 @@ describe('Boba Fett, Disintegrator', function() {
 
                 // Case 4 Ability should activate when attacking leader deployed previous phase
                 // TODO QIRA The card enteres play event doesn't handle leader deployment correctly so we need to wait for the fix before uncommenting this test.
-                /* context.lukeSkywalker.exhausted = true;
+                /* context.exhaustCard(context.lukeSkywalker);
                 context.player1.clickCard(context.bobaFett);
                 context.player1.clickCard(context.lukeSkywalker);
 

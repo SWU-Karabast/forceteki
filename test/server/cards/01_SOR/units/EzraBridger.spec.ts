@@ -24,7 +24,7 @@ describe('Ezra Bridger', function() {
 
                 const { context } = contextRef;
                 const reset = () => {
-                    context.ezraBridger.exhausted = false;
+                    context.readyCard(context.ezraBridger);
                     context.player2.passAction();
                 };
 

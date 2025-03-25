@@ -35,7 +35,7 @@ describe('Vambrace Flamethrower', function () {
                 expect(context.specforceSoldier.damage).toBe(1);
                 expect(context.player2).toBeActivePlayer();
 
-                context.battlefieldMarine.exhausted = false;
+                context.readyCard(context.battlefieldMarine);
                 context.player2.passAction();
 
                 // battlefield marine attacks

@@ -59,7 +59,7 @@ describe('Take control system', function() {
                 // - player 1 can attack with him
                 // - player 1 makes the selections for his ability
                 // - target lists correctly identify friendly vs opponent units for player 1
-                context.lomPyke.exhausted = false;
+                context.readyCard(context.lomPyke);
                 context.player1.clickCard(context.lomPyke);
                 context.player1.clickCard(context.wampa);
 

@@ -17,7 +17,7 @@ describe('Ruthlessness', function () {
                 const { context } = contextRef;
 
                 function reset(opponentPass = true) {
-                    context.battlefieldMarine.exhausted = false;
+                    context.readyCard(context.battlefieldMarine);
                     context.setDamage(context.battlefieldMarine, 0);
                     context.setDamage(context.p2Base, 0);
                     if (opponentPass) {

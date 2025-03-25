@@ -16,9 +16,9 @@ describe('Embo, Stoic and Resolute', function () {
                 const { context } = contextRef;
 
                 function reset(resetDamage = true) {
-                    context.embo.exhausted = false;
+                    context.readyCard(context.embo);
                     if (resetDamage) {
-                        context.embo.damage = 0;
+                        context.setDamage(context.embo, 0);
                     }
                     context.player2.passAction();
                 }

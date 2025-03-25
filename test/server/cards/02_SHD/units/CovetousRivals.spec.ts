@@ -25,7 +25,7 @@ describe('Covetous Rivals', function() {
                 expect(context.player2).toBeActivePlayer();
 
                 context.player2.passAction();
-                context.covetousRivals.exhausted = false;
+                context.readyCard(context.covetousRivals);
 
                 // CASE 2: attack
                 context.player1.clickCard(context.covetousRivals);

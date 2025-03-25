@@ -25,7 +25,7 @@ describe('Kintan Intimidator', function () {
 
 
                 // Select Kintan Intimidator and attack the Marine, then Marine gets exhausted
-                context.kintanIntimidator.exhausted = false;
+                context.readyCard(context.kintanIntimidator);
                 context.player1.clickCard(context.kintanIntimidator);
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.exhausted).toBeTrue();

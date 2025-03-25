@@ -71,7 +71,7 @@ describe('Heroes on Both Sides', function () {
             expect(context.patrollingAat.damage).toBe(2);
 
             // P2: Pass action
-            context.patrollingAat.damage = 0;
+            context.setDamage(context.patrollingAat, 0);
             context.player2.passAction();
 
             // P1: Attack with Super Battle Droid to confirm that the effect is gone

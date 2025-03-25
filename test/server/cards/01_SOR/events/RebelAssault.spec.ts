@@ -35,8 +35,8 @@ describe('Rebel Assault', function () {
             it('should initiate only 1 attack with +1/+0', function () {
                 const { context } = contextRef;
 
-                context.battlefieldMarine.exhausted = true;
-                context.chirrutImwe.exhausted = true;
+                context.exhaustCard(context.battlefieldMarine);
+                context.exhaustCard(context.chirrutImwe);
 
                 context.player1.clickCard(context.rebelAssault);
 

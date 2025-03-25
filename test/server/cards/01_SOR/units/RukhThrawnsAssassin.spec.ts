@@ -17,8 +17,8 @@ describe('Rukh, Thrawn\'s Assassin', function() {
                 const { context } = contextRef;
 
                 const reset = (passAction = true) => {
-                    context.rukh.exhausted = false;
-                    context.rukh.damage = 0;
+                    context.readyCard(context.rukh);
+                    context.setDamage(context.rukh, 0);
                     if (passAction) {
                         context.player2.passAction();
                     }

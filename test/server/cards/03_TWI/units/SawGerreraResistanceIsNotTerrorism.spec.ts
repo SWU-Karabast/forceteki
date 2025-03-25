@@ -24,7 +24,7 @@ describe('Saw Gerrera, Resistance is Not Terrorism', function () {
                 expect(context.wampa.damage).toBe(0);
                 expect(context.greenSquadronAwing.damage).toBe(0);
                 expect(context.sawGerrera.damage).toBe(0);
-                context.sawGerrera.exhausted = false;
+                context.readyCard(context.sawGerrera);
 
                 // deal damage to our base to reach 15
                 context.player2.clickCard(context.battlefieldMarine);

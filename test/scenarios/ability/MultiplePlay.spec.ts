@@ -29,7 +29,7 @@ describe('Abilities', function() {
                 context.player2.clickCard(context.ruggedSurvivors);
 
                 context.player1.clickCard(context.ruggedSurvivors);
-                context.ruggedSurvivors.exhausted = false;
+                context.readyCard(context.ruggedSurvivors);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.ruggedSurvivors);
@@ -175,7 +175,7 @@ describe('Abilities', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.rhokaiGunship);
 
-                context.rhokaiGunship.exhausted = false;
+                context.readyCard(context.rhokaiGunship);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.rhokaiGunship);
