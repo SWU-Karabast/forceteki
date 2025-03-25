@@ -111,7 +111,7 @@ export class Player extends GameObject<IPlayerState> {
     public opponent: Player;
     private playableZones: PlayableZone[];
     private noTimer: boolean;
-    private passedActionPhase: boolean;
+    public passedActionPhase: boolean;
     public constructor(id: string, user: User, game: Game, clockDetails?: ClockConfig) {
         super(game, user.username);
 

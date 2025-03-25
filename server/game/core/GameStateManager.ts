@@ -1,11 +1,15 @@
 import type Game from './Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from './GameObjectBase';
+import type Player from './Player';
 import * as Contract from './utils/Contract.js';
 import * as Helpers from './utils/Helpers.js';
 
 export interface IGameSnapshot {
     id: number;
     lastId: number;
+    actionPhaseActivePlayer?: GameObjectRef<Player>;
+    initiativePlayer?: GameObjectRef<Player>;
+
     states: IGameObjectBaseState[];
 }
 
@@ -14,11 +18,14 @@ export class GameStateManager {
     private _snapshots: IGameSnapshot[];
     private _allGameObjects: GameObjectBase[];
     private _gameObjectMapping: Map<string, GameObjectBase>;
+    public actionPhaseActivePlayer: Player;
+    public initiativePlayer: Player;
     private _lastId = 0;
 
     public constructor(game: Game) {
         this._game = game;
         this._allGameObjects = [];
+        this._snapshots = [];
         this._gameObjectMapping = new Map<string, GameObjectBase>();
     }
 
@@ -52,6 +59,8 @@ export class GameStateManager {
         const snapshot: IGameSnapshot = {
             id: this._snapshots.length,
             lastId: this._lastId,
+            actionPhaseActivePlayer: this.actionPhaseActivePlayer?.getRef(),
+            initiativePlayer: this.initiativePlayer?.getRef(),
             states: this._allGameObjects.map((x) => x.getState())
         };
 
@@ -62,7 +71,7 @@ export class GameStateManager {
 
     // TODO: Where are all of the places GameObjects are stored? Obviously here, but what about Token GOs? Attack GOs? We need to ensure those are all GameObjectRefs, or we'll start building up garbage.
     public rollbackToSnapshot(snapshotId: number) {
-        Contract.assertTrue(snapshotId > -1, 'Tried to rollback but snapshot ID is invalid.');
+        Contract.assertTrue(snapshotId > -1, 'Tried to rollback but snapshot ID is invalid ' + snapshotId);
 
         const snapshotIdx = this._snapshots.findIndex((x) => x.id === snapshotId);
         Contract.assertTrue(snapshotIdx > -1, `Tried to rollback to snapshot ID ${snapshotId} but the snapshot was not found.`);
@@ -89,6 +98,8 @@ export class GameStateManager {
         }
 
         this._lastId = snapshot.lastId;
+        this.actionPhaseActivePlayer = this.get(snapshot.actionPhaseActivePlayer);
+        this.initiativePlayer = this.get(snapshot.initiativePlayer);
 
         // Inform GOs that all states have been updated.
         this._allGameObjects.forEach((x) => x.afterSetAllState());
