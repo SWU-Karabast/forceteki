@@ -3,7 +3,7 @@ import type { TokenUnitName } from '../core/Constants';
 import { EffectName, EventName } from '../core/Constants';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import * as Helpers from '../core/utils/Helpers';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 

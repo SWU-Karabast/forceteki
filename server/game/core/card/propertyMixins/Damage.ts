@@ -1,7 +1,7 @@
 import type { Attack } from '../../attack/Attack';
 import * as Contract from '../../utils/Contract';
 import type { Card, CardConstructor, ICardState } from '../Card';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import type { ICardWithPrintedHpProperty } from './PrintedHp';
 import { WithPrintedHp } from './PrintedHp';
 import type { IDamageSource } from '../../../IDamageOrDefeatSource';

@@ -6,7 +6,7 @@ import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import AbilityHelper from '../AbilityHelper';
 import { NoActionSystem } from './NoActionSystem';
 import * as Contract from '../core/utils/Contract';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 
 // TODO: allow providing only onTrue or onFalse in the properties so we don't need to use noAction()
 export interface IConditionalSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {

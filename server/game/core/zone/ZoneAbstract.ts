@@ -1,7 +1,7 @@
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
 import type { Aspect, CardTypeFilter, KeywordName, ZoneName, MoveZoneDestination, Trait, WildcardZoneName, RelativePlayerFilter } from '../Constants';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type Game from '../Game';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { IGameObjectBaseState } from '../GameObjectBase';

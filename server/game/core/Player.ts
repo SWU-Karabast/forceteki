@@ -90,20 +90,15 @@ export class Player extends GameObject<IPlayerState> {
     }
 
     private canTakeActionsThisPhase: null;
-    // TODO: Does Deck need to be a GameObject?
+    // STATE TODO: Does Deck need to be a GameObject?
     private decklistNames: Deck | null;
-    // TODO: Unused?
-    private damageToBase: null;
     public clock: IClock;
     private limitedPlayed: number;
     // INCOMPLETE
     public decklist: Record<string, any>;
     private costAdjusters: any[];
     private abilityMaxByIdentifier: Record<string, any>;
-    public promptedActionWindows: { setup: boolean; action: boolean; regroup: boolean } | {
-        // these flags represent phase settings
-        action: boolean; regroup: boolean;
-    };
+    public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
 
     public optionSettings: Partial<{ autoSingleTarget: boolean }>;
     private resetTimerAtEndOfRound: boolean;
@@ -135,8 +130,6 @@ export class Player extends GameObject<IPlayerState> {
         this.state.outsideTheGameZone = new OutsideTheGameZone(game, this).getRef();
         this.state.baseZone = null;
         this.state.deckZone = new DeckZone(game, this).getRef();
-
-        this.damageToBase = null;
 
         this.clock = clockFor(this, clockDetails);
 
@@ -1344,6 +1337,3 @@ export class Player extends GameObject<IPlayerState> {
         return this.name;
     }
 }
-
-// module.exports = Player;
-export default Player;

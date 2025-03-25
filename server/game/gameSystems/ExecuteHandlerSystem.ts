@@ -4,7 +4,7 @@ import type { Card } from '../core/card/Card';
 import type { GameEvent } from '../core/event/GameEvent';
 import { MetaEventName } from '../core/Constants';
 import type { GameObject } from '../core/GameObject';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 
 export interface IExecuteHandlerSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     handler: (context: TContext) => void;

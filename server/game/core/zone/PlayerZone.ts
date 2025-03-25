@@ -1,6 +1,6 @@
 import type { Card } from '../card/Card';
 import type { ZoneName } from '../Constants';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { IZoneState } from './SimpleZone';
 import { SimpleZone } from './SimpleZone';
 import type { IAddRemoveZone } from './ZoneAbstract';

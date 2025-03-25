@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { GameEvent } from '../event/GameEvent';
-import type Player from '../Player.js';
+import type { Player } from '../Player.js';
 
 export interface ICostResult {
     canCancel?: boolean;

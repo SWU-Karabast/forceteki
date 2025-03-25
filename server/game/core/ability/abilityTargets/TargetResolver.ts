@@ -4,7 +4,7 @@ import * as Contract from '../../utils/Contract';
 import type { GameSystem } from '../../gameSystem/GameSystem';
 import type PlayerOrCardAbility from '../PlayerOrCardAbility';
 import { RelativePlayer, Stage } from '../../Constants';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 
 /**
  * Base class for all target resolvers.

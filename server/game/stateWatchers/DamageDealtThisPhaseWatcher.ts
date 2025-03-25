@@ -3,7 +3,7 @@ import type { DamageType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import type { IDamageSource } from '../IDamageOrDefeatSource';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 
 export interface DamageDealtEntry {

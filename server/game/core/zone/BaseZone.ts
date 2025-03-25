@@ -3,7 +3,7 @@ import type { ILeaderCard } from '../card/propertyMixins/LeaderProperties';
 import { ZoneName } from '../Constants';
 import type Game from '../Game';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { IZoneCardFilterProperties } from './ZoneAbstract';
 import { ZoneAbstract } from './ZoneAbstract';

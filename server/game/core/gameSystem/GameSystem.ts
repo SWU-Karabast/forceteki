@@ -3,7 +3,7 @@ import type { Card } from '../card/Card';
 import type { EventName, MetaEventName } from '../Constants';
 import { GameStateChangeRequired } from '../Constants';
 import { GameEvent } from '../event/GameEvent';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import * as Helpers from '../utils/Helpers';
 import { TriggerHandlingMode } from '../event/EventWindow';
 import * as Contract from '../utils/Contract';

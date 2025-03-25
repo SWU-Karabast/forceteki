@@ -1,4 +1,4 @@
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { Mode } from './BasicClock';
 import { BasicClock } from './BasicClock';
 import type { IClock } from './IClock';

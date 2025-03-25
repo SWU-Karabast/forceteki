@@ -1,6 +1,6 @@
 import type { GamePipeline } from '../GamePipeline';
 import type { Card } from '../card/Card';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { IStatefulPromptResults } from './PromptInterfaces';
 
 export interface IStep {
