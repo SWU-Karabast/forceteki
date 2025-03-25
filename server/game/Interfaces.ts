@@ -197,7 +197,6 @@ export type IEventAbilityProps<TSource extends Card = Card> = IAbilityPropsWithS
 /** Interface definition for setEpicActionAbility */
 export type IEpicActionProps<TSource extends Card = Card> = Exclude<IAbilityPropsWithSystems<AbilityContext<TSource>>, 'cost' | 'limit' | 'handler'>;
 
-// TODO KEYWORDS: add remaining keywords to this type
 export type IKeywordProperties =
   | IAmbushKeywordProperties
   | IBountyKeywordProperties

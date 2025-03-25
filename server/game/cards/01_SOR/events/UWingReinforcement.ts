@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
 import { EventCard } from '../../../core/card/EventCard';
+import { WildcardCardType } from '../../../core/Constants';
 import * as Contract from '../../../core/utils/Contract';
 
 export default class UWingReinforcement extends EventCard {
@@ -19,7 +20,8 @@ export default class UWingReinforcement extends EventCard {
                 searchCount: 10,
                 selectCount: 3,
                 cardCondition: (card) => card.isUnit(),
-                multiSelectCondition: (card, currentlySelectedCards) => this.costSum(currentlySelectedCards.concat(card)) <= 7
+                multiSelectCondition: (card, currentlySelectedCards) => this.costSum(currentlySelectedCards.concat(card)) <= 7,
+                playAsType: WildcardCardType.Unit
             })
         });
     }

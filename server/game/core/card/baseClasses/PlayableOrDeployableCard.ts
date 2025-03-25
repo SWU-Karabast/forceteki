@@ -96,20 +96,23 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
         let playCardActions: PlayCardAction[] = [];
 
         if (this.zoneName === ZoneName.Hand) {
-            let playActions = this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides);
-            // TODO: update this once we suppport Piloting from discard
+            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.PlayFromHand, propertyOverrides));
             if (this.hasSomeKeyword(KeywordName.Piloting)) {
-                playActions = playActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+                playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
             }
-            return playActions;
         }
 
         if (this.zoneName === ZoneName.Resource && this.hasSomeKeyword(KeywordName.Smuggle)) {
             playCardActions = this.buildPlayCardActions(PlayType.Smuggle, propertyOverrides);
         }
 
-        if (this.zoneName === ZoneName.Discard && this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
-            playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+        if (this.zoneName === ZoneName.Discard) {
+            if (this.hasOngoingEffect(EffectName.CanPlayFromDiscard)) {
+                playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+                if (this.hasSomeKeyword(KeywordName.Piloting)) {
+                    playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+                }
+            }
         }
 
         return playCardActions;
@@ -127,7 +130,13 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
             `Attempting to get "play from out of play" actions for card ${this.internalName} in invalid zone: ${this.zoneName}`
         );
 
-        return this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+        let playCardActions = this.buildPlayCardActions(PlayType.PlayFromOutOfPlay, propertyOverrides);
+
+        if (this.hasSomeKeyword(KeywordName.Piloting)) {
+            playCardActions = playCardActions.concat(this.buildPlayCardActions(PlayType.Piloting, propertyOverrides));
+        }
+
+        return playCardActions;
     }
 
     protected buildPlayCardActions(playType: PlayType = PlayType.PlayFromHand, propertyOverrides: IPlayCardActionOverrides = null): PlayCardAction[] {

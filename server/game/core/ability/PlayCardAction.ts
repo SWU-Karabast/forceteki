@@ -235,7 +235,7 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     /** This is used for overriding a card's type when it hits the board, such as Pilots played as upgrades */
-    protected getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
+    public getCardTypeWhenInPlay(card: Card, playType: PlayType): CardType {
         return card.type;
     }
 
