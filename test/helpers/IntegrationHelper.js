@@ -144,15 +144,3 @@ global.integration = function (definitions) {
         definitions(contextRef);
     });
 };
-
-// /**
-//  * Define a single spec. A spec should contain one or more expectations that test the state of the code.
-//  * A spec whose expectations all succeed will be passing and a spec with any failures will fail.
-//  * @param {string} expectation Textual description of what this spec is checking
-//  * @param {[jasmine.ImplementationCallback]} assertion Function that contains the code of your test. If not provided the test will be pending.
-//  * @param {[number]} timeout Custom timeout for an async spec.
-//  */
-// global.undoIt = function it(expectation, assertion, timeout) {
-//     it(expectation, assertion, timeout);
-//     it(expectation + ' with Undo', assertion, timeout);
-// };
