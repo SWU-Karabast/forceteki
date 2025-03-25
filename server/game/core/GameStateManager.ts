@@ -64,10 +64,10 @@ export class GameStateManager {
 
     // TODO: Where are all of the places GameObjects are stored? Obviously here, but what about Token GOs? Attack GOs? We need to ensure those are all GameObjectRefs, or we'll start building up garbage.
     public rollbackToSnapshot(snapshotId: number) {
-        Contract.assertTrue(snapshotId > -1, 'Tried to rollback but snapshot ID is invalid ' + snapshotId);
+        Contract.assertNonNegative(snapshotId, 'Tried to rollback but snapshot ID is invalid ' + snapshotId);
 
         const snapshotIdx = this._snapshots.findIndex((x) => x.id === snapshotId);
-        Contract.assertTrue(snapshotIdx > -1, `Tried to rollback to snapshot ID ${snapshotId} but the snapshot was not found.`);
+        Contract.assertNonNegative(snapshotIdx, `Tried to rollback to snapshot ID ${snapshotId} but the snapshot was not found.`);
 
         const snapshot = this._snapshots[snapshotIdx];
 
