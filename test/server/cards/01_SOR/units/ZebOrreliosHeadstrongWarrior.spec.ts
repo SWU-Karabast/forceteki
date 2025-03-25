@@ -106,8 +106,6 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
             context.player1.clickCard(context.zebOrrelios);
             context.player1.clickCard(context.sabineWren);
 
-            context.player1.clickPrompt('Trigger');
-
             context.player1.clickCard(context.wampa);
 
             expect(context.wampa.damage).toBe(4);
