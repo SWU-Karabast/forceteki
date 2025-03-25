@@ -13,26 +13,26 @@ export class Attack extends GameObject {
     public readonly attacker: IUnitCard;
     public readonly attackerInPlayId: number;
     public readonly isAmbush: boolean;
-    public readonly target: IAttackableCard;
-    public readonly targetInPlayId?: number;
+    public readonly targets: IAttackableCard[];
+    public readonly targetsInPlayId?: number[];
 
     public previousAttack: Attack;
 
     public constructor(
         game: Game,
         attacker: IUnitCard,
-        target: IAttackableCard,
+        targets: IAttackableCard[],
         isAmbush: boolean = false
     ) {
         super(game, 'Attack');
 
         this.attacker = attacker;
-        this.target = target;
+        this.targets = targets;
 
         // we grab the in-play IDs of the attacker and defender cards in case other abilities need to refer back to them later.
         // e.g., to check if the defender was defeated
         this.attackerInPlayId = attacker.inPlayId;
-        this.targetInPlayId = target.canBeInPlay() ? target.inPlayId : null;
+        this.targetsInPlayId = targets.map((target) => (target.canBeInPlay() ? target.inPlayId : null));
 
         this.isAmbush = isAmbush;
     }
@@ -42,9 +42,7 @@ export class Attack extends GameObject {
     }
 
     public getTargetTotalPower(): number | null {
-        return this.target.isBase()
-            ? null
-            : this.getUnitPower(this.target);
+        return this.targets.reduce((total, target) => total + (target.isBase() ? 0 : this.getUnitPower(target)), 0);
     }
 
     public hasOverwhelm(): boolean {
@@ -60,18 +58,25 @@ export class Attack extends GameObject {
     }
 
     public isAttackTargetLegal(): boolean {
-        return this.target.isBase() || this.target.isInPlay();
+        for (const target of this.targets) {
+            if (target.isBase() || target.isInPlay()) {
+                continue;
+            } else {
+                return false;
+            }
+        }
+        return true;
     }
 
     public isInvolved(card: Card): boolean {
         return (
-            ([this.attacker as Card, this.target as Card].includes(card))
+            ([this.attacker as Card, this.targets as Card[]].includes(card))
         );
     }
 
     // TODO: if we end up using this we need to refactor it to reflect attacks in SWU (i.e., show HP)
     public getTotalsForDisplay(): string {
-        return `${this.attacker.name}: ${this.getAttackerTotalPower()} vs ${this.getTargetTotalPower()}: ${this.target.name}`;
+        return `${this.attacker.name}: ${this.getAttackerTotalPower()} vs ${this.getTargetTotalPower()}: ${this.targets.map((target) => target.name).join(', ')}`;
     }
 
     private getUnitPower(involvedUnit: IUnitCard): StatisticTotal {

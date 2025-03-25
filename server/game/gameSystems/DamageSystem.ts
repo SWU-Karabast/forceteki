@@ -191,24 +191,21 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         Contract.assertTrue(context.source.isUnit());
         Contract.assertNotNullLike(card);
 
-        let damageDealtBy: IUnitCard;
+        let damageDealtBy: IUnitCard[];
 
         if (properties.source) {
             Contract.assertTrue(properties.source.isUnit());
-            damageDealtBy = properties.source;
+            damageDealtBy = [properties.source];
         } else if (event.isOverwhelmDamage) {
-            damageDealtBy = properties.sourceAttack.attacker;
+            damageDealtBy = [properties.sourceAttack.attacker];
         } else {
-            switch (card) {
-                case properties.sourceAttack.attacker:
-                    Contract.assertTrue(properties.sourceAttack.target.isUnit());
-                    damageDealtBy = properties.sourceAttack.target;
-                    break;
-                case properties.sourceAttack.target:
-                    damageDealtBy = properties.sourceAttack.attacker;
-                    break;
-                default:
-                    Contract.fail(`Combat damage is being dealt to card ${card.internalName} but it is not involved in the attack`);
+            if (card === properties.sourceAttack.attacker) {
+                Contract.assertTrue(properties.sourceAttack.targets.some((target) => target.isUnit()));
+                damageDealtBy = properties.sourceAttack.targets.filter((target) => target.isUnit()) as IUnitCard[];
+            } else if (properties.sourceAttack.targets.some((target) => target === card)) {
+                damageDealtBy = [properties.sourceAttack.attacker];
+            } else {
+                Contract.fail(`Combat damage is being dealt to card ${card.internalName} but it is not involved in the attack`);
             }
         }
 
@@ -240,7 +237,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             type: DamageSourceType.Attack,
             attack: properties.sourceAttack,
             player: context.player,
-            damageDealtBy: properties.sourceAttack.attacker,
+            damageDealtBy: [properties.sourceAttack.attacker],
             isOverwhelmDamage: true,
             event
         };

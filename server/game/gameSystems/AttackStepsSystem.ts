@@ -189,7 +189,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         event.attack = new Attack(
             context.game,
             properties.attacker as IUnitCard,
-            event.target as IAttackableCard,
+            event.targets as IAttackableCard[],
             properties.isAmbush
         );
 
@@ -213,7 +213,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         const effectEvents: GameEvent[] = [];
         const effectsRegistered = [
             this.queueCreateLastingEffectsGameSteps(Helpers.asArray(attackerLastingEffects), attack.attacker, context, attack, effectEvents),
-            this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), attack.target, context, attack, effectEvents)
+            attack.targets.forEach((target) => this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), target, context, attack, effectEvents))
         ].some((result) => result);
 
         if (effectsRegistered) {
@@ -279,7 +279,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         const attack = new Attack(
             context.game,
             properties.attacker as IUnitCard,
-            attackTarget,
+            [attackTarget],
             properties.isAmbush
         );
 
