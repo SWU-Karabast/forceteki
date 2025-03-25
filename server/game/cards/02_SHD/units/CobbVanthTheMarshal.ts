@@ -19,7 +19,7 @@ export default class CobbVanthTheMarshal extends NonLeaderUnitCard {
                     AbilityHelper.immediateEffects.discardSpecificCard(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect((deckSearchContext) => ({
                         effect: [
-                            AbilityHelper.ongoingEffects.canPlayFromDiscard(),
+                            AbilityHelper.ongoingEffects.canPlayFromDiscard({ player: deckSearchContext.player }),
                             AbilityHelper.ongoingEffects.forFree({
                                 match: (card) => deckSearchContext.selectedPromptCards.includes(card) // note cost adjusters are attached to player, so have to refilter
                             })
