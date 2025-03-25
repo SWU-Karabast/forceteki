@@ -26,7 +26,7 @@ describe('Poggle The Lesser, Archduke of the Stalgasin Hive', function() {
             expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
             expect(context.poggleTheLesserArchdukeOfTheStalgasinHive.exhausted).toBe(true);
 
-            context.poggleTheLesserArchdukeOfTheStalgasinHive.exhausted = false;
+            context.readyCard(context.poggleTheLesserArchdukeOfTheStalgasinHive);
 
             // Opponent plays a unit, ability should not trigger
             context.player2.clickCard(context.tielnFighter);

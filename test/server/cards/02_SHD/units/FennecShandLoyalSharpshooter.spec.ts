@@ -24,7 +24,7 @@ describe('Fennec Shand, Loyal Sharpshooter', function () {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(4);
 
-                context.fennecShand.exhausted = false;
+                context.readyCard(context.fennecShand);
                 context.player2.passAction();
 
                 // attack unit, should have 2 extra damage
@@ -59,7 +59,7 @@ describe('Fennec Shand, Loyal Sharpshooter', function () {
                 expect(context.player2).toBeActivePlayer();
                 expect(context.p2Base.damage).toBe(4);
 
-                context.fennecShand.exhausted = false;
+                context.readyCard(context.fennecShand);
                 context.player2.passAction();
 
                 // attack unit, should have 0 extra damage

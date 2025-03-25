@@ -31,7 +31,7 @@ describe('Sabine Wren, You Can Count On Me', function () {
             expect(context.battlefieldMarine.damage).toBe(2);
             expect(context.player2).toBeActivePlayer();
 
-            context.sabineWren.exhausted = false;
+            context.readyCard(context.sabineWren);
             context.player2.passAction();
 
             // aspect match the base, nothing happen

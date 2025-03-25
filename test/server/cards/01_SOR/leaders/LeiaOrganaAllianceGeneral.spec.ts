@@ -187,7 +187,7 @@ describe('Leia Organa, Alliance General', function() {
                 context.player2.passAction();
 
                 // second Leia attack to confirm that passing the ability works
-                context.leiaOrgana.exhausted = false;
+                context.readyCard(context.leiaOrgana);
                 context.player1.clickCard(context.leiaOrgana);
                 context.player1.clickCard(context.p2Base);
                 expect(context.leiaOrgana.exhausted).toBe(true);
@@ -200,8 +200,8 @@ describe('Leia Organa, Alliance General', function() {
                 context.player2.passAction();
 
                 // third Leia attack to confirm that the ability isn't triggered if there is no legal attacker
-                context.allianceXwing.exhausted = true;
-                context.leiaOrgana.exhausted = false;
+                context.exhaustCard(context.allianceXwing);
+                context.readyCard(context.leiaOrgana);
                 context.player1.clickCard(context.leiaOrgana);
                 context.player1.clickCard(context.p2Base);
                 expect(context.leiaOrgana.exhausted).toBe(true);

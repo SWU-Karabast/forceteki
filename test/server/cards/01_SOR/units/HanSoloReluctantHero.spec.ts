@@ -17,10 +17,10 @@ describe('Han Solo Reluctant Hero', function() {
             it('while attacking an enemy ground unit, should deal damage to the defender before taking damage.', function () {
                 const { context } = contextRef;
                 const reset = () => {
-                    context.hanSolo.exhausted = false;
+                    context.readyCard(context.hanSolo);
                     context.setDamage(context.hanSolo, 0);
                     context.setDamage(context.consularSecurityForce, 0);
-                    context.consularSecurityForce.exhausted = false;
+                    context.readyCard(context.consularSecurityForce);
                 };
                 // Case 1 attack action shouldn't deal damage to the shielded wampa and should deal 4 damage to Han Solo
                 context.player1.clickCard(context.hanSolo);
@@ -45,7 +45,7 @@ describe('Han Solo Reluctant Hero', function() {
 
                 // Case 3 attack action should deal 6 damage to consular security force and 3 on han solo
                 context.player2.passAction();
-                context.hanSolo.exhausted = false;
+                context.readyCard(context.hanSolo);
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickCard(context.consularSecurityForce);
 

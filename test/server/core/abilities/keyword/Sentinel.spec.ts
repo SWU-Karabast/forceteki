@@ -96,8 +96,8 @@ describe('Sentinel keyword', function() {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.strafingGunship.damage = 0;
-                    context.strafingGunship.exhausted = false;
+                    context.setDamage(context.strafingGunship, 0);
+                    context.readyCard(context.strafingGunship);
                     context.player2.passAction();
                 };
 
@@ -174,7 +174,7 @@ describe('Sentinel keyword', function() {
 
                 expect(context.p1Base.damage).toBe(4);
 
-                context.wampa.exhausted = false;
+                context.readyCard(context.wampa);
                 context.player1.clickCard(context.unshakeableWill);
                 context.player1.clickCard(context.battlefieldMarine);
 

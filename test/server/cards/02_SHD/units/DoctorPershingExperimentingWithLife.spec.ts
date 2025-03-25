@@ -20,7 +20,7 @@ describe('Doctor Pershing, Experimenting With Life', function() {
 
                 const reset = () => {
                     context.player2.passAction();
-                    context.doctorPershing.exhausted = false;
+                    context.readyCard(context.doctorPershing);
                 };
 
                 // Trigger the ability

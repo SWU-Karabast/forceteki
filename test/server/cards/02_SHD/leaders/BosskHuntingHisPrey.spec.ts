@@ -100,7 +100,7 @@ describe('Bossk, Hunting his Prey', function () {
                 }
 
                 function resetAttack() {
-                    context.bossk.exhausted = false;
+                    context.readyCard(context.bossk);
                     context.setDamage(context.bossk, 0);
                 }
 

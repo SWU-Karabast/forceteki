@@ -19,8 +19,8 @@ describe('Punishing One', function() {
 
             it('should be able to ready when an upgraded enemy unit is defeated', function () {
                 const reset = (passAction = true) => {
-                    context.punishingOne.exhausted = false;
-                    context.punishingOne.damage = 0;
+                    context.readyCard(context.punishingOne);
+                    context.setDamage(context.punishingOne, 0);
                     if (passAction) {
                         context.player2.passAction();
                     }
@@ -68,7 +68,7 @@ describe('Punishing One', function() {
                 context.moveToNextActionPhase();
 
                 // CASE 5: Punishing One should not ready if a friendly upgraded unit is defeated
-                context.punishingOne.exhausted = true;
+                context.exhaustCard(context.punishingOne);
                 context.player1.passAction();
                 context.player2.clickCard(context.rivalsFall);
                 context.player2.clickCard(context.phaseiiiDarkTrooper);

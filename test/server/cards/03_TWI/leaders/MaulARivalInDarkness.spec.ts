@@ -25,7 +25,7 @@ describe('Maul, A Rival In Darkness', function() {
                 expect(context.p2Base.damage).toBe(4);
 
                 // Ready Zuckuss for a second attack to validate there's no Overwhelm
-                context.zuckussBountyHunterForHire.exhausted = false;
+                context.readyCard(context.zuckussBountyHunterForHire);
                 context.player2.passAction();
                 expect(context.player1).toBeActivePlayer();
 

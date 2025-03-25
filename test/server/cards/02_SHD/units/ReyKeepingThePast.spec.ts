@@ -34,9 +34,9 @@ describe('Rey, Keeping the Past', function() {
                 const { context } = contextRef;
 
                 const reset = (passAction = true) => {
-                    context.rey.exhausted = false;
-                    context.rey.damage = 0;
-                    context.wildRancor.damage = 2;
+                    context.readyCard(context.rey);
+                    context.setDamage(context.rey, 0);
+                    context.setDamage(context.wildRancor, 2);
                     if (passAction) {
                         context.player2.passAction();
                     }

@@ -25,7 +25,7 @@ describe('Chain Code Collector', function () {
                 expect(context.chainCodeCollector.damage).toBe(1);
 
                 expect(context.player2).toBeActivePlayer();
-                context.chainCodeCollector.exhausted = false;
+                context.readyCard(context.chainCodeCollector);
                 context.player2.passAction();
 
                 // attack battlefield marine, no bounty on it, nothing happens

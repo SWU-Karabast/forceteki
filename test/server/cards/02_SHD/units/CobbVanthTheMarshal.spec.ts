@@ -38,7 +38,7 @@ describe('Cobb Vanth, The Marshal', function() {
                 // perform an action so we don't double pass
                 context.player2.clickCard(context.systemPatrolCraft);
                 context.player2.clickCard(context.p1Base);
-                context.systemPatrolCraft.exhausted = false;
+                context.readyCard(context.systemPatrolCraft);
 
                 // Lets exhaust 100% of the resources to ensure it can still be played free of cost (ignoring aspect penalties too)
                 context.player1.exhaustResources(20);

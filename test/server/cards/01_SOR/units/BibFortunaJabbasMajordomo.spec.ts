@@ -17,7 +17,7 @@ describe('Bib Fortuna', function() {
                 const { context } = contextRef;
 
                 const reset = (passAction = true) => {
-                    context.bibFortuna.exhausted = false;
+                    context.readyCard(context.bibFortuna);
                     context.player1.moveCard(context.repair, 'hand');
                     context.player1.moveCard(context.confiscate, 'hand');
                     context.player1.readyResources(5);

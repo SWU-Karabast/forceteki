@@ -33,7 +33,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                 expect(context.p2Base.damage).toBe(0);
 
                 // play a villainy card
-                context.darthVader.exhausted = false;
+                context.readyCard(context.darthVader);
                 context.player2.passAction();
                 context.player1.clickCard(context.tielnFighter);
                 context.player2.passAction();

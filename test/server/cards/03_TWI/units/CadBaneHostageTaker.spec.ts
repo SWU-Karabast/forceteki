@@ -52,7 +52,7 @@ describe('Cad Bane, Hostage Taker', function() {
             context.player2.passAction();
 
             // Player 1 attacks with Cad Bane
-            context.cadBane.exhausted = false;
+            context.readyCard(context.cadBane);
             context.player1.clickCard(context.cadBane);
             context.player1.clickCard(context.p2Base);
 

@@ -22,7 +22,7 @@ describe('Mining Guild TIE Fighter', function() {
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
 
-                context.miningGuildTieFighter.exhausted = false;
+                context.readyCard(context.miningGuildTieFighter);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.miningGuildTieFighter);

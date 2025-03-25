@@ -35,7 +35,7 @@ describe('Mace Windu, Party Crasher', function() {
                 reset();
 
                 // CASE 2: Mace attacks and does not defeat, ability does not trigger
-                context.maceWindu.exhausted = false;
+                context.readyCard(context.maceWindu);
                 context.player1.clickCard(context.maceWindu);
                 context.player1.clickCard(context.atst);
                 expect(context.atst.damage).toBe(5);
@@ -45,7 +45,7 @@ describe('Mace Windu, Party Crasher', function() {
                 reset(false);
 
                 // CASE 3: Enemy attacks into Mace and dies, ability doesn't trigger
-                context.maceWindu.exhausted = true;
+                context.exhaustCard(context.maceWindu);
                 context.player2.clickCard(context.atst);
                 context.player2.clickCard(context.maceWindu);
                 expect(context.atst).toBeInZone('discard');
@@ -55,7 +55,7 @@ describe('Mace Windu, Party Crasher', function() {
                 reset(false);
 
                 // CASE 4: friendly unit trades with enemy unit, Mace ability does not trigger
-                context.maceWindu.exhausted = true;
+                context.exhaustCard(context.maceWindu);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.mandalorianWarrior);
                 expect(context.battlefieldMarine).toBeInZone('discard');
@@ -65,7 +65,7 @@ describe('Mace Windu, Party Crasher', function() {
                 reset();
 
                 // CASE 5: Mace dies while attacking, ability fizzles
-                context.maceWindu.exhausted = false;
+                context.readyCard(context.maceWindu);
                 context.player1.clickCard(context.maceWindu);
                 context.player1.clickCard(context.atatSuppressor);
                 expect(context.maceWindu).toBeInZone('discard');

@@ -22,7 +22,7 @@ describe('Let The Wookiee Win', function() {
                     context.player2.passAction();
                 };
 
-                context.isbAgent.exhausted = true;
+                context.exhaustCard(context.isbAgent);
 
                 // Scenario 1: choose to ready a friendly unit that is a wookiee and it is not exhausted
                 context.player1.clickCard(context.letTheWookieeWin);

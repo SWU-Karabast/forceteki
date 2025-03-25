@@ -16,7 +16,7 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                 const { context } = contextRef;
 
                 function reset(opponentPass = true) {
-                    context.zebOrrelios.exhausted = false;
+                    context.readyCard(context.zebOrrelios);
                     context.setDamage(context.zebOrrelios, 0);
                     if (opponentPass) {
                         context.player2.passAction();

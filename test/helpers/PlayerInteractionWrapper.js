@@ -668,6 +668,12 @@ class PlayerInteractionWrapper {
             card = this.findCardByName(card, zone, side);
         }
 
+        if (expectChange && !this.currentActionTargets.includes(card)) {
+            throw new TestSetupError(
+                `Couldn't click on '${card.internalName}' for ${this.player.name}. The card is not selectable!`
+            );
+        }
+
         let beforeClick = null;
         if (expectChange) {
             beforeClick = Util.getPlayerPromptState(this.player);
@@ -766,6 +772,7 @@ class PlayerInteractionWrapper {
         if (this.game.currentActionWindow) {
             this.game.currentActionWindow.activePlayer = this.player;
         }
+        Util.refreshGameState(this.game);
     }
 
     playAttachment(attachment, target) {
@@ -779,6 +786,7 @@ class PlayerInteractionWrapper {
 
     readyResources(number) {
         this.player.readyResources(number);
+        Util.refreshGameState(this.game);
     }
 
     playCharacterFromHand(card, fate = 0) {

@@ -99,7 +99,7 @@ describe('Smuggle keyword', function() {
             it('and the card is readied, will swap its state with an exhausted card before playing if possible', function () {
                 const { context } = contextRef;
 
-                context.covertStrength.exhausted = true;
+                context.exhaustCard(context.covertStrength);
 
                 context.player1.clickCard(context.collectionsStarhopper);
                 expect(context.collectionsStarhopper).toBeInZone('spaceArena');

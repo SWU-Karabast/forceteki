@@ -26,6 +26,8 @@ class GameStateBuilder {
             'nextPhase',
             'selectInitiativePlayer',
             'setDamage',
+            'readyCard',
+            'exhaustCard',
             'skipSetupPhase',
             'startGameAsync'
         ];

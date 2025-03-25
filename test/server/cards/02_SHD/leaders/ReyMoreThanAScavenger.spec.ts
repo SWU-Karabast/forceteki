@@ -65,7 +65,7 @@ describe('Rey, More Than a Scavenger', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(0);
 
                 // rey can give experience to herself
-                context.rey.exhausted = false;
+                context.readyCard(context.rey);
                 context.setDamage(context.p2Base, 0);
                 context.player2.passAction();
                 context.player1.clickCard(context.rey);

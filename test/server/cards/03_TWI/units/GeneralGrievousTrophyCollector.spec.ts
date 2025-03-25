@@ -66,7 +66,7 @@ describe('General Grievous, Trophy Collector', function () {
             expect(context.player2).toBeActivePlayer();
             context.player2.passAction();
             context.setDamage(context.p2Base, 0);
-            context.generalGrievous.exhausted = false;
+            context.readyCard(context.generalGrievous);
 
             // play a lightsaber upgrade on grievous, should ignore aspect penalty
             context.player1.clickCard(context.maceWindusLightsaber);
@@ -99,7 +99,7 @@ describe('General Grievous, Trophy Collector', function () {
             expect(context.lukeSkywalker.deployed).toBeFalse();
 
             context.setDamage(context.p2Base, 0);
-            context.generalGrievous.exhausted = false;
+            context.readyCard(context.generalGrievous);
             context.player2.passAction();
 
             // attack with grievous, he has 4 lightsaber upgrade, his ability should kill 4 units but can defeat only 1 unit

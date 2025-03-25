@@ -64,7 +64,7 @@ describe('First Legion Snow Trooper', function() {
 
                 // Reset state
                 context.player2.passAction();
-                context.firstLegionSnowtrooper.exhausted = false;
+                context.readyCard(context.firstLegionSnowtrooper);
 
                 // Case 2: Attacking base and not receiving +2/+0 and overwhelm
                 context.player1.clickCard(context.firstLegionSnowtrooper);
