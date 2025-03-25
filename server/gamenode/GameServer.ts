@@ -538,13 +538,31 @@ export class GameServer {
             if (!lobby) {
                 this.userLobbyMap.delete(user.id);
                 logger.info('GameServer: No lobby for', ioSocket.data.user.username, 'disconnecting');
+                ioSocket.emit('connection_error', 'Lobby does not exist');
                 ioSocket.disconnect();
+                return;
+            }
+
+            // there can be a race condition where two users hit `join-lobby` at the same time, so we need to check if the lobby is filled already
+            if (lobby.isFilled()) {
+                logger.info('GameServer: Lobby is full for user', user.username, 'disconnecting');
+                ioSocket.emit('connection_error', 'Lobby is full');
+                this.userLobbyMap.delete(user.id);
                 return;
             }
 
             // we get the user from the lobby since this way we can be sure it's the correct one.
             const socket = new Socket(ioSocket);
-            lobby.addLobbyUser(user, socket);
+
+            try {
+                lobby.addLobbyUser(user, socket);
+            } catch (err) {
+                this.userLobbyMap.delete(user.id);
+                ioSocket.emit('connection_error', 'Error connecting to lobby');
+                ioSocket.disconnect();
+                throw err;
+            }
+
             socket.send('connectedUser', user.id);
 
             // If a user refreshes while they are matched with another player in the queue they lose the requeue listener
@@ -597,6 +615,7 @@ export class GameServer {
             socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
             return;
         }
+
         // 3. if they are not in the lobby they could be in a queue
         const queuedPlayer = this.queue.findPlayerInQueue(user.id);
         if (queuedPlayer) {

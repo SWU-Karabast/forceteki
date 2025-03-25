@@ -211,6 +211,8 @@ export class Lobby {
     }
 
     public addLobbyUser(user, socket: Socket): void {
+        Contract.assertFalse(this.isFilled(), `Attempting to add user ${user.id} to lobby ${this.id}, but the lobby already has ${this.users.length} users`);
+
         const existingUser = this.users.find((u) => u.id === user.id);
         const existingSpectator = this.spectators.find((s) => s.id === user.id);
         if (existingSpectator) {
