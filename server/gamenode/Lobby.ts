@@ -481,23 +481,35 @@ export class Lobby {
     }
 
     private async onStartGameAsync() {
-        this.rematchRequest = null;
-        const game = new Game(this.buildGameSettings(), { router: this });
-        this.game = game;
-        game.started = true;
+        try {
+            this.rematchRequest = null;
+            const game = new Game(this.buildGameSettings(), { router: this });
+            this.game = game;
+            game.started = true;
 
-        logger.info(`Starting game id: ${game.id}`, { lobbyId: this.id });
+            logger.info(`Starting game id: ${game.id}`, { lobbyId: this.id });
 
-        // For each user, if they have a deck, select it in the game
-        this.users.forEach((user) => {
-            if (user.deck) {
-                game.selectDeck(user.id, user.deck);
+            // For each user, if they have a deck, select it in the game
+            this.users.forEach((user) => {
+                if (user.deck) {
+                    game.selectDeck(user.id, user.deck);
+                }
+            });
+
+            await game.initialiseAsync();
+
+            this.sendGameState(game);
+        } catch (error) {
+            if (this.gameType === MatchType.Quick) {
+                logger.error('Error attempting to start matchmaking lobby, cancelling and requeueing users', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+                this.server.removeLobby(this);
+
+                for (const user of this.users) {
+                    // this will end up resolving to a call to GameServer.requeueUser, putting them back in the queue
+                    user.socket.emit('matchmakingFailed', error.message);
+                }
             }
-        });
-
-        await game.initialiseAsync();
-
-        this.sendGameState(game);
+        }
     }
 
     private buildGameSettings(): GameConfiguration {

@@ -15,6 +15,11 @@ interface QueuedPlayer {
     user: User;
 }
 
+interface QueuedPlayerEntry {
+    format: SwuGameFormat;
+    player: QueuedPlayer;
+}
+
 export class QueueHandler {
     private queues: Map<SwuGameFormat, QueuedPlayer[]>;
 
@@ -26,19 +31,17 @@ export class QueueHandler {
         });
     }
 
-
     public addPlayer(format: SwuGameFormat, player: QueuedPlayer) {
         Contract.assertNotNullLike(player);
         Contract.assertNotNullLike(format);
 
-        const queuedPlayer = this.findPlayerInQueue(player.user.id);
-        if (queuedPlayer) {
-            logger.info(`User ${player.user.id} is already in queue, rejoining`);
+        const queueEntry = this.findPlayerInQueue(player.user.id);
+        if (queueEntry) {
+            logger.info(`User ${player.user.id} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${format}`);
             this.removePlayer(player.user.id);
         }
         this.queues.get(format)?.push(player);
     }
-
 
     public removePlayer(userId: string) {
         for (const queue of this.queues.values()) {
@@ -50,12 +53,11 @@ export class QueueHandler {
         }
     }
 
-
-    public findPlayerInQueue(userId: string): QueuedPlayer | null {
-        for (const queue of this.queues.values()) {
+    public findPlayerInQueue(userId: string): QueuedPlayerEntry | null {
+        for (const [format, queue] of this.queues.entries()) {
             const player = queue.find((p) => p.user.id === userId);
             if (player) {
-                return player;
+                return { player, format };
             }
         }
         return null;

@@ -599,8 +599,9 @@ export class GameServer {
         }
 
         // 3. if they are not in the lobby they could be in a queue
-        const queuedPlayer = this.queue.findPlayerInQueue(user.id);
-        if (queuedPlayer) {
+        const queueEntry = this.queue.findPlayerInQueue(user.id);
+        if (queueEntry) {
+            const queuedPlayer = queueEntry.player;
             queuedPlayer.socket = new Socket(ioSocket);
 
             // handle queue-specific events and add lobby disconnect
@@ -623,7 +624,7 @@ export class GameServer {
     private enterQueue(format: SwuGameFormat, user: any, deck: any): boolean {
         // Quick check: if they're already in a lobby, no queue
         if (this.userLobbyMap.has(user.id)) {
-            logger.info(`GameServer: User ${user.id} already in a lobby, ignoring queue request.`);
+            logger.info(`GameServer: User ${user.id} is in a lobby, ignoring queue request.`);
             return false;
         }
 
@@ -635,6 +636,7 @@ export class GameServer {
                 socket: null
             }
         );
+
         return true;
     }
 
@@ -725,19 +727,24 @@ export class GameServer {
     /**
      * requeues the user and removes him from the previous lobby. If the lobby is empty, it cleans it up.
      */
-    private async requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: any) {
-        if (this.userLobbyMap.has(user.id)) {
-            const lobbyId = this.userLobbyMap.get(user.id).lobbyId;
-            const lobby = this.lobbies.get(lobbyId);
+    public async requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: any) {
+        const userLobbyMapEntry = this.userLobbyMap.get(user.id);
+        if (userLobbyMapEntry) {
+            const lobbyId = userLobbyMapEntry.lobbyId;
             this.userLobbyMap.delete(user.id);
-            lobby.removeUser(user.id);
-            // check if lobby is empty
-            if (lobby.isEmpty()) {
-                // cleanup process
-                lobby.cleanLobby();
-                this.lobbies.delete(lobbyId);
+
+            const lobby = this.lobbies.get(lobbyId);
+            if (lobby) {
+                lobby.removeUser(user.id);
+                // check if lobby is empty
+                if (lobby.isEmpty()) {
+                    // cleanup process
+                    lobby.cleanLobby();
+                    this.lobbies.delete(lobbyId);
+                }
             }
         }
+
         // add user to queue
         this.queue.addPlayer(
             format,
@@ -758,9 +765,13 @@ export class GameServer {
         // Check if lobby is empty
         if (lobby?.isEmpty()) {
             // Start the cleanup process
-            lobby?.cleanLobby();
-            this.lobbies.delete(lobby?.id);
+            lobby.cleanLobby();
+            this.lobbies.delete(lobby.id);
         }
+    }
+
+    public removeLobby(lobby: Lobby) {
+        this.lobbies.delete(lobby.id);
     }
 
     public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {
