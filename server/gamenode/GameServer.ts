@@ -99,7 +99,7 @@ export class GameServer {
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
     private readonly userFactory: UserFactory = UserFactory.getInstance();
-    public readonly deckService: DeckService = DeckService.getInstance();
+    public readonly deckService: DeckService = new DeckService();
 
     private constructor(
         cardDataGetter: CardDataGetter,

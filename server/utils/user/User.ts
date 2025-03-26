@@ -1,4 +1,4 @@
-import type { IUserData } from '../../services/DynamoDBInterfaces';
+import type { IUserDataEntity } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class
@@ -49,9 +49,9 @@ export abstract class User {
  * Represents an authenticated user with a full account
  */
 export class AuthenticatedUser extends User {
-    public userData: IUserData;
+    public userData: IUserDataEntity;
 
-    public constructor(userData: IUserData) {
+    public constructor(userData: IUserDataEntity) {
         super();
         this.userData = userData;
     }

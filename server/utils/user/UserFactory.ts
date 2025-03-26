@@ -3,7 +3,7 @@ import { AuthenticatedUser, AnonymousUser } from './User';
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import jwt from 'jsonwebtoken';
-import { DynamoDBService } from '../../services/DynamoDBService';
+import { dynamoDbService } from '../../services/DynamoDBService';
 
 
 /**
@@ -11,7 +11,7 @@ import { DynamoDBService } from '../../services/DynamoDBService';
  * based on authentication status and data
  */
 export class UserFactory {
-    private dynamoDbService: DynamoDBService;
+    private dynamoDbService: typeof dynamoDbService;
     private static instance: UserFactory;
 
     // Singleton pattern
@@ -23,7 +23,7 @@ export class UserFactory {
     }
 
     private constructor() {
-        this.dynamoDbService = DynamoDBService.getInstance();
+        this.dynamoDbService = dynamoDbService;
     }
 
     /**
@@ -78,8 +78,8 @@ export class UserFactory {
             }
 
             // Check if username was changed recently (within the last 30 days)
-            if (userProfile.username_set_at) {
-                const lastChange = new Date(userProfile.username_set_at).getTime();
+            if (userProfile.usernameSetAt) {
+                const lastChange = new Date(userProfile.usernameSetAt).getTime();
                 const now = Date.now();
                 const daysSinceLastChange = (now - lastChange) / (1000 * 60 * 60 * 24);
 
@@ -96,7 +96,7 @@ export class UserFactory {
             // Update username and set the timestamp
             await this.dynamoDbService.updateUserProfile(userId, {
                 username: newUsername,
-                username_set_at: new Date().toISOString()
+                usernameSetAt: new Date().toISOString()
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);
@@ -188,7 +188,7 @@ export class UserFactory {
                 username: username,
                 lastLogin: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
-                username_set_at: new Date().toISOString(),
+                usernameSetAt: new Date().toISOString(),
                 preferences: { cardback: 'default' },
             };
 

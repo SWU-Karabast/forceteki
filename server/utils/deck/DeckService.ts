@@ -1,32 +1,15 @@
-import { DynamoDBService } from '../../services/DynamoDBService';
-import type {IDeckData, IDeckStats, ILocalStorageDeckData} from '../../services/DynamoDBInterfaces';
+import { dynamoDbService } from '../../services/DynamoDBService';
+import type { IDeckDataEntity, IDeckStatsEntity, ILocalStorageDeckData } from '../../services/DynamoDBInterfaces';
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import type { User } from '../user/User';
+import * as Contract from '../../game/core/utils/Contract';
 
 /**
  * Service class for handling deck-related operations
  */
 export class DeckService {
-    private dbService: DynamoDBService;
-    private static instance: DeckService;
-
-    /**
-     * Get the singleton instance of DeckService
-     */
-    public static getInstance(): DeckService {
-        if (!DeckService.instance) {
-            DeckService.instance = new DeckService();
-        }
-        return DeckService.instance;
-    }
-
-    /**
-     * Private constructor to enforce singleton pattern
-     */
-    private constructor() {
-        this.dbService = DynamoDBService.getInstance();
-    }
+    private dbService: typeof dynamoDbService = dynamoDbService;
 
     /**
      * Get all decks for a user with favorites first
@@ -46,18 +29,7 @@ export class DeckService {
                     // Extract just the inner deck object which matches ILocalStorageDeckData
                     ...deckData.deck,
                     deckID: deckData.id
-                }))
-                .sort((a, b) => {
-                    // First sort by favorite status (favorites first)
-                    if (a.favourite && !b.favourite) {
-                        return -1;
-                    }
-                    if (!a.favourite && b.favourite) {
-                        return 1;
-                    }
-                    // Then alphabetically by name if needed
-                    return a.name.localeCompare(b.name);
-                });
+                }));
         } catch (error) {
             logger.error(`Error retrieving decks for user ${userId}:`, error);
             return [];
@@ -89,7 +61,7 @@ export class DeckService {
                 }
 
                 // Create new deck entry with proper format
-                const deckData: IDeckData = {
+                const deckData: IDeckDataEntity = {
                     id: uuid(), // Generate a unique ID for the deck
                     userId: userId,
                     deck: {
@@ -98,7 +70,7 @@ export class DeckService {
                         name: unsyncedDeck.name,
                         favourite: unsyncedDeck.favourite,
                         deckLink: unsyncedDeck.deckLink,
-                        deckLID: unsyncedDeck.deckLID,
+                        deckLinkID: unsyncedDeck.deckLinkID,
                         source: unsyncedDeck.source
                     },
                     stats: {
@@ -123,11 +95,11 @@ export class DeckService {
      * @param user submitting user
      * @returns Promise that resolves to the saved deck ID
      */
-    public async saveDeck(deckData: IDeckData, user: User): Promise<string> {
+    public async saveDeck(deckData: IDeckDataEntity, user: User): Promise<string> {
         try {
             // Make sure the deck has the required fields
             if (!deckData.userId || !deckData.deck) {
-                throw new Error('Deck data is missing required fields');
+                throw new Error('Deck data is missing required fields "userId" and "deck"');
             }
 
             // Check if a deck with this link already exists for this user
@@ -136,7 +108,7 @@ export class DeckService {
                 const existingDeck = await this.dbService.getDeckByLink(user.getId(), deckLink);
 
                 if (existingDeck) {
-                    // If the deck already exists, update it instead of creating a new one TODO delete this after dev
+                    // If the deck already exists, update it instead of creating a new one
                     logger.info(`DeckService: Deck with link ${deckLink} already exists for user ${user.getUsername()}, updating existing deck`);
 
                     // Use the existing deck's ID
@@ -179,10 +151,10 @@ export class DeckService {
      */
     public async deleteDecks(userId: string, deckIds: string[]): Promise<string[]> {
         try {
-            if (!userId || !deckIds || deckIds.length === 0) {
-                logger.warn(`DeckService: Invalid parameters for delete operation. userId: ${userId}, deckIds: ${deckIds}`);
-                return [];
-            }
+            Contract.assertTrue(
+                userId && deckIds && deckIds.length > 0,
+                `DeckService: Invalid parameters for delete operation. userId: ${userId}, deckIds: ${deckIds}`
+            );
 
             const deletedDeckIds: string[] = [];
             const failedDeckIds: string[] = [];
@@ -207,11 +179,6 @@ export class DeckService {
                     failedDeckIds.push(deckId);
                 }
             }
-
-            if (failedDeckIds.length > 0) {
-                logger.warn(`DeckService: Failed to delete ${failedDeckIds.length} decks: ${failedDeckIds.join(', ')}`);
-            }
-
             return deletedDeckIds;
         } catch (error) {
             logger.error(`DeckService: Error during batch delete operation for user ${userId}:`, error);
@@ -234,7 +201,7 @@ export class DeckService {
         result: 'win' | 'loss' | 'draw',
         opponentLeaderId: string,
         opponentBaseId: string
-    ): Promise<IDeckStats> {
+    ): Promise<IDeckStatsEntity> {
         try {
             // Get the deck using our new flexible lookup method
             const deck = await this.getDeckById(userId, deckId);
@@ -245,7 +212,7 @@ export class DeckService {
             }
 
             // Initialize stats if they don't exist
-            const stats: IDeckStats = deck.stats || {
+            const stats: IDeckStatsEntity = deck.stats || {
                 wins: 0,
                 losses: 0,
                 draws: 0,
@@ -258,12 +225,18 @@ export class DeckService {
             }
 
             // Update overall stats
-            if (result === 'win') {
-                stats.wins += 1;
-            } else if (result === 'loss') {
-                stats.losses += 1;
-            } else {
-                stats.draws += 1;
+            switch (result) {
+                case 'win':
+                    stats.wins += 1;
+                    break;
+                case 'loss':
+                    stats.losses += 1;
+                    break;
+                case 'draw':
+                    stats.draws += 1;
+                    break;
+                default:
+                    Contract.fail(`Invalid match result: ${result}`);
             }
 
             // Find or create opponent stat
@@ -282,14 +255,19 @@ export class DeckService {
             }
 
             // Update opponent-specific stats
-            if (result === 'win') {
-                opponentStat.wins += 1;
-            } else if (result === 'loss') {
-                opponentStat.losses += 1;
-            } else {
-                opponentStat.draws += 1;
+            switch (result) {
+                case 'win':
+                    opponentStat.wins += 1;
+                    break;
+                case 'loss':
+                    opponentStat.losses += 1;
+                    break;
+                case 'draw':
+                    opponentStat.draws += 1;
+                    break;
+                default:
+                    Contract.fail(`Invalid match result for opponent stats: ${result}`);
             }
-
             // Save updated stats
             await this.dbService.updateItem(
                 `USER#${userId}`,
@@ -298,7 +276,7 @@ export class DeckService {
                 { ':stats': stats }
             );
 
-            logger.info(`DeckService: Updated stats for deck ${deckId}, user ${userId}, result: ${result}, opponent leader: ${opponentLeaderId}, opponent base: ${opponentBaseId}`);
+            logger.info(`DeckService: Updated stats for deck ${deckId}, user ${userId}, result: ${result}, opponent leader: ${opponentLeaderId}, opponent base: ${opponentBaseId}, stats: ${stats}`);
             return stats;
         } catch (error) {
             logger.error(`Error updating deck stats for deck ${deckId}, user ${userId}:`, error);
@@ -307,12 +285,12 @@ export class DeckService {
     }
 
     /**
-     * Get a deck by its ID, with fallback to check deckID and deckLID properties
+     * Get a deck by its ID, with fallback to check deckID and deckLinkID properties
      * @param userId User ID
-     * @param deckId Deck ID, deckID, or deckLID to search for
+     * @param deckId Deck ID, deckID, or deckLinkID to search for
      * @returns Promise that resolves to the deck data if found, null otherwise
      */
-    public async getDeckById(userId: string, deckId: string): Promise<IDeckData | null> {
+    public async getDeckById(userId: string, deckId: string): Promise<IDeckDataEntity | null> {
         try {
             // First, try direct lookup by ID
             let deck = await this.dbService.getDeck(userId, deckId);
@@ -322,8 +300,8 @@ export class DeckService {
                 return deck;
             }
 
-            // If not found directly, try to find by deckID or deckLID property
-            logger.info(`DeckService: Deck with ID ${deckId} not found directly for user ${userId}, trying to find by deckID/deckLID properties`);
+            // If not found directly, try to find by deckID or deckLinkID property
+            logger.info(`DeckService: Deck with ID ${deckId} not found directly for user ${userId}, trying to find by deckID/deckLinkID properties`);
 
             // Get all decks for the user
             const allDecks = await this.dbService.getUserDecks(userId);
@@ -331,17 +309,17 @@ export class DeckService {
             if (allDecks && allDecks.length > 0) {
                 // Find a deck where deck.deck.deckLID or deck.deck.deckID matches the provided deckId
                 deck = allDecks.find((d) =>
-                    (d.deck.deckLID && d.deck.deckLID === deckId)
+                    (d.deck.deckLinkID && d.deck.deckLinkID === deckId)
                 );
 
                 if (deck) {
-                    logger.info(`DeckService: Found deck with matching deckID/deckLID property: ${deck.id}`);
+                    logger.info(`DeckService: Found deck with matching deckID/deckLinkID property: ${deck.id}`);
                     return deck;
                 }
             }
 
             // Not found by any method
-            logger.info(`DeckService: Deck with ID ${deckId} not found for user ${userId} (checked both direct ID and deckID/deckLID properties)`);
+            logger.error(`DeckService: Deck with ID ${deckId} not found for user ${userId} (checked both direct ID and deckID/deckLinkID properties)`);
             return null;
         } catch (error) {
             logger.error(`Error getting deck by ID ${deckId} for user ${userId}:`, error);

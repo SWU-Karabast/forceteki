@@ -9,27 +9,15 @@ import {
     UpdateCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
-import type { IDeckData, IUserProfileData } from './DynamoDBInterfaces';
+import type { IDeckDataEntity, IUserProfileDataEntity } from './DynamoDBInterfaces';
 
-export class DynamoDBService {
+class DynamoDBService {
     private client: DynamoDBDocumentClient;
     private tableName: string;
     private isLocalMode: boolean;
 
-    // singleton instance
-    private static instance: DynamoDBService;
-
-    // Static method to get the singleton instance
-    public static getInstance(localMode?: boolean): DynamoDBService {
-        if (!DynamoDBService.instance) {
-            DynamoDBService.instance = new DynamoDBService(localMode);
-        }
-        return DynamoDBService.instance;
-    }
-
-
-    public constructor(localMode?: boolean) {
-        this.isLocalMode = localMode || process.env.ENVIRONMENT === 'development';
+    public constructor() {
+        this.isLocalMode = process.env.ENVIRONMENT === 'development';
         this.tableName = 'KarabastGlobalTable';
         // Configure the DynamoDB client
         let dbClientConfig: any = {
@@ -213,12 +201,12 @@ export class DynamoDBService {
 
     // User Profile Methods
 
-    public async saveUserProfile(userData: IUserProfileData) {
+    public async saveUserProfile(userData: IUserProfileDataEntity) {
         const item = {
             pk: `USER#${userData.id}`,
             sk: 'PROFILE',
             ...userData,
-            username_set_at: userData.username_set_at || new Date().toISOString(),
+            usernameSetAt: userData.usernameSetAt || new Date().toISOString(),
             preferences: userData.preferences || { cardback: 'default' },
         };
         return await this.putItem(item);
@@ -227,11 +215,11 @@ export class DynamoDBService {
     public async getUserProfile(userId: string) {
         return await this.executeDbOperation(async () => {
             const result = await this.getItem(`USER#${userId}`, 'PROFILE');
-            return result.Item as IUserProfileData | undefined;
+            return result.Item as IUserProfileDataEntity | undefined;
         }, 'Error getting user profile');
     }
 
-    public async updateUserProfile(userId: string, updates: Partial<IUserProfileData>) {
+    public async updateUserProfile(userId: string, updates: Partial<IUserProfileDataEntity>) {
         return await this.executeDbOperation(async () => {
             // Build update expression and expression attribute values
             let updateExpression = 'SET';
@@ -312,7 +300,7 @@ export class DynamoDBService {
     }
 
     // User Deck Methods
-    public async saveDeck(deckData: IDeckData) {
+    public async saveDeck(deckData: IDeckDataEntity) {
         return await this.executeDbOperation(async () => {
             const item = {
                 pk: `USER#${deckData.userId}`,
@@ -328,7 +316,7 @@ export class DynamoDBService {
     public async getDeck(userId: string, deckId: string) {
         return await this.executeDbOperation(async () => {
             const result = await this.getItem(`USER#${userId}`, `DECK#${deckId}`);
-            return result.Item as IDeckData | undefined;
+            return result.Item as IDeckDataEntity | undefined;
         }, 'Error getting deck');
     }
 
@@ -339,7 +327,7 @@ export class DynamoDBService {
      * @param deckLink The deck link to search for
      * @returns The deck data if found, undefined otherwise
      */
-    public async getDeckByLink(userId: string, deckLink: string): Promise<IDeckData | undefined> {
+    public async getDeckByLink(userId: string, deckLink: string): Promise<IDeckDataEntity | undefined> {
         return await this.executeDbOperation(async () => {
             // Query all decks for this user
             const result = await this.queryItems(`USER#${userId}`, { beginsWith: 'DECK#' });
@@ -351,14 +339,14 @@ export class DynamoDBService {
             // Find the deck with matching deckLink
             return result.Items.find((item: any) =>
                 item.deck && item.deck.deckLink === deckLink
-            ) as IDeckData | undefined;
+            ) as IDeckDataEntity | undefined;
         }, 'Error finding deck by link');
     }
 
     public async getUserDecks(userId: string) {
         return await this.executeDbOperation(async () => {
             const result = await this.queryItems(`USER#${userId}`, { beginsWith: 'DECK#' });
-            return result.Items as IDeckData[] | undefined;
+            return result.Items as IDeckDataEntity[] | undefined;
         }, 'Error getting user decks');
     }
 
@@ -415,3 +403,5 @@ export class DynamoDBService {
         }, 'Error clearing local DynamoDB data');
     }
 }
+
+export const dynamoDbService = new DynamoDBService();

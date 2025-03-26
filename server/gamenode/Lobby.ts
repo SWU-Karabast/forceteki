@@ -165,7 +165,7 @@ export class Lobby {
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck
         }));
-        logger.info(`Creating username: ${user.getUsername()}, id: ${user.getPlayerId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.username, userId: user.id });
+        logger.info(`Creating username: ${user.getUsername()}, id: ${user.getPlayerId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getPlayerId() });
         this.gameChat.addMessage(`${user.getUsername()} has created and joined the lobby`);
 
         this.updateUserLastActivity(user.getPlayerId());
@@ -197,7 +197,7 @@ export class Lobby {
         } else {
             this.sendLobbyStateToSpectator(socket);
         }
-        logger.info(`Adding spectator: ${user.getUsername()}, id: ${user.getPlayerId()} (${this.spectators.length} spectator(s))`, { lobbyId: this.id, userName: user.username, userId: user.id });
+        logger.info(`Adding spectator: ${user.getUsername()}, id: ${user.getPlayerId()} (${this.spectators.length} spectator(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getPlayerId() });
     }
 
     public removeSpectator(id: string): void {
@@ -232,7 +232,7 @@ export class Lobby {
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
-            logger.info(`addLobbyUser: setting state to connected for existing user: ${user.getUsername()}`, { lobbyId: this.id, userName: user.username, userId: user.id });
+            logger.info(`addLobbyUser: setting state to connected for existing user: ${user.getUsername()}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getPlayerId() });
         } else {
             this.users.push({
                 id: user.getPlayerId(),
@@ -241,7 +241,7 @@ export class Lobby {
                 ready: false,
                 socket
             });
-            logger.info(`addLobbyUser: adding username: ${user.getUsername()}, id: ${user.getPlayerId()} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.username, userId: user.id });
+            logger.info(`addLobbyUser: adding username: ${user.getUsername()}, id: ${user.getPlayerId()} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getPlayerId() });
             this.gameChat.addMessage(`${user.getUsername()} has joined the lobby`);
         }
 
@@ -252,7 +252,7 @@ export class Lobby {
         } else {
             // do a check to make sure that the lobby owner is still registered in the lobby. if not, set the incoming user as the new lobby owner.
             if (this.server.getUserLobbyId(this.lobbyOwnerId) !== this.id) {
-                logger.info(`Lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.getPlayerId()}`, { lobbyId: this.id, userName: user.username, userId: user.id });
+                logger.info(`Lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.getPlayerId()}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getPlayerId() });
                 this.removeUser(this.lobbyOwnerId);
                 this.lobbyOwnerId = user.getPlayerId();
             }
