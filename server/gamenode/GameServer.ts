@@ -544,7 +544,7 @@ export class GameServer {
             }
 
             // there can be a race condition where two users hit `join-lobby` at the same time, so we need to check if the lobby is filled already
-            if (lobby.isFilled()) {
+            if (lobby.isFilled() && !lobby.hasPlayer(user.id)) {
                 logger.info('GameServer: Lobby is full for user', user.username, 'disconnecting');
                 ioSocket.emit('connection_error', 'Lobby is full');
                 this.userLobbyMap.delete(user.id);

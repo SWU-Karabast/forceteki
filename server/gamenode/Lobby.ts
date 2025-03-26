@@ -146,6 +146,10 @@ export class Lobby {
         this.userLastActivity.set(id, now);
     }
 
+    public hasPlayer(id: string) {
+        return this.users.some((u) => u.id === id);
+    }
+
     public createLobbyUser(user, decklist = null): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
@@ -211,8 +215,6 @@ export class Lobby {
     }
 
     public addLobbyUser(user, socket: Socket): void {
-        Contract.assertFalse(this.isFilled(), `Attempting to add user ${user.id} to lobby ${this.id}, but the lobby already has ${this.users.length} users`);
-
         const existingUser = this.users.find((u) => u.id === user.id);
         const existingSpectator = this.spectators.find((s) => s.id === user.id);
         if (existingSpectator) {
@@ -221,6 +223,9 @@ export class Lobby {
             socket.disconnect();
             return;
         }
+
+        Contract.assertFalse(!existingUser && this.isFilled(), `Attempting to add user ${user.id} to lobby ${this.id}, but the lobby already has ${this.users.length} users`);
+
         // we check if listeners for the events already exist
         if (socket.eventContainsListener('game') || socket.eventContainsListener('lobby')) {
             socket.removeEventsListeners(['game', 'lobby']);
