@@ -2,7 +2,7 @@ import type { IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStand
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import { ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';

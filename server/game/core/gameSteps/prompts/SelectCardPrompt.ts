@@ -4,7 +4,7 @@ import type BaseCardSelector from '../../cardSelector/BaseCardSelector';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import type Game from '../../Game';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import type { ISelectCardPromptProperties } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';

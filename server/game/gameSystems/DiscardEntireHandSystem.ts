@@ -1,7 +1,7 @@
 import { EventName, ZoneName } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import * as Helpers from '../core/utils/Helpers.js';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';

@@ -2,7 +2,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
-import type Player from '../../../core/Player';
+import type { Player } from '../../../core/Player';
 import { Trait } from '../../../core/Constants';
 
 export default class MistHunterTheFindsmansPursuit extends NonLeaderUnitCard {

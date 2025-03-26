@@ -1,6 +1,6 @@
 const { ZoneName, DeckZoneDestination, DeployType } = require('../../server/game/core/Constants.js');
 const Game = require('../../server/game/core/Game.js');
-const Player = require('../../server/game/core/Player.js');
+const { Player } = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const TestSetupError = require('./TestSetupError.js');

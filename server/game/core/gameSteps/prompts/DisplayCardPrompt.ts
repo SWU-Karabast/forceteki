@@ -1,7 +1,7 @@
 import { PromptType } from '../../Constants';
 import type Game from '../../Game';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { DisplayCardSelectionState, type IDisplayCard, type IDisplayCardPromptPropertiesBase } from '../PromptInterfaces';

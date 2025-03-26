@@ -2,7 +2,7 @@ import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { Card } from '../core/card/Card';
 import type { CardType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { StateWatcherRegistrar } from '../core/stateWatcher/StateWatcherRegistrar';
 import * as EnumHelpers from '../core/utils/EnumHelpers';

@@ -3,7 +3,7 @@ import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { UpgradeCard } from '../card/UpgradeCard';
 import { WildcardCardType } from '../Constants';
 import type Game from '../Game';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { IZoneState } from './SimpleZone';
 import { SimpleZone } from './SimpleZone';
 import type { IZoneCardFilterProperties } from './ZoneAbstract';

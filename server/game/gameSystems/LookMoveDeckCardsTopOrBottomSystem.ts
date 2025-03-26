@@ -8,7 +8,7 @@ import { MoveCardSystem } from './MoveCardSystem';
 import * as Contract from '../core/utils/Contract';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import { ViewCardInteractMode } from './ViewCardSystem';
 
 export interface ILookMoveDeckCardsTopOrBottomProperties extends IPlayerTargetSystemProperties {

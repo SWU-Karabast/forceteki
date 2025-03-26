@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import { MetaEventName } from '../core/Constants.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
-import type Player from '../core/Player.js';
+import type { Player } from '../core/Player.js';
 
 export interface ILoseGameProperties extends IPlayerTargetSystemProperties {
     target: Player;

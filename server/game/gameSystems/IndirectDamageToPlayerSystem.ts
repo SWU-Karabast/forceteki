@@ -4,7 +4,7 @@ import { EffectName, EventName } from '../core/Constants.js';
 import type { GameEvent } from '../core/event/GameEvent.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
-import type Player from '../core/Player.js';
+import type { Player } from '../core/Player.js';
 import { DistributeIndirectDamageToCardsSystem } from './DistributeIndirectDamageToCardsSystem.js';
 
 export interface IIndirectDamageToPlayerProperties extends IPlayerTargetSystemProperties {

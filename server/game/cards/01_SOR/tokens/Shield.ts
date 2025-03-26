@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
-import type Player from '../../../core/Player';
+import type { Player } from '../../../core/Player';
 
 export default class Shield extends TokenUpgradeCard {
     /** Indicates that the shield be prioritized for removal if multiple shields are present (currently only for Jetpack) */

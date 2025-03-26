@@ -5,7 +5,7 @@ import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/Units
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { Card } from '../../../core/card/Card';
-import type Player from '../../../core/Player';
+import type { Player } from '../../../core/Player';
 
 export default class AFineAddition extends EventCard {
     private unitsDefeatedWatcher: UnitsDefeatedThisPhaseWatcher;
