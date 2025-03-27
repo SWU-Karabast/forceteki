@@ -83,7 +83,7 @@ describe('Regroup phase', function() {
                     expect(context.player2).toHaveExactPromptButtons(['Done']);
                     context.player2.clickPrompt('Done');
 
-                    expect(context.getChatLogs(4)).toContain('player1 has resourced 1 cards from hand');
+                    expect(context.getChatLogs(4)).toContain('player1 has resourced 1 card from hand');
                     expect(context.getChatLogs(4)).toContain('player2 has not resourced any cards');
 
                     // check resources

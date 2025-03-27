@@ -37,7 +37,7 @@ export default class Shield extends TokenUpgradeCard {
                 target: this,
                 replacementImmediateEffect: AbilityHelper.immediateEffects.defeat()
             },
-            effect: 'shield prevents {1} from taking damage',
+            effect: 'prevent {1} from taking damage',
             effectArgs: (context) => [context.source.parentCard],
         });
     }

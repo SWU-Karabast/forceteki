@@ -28,9 +28,9 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         const properties = this.generatePropertiesFromContext(context);
 
         if (properties.amount === 1) {
-            return ['{0} creates a {1}', [properties.target, this.getTokenType()]];
+            return ['create a {0}', [this.getTokenType()]];
         }
-        return ['{0} creates {1} {2}s', [properties.target, properties.amount, this.getTokenType()]];
+        return ['create {0} {1}s', [properties.amount, this.getTokenType()]];
     }
 
     protected abstract getTokenType(): TokenUnitName;

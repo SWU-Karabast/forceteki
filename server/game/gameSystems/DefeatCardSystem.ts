@@ -65,8 +65,8 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         }
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return ['defeat {0}', [properties.target]];
     }
 

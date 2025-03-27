@@ -25,6 +25,10 @@ describe('Shield', function() {
 
                 expect(context.shield).toBeInZone('outsideTheGame');
                 expect(context.tielnFighter.isUpgraded()).toBe(false);
+                expect(context.getChatLogs(2)).toEqual([
+                    'Cartel Spacer attacks TIE/ln Fighter',
+                    'player2 uses Shield to prevent TIE/ln Fighter from taking damage',
+                ]);
 
                 // second attack to confirm that shield effect is off
                 context.player2.clickCard(context.tielnFighter);
