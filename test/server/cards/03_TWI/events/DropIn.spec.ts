@@ -18,7 +18,7 @@ describe('Drop In', function () {
             expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.exhausted)).toBeTrue();
             expect(context.player2.getArenaCards().length).toBe(0);
             expect(context.getChatLogs(1)).toEqual([
-                'player1 plays Drop In to create 2 cloneTroopers',
+                'player1 plays Drop In to create 2 Clone Troopers',
             ]);
         });
     });
