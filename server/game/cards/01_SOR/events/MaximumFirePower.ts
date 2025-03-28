@@ -1,10 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
-import {
-    RelativePlayer,
-    Trait,
-    WildcardCardType,
-    WildcardZoneName
-} from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 
 export default class MaximumFirePower extends EventCard {
@@ -29,8 +24,7 @@ export default class MaximumFirePower extends EventCard {
                     dependsOn: 'firstImperial',
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (_, context) => (context.player.getUnitsInPlay(WildcardZoneName.AnyArena,
-                        (card) => card.hasSomeTrait(Trait.Imperial)).length > 0),
+                    cardCondition: (_, context) => (context.player.getArenaUnits({ trait: Trait.Imperial }).length > 0),
                     immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                         amount: context.targets.firstImperial.getPower(),
                         source: context.targets.firstImperial,

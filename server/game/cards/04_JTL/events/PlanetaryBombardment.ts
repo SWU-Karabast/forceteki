@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { TargetMode, Trait, WildcardZoneName } from '../../../core/Constants';
+import { TargetMode, Trait } from '../../../core/Constants';
 
 export default class PlanetaryBombardment extends EventCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class PlanetaryBombardment extends EventCard {
             targetResolver: {
                 mode: TargetMode.Player,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.hasSomeTrait(Trait.CapitalShip)).length > 0,
+                    condition: (context) => context.player.getArenaUnits({ trait: Trait.CapitalShip }).length > 0,
                     onTrue: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 12 }),
                     onFalse: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 8 })
                 })

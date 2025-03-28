@@ -14,7 +14,7 @@ export default class Evacuate extends EventCard {
             title: 'Return each non-leader unit to its owner\'s hand',
             immediateEffect: AbilityHelper.immediateEffects.returnToHand((context) => {
                 // Reminder -- upgrades will get detached automatically during the leaves play handler
-                const allUnits = context.player.getUnitsInPlay().concat(context.player.opponent.getUnitsInPlay());
+                const allUnits = context.player.getArenaUnits().concat(context.player.opponent.getArenaUnits());
                 const allNonLeaderUnits = allUnits.filter((unit) => !unit.isLeader());
                 return { target: allNonLeaderUnits };
             })

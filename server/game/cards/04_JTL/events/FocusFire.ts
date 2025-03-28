@@ -23,7 +23,7 @@ export default class FocusFire extends EventCard {
 
     private getDamageFromContext(context: AbilityContext) {
         const arenaName = context.target.zoneName;
-        const friendlyVehicleUnits = context.player.getUnitsInPlay(arenaName).filter((unit) => unit.isUnit() && unit.hasSomeTrait(Trait.Vehicle));
+        const friendlyVehicleUnits = context.player.getArenaUnits({ arena: arenaName }).filter((unit) => unit.isUnit() && unit.hasSomeTrait(Trait.Vehicle));
         const damageEffects = [];
         friendlyVehicleUnits.forEach((unit) => {
             const damageEffect = AbilityHelper.immediateEffects.damage({ target: context.target, amount: unit.getPower(), source: unit });

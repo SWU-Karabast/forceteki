@@ -17,7 +17,7 @@ export default class TheDarksaber extends UpgradeCard {
         this.addGainOnAttackAbilityTargetingAttached({
             title: 'Give an Experience token to each other friendly Mandalorian unit',
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => {
-                const mandalorians = context.player.getUnitsInPlay().filter((unit) => unit.hasSomeTrait(Trait.Mandalorian) && unit !== context.source);
+                const mandalorians = context.player.getArenaUnits().filter((unit) => unit.hasSomeTrait(Trait.Mandalorian) && unit !== context.source);
                 return { target: mandalorians };
             })
         });
