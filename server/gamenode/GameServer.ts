@@ -605,7 +605,7 @@ export class GameServer {
             queuedPlayer.socket = new Socket(ioSocket);
 
             // handle queue-specific events and add lobby disconnect
-            queuedPlayer.socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
+            queuedPlayer.socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id, true));
 
             await this.matchmakeAllQueues();
             return;
@@ -717,7 +717,7 @@ export class GameServer {
         }
 
         lobby.addLobbyUser(player.user, socket);
-        socket.registerEvent('disconnect', () => this.onSocketDisconnected(socket.socket, player.user.id));
+        socket.registerEvent('disconnect', () => this.onSocketDisconnected(socket.socket, player.user.id, true));
 
         if (!socket.eventContainsListener('requeue')) {
             socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck));
@@ -774,7 +774,11 @@ export class GameServer {
         this.lobbies.delete(lobby.id);
     }
 
-    public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {
+    public onSocketDisconnected(
+        socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>,
+        id: string,
+        isQuickMatch = false
+    ) {
         try {
             // always try removing the player from all queues, just to be safe
             this.queue.removePlayer(id);
@@ -795,17 +799,33 @@ export class GameServer {
             // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
             //  without triggering onSocketDisconnect
             lobby?.setUserDisconnected(id);
+
+            const timeoutValue = isQuickMatch ? 3000 : 20000;
+
             setTimeout(() => {
                 try {
                     // Check if the user is still disconnected after the timer
                     if (lobby?.getUserState(id) === 'disconnected') {
                         this.userLobbyMap.delete(id);
-                        this.removeUserMaybeCleanupLobby(lobby, id);
+
+                        if (!isQuickMatch) {
+                            this.removeUserMaybeCleanupLobby(lobby, id);
+                        } else {
+                            lobby.removeUser(id);
+                            for (const user of lobby.users) {
+                                user.socket.send('matchmakingError', 'Player disconnected');
+                                this.userLobbyMap.delete(user.id);
+                            }
+
+                            // Start the cleanup process for the lobby itself
+                            lobby.cleanLobby();
+                            this.lobbies.delete(lobby.id);
+                        }
                     }
                 } catch (err) {
                     logger.error('Error in setTimeout for onSocketDisconnected:', err);
                 }
-            }, 20000);
+            }, timeoutValue);
         } catch (err) {
             logger.error('Error in onSocketDisconnected:', err);
         }

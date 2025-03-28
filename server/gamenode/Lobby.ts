@@ -506,7 +506,7 @@ export class Lobby {
 
                 for (const user of this.users) {
                     // this will end up resolving to a call to GameServer.requeueUser, putting them back in the queue
-                    user.socket.emit('matchmakingFailed', error.message);
+                    user.socket.send('matchmakingFailed', error.message);
                 }
             }
         }
