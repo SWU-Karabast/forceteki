@@ -18,7 +18,8 @@ import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
-import { QueueHandler } from './QueueHandler';
+import type { QueuedPlayer } from './QueueHandler';
+import { QueuedPlayerState, QueueHandler } from './QueueHandler';
 
 /**
  * Represents a user object
@@ -34,15 +35,6 @@ interface User {
 
 interface SocketData {
     manualDisconnect?: boolean;
-}
-
-/**
- * Represents a player waiting in the queue.
- */
-interface IQueuedPlayer {
-    deck: Deck;
-    socket?: Socket;
-    user: User;
 }
 
 enum UserRole {
@@ -605,7 +597,7 @@ export class GameServer {
             queuedPlayer.socket = new Socket(ioSocket);
 
             // handle queue-specific events and add lobby disconnect
-            queuedPlayer.socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id, true));
+            queuedPlayer.socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(ioSocket, queueEntry.player));
 
             await this.matchmakeAllQueues();
             return;
@@ -677,7 +669,7 @@ export class GameServer {
     /**
      * Matchmake two users in a queue
      */
-    private matchmakeQueuePlayers(format: SwuGameFormat, [p1, p2]: [IQueuedPlayer, IQueuedPlayer]): void {
+    private matchmakeQueuePlayers(format: SwuGameFormat, [p1, p2]: [QueuedPlayer, QueuedPlayer]): void {
         Contract.assertFalse(p1.user.id === p2.user.id, 'Cannot matchmake the same user');
         // Create a new Lobby
         const lobby = new Lobby(
@@ -710,14 +702,14 @@ export class GameServer {
         logger.info(`GameServer: Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
     }
 
-    private setupQueueSocket(player: IQueuedPlayer, lobby: Lobby, format: SwuGameFormat) {
+    private setupQueueSocket(player: QueuedPlayer, lobby: Lobby, format: SwuGameFormat) {
         const socket = player?.socket;
         if (!socket) {
             return;
         }
 
         lobby.addLobbyUser(player.user, socket);
-        socket.registerEvent('disconnect', () => this.onSocketDisconnected(socket.socket, player.user.id, true));
+        socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket.socket, player));
 
         if (!socket.eventContainsListener('requeue')) {
             socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck));
@@ -774,10 +766,27 @@ export class GameServer {
         this.lobbies.delete(lobby.id);
     }
 
+    public onQueueSocketDisconnected(
+        socket: Socket,
+        player: QueuedPlayer
+    ) {
+        const isMatchmaking =
+            player.state === QueuedPlayerState.MatchingCountdown ||
+            player.state === QueuedPlayerState.WaitingInQueue;
+
+        // TODO THIS PR: set timeout to 3 seconds
+
+        // if in the matchmaking process, timeout is 3 seconds - otherwise use the default
+        const timeoutSeconds = isMatchmaking ? 1 : null;
+
+        this.onSocketDisconnected(socket.socket, player.user.id, timeoutSeconds, isMatchmaking);
+    }
+
     public onSocketDisconnected(
         socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>,
         id: string,
-        isQuickMatch = false
+        timeoutSeconds = 20,
+        isMatchmaking = false
     ) {
         try {
             // always try removing the player from all queues, just to be safe
@@ -800,8 +809,10 @@ export class GameServer {
             //  without triggering onSocketDisconnect
             lobby?.setUserDisconnected(id);
 
-            const timeoutValue = isQuickMatch ? 100 : 20000;
-            logger.info(`isQuickMatch: ${isQuickMatch}, timeoutValue: ${timeoutValue}`);
+            // TODO THIS PR: change the match window timeout to 3 seconds
+
+            const timeoutValue = timeoutSeconds * 1000;
+            logger.info(`isQuickMatch: ${isMatchmaking}, timeoutValue: ${timeoutValue} ms`);
 
             setTimeout(() => {
                 try {
@@ -809,7 +820,7 @@ export class GameServer {
                     if (lobby?.getUserState(id) === 'disconnected') {
                         this.userLobbyMap.delete(id);
 
-                        if (!isQuickMatch) {
+                        if (!isMatchmaking) {
                             this.removeUserMaybeCleanupLobby(lobby, id);
                         } else {
                             lobby.removeUser(id);

@@ -9,10 +9,20 @@ interface User {
     username: string;
 }
 
-interface QueuedPlayer {
+export enum QueuedPlayerState {
+    WaitingInQueue = 'waitingInQueue',
+    MatchingCountdown = 'matchingCountDown',
+    GameStarted = 'gameStarted',
+}
+
+export interface QueuedPlayerToAdd {
     deck: Deck;
     socket?: Socket;
     user: User;
+}
+
+export interface QueuedPlayer extends QueuedPlayerToAdd {
+    state: QueuedPlayerState;
 }
 
 interface QueuedPlayerEntry {
@@ -31,7 +41,7 @@ export class QueueHandler {
         });
     }
 
-    public addPlayer(format: SwuGameFormat, player: QueuedPlayer) {
+    public addPlayer(format: SwuGameFormat, player: QueuedPlayerToAdd) {
         Contract.assertNotNullLike(player);
         Contract.assertNotNullLike(format);
 
@@ -40,7 +50,7 @@ export class QueueHandler {
             logger.info(`User ${player.user.id} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${format}`);
             this.removePlayer(player.user.id);
         }
-        this.queues.get(format)?.push(player);
+        this.queues.get(format)?.push({ ...player, state: QueuedPlayerState.WaitingInQueue });
     }
 
     public removePlayer(userId: string) {
