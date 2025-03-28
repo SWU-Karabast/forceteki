@@ -800,7 +800,8 @@ export class GameServer {
             //  without triggering onSocketDisconnect
             lobby?.setUserDisconnected(id);
 
-            const timeoutValue = isQuickMatch ? 3000 : 20000;
+            const timeoutValue = isQuickMatch ? 100 : 20000;
+            logger.info(`isQuickMatch: ${isQuickMatch}, timeoutValue: ${timeoutValue}`);
 
             setTimeout(() => {
                 try {
@@ -814,7 +815,7 @@ export class GameServer {
                             lobby.removeUser(id);
                             for (const user of lobby.users) {
                                 logger.error(`Requeueing user ${user.id} after matched user disconnected`);
-                                user.socket.send('matchmakingError', 'Player disconnected');
+                                user.socket.send('matchmakingFailed', 'Player disconnected');
                                 // this.userLobbyMap.delete(user.id);
                             }
 

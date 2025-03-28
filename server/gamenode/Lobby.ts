@@ -502,7 +502,7 @@ export class Lobby {
         } catch (error) {
             if (this.gameType === MatchType.Quick) {
                 logger.error('Error attempting to start matchmaking lobby, cancelling and requeueing users', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-                this.server.removeLobby(this);
+                // this.server.removeLobby(this);
 
                 for (const user of this.users) {
                     // this will end up resolving to a call to GameServer.requeueUser, putting them back in the queue
