@@ -11,8 +11,7 @@ interface User {
 
 export enum QueuedPlayerState {
     WaitingInQueue = 'waitingInQueue',
-    MatchingCountdown = 'matchingCountDown',
-    GameStarted = 'gameStarted',
+    MatchingCountdown = 'matchingCountDown'
 }
 
 export interface QueuedPlayerToAdd {
@@ -83,7 +82,10 @@ export class QueueHandler {
         const p1 = queue.shift();
         const p2 = queue.shift();
 
-        return p1 && p2 ? [p1, p2] : null;
+        Contract.assertNotNullLike(p1);
+        Contract.assertNotNullLike(p2);
+
+        return [p1, p2];
     }
 
     // Check if any format has enough players for matchmaking

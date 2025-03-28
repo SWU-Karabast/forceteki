@@ -489,6 +489,11 @@ export class Lobby {
 
             logger.info(`Starting game id: ${game.id}`, { lobbyId: this.id });
 
+            // Give each user the standard disconnect handler (longer timeout than during matchmaking)
+            this.users.forEach((user) => {
+                this.server.registerDisconnect(user.socket, user.id);
+            });
+
             // For each user, if they have a deck, select it in the game
             this.users.forEach((user) => {
                 if (user.deck) {
@@ -502,7 +507,7 @@ export class Lobby {
         } catch (error) {
             if (this.gameType === MatchType.Quick) {
                 logger.error('Error attempting to start matchmaking lobby, cancelling and requeueing users', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-                // this.server.removeLobby(this);
+                this.server.removeLobby(this);
 
                 for (const user of this.users) {
                     // this will end up resolving to a call to GameServer.requeueUser, putting them back in the queue

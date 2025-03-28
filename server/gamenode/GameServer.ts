@@ -474,6 +474,12 @@ export class GameServer {
     //     next();
     // }
 
+    public registerDisconnect(ioSocket: any, userId: string) {
+        ioSocket.registerEvent('disconnect', () => {
+            this.onSocketDisconnected(ioSocket, userId);
+        });
+    }
+
     public async onConnection(ioSocket) {
         const user = JSON.parse(ioSocket.handshake.query.user);
         const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
@@ -508,9 +514,7 @@ export class GameServer {
                 return;
             }
             const socket = new Socket(ioSocket);
-            socket.registerEvent('disconnect', () => {
-                this.onSocketDisconnected(ioSocket, user.id);
-            });
+            this.registerDisconnect(ioSocket, user.id);
             lobby.addSpectator(user, socket);
             return;
         }
@@ -547,7 +551,7 @@ export class GameServer {
                     socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
                 }
             }
-            socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
+            this.registerDisconnect(socket, user.id);
             return;
         }
 
@@ -580,13 +584,13 @@ export class GameServer {
                 const newUser = { username: 'Player2', id: user.id };
                 lobby.addLobbyUser(newUser, socket);
                 this.userLobbyMap.set(newUser.id, { lobbyId: lobby.id, role: UserRole.Player });
-                socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
+                this.registerDisconnect(ioSocket, user.id);
                 return;
             }
 
             lobby.addLobbyUser(user, socket);
             this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Player });
-            socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
+            this.registerDisconnect(ioSocket, user.id);
             return;
         }
 
@@ -640,17 +644,19 @@ export class GameServer {
             let exceptionCount = 0;
 
             while (true) {
-                const matchedPlayers = this.queue.getNextMatchPair(format);
-                if (!matchedPlayers) {
-                    break;
-                }
+                let matchedPlayers: [QueuedPlayer, QueuedPlayer];
 
                 // try-catch here so that all matchmaking doesn't halt on a single failure
                 try {
+                    matchedPlayers = this.queue.getNextMatchPair(format);
+                    if (!matchedPlayers) {
+                        break;
+                    }
+
                     this.matchmakeQueuePlayers(format, matchedPlayers);
                 } catch (error) {
                     logger.error(
-                        `Error matchmaking players ${matchedPlayers.map((p) => p?.user?.id).join(', ')}`,
+                        `Error matchmaking players ${matchedPlayers?.map((p) => p?.user?.id).join(', ')} for format ${format}`,
                         { error: { message: error.message, stack: error.stack } }
                     );
 
@@ -698,6 +704,9 @@ export class GameServer {
         // this needs to be here since we only send start game via the LobbyOwner.
         lobby.setLobbyOwner(p1.user.id);
         lobby.sendLobbyState();
+
+        p1.state = QueuedPlayerState.MatchingCountdown;
+        p2.state = QueuedPlayerState.MatchingCountdown;
 
         logger.info(`GameServer: Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
     }
@@ -827,12 +836,12 @@ export class GameServer {
                             for (const user of lobby.users) {
                                 logger.error(`Requeueing user ${user.id} after matched user disconnected`);
                                 user.socket.send('matchmakingFailed', 'Player disconnected');
-                                // this.userLobbyMap.delete(user.id);
+                                this.userLobbyMap.delete(user.id);
                             }
 
-                            // // Start the cleanup process for the lobby itself
-                            // lobby.cleanLobby();
-                            // this.lobbies.delete(lobby.id);
+                            // Start the cleanup process for the lobby itself
+                            lobby.cleanLobby();
+                            this.lobbies.delete(lobby.id);
                         }
                     }
                 } catch (err) {
