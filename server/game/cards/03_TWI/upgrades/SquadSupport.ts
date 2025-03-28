@@ -17,7 +17,7 @@ export default class SquadSupport extends UpgradeCard {
         this.addGainConstantAbilityTargetingAttached({
             title: 'This unit gets +1/+1 for each Trooper unit you control.',
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats((target) => {
-                const trooperUnits = target.controller.getUnitsInPlayWithTrait(Trait.Trooper);
+                const trooperUnits = target.controller.getArenaUnits({ trait: Trait.Trooper });
                 return {
                     power: trooperUnits.length,
                     hp: trooperUnits.length,

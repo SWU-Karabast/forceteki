@@ -23,7 +23,7 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
                     AbilityHelper.immediateEffects.damage((context) => {
                         return {
                             amount: 3,
-                            target: context.game.getOtherPlayer(context.player).getUnitsInPlay(ZoneName.GroundArena)
+                            target: context.game.getOtherPlayer(context.player).getArenaUnits({ arena: ZoneName.GroundArena })
                         };
                     })
                 ], true)

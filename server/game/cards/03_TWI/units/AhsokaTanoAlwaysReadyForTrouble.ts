@@ -27,7 +27,7 @@ export default class AhsokaTanoAlwaysReadyForTrouble extends NonLeaderUnitCard {
             condition: (context) => {
                 const player = context.player;
                 const opponent = player.opponent;
-                return player.getUnitsInPlay().length < opponent.getUnitsInPlay().length;
+                return player.getArenaUnits().length < opponent.getArenaUnits().length;
             },
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
         });

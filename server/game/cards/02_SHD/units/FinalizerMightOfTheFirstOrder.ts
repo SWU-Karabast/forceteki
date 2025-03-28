@@ -27,7 +27,7 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 canChooseNoCards: true,
                 numCardsFunc: (context) => Math.min(
-                    context.player.getUnitsInPlay().length,
+                    context.player.getArenaUnits().length,
                     this.countOpponentNonLeaderUnitsInPlay(context, WildcardZoneName.AnyArena)
                 ),
                 multiSelectCardCondition: (card, selectedCards, context) => this.countOpponentNonLeaderUnitsInPlay(context, card.zoneName) > this.countSelectedCardsInZone(selectedCards, card.zoneName),
@@ -53,10 +53,10 @@ export default class FinalizerMightOfTheFirstOrder extends NonLeaderUnitCard {
 
     private countOpponentNonLeaderUnitsInPlay(context: AbilityContext, zoneName: ZoneName | WildcardZoneName.AnyArena): number {
         Contract.assertTrue(EnumHelpers.isArena(zoneName), `Zone ${zoneName} must be an arena`);
-        return context.player.opponent.getUnitsInPlay(
-            zoneName,
-            (card) => card.isNonLeaderUnit()
-        ).length;
+        return context.player.opponent.getArenaUnits({
+            arena: zoneName,
+            condition: (card) => card.isNonLeaderUnit()
+        }).length;
     }
 
     private countSelectedCardsInZone(selectedCards: Card[], zoneName: ZoneName): number {

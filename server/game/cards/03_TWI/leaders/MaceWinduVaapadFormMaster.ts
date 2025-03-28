@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -37,7 +37,7 @@ export default class MaceWinduVaapadFormMaster extends LeaderUnitCard {
                 onLeaderDeployed: (event, context) => event.card === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                target: context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.isUnit() && card.damage > 0),
+                target: context.player.opponent.getArenaUnits({ condition: (card) => card.isUnit() && card.damage > 0 }),
                 amount: 2
             })),
         });

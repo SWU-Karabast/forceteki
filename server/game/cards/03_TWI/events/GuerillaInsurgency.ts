@@ -33,7 +33,7 @@ export default class GuerillaInsurgency extends EventCard {
                 })),
                 AbilityHelper.immediateEffects.damage((context) => ({
                     amount: 4,
-                    target: context.game.getPlayers().reduce((units, player) => units.concat(player.getUnitsInPlay(ZoneName.GroundArena)), [])
+                    target: context.game.getPlayers().reduce((units, player) => units.concat(player.getArenaUnits({ arena: ZoneName.GroundArena })), [])
                 }))
             ])
         });

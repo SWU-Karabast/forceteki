@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
-import { RelativePlayer, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class ResoluteUnderAnakinsCommand extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -28,7 +27,7 @@ export default class ResoluteUnderAnakinsCommand extends NonLeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                     amount: 2,
-                    target: context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (c: IUnitCard) => c.title === context.target.title)
+                    target: context.player.opponent.getArenaUnits({ condition: (card) => card.isUnit() && card.title === context.target.title })
                 })),
             }
         });

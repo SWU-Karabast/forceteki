@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName, WildcardZoneName } from '../../../core/Constants';
+import { KeywordName } from '../../../core/Constants';
 
 export default class SugiHiredGuardian extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,7 +13,7 @@ export default class SugiHiredGuardian extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'Gain Sentinel while an enemy unit is upgraded',
-            condition: (context) => context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.isUpgraded()).length > 0,
+            condition: (context) => context.player.opponent.getArenaUnits({ condition: (card) => card.isUnit() && card.isUpgraded() }).length > 0,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
     }

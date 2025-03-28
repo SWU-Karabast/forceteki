@@ -1,5 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { AbilityType, KeywordName, Trait, WildcardZoneName } from '../../../core/Constants';
+import { AbilityType, KeywordName, Trait } from '../../../core/Constants';
 import { EventCard } from '../../../core/card/EventCard';
 
 export default class InDefenseOfKamino extends EventCard {
@@ -23,7 +23,7 @@ export default class InDefenseOfKamino extends EventCard {
                         immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper()
                     })
                 ],
-                target: context.player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.hasSomeTrait(Trait.Republic))
+                target: context.player.getArenaUnits({ trait: Trait.Republic })
             }))
         });
     }

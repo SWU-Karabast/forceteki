@@ -1,5 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
-import { Trait, WildcardZoneName } from '../../../core/Constants';
+import { Trait } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
@@ -33,8 +33,8 @@ export default class ExecuteOrder66 extends EventCard {
     }
 
     private getJedisInPlay(context): Card[] {
-        const playerJedis = context.player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.hasSomeTrait(Trait.Jedi) && card.isUnit());
-        const opponentJedis = context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.hasSomeTrait(Trait.Jedi) && card.isUnit());
+        const playerJedis = context.player.getArenaUnits({ condition: (card) => card.hasSomeTrait(Trait.Jedi) && card.isUnit() });
+        const opponentJedis = context.player.opponent.getArenaUnits({ condition: (card) => card.hasSomeTrait(Trait.Jedi) && card.isUnit() });
         return playerJedis.concat(opponentJedis);
     }
 

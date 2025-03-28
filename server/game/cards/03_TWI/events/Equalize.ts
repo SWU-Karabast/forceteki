@@ -21,7 +21,7 @@ export default class Equalize extends EventCard {
             },
             then: (thenContext) => ({
                 title: 'Give another unit –2/–2 for this phase',
-                thenCondition: (context) => context.player.getUnitsInPlay().length < context.player.opponent.getUnitsInPlay().length,
+                thenCondition: (context) => context.player.getArenaUnits().length < context.player.opponent.getArenaUnits().length,
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     cardCondition: (card) => thenContext.target !== card,

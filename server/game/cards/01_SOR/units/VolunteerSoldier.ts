@@ -12,7 +12,7 @@ export default class VolunteerSoldier extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addDecreaseCostAbility({
             title: 'If you control a Trooper unit, this unit costs 1 less to play',
-            condition: (context) => context.player.getOtherUnitsInPlayWithTrait(context.source, Trait.Trooper).length > 0,
+            condition: (context) => context.player.getArenaUnits({ otherThan: context.source, trait: Trait.Trooper }).length > 0,
             amount: 1
         });
     }

@@ -35,12 +35,12 @@ export default class QiraIAloneSuvived extends LeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.heal((context) => {
-                    const allUnits = context.player.getUnitsInPlay().concat(context.player.opponent.getUnitsInPlay());
+                    const allUnits = context.player.getArenaUnits().concat(context.player.opponent.getArenaUnits());
                     const healAmount = (card) => card.damage;
                     return { amount: healAmount, target: allUnits };
                 }),
                 AbilityHelper.immediateEffects.damage((context) => {
-                    const allUnits = context.player.getUnitsInPlay().concat(context.player.opponent.getUnitsInPlay());
+                    const allUnits = context.player.getArenaUnits().concat(context.player.opponent.getArenaUnits());
                     const damageAmount = (card) => Math.floor(card.getHp() / 2);
                     return { amount: damageAmount, target: allUnits };
                 })

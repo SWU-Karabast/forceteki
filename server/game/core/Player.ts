@@ -9,8 +9,17 @@ import { CostAdjustType } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
 import { PlayerPromptState } from './PlayerPromptState.js';
 import * as Contract from './utils/Contract';
-import type { CardType, Aspect, KeywordName, Trait, MoveZoneDestination } from './Constants';
-import { EffectName, ZoneName, RelativePlayer, WildcardZoneName, PlayType, WildcardCardType, WildcardRelativePlayer, Stage } from './Constants';
+import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
+import {
+    EffectName,
+    PlayType,
+    RelativePlayer,
+    Stage,
+    WildcardCardType,
+    WildcardRelativePlayer,
+    WildcardZoneName,
+    ZoneName
+} from './Constants';
 
 import * as EnumHelpers from './utils/EnumHelpers';
 import * as Helpers from './utils/Helpers';
@@ -27,7 +36,10 @@ import type { Card } from './card/Card';
 import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
 import type { User } from '../../Settings';
 import type { IClock } from './clocks/IClock';
-import type { IAllArenasForPlayerCardFilterProperties, IAllArenasForPlayerSpecificTypeCardFilterProperties } from './zone/AllArenasZone';
+import type {
+    IAllArenasForPlayerCardFilterProperties,
+    IAllArenasForPlayerSpecificTypeCardFilterProperties
+} from './zone/AllArenasZone';
 import type { IInPlayCard } from './card/baseClasses/InPlayCard';
 import type { ICardWithExhaustProperty, IPlayableCard } from './card/baseClasses/PlayableOrDeployableCard';
 import type { Zone } from '../Interfaces';
@@ -202,6 +214,7 @@ export class Player extends GameObject<IPlayerState> {
      * Get all units in designated play arena(s) controlled by this player
      * @param arena Arena to select units from
      * @param cardCondition Condition to filter cards
+     * @deprecated getArenaUnits() should be used instead
      */
     public getUnitsInPlay(arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: IUnitCard) => boolean = () => true) {
         return this.getArenaUnits({ arena, condition: cardCondition });
@@ -226,6 +239,7 @@ export class Player extends GameObject<IPlayerState> {
     /**
      * Get all units in designated play arena(s) controlled by this player
      * @param {Trait} trait Get units with this trait
+     * @deprecated getArenaUnits() should be used instead
      */
     public getUnitsInPlayWithTrait(trait: Trait) {
         return this.getArenaUnits({ trait });
@@ -236,6 +250,7 @@ export class Player extends GameObject<IPlayerState> {
      * @param { any } ignoreUnit Unit to filter from the returned results
      * @param { Trait } trait The Trait to check for
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
+     * @deprecated use getArenaUnits() instead
      */
     public getOtherUnitsInPlayWithTrait(ignoreUnit: any, trait: Trait, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena) {
         return this.getArenaCards({ otherThan: ignoreUnit, trait, arena }).filter((card) => card.isUnit() && card !== ignoreUnit && card.hasSomeTrait(trait));
@@ -247,6 +262,7 @@ export class Player extends GameObject<IPlayerState> {
      * @param { Aspect } aspect Aspect needed for units
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      * @param {(card: Card) => boolean} [cardCondition=(card) => true]
+     * @deprecated getArenaUnits() should be used instead
      */
     public getUnitsInPlayWithAspect(aspect: Aspect, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: Card) => boolean = () => true) {
         return this.getArenaUnits({ aspect, arena, condition: cardCondition });
@@ -257,6 +273,7 @@ export class Player extends GameObject<IPlayerState> {
      * @param { any } ignoreUnit Unit to filter from the returned results
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      * @param {(card: Card) => boolean} [cardCondition=(card) => true]
+     * @deprecated use getArenaUnits() instead
      */
     public getOtherUnitsInPlay(ignoreUnit: any, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: Card) => boolean = () => true) {
         return this.getArenaUnits({ otherThan: ignoreUnit, arena, condition: cardCondition });
@@ -268,6 +285,7 @@ export class Player extends GameObject<IPlayerState> {
      * @param { Aspect } aspect Aspect needed for units
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      * @param {(card: Card) => boolean} [cardCondition=(card) => true]
+     * @deprecated use getArenaUnits() instead
      */
     public getOtherUnitsInPlayWithAspect(ignoreUnit: any, aspect: Aspect, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: Card) => boolean = () => true) {
         return this.getArenaUnits({ otherThan: ignoreUnit, aspect, arena, condition: cardCondition });

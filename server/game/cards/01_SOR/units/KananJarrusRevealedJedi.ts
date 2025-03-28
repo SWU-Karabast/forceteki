@@ -17,7 +17,7 @@ export default class KananJarrusRevealedJedi extends NonLeaderUnitCard {
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.sequential([
                 AbilityHelper.immediateEffects.discardFromDeck((context) => ({
-                    amount: context.player.getUnitsInPlayWithTrait(Trait.Spectre).length,
+                    amount: context.player.getArenaUnits({ trait: Trait.Spectre }).length,
                     target: context.source.activeAttack.target.controller
                 })),
                 AbilityHelper.immediateEffects.heal((context) => ({
