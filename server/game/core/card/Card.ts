@@ -121,6 +121,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected actionAbilities: ActionAbility[] = [];
     protected constantAbilities: IConstantAbility[] = [];
     protected disableWhenDefeatedCheck = false;
+    protected disableYouMayCheck = false;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
     protected get hiddenForController() {

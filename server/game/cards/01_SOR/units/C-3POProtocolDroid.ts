@@ -12,6 +12,8 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
+        this.disableYouMayCheck = true;
+
         this.addTriggeredAbility({
             title: 'Choose a number',
             when: {

@@ -1,6 +1,6 @@
 import type { IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
-import { ZoneName } from '../../Constants';
+import { EffectName, ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
 import type { Player } from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
@@ -329,6 +329,47 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
             !this.triggeredAbilities.some((ability) => ability.isWhenDefeated),
             `Card ${this.internalName} has one or more 'When Defeated' keywords in its text but no corresponding ability definition or set property 'disableWhenDefeatedCheck' to true on card implementation`
         );
+
+        const cardTextCopy = cardText.slice().replace(/you may play it for its smuggle cost/g, '');
+        if (cardTextCopy.includes('ou may') && !this.disableYouMayCheck) {
+            this.checkHasOptionalAbility();
+        }
+    }
+
+    private checkHasOptionalAbility() {
+        for (const ability of this.triggeredAbilities) {
+            if (ability.optional || ability.targetResolvers && ability.targetResolvers.some((resolver) => resolver.optional)) {
+                return;
+            }
+
+            const subAbilityStep = ability.properties.then || ability.properties.ifYouDo || ability.properties.ifYouDoNot;
+
+            // check if the ability has a sub-ability step (like then or ifYouDo) that is optional
+            if (subAbilityStep) {
+                const subAbilityStepProps = ability.getConcreteSubAbilityStepProperties(subAbilityStep, this.game.getFrameworkContext(this.owner));
+
+                if (subAbilityStepProps.optional) {
+                    return;
+                }
+            }
+        }
+
+        for (const ability of this.constantAbilities) {
+            const { ongoingEffect, ...propertiesWithoutEffect } = ability;
+
+            for (const effectFactory of Helpers.asArray(ongoingEffect)) {
+                const effectDefinition = effectFactory(this.game, this, propertiesWithoutEffect as any);
+
+                if (
+                    effectDefinition.impl.type === EffectName.GainAbility &&
+                    'valueWrapper' in effectDefinition.impl &&
+                    (effectDefinition.impl.valueWrapper as any).value.optional) {
+                    return;
+                }
+            }
+        }
+
+        Contract.fail(`Card ${this.internalName} has 'you may' in its text but no corresponding optional ability definition was detected. Set property 'disableYouMayCheck' to true on card implementation to disable this if it's a false alert.`);
     }
 
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************
