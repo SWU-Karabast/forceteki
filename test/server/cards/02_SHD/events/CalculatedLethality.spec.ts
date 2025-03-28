@@ -71,7 +71,7 @@ describe('Calculated Lethality', function () {
                 expect(context.corellianFreighter).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             });
         });
-        // TODO ADD A TEST WITH LURKIN TIE PHANTOM
+
         describe('Calculated Lethality\'s ability', function () {
             it('should not be able to defeat lurking tie phantom', async function () {
                 await contextRef.setupTestAsync({
@@ -87,7 +87,6 @@ describe('Calculated Lethality', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.calculatedLethality);
-                context.player1.clickCard(context.lurkingTiePhantom);
 
                 expect(context.calculatedLethality).toBeInZone('discard', context.player1);
                 expect(context.lurkingTiePhantom).toBeInZone('spaceArena', context.player2);
