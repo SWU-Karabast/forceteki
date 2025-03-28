@@ -70,7 +70,29 @@ describe('Calculated Lethality', function () {
                 expect(context.fifthBrother).toBeInZone('discard');
                 expect(context.corellianFreighter).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
             });
-            // TODO ADD A TEST WITH LURKIN TIE PHANTOM
+        });
+        // TODO ADD A TEST WITH LURKIN TIE PHANTOM
+        describe('Calculated Lethality\'s ability', function () {
+            it('should not be able to defeat lurking tie phantom', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['calculated-lethality'],
+                    },
+                    player2: {
+                        spaceArena: ['lurking-tie-phantom'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.calculatedLethality);
+                context.player1.clickCard(context.lurkingTiePhantom);
+
+                expect(context.calculatedLethality).toBeInZone('discard', context.player1);
+                expect(context.lurkingTiePhantom).toBeInZone('spaceArena', context.player2);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

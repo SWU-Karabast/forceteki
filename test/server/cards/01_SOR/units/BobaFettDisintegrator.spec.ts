@@ -1,8 +1,6 @@
 describe('Boba Fett, Disintegrator', function() {
     integration(function(contextRef) {
         describe('Boba Fett, Disintegrator\'s ability', function () {
-            const { context } = contextRef;
-
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -112,6 +110,38 @@ describe('Boba Fett, Disintegrator', function() {
                 expect(context.consularSecurityForce.damage).toBe(8);
 
                 // TODO check with units rescued from being captured
+            });
+        });
+
+        describe('Boba Fett, Disintegrator\'s ability', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['discerning-veteran'],
+                        groundArena: ['boba-fett#disintegrator'],
+                    },
+                    player2: {
+                        groundArena: ['maul#shadow-collective-visionary'],
+                        hand: ['takedown'],
+                    }
+                });
+            });
+
+            it('should not be able to 3 damage on attack to card rescued from capture as it entered play this phase', function () {
+                const { context } = contextRef;
+
+                context.moveToNextActionPhase();
+                context.player1.clickCard(context.discerningVeteran);
+                context.player1.clickCard(context.maul);
+
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.discerningVeteran);
+
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickCard(context.maul);
+
+                expect(context.maul.damage).toBe(3);
             });
         });
     });

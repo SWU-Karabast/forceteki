@@ -1,6 +1,6 @@
-describe('Chirrut Îmwe, One with the Force', function() {
-    integration(function(contextRef) {
-        it('Chirrut\'s undeployed ability', async function() {
+describe('Chirrut Îmwe, One with the Force', function () {
+    integration(function (contextRef) {
+        it('Chirrut\'s undeployed ability', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -50,7 +50,7 @@ describe('Chirrut Îmwe, One with the Force', function() {
             expect(context.tielnFighter.getHp()).toBe(1);
         });
 
-        describe('Chirrut\'s deployed ability', function() {
+        describe('Chirrut\'s deployed ability', function () {
             it('prevents him from being defeated by damage during the action phase', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -137,8 +137,40 @@ describe('Chirrut Îmwe, One with the Force', function() {
                 // Chirrut is defeated at the end of the phase
                 context.moveToRegroupPhase();
                 expect(context.chirrutImwe).toBeInZone('base');
+            });
 
-                // TODO: once Luke is implemented, try his effect to send Chirrut max HP below 0 and confirm he still survives
+            it('prevents him from being defeated by Luke HP reduction', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'chirrut-imwe#one-with-the-force', deployed: true }
+                    },
+                    player2: {
+                        groundArena: ['escort-skiff'],
+                        hand: ['luke-skywalker#jedi-knight']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // deal 4 damage to Chirrut
+                context.player1.clickCard(context.chirrutImwe);
+                context.player1.clickCard(context.escortSkiff);
+
+                // apply -3 HP effect with Luke
+                context.player2.clickCard(context.lukeSkywalkerJediKnight);
+                context.player2.clickCard(context.chirrutImwe);
+
+                // Chirrut should survive because of his ability
+                expect(context.chirrutImwe).toBeInZone('groundArena');
+
+                // move to next action phase
+                context.moveToNextActionPhase();
+                expect(context.chirrutImwe).toBeInZone('groundArena');
+
+                // Chirrut is not defeated at the end of the phase as Luke's ability ends at the end of the phase
+                context.moveToRegroupPhase();
+                expect(context.chirrutImwe).toBeInZone('groundArena');
             });
         });
     });
