@@ -130,6 +130,28 @@ describe('Boba Fett, Daimyo', function () {
         });
 
         // TODO should add tests with timely intervention or ecl
+        describe('Boba Fett\'s leader ability', function () {
+            it('should give +1/+0 to other friendly unit when gaining keyword by timely intervention', async () => {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['timely-intervention', 'battlefield-marine'],
+                        leader: { card: 'boba-fett#daimyo', deployed: true },
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.timelyIntervention);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(4);
+            });
+        });
 
         describe('Boba Fett\'s leader unit ability', function () {
             it('should give +1/+0 to other friendly unit with keyword', async function () {
