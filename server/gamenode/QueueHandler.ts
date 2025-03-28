@@ -9,15 +9,16 @@ interface User {
     username: string;
 }
 
-export enum QueuedPlayerState {
-    WaitingInQueue = 'waitingInQueue',
-    MatchingCountdown = 'matchingCountDown'
-}
-
 export interface QueuedPlayerToAdd {
     deck: Deck;
     socket?: Socket;
     user: User;
+}
+
+export enum QueuedPlayerState {
+    Connected = 'connected',
+    Disconnected = 'disconnected',
+    WaitingForConnection = 'waitingForConnection',
 }
 
 export interface QueuedPlayer extends QueuedPlayerToAdd {
@@ -31,6 +32,7 @@ interface QueuedPlayerEntry {
 
 export class QueueHandler {
     private queues: Map<SwuGameFormat, QueuedPlayer[]>;
+    private playersWaitingToConnect: QueuedPlayerEntry[] = [];
 
     public constructor() {
         this.queues = new Map<SwuGameFormat, QueuedPlayer[]>();
@@ -40,6 +42,7 @@ export class QueueHandler {
         });
     }
 
+    /** Adds an entry for a player, but they can't match until they actually connect */
     public addPlayer(format: SwuGameFormat, player: QueuedPlayerToAdd) {
         Contract.assertNotNullLike(player);
         Contract.assertNotNullLike(format);
@@ -49,7 +52,41 @@ export class QueueHandler {
             logger.info(`User ${player.user.id} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${format}`);
             this.removePlayer(player.user.id);
         }
-        this.queues.get(format)?.push({ ...player, state: QueuedPlayerState.WaitingInQueue });
+
+        this.playersWaitingToConnect.push({
+            format,
+            player: { ...player, state: QueuedPlayerState.WaitingForConnection }
+        });
+
+        // if the player has an active socket, immediately connect them
+        if (player.socket) {
+            this.connectPlayer(player.user.id, player.socket);
+        }
+    }
+
+    /** Connects a player that has been added to the queue */
+    public connectPlayer(userId: string, socket: Socket) {
+        let playerEntry: QueuedPlayerEntry;
+
+        const queueEntry = this.findPlayerInQueue(userId);
+        if (queueEntry) {
+            playerEntry = queueEntry;
+
+            logger.info(`User ${userId} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${playerEntry.format}`);
+            this.removePlayer(userId);
+        } else {
+            const notConnectedPlayer = this.findNotConnectedPlayer(userId);
+            Contract.assertNotNullLike(notConnectedPlayer, `Player ${userId} is not in the queue`);
+
+            playerEntry = notConnectedPlayer;
+        }
+
+        Contract.assertNotNullLike(playerEntry.format);
+
+        playerEntry.player.state = QueuedPlayerState.Connected;
+        playerEntry.player.socket = socket;
+
+        this.queues.get(playerEntry.format)?.push(playerEntry.player);
     }
 
     public removePlayer(userId: string) {
@@ -62,7 +99,7 @@ export class QueueHandler {
         }
     }
 
-    public findPlayerInQueue(userId: string): QueuedPlayerEntry | null {
+    private findPlayerInQueue(userId: string): QueuedPlayerEntry | null {
         for (const [format, queue] of this.queues.entries()) {
             const player = queue.find((p) => p.user.id === userId);
             if (player) {
@@ -70,6 +107,14 @@ export class QueueHandler {
             }
         }
         return null;
+    }
+
+    private findNotConnectedPlayer(userId: string): QueuedPlayerEntry | null {
+        return this.playersWaitingToConnect.find((p) => p.player.user.id === userId);
+    }
+
+    public findPlayer(userId: string) {
+        return this.findPlayerInQueue(userId) || this.findNotConnectedPlayer(userId);
     }
 
     // Get the next two players from a format queue
