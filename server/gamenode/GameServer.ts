@@ -813,13 +813,14 @@ export class GameServer {
                         } else {
                             lobby.removeUser(id);
                             for (const user of lobby.users) {
+                                logger.error(`Requeueing user ${user.id} after matched user disconnected`);
                                 user.socket.send('matchmakingError', 'Player disconnected');
-                                this.userLobbyMap.delete(user.id);
+                                // this.userLobbyMap.delete(user.id);
                             }
 
-                            // Start the cleanup process for the lobby itself
-                            lobby.cleanLobby();
-                            this.lobbies.delete(lobby.id);
+                            // // Start the cleanup process for the lobby itself
+                            // lobby.cleanLobby();
+                            // this.lobbies.delete(lobby.id);
                         }
                     }
                 } catch (err) {
