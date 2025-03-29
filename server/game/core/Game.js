@@ -46,6 +46,50 @@ const { GameStateManager } = require('./GameStateManager.js');
 class Game extends EventEmitter {
     #debug;
 
+    get isInisInitiativeClaimed() {
+        return this.gameObjectManager.get(this.state.initialFirstPlayer);
+    }
+
+    set isInisInitiativeClaimed(value) {
+        this.state.initialFirstPlayer = value?.getRef();
+    }
+
+    get roundNumber() {
+        return this.state.roundNumber;
+    }
+
+    set roundNumber(value) {
+        Contract.assertNonNegative(value, 'Round Number must be non-zero.');
+        this.state.roundNumber = value;
+    }
+
+    /** @returns { Player | null } */
+    get initialFirstPlayer() {
+        return this.gameObjectManager.get(this.state.initialFirstPlayer);
+    }
+
+    set initialFirstPlayer(value) {
+        this.state.initialFirstPlayer = value?.getRef();
+    }
+
+    /** @returns { Player | null } */
+    get initiativePlayer() {
+        return this.gameObjectManager.get(this.state.initiativePlayer);
+    }
+
+    set initiativePlayer(value) {
+        this.state.initiativePlayer = value?.getRef();
+    }
+
+    /** @returns { Player | null } */
+    get actionPhaseActivePlayer() {
+        return this.gameObjectManager.get(this.state.actionPhaseActivePlayer);
+    }
+
+    set actionPhaseActivePlayer(value) {
+        this.state.actionPhaseActivePlayer = value?.getRef();
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -83,14 +127,20 @@ class Game extends EventEmitter {
         this.manualMode = false;
         this.gameMode = details.gameMode;
         this.currentPhase = null;
-        this.roundNumber = 0;
-        this.initialFirstPlayer = null;
-        this.initiativePlayer = null;
-        this.isInitiativeClaimed = false;
-        this.actionPhaseActivePlayer = null;
+
+        /** @type { import('./GameStateManager.js').IGameState } */
+        this.state = {
+            initialFirstPlayer: null,
+            initiativePlayer: null,
+            actionPhaseActivePlayer: null,
+            roundNumber: 0,
+            isInisInitiativeClaimed: false
+        };
+
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
+        // STATE TODO: Move the generator logic into the state object.
         this.randomGenerator = seedrandom();
         this.currentOpenPrompt = null;
         this.cardDataGetter = details.cardDataGetter;
@@ -108,8 +158,7 @@ class Game extends EventEmitter {
 
         // TODO TWIN SUNS
         Contract.assertArraySize(
-            details.players, 2, `
-            Game must have exactly 2 players, received ${details.players.length}: ${details.players.map((player) => player.id).join(', ')}`
+            details.players, 2, `Game must have exactly 2 players, received ${details.players.length}: ${details.players.map((player) => player.id).join(', ')}`
         );
 
         details.players.forEach((player) => {

@@ -1,5 +1,6 @@
 import type Game from './Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from './GameObjectBase';
+import type { Player } from './Player';
 import * as Contract from './utils/Contract.js';
 import * as Helpers from './utils/Helpers.js';
 
@@ -7,7 +8,16 @@ export interface IGameSnapshot {
     id: number;
     lastId: number;
 
+    gameState: IGameState;
     states: IGameObjectBaseState[];
+}
+
+export interface IGameState {
+    roundNumber: number;
+    initialFirstPlayer: GameObjectRef<Player> | null;
+    initiativePlayer: GameObjectRef<Player> | null;
+    actionPhaseActivePlayer: GameObjectRef<Player> | null;
+    isInisInitiativeClaimed: boolean;
 }
 
 export class GameStateManager {
@@ -54,6 +64,7 @@ export class GameStateManager {
         const snapshot: IGameSnapshot = {
             id: this.snapshots.length,
             lastId: this.lastId,
+            gameState: structuredClone(this.game.state),
             states: this.allGameObjects.map((x) => x.getState())
         };
 
@@ -70,6 +81,8 @@ export class GameStateManager {
         Contract.assertNonNegative(snapshotIdx, `Tried to rollback to snapshot ID ${snapshotId} but the snapshot was not found.`);
 
         const snapshot = this.snapshots[snapshotIdx];
+
+        this.game.state = structuredClone(snapshot.gameState);
 
         const removals: { index: number; uuid: string }[] = [];
         // Indexes in last to first for the purpose of removal.
