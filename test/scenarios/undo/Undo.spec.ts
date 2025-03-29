@@ -1,4 +1,4 @@
-describe('Death Trooper', function() {
+describe('Undo', function() {
     integration(function(contextRef) {
         describe('Death Trooper\'s When Played ability', function() {
             beforeEach(function () {
@@ -12,11 +12,12 @@ describe('Death Trooper', function() {
                     player2: {
                         groundArena: ['wampa', 'superlaser-technician'],
                         spaceArena: ['tieln-fighter']
-                    }
+                    },
+                    testUndo: true
                 });
             });
 
-            it('can only target ground units & can damage itself', function () {
+            contextRef.undoIt('can only target ground units & can damage itself', function () {
                 const { context } = contextRef;
 
                 // Play Death Trooper
@@ -35,7 +36,7 @@ describe('Death Trooper', function() {
                 expect(context.wampa.damage).toEqual(2);
             });
 
-            it('works when no enemy ground units', function () {
+            contextRef.undoIt('works when no enemy ground units', function () {
                 const { context } = contextRef;
 
                 // Play Death Trooper

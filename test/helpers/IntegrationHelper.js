@@ -54,7 +54,7 @@ global.integration = function (definitions) {
                     if (contextRef.context.snapshotId == null || contextRef.context.snapshotId === -1) {
                         throw new Error('Snapshot ID missing');
                     }
-                    contextRef.context.game.gameObjectManager.rollbackToSnapshot(contextRef.context.snapshotId);
+                    contextRef.context.game.rollbackToSnapshot(contextRef.context.snapshotId);
                     assertion();
                 }, timeout);
             }

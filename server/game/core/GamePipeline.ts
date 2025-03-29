@@ -18,6 +18,10 @@ export class GamePipeline {
         return this.pipeline.length;
     }
 
+    public get currentStep() {
+        return this.pipeline[0];
+    }
+
     public initialise(steps: StepItem[]): void {
         this.pipeline = steps;
     }
@@ -85,6 +89,10 @@ export class GamePipeline {
         }
 
         this.pipeline.shift();
+    }
+
+    public clearSteps() {
+        this.pipeline.length = 0;
     }
 
     public handleCardClicked(player: Player, card: Card) {

@@ -46,6 +46,7 @@ export interface IPlayerState extends IGameObjectState {
     deckZone: GameObjectRef<DeckZone>;
     leader: GameObjectRef<ILeaderCard>;
     base: GameObjectRef<IBaseCard>;
+    passedActionPhase: boolean;
 }
 
 export class Player extends GameObject<IPlayerState> {
@@ -89,6 +90,14 @@ export class Player extends GameObject<IPlayerState> {
         return this.game.gameObjectManager.get(this.state.base);
     }
 
+    public get passedActionPhase() {
+        return this.state.passedActionPhase;
+    }
+
+    public set passedActionPhase(value: boolean | null) {
+        this.state.passedActionPhase = value;
+    }
+
     private canTakeActionsThisPhase: null;
     // STATE TODO: Does Deck need to be a GameObject?
     private decklistNames: Deck | null;
@@ -106,7 +115,6 @@ export class Player extends GameObject<IPlayerState> {
     public opponent: Player;
     private playableZones: PlayableZone[];
     private noTimer: boolean;
-    public passedActionPhase: boolean;
     public constructor(id: string, user: User, game: Game, clockDetails?: ClockConfig) {
         super(game, user.username);
 

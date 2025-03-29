@@ -7,7 +7,8 @@ import type { IStep } from '../IStep';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 
 export abstract class Phase extends BaseStepWithPipeline {
-    public steps: IStep[] = [];
+    private steps: IStep[] = [];
+    private endStep: IStep;
 
     public constructor(
         game: Game,
@@ -19,8 +20,8 @@ export abstract class Phase extends BaseStepWithPipeline {
     public initialise(steps: IStep[]): void {
         this.pipeline.initialise([new SimpleStep(this.game, () => this.createPhase(), 'createPhase')]);
         const startStep = new SimpleStep(this.game, () => this.startPhase(), 'startPhase');
-        const endStep = new SimpleStep(this.game, () => this.endPhase(), 'endPhase');
-        this.steps = [startStep, ...steps, endStep];
+        this.endStep = new SimpleStep(this.game, () => this.endPhase(), 'endPhase');
+        this.steps = [startStep, ...steps, this.endStep];
     }
 
     protected createPhase(): void {
@@ -37,6 +38,7 @@ export abstract class Phase extends BaseStepWithPipeline {
             if (this.name !== PhaseName.Setup) {
                 this.game.addAlert('endofround', 'turn: {0} - {1} phase', this.game.roundNumber, this.name);
             }
+            this.game.gameObjectManager.clearSnapshots();
         });
     }
 
@@ -47,5 +49,10 @@ export abstract class Phase extends BaseStepWithPipeline {
             // for post-phase state cleanup. emit directly, don't need a window.
             this.game.emit(EventName.OnPhaseEndedCleanup, { phase: this.name });
         }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public resetPhase(): void {
+
     }
 }

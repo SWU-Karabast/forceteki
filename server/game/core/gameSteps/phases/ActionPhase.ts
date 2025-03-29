@@ -1,13 +1,10 @@
 import { EffectName, PhaseName } from '../../Constants';
 import type Game from '../../Game';
-import type { Player } from '../../Player';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import ActionWindow from '../ActionWindow';
 
 export class ActionPhase extends Phase {
-    public activePlayer?: Player;
-
     // each ActionWindow will use this handler to indicate if the window was passed or not
     private readonly passStatusHandler = (passed: boolean) => this.prevPlayerPassed = passed;
     private prevPlayerPassed = false;
@@ -28,7 +25,8 @@ export class ActionPhase extends Phase {
         }
     }
 
-    private queueNextAction() {
+    public queueNextAction() {
+        this.game.queueSimpleStep(() => this.game.gameObjectManager.takeSnapshot(), 'actionTakeSnapshot');
         this.game.queueStep(new ActionWindow(this.game, 'Action Window', 'action', this.prevPlayerPassed, this.passStatusHandler));
         this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
     }
@@ -56,5 +54,9 @@ export class ActionPhase extends Phase {
             player.cleanupFromActionPhase();
         }
         this.game.isInitiativeClaimed = false;
+    }
+
+    public override resetPhase(): void {
+        this.pipeline.clearSteps();
     }
 }

@@ -125,17 +125,18 @@ class Game extends EventEmitter {
         this.playStarted = false;
         this.gameObjectManager = new GameStateManager(this);
         this.createdAt = new Date();
-        this.currentActionWindow = null;
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this.#debug = { pipeline: false };
 
-        /** @type { EventWindow } */
-        this.currentEventWindow = null;
-
-        this.currentAttack = null;
         this.manualMode = false;
         this.gameMode = details.gameMode;
+
+        /** @type { EventWindow } */
+        this.currentEventWindow = null;
+        this.currentAttack = null;
         this.currentPhase = null;
+        this.currentActionWindow = null;
+        this.currentOpenPrompt = null;
 
         /** @type { import('./GameStateManager.js').IGameState } */
         this.state = {
@@ -151,7 +152,6 @@ class Game extends EventEmitter {
         this.movedCards = [];
         // STATE TODO: Move the generator logic into the state object.
         this.randomGenerator = seedrandom();
-        this.currentOpenPrompt = null;
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
 
@@ -1526,9 +1526,19 @@ class Game extends EventEmitter {
     //     return snapshot.id;
     // }
 
-    // rollbackToSnapshot(snapshotId) {
-    //     this.gameObjectManager.rollbackToSnapshot(snapshotId);
-    // }
+    /**
+     * @param {number} snapshotId
+     */
+    rollbackToSnapshot(snapshotId) {
+        if (this.pipeline.currentStep instanceof ActionPhase) {
+            const actionPhase = this.pipeline.currentStep;
+            this.gameObjectManager.rollbackToSnapshot(snapshotId);
+            actionPhase.resetPhase();
+            actionPhase.queueNextAction();
+        } else {
+            throw new Error('Cannout Undo outside of Action Phase');
+        }
+    }
 
     // TODO: Make a debug object type.
     /**
