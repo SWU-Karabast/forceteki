@@ -61,6 +61,7 @@ export class Lobby {
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
     private userLastActivity = new Map<string, Date>();
+    private matchingCountdownText?: string;
 
     public constructor(
         lobbyName: string,
@@ -128,6 +129,7 @@ export class Lobby {
             gameType: this.gameType,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
+            matchCountdownText: this.matchingCountdownText
         };
     }
 
@@ -210,14 +212,14 @@ export class Lobby {
         this.sendLobbyState();
     }
 
-    public addLobbyUser(user, socket: Socket): void {
+    public async addLobbyUserAsync(user, socket: Socket): Promise<void> {
         const existingUser = this.users.find((u) => u.id === user.id);
         const existingSpectator = this.spectators.find((s) => s.id === user.id);
         if (existingSpectator) {
             // we remove the spectator and disconnect since the user should not come here
             this.removeSpectator(user.id);
             socket.disconnect();
-            return;
+            return Promise.resolve();
         }
         // we check if listeners for the events already exist
         if (socket.eventContainsListener('game') || socket.eventContainsListener('lobby')) {
@@ -245,18 +247,58 @@ export class Lobby {
 
         this.updateUserLastActivity(user.id);
 
+        // if the game is already going, send game state and stop here
         if (this.game) {
             this.sendGameState(this.game);
-        } else {
-            // do a check to make sure that the lobby owner is still registered in the lobby. if not, set the incoming user as the new lobby owner.
-            if (this.server.getUserLobbyId(this.lobbyOwnerId) !== this.id) {
-                logger.info(`Lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.id}`, { lobbyId: this.id, userName: user.username, userId: user.id });
-                this.removeUser(this.lobbyOwnerId);
-                this.lobbyOwnerId = user.id;
+            return Promise.resolve();
+        }
+
+        if (this.gameType === MatchType.Quick) {
+            if (this.matchingCountdownText == null) {
+                await this.quickLobbyCountdownAsync();
             }
 
-            this.sendLobbyState();
+            return Promise.resolve();
         }
+
+        // do a check to make sure that the lobby owner is still registered in the lobby. if not, set the incoming user as the new lobby owner.
+        if (this.server.getUserLobbyId(this.lobbyOwnerId) !== this.id) {
+            logger.info(`Lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.id}`, { lobbyId: this.id, userName: user.username, userId: user.id });
+            this.removeUser(this.lobbyOwnerId);
+            this.lobbyOwnerId = user.id;
+        }
+
+        this.sendLobbyState();
+
+        return Promise.resolve();
+    }
+
+    private quickLobbyCountdownAsync(remainingSeconds = 5) {
+        if (remainingSeconds > 0) {
+            this.matchingCountdownText = `Starts in ${remainingSeconds}`;
+
+            setTimeout(() => {
+                try {
+                    return this.quickLobbyCountdownAsync(remainingSeconds - 1);
+                } catch (err) {
+                    logger.error('Error during quick lobby countdown', { error: { message: err.message, stack: err.stack }, lobbyId: this.id });
+                }
+
+                return Promise.resolve();
+            }, 1000);
+
+            this.sendLobbyState();
+            return Promise.resolve();
+        }
+
+        this.matchingCountdownText = 'Waiting for opponent to connect...';
+
+        if (this.users.length === 2 && this.users.every((u) => u.state === 'connected')) {
+            return this.onStartGameAsync();
+        }
+
+        this.sendLobbyState();
+        return Promise.resolve();
     }
 
     private setReadyStatus(socket: Socket, ...args) {
