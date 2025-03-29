@@ -17,7 +17,7 @@ export interface IGameState {
     initialFirstPlayer: GameObjectRef<Player> | null;
     initiativePlayer: GameObjectRef<Player> | null;
     actionPhaseActivePlayer: GameObjectRef<Player> | null;
-    isInisInitiativeClaimed: boolean;
+    isInitiativeClaimed: boolean;
 }
 
 export class GameStateManager {

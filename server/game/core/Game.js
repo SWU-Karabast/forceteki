@@ -46,12 +46,12 @@ const { GameStateManager } = require('./GameStateManager.js');
 class Game extends EventEmitter {
     #debug;
 
-    get isInisInitiativeClaimed() {
-        return this.gameObjectManager.get(this.state.initialFirstPlayer);
+    get isInitiativeClaimed() {
+        return this.state.isInitiativeClaimed;
     }
 
-    set isInisInitiativeClaimed(value) {
-        this.state.initialFirstPlayer = value?.getRef();
+    set isInitiativeClaimed(value) {
+        this.state.isInitiativeClaimed = value;
     }
 
     get roundNumber() {
@@ -68,6 +68,9 @@ class Game extends EventEmitter {
         return this.gameObjectManager.get(this.state.initialFirstPlayer);
     }
 
+    /**
+     * @argument {Player | null} value
+     */
     set initialFirstPlayer(value) {
         this.state.initialFirstPlayer = value?.getRef();
     }
@@ -77,6 +80,9 @@ class Game extends EventEmitter {
         return this.gameObjectManager.get(this.state.initiativePlayer);
     }
 
+    /**
+     * @argument {Player | null} value
+     */
     set initiativePlayer(value) {
         this.state.initiativePlayer = value?.getRef();
     }
@@ -86,6 +92,9 @@ class Game extends EventEmitter {
         return this.gameObjectManager.get(this.state.actionPhaseActivePlayer);
     }
 
+    /**
+     * @argument {Player | null} value
+     */
     set actionPhaseActivePlayer(value) {
         this.state.actionPhaseActivePlayer = value?.getRef();
     }
@@ -134,7 +143,7 @@ class Game extends EventEmitter {
             initiativePlayer: null,
             actionPhaseActivePlayer: null,
             roundNumber: 0,
-            isInisInitiativeClaimed: false
+            isInitiativeClaimed: false
         };
 
         this.tokenFactories = null;
