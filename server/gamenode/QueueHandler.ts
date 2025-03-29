@@ -53,6 +53,12 @@ export class QueueHandler {
             this.removePlayer(player.user.id);
         }
 
+        const notConnectedPlayerEntry = this.findNotConnectedPlayer(player.user.id);
+        if (notConnectedPlayerEntry) {
+            logger.info(`User ${player.user.id} is already in waiting-to-queue list for ${notConnectedPlayerEntry.format}, rejoining into queue for format ${format}`);
+            this.removePlayer(player.user.id);
+        }
+
         this.playersWaitingToConnect.push({
             format,
             player: { ...player, state: QueuedPlayerState.WaitingForConnection }
