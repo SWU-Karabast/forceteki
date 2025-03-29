@@ -1535,6 +1535,9 @@ class Game extends EventEmitter {
             this.gameObjectManager.rollbackToSnapshot(snapshotId);
             actionPhase.resetPhase();
             actionPhase.queueNextAction();
+            // continue to the takeSnapshot step and then the ActionWindow step.
+            actionPhase.continue();
+            actionPhase.continue();
         } else {
             throw new Error('Cannout Undo outside of Action Phase');
         }

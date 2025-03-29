@@ -98,7 +98,7 @@ export class GameStateManager {
 
         const removals: { index: number; uuid: string }[] = [];
         // Indexes in last to first for the purpose of removal.
-        for (let i = this.allGameObjects.length - 1; i >= this.allGameObjects.length; i--) {
+        for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
             const go = this.allGameObjects[i];
             const updatedState = snapshot.states.find((x) => x.uuid === go.uuid);
             if (!updatedState) {

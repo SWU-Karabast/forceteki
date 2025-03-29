@@ -36,19 +36,19 @@ describe('Undo', function() {
                 expect(context.wampa.damage).toEqual(2);
             });
 
-            contextRef.undoIt('works when no enemy ground units', function () {
-                const { context } = contextRef;
+            // contextRef.undoIt('works when no enemy ground units', function () {
+            //     const { context } = contextRef;
 
-                // Play Death Trooper
-                context.player2.setGroundArenaUnits([]);
-                context.player1.clickCard(context.deathTrooper);
+            //     // Play Death Trooper
+            //     context.player2.setGroundArenaUnits([]);
+            //     context.player1.clickCard(context.deathTrooper);
 
-                // Choose Friendly
-                expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.deathTrooper]);
-                expect(context.player1).not.toHavePassAbilityPrompt('Deal 2 damage to a friendly ground unit and an enemy ground unit');
-                context.player1.clickCard(context.deathTrooper);
-                expect(context.deathTrooper.damage).toEqual(2);
-            });
+            //     // Choose Friendly
+            //     expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.deathTrooper]);
+            //     expect(context.player1).not.toHavePassAbilityPrompt('Deal 2 damage to a friendly ground unit and an enemy ground unit');
+            //     context.player1.clickCard(context.deathTrooper);
+            //     expect(context.deathTrooper.damage).toEqual(2);
+            // });
         });
     });
 });

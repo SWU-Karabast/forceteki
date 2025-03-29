@@ -44,6 +44,7 @@ export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
     defaultArenaInternal: Arena;
     captureZone: GameObjectRef<CaptureZone> | null;
+    whileInPlayKeywordAbilitiesInferred: boolean;
 }
 
 type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IAbilityPropsWithType<TTarget> & IGainCondition<TSource>;
@@ -137,6 +138,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenPlayedKeywordAbilities?: TriggeredAbility[] = null;
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
+
+        private set whileInPlayKeywordAbilities(value: IConstantAbility[] | null) {
+            this._whileInPlayKeywordAbilities = value;
+            this.state.whileInPlayKeywordAbilitiesInferred = !!value;
+        }
+
+        private get whileInPlayKeywordAbilities() {
+            return this._whileInPlayKeywordAbilities;
+        }
 
         public get capturedUnits() {
             this.assertPropertyEnabledForZone(this.state.captureZone, 'capturedUnits');
@@ -475,8 +485,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             // add any registered abilities from keywords effective while in play
-            if (this._whileInPlayKeywordAbilities !== null) {
-                constantAbilities = constantAbilities.concat(this._whileInPlayKeywordAbilities);
+            if (this.whileInPlayKeywordAbilities !== null) {
+                constantAbilities = constantAbilities.concat(this.whileInPlayKeywordAbilities);
             }
 
             return constantAbilities;
@@ -495,25 +505,25 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             // Unregister all effects when moving a card from an arena to a non-arena zone
             // or from a base to an arena
             if ((EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) || (from === ZoneName.Base && EnumHelpers.isArena(to))) {
-                Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
+                Contract.assertTrue(Array.isArray(this.whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
 
-                for (const keywordAbility of this._whileInPlayKeywordAbilities) {
+                for (const keywordAbility of this.whileInPlayKeywordAbilities) {
                     this.removeEffectFromEngine(keywordAbility.registeredEffects);
                     keywordAbility.registeredEffects = [];
                 }
 
-                this._whileInPlayKeywordAbilities = null;
+                this.whileInPlayKeywordAbilities = null;
             }
 
             // Register all effects when moving a card to a base or from a non-arena zone to an arena,
             // this is to support leaders with the Coordinate keyword
             if ((!EnumHelpers.isArena(from) && EnumHelpers.isArena(to)) || to === ZoneName.Base) {
                 Contract.assertIsNullLike(
-                    this._whileInPlayKeywordAbilities,
-                    `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+                    this.whileInPlayKeywordAbilities,
+                    `Failed to unregister when played abilities from previous play: ${this.whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
                 );
 
-                this._whileInPlayKeywordAbilities = [];
+                this.whileInPlayKeywordAbilities = [];
 
                 for (const keywordInstance of this.getCoordinateAbilities()) {
                     const gainedAbilityProps = keywordInstance.abilityProps;
@@ -527,7 +537,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
                     coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
 
-                    this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
+                    this.whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
                 }
             }
         }
@@ -935,6 +945,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         public get lastPlayerToModifyHp() {
             Contract.assertTrue(this.isInPlay());
             return this._lastPlayerToModifyHp;
+        }
+
+        public override afterSetAllState(): void {
+            super.afterSetAllState();
+            if (this.whileInPlayKeywordAbilities && !this.state.whileInPlayKeywordAbilitiesInferred) {
+                this._whileInPlayKeywordAbilities = null;
+            }
         }
     };
 }
