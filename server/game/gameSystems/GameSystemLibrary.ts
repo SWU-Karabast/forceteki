@@ -646,11 +646,11 @@ export function selectPlayer<TContext extends AbilityContext = AbilityContext>(p
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>) {
 //     return new SelectTokenAction(propertyFactory);
 // }
-export function sequential<TContext extends AbilityContext = AbilityContext>(gameSystems: ISystemArrayOrFactory<TContext>) {
-    return new SequentialSystem<TContext>(gameSystems);
+export function sequential<TContext extends AbilityContext = AbilityContext>(gameSystems: ISystemArrayOrFactory<TContext>, everyGameSystemMustBeLegal: boolean = false) {
+    return new SequentialSystem<TContext>(gameSystems, everyGameSystemMustBeLegal);
 } // takes an array of gameActions, not a propertyFactory
-export function simultaneous<TContext extends AbilityContext = AbilityContext>(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = null) {
-    return new SimultaneousGameSystem<TContext>(gameSystems, ignoreTargetingRequirements);
+export function simultaneous<TContext extends AbilityContext = AbilityContext>(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = null, everyGameSystemMustBeLegal: boolean = false) {
+    return new SimultaneousGameSystem<TContext>(gameSystems, ignoreTargetingRequirements, everyGameSystemMustBeLegal);
 }
 
 export function shuffleDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IShuffleDeckProperties, TContext> = {}) {

@@ -10,6 +10,9 @@ import type { Player } from '../core/Player';
 
 export interface ISequentialSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     gameSystems: GameSystem<TContext>[];
+
+    // If true, all game systems must be legal for the entire sequence to be legal
+    everyGameSystemMustBeLegal?: boolean;
 }
 
 // TODO: add a variant of this (or a configuration option) for repeating the same action a variable number of times
@@ -22,19 +25,30 @@ export interface ISequentialSystemProperties<TContext extends AbilityContext = A
  */
 export class SequentialSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISequentialSystemProperties<TContext>> {
     protected override readonly eventName: MetaEventName.Sequential;
-    public constructor(gameSystems: ISystemArrayOrFactory<TContext>) {
+    protected readonly everyGameSystemMustBeLegal: boolean;
+    public constructor(gameSystems: ISystemArrayOrFactory<TContext>, everyGameSystemMustBeLegal: boolean = false) {
         if (typeof gameSystems === 'function') {
             super((context: TContext) => ({ gameSystems: gameSystems(context) }));
         } else {
             super({ gameSystems });
         }
+        this.everyGameSystemMustBeLegal = everyGameSystemMustBeLegal;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler() {}
 
+    private allGameSystemsAreLegal(context: TContext, additionalProperties = {}): boolean {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        return properties.gameSystems.every((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
+    }
+
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        if (this.everyGameSystemMustBeLegal && !this.allGameSystemsAreLegal(context, additionalProperties)) {
+            return;
+        }
+
         for (const gameSystem of properties.gameSystems) {
             context.game.queueSimpleStep(() => {
                 if (gameSystem.hasLegalTarget(context, additionalProperties)) {
