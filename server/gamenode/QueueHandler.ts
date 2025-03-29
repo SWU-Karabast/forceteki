@@ -97,6 +97,12 @@ export class QueueHandler {
                 return;
             }
         }
+
+        const index = this.playersWaitingToConnect.findIndex((p) => p.player.user.id === userId);
+        if (index !== -1) {
+            this.playersWaitingToConnect.splice(index, 1);
+            return;
+        }
     }
 
     private findPlayerInQueue(userId: string): QueuedPlayerEntry | null {
