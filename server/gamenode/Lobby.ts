@@ -129,7 +129,7 @@ export class Lobby {
             gameType: this.gameType,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
-            matchCountdownText: this.matchingCountdownText
+            matchingCountdownText: this.matchingCountdownText
         };
     }
 
@@ -274,7 +274,7 @@ export class Lobby {
     }
 
     private quickLobbyCountdownAsync(remainingSeconds = 5) {
-        if (remainingSeconds > 0) {
+        if (remainingSeconds > -1) {
             this.matchingCountdownText = `Starts in ${remainingSeconds}`;
 
             setTimeout(() => {
