@@ -478,9 +478,13 @@ export class GameServer {
     //     next();
     // }
 
-    public registerDisconnect(ioSocket: any, userId: string) {
-        ioSocket.registerEvent('disconnect', () => {
-            this.onSocketDisconnected(ioSocket, userId);
+    public registerDisconnect(socket: Socket, userId: string) {
+        if (socket.eventContainsListener('disconnect')) {
+            socket.removeEventsListeners(['disconnect']);
+        }
+
+        socket.registerEvent('disconnect', () => {
+            this.onSocketDisconnected(socket.socket, userId);
         });
     }
 
