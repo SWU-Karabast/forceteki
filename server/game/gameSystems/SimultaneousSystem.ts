@@ -16,19 +16,19 @@ export interface ISimultaneousSystemProperties<TContext extends AbilityContext =
     ignoreTargetingRequirements?: boolean;
 
     // If true, all game systems must be legal for the entire "simultaneous" to be legal
-    allGameSystemsMustBeLegal?: boolean;
+    everyGameSystemMustBeLegal?: boolean;
 }
 
 export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISimultaneousSystemProperties<TContext>> {
     protected override readonly eventName: MetaEventName.Simultaneous;
-    protected readonly allGameSystemsMustBeLegal: boolean;
-    public constructor(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = false, allGameSystemsMustBeLegal = false) {
+    protected readonly everyGameSystemMustBeLegal: boolean;
+    public constructor(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = false, everyGameSystemMustBeLegal = false) {
         if (typeof gameSystems === 'function') {
             super((context: TContext) => ({ gameSystems: gameSystems(context), ignoreTargetingRequirements }));
         } else {
             super({ gameSystems, ignoreTargetingRequirements });
         }
-        this.allGameSystemsMustBeLegal = allGameSystemsMustBeLegal;
+        this.everyGameSystemMustBeLegal = everyGameSystemMustBeLegal;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -81,7 +81,7 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
             };
             generateStepName = (gameSystem: GameSystem<TContext>) => `queue generate event game steps for ${gameSystem.name}`;
         } else {
-            if (this.allGameSystemsMustBeLegal && !this.allGameSystemsAreLegal(context, additionalProperties)) {
+            if (this.everyGameSystemMustBeLegal && !this.allGameSystemsAreLegal(context, additionalProperties)) {
                 return;
             }
             queueGenerateEventGameStepsFn = (gameSystem: GameSystem<TContext>) => () => {

@@ -18,10 +18,14 @@ export default class EnergyConversionLab extends BaseCard {
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.playCardFromHand(),
-                    AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush) }),
-                ])
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous(
+                    [
+                        AbilityHelper.immediateEffects.playCardFromHand(),
+                        AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush) }),
+                    ],
+                    false, // We do not ignore targeting requirements
+                    true // All effect must have a legal target
+                )
             }
         });
     }

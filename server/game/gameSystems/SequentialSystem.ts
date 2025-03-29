@@ -12,7 +12,7 @@ export interface ISequentialSystemProperties<TContext extends AbilityContext = A
     gameSystems: GameSystem<TContext>[];
 
     // If true, all game systems must be legal for the entire sequence to be legal
-    allGameSystemsMustBeLegal?: boolean;
+    everyGameSystemMustBeLegal?: boolean;
 }
 
 // TODO: add a variant of this (or a configuration option) for repeating the same action a variable number of times
@@ -25,14 +25,14 @@ export interface ISequentialSystemProperties<TContext extends AbilityContext = A
  */
 export class SequentialSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISequentialSystemProperties<TContext>> {
     protected override readonly eventName: MetaEventName.Sequential;
-    protected readonly allGameSystemsMustBeLegal: boolean;
-    public constructor(gameSystems: ISystemArrayOrFactory<TContext>, allGameSystemsMustBeLegal: boolean = false) {
+    protected readonly everyGameSystemMustBeLegal: boolean;
+    public constructor(gameSystems: ISystemArrayOrFactory<TContext>, everyGameSystemMustBeLegal: boolean = false) {
         if (typeof gameSystems === 'function') {
             super((context: TContext) => ({ gameSystems: gameSystems(context) }));
         } else {
             super({ gameSystems });
         }
-        this.allGameSystemsMustBeLegal = allGameSystemsMustBeLegal;
+        this.everyGameSystemMustBeLegal = everyGameSystemMustBeLegal;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -45,7 +45,7 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (this.allGameSystemsMustBeLegal && !this.allGameSystemsAreLegal(context, additionalProperties)) {
+        if (this.everyGameSystemMustBeLegal && !this.allGameSystemsAreLegal(context, additionalProperties)) {
             return;
         }
 
