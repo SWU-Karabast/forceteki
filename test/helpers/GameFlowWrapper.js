@@ -223,6 +223,16 @@ class GameFlowWrapper {
         Util.refreshGameState(this.game);
     }
 
+    exhaustCard(card) {
+        card.exhaust();
+        Util.refreshGameState(this.game);
+    }
+
+    readyCard(card) {
+        card.ready();
+        Util.refreshGameState(this.game);
+    }
+
     /**
      * Get an array of the latest chat messages
      * @param {Number} numBack - number of messages back from the latest to retrieve

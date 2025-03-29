@@ -73,9 +73,9 @@ describe('Kylo Ren, Killing the Past', function() {
                 const { context } = contextRef;
 
                 const reset = (passAction = true) => {
-                    context.kyloRen.exhausted = false;
-                    context.kyloRen.damage = 0;
-                    context.wildRancor.damage = 0;
+                    context.readyCard(context.kyloRen);
+                    context.setDamage(context.kyloRen, 0);
+                    context.setDamage(context.wildRancor, 0);
                     if (passAction) {
                         context.player2.passAction();
                     }

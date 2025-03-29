@@ -5,7 +5,7 @@ import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
 import type Game from '../Game';
 import type { Card } from '../card/Card';
 import type { IOngoingPlayerEffectProps } from '../../Interfaces';
-import type Player from '../Player';
+import type { Player } from '../Player';
 
 export class OngoingPlayerEffect extends OngoingEffect {
     public override matchTarget: (target: Player) => boolean;

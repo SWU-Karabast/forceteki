@@ -4,7 +4,7 @@ import type { Attack } from './Attack';
 
 export function defenderWasDefeated(attack: Attack, watcher: UnitsDefeatedThisPhaseWatcher): boolean {
     const target = attack.target;
-    return target.isUnit() && watcher.wasDefeatedThisPhase(target, attack.targetInPlayId);
+    return (target.isUnit() || target.isDeployableLeader()) && watcher.wasDefeatedThisPhase(target, attack.targetInPlayId);
 }
 
 export function addInitiateAttackProperties(properties): void {

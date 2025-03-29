@@ -4,7 +4,7 @@ import { Stage } from '../Constants';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type Game from '../Game';
 import type { GameSystem } from '../gameSystem/GameSystem';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { Card } from '../card/Card';
 import type { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import type { IOngoingEffectProps } from '../../Interfaces';

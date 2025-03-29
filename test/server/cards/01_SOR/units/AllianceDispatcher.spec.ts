@@ -33,7 +33,7 @@ describe('Alliance Dispatcher', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
 
                 context.player2.passAction();
-                context.allianceDispatcher.exhausted = false;
+                context.readyCard(context.allianceDispatcher);
 
                 // should be able to select and play a unit that costs exactly 1 more than ready resources
                 context.player1.setResourceCount(2);

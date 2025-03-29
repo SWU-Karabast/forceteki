@@ -9,7 +9,7 @@ import {
 } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import type { Card } from '../core/card/Card';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface IPutIntoPlayProperties extends ICardTargetSystemProperties {

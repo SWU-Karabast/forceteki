@@ -22,7 +22,7 @@ describe('Blizzard Assault AT-AT', function() {
 
                 const reset = (passAction = true) => {
                     context.setDamage(context.blizzardAssaultAtat, 0);
-                    context.blizzardAssaultAtat.exhausted = false;
+                    context.readyCard(context.blizzardAssaultAtat);
                     if (passAction) {
                         context.player2.passAction();
                     }
@@ -71,7 +71,7 @@ describe('Blizzard Assault AT-AT', function() {
                 reset();
 
                 // CASE 5: AT-AT trades, ability triggers
-                context.blizzardAssaultAtat.exhausted = false;
+                context.readyCard(context.blizzardAssaultAtat);
                 context.setDamage(context.kraytDragon, 2);
                 context.player1.clickCard(context.blizzardAssaultAtat);
                 context.player1.clickCard(context.kraytDragon);

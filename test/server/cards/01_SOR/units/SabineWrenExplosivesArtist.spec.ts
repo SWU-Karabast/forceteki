@@ -84,7 +84,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 expect(context.p2Base.damage).toBe(0);
 
                 context.setDamage(context.sabineWren, 0);
-                context.sabineWren.exhausted = false;
+                context.readyCard(context.sabineWren);
                 context.setDamage(context.moddedCohort, 0);
                 context.player2.passAction();
 
@@ -97,7 +97,7 @@ describe('Sabine Wren, Explosives Artist', function() {
                 expect(context.p1Base.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(1);
 
-                context.sabineWren.exhausted = false;
+                context.readyCard(context.sabineWren);
                 context.setDamage(context.p2Base, 0);
                 context.player2.passAction();
 

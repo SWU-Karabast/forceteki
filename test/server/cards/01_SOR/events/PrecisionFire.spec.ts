@@ -31,7 +31,7 @@ describe('Precision Fire', function () {
             expect(context.battlefieldMarine.getPower()).toBe(3);
 
             // reset
-            context.battlefieldMarine.exhausted = false;
+            context.readyCard(context.battlefieldMarine);
             context.setDamage(context.p2Base, 0);
             context.player1.moveCard(context.precisionFire, 'hand');
             context.player2.passAction();

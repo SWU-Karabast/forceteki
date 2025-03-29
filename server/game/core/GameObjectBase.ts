@@ -50,12 +50,17 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     /** Sets the state.  */
     public setState(state: T) {
-        this.state = state;
+        this.state = structuredClone(state);
+    }
+
+    public getState() {
+        // This *must* return a copy, without any references, hence the use of structuredClone.
+        return structuredClone(this.state);
     }
 
     /** A function for game to call on all objects after all state has been set. for example, to cache calculated values. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public afterSetState() { }
+    public afterSetAllState() { }
 
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
         return { isRef: true, uuid: this.state.uuid };

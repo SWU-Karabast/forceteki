@@ -49,7 +49,7 @@ describe('Tarfful, Kashyyyk Chieftain', function() {
                 expect(context.player2).toBeActivePlayer();
 
                 // Scenario 4: a friendly non-wookie unit is attacked
-                context.wroshyrTreeTender.damage = 0;
+                context.setDamage(context.wroshyrTreeTender, 0);
                 context.player2.clickCard(context.wroshyrTreeTender);
                 context.player2.clickCard(context.isbAgent);
 

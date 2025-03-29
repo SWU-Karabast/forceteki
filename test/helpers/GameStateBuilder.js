@@ -26,6 +26,8 @@ class GameStateBuilder {
             'nextPhase',
             'selectInitiativePlayer',
             'setDamage',
+            'readyCard',
+            'exhaustCard',
             'skipSetupPhase',
             'startGameAsync'
         ];
@@ -255,7 +257,8 @@ class GameStateBuilder {
             'player2',
             'phase',
             'phaseTransitionHandler',
-            'autoSingleTarget'
+            'autoSingleTarget',
+            'testUndo'
         ];
 
         // Check for unknown properties

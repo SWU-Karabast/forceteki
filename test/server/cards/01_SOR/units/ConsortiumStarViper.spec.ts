@@ -23,7 +23,7 @@ describe('Consortium Star Viper', function () {
                 expect(context.p1Base.damage).toBe(3);
 
                 // Reset and flip initiative
-                context.consortiumStarviper.exhausted = false;
+                context.readyCard(context.consortiumStarviper);
                 context.player2.claimInitiative();
 
                 // Player1 no longer has initiative, so this will not heal the base

@@ -34,10 +34,10 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.battlefieldMarine.damage = 0;
-                    context.mandalorianWarrior.damage = 0;
-                    context.fleetLieutenant.damage = 0;
-                    context.volunteerSoldier.damage = 0;
+                    context.setDamage(context.battlefieldMarine, 0);
+                    context.setDamage(context.mandalorianWarrior, 0);
+                    context.setDamage(context.fleetLieutenant, 0);
+                    context.setDamage(context.volunteerSoldier, 0);
                 };
 
                 // CASE 1: Trigger Jango's ability from combat damage
@@ -278,7 +278,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 // CASE 12: A friendly unit dealing damage to another friendly unit does not trigger Jango's ability
 
                 context.nextPhase();
-                context.grogu.damage = 0;
+                context.setDamage(context.grogu, 0);
 
                 // Use Pershing's ability
                 context.player1.clickCard(context.doctorPershing);
@@ -371,11 +371,11 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                     if (context.mandalorianWarrior.zone !== 'groundArena') {
                         context.mandalorianWarrior.moveTo('groundArena');
                     }
-                    context.battlefieldMarine.damage = 0;
-                    context.mandalorianWarrior.damage = 0;
-                    context.fleetLieutenant.damage = 0;
-                    context.volunteerSoldier.damage = 0;
-                    context.jangoFett.damage = 0;
+                    context.setDamage(context.battlefieldMarine, 0);
+                    context.setDamage(context.mandalorianWarrior, 0);
+                    context.setDamage(context.fleetLieutenant, 0);
+                    context.setDamage(context.volunteerSoldier, 0);
+                    context.setDamage(context.jangoFett, 0);
                 };
 
                 // CASE 1: Trigger Jango's ability from combat damage
@@ -629,7 +629,7 @@ describe('Jango Fett, Concealing the Conspiracy', function () {
                 // CASE 10: A friendly unit dealing damage to another friendly unit does not trigger Jango's ability
 
                 context.moveToNextActionPhase();
-                context.grogu.damage = 0;
+                context.setDamage(context.grogu, 0);
 
                 // Use Pershing's ability
                 context.player1.clickCard(context.doctorPershing);

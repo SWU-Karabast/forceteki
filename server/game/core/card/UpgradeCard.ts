@@ -1,4 +1,4 @@
-import type Player from '../Player';
+import type { Player } from '../Player';
 import { WithPrintedHp } from './propertyMixins/PrintedHp';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import { WithPrintedPower } from './propertyMixins/PrintedPower';

@@ -28,7 +28,7 @@ describe('Luminara Unduli, Soft Spoken Master', function() {
             context.setDamage(context.p2Base, 0);
             context.setDamage(context.luminaraUnduli, 4);
 
-            context.luminaraUnduli.exhausted = false;
+            context.readyCard(context.luminaraUnduli);
             context.player2.passAction();
 
             context.player1.clickCard(context.luminaraUnduli);
@@ -38,7 +38,7 @@ describe('Luminara Unduli, Soft Spoken Master', function() {
             expect(context.p2Base.damage).toBe(8);
 
             context.setDamage(context.p2Base, 0);
-            context.luminaraUnduli.exhausted = false;
+            context.readyCard(context.luminaraUnduli);
             // kill a unit, coordinate off
             context.player2.clickCard(context.rivalsFall);
             context.player2.clickCard(context.wampa);

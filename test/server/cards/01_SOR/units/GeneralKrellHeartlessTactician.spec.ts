@@ -42,7 +42,7 @@ describe('General Krell, Heartless Tactician', function() {
                 // CASE 3: unit played while Krell is on the field gains the effect
                 context.player2.passAction();
                 context.player1.clickCard(context.battlefieldMarine);
-                context.battlefieldMarine.exhausted = false;
+                context.readyCard(context.battlefieldMarine);
                 context.player2.passAction();
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.atatSuppressor);

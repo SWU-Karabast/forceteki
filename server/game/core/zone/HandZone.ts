@@ -1,10 +1,10 @@
 import type { IPlayableCard } from '../card/baseClasses/PlayableOrDeployableCard';
 import { ZoneName, RelativePlayer } from '../Constants';
 import type Game from '../Game';
-import type Player from '../Player';
-import { SimpleZone } from './SimpleZone';
+import type { Player } from '../Player';
+import { PlayerZone } from './PlayerZone';
 
-export class HandZone extends SimpleZone<IPlayableCard> {
+export class HandZone extends PlayerZone<IPlayableCard> {
     public override readonly hiddenForPlayers: RelativePlayer.Opponent;
     public override readonly name: ZoneName.Hand;
 

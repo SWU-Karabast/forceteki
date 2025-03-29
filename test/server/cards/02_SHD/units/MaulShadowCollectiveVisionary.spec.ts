@@ -33,7 +33,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                     context.setDamage(context.luminaraUnduli, 0);
                     context.setDamage(context.maul, 0);
                     context.setDamage(context.mercenaryCompany, 0);
-                    context.maul.exhausted = false;
+                    context.readyCard(context.maul);
 
                     if (pass) {
                         context.player2.passAction();
@@ -199,7 +199,7 @@ describe('Maul, Shadow Collective Visionary', function() {
                 expect(context.mercenaryCompany.damage).toBe(0);
                 expect(context.mercenaryCompany.isUpgraded()).toBeFalse();
 
-                context.maul.exhausted = false;
+                context.readyCard(context.maul);
                 context.setDamage(context.luminaraUnduli, 0);
                 context.player2.passAction();
 

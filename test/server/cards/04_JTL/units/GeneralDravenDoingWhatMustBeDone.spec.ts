@@ -21,7 +21,7 @@ describe('General Draven, Doing What Must Be Done', function () {
             expect(xwings.every((tie) => tie.exhausted)).toBeTrue();
             expect(context.player2.getArenaCards().length).toBe(0);
 
-            context.generalDraven.exhausted = false;
+            context.readyCard(context.generalDraven);
             context.player2.passAction();
 
             // attack with general draven and create an x-wing token

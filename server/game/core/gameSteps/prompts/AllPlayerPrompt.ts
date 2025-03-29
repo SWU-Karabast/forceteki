@@ -1,4 +1,4 @@
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import { UiPrompt } from './UiPrompt';
 
 export abstract class AllPlayerPrompt extends UiPrompt {

@@ -2,7 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { RelativePlayer } from '../../../core/Constants';
 import type { Card } from '../../../core/card/Card';
-import type Player from '../../../core/Player';
+import type { Player } from '../../../core/Player';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 
 export default class LegalAuthority extends UpgradeCard {

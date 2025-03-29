@@ -5,7 +5,7 @@ import type { GameObject } from '../core/GameObject';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import type { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 
 
 export interface ISequentialSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {

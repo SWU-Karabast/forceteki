@@ -5,7 +5,7 @@ import { TargetResolver } from './TargetResolver';
 import type { GameSystem } from '../../gameSystem/GameSystem';
 import { SelectChoice } from './SelectChoice';
 import { Stage } from '../../Constants';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 
 /** Target resolver for selecting between multiple prompted choices due to an effect */
 export class SelectTargetResolver extends TargetResolver<ISelectTargetResolver<AbilityContext>> {

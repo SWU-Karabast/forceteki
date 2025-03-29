@@ -29,7 +29,7 @@ import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import { CaptureZone } from '../../zone/CaptureZone';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import { BountyAbility } from '../../../abilities/keyword/BountyAbility';
 import type { IUpgradeCard } from '../CardInterfaces';
 import type { ActionAbility } from '../../ability/ActionAbility';
@@ -37,6 +37,7 @@ import type { ILeaderCard } from './LeaderProperties';
 import type { ILeaderUnitCard } from '../LeaderUnitCard';
 import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLimitModifier';
 import type { AbilityContext } from '../../ability/AbilityContext';
+import type { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
 import type { GameObjectRef } from '../../GameObjectBase';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
@@ -827,7 +828,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             Contract.assertTrue(this.canBeUpgrade);
             if (targetCard.isUnit()) {
                 if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
-                    return targetCard.canAttachPilot(this, context.playType) && targetCard.controller === controller;
+                    // This is needed for abilities that let you play Pilots from the opponent's discard
+                    const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
+                    return targetCard.canAttachPilot(this, context.playType) && (targetCard.controller === controller || canPlayFromAnyZone);
                 } else if (this.hasSomeTrait(Trait.Pilot)) {
                     return targetCard.canAttachPilot(this, context.playType);
                 }

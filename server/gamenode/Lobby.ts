@@ -146,6 +146,10 @@ export class Lobby {
         this.userLastActivity.set(id, now);
     }
 
+    public hasPlayer(id: string) {
+        return this.users.some((u) => u.id === id);
+    }
+
     public createLobbyUser(user, decklist = null): void {
         const existingUser = this.users.find((u) => u.id === user.id);
         const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
@@ -219,6 +223,9 @@ export class Lobby {
             socket.disconnect();
             return;
         }
+
+        Contract.assertFalse(!existingUser && this.isFilled(), `Attempting to add user ${user.id} to lobby ${this.id}, but the lobby already has ${this.users.length} users`);
+
         // we check if listeners for the events already exist
         if (socket.eventContainsListener('game') || socket.eventContainsListener('lobby')) {
             socket.removeEventsListeners(['game', 'lobby']);
@@ -525,33 +532,41 @@ export class Lobby {
     }
 
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
-        if (!this[command] || typeof this[command] !== 'function') {
-            throw new Error(`Incorrect command or command format expected function but got: ${command}`);
-        }
+        try {
+            if (!this[command] || typeof this[command] !== 'function') {
+                throw new Error(`Incorrect command or command format expected function but got: ${command}`);
+            }
 
-        await this[command](socket, ...args);
-        this.sendLobbyState();
+            await this[command](socket, ...args);
+            this.sendLobbyState();
+        } catch (error) {
+            logger.error('Error processing lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+        }
     }
 
     private async onGameMessage(socket: Socket, command: string, ...args): Promise<void> {
-        if (!this.game) {
-            return;
+        try {
+            if (!this.game) {
+                return;
+            }
+
+            // if (command === 'leavegame') {
+            //     return this.onLeaveGame(socket);
+            // }
+
+            if (!this.game[command] || typeof this.game[command] !== 'function') {
+                return;
+            }
+
+            this.game.stopNonChessClocks();
+            await this.game[command](socket.user.id, ...args);
+
+            this.game.continue();
+
+            this.sendGameState(this.game);
+        } catch (error) {
+            logger.error('Error processing game message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
         }
-
-        // if (command === 'leavegame') {
-        //     return this.onLeaveGame(socket);
-        // }
-
-        if (!this.game[command] || typeof this.game[command] !== 'function') {
-            return;
-        }
-
-        this.game.stopNonChessClocks();
-        await this.game[command](socket.user.id, ...args);
-
-        this.game.continue();
-
-        this.sendGameState(this.game);
     }
 
 

@@ -1,5 +1,5 @@
 import { v1 as uuid } from 'uuid';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import { BaseStep } from '../BaseStep';
 import * as Contract from '../../utils/Contract';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';

@@ -24,7 +24,7 @@ describe('Arquitens Assault Cruiser', function() {
 
                 const reset = (passAction = true) => {
                     context.setDamage(context.arquitensAssaultCruiser, 0);
-                    context.arquitensAssaultCruiser.exhausted = false;
+                    context.readyCard(context.arquitensAssaultCruiser);
                     if (passAction) {
                         context.player2.passAction();
                     }

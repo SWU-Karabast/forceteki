@@ -41,7 +41,7 @@ describe('C-3PO, Protocol Droid', function() {
                 expect(context.wampa).toBeInZone('hand');
 
                 // CASE 2: threepio attacks, we guess the number wrong
-                context.c3po.exhausted = false;
+                context.readyCard(context.c3po);
                 context.player2.passAction();
                 context.player1.clickCard(context.c3po);
 
@@ -59,7 +59,7 @@ describe('C-3PO, Protocol Droid', function() {
                 expect(context.battlefieldMarine).toBeInZone('deck');
 
                 // CASE 3: threepio is played, we guess the number right and leave the card on top
-                context.c3po.exhausted = false;
+                context.readyCard(context.c3po);
                 context.player2.passAction();
                 context.player1.clickCard(context.c3po);
 

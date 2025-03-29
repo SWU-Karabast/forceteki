@@ -30,7 +30,7 @@ describe('Aayla Secura, Master of the Blade', function() {
                 const reset = (pass = true) => {
                     context.setDamage(context.aaylaSecura, 0);
                     context.setDamage(context.consularSecurityForce, 0);
-                    context.aaylaSecura.exhausted = false;
+                    context.readyCard(context.aaylaSecura);
 
                     if (pass) {
                         context.player2.passAction();
@@ -143,7 +143,7 @@ describe('Aayla Secura, Master of the Blade', function() {
 
                 // Reset
                 context.setDamage(context.consularSecurityForce, 0);
-                context.aaylaSecura.exhausted = false;
+                context.readyCard(context.aaylaSecura);
                 context.player2.passAction();
 
                 // CASE 2: User chooses to defeat shield instead of preventing damage
