@@ -136,8 +136,12 @@ export class GameServer {
             try {
                 await this.onConnection(socket);
                 socket.on('manualDisconnect', () => {
-                    socket.data.manualDisconnect = true;
-                    socket.disconnect();
+                    try {
+                        socket.data.manualDisconnect = true;
+                        socket.disconnect();
+                    } catch (err) {
+                        logger.error('GameServer: Error in manualDisconnect:', err);
+                    }
                 });
             } catch (err) {
                 logger.error('GameServer: Error in socket connection:', err);
