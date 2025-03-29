@@ -26,7 +26,7 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
 
         const { effect, ...otherProperties } = properties;
 
-        const renamedProperties = Object.assign(otherProperties, { ongoingEffect: effect });
+        const renamedProperties = Object.assign(otherProperties, { ongoingEffect: effect, matchTarget: otherProperties.targetPlayer });
 
         event.context.source[properties.duration](() => renamedProperties);
     }
