@@ -424,6 +424,10 @@ export class Lobby {
         return this.users.length >= 2;
     }
 
+    public hasConnectedPlayer(): boolean {
+        return this.users.some((u) => u.state === 'connected');
+    }
+
     public removeUser(id: string): void {
         const user = this.users.find((u) => u.id === id);
         if (user) {
