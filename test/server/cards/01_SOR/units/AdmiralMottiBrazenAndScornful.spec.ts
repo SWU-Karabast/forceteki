@@ -61,5 +61,27 @@ describe('Admiral Motti', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        it('should work with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['admiral-motti#brazen-and-scornful']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: [{ card: 'maul#shadow-collective-visionary', exhausted: true }],
+                    hasInitiative: true
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.admiralMotti);
+            context.player2.clickCard(context.maul);
+            expect(context.maul.exhausted).toBe(false);
+
+            context.player1.passAction();
+        });
     });
 });

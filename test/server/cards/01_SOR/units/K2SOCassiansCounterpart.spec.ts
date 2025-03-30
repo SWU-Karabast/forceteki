@@ -50,5 +50,28 @@ describe('K-2SO, Cassian\'s Counterpart', function() {
                 expect(context.p2Base.damage).toBe(5);
             });
         });
+
+        it('should work with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['k2so#cassians-counterpart', 'wampa']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['maul#shadow-collective-visionary'],
+                    hasInitiative: true
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.k2so);
+            expect(context.player2).toHaveExactPromptButtons(['Deal 3 damage to opponent\'s base', 'The opponent discards a card']);
+            context.player2.clickPrompt('Deal 3 damage to opponent\'s base');
+            expect(context.p1Base.damage).toBe(3);
+
+            context.player1.passAction();
+        });
     });
 });
