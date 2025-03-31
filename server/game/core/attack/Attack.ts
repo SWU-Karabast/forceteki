@@ -13,8 +13,7 @@ export class Attack extends GameObject {
     public readonly attacker: IUnitCard;
     public readonly attackerInPlayId: number;
     public readonly isAmbush: boolean;
-    public readonly targets: IAttackableCard[];
-    public readonly targetsInPlayId?: number[];
+    private targets: IAttackableCard[];
 
     public previousAttack: Attack;
 
@@ -32,13 +31,54 @@ export class Attack extends GameObject {
         // we grab the in-play IDs of the attacker and defender cards in case other abilities need to refer back to them later.
         // e.g., to check if the defender was defeated
         this.attackerInPlayId = attacker.inPlayId;
-        this.targetsInPlayId = targets.map((target) => (target.canBeInPlay() ? target.inPlayId : null));
 
         this.isAmbush = isAmbush;
     }
 
     public getAttackerTotalPower(): number | null {
         return this.getUnitPower(this.attacker);
+    }
+
+    public getSingleTarget(): IAttackableCard {
+        Contract.assertTrue(this.targets.length === 1, 'Expected one target but there are multiple');
+        return this.targets[0];
+    }
+
+    public getAllTargets(): IAttackableCard[] {
+        return this.targets;
+    }
+
+    public isTargetUnit(allowMultipleMatches: boolean = false): boolean {
+        const matchingUnits = [];
+
+        for (const target of this.targets) {
+            if (target.isUnit()) {
+                matchingUnits.push(target);
+            }
+        }
+
+        if (!allowMultipleMatches) {
+            Contract.assertFalse(matchingUnits.length > 1, 'Expected at most one target to match the condition');
+        }
+        return matchingUnits.length > 0;
+    }
+
+    public isTargetUnitWithCondition(condition: (card: IUnitCard) => boolean, allowMultipleMatches: boolean = false): boolean {
+        const matchingUnits = [];
+
+        for (const target of this.targets) {
+            if (!target.isUnit()) {
+                continue;
+            }
+            if (condition(target)) {
+                matchingUnits.push(target);
+            }
+        }
+
+        if (!allowMultipleMatches) {
+            Contract.assertFalse(matchingUnits.length > 1, 'Expected at most one target to match the condition');
+        }
+        return matchingUnits.length > 0;
     }
 
     public getTargetTotalPower(): number | null {

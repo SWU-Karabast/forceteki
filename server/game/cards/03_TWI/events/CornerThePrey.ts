@@ -15,8 +15,11 @@ export default class CornerThePrey extends EventCard {
             initiateAttack: {
                 attackerLastingEffects: (_context, attack) =>
                     ({
-                        condition: () => !attack.target.isBase(),
-                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: attack.target.damage, hp: 0 })
+                        condition: () => !attack.getAllTargets().some((target) => !target.isBase()),
+                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: attack.getAllTargets().filter((card) => !card.isBase())
+                            .map((card) => card.damage)
+                            .reduce((sum, num) => sum + num),
+                        hp: 0 })
                     })
             }
         });

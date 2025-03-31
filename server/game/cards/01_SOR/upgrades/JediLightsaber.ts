@@ -24,7 +24,7 @@ export default class JediLightsaber extends UpgradeCard {
                 condition: (context) => context.event.attack.target.isBase(),
                 onFalse: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: -2 }),
-                    target: (context.event.attack as Attack).target
+                    target: (context.event.attack as Attack).getAllTargets()
                 }))
             })
         });

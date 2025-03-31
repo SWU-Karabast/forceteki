@@ -55,7 +55,7 @@ export function WithDamage<TBaseClass extends CardConstructor<TState>, TState ex
         }
 
         public isDefending(): boolean {
-            return (this.activeAttack?.targets.some((target) => (target as Card) === (this as Card))) ?? false;
+            return (this.activeAttack?.getAllTargets().some((target) => (target as Card) === (this as Card))) ?? false;
         }
 
         public get activeAttack() {

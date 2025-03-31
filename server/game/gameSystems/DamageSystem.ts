@@ -200,9 +200,9 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             damageDealtBy = [properties.sourceAttack.attacker];
         } else {
             if (card === properties.sourceAttack.attacker) {
-                Contract.assertTrue(properties.sourceAttack.targets.some((target) => target.isUnit()));
-                damageDealtBy = properties.sourceAttack.targets.filter((target) => target.isUnit()) as IUnitCard[];
-            } else if (properties.sourceAttack.targets.some((target) => target === card)) {
+                Contract.assertTrue(properties.sourceAttack.getAllTargets().some((target) => target.isUnit()));
+                damageDealtBy = properties.sourceAttack.getAllTargets().filter((target) => target.isUnit()) as IUnitCard[];
+            } else if (properties.sourceAttack.getAllTargets().some((target) => target === card)) {
                 damageDealtBy = [properties.sourceAttack.attacker];
             } else {
                 Contract.fail(`Combat damage is being dealt to card ${card.internalName} but it is not involved in the attack`);

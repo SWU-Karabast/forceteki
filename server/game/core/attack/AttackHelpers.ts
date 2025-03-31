@@ -3,8 +3,9 @@ import type { UnitsDefeatedThisPhaseWatcher } from '../../stateWatchers/UnitsDef
 import type { Attack } from './Attack';
 
 export function defenderWasDefeated(attack: Attack, watcher: UnitsDefeatedThisPhaseWatcher): boolean {
-    const target = attack.target;
-    return target.isUnit() && watcher.wasDefeatedThisPhase(target, attack.targetInPlayId);
+    const targets = attack.getAllTargets();
+    const unitTargets = targets.filter((target) => target.isUnit());
+    return unitTargets.length > 0 && unitTargets.some((target) => watcher.wasDefeatedThisPhase(target, target.inPlayId));
 }
 
 export function addInitiateAttackProperties(properties): void {

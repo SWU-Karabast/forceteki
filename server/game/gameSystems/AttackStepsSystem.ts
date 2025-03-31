@@ -71,7 +71,11 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         this.registerAttackEffects(context, event.attackerLastingEffects, event.defenderLastingEffects, event.attack);
 
         const attack = event.attack;
-        context.game.addMessage(`${attack.attacker.title} attacks ${attack.target.title}`);
+        if (attack.getAllTargets().length === 1) {
+            context.game.addMessage(`${attack.attacker.title} attacks ${attack.getSingleTarget().title}`);
+        } else if (attack.getAllTargets().length === 2) {
+            context.game.addMessage(`${attack.attacker.title} attacks ${attack.getAllTargets()[0].title} and ${attack.getAllTargets()[1].title}`);
+        }
         context.game.queueStep(new AttackFlow(context, attack));
     }
 
@@ -189,7 +193,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         event.attack = new Attack(
             context.game,
             properties.attacker as IUnitCard,
-            event.targets as IAttackableCard[],
+            [event.target] as IAttackableCard[],
             properties.isAmbush
         );
 
@@ -213,7 +217,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         const effectEvents: GameEvent[] = [];
         const effectsRegistered = [
             this.queueCreateLastingEffectsGameSteps(Helpers.asArray(attackerLastingEffects), attack.attacker, context, attack, effectEvents),
-            attack.targets.forEach((target) => this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), target, context, attack, effectEvents))
+            attack.getAllTargets().forEach((target) => this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), target, context, attack, effectEvents))
         ].some((result) => result);
 
         if (effectsRegistered) {

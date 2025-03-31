@@ -34,7 +34,7 @@ export class AttackFlow extends BaseStepWithPipeline {
 
     private declareAttack() {
         this.attack.attacker.setActiveAttack(this.attack);
-        this.attack.targets.forEach((target) => target.setActiveAttack(this.attack));
+        this.attack.getAllTargets().forEach((target) => target.setActiveAttack(this.attack));
 
         this.game.createEventAndOpenWindow(EventName.OnAttackDeclared, this.context, { attack: this.attack }, TriggerHandlingMode.ResolvesTriggers);
     }
@@ -69,25 +69,25 @@ export class AttackFlow extends BaseStepWithPipeline {
         const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
 
         // TSTODO: This will need to be updated to account for attacking units owned by different opponents
-        const targetControllerBase = this.attack.targets[0].controller.base;
+        const targetControllerBase = this.attack.getSingleTarget().controller.base;
 
         if (overwhelmDamageOnly) {
             new DamageSystem({
                 type: DamageType.Overwhelm,
-                amount: (this.attack.targets.length * this.attack.getAttackerTotalPower()),
+                amount: (this.attack.getAllTargets().length * this.attack.getAttackerTotalPower()),
                 sourceAttack: this.attack
             }).resolve(targetControllerBase, this.context);
         } else if (attackerDealsDamageBeforeDefender) {
             this.context.game.openEventWindow(this.createAttackerDamageEvent());
             this.context.game.queueSimpleStep(() => {
-                if (this.attack.targets.some((target) => !target.isBase() && target.isInPlay())) {
+                if (this.attack.getAllTargets().some((target) => !target.isBase() && target.isInPlay())) {
                     this.context.game.openEventWindow(this.createDefenderDamageEvent());
                 }
             }, 'check and queue event for defender damage');
         } else {
             // normal attack
             const damageEvents = this.createAttackerDamageEvent();
-            if (this.attack.targets.some((target) => !target.isBase())) {
+            if (this.attack.getAllTargets().some((target) => !target.isBase())) {
                 damageEvents.push(this.createDefenderDamageEvent());
             }
             this.context.game.openEventWindow(damageEvents);
@@ -98,7 +98,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         const attackerDamageEvents: GameEvent[] = [];
 
         // event for damage dealt to target by attacker
-        for (const target of this.attack.targets) {
+        for (const target of this.attack.getAllTargets()) {
             const attackerDamageEvent = new DamageSystem({
                 type: DamageType.Combat,
                 amount: this.attack.getAttackerTotalPower(),
@@ -149,7 +149,7 @@ export class AttackFlow extends BaseStepWithPipeline {
     private cleanUpAttack() {
         this.game.currentAttack = this.attack.previousAttack;
         this.checkUnsetActiveAttack(this.attack.attacker);
-        this.attack.targets.forEach((target) => this.checkUnsetActiveAttack(target));
+        this.attack.getAllTargets().forEach((target) => this.checkUnsetActiveAttack(target));
     }
 
     private checkUnsetActiveAttack(card: IAttackableCard) {

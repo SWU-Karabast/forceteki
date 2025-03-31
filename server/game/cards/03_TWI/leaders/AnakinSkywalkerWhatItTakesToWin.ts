@@ -19,7 +19,7 @@ export default class AnakinSkywalkerWhatItTakesToWin extends LeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.attack({
                     attackerLastingEffects: {
-                        condition: (attack) => attack.target.isUnit(),
+                        condition: (attack) => attack.isTargetUnitWithCondition(() => true),
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 })
                     }
                 })
