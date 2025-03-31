@@ -93,6 +93,7 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
+
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
@@ -151,6 +152,9 @@ export class GameServer {
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
+
+        // set up queue heartbeat once a second
+        setInterval(() => this.queue.sendHeartbeat(), 1000);
     }
 
     private setupAppRoutes(app: express.Application) {

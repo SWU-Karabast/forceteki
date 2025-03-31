@@ -111,6 +111,17 @@ export class QueueHandler {
         }
     }
 
+    /** Send a heartbeat signal to the FE for all connected clients */
+    public sendHeartbeat() {
+        for (const queue of this.queues.values()) {
+            for (const player of queue) {
+                if (player.socket) {
+                    player.socket.send('queueHeartbeat', Date.now());
+                }
+            }
+        }
+    }
+
     private findPlayerInQueue(userId: string): QueuedPlayerEntry | null {
         for (const [format, queue] of this.queues.entries()) {
             const player = queue.find((p) => p.user.id === userId);
