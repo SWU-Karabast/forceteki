@@ -55,6 +55,8 @@ describe('Calculated Lethality', function () {
                     [context.corellianFreighter, 1],
                 ]));
 
+                expect(context.getChatLogs(1)[0]).toContain('player1 uses Calculated Lethality to distribute 2 experience among friendly units');
+
                 expect(context.player2).toBeActivePlayer();
                 expect(context.greenSquadronAwing).toBeInZone('discard');
                 expect(context.corellianFreighter).toHaveExactUpgradeNames(['experience']);

@@ -55,6 +55,7 @@ describe('Redemption Medical Frigate', function() {
             expect(context.atst.damage).toBe(2);
 
             expect(context.redemption.damage).toBe(8);
+            expect(context.getChatLogs(1)[0]).toContain('player1 uses Redemption to distribute 8 healing among cards');
 
             // Reset Redemption with Waylay
             context.player2.clickCard(context.waylay);
@@ -72,6 +73,7 @@ describe('Redemption Medical Frigate', function() {
             expect(context.p1Base.damage).toBe(2);
 
             expect(context.redemption.damage).toBe(5);
+            expect(context.getChatLogs(1)[0]).toContain('player1 uses Redemption to distribute 5 healing among cards');
 
             // Reset Redemption with Cantina Bouncer
             context.player2.clickCard(context.cantinaBouncer);

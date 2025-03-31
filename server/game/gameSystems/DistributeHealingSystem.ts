@@ -31,4 +31,8 @@ export class DistributeHealingSystem<TContext extends AbilityContext = AbilityCo
     protected override getDistributedAmountFromEvent(event: any): number {
         return event.damageHealed;
     }
+
+    protected override getDistributionType(): string {
+        return 'healing';
+    }
 }
