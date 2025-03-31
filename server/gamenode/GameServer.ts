@@ -795,8 +795,10 @@ export class GameServer {
         isMatchmaking = false
     ) {
         try {
+            const wasManualDisconnect = !!socket?.data?.manualDisconnect;
+
             // always try removing the player from all queues, just to be safe
-            this.queue.removePlayer(id);
+            this.queue.removePlayer(id, wasManualDisconnect ? 'Manual disconnect' : 'Timeout disconnect');
 
             const lobbyEntry = this.userLobbyMap.get(id);
             if (!lobbyEntry) {
@@ -805,7 +807,6 @@ export class GameServer {
             const lobbyId = lobbyEntry.lobbyId;
             const lobby = this.lobbies.get(lobbyId);
 
-            const wasManualDisconnect = !!socket?.data?.manualDisconnect;
             if (wasManualDisconnect) {
                 this.userLobbyMap.delete(id);
                 this.removeUserMaybeCleanupLobby(lobby, id);
@@ -818,7 +819,6 @@ export class GameServer {
             // TODO THIS PR: change the match window timeout to 3 seconds
 
             const timeoutValue = timeoutSeconds * 1000;
-            logger.info(`isQuickMatch: ${isMatchmaking}, timeoutValue: ${timeoutValue} ms`);
 
             setTimeout(() => {
                 try {
@@ -832,11 +832,6 @@ export class GameServer {
                             lobby.removeUser(id);
                             for (const user of lobby.users) {
                                 logger.error(`Requeueing user ${user.id} after matched user disconnected`);
-
-                                // if (!socket.eventContainsListener('requeue')) {
-                                //     const lobbyUser = lobby.users.find((u) => u.id === user.id);
-                                //     socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
-                                // }
 
                                 this.requeueUser(user.socket, lobby.format, user, user.deck.getDecklist());
                                 user.socket.send('matchmakingFailed', 'Player disconnected');

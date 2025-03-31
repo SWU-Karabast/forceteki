@@ -50,19 +50,20 @@ export class QueueHandler {
         const queueEntry = this.findPlayerInQueue(player.user.id);
         if (queueEntry) {
             logger.info(`User ${player.user.id} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${format}`);
-            this.removePlayer(player.user.id);
+            this.removePlayer(player.user.id, 'Rejoining into queue');
         }
 
         const notConnectedPlayerEntry = this.findNotConnectedPlayer(player.user.id);
         if (notConnectedPlayerEntry) {
             logger.info(`User ${player.user.id} is already in waiting-to-queue list for ${notConnectedPlayerEntry.format}, rejoining into queue for format ${format}`);
-            this.removePlayer(player.user.id);
+            this.removePlayer(player.user.id, 'Rejoining into queue');
         }
 
         this.playersWaitingToConnect.push({
             format,
             player: { ...player, state: QueuedPlayerState.WaitingForConnection }
         });
+        logger.info(`Added user ${player.user.id} to waiting list for format ${format}`);
 
         // if the player has an active socket, immediately connect them
         if (player.socket) {
@@ -79,7 +80,7 @@ export class QueueHandler {
             playerEntry = queueEntry;
 
             logger.info(`User ${userId} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${playerEntry.format}`);
-            this.removePlayer(userId);
+            this.removePlayer(userId, 'Rejoining into queue');
         } else {
             const notConnectedPlayer = this.findNotConnectedPlayer(userId);
             Contract.assertNotNullLike(notConnectedPlayer, `Player ${userId} is not in the queue`);
@@ -93,12 +94,14 @@ export class QueueHandler {
         playerEntry.player.socket = socket;
 
         this.queues.get(playerEntry.format)?.push(playerEntry.player);
+        logger.info(`User ${userId} connected, added to queue for format ${playerEntry.format}`);
     }
 
-    public removePlayer(userId: string) {
-        for (const queue of this.queues.values()) {
+    public removePlayer(userId: string, reasonStr: string) {
+        for (const [format, queue] of this.queues.entries()) {
             const index = queue.findIndex((p) => p.user.id === userId);
             if (index !== -1) {
+                logger.info(`Removing player ${userId} from queue for format ${format}. Reason: ${reasonStr}`);
                 queue.splice(index, 1);
                 return;
             }
@@ -106,6 +109,7 @@ export class QueueHandler {
 
         const index = this.playersWaitingToConnect.findIndex((p) => p.player.user.id === userId);
         if (index !== -1) {
+            logger.info(`Removing player ${userId} from queue waiting list. Reason: ${reasonStr}`);
             this.playersWaitingToConnect.splice(index, 1);
             return;
         }
