@@ -17,7 +17,6 @@ export interface QueuedPlayerToAdd {
 
 export enum QueuedPlayerState {
     Connected = 'connected',
-    Disconnected = 'disconnected',
     WaitingForConnection = 'waitingForConnection',
 }
 
@@ -63,7 +62,7 @@ export class QueueHandler {
             format,
             player: { ...player, state: QueuedPlayerState.WaitingForConnection }
         });
-        logger.info(`Added user ${player.user.id} to waiting list for format ${format}`);
+        logger.info(`Added user ${player.user.id} to waiting list for format ${format} until they connect`);
 
         // if the player has an active socket, immediately connect them
         if (player.socket) {
@@ -86,6 +85,7 @@ export class QueueHandler {
             Contract.assertNotNullLike(notConnectedPlayer, `Player ${userId} is not in the queue`);
 
             playerEntry = notConnectedPlayer;
+            this.removePlayer(userId, 'Player connected');
         }
 
         Contract.assertNotNullLike(playerEntry.format);
@@ -95,6 +95,19 @@ export class QueueHandler {
 
         this.queues.get(playerEntry.format)?.push(playerEntry.player);
         logger.info(`User ${userId} connected, added to queue for format ${playerEntry.format}`);
+    }
+
+    /** If the user exists in the queue and is connected, temporarily move them into a disconnected state while waiting for reconnection */
+    public disconnectPlayer(userId: string) {
+        const queueEntry = this.findPlayerInQueue(userId);
+        if (queueEntry) {
+            this.removePlayer(userId, 'Temporarily disconnected');
+            this.addPlayer(queueEntry.format, { user: queueEntry.player.user, deck: queueEntry.player.deck });
+        }
+    }
+
+    public isConnected(userId: string): boolean {
+        return !!this.findPlayerInQueue(userId);
     }
 
     public removePlayer(userId: string, reasonStr: string) {

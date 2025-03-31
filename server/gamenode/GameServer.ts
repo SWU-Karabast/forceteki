@@ -795,33 +795,35 @@ export class GameServer {
         isMatchmaking = false
     ) {
         try {
-            const wasManualDisconnect = !!socket?.data?.manualDisconnect;
-
-            // always try removing the player from all queues, just to be safe
-            this.queue.removePlayer(id, wasManualDisconnect ? 'Manual disconnect' : 'Timeout disconnect');
-
             const lobbyEntry = this.userLobbyMap.get(id);
-            if (!lobbyEntry) {
+            let lobby = null;
+
+            if (lobbyEntry) {
+                const lobbyId = lobbyEntry.lobbyId;
+                lobby = this.lobbies.get(lobbyId);
+            } else if (!isMatchmaking) {
                 return;
             }
-            const lobbyId = lobbyEntry.lobbyId;
-            const lobby = this.lobbies.get(lobbyId);
 
+            const wasManualDisconnect = !!socket?.data?.manualDisconnect;
             if (wasManualDisconnect) {
+                this.queue.removePlayer(id, 'Manual disconnect');
                 this.userLobbyMap.delete(id);
                 this.removeUserMaybeCleanupLobby(lobby, id);
                 return;
             }
-            // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
-            //  without triggering onSocketDisconnect
-            lobby?.setUserDisconnected(id);
 
-            // TODO THIS PR: change the match window timeout to 3 seconds
+            lobby?.setUserDisconnected(id);
+            this.queue.disconnectPlayer(id);
 
             const timeoutValue = timeoutSeconds * 1000;
 
             setTimeout(() => {
                 try {
+                    if (isMatchmaking && !this.queue.isConnected(id)) {
+                        this.queue.removePlayer(id, 'Timeout disconnect');
+                    }
+
                     // Check if the user is still disconnected after the timer
                     if (lobby?.getUserState(id) === 'disconnected') {
                         this.userLobbyMap.delete(id);
