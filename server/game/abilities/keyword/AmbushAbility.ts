@@ -26,6 +26,7 @@ export class AmbushAbility extends TriggeredAbility {
                 condition: AmbushAbility.unitWouldHaveAmbushTarget<TSource>,
                 onTrue: new InitiateAttackSystem((context) => ({
                     isAmbush: true,
+                    allowExhaustedAttacker: true,
                     attacker: context.source,
                     targetCondition: (card) => !card.isBase(),
                     optional: false     // override the default optional behavior - once we've triggered ambush, the attack is no longer optional
