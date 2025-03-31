@@ -773,6 +773,17 @@ export class GameServer {
         }
     }
 
+    public removeLobby(lobby: Lobby, errorMessage: string) {
+        this.lobbies.delete(lobby.id);
+
+        for (const user of lobby.users) {
+            this.userLobbyMap.delete(user.id);
+            user.socket?.send('connection_error', errorMessage);
+        }
+
+        lobby.cleanLobby();
+    }
+
     public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {
         try {
             const lobbyEntry = this.userLobbyMap.get(id);
