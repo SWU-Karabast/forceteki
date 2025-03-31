@@ -23,7 +23,7 @@ interface IInitiateAttackProperties extends IAttackProperties {
  */
 export class InitiateAttackAction extends PlayerAction {
     public constructor(game: Game, card: Card, private attackProperties?: IInitiateAttackProperties) {
-        const exhaustCost = attackProperties?.allowExhaustedAttacker
+        const exhaustCost = (attackProperties?.allowExhaustedAttacker || attackProperties?.isAmbush)
             ? new GameSystemCost(new ExhaustSystem({ isCost: true }), true)
             : exhaustSelf();
 
