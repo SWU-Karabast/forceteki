@@ -217,7 +217,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         const effectEvents: GameEvent[] = [];
         const effectsRegistered = [
             this.queueCreateLastingEffectsGameSteps(Helpers.asArray(attackerLastingEffects), attack.attacker, context, attack, effectEvents),
-            attack.getAllTargets().forEach((target) => this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), target, context, attack, effectEvents))
+            attack.getAllTargets().map((target) => this.queueCreateLastingEffectsGameSteps(Helpers.asArray(defenderLastingEffects), target, context, attack, effectEvents))
         ].some((result) => result);
 
         if (effectsRegistered) {
