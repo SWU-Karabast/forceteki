@@ -25,7 +25,7 @@ describe('Ziro the Hutt, Colorful Schemer', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.exhausted).toBeTrue();
 
-                context.ziroTheHutt.exhausted = false;
+                context.readyCard(context.ziroTheHutt);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.ziroTheHutt);

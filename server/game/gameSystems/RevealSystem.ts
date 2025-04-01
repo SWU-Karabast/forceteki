@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { RelativePlayer } from '../core/Constants';
 import { EventName, ZoneName } from '../core/Constants';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import type { IViewCardProperties } from './ViewCardSystem';
 import { ViewCardInteractMode, ViewCardSystem } from './ViewCardSystem';
 

@@ -54,8 +54,9 @@ export class Lobby {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly server: GameServer;
+    private readonly lobbyCreateTime: Date = new Date();
 
-    private game: Game;
+    private game?: Game;
     public users: LobbyUser[] = [];
     public spectators: LobbySpectator[] = [];
     private lobbyOwnerId: string;
@@ -63,6 +64,7 @@ export class Lobby {
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
     private userLastActivity = new Map<string, Date>();
+    private usersLeftCount = 0;
 
     public constructor(
         lobbyName: string,
@@ -148,6 +150,10 @@ export class Lobby {
         this.userLastActivity.set(id, now);
     }
 
+    public hasPlayer(id: string) {
+        return this.users.some((u) => u.id === id);
+    }
+
     public createLobbyUser(user: User, decklist = null): void {
         const existingUser = this.users.find((u) => u.id === user.getPlayerId());
         const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
@@ -221,6 +227,9 @@ export class Lobby {
             socket.disconnect();
             return;
         }
+
+        Contract.assertFalse(!existingUser && this.isFilled(), `Attempting to add user ${user.id} to lobby ${this.id}, but the lobby already has ${this.users.length} users`);
+
         // we check if listeners for the events already exist
         if (socket.eventContainsListener('game') || socket.eventContainsListener('lobby')) {
             socket.removeEventsListeners(['game', 'lobby']);
@@ -419,6 +428,10 @@ export class Lobby {
         return this.users.length >= 2;
     }
 
+    public hasConnectedPlayer(): boolean {
+        return this.users.some((u) => u.state === 'connected');
+    }
+
     public removeUser(id: string): void {
         const user = this.users.find((u) => u.id === id);
         if (user) {
@@ -442,8 +455,25 @@ export class Lobby {
         this.users = this.users.filter((u) => u.id !== id);
         logger.info(`Removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
+        if (!this.game) {
+            this.checkIncrementUsersLeftCount();
+        }
+
         this.sendLobbyState();
     }
+
+    private checkIncrementUsersLeftCount() {
+        this.usersLeftCount++;
+        if (this.usersLeftCount > 4) {
+            const minutesSinceLobbyCreation = Math.floor((new Date().getTime() - this.lobbyCreateTime.getTime()) / 1000 / 60);
+
+            if (minutesSinceLobbyCreation >= 5) {
+                logger.info(`Cleaning lobby ${this.id} after more than 5 minutes of inactivity and 5 users left`, { lobbyId: this.id });
+                this.server.removeLobby(this, 'Lobby timed out');
+            }
+        }
+    }
+
 
     public isEmpty(): boolean {
         return this.users.length === 0;
@@ -527,33 +557,41 @@ export class Lobby {
     }
 
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
-        if (!this[command] || typeof this[command] !== 'function') {
-            throw new Error(`Incorrect command or command format expected function but got: ${command}`);
-        }
+        try {
+            if (!this[command] || typeof this[command] !== 'function') {
+                throw new Error(`Incorrect command or command format expected function but got: ${command}`);
+            }
 
-        await this[command](socket, ...args);
-        this.sendLobbyState();
+            await this[command](socket, ...args);
+            this.sendLobbyState();
+        } catch (error) {
+            logger.error('Error processing lobby message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+        }
     }
 
     private async onGameMessage(socket: Socket, command: string, ...args): Promise<void> {
-        if (!this.game) {
-            return;
+        try {
+            if (!this.game) {
+                return;
+            }
+
+            // if (command === 'leavegame') {
+            //     return this.onLeaveGame(socket);
+            // }
+
+            if (!this.game[command] || typeof this.game[command] !== 'function') {
+                return;
+            }
+
+            this.game.stopNonChessClocks();
+            await this.game[command](socket.user.getPlayerId(), ...args);
+
+            this.game.continue();
+
+            this.sendGameState(this.game);
+        } catch (error) {
+            logger.error('Error processing game message', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
         }
-
-        // if (command === 'leavegame') {
-        //     return this.onLeaveGame(socket);
-        // }
-
-        if (!this.game[command] || typeof this.game[command] !== 'function') {
-            return;
-        }
-
-        this.game.stopNonChessClocks();
-        await this.game[command](socket.user.getPlayerId(), ...args);
-
-        this.game.continue();
-
-        this.sendGameState(this.game);
     }
 
 

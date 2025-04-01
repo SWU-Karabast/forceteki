@@ -16,7 +16,7 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                 const { context } = contextRef;
 
                 function reset(opponentPass = true) {
-                    context.zebOrrelios.exhausted = false;
+                    context.readyCard(context.zebOrrelios);
                     context.setDamage(context.zebOrrelios, 0);
                     if (opponentPass) {
                         context.player2.passAction();
@@ -87,6 +87,29 @@ describe('Zeb Orrelios, Headstrong Warrior', function () {
                 expect(context.wampa.damage).toBe(4);
                 expect(context.player2).toBeActivePlayer();
             });
+        });
+
+        it('should deal 4 damage to a ground unit when zeb attacks and kills a Leader with on attack abilities', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['zeb-orrelios#headstrong-warrior']
+                },
+                player2: {
+                    leader: { card: 'sabine-wren#galvanized-revolutionary', deployed: true },
+                    groundArena: ['wampa']
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.zebOrrelios);
+            context.player1.clickCard(context.sabineWren);
+
+            context.player1.clickCard(context.wampa);
+
+            expect(context.wampa.damage).toBe(4);
+            expect(context.player2).toBeActivePlayer();
         });
 
         it('should do nothing if the defender was previously defeated and played again before his attack', async function () {

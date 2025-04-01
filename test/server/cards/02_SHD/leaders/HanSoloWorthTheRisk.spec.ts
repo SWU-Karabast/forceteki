@@ -27,7 +27,7 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.cantinaBraggart.damage).toBe(2);
                 expect(context.hanSolo.exhausted).toBeTrue();
 
-                context.hanSolo.exhausted = false;
+                context.readyCard(context.hanSolo);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.hanSolo);

@@ -19,8 +19,8 @@ describe('Keep Fighting', function () {
             it('should ready a unit', function () {
                 const { context } = contextRef;
 
-                context.pykeSentinel.exhausted = true;
-                context.wampa.exhausted = true;
+                context.exhaustCard(context.pykeSentinel);
+                context.exhaustCard(context.wampa);
 
                 // ready pyke sentinel (sabine is not exhausted and wampa is too powerful)
                 context.player1.clickCard(context.keepFighting);

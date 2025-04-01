@@ -34,7 +34,7 @@ describe('Resolute, Under Anakin\'s Command', function () {
             expect(falcon1.damage).toBe(0);
             expect(falcon2.damage).toBe(0);
 
-            context.resolute.exhausted = false;
+            context.readyCard(context.resolute);
             context.player2.passAction();
 
             context.player1.clickCard(context.resolute);

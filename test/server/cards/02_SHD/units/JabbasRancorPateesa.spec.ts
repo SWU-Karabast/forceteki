@@ -65,7 +65,7 @@ describe('Jabba\'s Rancor, Pateesa', function () {
                 expect(context.jabbaTheHutt.damage).toBe(3);
                 expect(context.wampa.damage).toBe(3);
 
-                context.jabbasRancor.exhausted = false;
+                context.readyCard(context.jabbasRancor);
                 context.player2.passAction();
 
                 // attack with jabba's rancor, ability should repeat

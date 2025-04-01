@@ -1,6 +1,6 @@
 const { ZoneName, DeckZoneDestination, DeployType } = require('../../server/game/core/Constants.js');
 const Game = require('../../server/game/core/Game.js');
-const Player = require('../../server/game/core/Player.js');
+const { Player } = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
 const TestSetupError = require('./TestSetupError.js');
@@ -668,6 +668,12 @@ class PlayerInteractionWrapper {
             card = this.findCardByName(card, zone, side);
         }
 
+        if (expectChange && !this.currentActionTargets.includes(card)) {
+            throw new TestSetupError(
+                `Couldn't click on '${card.internalName}' for ${this.player.name}. The card is not selectable!`
+            );
+        }
+
         let beforeClick = null;
         if (expectChange) {
             beforeClick = Util.getPlayerPromptState(this.player);
@@ -766,6 +772,7 @@ class PlayerInteractionWrapper {
         if (this.game.currentActionWindow) {
             this.game.currentActionWindow.activePlayer = this.player;
         }
+        Util.refreshGameState(this.game);
     }
 
     playAttachment(attachment, target) {
@@ -779,6 +786,7 @@ class PlayerInteractionWrapper {
 
     readyResources(number) {
         this.player.readyResources(number);
+        Util.refreshGameState(this.game);
     }
 
     playCharacterFromHand(card, fate = 0) {

@@ -353,7 +353,7 @@ describe('Lose All Abilities', function() {
 
                 // Effect expires
                 context.moveToNextActionPhase();
-                context.consularSecurityForce.damage = 0;
+                context.setDamage(context.consularSecurityForce, 0);
 
                 // Liberated Slaves now has Raid 1
                 context.player1.clickCard(context.liberatedSlaves);

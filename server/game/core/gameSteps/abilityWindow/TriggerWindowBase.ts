@@ -1,4 +1,4 @@
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import type { GameEvent } from '../../event/GameEvent';
 import type { EventWindow } from '../../event/EventWindow';
 import { AbilityType, SubStepCheck } from '../../Constants';
@@ -165,7 +165,7 @@ export abstract class TriggerWindowBase extends BaseStep {
     /** Get the set of yet-unresolved abilities for the player whose turn it is to do resolution */
     private getCurrentlyResolvingAbilities() {
         Contract.assertNotNullLike(this.currentlyResolvingPlayer);
-        Contract.assertHasKey(this.unresolved, this.currentlyResolvingPlayer);
+        Contract.assertMapHasKey(this.unresolved, this.currentlyResolvingPlayer);
 
         return this.unresolved.get(this.currentlyResolvingPlayer);
     }

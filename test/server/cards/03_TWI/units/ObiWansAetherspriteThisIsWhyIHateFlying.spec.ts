@@ -26,7 +26,7 @@ describe('Obi Wan\'s Aethersprite, This Is Why I Hate Flying', function () {
             expect(context.greenSquadronAwing.damage).toBe(2);
 
             // On attack ability
-            context.obiwansAetherspriteThisIsWhyIHateFlying.exhausted = false;
+            context.readyCard(context.obiwansAetherspriteThisIsWhyIHateFlying);
             context.player2.passAction();
             context.player1.clickCard(context.obiwansAetherspriteThisIsWhyIHateFlying);
             context.player1.clickCard(context.p2Base);

@@ -23,7 +23,7 @@ describe('Koska Reeves', function() {
                 context.player1.clickCard(context.p2Base);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.wampa.damage).toBe(0);
-                context.koskaReeves.exhausted = false;
+                context.readyCard(context.koskaReeves);
                 context.player2.passAction();
 
                 // upgrade koska

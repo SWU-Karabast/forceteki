@@ -1,6 +1,6 @@
 import type EventEmitter from 'events';
 import { EventName } from '../Constants';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { CardAbility } from './CardAbility';
 
 export interface IAbilityLimit {

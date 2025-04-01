@@ -1,14 +1,19 @@
 import type { ZoneName } from '../../Constants';
 import { CardType } from '../../Constants';
 import * as Contract from '../../utils/Contract';
-import type Player from '../../Player';
-import type { PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
+import type { Player } from '../../Player';
+import type { IPlayableOrDeployableCardState, PlayableOrDeployableCardConstructor } from '../baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard, type ICardWithExhaustProperty } from '../baseClasses/PlayableOrDeployableCard';
 
 export const LeaderPropertiesCard = WithLeaderProperties(PlayableOrDeployableCard);
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ILeaderCard extends ICardWithExhaustProperty {}
+
+export interface ILeaderPropertiesCardState extends IPlayableOrDeployableCardState {
+    deployed: boolean;
+    onStartingSide: boolean;
+}
 
 /**
  * Mixin function that adds the standard properties for a unit (leader or non-leader) to a base class.
@@ -18,8 +23,8 @@ export interface ILeaderCard extends ICardWithExhaustProperty {}
  * - the {@link InitiateAttackAction} ability so that the card can attack
  * - the ability to have attached upgrades
  */
-export function WithLeaderProperties<TBaseClass extends PlayableOrDeployableCardConstructor>(BaseClass: TBaseClass) {
-    return class AsLeader extends BaseClass implements ILeaderCard {
+export function WithLeaderProperties<TState extends IPlayableOrDeployableCardState, TBaseClass extends PlayableOrDeployableCardConstructor = PlayableOrDeployableCardConstructor>(BaseClass: TBaseClass) {
+    return class AsLeader extends (BaseClass as typeof BaseClass & PlayableOrDeployableCardConstructor<TState & ILeaderPropertiesCardState>) implements ILeaderCard {
         // see Card constructor for list of expected args
         public constructor(...args: any[]) {
             super(...args);

@@ -108,9 +108,16 @@ export function assertStringValue(val: string, message?: string): asserts val is
     }
 }
 
-export function assertHasKey<TKey>(map: Map<TKey, any>, key: TKey, message?: string): asserts map is NonNullable<Map<TKey, any>> {
+export function assertMapHasKey<TKey>(map: Map<TKey, any>, key: TKey, message?: string): asserts map is NonNullable<Map<TKey, any>> {
     assertNotNullLike(map);
     if (!map.has(key)) {
+        contractCheckImpl.fail(message ?? `Map does not contain key ${key}`);
+    }
+}
+
+export function assertHasKey<TKey extends string | number>(record: Record<TKey, any>, key: string, message?: string): asserts record is NonNullable<Record<TKey, any>> {
+    assertNotNullLike(record);
+    if (!Object.prototype.hasOwnProperty.call(record, key)) {
         contractCheckImpl.fail(message ?? `Map does not contain key ${key}`);
     }
 }

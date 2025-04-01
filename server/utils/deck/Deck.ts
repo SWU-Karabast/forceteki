@@ -1,5 +1,5 @@
 import type { Card } from '../../game/core/card/Card';
-import type Player from '../../game/core/Player';
+import type { Player } from '../../game/core/Player';
 import * as CardHelpers from '../../game/core/card/CardHelpers';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ISwuDbCardEntry, ISwuDbDecklist, IDecklistInternal, IInternalCardEntry } from './DeckInterfaces';

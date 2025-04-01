@@ -4,7 +4,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
 import { forEach } from 'underscore';
-import type Player from '../../../core/Player';
+import type { Player } from '../../../core/Player';
 
 export default class ExecuteOrder66 extends EventCard {
     protected override getImplementationId() {

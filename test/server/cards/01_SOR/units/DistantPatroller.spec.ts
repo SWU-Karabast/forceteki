@@ -30,5 +30,28 @@ describe('Distant Patroller', function () {
                 expect(context.avenger).toHaveExactUpgradeNames(['shield']);
             });
         });
+
+        it('should work with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: [{ card: 'distant-patroller', upgrades: ['experience', 'experience'] }]
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['maul#shadow-collective-visionary', 'supreme-leader-snoke#shadow-ruler'],
+                    hasInitiative: true
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.distantPatroller);
+            expect(context.player2).toBeAbleToSelectExactly(context.supremeLeaderSnoke);
+            context.player2.clickCard(context.supremeLeaderSnoke);
+            expect(context.supremeLeaderSnoke).toHaveExactUpgradeNames(['shield']);
+
+            context.player1.passAction();
+        });
     });
 });

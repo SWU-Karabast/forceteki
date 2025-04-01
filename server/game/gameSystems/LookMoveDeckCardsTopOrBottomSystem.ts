@@ -8,7 +8,7 @@ import { MoveCardSystem } from './MoveCardSystem';
 import * as Contract from '../core/utils/Contract';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import { ViewCardInteractMode } from './ViewCardSystem';
 
 export interface ILookMoveDeckCardsTopOrBottomProperties extends IPlayerTargetSystemProperties {
@@ -97,20 +97,22 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         }
 
         // create a new card event
-        const moveCardEvent = new MoveCardSystem({
+        const moveGameSystem = new MoveCardSystem({
             destination: bottom ? DeckZoneDestination.DeckBottom : DeckZoneDestination.DeckTop,
             target: card
-        }).generateEvent(context);
+        });
+        const moveCardEvent = moveGameSystem.generateEvent(context);
+        const [effectMessage, effectArgs] = moveGameSystem.getEffectMessage(context);
+        context.game.addMessage(`${context.player.name} chooses to ${effectMessage}`, ...effectArgs);
         events.push(moveCardEvent);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        const message =
-            properties.amount > 0
-                ? `look at the top ${properties.amount === 1 ? 'card' : `${properties.amount} cards`} of your deck. 
-                ${properties.amount === 1 ? 'You may put it on the bottom of your deck'
-                    : 'Put any number of them on the bottom of your deck and the rest on top in any order'}` : '';
+        let message = '';
+        if (properties.amount > 0) {
+            message = `look at the top ${properties.amount === 1 ? 'card' : `${properties.amount} cards`} of their deck and they ${properties.amount === 1 ? 'may put it on the bottom of their deck' : 'put any number of them on the bottom of their deck and the rest on top in any order'}`;
+        }
         return [message, []];
     }
 }

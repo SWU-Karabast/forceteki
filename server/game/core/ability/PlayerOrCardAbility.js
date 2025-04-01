@@ -358,7 +358,7 @@ class PlayerOrCardAbility {
     }
 
     /** Return the controller of ability, can be different from card's controller (with bounty for exemple)
-     * @returns {import('../Player.js')} */
+     * @returns {import('../Player.js').Player} */
     get controller() {
         return this.canBeTriggeredBy === RelativePlayer.Self ? this.card.controller : this.card.controller.opponent;
     }

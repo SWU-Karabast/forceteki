@@ -30,7 +30,7 @@ describe('Mace Windu, Vaapad Form Master', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
                 // reset
-                context.maceWindu.exhausted = false;
+                context.readyCard(context.maceWindu);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.maceWindu);

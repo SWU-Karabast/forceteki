@@ -4,7 +4,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import { MetaEventName } from '../core/Constants';
 import type { IChoicesInterface } from '../TargetInterfaces';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 
 export interface IPlayModalCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {
     amountOfChoices: number;

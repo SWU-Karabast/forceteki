@@ -36,6 +36,9 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player1.clickCard(context.aggression);
                 expect(context.aggression).toBeInZone('discard', context.player1);
                 expect(context.player1.readyResourceCount).toBe(5);
+                expect(context.getChatLogs(1)).toEqual([
+                    'player1 uses Han Solo to defeat Aggression',
+                ]);
             });
 
             it('should defeat two resources at the start of the next action phase if both han abilities are used in the same turn', function() {

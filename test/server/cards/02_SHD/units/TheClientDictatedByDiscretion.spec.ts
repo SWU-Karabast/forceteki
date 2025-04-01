@@ -44,7 +44,7 @@ describe('The Client, Dictated by Discretion', function() {
 
                 // reset state
                 context.player2.moveCard(context.wampa, 'groundArena');
-                context.theClient.exhausted = false;
+                context.readyCard(context.theClient);
                 context.player2.passAction();
 
                 // add a bounty to wampa

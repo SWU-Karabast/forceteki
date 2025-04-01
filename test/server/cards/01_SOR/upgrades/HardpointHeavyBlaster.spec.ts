@@ -22,8 +22,8 @@ describe('Hardpoint Heavy Blaster', function() {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.strafingGunship.exhausted = false;
-                    context.strafingGunship.damage = 0;
+                    context.readyCard(context.strafingGunship);
+                    context.setDamage(context.strafingGunship, 0);
                     context.player2.passAction();
                 };
 

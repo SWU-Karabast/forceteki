@@ -1,11 +1,11 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { CardType, ZoneName } from '../../../core/Constants';
+import { WildcardCardType, ZoneName } from '../../../core/Constants';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import type { Card } from '../../../core/card/Card';
-import type Player from '../../../core/Player';
+import type { Player } from '../../../core/Player';
 
 export default class AFineAddition extends EventCard {
     private unitsDefeatedWatcher: UnitsDefeatedThisPhaseWatcher;
@@ -34,17 +34,18 @@ export default class AFineAddition extends EventCard {
         this.setEventAbility({
             title: 'If an enemy unit was defeated this phase, play an upgrade from your hand or from any player\'s discard pile, ignoring its aspect penalty.',
             targetResolver: {
-                cardTypeFilter: CardType.BasicUpgrade,
                 zoneFilter: [ZoneName.Discard, ZoneName.Hand],
                 cardCondition: (card, context) => this.wasEnemyUnitDefeatedThisPhaseForPlayer(context.player.opponent) && this.checkZoneAndOwnershipOfCard(card, context.player),
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.target.zoneName === ZoneName.Discard,
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                         adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
-                        canPlayFromAnyZone: true
+                        canPlayFromAnyZone: true,
+                        playAsType: WildcardCardType.Upgrade,
                     }),
                     onFalse: AbilityHelper.immediateEffects.playCardFromHand({
-                        adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects }
+                        adjustCost: { costAdjustType: CostAdjustType.IgnoreAllAspects },
+                        playAsType: WildcardCardType.Upgrade
                     }),
                 })
             }

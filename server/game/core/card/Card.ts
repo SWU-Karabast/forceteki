@@ -1,8 +1,9 @@
 import type { IActionAbilityProps, IConstantAbilityProps, ISetId, Zone, ITriggeredAbilityProps } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import type { IOngoingEffectSourceState } from '../ongoingEffect/OngoingEffectSource';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { KeywordName } from '../Constants';
@@ -35,9 +36,23 @@ import type { ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbil
 import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
+import type { GameObjectRef } from '../GameObjectBase';
 
 // required for mixins to be based on this class
-export type CardConstructor = new (...args: any[]) => Card;
+export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
+
+export interface ICardState extends IOngoingEffectSourceState {
+
+    facedown: boolean;
+    hiddenForController: boolean;
+    hiddenForOpponent: boolean;
+
+    controllerRef: GameObjectRef<Player>;
+
+    zone: GameObjectRef<Zone> | null;
+    movedFromZone: ZoneName | null;
+    nextAbilityIdx: number;
+}
 
 export enum InitializeCardStateOption {
     Initialize = 'initialize',
@@ -52,7 +67,7 @@ export enum InitializeCardStateOption {
  * or {@link Card.canBeExhausted} to confirm that the card has the expected properties and then cast
  * to the specific card type or one of the union types in `CardTypes.js` as needed.
  */
-export class Card extends OngoingEffectSource {
+export class Card<T extends ICardState = ICardState> extends OngoingEffectSource<T> {
     public static checkHasNonKeywordAbilityText(cardData: ICardDataJson) {
         if (cardData.types.includes('leader')) {
             return true;
@@ -105,16 +120,24 @@ export class Card extends OngoingEffectSource {
 
     protected actionAbilities: ActionAbility[] = [];
     protected constantAbilities: IConstantAbility[] = [];
-    protected _controller: Player;
     protected disableWhenDefeatedCheck = false;
-    protected _facedown = true;
-    protected hiddenForController = true;      // TODO: is this correct handling of hidden / visible card state? not sure how this integrates with the client
-    protected hiddenForOpponent = true;
-    protected movedFromZone?: ZoneName = null;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
-    private nextAbilityIdx = 0;
-    private _zone: Zone;
+    protected get hiddenForController() {
+        return this.state.hiddenForController;
+    }
+
+    protected get hiddenForOpponent() {
+        return this.state.hiddenForOpponent;
+    }
+
+    protected get movedFromZone() {
+        return this.state.movedFromZone;
+    }
+
+    protected set movedFromZone(value: ZoneName | null) {
+        this.state.movedFromZone = value;
+    }
 
 
     // ******************************************** PROPERTY GETTERS ********************************************
@@ -131,11 +154,15 @@ export class Card extends OngoingEffectSource {
     }
 
     public get controller(): Player {
-        return this._controller;
+        return this.game.gameObjectManager.get(this.state.controllerRef);
+    }
+
+    protected set controller(value: Player) {
+        this.state.controllerRef = value.getRef();
     }
 
     public get facedown(): boolean {
-        return this._facedown;
+        return this.state.facedown;
     }
 
     public get internalName(): string {
@@ -180,16 +207,16 @@ export class Card extends OngoingEffectSource {
         return this.printedType;
     }
 
-    public get zone(): Zone {
-        return this._zone;
+    public get zone(): Zone | null {
+        return this.state.zone ? this.game.gameObjectManager.get(this.state.zone) : null;
     }
 
-    protected set zone(zone: Zone) {
-        this._zone = zone;
+    protected set zone(zone: Zone | null) {
+        this.state.zone = zone?.getRef();
     }
 
     public get zoneName(): ZoneName {
-        return this._zone?.name;
+        return this.zone?.name;
     }
 
     // *********************************************** CONSTRUCTOR ***********************************************
@@ -217,7 +244,7 @@ export class Card extends OngoingEffectSource {
         this._backSideTitle = cardData.backSideTitle;
         this._unique = cardData.unique;
 
-        this._controller = owner;
+        this.controller = owner;
         this.id = cardData.id;
         this.canBeUpgrade = cardData.upgradeHp != null && cardData.upgradePower != null;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
@@ -247,6 +274,14 @@ export class Card extends OngoingEffectSource {
         this.initializeStateForAbilitySetup();
     }
 
+    protected override setupDefaultState() {
+        super.setupDefaultState();
+
+        this.state.facedown = true;
+        this.state.hiddenForController = false;
+        this.state.hiddenForOpponent = false;
+        this.state.movedFromZone = null;
+    }
 
     // ******************************************* ABILITY GETTERS *******************************************
     /**
@@ -402,8 +437,8 @@ export class Card extends OngoingEffectSource {
 
     /** Increments the ability index counter used for adding an index number to an ability's ID */
     private getNextAbilityIdx() {
-        this.nextAbilityIdx++;
-        return this.nextAbilityIdx - 1;
+        this.state.nextAbilityIdx++;
+        return this.state.nextAbilityIdx - 1;
     }
 
 
@@ -615,14 +650,14 @@ export class Card extends OngoingEffectSource {
      * @param targetZoneName Zone to move to
      */
     public moveTo(targetZoneName: MoveZoneDestination, initializeCardState: InitializeCardStateOption = InitializeCardStateOption.Initialize) {
-        Contract.assertNotNullLike(this._zone, `Attempting to move card ${this.internalName} before initializing zone`);
+        Contract.assertNotNullLike(this.state.zone, `Attempting to move card ${this.internalName} before initializing zone`);
 
         const prevZone = this.zoneName;
         const resetController = EnumHelpers.zoneMoveRequiresControllerReset(prevZone, targetZoneName);
 
         // if we're moving to deck top / bottom, don't bother checking if we're already in the zone
         if (!([DeckZoneDestination.DeckBottom, DeckZoneDestination.DeckTop] as MoveZoneDestination[]).includes(targetZoneName)) {
-            const originalZone = this._zone;
+            const originalZone = this.zone;
             const moveToZone = (resetController ? this.owner : this.controller)
                 .getZone(EnumHelpers.asConcreteZone(targetZoneName));
 
@@ -639,7 +674,7 @@ export class Card extends OngoingEffectSource {
         this.removeFromCurrentZone();
 
         if (resetController) {
-            this._controller = this.owner;
+            this.controller = this.owner;
         }
 
         this.addSelfToZone(targetZoneName);
@@ -648,11 +683,11 @@ export class Card extends OngoingEffectSource {
     }
 
     protected removeFromCurrentZone() {
-        if (this._zone.name === ZoneName.Base) {
-            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${this._zone}`);
-            this._zone.removeLeader();
+        if (this.zone.name === ZoneName.Base) {
+            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${this.zone}`);
+            this.zone.removeLeader();
         } else {
-            this._zone.removeCard(this);
+            this.zone.removeCard(this);
         }
     }
 
@@ -675,9 +710,9 @@ export class Card extends OngoingEffectSource {
     }
 
     public initializeZone(zone: Zone) {
-        Contract.assertIsNullLike(this._zone, `Attempting to initialize zone for card ${this.internalName} to ${zone.name} but it is already set`);
+        Contract.assertIsNullLike(this.state.zone, `Attempting to initialize zone for card ${this.internalName} to ${zone.name} but it is already set`);
 
-        this._zone = zone;
+        this.zone = zone;
 
         this.initializeForStartZone();
         this.initializeForCurrentZone(null);
@@ -685,58 +720,58 @@ export class Card extends OngoingEffectSource {
 
 
     protected initializeForStartZone(): void {
-        this._controller = this.owner;
+        this.controller = this.owner;
     }
 
     private addSelfToZone(zoneName: MoveZoneDestination) {
         switch (zoneName) {
             case ZoneName.Base:
-                this._zone = this.owner.baseZone;
+                this.zone = this.owner.baseZone;
                 Contract.assertTrue(this.isLeader());
-                this._zone.setLeader(this);
+                this.zone.setLeader(this);
                 break;
 
             case DeckZoneDestination.DeckBottom:
             case DeckZoneDestination.DeckTop:
-                this._zone = this.owner.deckZone;
+                this.zone = this.owner.deckZone;
                 Contract.assertTrue(this.isPlayable());
-                this._zone.addCard(this, zoneName);
+                this.zone.addCard(this, zoneName);
                 break;
 
             case ZoneName.Discard:
-                this._zone = this.owner.discardZone;
+                this.zone = this.owner.discardZone;
                 Contract.assertTrue(this.isPlayable());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             case ZoneName.GroundArena:
-                this._zone = this.game.groundArena;
+                this.zone = this.game.groundArena;
                 Contract.assertTrue(this.canBeInPlay());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             case ZoneName.Hand:
-                this._zone = this.owner.handZone;
+                this.zone = this.owner.handZone;
                 Contract.assertTrue(this.isPlayable());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             case ZoneName.OutsideTheGame:
-                this._zone = this.owner.outsideTheGameZone;
+                this.zone = this.owner.outsideTheGameZone;
                 Contract.assertTrue(this.isToken() || this.isPlayable());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             case ZoneName.Resource:
-                this._zone = this.controller.resourceZone;
+                this.zone = this.controller.resourceZone;
                 Contract.assertTrue(this.isPlayable());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             case ZoneName.SpaceArena:
-                this._zone = this.game.spaceArena;
+                this.zone = this.game.spaceArena;
                 Contract.assertTrue(this.canBeInPlay());
-                this._zone.addCard(this);
+                this.zone.addCard(this);
                 break;
 
             default:
@@ -843,44 +878,44 @@ export class Card extends OngoingEffectSource {
      * Subclass methods should override this and call the super method to ensure all statuses are set correctly.
      */
     protected initializeForCurrentZone(prevZone?: ZoneName) {
-        this.hiddenForOpponent = EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self);
+        this.state.hiddenForOpponent = EnumHelpers.isHiddenFromOpponent(this.zoneName, RelativePlayer.Self);
 
         switch (this.zoneName) {
             case ZoneName.SpaceArena:
             case ZoneName.GroundArena:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Base:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Resource:
-                this._facedown = true;
-                this.hiddenForController = false;
+                this.state.facedown = true;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Deck:
-                this._facedown = true;
-                this.hiddenForController = true;
+                this.state.facedown = true;
+                this.state.hiddenForController = true;
                 break;
 
             case ZoneName.Hand:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Capture:
-                this._facedown = true;
-                this.hiddenForController = false;
+                this.state.facedown = true;
+                this.state.hiddenForController = false;
                 break;
 
             case ZoneName.Discard:
             case ZoneName.OutsideTheGame:
-                this._facedown = false;
-                this.hiddenForController = false;
+                this.state.facedown = false;
+                this.state.hiddenForController = false;
                 break;
 
             default:
@@ -1029,7 +1064,7 @@ export class Card extends OngoingEffectSource {
         const selectionState = activePlayer.getCardSelectionState(this);
 
         // If it is not the active player and in opposing hand or deck - return facedown card
-        if (this._zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this._zone.hiddenForPlayers === RelativePlayer.Opponent)) {
+        if (this.zone.hiddenForPlayers === WildcardRelativePlayer.Any || (!isActivePlayer && this.zone.hiddenForPlayers === RelativePlayer.Opponent)) {
             const state = {
                 controller: this.controller.getShortSummary(),
                 owner: this.owner.getShortSummary(),
@@ -1078,9 +1113,9 @@ export class Card extends OngoingEffectSource {
     private isHiddenForPlayer(player: Player) {
         switch (player) {
             case this.controller:
-                return this.hiddenForController;
+                return this.state.hiddenForController;
             case this.controller.opponent:
-                return this.hiddenForOpponent;
+                return this.state.hiddenForOpponent;
             default:
                 Contract.fail(`Unknown player: ${player}`);
                 return false;

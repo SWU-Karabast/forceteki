@@ -49,7 +49,7 @@ describe('Obi-Wan Kenobi, Patient Mentor', function () {
                 const { context } = contextRef;
 
                 function reset() {
-                    context.obiwanKenobi.exhausted = false;
+                    context.readyCard(context.obiwanKenobi);
                     context.setDamage(context.p2Base, 0);
                     context.player2.passAction();
                 }

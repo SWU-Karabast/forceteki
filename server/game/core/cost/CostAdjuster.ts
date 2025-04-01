@@ -4,7 +4,7 @@ import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter } from '../Constants';
 import { WildcardCardType } from '../Constants';
 import type Game from '../Game';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import * as Contract from '../../core/utils/Contract';
 import type { ExploitCostAdjuster } from '../../abilities/keyword/exploit/ExploitCostAdjuster';
 import type { ICostResult } from './ICost';

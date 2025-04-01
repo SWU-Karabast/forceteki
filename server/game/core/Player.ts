@@ -1,49 +1,113 @@
-const { GameObject } = require('./GameObject');
-const { Deck } = require('../../utils/deck/Deck.js');
-const UpgradePrompt = require('./gameSteps/prompts/UpgradePrompt.js');
-const { clockFor } = require('./clocks/ClockSelector.js');
-const { CostAdjuster, CostAdjustType } = require('./cost/CostAdjuster');
-const { PlayableZone } = require('./PlayableZone');
-const { PlayerPromptState } = require('./PlayerPromptState.js');
-const Contract = require('./utils/Contract');
-const {
-    CardType,
-    EffectName,
-    ZoneName,
-    RelativePlayer,
-    Aspect,
-    WildcardZoneName,
-    PlayType,
-    KeywordName,
-    WildcardCardType,
-    Trait,
-    WildcardRelativePlayer,
-    Stage
-} = require('./Constants');
+import type { IGameObjectState } from './GameObject';
+import { GameObject } from './GameObject';
+import type { Deck } from '../../utils/deck/Deck.js';
+import UpgradePrompt from './gameSteps/prompts/UpgradePrompt.js';
+import type { ClockConfig } from './clocks/ClockSelector.js';
+import { clockFor } from './clocks/ClockSelector.js';
+import type { CostAdjuster, ICanAdjustProperties } from './cost/CostAdjuster';
+import { CostAdjustType } from './cost/CostAdjuster';
+import { PlayableZone } from './PlayableZone';
+import { PlayerPromptState } from './PlayerPromptState.js';
+import * as Contract from './utils/Contract';
+import type { CardType, Aspect, KeywordName, Trait, MoveZoneDestination } from './Constants';
+import { EffectName, ZoneName, RelativePlayer, WildcardZoneName, PlayType, WildcardCardType, WildcardRelativePlayer, Stage } from './Constants';
 
-const EnumHelpers = require('./utils/EnumHelpers');
-const Helpers = require('./utils/Helpers');
-const { AbilityContext } = require('./ability/AbilityContext');
-const { HandZone } = require('./zone/HandZone');
-const { DeckZone } = require('./zone/DeckZone');
-const { ResourceZone } = require('./zone/ResourceZone');
-const { DiscardZone } = require('./zone/DiscardZone');
-const { OutsideTheGameZone } = require('./zone/OutsideTheGameZone');
-const { BaseZone } = require('./zone/BaseZone');
-const Game = require('./Game');
-const { ZoneAbstract } = require('./zone/ZoneAbstract');
-const { Card } = require('./card/Card');
-const { ExploitCostAdjuster } = require('../abilities/keyword/exploit/ExploitCostAdjuster');
-const { MergedExploitCostAdjuster } = require('../abilities/keyword/exploit/MergedExploitCostAdjuster');
+import * as EnumHelpers from './utils/EnumHelpers';
+import * as Helpers from './utils/Helpers';
+import type { AbilityContext } from './ability/AbilityContext';
+import { HandZone } from './zone/HandZone';
+import { DeckZone } from './zone/DeckZone';
+import { ResourceZone } from './zone/ResourceZone';
+import { DiscardZone } from './zone/DiscardZone';
+import { OutsideTheGameZone } from './zone/OutsideTheGameZone';
+import { BaseZone } from './zone/BaseZone';
+import type Game from './Game';
+import type { ZoneAbstract } from './zone/ZoneAbstract';
+import type { Card } from './card/Card';
+import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
+import type { User } from '../../Settings';
+import type { IClock } from './clocks/IClock';
+import type { IAllArenasForPlayerCardFilterProperties, IAllArenasForPlayerSpecificTypeCardFilterProperties } from './zone/AllArenasZone';
+import type { IInPlayCard } from './card/baseClasses/InPlayCard';
+import type { ICardWithExhaustProperty, IPlayableCard } from './card/baseClasses/PlayableOrDeployableCard';
+import type { Zone } from '../Interfaces';
+import type { IGetMatchingCostAdjusterProperties, IRunCostAdjustmentProperties } from './cost/CostInterfaces';
+import type { IUnitCard } from './card/propertyMixins/UnitProperties';
+import type { GameObjectRef } from './GameObjectBase';
+import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
+import type { IBaseCard } from './card/BaseCard';
 
-class Player extends GameObject {
-    /**
-     * @param {string} id
-     * @param {import('../../Settings').IUser} user
-     * @param {Game} game
-     * @param {import('./clocks/ClockSelector.js').ClockConfig} [clockDetails]
-     */
-    constructor(id, user, game, clockDetails) {
+export interface IPlayerState extends IGameObjectState {
+    handZone: GameObjectRef<HandZone>;
+    resourceZone: GameObjectRef<ResourceZone>;
+    discardZone: GameObjectRef<DiscardZone>;
+    outsideTheGameZone: GameObjectRef<OutsideTheGameZone>;
+    baseZone: GameObjectRef<BaseZone> | null;
+    deckZone: GameObjectRef<DeckZone>;
+    leader: GameObjectRef<ILeaderCard>;
+    base: GameObjectRef<IBaseCard>;
+}
+
+export class Player extends GameObject<IPlayerState> {
+    public user: User;
+    public printedType: string;
+    // TODO: INCOMPLETE
+    public socket: any;
+    public disconnected: boolean;
+    public left: boolean;
+
+    // TODO: Convert all Zones to Refs and let the GameStateManager keep them there alone?
+    public get handZone(): HandZone {
+        return this.game.gameObjectManager.get(this.state.handZone);
+    }
+
+    public get resourceZone(): ResourceZone {
+        return this.game.gameObjectManager.get(this.state.resourceZone);
+    }
+
+    public get discardZone(): DiscardZone {
+        return this.game.gameObjectManager.get(this.state.discardZone);
+    }
+
+    public get outsideTheGameZone(): OutsideTheGameZone {
+        return this.game.gameObjectManager.get(this.state.outsideTheGameZone);
+    }
+
+    public get baseZone(): BaseZone | null {
+        return this.game.gameObjectManager.get(this.state.baseZone);
+    }
+
+    public get deckZone(): DeckZone {
+        return this.game.gameObjectManager.get(this.state.deckZone);
+    }
+
+    public get leader(): ILeaderCard {
+        return this.game.gameObjectManager.get(this.state.leader);
+    }
+
+    public get base(): IBaseCard {
+        return this.game.gameObjectManager.get(this.state.base);
+    }
+
+    private canTakeActionsThisPhase: null;
+    // STATE TODO: Does Deck need to be a GameObject?
+    private decklistNames: Deck | null;
+    public clock: IClock;
+    private limitedPlayed: number;
+    // INCOMPLETE
+    public decklist: Record<string, any>;
+    private costAdjusters: any[];
+    private abilityMaxByIdentifier: Record<string, any>;
+    public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
+
+    public optionSettings: Partial<{ autoSingleTarget: boolean }>;
+    private resetTimerAtEndOfRound: boolean;
+    private promptState: PlayerPromptState;
+    public opponent: Player;
+    private playableZones: PlayableZone[];
+    private noTimer: boolean;
+    public passedActionPhase: boolean;
+    public constructor(id: string, user: User, game: Game, clockDetails?: ClockConfig) {
         super(game, user.username);
 
         Contract.assertNotNullLike(id);
@@ -58,21 +122,14 @@ class Player extends GameObject {
         this.disconnected = false;
         this.left = false;
 
-        this.handZone = new HandZone(this);
-        this.resourceZone = new ResourceZone(this);
-        this.discardZone = new DiscardZone(this);
         this.canTakeActionsThisPhase = null;
-
+        this.state.handZone = new HandZone(game, this).getRef();
+        this.state.resourceZone = new ResourceZone(game, this).getRef();
+        this.state.discardZone = new DiscardZone(game, this).getRef();
         // mainly used for staging tokens when they are created / removed
-        this.outsideTheGameZone = new OutsideTheGameZone(this);
-
-        /** @type {BaseZone} */
-        this.baseZone = null;
-
-        /** @type {DeckZone} */
-        this.deckZone = new DeckZone(this);
-
-        this.damageToBase = null;
+        this.state.outsideTheGameZone = new OutsideTheGameZone(game, this).getRef();
+        this.state.baseZone = null;
+        this.state.deckZone = new DeckZone(game, this).getRef();
 
         this.clock = clockFor(this, clockDetails);
 
@@ -100,92 +157,77 @@ class Player extends GameObject {
      * @override
      * @returns {this is Player}
      */
-    isPlayer() {
+    public override isPlayer(): this is Player {
         return true;
     }
 
-    get autoSingleTarget() {
+    public get autoSingleTarget() {
         return this.optionSettings.autoSingleTarget;
     }
 
-    startClock() {
+    public startClock() {
         this.clock.start();
         if (this.opponent) {
             this.opponent.clock.opponentStart();
         }
     }
 
-    stopNonChessClocks() {
+    public stopNonChessClocks() {
         if (this.clock.name !== 'Chess Clock') {
             this.stopClock();
         }
     }
 
-    stopClock() {
+    public stopClock() {
         this.clock.stop();
     }
 
-    resetClock() {
+    public resetClock() {
         this.clock.reset();
     }
 
-    /**
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerCardFilterProperties} filter
-     */
-    getArenaCards(filter = {}) {
+    public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
         return this.game.allArenas.getCards({ ...filter, controller: this });
     }
 
     /**
      * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
      */
-    getArenaUnits(filter = {}) {
+    public getArenaUnits(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
         return this.game.allArenas.getUnitCards({ ...filter, controller: this });
     }
 
     // TODO: this will be refactored to merge with getArenaUnits
     /**
      * Get all units in designated play arena(s) controlled by this player
-     * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
-     * @param {(card: import('./card/propertyMixins/UnitProperties').IUnitCard) => boolean} cardCondition Condition to filter cards
+     * @param arena Arena to select units from
+     * @param cardCondition Condition to filter cards
      */
-    getUnitsInPlay(arena = WildcardZoneName.AnyArena, cardCondition = () => true) {
+    public getUnitsInPlay(arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: IUnitCard) => boolean = () => true) {
         return this.getArenaUnits({ arena, condition: cardCondition });
     }
 
-    /**
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
-     */
-    getArenaUpgrades(filter = {}) {
+    public getArenaUpgrades(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
         return this.game.allArenas.getUpgradeCards({ ...filter, controller: this });
     }
 
-    /**
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerCardFilterProperties} filter
-     */
-    hasSomeArenaCard(filter) {
+    public hasSomeArenaCard(filter: IAllArenasForPlayerCardFilterProperties) {
         return this.game.allArenas.hasSomeCard({ ...filter, controller: this });
     }
 
-    /**
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
-     */
-    hasSomeArenaUnit(filter) {
+    public hasSomeArenaUnit(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties) {
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit, controller: this });
     }
 
-    /**
-     * @param {import('./zone/AllArenasZone').IAllArenasForPlayerSpecificTypeCardFilterProperties} filter
-     */
-    hasSomeArenaUpgrade(filter) {
+    public hasSomeArenaUpgrade(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties) {
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
     }
 
     /**
      * Get all units in designated play arena(s) controlled by this player
-     * @param { Trait } trait Get units with this trait
+     * @param {Trait} trait Get units with this trait
      */
-    getUnitsInPlayWithTrait(trait) {
+    public getUnitsInPlayWithTrait(trait: Trait) {
         return this.getArenaUnits({ trait });
     }
 
@@ -195,7 +237,7 @@ class Player extends GameObject {
      * @param { Trait } trait The Trait to check for
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      */
-    getOtherUnitsInPlayWithTrait(ignoreUnit, trait, arena = WildcardZoneName.AnyArena) {
+    public getOtherUnitsInPlayWithTrait(ignoreUnit: any, trait: Trait, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena) {
         return this.getArenaCards({ otherThan: ignoreUnit, trait, arena }).filter((card) => card.isUnit() && card !== ignoreUnit && card.hasSomeTrait(trait));
     }
 
@@ -206,7 +248,7 @@ class Player extends GameObject {
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      * @param {(card: Card) => boolean} [cardCondition=(card) => true]
      */
-    getUnitsInPlayWithAspect(aspect, arena = WildcardZoneName.AnyArena, cardCondition = () => true) {
+    public getUnitsInPlayWithAspect(aspect: Aspect, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: Card) => boolean = () => true) {
         return this.getArenaUnits({ aspect, arena, condition: cardCondition });
     }
 
@@ -216,7 +258,7 @@ class Player extends GameObject {
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      * @param {(card: Card) => boolean} [cardCondition=(card) => true]
      */
-    getOtherUnitsInPlay(ignoreUnit, arena = WildcardZoneName.AnyArena, cardCondition = () => true) {
+    public getOtherUnitsInPlay(ignoreUnit: any, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: Card) => boolean = () => true) {
         return this.getArenaUnits({ otherThan: ignoreUnit, arena, condition: cardCondition });
     }
 
@@ -227,7 +269,7 @@ class Player extends GameObject {
      * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
      * @param {(card: Card) => boolean} [cardCondition=(card) => true]
      */
-    getOtherUnitsInPlayWithAspect(ignoreUnit, aspect, arena = WildcardZoneName.AnyArena, cardCondition = () => true) {
+    public getOtherUnitsInPlayWithAspect(ignoreUnit: any, aspect: Aspect, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: Card) => boolean = () => true) {
         return this.getArenaUnits({ otherThan: ignoreUnit, aspect, arena, condition: cardCondition });
     }
 
@@ -235,7 +277,7 @@ class Player extends GameObject {
      * @param { String } title the title of the unit or leader to check for control of
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
-    controlsLeaderUnitOrUpgradeWithTitle(title) {
+    public controlsLeaderUnitOrUpgradeWithTitle(title: string): boolean {
         return this.leader.title === title ||
           this.hasSomeArenaUnit({ condition: (card) => card.title === title }) ||
           this.hasSomeArenaUpgrade({ condition: (card) => card.title === title });
@@ -247,7 +289,7 @@ class Player extends GameObject {
      * @param { Card } otherThan excluded card
      * @returns { boolean } true if this player controls a card with the trait
      */
-    controlsCardWithTrait(trait, onlyUnique = false, otherThan = undefined) {
+    public controlsCardWithTrait(trait: Trait, onlyUnique: boolean = false, otherThan: Card = undefined): boolean {
         return this.leader.hasSomeTrait(trait) || this.hasSomeArenaCard({
             condition: (card) => (card.hasSomeTrait(trait) && (onlyUnique ? card.unique : true)),
             otherThan: otherThan
@@ -258,7 +300,7 @@ class Player extends GameObject {
      * @param {ZoneName} zoneName
      * @returns {ZoneAbstract}
      */
-    getZone(zoneName) {
+    public getZone(zoneName: ZoneName): ZoneAbstract {
         switch (zoneName) {
             case ZoneName.Hand:
                 return this.handZone;
@@ -285,7 +327,7 @@ class Player extends GameObject {
      * @param {ZoneName} zoneName
      * @returns {Card[]}
      */
-    getCardsInZone(zoneName) {
+    public getCardsInZone(zoneName: ZoneName): Card[] {
         switch (zoneName) {
             case ZoneName.Hand:
                 return this.handZone.cards;
@@ -313,11 +355,8 @@ class Player extends GameObject {
 
     /**
      * Checks whether a card with a uuid matching the passed card is in the passed _(Array)
-     * @template {Card} T
-     * @param {T[]} list
-     * @param {T} card
      */
-    isCardUuidInList(list, card) {
+    public isCardUuidInList<T extends Card>(list: T[], card: T) {
         return list.some((c) => {
             return c.uuid === card.uuid;
         });
@@ -325,11 +364,8 @@ class Player extends GameObject {
 
     /**
      * Checks whether a card with a name matching the passed card is in the passed list
-     * @template {Card} T
-     * @param {T[]} list
-     * @param {T} card
      */
-    isCardNameInList(list, card) {
+    public isCardNameInList<T extends Card>(list: T[], card: T) {
         return list.some((c) => {
             return c.title === card.title;
         });
@@ -337,41 +373,29 @@ class Player extends GameObject {
 
     /**
      * Removes a card with the passed uuid from a list. Returns an _(Array)
-     * @template {Card} T
-     * @param {T[]} list
-     * @param {String} uuid
      */
-    removeCardByUuid(list, uuid) {
+    public removeCardByUuid<T extends Card>(list: T[], uuid: string) {
         return list.filter((card) => card.uuid !== uuid);
     }
 
     /**
      * Returns a card with the passed name in the passed list
-     * @template {Card} T
-     * @param {T[]} list
-     * @param {String} name
      */
-    findCardByName(list, name) {
+    public findCardByName<T extends Card>(list: T[], name: string) {
         return this.findCard(list, (card) => card.title === name);
     }
 
     /**
      * Returns a list of cards matching passed name
-     * @template {Card} T
-     * @param {T[]} list
-     * @param {String} name
      */
-    findCardsByName(list, name) {
+    public findCardsByName<T extends Card>(list: T[], name: string) {
         return this.findCards(list, (card) => card.title === name);
     }
 
     /**
      * Returns a card with the passed uuid in the passed list
-     * @template {Card} T
-     * @param {T[]} list
-     * @param {String} uuid
      */
-    findCardByUuid(list, uuid) {
+    public findCardByUuid<T extends Card>(list: T[], uuid: string) {
         return this.findCard(list, (card) => card.uuid === uuid);
     }
 
@@ -379,19 +403,15 @@ class Player extends GameObject {
      * Returns a card with the passed uuid from cardsInPlay
      * @param {String} uuid
      */
-    findCardInPlayByUuid(uuid) {
+    public findCardInPlayByUuid(uuid: string) {
         return this.findCard(this.getArenaCards(), (card) => card.uuid === uuid);
     }
 
     /**
      * Returns a card which matches passed predicate in the passed list
-     * @template {Card} T
-     * @param {T[]} cardList
-     * @param {(card: T) => Boolean} predicate
-     * @returns {T=}
      */
-    findCard(cardList, predicate) {
-        var cards = this.findCards(cardList, predicate);
+    public findCard<T extends Card>(cardList: T[], predicate: (card: T) => boolean): T | undefined {
+        const cards = this.findCards(cardList, predicate);
         if (!cards || cards.length === 0) {
             return undefined;
         }
@@ -401,15 +421,11 @@ class Player extends GameObject {
 
     /**
      * Returns an Array of BaseCard which match passed predicate in the passed list
-     * @template {Card} T
-     * @param {T[]} cardList
-     * @param {(card: T) => Boolean} predicate
-     * @returns {T[]}
      */
-    findCards(cardList, predicate) {
+    public findCards<T extends Card>(cardList: T[], predicate: (card: T) => boolean): T[] {
         Contract.assertNotNullLike(cardList);
 
-        var cardsToReturn = [];
+        const cardsToReturn = [];
 
         cardList.forEach((card) => {
             if (predicate(card)) {
@@ -429,7 +445,7 @@ class Player extends GameObject {
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    isTraitInPlay(trait, ignoreUnit = null) {
+    public isTraitInPlay(trait: Trait, ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ trait, otherThan: ignoreUnit });
     }
 
@@ -439,7 +455,7 @@ class Player extends GameObject {
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    isAspectInPlay(aspect, ignoreUnit = null) {
+    public isAspectInPlay(aspect: Aspect, ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ aspect, otherThan: ignoreUnit });
     }
 
@@ -449,7 +465,7 @@ class Player extends GameObject {
      * @param {any} ignoreUnit
      * @returns {boolean} true/false if the trait is in play
      */
-    isKeywordInPlay(keyword, ignoreUnit = null) {
+    public isKeywordInPlay(keyword: KeywordName, ignoreUnit: any = null): boolean {
         return this.hasSomeArenaUnit({ keyword, otherThan: ignoreUnit });
     }
 
@@ -457,7 +473,7 @@ class Player extends GameObject {
      * Returns true if any units or upgrades controlled by this player match the passed predicate
      * @param {Function} predicate - DrawCard => Boolean
      */
-    anyCardsInPlay(predicate) {
+    public anyCardsInPlay(predicate: (card: Card) => boolean) {
         return this.game.allCards.some(
             (card) => card.controller === this && EnumHelpers.isArena(card.zoneName) && predicate(card)
         );
@@ -467,21 +483,21 @@ class Player extends GameObject {
      * Returns an Array of all unots and upgrades matching the predicate controlled by this player
      * @param {Function} predicate  - DrawCard => Boolean
      */
-    filterCardsInPlay(predicate) {
+    public filterCardsInPlay(predicate: (card: Card) => boolean) {
         return this.game.allCards.filter(
             (card) => card.controller === this && EnumHelpers.isArena(card.zoneName) && predicate(card)
         );
     }
 
-    isActivePlayer() {
+    public isActivePlayer() {
         return this.game.getActivePlayer() === this;
     }
 
-    hasInitiative() {
+    public hasInitiative() {
         return this.game.initiativePlayer === this;
     }
 
-    assignIndirectDamageDealtToOpponents() {
+    public assignIndirectDamageDealtToOpponents() {
         return this.hasOngoingEffect(EffectName.AssignIndirectDamageDealtToOpponents);
     }
 
@@ -489,7 +505,7 @@ class Player extends GameObject {
      * Returns the total number of units and upgrades controlled by this player which match the passed predicate
      * @param {Function} predicate - DrawCard => Int
      */
-    getNumberOfCardsInPlay(predicate) {
+    public getNumberOfCardsInPlay(predicate: (card: Card) => boolean) {
         return this.game.allCards.reduce((num, card) => {
             if (card.controller === this && EnumHelpers.isArena(card.zoneName) && predicate(card)) {
                 return num + 1;
@@ -504,7 +520,7 @@ class Player extends GameObject {
      * @param {Card} card
      * @param {PlayType} [playingType]
      */
-    isCardInPlayableZone(card, playingType = null) {
+    public isCardInPlayableZone(card: Card, playingType: PlayType = null) {
         // Check if card can be legally played by this player out of discard from an ongoing effect
         if (
             playingType === PlayType.PlayFromOutOfPlay &&
@@ -527,8 +543,8 @@ class Player extends GameObject {
      * @param {Card} card
      * @returns {PlayType=}
      */
-    findPlayType(card) {
-        let zone = this.playableZones.find((zone) => zone.includes(card));
+    public findPlayType(card: Card): PlayType | undefined {
+        const zone = this.playableZones.find((zone) => zone.includes(card));
         if (zone) {
             return zone.playingType;
         }
@@ -541,7 +557,7 @@ class Player extends GameObject {
      * @param {import('./card/baseClasses/InPlayCard').IInPlayCard} card
      * @returns {import('./card/baseClasses/InPlayCard').IInPlayCard[]} Duplicates of passed card (does not check unique status)
      */
-    getDuplicatesInPlay(card) {
+    public getDuplicatesInPlay(card: IInPlayCard): IInPlayCard[] {
         return this.getArenaCards().filter((otherCard) =>
             otherCard.title === card.title &&
             otherCard.subtitle === card.subtitle &&
@@ -553,7 +569,7 @@ class Player extends GameObject {
      * Returns ths top card of the player's deck
      * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard | null} the Card,© or null if the deck is empty
      */
-    getTopCardOfDeck() {
+    public getTopCardOfDeck(): IPlayableCard | null {
         if (this.drawDeck.length > 0) {
             return this.drawDeck[0];
         }
@@ -566,7 +582,7 @@ class Player extends GameObject {
      * @param {number} numCard
      * @returns {import('./card/baseClasses/PlayableOrDeployableCard').IPlayableCard[]} the Card,© or null if the deck is empty
      */
-    getTopCardsOfDeck(numCard) {
+    public getTopCardsOfDeck(numCard: number): IPlayableCard[] {
         Contract.assertPositiveNonZero(numCard);
         const deckLength = this.drawDeck.length;
         const cardsToGet = Math.min(numCard, deckLength);
@@ -581,7 +597,7 @@ class Player extends GameObject {
      * Draws the passed number of cards from the top of the deck into this players hand, shuffling if necessary
      * @param {number} numCards
      */
-    drawCardsToHand(numCards) {
+    public drawCardsToHand(numCards: number) {
         if (numCards > this.drawDeck.length) {
             // TODO: move log message into the DrawSystem
             // Game log message about empty deck damage(the damage itself is handled in DrawSystem.updateEvent()).
@@ -589,12 +605,12 @@ class Player extends GameObject {
                 this.name, numCards - this.drawDeck.length, 3 * (numCards - this.drawDeck.length)
             );
         }
-        for (let card of this.drawDeck.slice(0, numCards)) {
+        for (const card of this.drawDeck.slice(0, numCards)) {
             card.moveTo(ZoneName.Hand);
         }
     }
 
-    getStartingHandSize() {
+    public getStartingHandSize() {
         let startingHandSize = 6;
         if (this.base.hasOngoingEffect(EffectName.ModifyStartingHandSize)) {
             this.base.getOngoingEffectValues(EffectName.ModifyStartingHandSize).forEach((value) => {
@@ -676,7 +692,7 @@ class Player extends GameObject {
      * Shuffles the deck, displaying a message in chat
      * @param {AbilityContext} context
      */
-    shuffleDeck(context = null) {
+    public shuffleDeck(context: AbilityContext = null) {
         this.game.addMessage('{0} is shuffling their deck', this);
         this.deckZone.shuffle(this.game.randomGenerator);
     }
@@ -684,15 +700,16 @@ class Player extends GameObject {
     /**
      * Takes a decklist passed from the lobby, creates all the cards in it, and puts references to them in the relevant lists
      */
-    async prepareDecksAsync() {
-        var preparedDecklist = await this.decklistNames.buildCardsAsync(this, this.game.cardDataGetter);
+    public async prepareDecksAsync() {
+        const preparedDecklist = await this.decklistNames.buildCardsAsync(this, this.game.cardDataGetter);
 
-        this.base = preparedDecklist.base;
-        this.leader = preparedDecklist.leader;
+        this.state.base = preparedDecklist.base.getRef();
+        this.state.leader = preparedDecklist.leader.getRef();
 
         this.deckZone.initialize(preparedDecklist.deckCards);
 
         // set up playable zones now that all relevant zones are created
+        // STATE: This _is_ OK for now, as the gameObject references are still kept, but ideally these would also be changed to Refs in the future.
         /** @type {PlayableZone[]} */
         this.playableZones = [
             new PlayableZone(PlayType.PlayFromHand, this.handZone),
@@ -704,7 +721,7 @@ class Player extends GameObject {
             new PlayableZone(PlayType.PlayFromOutOfPlay, this.discardZone),
         ];
 
-        this.baseZone = new BaseZone(this, this.base, this.leader);
+        this.state.baseZone = new BaseZone(this.game, this, this.base, this.leader).getRef();
 
         this.decklist = preparedDecklist;
     }
@@ -712,7 +729,7 @@ class Player extends GameObject {
     /**
      * Called when the Game object starts the game. Creates all cards on this players decklist, shuffles the decks and initialises player parameters for the start of the game
      */
-    initialiseAsync() {
+    public initialiseAsync() {
         this.opponent = this.game.getOtherPlayer(this);
         return this.prepareDecksAsync();
     }
@@ -722,7 +739,7 @@ class Player extends GameObject {
      * @param source = OngoingEffectSource source of the adjuster
      * @param {CostAdjuster} costAdjuster
      */
-    addCostAdjuster(costAdjuster) {
+    public addCostAdjuster(costAdjuster: CostAdjuster) {
         this.costAdjusters.push(costAdjuster);
     }
 
@@ -730,52 +747,40 @@ class Player extends GameObject {
      * Unregisters and removes the passed Cost Adjusters from this Player
      * @param {CostAdjuster} adjuster
      */
-    removeCostAdjuster(adjuster) {
+    public removeCostAdjuster(adjuster: CostAdjuster) {
         if (this.costAdjusters.includes(adjuster)) {
             adjuster.unregisterEvents();
             this.costAdjusters = this.costAdjusters.filter((r) => r !== adjuster);
         }
     }
 
-    /**
-     * @param {PlayType} type
-     * @param {import('../Interfaces').Zone} zone
-     * @returns
-     */
-    addPlayableZone(type, zone) {
-        let playableZone = new PlayableZone(type, zone);
+    public addPlayableZone(type: PlayType, zone: Zone) {
+        const playableZone = new PlayableZone(type, zone);
         this.playableZones.push(playableZone);
         return playableZone;
     }
 
-    /**
-     * @param {PlayableZone} zone
-     */
-    removePlayableZone(zone) {
+    public removePlayableZone(zone: PlayableZone) {
         this.playableZones = this.playableZones.filter((l) => l !== zone);
     }
 
     /**
      * Returns the aspects for this player (derived from base and leader)
      */
-    getAspects() {
+    public getAspects() {
         return this.leader.aspects.concat(this.base.aspects);
     }
 
-    /**
-     * @param {Aspect[]} costAspects
-     * @returns {Aspect[]}
-     */
-    getPenaltyAspects(costAspects) {
+    public getPenaltyAspects(costAspects: Aspect[]): Aspect[] {
         if (!costAspects) {
             return [];
         }
 
-        let playerAspects = this.getAspects();
+        const playerAspects = this.getAspects();
 
-        let penaltyAspects = [];
+        const penaltyAspects = [];
         for (const aspect of costAspects) {
-            let matchedIndex = playerAspects.indexOf(aspect);
+            const matchedIndex = playerAspects.indexOf(aspect);
             if (matchedIndex === -1) {
                 penaltyAspects.push(aspect);
             } else {
@@ -789,12 +794,12 @@ class Player extends GameObject {
     /**
      * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
      * Accounts for aspect penalties and any modifiers to those specifically
-     * @param {number} cost
-     * @param {Aspect[]} aspects
-     * @param {AbilityContext} context
-     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
+     * @param cost
+     * @param aspects
+     * @param context
+     * @param properties Additional parameters for determining cost adjustment
      */
-    getAdjustedPlayCardCost(cost, aspects, context, properties = null) {
+    public getAdjustedPlayCardCost(cost: number, aspects: Aspect[], context: AbilityContext, properties: IRunCostAdjustmentProperties = null) {
         Contract.assertNonNegative(cost);
 
         const card = context.source;
@@ -815,11 +820,11 @@ class Player extends GameObject {
     /**
      * Checks if any Cost Adjusters on this Player apply to the passed card/target, and returns the cost to play the cost if they are used.
      * Accounts for aspect penalties and any modifiers to those specifically
-     * @param {number} cost
-     * @param {AbilityContext} context
-     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
+     * @param cost
+     * @param context
+     * @param properties Additional parameters for determining cost adjustment
      */
-    getAdjustedAbilityCost(cost, context, properties = null) {
+    public getAdjustedAbilityCost(cost: number, context: AbilityContext, properties: IRunCostAdjustmentProperties = null) {
         Contract.assertNonNegative(cost);
 
         const card = context.source;
@@ -829,12 +834,12 @@ class Player extends GameObject {
 
     /**
      * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
-     * @param {number} baseCost
+     * @param baseCost
      * @param card
      * @param target
-     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
+     * @param properties Additional parameters for determining cost adjustment
      */
-    runAdjustersForCost(baseCost, card, context, properties) {
+    public runAdjustersForCost(baseCost: number, card, context, properties: IRunCostAdjustmentProperties) {
         const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
         const costIncreases = matchingAdjusters
             .filter((adjuster) => adjuster.costAdjustType === CostAdjustType.Increase)
@@ -863,10 +868,10 @@ class Player extends GameObject {
 
     /**
      * Runs the Adjusters for a specific cost type - either base cost or an aspect penalty - and returns the modified result
-     * @param {number} baseCost
-     * @param {import('./cost/CostInterfaces').IRunCostAdjustmentProperties} properties Additional parameters for determining cost adjustment
+     * @param baseCost
+     * @param properties Additional parameters for determining cost adjustment
      */
-    runAdjustersForAspectPenalties(baseCost, context, properties) {
+    public runAdjustersForAspectPenalties(baseCost: number, context, properties: IRunCostAdjustmentProperties) {
         const matchingAdjusters = this.getMatchingCostAdjusters(context, properties);
 
         const ignoreAllAspectPenalties = matchingAdjusters
@@ -884,13 +889,11 @@ class Player extends GameObject {
     }
 
     /**
-     * @param {AbilityContext} context
-     * @param {import('./cost/CostInterfaces').IGetMatchingCostAdjusterProperties} properties Additional parameters for determining cost adjustment
-     * @returns {CostAdjuster[]}
+     * @param context
+     * @param properties Additional parameters for determining cost adjustment
      */
-    getMatchingCostAdjusters(context, properties = null) {
-        /** @type {import('./cost/CostAdjuster').ICanAdjustProperties} */
-        const canAdjustProps = { ...properties, isAbilityCost: !context.ability.isPlayCardAbility() };
+    public getMatchingCostAdjusters(context: AbilityContext, properties: IGetMatchingCostAdjusterProperties = null): CostAdjuster[] {
+        const canAdjustProps: ICanAdjustProperties = { ...properties, isAbilityCost: !context.ability.isPlayCardAbility() };
 
         const allMatchingAdjusters = this.costAdjusters.concat(properties?.additionalCostAdjusters ?? [])
             .filter((adjuster) => {
@@ -933,8 +936,8 @@ class Player extends GameObject {
      * @param {Card=} target BaseCard
      * @param {Aspect=} aspects
      */
-    markUsedAdjusters(playingType, card, context, target = null, aspects = null) {
-        var matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(card, context, { attachTarget: target, penaltyAspect: aspects }));
+    public markUsedAdjusters(playingType: PlayType, card: Card, context: AbilityContext, target: Card | undefined = null, aspects: Aspect | undefined = null) {
+        const matchingAdjusters = this.costAdjusters.filter((adjuster) => adjuster.canAdjust(card, context, { attachTarget: target, penaltyAspect: aspects }));
         matchingAdjusters.forEach((adjuster) => {
             adjuster.markUsed();
             if (adjuster.isExpired()) {
@@ -946,7 +949,7 @@ class Player extends GameObject {
     /**
      * Called at the start of the Action Phase.  Resets some of the single round parameters
      */
-    resetForActionPhase() {
+    public resetForActionPhase() {
         if (this.resetTimerAtEndOfRound) {
             this.noTimer = false;
         }
@@ -956,7 +959,7 @@ class Player extends GameObject {
     /**
      * Called at the end of the Action Phase.  Resets some of the single round parameters
      */
-    cleanupFromActionPhase() {
+    public cleanupFromActionPhase() {
         this.passedActionPhase = null;
     }
 
@@ -1016,7 +1019,7 @@ class Player extends GameObject {
      * @param {CardType} cardType
      * @param {ZoneName | import('./Constants').MoveZoneDestination} zone
      */
-    isLegalZoneForCardType(cardType, zone) {
+    public isLegalZoneForCardType(cardType: CardType, zone: ZoneName | MoveZoneDestination) {
         const legalZonesForType = Helpers.defaultLegalZonesForCardTypeFilter(cardType);
 
         return legalZonesForType && EnumHelpers.cardZoneMatches(EnumHelpers.asConcreteZone(zone), legalZonesForType);
@@ -1027,7 +1030,7 @@ class Player extends GameObject {
      * upgrades are played by playCard()
      * @deprecated
      */
-    promptForUpgrade(card, playingType) {
+    public promptForUpgrade(card, playingType) {
         this.game.queueStep(new UpgradePrompt(this.game, this, card, playingType));
     }
 
@@ -1039,38 +1042,38 @@ class Player extends GameObject {
      * Called by the game when the game starts, sets the players decklist
      * @param {Deck} deck
      */
-    selectDeck(deck) {
+    public selectDeck(deck: Deck) {
         this.decklistNames = deck;
     }
 
     // TODO NOISY PR: rearrange this file into sections
-    get hand() {
+    public get hand() {
         return this.handZone.cards;
     }
 
-    get discard() {
+    public get discard() {
         return this.discardZone.cards;
     }
 
-    get resources() {
+    public get resources() {
         return this.resourceZone.cards;
     }
 
-    get drawDeck() {
+    public get drawDeck() {
         return this.deckZone?.deck;
     }
 
     /**
      * Returns the number of resources available to spend
      */
-    get readyResourceCount() {
+    public get readyResourceCount() {
         return this.resourceZone.readyResourceCount;
     }
 
     /**
      * Returns the number of exhausted resources
      */
-    get exhaustedResourceCount() {
+    public get exhaustedResourceCount() {
         return this.resourceZone.exhaustedResourceCount;
     }
 
@@ -1079,7 +1082,7 @@ class Player extends GameObject {
      * @param {import('./card/baseClasses/PlayableOrDeployableCard').ICardWithExhaustProperty} card BaseCard
      * @param {boolean} exhaust Whether to exhaust the card. True by default.
      */
-    resourceCard(card, exhaust = true) {
+    public resourceCard(card: ICardWithExhaustProperty, exhaust: boolean = true) {
         card.moveTo(ZoneName.Resource);
         card.exhausted = exhaust;
     }
@@ -1090,7 +1093,7 @@ class Player extends GameObject {
      * @param {import('./card/baseClasses/PlayableOrDeployableCard').ICardWithExhaustProperty[]} [priorityResources=[]]
      */
     // TODO: Create an ExhaustResourcesSystem
-    exhaustResources(count, priorityResources = []) {
+    public exhaustResources(count: number, priorityResources: ICardWithExhaustProperty[] = []) {
         const readyPriorityResources = priorityResources.filter((resource) => !resource.exhausted);
         const regularResourcesToReady = count - this.exhaustResourcesInList(readyPriorityResources, count);
 
@@ -1106,7 +1109,7 @@ class Player extends GameObject {
      * @param {number} count
      * @returns {number}
      */
-    exhaustResourcesInList(resources, count) {
+    public exhaustResourcesInList(resources: ICardWithExhaustProperty[], count: number): number {
         if (count < resources.length) {
             resources.slice(0, count).forEach((resource) => resource.exhaust());
             return count;
@@ -1120,8 +1123,8 @@ class Player extends GameObject {
      * Ready the specified number of resources
      * @param {number} count
      */
-    readyResources(count) {
-        let exhaustedResources = this.resourceZone.exhaustedResources;
+    public readyResources(count: number) {
+        const exhaustedResources = this.resourceZone.exhaustedResources;
         for (let i = 0; i < Math.min(count, exhaustedResources.length); i++) {
             exhaustedResources[i].exhausted = false;
         }
@@ -1131,7 +1134,7 @@ class Player extends GameObject {
      * If possible, exhaust the given resource and ready another one instead
      * @param {import('./card/baseClasses/PlayableOrDeployableCard').ICardWithExhaustProperty} resource
      */
-    swapResourceReadyState(resource) {
+    public swapResourceReadyState(resource: ICardWithExhaustProperty) {
         Contract.assertTrue(resource.zoneName === ZoneName.Resource, 'Tried to exhaust a resource that is not in the resource zone');
 
         // The resource is already exhausted, do nothing
@@ -1140,7 +1143,7 @@ class Player extends GameObject {
         }
 
         // Find an exhausted resource to ready and swap the status
-        let exhaustedResource = this.resources.find((card) => card.exhausted);
+        const exhaustedResource = this.resources.find((card) => card.exhausted);
         if (exhaustedResource) {
             resource.exhaust();
             exhaustedResource.ready();
@@ -1151,16 +1154,16 @@ class Player extends GameObject {
      * @param {AbilityContext} context
      * @param {number} amount
      */
-    getRandomResources(context, amount) {
+    public getRandomResources(context: AbilityContext, amount: number) {
         this.resourceZone.rearrangeResourceExhaustState(context);
         return this.resourceZone.getCards().splice(0, amount);
     }
 
-    get selectableCards() {
+    public get selectableCards() {
         return this.promptState.selectableCards;
     }
 
-    get selectedCards() {
+    public get selectedCards() {
         return this.promptState.selectedCards;
     }
 
@@ -1168,26 +1171,26 @@ class Player extends GameObject {
      * Sets the passed cards as selected
      * @param {Card[]} cards
      */
-    setSelectedCards(cards) {
+    public setSelectedCards(cards: Card[]) {
         this.promptState.setSelectedCards(cards);
     }
 
-    clearSelectedCards() {
+    public clearSelectedCards() {
         this.promptState.clearSelectedCards();
     }
 
     /**
      * @param {Card[]} cards
      */
-    setSelectableCards(cards) {
+    public setSelectableCards(cards: Card[]) {
         this.promptState.setSelectableCards(cards);
     }
 
-    clearSelectableCards() {
+    public clearSelectableCards() {
         this.promptState.clearSelectableCards();
     }
 
-    getSummaryForHand(list, activePlayer) {
+    public getSummaryForHand(list, activePlayer) {
         // if (this.optionSettings.sortHandByName) {
         //     return this.getSortedSummaryForCardList(list, activePlayer);
         // }
@@ -1198,7 +1201,7 @@ class Player extends GameObject {
      * @param {ZoneName} zone
      * @param {Player} activePlayer
      */
-    getSummaryForZone(zone, activePlayer) {
+    public getSummaryForZone(zone: ZoneName, activePlayer: Player) {
         const zoneCards = zone === ZoneName.Deck
             ? this.drawDeck
             : this.getCardsInZone(zone);
@@ -1208,8 +1211,8 @@ class Player extends GameObject {
         }) ?? [];
     }
 
-    getSortedSummaryForCardList(list, activePlayer) {
-        let cards = list.map((card) => card);
+    public getSortedSummaryForCardList(list, activePlayer) {
+        const cards = list.map((card) => card);
         cards.sort((a, b) => a.printedName.localeCompare(b.printedName));
 
         return cards.map((card) => {
@@ -1220,28 +1223,24 @@ class Player extends GameObject {
     /**
      * @param {Card} card
      */
-    getCardSelectionState(card) {
+    public getCardSelectionState(card: Card) {
         return this.promptState.getCardSelectionState(card);
     }
 
-    currentPrompt() {
+    public currentPrompt() {
         return this.promptState.getState();
     }
 
-    setPrompt(prompt) {
+    public setPrompt(prompt) {
         this.promptState.setPrompt(prompt);
     }
 
-    cancelPrompt() {
+    public cancelPrompt() {
         this.promptState.cancelPrompt();
     }
 
-    isTopCardShown(activePlayer = undefined) {
-        if (!activePlayer) {
-            activePlayer = this;
-        }
-
-        if (activePlayer.drawDeck && activePlayer.drawDeck.size() <= 0) {
+    public isTopCardShown(activePlayer: Player = this) {
+        if (activePlayer.drawDeck && activePlayer.drawDeck.length <= 0) {
             return false;
         }
 
@@ -1278,17 +1277,17 @@ class Player extends GameObject {
     //  * This information is passed to the UI
     //  * @param {Player} activePlayer
     //  */
-    getState(activePlayer) {
-        let isActivePlayer = activePlayer === this;
-        let promptState = isActivePlayer ? this.promptState.getState() : {};
-        let { ...safeUser } = this.user;
+    public getStateSummary(activePlayer) {
+        const isActivePlayer = activePlayer === this;
+        const promptState = isActivePlayer ? this.promptState.getState() : {};
+        const { ...safeUser } = this.user;
 
         let isActionPhaseActivePlayer = null;
         if (this.game.actionPhaseActivePlayer != null) {
             isActionPhaseActivePlayer = this.game.actionPhaseActivePlayer === this;
         }
 
-        let state = {
+        const summary = {
             cardPiles: {
                 hand: this.getSummaryForZone(ZoneName.Hand, activePlayer),
                 outsideTheGame: this.getSummaryForZone(ZoneName.OutsideTheGame, activePlayer),
@@ -1313,7 +1312,8 @@ class Player extends GameObject {
             // stats: this.getStats(),
             user: safeUser,
             promptState: promptState,
-            isActionPhaseActivePlayer
+            isActionPhaseActivePlayer,
+            clock: undefined
         };
 
         // if (this.showDeck) {
@@ -1326,16 +1326,14 @@ class Player extends GameObject {
         // }
 
         if (this.clock) {
-            state.clock = this.clock.getState();
+            summary.clock = this.clock.getState();
         }
 
-        return state;
+        return summary;
     }
 
     /** @override */
-    toString() {
+    public override toString() {
         return this.name;
     }
 }
-
-module.exports = Player;

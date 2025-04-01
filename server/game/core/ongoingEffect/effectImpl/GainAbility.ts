@@ -70,7 +70,7 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
     }
 
     public override unapply(target: InPlayCard) {
-        Contract.assertHasKey(this.abilityUuidByTargetCard, target, `Attempting to unapply gain ability effect "${this.abilityIdentifier}" from card ${target.internalName} but it is not applied`);
+        Contract.assertMapHasKey(this.abilityUuidByTargetCard, target, `Attempting to unapply gain ability effect "${this.abilityIdentifier}" from card ${target.internalName} but it is not applied`);
 
         switch (this.abilityType) {
             case AbilityType.Action:

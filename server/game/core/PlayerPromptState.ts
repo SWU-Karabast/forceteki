@@ -1,7 +1,7 @@
 import type { Card } from './card/Card';
 import type { PromptType } from './Constants';
 import type { IButton, IDisplayCard, IDistributeAmongTargetsPromptData, SelectCardMode } from './gameSteps/PromptInterfaces';
-import type Player from './Player';
+import type { Player } from './Player';
 
 export interface IPlayerPromptStateProperties {
     buttons?: IButton[];

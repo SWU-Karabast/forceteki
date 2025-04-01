@@ -34,8 +34,29 @@ global.integration = function (definitions) {
          * @type {SwuTestContextRef}
          */
         const contextRef = {
-            context: null, setupTestAsync: async function (options) {
+            context: null,
+            setupTestAsync: async function (options) {
                 await this.context.setupTestAsync(options);
+            },
+
+            /**
+             * Define a single spec. A spec should contain one or more expectations that test the state of the code.
+             * A spec whose expectations all succeed will be passing and a spec with any failures will fail.
+             * @param {string} expectation Textual description of what this spec is checking
+             * @param {[jasmine.ImplementationCallback]} assertion Function that contains the code of your test. If not provided the test will be pending.
+             * @param {[number]} timeout Custom timeout for an async spec.
+             */
+            undoIt: function(expectation, assertion, timeout) {
+                const contextRef = this;
+                // eslint-disable-next-line jasmine/missing-expect
+                it(expectation + ' with Undo', function() {
+                    assertion();
+                    if (contextRef.context.snapshotId == null || contextRef.context.snapshotId === -1) {
+                        throw new Error('Snapshot ID missing');
+                    }
+                    contextRef.context.game.gameObjectManager.rollbackToSnapshot(contextRef.context.snapshotId);
+                    assertion();
+                }, timeout);
             }
         };
         beforeEach(function () {
@@ -53,15 +74,25 @@ global.integration = function (definitions) {
                 { id: '222', username: 'player2', settings: { optionSettings: { autoSingleTarget: false } } }
             );
 
+            /**
+             * @type {SwuTestContext}
+             */
             const newContext = {};
             contextRef.context = newContext;
 
             gameStateBuilder.attachTestInfoToObj(this, gameFlowWrapper, 'player1', 'player2');
             gameStateBuilder.attachTestInfoToObj(newContext, gameFlowWrapper, 'player1', 'player2');
 
+            /**
+             *
+             * @param {SwuSetupTestOptions} options
+             */
             const setupGameStateWrapperAsync = async (options) => {
                 await gameStateBuilder.setupGameStateAsync(newContext, options);
                 gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
+                if (options.testUndo) {
+                    newContext.snapshotId = newContext.game.gameObjectManager.takeSnapshot();
+                }
             };
 
             this.setupTestAsync = newContext.setupTestAsync = setupGameStateWrapperAsync;

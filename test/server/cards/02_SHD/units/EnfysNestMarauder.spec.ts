@@ -23,8 +23,8 @@ describe('Enfys Nest, Marauder', function () {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.atst.damage = 0;
-                    context.consularSecurityForce.damage = 0;
+                    context.setDamage(context.atst, 0);
+                    context.setDamage(context.consularSecurityForce, 0);
                     context.player1.readyResources(10);
                     if (context.player2.actionPhaseActivePlayer === context.player2.player) {
                         context.player2.passAction();
@@ -71,7 +71,7 @@ describe('Enfys Nest, Marauder', function () {
 
 
                 // Case 5: Ability does not apply to opponent's unit attacking with ambush(or to that defender)
-                context.liberatedSlaves.damage = 0;
+                context.setDamage(context.liberatedSlaves, 0);
                 context.player2.clickCard(context._4lom);
                 context.player2.clickPrompt('Trigger');
                 context.player2.clickCard(context.liberatedSlaves);

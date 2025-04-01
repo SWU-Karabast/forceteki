@@ -1,4 +1,4 @@
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { IClock } from './IClock';
 
 export type Mode = 'stop' | 'down' | 'up' | 'off';

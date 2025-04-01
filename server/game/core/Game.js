@@ -3,7 +3,7 @@ const seedrandom = require('seedrandom');
 
 const { GameChat } = require('./chat/GameChat.js');
 const { OngoingEffectEngine } = require('./ongoingEffect/OngoingEffectEngine.js');
-const Player = require('./Player.js');
+const { Player } = require('./Player.js');
 const { Spectator } = require('../../Spectator.js');
 const { AnonymousSpectator } = require('../../AnonymousSpectator.js');
 const { GamePipeline } = require('./GamePipeline.js');
@@ -41,7 +41,7 @@ const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 const { GameObject } = require('./GameObject.js');
 const { GameObjectBase } = require('./GameObjectBase.js');
-const { GameObjectManager } = require('./GameObjectManager.js');
+const { GameStateManager } = require('./GameStateManager.js');
 const { User } = require('../../utils/user/User');
 
 class Game extends EventEmitter {
@@ -72,7 +72,7 @@ class Game extends EventEmitter {
         this.started = false;
         this.statsUpdated = false;
         this.playStarted = false;
-        this.gameObjectManager = new GameObjectManager(this);
+        this.gameObjectManager = new GameStateManager(this);
         this.createdAt = new Date();
         this.currentActionWindow = null;
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
@@ -129,10 +129,8 @@ class Game extends EventEmitter {
             this.playersAndSpectators[spectator.id] = new Spectator(spectator.id, spectator);
         });
 
-        const [player1, player2] = this.getPlayers();
-
-        this.spaceArena = new SpaceArenaZone(this, player1, player2);
-        this.groundArena = new GroundArenaZone(this, player1, player2);
+        this.spaceArena = new SpaceArenaZone(this);
+        this.groundArena = new GroundArenaZone(this);
         this.allArenas = new AllArenasZone(this, this.groundArena, this.spaceArena);
 
         this.setMaxListeners(0);
@@ -1438,7 +1436,7 @@ class Game extends EventEmitter {
         let playerState = {};
         if (this.started) {
             for (const player of this.getPlayers()) {
-                playerState[player.id] = player.getState(activePlayer);
+                playerState[player.id] = player.getStateSummary(activePlayer);
             }
 
             return {
@@ -1465,6 +1463,16 @@ class Game extends EventEmitter {
         }
         return {};
     }
+
+    // takeSnapshot() {
+    //     const snapshot = this.gameObjectManager.takeSnapshot();
+    //     this.gameObjectManager.pushSnapshot(snapshot);
+    //     return snapshot.id;
+    // }
+
+    // rollbackToSnapshot(snapshotId) {
+    //     this.gameObjectManager.rollbackToSnapshot(snapshotId);
+    // }
 
     // TODO: Make a debug object type.
     /**

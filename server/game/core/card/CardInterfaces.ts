@@ -1,5 +1,5 @@
 import type { ZoneName } from '../Constants';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { IBaseCard } from './BaseCard';
 import type { IInPlayCard } from './baseClasses/InPlayCard';
 import type { ICardWithCostProperty } from './propertyMixins/Cost';

@@ -86,7 +86,7 @@ describe('Coordinate keyword', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.wingLeader);
                 context.player2.passAction();
-                context.anakinSkywalker.exhausted = false;
+                context.readyCard(context.anakinSkywalker);
 
                 expect(context.cloneHeavyGunner.getPower()).toBe(3);
                 context.player1.clickCard(context.anakinSkywalker);
@@ -97,7 +97,7 @@ describe('Coordinate keyword', function() {
                 // turn Coordinate offline again
                 context.player2.clickCard(context.waylay);
                 context.player2.clickCard(context.wingLeader);
-                context.anakinSkywalker.exhausted = false;
+                context.readyCard(context.anakinSkywalker);
 
                 expect(context.cloneHeavyGunner.getPower()).toBe(1);
                 context.player1.clickCard(context.anakinSkywalker);
@@ -147,7 +147,7 @@ describe('Coordinate keyword', function() {
 
                 // confirm Coordinate online and working normally
                 expect(context.cloneHeavyGunner.getPower()).toBe(3);
-                context.anakinSkywalker.exhausted = false;
+                context.readyCard(context.anakinSkywalker);
                 context.player1.clickCard(context.anakinSkywalker);
                 context.player1.clickCard(context.p2Base);
 
