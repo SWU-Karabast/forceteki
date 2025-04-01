@@ -87,6 +87,7 @@ export class GameServer {
     }
 
     private readonly lobbies = new Map<string, Lobby>();
+    private readonly playerMatchmakingDisconnectedTime = new Map<string, Date>();
     private readonly userLobbyMap = new Map<string, ILobbyMapping>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
@@ -303,7 +304,7 @@ export class GameServer {
                 await this.processDeckValidation(deck, format, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
-                        return res.status(400).json({ success: false, message: 'Failed to enter queue' });
+                        return res.status(500).json({ success: false, message: 'Failed to enter queue' });
                     }
                     res.status(200).json({ success: true });
                 });
@@ -324,6 +325,18 @@ export class GameServer {
     }
 
     private canUserJoinNewLobby(userId: string) {
+        // player ditched out of a matchmaking game, make them wait 20s
+        const playerLeftMatchmakingTime = this.playerMatchmakingDisconnectedTime.get(userId);
+        if (playerLeftMatchmakingTime) {
+            const elapsedSeconds = Math.floor((Date.now() - playerLeftMatchmakingTime.getTime()) / 1000);
+            if (elapsedSeconds < 20) {
+                return false;
+            }
+
+            this.playerMatchmakingDisconnectedTime.delete(userId);
+        }
+
+        // check if user is already in a lobby and if their last activity was within 30s, just in case the lobby entry is stale somehow
         const previousLobbyForUser = this.userLobbyMap.get(userId)?.lobbyId;
         if (previousLobbyForUser) {
             const previousRole = this.userLobbyMap.get(userId)?.role;
@@ -337,7 +350,7 @@ export class GameServer {
 
                 const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
 
-                if (elapsedSeconds < 60 && previousRole === UserRole.Player) {
+                if (elapsedSeconds < 30 && previousRole === UserRole.Player) {
                     return false;
                 }
 
@@ -832,6 +845,9 @@ export class GameServer {
                             this.removeUserMaybeCleanupLobby(lobby, id);
                         } else {
                             lobby.removeUser(id);
+
+                            this.playerMatchmakingDisconnectedTime.set(id, new Date());
+
                             for (const user of lobby.users) {
                                 logger.error(`Requeueing user ${user.id} after matched user disconnected`);
 
