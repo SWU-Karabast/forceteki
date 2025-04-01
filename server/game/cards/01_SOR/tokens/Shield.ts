@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
-import type Player from '../../../core/Player';
+import type { Player } from '../../../core/Player';
 
 export default class Shield extends TokenUpgradeCard {
     /** Indicates that the shield be prioritized for removal if multiple shields are present (currently only for Jetpack) */
@@ -37,7 +37,7 @@ export default class Shield extends TokenUpgradeCard {
                 target: this,
                 replacementImmediateEffect: AbilityHelper.immediateEffects.defeat()
             },
-            effect: 'shield prevents {1} from taking damage',
+            effect: 'prevent {1} from taking damage',
             effectArgs: (context) => [context.source.parentCard],
         });
     }

@@ -39,6 +39,8 @@ describe('Count Dooku, Fallen Jedi', function() {
                 expect(context.player1).toHaveChooseNothingButton();
                 context.player1.clickCard(context.cartelSpacer);
                 expect(context.cartelSpacer.damage).toBe(1);
+                expect(context.getChatLogs(1)[0]).toContain('player1 uses Count Dooku to deal 1 damage to Cartel Spacer');
+                expect(context.getChatLogs(2)[0]).toContain('player1 uses Count Dooku to deal 5 damage to AT-ST');
             });
 
             it('should allow passing one damage target', function() {

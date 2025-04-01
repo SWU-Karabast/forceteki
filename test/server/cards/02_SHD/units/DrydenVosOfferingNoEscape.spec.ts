@@ -112,6 +112,34 @@ describe('Dryden Voss, Offering No Escape', function() {
                 // 1 for Awing, 2 for Raid 2, and 1 for captured Dodonna
                 expect(context.p2Base.damage).toBe(4);
             });
+
+            it('should allow to play the unit as a pilot on a vehicle you control', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['dryden-vos#offering-no-escape'],
+                        spaceArena: ['green-squadron-awing'],
+                        groundArena: [{ card: 'atst', capturedUnits: ['dagger-squadron-pilot'] }],
+                        leader: 'jabba-the-hutt#his-high-exaltedness',
+                        base: 'jabbas-palace'
+                    },
+                    player2: {
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.drydenVosOfferingNoEscape);
+                context.player1.clickPrompt('Shielded');
+                expect(context.drydenVosOfferingNoEscape).toHaveExactUpgradeNames(['shield']);
+                expect(context.player1).toBeAbleToSelectExactly([context.daggerSquadronPilot]);
+                context.player1.clickCard(context.daggerSquadronPilot);
+
+                context.player1.clickPrompt('Play Dagger Squadron Pilot with Piloting');
+                context.player1.clickCard(context.greenSquadronAwing);
+                expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['dagger-squadron-pilot']);
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

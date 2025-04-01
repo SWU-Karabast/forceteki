@@ -1,7 +1,7 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { StateWatcherName } from '../Constants';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
 

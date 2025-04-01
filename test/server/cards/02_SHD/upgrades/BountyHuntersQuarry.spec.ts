@@ -44,7 +44,7 @@ describe('Bounty hunter\'s quarry', function () {
                 expect(context.infernoFour).toBeInBottomOfDeck(context.player1, 4);
                 expect(context.protector).toBeInBottomOfDeck(context.player1, 4);
 
-                context.wampa.exhausted = false;
+                context.readyCard(context.wampa);
                 context.player2.passAction();
 
                 // CASE 2: Defeating a unique unit should allow the player to search the top 10 cards of their deck

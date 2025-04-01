@@ -1,6 +1,6 @@
 import type { Card } from '../../card/Card';
 import type Game from '../../Game';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { AllPlayerPrompt } from './AllPlayerPrompt';
@@ -117,7 +117,7 @@ export class ResourcePrompt extends AllPlayerPrompt {
             for (const card of this.selectedCards[player.name]) {
                 player.resourceCard(card, false);
             }
-            this.game.addMessage('{0} has resourced {1} cards from hand', player, this.selectedCards[player.name].length);
+            this.game.addMessage('{0} has resourced {1} {2} from hand', player, this.selectedCards[player.name].length, this.selectedCards[player.name].length === 1 ? 'card' : 'cards');
         } else {
             this.game.addMessage('{0} has not resourced any cards', player);
         }

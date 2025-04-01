@@ -48,7 +48,7 @@ describe('Bo-Katan Kryze, Death Watch Lieutenant', function () {
                 context.player1.clickCard(context.jedhaAgitator);
                 expect(context.p2Base.damage).toBe(1);
 
-                context.bokatanKryze.exhausted = false;
+                context.readyCard(context.bokatanKryze);
 
                 // kill other mandalorian
                 context.player2.clickCard(context.rivalsFall);

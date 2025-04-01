@@ -25,7 +25,7 @@ describe('General Rieekan, Defensive Strategist', function () {
                 expect(context.player1).toBeAbleToSelectExactly([context.generalRieekan, context.consularSecurityForce, context.corellianFreighter]);
                 context.player1.clickCard(context.consularSecurityForce);
 
-                context.generalRieekan.exhausted = false;
+                context.readyCard(context.generalRieekan);
                 context.player2.clickCard(context.wampa);
                 // consular security force is automatically choose because of Sentinel
                 expect(context.consularSecurityForce.damage).toBe(4);

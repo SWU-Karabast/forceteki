@@ -60,7 +60,7 @@ describe('Jedha Agitator', function() {
 
                 expect(context.player2).toBeActivePlayer();
                 context.player2.passAction();
-                context.jedhaAgitator.exhausted = false;
+                context.readyCard(context.jedhaAgitator);
 
                 // ************** CASE 2: deal damage to base **************
                 context.player1.clickCard(context.jedhaAgitator);
@@ -72,7 +72,7 @@ describe('Jedha Agitator', function() {
                 expect(context.p2Base.damage).toBe(4);
 
                 context.player2.passAction();
-                context.jedhaAgitator.exhausted = false;
+                context.readyCard(context.jedhaAgitator);
 
                 // ************** CASE 3: deal damage to self **************
                 context.player1.clickCard(context.jedhaAgitator);

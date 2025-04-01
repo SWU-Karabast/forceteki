@@ -38,7 +38,7 @@ describe('Cobb Vanth, The Marshal', function() {
                 // perform an action so we don't double pass
                 context.player2.clickCard(context.systemPatrolCraft);
                 context.player2.clickCard(context.p1Base);
-                context.systemPatrolCraft.exhausted = false;
+                context.readyCard(context.systemPatrolCraft);
 
                 // Lets exhaust 100% of the resources to ensure it can still be played free of cost (ignoring aspect penalties too)
                 context.player1.exhaustResources(20);
@@ -296,6 +296,42 @@ describe('Cobb Vanth, The Marshal', function() {
                 context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player1.exhaustedResourceCount).toBe(8); // should still be free and no net change
                 expect(context.battlefieldMarine).toBeInZone('groundArena');
+            });
+
+            it('should work with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['cobb-vanth#the-marshal']
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay', 'protector', 'patrolling-vwing', 'devotion',
+                            'consular-security-force', 'echo-base-defender', 'swoop-racer', 'resupply', 'superlaser-technician'],
+                        hasInitiative: true
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.cobbVanth);
+                expect(context.player2).toHaveExactDisplayPromptCards({
+                    selectable: [context.sabineWren, context.battlefieldMarine, context.patrollingVwing],
+                    invalid: [context.waylay, context.protector, context.devotion, context.consularSecurityForce, context.echoBaseDefender, context.swoopRacer, context.resupply]
+                });
+                expect(context.player2).toHaveEnabledPromptButton('Take nothing');
+
+                context.player2.clickCardInDisplayCardPrompt(context.patrollingVwing);
+                expect(context.cobbVanth).toBeInZone('discard');
+                expect(context.patrollingVwing).toBeInZone('discard', context.player2);
+
+                context.player1.passAction();
+
+                const p2ExhaustedResourceCount = context.player2.exhaustedResourceCount;
+                expect(context.player2).toBeAbleToSelect(context.patrollingVwing);
+                context.player2.clickCard(context.patrollingVwing);
+                expect(context.patrollingVwing).toBeInZone('spaceArena', context.player2);
+                expect(context.player2.exhaustedResourceCount).toBe(p2ExhaustedResourceCount);
             });
         });
     });

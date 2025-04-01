@@ -5,7 +5,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { GameObject } from '../core/GameObject';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 
 export type IPlayerLastingEffectProperties = ILastingEffectPropertiesBase & {
 

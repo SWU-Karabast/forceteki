@@ -26,7 +26,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
                 expect(context.idenVersio.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(5);
 
-                context.idenVersio.exhausted = false;
+                context.readyCard(context.idenVersio);
                 context.player2.passAction();
 
                 // case 2: friendly unit defeated
@@ -39,7 +39,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
                 expect(context.idenVersio.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(5);
 
-                context.idenVersio.exhausted = false;
+                context.readyCard(context.idenVersio);
                 context.player2.passAction();
 
                 // case 3: enemy unit defeated

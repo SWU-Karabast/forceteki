@@ -288,8 +288,8 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
     }
 
     // TODO: might need to refactor getEffectMessage generally so that it has access to the event, doesn't really work for some of the damage scenarios currently
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    public override getEffectMessage(context: TContext, additionalProperties?: any): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         let amountStr = '';
         if ('amount' in properties && typeof properties.amount === 'number') {

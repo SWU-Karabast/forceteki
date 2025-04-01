@@ -1,4 +1,4 @@
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { Aspect } from '../Constants';
 import { ZoneName } from '../Constants';
 import type { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';

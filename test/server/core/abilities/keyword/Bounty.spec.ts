@@ -174,7 +174,7 @@ describe('Bounty', function() {
                 expect(context.player2).toBeActivePlayer();
 
                 context.player2.passAction();
-                context.covetousRivals.exhausted = false;
+                context.readyCard(context.covetousRivals);
             });
 
             it('leaves play it should not trigger the bounty twice', async function () {

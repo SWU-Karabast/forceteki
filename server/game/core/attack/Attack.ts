@@ -1,4 +1,3 @@
-import { GameObject } from '../GameObject';
 import type Game from '../Game';
 import type { Card } from '../card/Card';
 import * as Contract from '../utils/Contract';
@@ -9,7 +8,8 @@ import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 
 type StatisticTotal = number;
 
-export class Attack extends GameObject {
+export class Attack {
+    private readonly game: Game;
     public readonly attacker: IUnitCard;
     public readonly attackerInPlayId: number;
     public readonly isAmbush: boolean;
@@ -23,8 +23,7 @@ export class Attack extends GameObject {
         targets: IAttackableCard[],
         isAmbush: boolean = false
     ) {
-        super(game, 'Attack');
-
+        this.game = game;
         this.attacker = attacker;
         this.targets = targets;
 

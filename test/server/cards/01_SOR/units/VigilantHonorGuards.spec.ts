@@ -27,7 +27,7 @@ describe('Vigilant Honor Guards', function() {
                 expect(context.consularSecurityForce.damage).toBe(4);
 
                 context.player2.passAction();
-                context.consularSecurityForce.exhausted = false;
+                context.readyCard(context.consularSecurityForce);
 
                 context.player1.clickCard(context.consularSecurityForce);
                 expect(context.player1).toBeAbleToSelectExactly([context.vigilantHonorGuards, context.p2Base]); // no sentinel
@@ -38,7 +38,7 @@ describe('Vigilant Honor Guards', function() {
                 context.player2.clickCard(context.vigilantHonorGuards);
                 expect(context.vigilantHonorGuards.damage).toBe(0);
 
-                context.consularSecurityForce.exhausted = false;
+                context.readyCard(context.consularSecurityForce);
 
                 context.player1.clickCard(context.consularSecurityForce);
                 // Honor Guards automatically selected due to sentinel

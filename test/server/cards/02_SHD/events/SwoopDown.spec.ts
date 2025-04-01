@@ -32,7 +32,7 @@ describe('Swoop Down', function () {
 
             // reset
             context.setDamage(context.allianceXwing, 0);
-            context.allianceXwing.exhausted = false;
+            context.readyCard(context.allianceXwing);
             context.player1.moveCard(context.swoopDown, 'hand');
 
             context.player2.passAction();

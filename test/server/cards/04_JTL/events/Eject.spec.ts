@@ -135,7 +135,7 @@ describe('Eject', function () {
                 ]);
                 context.player1.clickCard(context.paigeTico);
 
-                context.paigeTico.exhausted = false;
+                context.readyCard(context.paigeTico);
                 context.player2.passAction();
 
                 // attack with Paige and confirm that her piloting ability doesn't trigger

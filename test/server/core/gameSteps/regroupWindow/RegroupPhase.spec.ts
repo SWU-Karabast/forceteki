@@ -33,9 +33,9 @@ describe('Regroup phase', function() {
                     const oldResourcesPlayer2 = [...context.player2.resources];
 
                     // Setup for Case 1
-                    context.allianceXwing.exhausted = true;
-                    context.wampa.exhausted = true;
-                    context.tielnFighter.exhausted = true;
+                    context.exhaustCard(context.allianceXwing);
+                    context.exhaustCard(context.wampa);
+                    context.exhaustCard(context.tielnFighter);
 
                     // Case 1 check if regroup phase flows correctly
                     context.player1.passAction();
@@ -83,7 +83,7 @@ describe('Regroup phase', function() {
                     expect(context.player2).toHaveExactPromptButtons(['Done']);
                     context.player2.clickPrompt('Done');
 
-                    expect(context.getChatLogs(4)).toContain('player1 has resourced 1 cards from hand');
+                    expect(context.getChatLogs(4)).toContain('player1 has resourced 1 card from hand');
                     expect(context.getChatLogs(4)).toContain('player2 has not resourced any cards');
 
                     // check resources

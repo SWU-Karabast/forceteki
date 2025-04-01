@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { DamageType, EventName } from '../core/Constants';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import { DamageSystem } from './DamageSystem';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {

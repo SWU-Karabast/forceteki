@@ -30,7 +30,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.p2Base.damage).toBe(0);
                 expect(context.player2).toBeActivePlayer();
 
-                context.bokatanKryze.exhausted = false;
+                context.readyCard(context.bokatanKryze);
 
                 // enemy mandalorian attacks
                 context.player2.clickCard(context.protectorOfTheThrone);
@@ -51,7 +51,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.player2).toBeActivePlayer();
 
                 // attack with a mandalorian
-                context.bokatanKryze.exhausted = false;
+                context.readyCard(context.bokatanKryze);
                 context.player2.passAction();
                 context.player1.clickCard(context.mandalorianWarrior);
                 context.player1.clickCard(context.p2Base);
@@ -97,7 +97,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.player2).toBeActivePlayer();
 
                 // if you attack again with bo katan : only 1 damage trigger
-                context.bokatanKryze.exhausted = false;
+                context.readyCard(context.bokatanKryze);
                 context.player2.passAction();
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);
@@ -111,7 +111,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 context.player2.clickCard(context.p1Base);
 
                 // if you attack again with bo katan : only 1 damage trigger
-                context.bokatanKryze.exhausted = false;
+                context.readyCard(context.bokatanKryze);
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1).toBeAbleToSelectExactly([context.mandalorianWarrior, context.battlefieldMarine, context.bokatanKryze, context.protectorOfTheThrone, context.allianceXwing, context.jedhaAgitator]);
@@ -123,7 +123,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 // attack with a mandalorian
                 context.player1.clickCard(context.mandalorianWarrior);
                 context.player1.clickCard(context.p2Base);
-                context.bokatanKryze.exhausted = false;
+                context.readyCard(context.bokatanKryze);
                 context.player2.passAction();
 
                 // 2 triggers as we attack with another mandalorian (1 damage to 2 different unit)
@@ -141,7 +141,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.protectorOfTheThrone.damage).toBe(2);
 
                 // 2 triggers as we attack with another mandalorian (2 damage to 1 unit)
-                context.bokatanKryze.exhausted = false;
+                context.readyCard(context.bokatanKryze);
                 context.setDamage(context.p2Base, 0);
                 context.player2.passAction();
                 context.player1.clickCard(context.bokatanKryze);
@@ -156,7 +156,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.battlefieldMarine.damage).toBe(2);
 
                 // 2 triggers as we attack with another mandalorian (2 damage to 1 unit who die on first damage)
-                context.bokatanKryze.exhausted = false;
+                context.readyCard(context.bokatanKryze);
                 context.player2.passAction();
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);
@@ -171,7 +171,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 expect(context.player2).toBeActivePlayer();
 
                 // 2 triggers as we attack with another mandalorian (2 damage to 1 unit who die on first damage)
-                context.bokatanKryze.exhausted = false;
+                context.readyCard(context.bokatanKryze);
                 context.player2.passAction();
                 context.player1.clickCard(context.bokatanKryze);
                 context.player1.clickCard(context.p2Base);

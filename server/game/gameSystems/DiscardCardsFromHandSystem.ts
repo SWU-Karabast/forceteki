@@ -1,7 +1,7 @@
 import type { CardTypeFilter } from '../core/Constants';
 import { EventName, GameStateChangeRequired, RelativePlayer, TargetMode, WildcardCardType, ZoneName } from '../core/Constants';
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Card } from '../core/card/Card';

@@ -22,7 +22,7 @@ describe('Soulless One, Customized for Grievous', function () {
             const grievousLeader = context.player1.findCardByName('general-grievous#general-of-the-droid-armies');
 
             function reset() {
-                context.soullessOne.exhausted = false;
+                context.readyCard(context.soullessOne);
                 context.setDamage(context.p2Base, 0);
                 context.player2.passAction();
             }

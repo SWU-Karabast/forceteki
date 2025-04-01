@@ -31,12 +31,12 @@ describe('Lieutenant Childsen', function() {
                     const { context } = contextRef;
 
                     const reset = () => {
-                        context.player2.resources.forEach((card) => card.exhausted = false);
+                        context.player2.resources.forEach((card) => context.readyCard(card));
                         context.player2.moveCard(context.rivalsFall, 'hand');
                         context.player2.clickCard(context.rivalsFall);
                         context.player2.clickCard(context.lieutenantChildsen);
                         context.player1.moveCard(context.lieutenantChildsen, 'hand');
-                        context.player1.resources.forEach((card) => card.exhausted = false);
+                        context.player1.resources.forEach((card) => context.readyCard(card));
                     };
 
                     // Reveal 1 Vigilance card

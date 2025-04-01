@@ -38,7 +38,7 @@ describe('Finn, This is a Rescue', function () {
                 context.shield = context.battlefieldMarine.upgrades.filter((u) => u.name === 'Shield')[0];
 
                 // Reset
-                context.finn.exhausted = false;
+                context.readyCard(context.finn);
 
                 // Scenario 2: Defeat a friendly upgrade on an opponent's unit
                 context.player1.clickCard(context.finn);
@@ -78,9 +78,9 @@ describe('Finn, This is a Rescue', function () {
                 const { context } = contextRef;
 
                 const reset = (passAction = true) => {
-                    context.finn.exhausted = false;
-                    context.finn.damage = 0;
-                    context.wampa.damage = 0;
+                    context.readyCard(context.finn);
+                    context.setDamage(context.finn, 0);
+                    context.setDamage(context.wampa, 0);
                     if (passAction) {
                         context.player2.passAction();
                     }

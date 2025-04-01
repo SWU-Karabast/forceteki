@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import type { MoveZoneDestination } from '../core/Constants';
-import { AbilityRestriction, EffectName } from '../core/Constants';
+import { AbilityRestriction, EffectName, RelativePlayer } from '../core/Constants';
 import {
     CardType,
     DeckZoneDestination,
@@ -70,8 +70,8 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return this.getEffectMessage(context);
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context) as IMoveCardProperties;
+    public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         if (properties.destination === ZoneName.Hand) {
             if (Helpers.asArray(properties.target).some((card) => card.zoneName === ZoneName.Resource)) {
                 const targets = Helpers.asArray(properties.target);
@@ -81,6 +81,10 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         } else if (EnumHelpers.isDeckMoveZone(properties.destination)) {
             if (properties.shuffle) {
                 return ['shuffle {0} into their deck', [properties.target]];
+            }
+            const targets = Helpers.asArray(properties.target);
+            if (targets.some((target) => EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self))) {
+                return ['move {0} to the {1} of their deck', [targets.length > 1 ? `${targets.length} cards` : 'a card', properties.destination === DeckZoneDestination.DeckBottom ? 'bottom' : 'top']];
             }
             return ['move {0} to the {1} of their deck', [properties.target, properties.destination === DeckZoneDestination.DeckBottom ? 'bottom' : 'top']];
         }

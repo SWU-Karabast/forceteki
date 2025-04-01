@@ -26,7 +26,7 @@ describe('Incinerator Trooper', function() {
 
                 // Case 2 attacking wampa should defeat incinerator-trooper and give 2 damage to wampa
                 context.player2.passAction();
-                context.incineratorTrooper.exhausted = false;
+                context.readyCard(context.incineratorTrooper);
                 context.player1.clickCard(context.incineratorTrooper);
                 context.player1.clickCard(context.wampa);
 

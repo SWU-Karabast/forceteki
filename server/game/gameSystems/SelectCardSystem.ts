@@ -11,7 +11,7 @@ import { CardTargetResolver } from '../core/ability/abilityTargets/CardTargetRes
 import type { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
 import * as Helpers from '../core/utils/Helpers';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 
 export interface ISelectCardProperties<TContext extends AbilityContext = AbilityContext> extends ICardTargetSystemProperties {

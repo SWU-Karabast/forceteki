@@ -39,7 +39,7 @@ describe('Hound\'s Tooth, Reliable and Deadly', function() {
             context.player2.clickCard(context.strafingGunship);
             context.player2.clickCard(context.p1Base);
 
-            context.houndsTooth.exhausted = false;
+            context.readyCard(context.houndsTooth);
 
             // attack an exhausted unit which didn't enters play this phase, dealing damage before defender
             context.player1.clickCard(context.houndsTooth);
@@ -47,7 +47,7 @@ describe('Hound\'s Tooth, Reliable and Deadly', function() {
             expect(context.houndsTooth.damage).toBe(0);
             expect(context.strafingGunship).toBeInZone('discard');
 
-            context.houndsTooth.exhausted = false;
+            context.readyCard(context.houndsTooth);
             context.player2.passAction();
 
             // attack a unit which was rescue this phase, hound's tooth should not deal damage before defender
