@@ -24,7 +24,7 @@ export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
                         return false;
                     }
 
-                    return card === context.event.attack.target && card.hasShield();
+                    return context.event.attack.getAllTargets().includes(card) && card.hasShield();
                 },
                 immediateEffect: new DefeatCardSystem((context) => {
                     Contract.assertTrue(context.source.isUnit());

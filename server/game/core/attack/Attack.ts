@@ -69,6 +69,9 @@ export class Attack {
             if (!target.isUnit()) {
                 continue;
             }
+            if (!target.isInPlay()) {
+                continue;
+            }
             if (condition(target)) {
                 matchingUnits.push(target);
             }
