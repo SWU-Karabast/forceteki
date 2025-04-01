@@ -27,7 +27,7 @@ export default class BombingRun extends EventCard {
 
     private eventEffect(arena: Arena) {
         return AbilityHelper.immediateEffects.conditional((context) => ({
-            condition: context.game.getPlayers().some((player) => player.getArenaUnits({ arena: arena }).length > 0),
+            condition: context.game.getPlayers().some((player) => player.hasSomeArenaUnit({ arena: arena })),
             onTrue: AbilityHelper.immediateEffects.damage((context) => {
                 return {
                     amount: 3,

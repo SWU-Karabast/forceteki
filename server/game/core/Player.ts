@@ -237,61 +237,6 @@ export class Player extends GameObject<IPlayerState> {
     }
 
     /**
-     * Get all units in designated play arena(s) controlled by this player
-     * @param {Trait} trait Get units with this trait
-     * @deprecated getArenaUnits() should be used instead
-     */
-    public getUnitsInPlayWithTrait(trait: Trait) {
-        return this.getArenaUnits({ trait });
-    }
-
-    /**
-     * Get all cards in designated play arena(s) other than the passed card controlled by this player.
-     * @param { any } ignoreUnit Unit to filter from the returned results
-     * @param { Trait } trait The Trait to check for
-     * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
-     * @deprecated use getArenaUnits() instead
-     */
-    public getOtherUnitsInPlayWithTrait(ignoreUnit: any, trait: Trait, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena) {
-        return this.getArenaCards({ otherThan: ignoreUnit, trait, arena }).filter((card) => card.isUnit() && card !== ignoreUnit && card.hasSomeTrait(trait));
-    }
-
-
-    /**
-     * Get all units in designated play arena(s) controlled by this player
-     * @param { Aspect } aspect Aspect needed for units
-     * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
-     * @param {(card: Card) => boolean} [cardCondition=(card) => true]
-     * @deprecated getArenaUnits() should be used instead
-     */
-    public getUnitsInPlayWithAspect(aspect: Aspect, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: Card) => boolean = () => true) {
-        return this.getArenaUnits({ aspect, arena, condition: cardCondition });
-    }
-
-    /**
-     * Get all cards in designated play arena(s) other than the passed card controlled by this player.
-     * @param { any } ignoreUnit Unit to filter from the returned results
-     * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
-     * @param {(card: Card) => boolean} [cardCondition=(card) => true]
-     * @deprecated use getArenaUnits() instead
-     */
-    public getOtherUnitsInPlay(ignoreUnit: any, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: Card) => boolean = () => true) {
-        return this.getArenaUnits({ otherThan: ignoreUnit, arena, condition: cardCondition });
-    }
-
-    /**
-     * Get all cards in designated play arena(s) other than the passed card controlled by this player.
-     * @param { any } ignoreUnit Unit to filter from the returned results
-     * @param { Aspect } aspect Aspect needed for units
-     * @param { WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena } arena Arena to select units from
-     * @param {(card: Card) => boolean} [cardCondition=(card) => true]
-     * @deprecated use getArenaUnits() instead
-     */
-    public getOtherUnitsInPlayWithAspect(ignoreUnit: any, aspect: Aspect, arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: Card) => boolean = () => true) {
-        return this.getArenaUnits({ otherThan: ignoreUnit, aspect, arena, condition: cardCondition });
-    }
-
-    /**
      * @param { String } title the title of the unit or leader to check for control of
      * @returns { boolean } true if this player controls a unit or leader with the given title
      */
