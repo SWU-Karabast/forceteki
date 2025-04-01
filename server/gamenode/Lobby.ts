@@ -62,6 +62,7 @@ export class Lobby {
     private rematchRequest?: RematchRequest = null;
     private userLastActivity = new Map<string, Date>();
     private matchingCountdownText?: string;
+    private matchingCountdownTimeoutHandle?: NodeJS.Timeout;
 
     public constructor(
         lobbyName: string,
@@ -254,7 +255,7 @@ export class Lobby {
         }
 
         if (this.gameType === MatchType.Quick) {
-            if (this.matchingCountdownText == null) {
+            if (this.matchingCountdownTimeoutHandle == null) {
                 await this.quickLobbyCountdownAsync();
             }
 
@@ -289,7 +290,7 @@ export class Lobby {
             return Promise.resolve();
         }
 
-        setTimeout(() => {
+        this.matchingCountdownTimeoutHandle = setTimeout(() => {
             try {
                 return this.quickLobbyCountdownAsync(remainingSeconds - 1);
             } catch (err) {
@@ -568,7 +569,6 @@ export class Lobby {
         }
     }
 
-
     private buildGameSettings(): GameConfiguration {
         const players: User[] = this.users.map((user) =>
             getUserWithDefaultsSet({
@@ -623,6 +623,34 @@ export class Lobby {
         this.sendGameState(this.game);
     }
 
+    public handleMatchmakingDisconnect() {
+        if (this.gameType !== MatchType.Quick) {
+            logger.error('Attempting to use quick lobby disconnect on non-quick lobby', { lobbyId: this.id });
+            return;
+        }
+
+        if (this.game) {
+            return;
+        }
+
+        if (this.matchingCountdownTimeoutHandle) {
+            clearTimeout(this.matchingCountdownTimeoutHandle);
+        }
+
+        this.matchingCountdownText = 'Opponent has disconnected, re-entering queue';
+        this.sendLobbyState();
+
+        setTimeout(() => {
+            for (const user of this.users) {
+                logger.error(`Requeueing user ${user.id} after matched user disconnected`);
+
+                this.server.requeueUser(user.socket, this.format, user, user.deck.getDecklist());
+                user.socket.send('matchmakingFailed', 'Player disconnected');
+            }
+
+            this.server.removeLobby(this);
+        }, 2000);
+    }
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, error: Error, severeGameMessage = false) {

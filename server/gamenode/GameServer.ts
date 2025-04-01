@@ -841,25 +841,12 @@ export class GameServer {
                     if (lobby?.getUserState(id) === 'disconnected') {
                         this.userLobbyMap.delete(id);
 
-                        if (!isMatchmaking) {
-                            this.removeUserMaybeCleanupLobby(lobby, id);
-                        } else {
+                        if (isMatchmaking) {
                             lobby.removeUser(id);
-
                             this.playerMatchmakingDisconnectedTime.set(id, new Date());
-
-                            for (const user of lobby.users) {
-                                logger.error(`Requeueing user ${user.id} after matched user disconnected`);
-
-                                this.requeueUser(user.socket, lobby.format, user, user.deck.getDecklist());
-                                user.socket.send('matchmakingFailed', 'Player disconnected');
-
-                                this.userLobbyMap.delete(user.id);
-                            }
-
-                            // Start the cleanup process for the lobby itself
-                            lobby.cleanLobby();
-                            this.lobbies.delete(lobby.id);
+                            lobby.handleMatchmakingDisconnect();
+                        } else {
+                            this.removeUserMaybeCleanupLobby(lobby, id);
                         }
                     }
                 } catch (err) {
