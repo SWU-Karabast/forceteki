@@ -33,7 +33,7 @@ describe('Fifth Brother, Fear Hunter', function() {
 
                 context.player2.passAction();
                 context.setDamage(context.p2Base, 0);
-                context.fifthBrother.exhausted = false;
+                context.readyCard(context.fifthBrother);
 
                 // CASE 2: Fifth Brother damages himself and another target, gets Raid 1
                 context.player1.clickCard(context.fifthBrother);
@@ -55,7 +55,7 @@ describe('Fifth Brother, Fear Hunter', function() {
                 expect(context.rebelPathfinder.damage).toBe(2);
 
                 context.setDamage(context.p2Base, 0);
-                context.fifthBrother.exhausted = false;
+                context.readyCard(context.fifthBrother);
 
                 // CASE 4: Fifth Brother does no combat damage if he dies to his ability at the attack step
                 context.player1.clickCard(context.fifthBrother);

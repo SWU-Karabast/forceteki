@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { GameStateChangeRequired, WildcardCardType, EventName } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 
 export interface ITakeControlOfUnitProperties extends ICardTargetSystemProperties {
     newController: Player;

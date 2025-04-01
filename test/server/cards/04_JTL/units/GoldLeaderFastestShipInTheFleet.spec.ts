@@ -23,7 +23,7 @@ describe('Gold Leader, Fastest Ship In The Fleet', function () {
             expect(context.brightHope.damage).toBe(5);
 
             // Reset the game state to test the ability
-            context.brightHope.damage = 0;
+            context.setDamage(context.brightHope, 0);
 
             // Attack Gold Leader with Bright Hope
             context.player2.clickCard(context.brightHope);
@@ -34,8 +34,8 @@ describe('Gold Leader, Fastest Ship In The Fleet', function () {
             expect(context.brightHope.getPower()).toBe(2);
 
             // Reset the game state to test the ability
-            context.brightHope.damage = 0;
-            context.brightHope.exhausted = false;
+            context.setDamage(context.brightHope, 0);
+            context.readyCard(context.brightHope);
             context.player1.passAction();
 
             context.player2.clickCard(context.brightHope);

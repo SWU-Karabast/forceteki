@@ -31,7 +31,7 @@ describe('DeathSpace Skirmisher', function () {
             context.player1.clickCard(context.greenSquadronAwing);
 
             context.player2.passAction();
-            context.deathSpaceSkirmisher.moveTo('hand');
+            context.player1.moveCard(context.deathSpaceSkirmisher, 'hand');
             context.player1.clickCard(context.deathSpaceSkirmisher);
             expect(context.deathSpaceSkirmisher).toBeInZone('spaceArena');
         });

@@ -76,7 +76,7 @@ describe('Pre Vizsla, Pursuing the Throne', function () {
             context.player1.moveCard(context.strategicAnalysis, 'hand');
             context.player2.moveCard(context.echoBaseDefender, 'groundArena');
 
-            context.preVizsla.exhausted = false;
+            context.readyCard(context.preVizsla);
             context.player2.passAction();
 
             // 3 cards in hand > have saboteur

@@ -29,7 +29,7 @@ describe('Shuttle Tyridium, Fly Casual', function () {
             expect(context.player2).toBeActivePlayer();
 
             // Restore game board
-            context.shuttleTydiriumFlyCasual.exhausted = false;
+            context.readyCard(context.shuttleTydiriumFlyCasual);
             context.player2.passAction();
             context.player1.clickCard(context.shuttleTydiriumFlyCasual);
             context.player1.clickCard(context.player2.base);
@@ -39,7 +39,7 @@ describe('Shuttle Tyridium, Fly Casual', function () {
             expect(context.player2).toBeActivePlayer();
 
             // Empty deck
-            context.shuttleTydiriumFlyCasual.exhausted = false;
+            context.readyCard(context.shuttleTydiriumFlyCasual);
             context.player2.passAction();
 
             // No card discarded so ability should not be triggered

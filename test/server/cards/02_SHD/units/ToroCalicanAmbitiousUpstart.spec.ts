@@ -60,7 +60,7 @@ describe('Toro Calican, Ambitious Upstart', function() {
                 expect(context.ketsuOnyo.damage).toBe(1);
                 expect(context.toroCalican.exhausted).toBeFalse();
 
-                context.toroCalican.exhausted = true;
+                context.exhaustCard(context.toroCalican);
                 context.player2.passAction();
 
                 // CASE 6: play another friendly Bounty Hunter, ability does not trigger due to limit
@@ -70,7 +70,7 @@ describe('Toro Calican, Ambitious Upstart', function() {
                 expect(context.toroCalican.exhausted).toBeTrue();
 
                 context.moveToNextActionPhase();
-                context.toroCalican.exhausted = false;
+                context.readyCard(context.toroCalican);
 
                 // CASE 7: play friendly Bounty Hunter next phase,
                 // ability triggers and can be activated even though Toro is not exhausted
@@ -81,7 +81,7 @@ describe('Toro Calican, Ambitious Upstart', function() {
                 expect(context.toroCalican.exhausted).toBeFalse();
 
                 context.moveToNextActionPhase();
-                context.toroCalican.exhausted = true;
+                context.exhaustCard(context.toroCalican);
 
                 // CASE 8: shield replacement effect should activate "if you do" ability
                 context.player1.clickCard(context.hunterOfTheHaxionBrood);

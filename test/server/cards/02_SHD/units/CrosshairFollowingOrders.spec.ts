@@ -51,7 +51,7 @@ describe('Crosshair', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(4);
 
                 // attack base for 4
-                context.crosshair.exhausted = false;
+                context.readyCard(context.crosshair);
                 context.player2.passAction();
                 context.player1.clickCard(context.crosshair);
                 context.player1.clickPrompt('Attack');

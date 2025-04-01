@@ -23,7 +23,7 @@ describe('Breaking In', function () {
 
             // second attack to confirm the effect is gone
             context.player2.passAction();
-            context.battlefieldMarine.exhausted = false;
+            context.readyCard(context.battlefieldMarine);
             context.player1.clickCard(context.battlefieldMarine);
 
             expect(context.player1).toBeAbleToSelectExactly([context.niimaOutpostConstables]);

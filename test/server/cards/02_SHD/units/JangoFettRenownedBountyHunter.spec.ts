@@ -17,7 +17,7 @@ describe('Jango Fett, Renowned Bounty Hunter', function() {
                 function reset() {
                     context.setDamage(context.jangoFett, 0);
                     context.setDamage(context.p2Base, 0);
-                    context.jangoFett.exhausted = false;
+                    context.readyCard(context.jangoFett);
                     context.player2.passAction();
                 }
 

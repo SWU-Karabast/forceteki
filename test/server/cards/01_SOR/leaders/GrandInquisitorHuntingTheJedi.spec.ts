@@ -17,7 +17,7 @@ describe('Grand Inquisitor, Hunting the Jedi', function() {
 
             it('should damage and ready a friendly unit with 3 power or less', function() {
                 const { context } = contextRef;
-                context.scoutBikePursuer.exhausted = true;
+                context.exhaustCard(context.scoutBikePursuer);
 
                 // ready scout bike pursuer
                 context.player1.clickCard(context.grandInquisitor);
@@ -32,9 +32,9 @@ describe('Grand Inquisitor, Hunting the Jedi', function() {
 
             it('should damage (and kill) a friendly unit with 3 power or less', function() {
                 const { context } = contextRef;
-                context.scoutBikePursuer.exhausted = true;
-                context.wampa.exhausted = true;
-                context.battlefieldMarine.exhausted = true;
+                context.exhaustCard(context.scoutBikePursuer);
+                context.exhaustCard(context.wampa);
+                context.exhaustCard(context.battlefieldMarine);
 
                 // try to ready death star stormtrooper but damage will kill it
                 context.player1.clickCard(context.grandInquisitor);
@@ -69,7 +69,7 @@ describe('Grand Inquisitor, Hunting the Jedi', function() {
 
             it('should damage and ready a friendly unit with 3 power or less', function() {
                 const { context } = contextRef;
-                context.scoutBikePursuer.exhausted = true;
+                context.exhaustCard(context.scoutBikePursuer);
                 context.player1.clickCard(context.grandInquisitor);
                 context.player1.clickCard(context.p2Base);
 
@@ -84,9 +84,9 @@ describe('Grand Inquisitor, Hunting the Jedi', function() {
 
             it('should damage (and kill) a friendly unit with 3 power or less', function() {
                 const { context } = contextRef;
-                context.scoutBikePursuer.exhausted = true;
-                context.wampa.exhausted = true;
-                context.battlefieldMarine.exhausted = true;
+                context.exhaustCard(context.scoutBikePursuer);
+                context.exhaustCard(context.wampa);
+                context.exhaustCard(context.battlefieldMarine);
                 context.player1.clickCard(context.grandInquisitor);
                 context.player1.clickCard(context.p2Base);
 

@@ -1,5 +1,5 @@
 import { ZoneName, RelativePlayer, KeywordName } from '../Constants';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import { PlayerZone } from './PlayerZone';
 import * as Helpers from '../utils/Helpers.js';
 import type { AbilityContext } from '../ability/AbilityContext';

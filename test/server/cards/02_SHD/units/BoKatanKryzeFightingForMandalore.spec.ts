@@ -22,8 +22,8 @@ describe('Bo-KatanKryze', function () {
                 const reset = () => {
                     context.player1.moveCard(context.bokatanKryze, 'groundArena');
                     context.player2.moveCard(context.battlefieldMarine, 'groundArena');
-                    context.bokatanKryze.exhausted = false;
-                    context.battlefieldMarine.exhausted = false;
+                    context.readyCard(context.bokatanKryze);
+                    context.readyCard(context.battlefieldMarine);
                 };
 
                 // case 1: No cards drawn if damage on both bases is less than 15

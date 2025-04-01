@@ -20,7 +20,7 @@ describe('Jyn Erso, Stardust', function () {
 
             context.player2.moveCard(context.echoBaseDefender, 'groundArena');
 
-            context.jynErso.exhausted = false;
+            context.readyCard(context.jynErso);
             context.player2.passAction();
 
             // attack with jyn, she should have +1/+0 and saboteur because echo base defender already died

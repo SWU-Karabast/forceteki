@@ -4,7 +4,7 @@ import type { GameStateChangeRequired } from '../core/Constants';
 import { MetaEventName } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import { ExhaustResourcesSystem } from './ExhaustResourcesSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 

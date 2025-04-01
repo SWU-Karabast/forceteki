@@ -22,7 +22,7 @@ describe('Nameless Valor', function() {
             context.player1.clickCard(battleDroids[0]);
 
             // next step setup
-            battleDroids[0].exhausted = false;
+            context.readyCard(battleDroids[0]);
             context.player2.passAction();
 
             // token gains overwhelm

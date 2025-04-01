@@ -25,7 +25,7 @@ describe('IG-11, I Cannot Be Captured', function() {
 
             context.player2.passAction();
             context.setDamage(context.p2Base, 0);
-            context.ig11.exhausted = false;
+            context.readyCard(context.ig11);
 
             // CASE 2: ground unit is damaged so select it
             context.setDamage(context.rebelPathfinder, 2);

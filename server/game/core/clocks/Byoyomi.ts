@@ -1,4 +1,4 @@
-import type Player from '../Player';
+import type { Player } from '../Player';
 import { ChessClock } from './ChessClock';
 import type { IClock } from './IClock';
 

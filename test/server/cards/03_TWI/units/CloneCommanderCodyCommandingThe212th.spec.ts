@@ -25,7 +25,7 @@ describe('Clone Commander Cody, Commanding the 212th', function () {
                 // activate coordinate
                 context.player1.clickCard(context.greenSquadronAwing);
 
-                context.greenSquadronAwing.exhausted = false;
+                context.readyCard(context.greenSquadronAwing);
                 context.player2.passAction();
 
                 expect(context.greenSquadronAwing.getPower()).toBe(2);

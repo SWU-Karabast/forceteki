@@ -32,7 +32,7 @@ describe('Captain Phasma, Chrome Dome', function() {
                 expect(context.p2Base.damage).toBe(0);
 
                 // Play First Order Card
-                context.captainPhasma.exhausted = false;
+                context.readyCard(context.captainPhasma);
                 context.player2.passAction();
                 context.player1.clickCard(context.kylosTieSilencer);
                 context.player2.passAction();
@@ -92,7 +92,7 @@ describe('Captain Phasma, Chrome Dome', function() {
 
                 // Restart board state
                 context.player2.passAction();
-                context.captainPhasma.exhausted = false;
+                context.readyCard(context.captainPhasma);
 
                 context.player1.clickCard(context.captainPhasma);
                 context.player1.clickCard(context.p2Base);

@@ -2,7 +2,7 @@ import * as Util from '../../../../Util';
 import type { Card } from '../../card/Card';
 import type Game from '../../Game';
 import type { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import type { IDisplayCard, IDisplayCardsBasicPromptProperties } from '../PromptInterfaces';
 import { DisplayCardSelectionState, type IButton } from '../PromptInterfaces';

@@ -29,7 +29,7 @@ describe('Black Squadron Scout Wing', function() {
 
             // Should not be able to attack when Black Squadron Scout Wing is exhausted
             context.moveToNextActionPhase();
-            context.blackSquadronScoutWing.exhausted = true;
+            context.exhaustCard(context.blackSquadronScoutWing);
 
             context.player1.clickCard(context.armedToTheTeeth);
             context.player1.clickCard(context.blackSquadronScoutWing);

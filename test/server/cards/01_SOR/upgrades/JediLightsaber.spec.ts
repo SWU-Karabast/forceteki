@@ -40,7 +40,7 @@ describe('Jedi Lightsaber', function() {
                 expect(context.atst).toBeInZone('discard');
 
                 // CASE 2: defender dies from combined attack damage and hp effect
-                context.grogu.exhausted = false;
+                context.readyCard(context.grogu);
                 context.setDamage(context.grogu, 0);
                 context.player1.clickCard(context.grogu);
                 context.player1.clickPrompt('Attack');
@@ -52,7 +52,7 @@ describe('Jedi Lightsaber', function() {
 
                 // CASE 3: defender dies from hp effect before attack resolves
                 context.player2.passAction();
-                context.grogu.exhausted = false;
+                context.readyCard(context.grogu);
                 context.setDamage(context.grogu, 0);
                 context.player1.clickCard(context.grogu);
                 context.player1.clickPrompt('Attack');
@@ -64,7 +64,7 @@ describe('Jedi Lightsaber', function() {
 
                 // CASE 4: no effect when attacking a base
                 context.player2.passAction();
-                context.grogu.exhausted = false;
+                context.readyCard(context.grogu);
                 context.player1.clickCard(context.grogu);
                 context.player1.clickPrompt('Attack');
 

@@ -155,7 +155,7 @@ describe('Bamboozle', function () {
                 context.setDamage(context.p1Base, 0);
                 context.player1.moveCard(context.bamboozle, 'hand');
                 context.player2.passAction();
-                context.bibFortuna.exhausted = false;
+                context.readyCard(context.bibFortuna);
             };
 
             // play Bamboozle using Bib Fortuna ability

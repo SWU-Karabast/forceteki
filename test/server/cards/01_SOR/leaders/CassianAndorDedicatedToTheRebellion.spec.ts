@@ -26,7 +26,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 expect(context.cassianAndor.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
-                context.cassianAndor.exhausted = false;
+                context.readyCard(context.cassianAndor);
                 context.player2.passAction();
 
                 // Select the a-wing to deal 3 damage to base
@@ -47,7 +47,7 @@ describe('Cassian Andor, Dedicated to the Rebellion', function() {
                 expect(context.cassianAndor.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
-                context.cassianAndor.exhausted = false;
+                context.readyCard(context.cassianAndor);
                 context.player2.passAction();
 
                 // Deal 3+ damage using abilities now -- use two daring raids at the top of the hand

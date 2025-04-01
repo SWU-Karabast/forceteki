@@ -3,7 +3,7 @@ import type { GameStateChangeRequired } from '../Constants';
 import type { TriggerHandlingMode } from '../event/EventWindow';
 import type { GameEvent } from '../event/GameEvent';
 import type { GameObject } from '../GameObject';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import * as Helpers from '../utils/Helpers';
 import { GameSystem, type IGameSystemProperties } from './GameSystem';
 

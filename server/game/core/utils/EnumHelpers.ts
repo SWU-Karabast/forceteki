@@ -1,6 +1,6 @@
 import type { CardTypeFilter, ZoneFilter, MoveZoneDestination } from '../Constants';
 import { CardType, ZoneName, DeckZoneDestination, RelativePlayer, WildcardCardType, WildcardZoneName } from '../Constants';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import * as Helpers from './Helpers';
 
 // convert a set of strings to map to an enum type, throw if any of them is not a legal value

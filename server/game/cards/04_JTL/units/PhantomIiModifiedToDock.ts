@@ -3,7 +3,7 @@ import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, KeywordName, WildcardRelativePlayer } from '../../../core/Constants';
-import type Player from '../../../core/Player';
+import type { Player } from '../../../core/Player';
 
 export default class PhantomIiModifiedToDock extends NonLeaderUnitCard {
     protected override getImplementationId () {

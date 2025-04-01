@@ -2,7 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EffectName } from '../core/Constants';
 import type { ICostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjuster } from '../core/cost/CostAdjuster';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import { OngoingEffectBuilder } from '../core/ongoingEffect/OngoingEffectBuilder';
 import type { IExploitCostAdjusterProperties } from '../abilities/keyword/exploit/ExploitCostAdjuster';
 import { ExploitCostAdjuster } from '../abilities/keyword/exploit/ExploitCostAdjuster';

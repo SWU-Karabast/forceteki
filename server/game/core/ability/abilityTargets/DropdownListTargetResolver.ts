@@ -3,7 +3,7 @@ import type PlayerOrCardAbility from '../PlayerOrCardAbility';
 import type { AbilityContext } from '../AbilityContext';
 import { TargetResolver } from './TargetResolver';
 import { SelectChoice } from './SelectChoice';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import * as Helpers from '../../utils/Helpers';
 
 /** Target resolver for selecting from a list of strings and passing the choice to a GameSystem */
