@@ -350,12 +350,16 @@ export class GameServer {
 
                 const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
 
-                if (elapsedSeconds < 30 && previousRole === UserRole.Player) {
+                if (elapsedSeconds < 60 && previousRole === UserRole.Player) {
                     return false;
                 }
 
                 this.removeUserMaybeCleanupLobby(previousLobby, userId);
             }
+        }
+
+        if (this.queue.findPlayer(userId)) {
+            this.queue.removePlayer(userId, 'User joined a lobby');
         }
 
         return true;
