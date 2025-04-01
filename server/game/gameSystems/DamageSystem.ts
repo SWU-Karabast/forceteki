@@ -194,8 +194,13 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         let damageDealtBy: IUnitCard[];
 
         if (properties.source) {
-            Contract.assertTrue(properties.source.isUnit());
-            damageDealtBy = [properties.source];
+            if (Array.isArray(properties.source)) {
+                Contract.assertTrue(properties.source.every((source) => source.isUnit()));
+                damageDealtBy = properties.source;
+            } else {
+                Contract.assertTrue(properties.source.isUnit());
+                damageDealtBy = [properties.source];
+            }
         } else if (event.isOverwhelmDamage) {
             damageDealtBy = [properties.sourceAttack.attacker];
         } else {

@@ -13,6 +13,7 @@ export class Attack {
     public readonly attacker: IUnitCard;
     public readonly attackerInPlayId: number;
     public readonly isAmbush: boolean;
+    public readonly targetInPlayMap = new Map<IAttackableCard, number>();
     private targets: IAttackableCard[];
 
     public previousAttack: Attack;
@@ -26,6 +27,7 @@ export class Attack {
         this.game = game;
         this.attacker = attacker;
         this.targets = targets;
+        this.targetInPlayMap = new Map(targets.filter((target) => target.isUnit()).map((target) => [target, target.inPlayId]));
 
         // we grab the in-play IDs of the attacker and defender cards in case other abilities need to refer back to them later.
         // e.g., to check if the defender was defeated

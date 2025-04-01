@@ -58,7 +58,7 @@ export default class JangoFettConcealingTheConspiracy extends LeaderUnitCard {
 
                 case DamageSourceType.Attack:
                     // If the damage was dealt by a friendly unit via combat
-                    return event.damageSource.damageDealtBy.isUnit() &&
+                    return event.damageSource.damageDealtBy.some((card) => card.isUnit()) &&
                       event.damageSource.damageDealtBy.some((unit) => unit.controller === context.player);
             }
         }
