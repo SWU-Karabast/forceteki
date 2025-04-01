@@ -314,7 +314,7 @@ export class GameServer {
                 const { deck } = req.body;
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {
-                    return res.status(403).json({
+                    return res.status(401).json({
                         success: false,
                         message: 'User is not logged in'
                     });
@@ -345,19 +345,21 @@ export class GameServer {
                 }
 
                 if (!deckIds || !Array.isArray(deckIds) || deckIds.length === 0) {
+                    logger.error('GameServer: Error in delete-decks received empty array of deck ids from user: ' + req.user.getId());
                     return res.status(400).json({
                         success: false,
-                        message: 'deckIds must be a non-empty array of deck IDs'
+                        message: 'Server error'
                     });
                 }
 
                 // Delete the decks
-                const deletedDeckIds = await this.deckService.deleteDecks(user.getId(), deckIds);
-
+                for (const deckId of deckIds) {
+                    await this.deckService.deleteDeck(user.getId(), deckId);
+                }
                 return res.status(200).json({
                     success: true,
-                    message: `Successfully deleted ${deletedDeckIds.length} decks`,
-                    deletedDeckIds
+                    message: `Successfully deleted ${deckIds.length} decks`,
+                    deckIds
                 });
             } catch (err) {
                 logger.error('GameServer: Error in delete-decks:', err);
@@ -710,9 +712,9 @@ export class GameServer {
 
             // there can be a race condition where two users hit `join-lobby` at the same time, so we need to check if the lobby is filled already
             if (lobby.isFilled() && !lobby.hasPlayer(user.getPlayerId())) {
-                logger.info('GameServer: Lobby is full for user', user.username, 'disconnecting');
+                logger.info('GameServer: Lobby is full for user', user.getUsername(), 'disconnecting');
                 ioSocket.emit('connection_error', 'Lobby is full');
-                this.userLobbyMap.delete(user.id);
+                this.userLobbyMap.delete(user.getPlayerId());
                 return;
             }
 

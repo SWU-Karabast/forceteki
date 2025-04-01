@@ -104,39 +104,33 @@ export class DeckService {
 
             // Check if a deck with this link already exists for this user
             const deckLink = deckData.deck.deckLink;
+            let updatedDeckData = null;
             if (deckLink) {
                 const existingDeck = await this.dbService.getDeckByLink(user.getId(), deckLink);
 
                 if (existingDeck) {
                     // If the deck already exists, update it instead of creating a new one
                     logger.info(`DeckService: Deck with link ${deckLink} already exists for user ${user.getUsername()}, updating existing deck`);
-
                     // Use the existing deck's ID
-                    const updatedDeckData = {
+                    updatedDeckData = {
                         ...deckData,
                         id: existingDeck.id
                     };
-
-                    // Update existing deck
-                    await this.dbService.saveDeck(updatedDeckData);
-                    return existingDeck.id;
                 }
+            } else {
+                // If no existing deck with the same link, or no link provided, create a new deck
+                const newDeckId = uuid();
+                deckData.deck.favourite = false;
+                updatedDeckData = {
+                    ...deckData,
+                    userId: user.getId(),
+                    id: newDeckId,
+                };
             }
-
-            // If no existing deck with the same link, or no link provided, create a new deck
-            const newDeckId = uuid();
-            deckData.deck.favourite = false;
-            const newDeckData = {
-                ...deckData,
-                userId: user.getId(),
-                id: newDeckId,
-            };
-
             // Save the new deck to the database
-            await this.dbService.saveDeck(newDeckData);
-
-            logger.info(`DeckService: Saved new deck ${newDeckId} for user ${deckData.userId}`);
-            return newDeckId;
+            await this.dbService.saveDeck(updatedDeckData);
+            logger.info(`DeckService: Saved/updated new deck ${updatedDeckData.id} for user ${deckData.userId}`);
+            return updatedDeckData.id;
         } catch (error) {
             logger.error(`Error saving deck for user ${user.getId()}:`, error);
             throw error;
@@ -146,43 +140,29 @@ export class DeckService {
     /**
      * Delete multiple decks for a user
      * @param userId The user ID
-     * @param deckIds Array of deck IDs to delete
+     * @param deckId Array of deck IDs to delete
      * @returns Promise that resolves to an array of successfully deleted deck IDs
      */
-    public async deleteDecks(userId: string, deckIds: string[]): Promise<string[]> {
+    public async deleteDeck(userId: string, deckId: string) {
         try {
             Contract.assertTrue(
-                userId && deckIds && deckIds.length > 0,
-                `DeckService: Invalid parameters for delete operation. userId: ${userId}, deckIds: ${deckIds}`
+                userId && deckId.length > 0,
+                `DeckService: Invalid parameters for delete operation. userId: ${userId}, deckId: ${deckId}`
             );
-
-            const deletedDeckIds: string[] = [];
-            const failedDeckIds: string[] = [];
-
-            // Process each deck deletion individually to handle errors gracefully
-            for (const deckId of deckIds) {
-                try {
-                    // Verify the deck belongs to this user before deleting
-                    const deck = await this.dbService.getDeck(userId, deckId);
-                    if (!deck) {
-                        logger.warn(`DeckService: Deck ${deckId} not found for user ${userId} or does not belong to them.`);
-                        failedDeckIds.push(deckId);
-                        continue;
-                    }
-
-                    // Delete the deck
-                    await this.dbService.deleteItem(`USER#${userId}`, `DECK#${deckId}`);
-                    deletedDeckIds.push(deckId);
-                    logger.info(`DeckService: Successfully deleted deck ${deckId} for user ${userId}`);
-                } catch (error) {
-                    logger.error(`DeckService: Error deleting deck ${deckId} for user ${userId}:`, error);
-                    failedDeckIds.push(deckId);
-                }
+            // Verify the deck belongs to this user before deleting
+            const deck = await this.dbService.getDeck(userId, deckId);
+            if (!deck) {
+                logger.warn(`DeckService: Deck ${deckId} not found for user ${userId}`);
+                return;
             }
-            return deletedDeckIds;
+
+            // Delete the deck
+            await this.dbService.deleteItem(`USER#${userId}`, `DECK#${deckId}`);
+            logger.info(`DeckService: Successfully deleted deck ${deckId} for user ${userId}`);
+            return;
         } catch (error) {
-            logger.error(`DeckService: Error during batch delete operation for user ${userId}:`, error);
-            throw error;
+            logger.error(`DeckService: Error deleting deck ${deckId} for user ${userId}:`, error);
+            return;
         }
     }
 
@@ -269,13 +249,7 @@ export class DeckService {
                     Contract.fail(`Invalid match result for opponent stats: ${result}`);
             }
             // Save updated stats
-            await this.dbService.updateItem(
-                `USER#${userId}`,
-                `DECK#${deckId}`,
-                'SET stats = :stats',
-                { ':stats': stats }
-            );
-
+            await this.dbService.updateDeckStats(userId, deckId, stats);
             logger.info(`DeckService: Updated stats for deck ${deckId}, user ${userId}, result: ${result}, opponent leader: ${opponentLeaderId}, opponent base: ${opponentBaseId}, stats: ${stats}`);
             return stats;
         } catch (error) {

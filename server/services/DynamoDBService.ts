@@ -9,7 +9,7 @@ import {
     UpdateCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
-import type { IDeckDataEntity, IUserProfileDataEntity } from './DynamoDBInterfaces';
+import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity } from './DynamoDBInterfaces';
 
 class DynamoDBService {
     private client: DynamoDBDocumentClient;
@@ -359,6 +359,24 @@ class DynamoDBService {
                 { ':lastLogin': new Date().toISOString() }
             );
         }, 'Error recording new login');
+    }
+
+    /**
+     * Update deck stats with specified values
+     * @param userId User ID
+     * @param deckId Deck ID
+     * @param stats Stats object with updated values
+     * @returns Updated deck record
+     */
+    public async updateDeckStats(userId: string, deckId: string, stats: IDeckStatsEntity) {
+        return await this.executeDbOperation(async () => {
+            return await this.updateItem(
+                `USER#${userId}`,
+                `DECK#${deckId}`,
+                'SET stats = :stats',
+                { ':stats': stats }
+            );
+        }, `Error updating deck stats for deck ${deckId}, user ${userId}`);
     }
 
     public async saveUserSettings(userId: string, settings: Record<string, any>) {
