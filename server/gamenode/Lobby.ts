@@ -276,26 +276,28 @@ export class Lobby {
     private quickLobbyCountdownAsync(remainingSeconds = 5) {
         if (remainingSeconds > -1) {
             this.matchingCountdownText = `Starts in ${remainingSeconds}`;
+        } else if (remainingSeconds > -4) {
+            this.matchingCountdownText = 'Waiting for opponent to connect...';
 
-            setTimeout(() => {
-                try {
-                    return this.quickLobbyCountdownAsync(remainingSeconds - 1);
-                } catch (err) {
-                    logger.error('Error during quick lobby countdown', { error: { message: err.message, stack: err.stack }, lobbyId: this.id });
-                }
-
-                return Promise.resolve();
-            }, 1000);
-
-            this.sendLobbyState();
+            if (this.users.length === 2 && this.users.every((u) => u.state === 'connected')) {
+                this.sendLobbyState();
+                return this.onStartGameAsync();
+            }
+        } else {
+            logger.info('Both users failed to connect within 3s, removing lobby and requeuing users', { lobbyId: this.id });
+            this.server.removeLobby(this);
             return Promise.resolve();
         }
 
-        this.matchingCountdownText = 'Waiting for opponent to connect...';
+        setTimeout(() => {
+            try {
+                return this.quickLobbyCountdownAsync(remainingSeconds - 1);
+            } catch (err) {
+                logger.error('Error during quick lobby countdown', { error: { message: err.message, stack: err.stack }, lobbyId: this.id });
+            }
 
-        if (this.users.length === 2 && this.users.every((u) => u.state === 'connected')) {
-            return this.onStartGameAsync();
-        }
+            return Promise.resolve();
+        }, 1000);
 
         this.sendLobbyState();
         return Promise.resolve();
@@ -548,16 +550,24 @@ export class Lobby {
             this.sendGameState(game);
         } catch (error) {
             if (this.gameType === MatchType.Quick) {
-                logger.error('Error attempting to start matchmaking lobby, cancelling and requeueing users', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
-                this.server.removeLobby(this);
-
-                for (const user of this.users) {
-                    // this will end up resolving to a call to GameServer.requeueUser, putting them back in the queue
-                    user.socket.send('matchmakingFailed', error.message);
-                }
+                logger.error(
+                    'Error attempting to start matchmaking lobby, cancelling and requeueing users',
+                    { error: { message: error.message, stack: error.stack }, lobbyId: this.id }
+                );
+                this.matchmakingFailed(error);
             }
         }
     }
+
+    private matchmakingFailed(error?: Error) {
+        this.server.removeLobby(this);
+
+        for (const user of this.users) {
+            // this will end up resolving to a call to GameServer.requeueUser, putting them back in the queue
+            user.socket.send('matchmakingFailed', error.message);
+        }
+    }
+
 
     private buildGameSettings(): GameConfiguration {
         const players: User[] = this.users.map((user) =>
