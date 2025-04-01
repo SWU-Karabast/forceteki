@@ -53,9 +53,26 @@ export abstract class DistributeAmongTargetsSystem<
     protected abstract getDistributedAmountFromEvent(event: any): number;
 
     public eventHandler(event): void {
+        const context = event.context;
         event.totalDistributed =
             event.individualEvents.reduce((total, individualEvent) => total + this.getDistributedAmountFromEvent(individualEvent), 0);
+
+        context.game.addMessage(this.getChatMessage(), ...this.getChatMessageArgs(event, context, event.additionalProperties));
     }
+
+    protected getChatMessage(): string {
+        return '{0} uses {1} to distribute {2} {3} among {4}s';
+    }
+
+    protected getChatMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        const controlDescriptor = properties.controller === RelativePlayer.Self ? 'friendly ' : properties.controller === RelativePlayer.Opponent ? 'enemy ' : '';
+        const targetTypeDescriptor = properties.cardTypeFilter || 'card';
+        const messageArgs = [context.player, context.source, event.totalDistributed, this.getDistributionType(), controlDescriptor + targetTypeDescriptor];
+        return messageArgs;
+    }
+
+    protected abstract getDistributionType(): string;
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -79,6 +96,8 @@ export abstract class DistributeAmongTargetsSystem<
         const distributeEvent = this.generateEvent(context) as any;
         distributeEvent.individualEvents = [];
         distributeEvent.checkCondition = () => true;
+        distributeEvent.message = this.getChatMessage();
+        distributeEvent.messageArgs = this.getDistributionType();
         events.push(distributeEvent);
 
         // auto-select if there's only one legal target and the player isn't allowed to choose 0 targets

@@ -73,5 +73,30 @@ describe('Black One', function() {
                 expect(context.p1Base.damage).toBe(15);
             });
         });
+
+        it('should work with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['black-one#scourge-of-starkiller-base']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    deck: ['confiscate', 'waylay', 'isb-agent'],
+                    hasInitiative: true
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.blackOne);
+            context.player2.clickPrompt('Trigger');
+            expect(context.player2.handSize).toBe(3);
+            expect(context.confiscate).toBeInZone('hand', context.player2);
+            expect(context.waylay).toBeInZone('hand', context.player2);
+            expect(context.isbAgent).toBeInZone('hand', context.player2);
+
+            context.player1.passAction();
+        });
     });
 });

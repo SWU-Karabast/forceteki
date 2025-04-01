@@ -409,7 +409,11 @@ export class GameServer {
     private lobbiesWithOpenSeat() {
         return new Map(
             Array.from(this.lobbies.entries()).filter(([, lobby]) =>
-                !lobby.isFilled() && !lobby.isPrivate && !lobby.hasOngoingGame()
+                !lobby.isFilled() &&
+                !lobby.isPrivate &&
+                lobby.gameType !== MatchType.Quick &&
+                !lobby.hasOngoingGame() &&
+                lobby.hasConnectedPlayer()
             )
         );
     }
@@ -812,8 +816,15 @@ export class GameServer {
         }
     }
 
-    public removeLobby(lobby: Lobby) {
+    public removeLobby(lobby: Lobby, errorMessage?: string) {
         this.lobbies.delete(lobby.id);
+
+        for (const user of lobby.users) {
+            this.userLobbyMap.delete(user.id);
+            user.socket?.send('connection_error', errorMessage);
+        }
+
+        lobby.cleanLobby();
     }
 
     public onQueueSocketDisconnected(

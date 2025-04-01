@@ -7,10 +7,11 @@ describe('General Krell, Heartless Tactician', function() {
                     player1: {
                         hand: ['battlefield-marine'],
                         groundArena: ['syndicate-lackeys', 'general-krell#heartless-tactician'],
-                        spaceArena: ['alliance-xwing'],
+                        spaceArena: ['alliance-xwing', 'corporate-defense-shuttle'],
                         leader: { card: 'leia-organa#alliance-general', deployed: true }
                     },
                     player2: {
+                        hand: ['no-glory-only-results'],
                         groundArena: ['wampa', 'atat-suppressor'],
                         spaceArena: ['avenger#hunting-star-destroyer']
                     }
@@ -51,14 +52,18 @@ describe('General Krell, Heartless Tactician', function() {
                 expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(startingHandSize + 2);   // hand size goes down by 1 from playing the marine
 
-                // CASE 4: Krell dies, no card
-                context.player2.passAction();
+                // CASE 4: Player2 takes control and doesnt trigger when defeated
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.corporateDefenseShuttle);
+                expect(context.player2.handSize).toBe(0);
+
+                // CASE 5: Krell dies, no card
                 context.player1.clickCard(context.generalKrell);
                 context.player1.clickCard(context.atatSuppressor);
                 expect(context.generalKrell).toBeInZone('discard');
                 expect(context.player1.handSize).toBe(startingHandSize + 2);
 
-                // CASE 5: friendly unit dies after Krell, no card
+                // CASE 6: friendly unit dies after Krell, no card
                 context.player2.passAction();
                 context.player1.clickCard(context.allianceXwing);
                 context.player1.clickCard(context.avenger);
