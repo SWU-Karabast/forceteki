@@ -75,7 +75,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
                     attackingPlayer: event.attack.attacker.controller,
                     target: event.attack.target,
                     targetInPlayId: event.attack.targetInPlayId,
-                    defendingPlayer: event.attack.target.controller
+                    defendingPlayer: event.attack.getSingleTarget().controller,
                 })
         });
     }

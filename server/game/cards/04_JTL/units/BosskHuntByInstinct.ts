@@ -30,10 +30,10 @@ export default class BosskHuntByInstinct extends NonLeaderUnitCard {
 
     private buildAbility(): GameSystem<TriggeredAbilityContext<this>> {
         return AbilityHelper.immediateEffects.conditional({
-            condition: (context) => context.event.attack.target.isUnit(),
+            condition: (context) => context.event.attack.isTargetUnit(),
             onTrue: AbilityHelper.immediateEffects.simultaneous([
-                AbilityHelper.immediateEffects.exhaust((context) => ({ target: context.event.attack.target })),
-                AbilityHelper.immediateEffects.damage((context) => ({ amount: 1, target: context.event.attack.target }))
+                AbilityHelper.immediateEffects.exhaust((context) => ({ target: context.event.attack.getSingleTarget() })),
+                AbilityHelper.immediateEffects.damage((context) => ({ amount: 1, target: context.event.attack.getSingleTarget() }))
             ]),
         });
     }

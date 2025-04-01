@@ -28,7 +28,7 @@ export default class HeroicSacrifice extends EventCard {
                                         onDamageDealt: (event, context) => (
                                             event.type === DamageType.Combat &&
                                             event.damageSource.attack.attacker === context.source &&
-                                            event.damageSource.damageDealtBy === context.source)
+                                            event.damageSource.damageDealtBy.includes(context.source))
                                     },
                                     immediateEffect: AbilityHelper.immediateEffects.defeat(),
                                 })
