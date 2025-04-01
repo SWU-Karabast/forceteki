@@ -228,7 +228,7 @@ export class Lobby {
             return;
         }
 
-        Contract.assertFalse(!existingUser && this.isFilled(), `Attempting to add user ${user.id} to lobby ${this.id}, but the lobby already has ${this.users.length} users`);
+        Contract.assertFalse(!existingUser && this.isFilled(), `Attempting to add user ${user.getPlayerId()} to lobby ${this.id}, but the lobby already has ${this.users.length} users`);
 
         // we check if listeners for the events already exist
         if (socket.eventContainsListener('game') || socket.eventContainsListener('lobby')) {
