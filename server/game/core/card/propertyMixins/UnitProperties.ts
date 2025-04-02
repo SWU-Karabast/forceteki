@@ -13,7 +13,7 @@ import { WithPrintedPower } from './PrintedPower';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { Card } from '../Card';
 import { InitializeCardStateOption } from '../Card';
-import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition } from '../../../Interfaces';
+import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBaseProps, ITriggeredAbilityProps, ITriggeredAbilityPropsWithGainCondition, Zone } from '../../../Interfaces';
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
@@ -44,7 +44,8 @@ export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
     defaultArenaInternal: Arena;
     captureZone: GameObjectRef<CaptureZone> | null;
-    whileInPlayKeywordAbilitiesInferred: boolean;
+    lastPlayerToModifyHp?: GameObjectRef<Player>;
+    upgrades: GameObjectRef<IUpgradeCard>[] | null;
 }
 
 type IAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IAbilityPropsWithType<TTarget> & IGainCondition<TSource>;
@@ -126,27 +127,25 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         // ************************************* FIELDS AND PROPERTIES *************************************
         public readonly defaultArena: Arena;
 
-        protected _upgrades?: IUpgradeCard[] = null;
         protected pilotingActionAbilities: ActionAbility[];
         protected pilotingConstantAbilities: IConstantAbility[];
         protected pilotingTriggeredAbilities: TriggeredAbility[];
 
         private readonly attackAction: InitiateAttackAction;
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
-        private _lastPlayerToModifyHp?: Player;
+        public get lastPlayerToModifyHp(): Player {
+            Contract.assertTrue(this.isInPlay());
+            return this.game.gameObjectManager.get(this.state.lastPlayerToModifyHp);
+        }
+
+        private set lastPlayerToModifyHp(value: Player) {
+            this.state.lastPlayerToModifyHp = value?.getRef();
+        }
+
         private _whenCapturedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenDefeatedKeywordAbilities?: TriggeredAbility[] = null;
         private _whenPlayedKeywordAbilities?: TriggeredAbility[] = null;
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
-
-        private set whileInPlayKeywordAbilities(value: IConstantAbility[] | null) {
-            this._whileInPlayKeywordAbilities = value;
-            this.state.whileInPlayKeywordAbilitiesInferred = !!value;
-        }
-
-        private get whileInPlayKeywordAbilities() {
-            return this._whileInPlayKeywordAbilities;
-        }
 
         public get capturedUnits() {
             this.assertPropertyEnabledForZone(this.state.captureZone, 'capturedUnits');
@@ -159,8 +158,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public get upgrades(): IUpgradeCard[] {
-            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
-            return this._upgrades;
+            this.assertPropertyEnabledForZone(this.state.upgrades, 'upgrades');
+            return this.state.upgrades.map((x) => this.game.gameObjectManager.get(x));
         }
 
         public getCaptor(): IUnitCard | null {
@@ -168,11 +167,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 return null;
             }
 
-            return this.zone.captor as IUnitCard;
+            return this.zone.captor;
         }
 
         public isAttacking(): boolean {
-            return (this as Card) === (this.activeAttack?.attacker as Card);
+            return this === this.activeAttack?.attacker;
         }
 
         public isCaptured(): boolean {
@@ -180,7 +179,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public isUpgraded(): boolean {
-            return this.upgrades.length > 0;
+            return this.state.upgrades.length > 0;
         }
 
         public hasShield(): boolean {
@@ -231,6 +230,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             this.attackAction = new InitiateAttackAction(this.game, this);
         }
 
+        protected override setupDefaultState() {
+            super.setupDefaultState();
+            this.state.upgrades = null;
+        }
+
         protected override initializeStateForAbilitySetup() {
             super.initializeStateForAbilitySetup();
             this.pilotingActionAbilities = [];
@@ -268,7 +272,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         protected setUpgradesEnabled(enabledStatus: boolean) {
-            this._upgrades = enabledStatus ? [] : null;
+            this.state.upgrades = enabledStatus ? [] : null;
         }
 
         // ***************************************** MISC HELPERS *****************************************
@@ -485,8 +489,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             // add any registered abilities from keywords effective while in play
-            if (this.whileInPlayKeywordAbilities !== null) {
-                constantAbilities = constantAbilities.concat(this.whileInPlayKeywordAbilities);
+            if (this._whileInPlayKeywordAbilities !== null) {
+                constantAbilities = constantAbilities.concat(this._whileInPlayKeywordAbilities);
             }
 
             return constantAbilities;
@@ -505,25 +509,25 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             // Unregister all effects when moving a card from an arena to a non-arena zone
             // or from a base to an arena
             if ((EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) || (from === ZoneName.Base && EnumHelpers.isArena(to))) {
-                Contract.assertTrue(Array.isArray(this.whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
+                Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
 
-                for (const keywordAbility of this.whileInPlayKeywordAbilities) {
+                for (const keywordAbility of this._whileInPlayKeywordAbilities) {
                     this.removeEffectFromEngine(keywordAbility.registeredEffects);
                     keywordAbility.registeredEffects = [];
                 }
 
-                this.whileInPlayKeywordAbilities = null;
+                this._whileInPlayKeywordAbilities = null;
             }
 
             // Register all effects when moving a card to a base or from a non-arena zone to an arena,
             // this is to support leaders with the Coordinate keyword
             if ((!EnumHelpers.isArena(from) && EnumHelpers.isArena(to)) || to === ZoneName.Base) {
                 Contract.assertIsNullLike(
-                    this.whileInPlayKeywordAbilities,
-                    `Failed to unregister when played abilities from previous play: ${this.whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+                    this._whileInPlayKeywordAbilities,
+                    `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
                 );
 
-                this.whileInPlayKeywordAbilities = [];
+                this._whileInPlayKeywordAbilities = [];
 
                 for (const keywordInstance of this.getCoordinateAbilities()) {
                     const gainedAbilityProps = keywordInstance.abilityProps;
@@ -537,7 +541,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
                     coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
 
-                    this.whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
+                    this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
                 }
             }
         }
@@ -886,28 +890,28 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         /**
          * Removes an upgrade from this card's upgrade list
-         * @param {UpgradeCard} upgrade
+         * @param upgrade
          */
-        public unattachUpgrade(upgrade, event = null) {
-            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
-            this._upgrades = this._upgrades.filter((card) => card.uuid !== upgrade.uuid);
+        public unattachUpgrade(upgrade: IUpgradeCard, event = null) {
+            this.assertPropertyEnabledForZone(this.state.upgrades, 'upgrades');
+            this.state.upgrades = this.state.upgrades.filter((card) => card.uuid !== upgrade.uuid);
             if (upgrade.printedHp !== 0) {
-                this._lastPlayerToModifyHp = event?.context?.ability ? event.context.ability.controller : upgrade.owner;
+                this.lastPlayerToModifyHp = event?.context?.ability ? event.context.ability.controller : upgrade.owner;
             }
         }
 
         /**
          * Add the passed card to this card's upgrade list. Upgrade must already be moved to the correct arena.
          */
-        public attachUpgrade(upgrade) {
-            this.assertPropertyEnabledForZone(this._upgrades, 'upgrades');
+        public attachUpgrade(upgrade: IUpgradeCard) {
+            this.assertPropertyEnabledForZone(this.state.upgrades, 'upgrades');
             Contract.assertEqual(upgrade.zoneName, this.zoneName);
             Contract.assertTrue(this.zone.hasCard(upgrade));
 
-            this._upgrades.push(upgrade);
+            this.state.upgrades.push(upgrade.getRef());
 
             if (upgrade.printedHp !== 0) {
-                this._lastPlayerToModifyHp = upgrade.controller;
+                this.lastPlayerToModifyHp = upgrade.controller;
             }
         }
 
@@ -937,20 +941,18 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         public override addOngoingEffect(ongoingEffect: IOngoingCardEffect): void {
             if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
-                this._lastPlayerToModifyHp = ongoingEffect.context.source.controller;
+                this.lastPlayerToModifyHp = ongoingEffect.context.source.controller;
             }
             super.addOngoingEffect(ongoingEffect);
         }
 
-        public get lastPlayerToModifyHp() {
-            Contract.assertTrue(this.isInPlay());
-            return this._lastPlayerToModifyHp;
-        }
-
-        public override afterSetAllState(): void {
-            super.afterSetAllState();
-            if (this.whileInPlayKeywordAbilities && !this.state.whileInPlayKeywordAbilitiesInferred) {
-                this._whileInPlayKeywordAbilities = null;
+        protected override afterSetState(oldState) {
+            super.afterSetState(oldState);
+            // STATE: I don't wholly trust this covers all cases, but it's a good start at least.
+            if (oldState.zone?.uuid !== this.state.zone.uuid) {
+                const oldZone = this.game.gameObjectManager.get(oldState.zone) as Zone;
+                this.movedFromZone = oldZone?.name;
+                this.resolveAbilitiesForNewZone();
             }
         }
     };

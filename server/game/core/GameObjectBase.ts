@@ -5,6 +5,10 @@ export interface IGameObjectBaseState {
     uuid: string;
 }
 
+export interface IGameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> {
+    getRef<TRef extends GameObjectBase<T>>(): GameObjectRef<TRef>;
+}
+
 /**
  * A wrapper object that contains a UUID. This should be used when saving any object reference to the state object.
  * Never create an object with this interface manually, instead always use {@link GameObjectBase.getRef} to create an instance.
@@ -21,7 +25,7 @@ export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
 }
 
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
-export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> {
+export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjectBaseState> implements IGameObjectBase<T> {
     protected state: T;
 
     /** ID given by the game engine. */
@@ -50,7 +54,9 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
 
     /** Sets the state.  */
     public setState(state: T) {
+        const oldState = this.state;
         this.state = structuredClone(state);
+        this.afterSetState(oldState);
     }
 
     public getState() {
@@ -61,6 +67,10 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     /** A function for game to call on all objects after all state has been set. for example, to cache calculated values. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public afterSetAllState() { }
+
+    /** A function for game to call on all objects after all state has been set. for example, to cache calculated values. */
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    protected afterSetState(oldState: T) { }
 
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
         return { isRef: true, uuid: this.state.uuid };

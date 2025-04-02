@@ -91,6 +91,7 @@ export class GamePipeline {
         this.pipeline.shift();
     }
 
+    // HACK: This intended to be used by undo *only*.
     public clearSteps() {
         this.pipeline.length = 0;
     }
