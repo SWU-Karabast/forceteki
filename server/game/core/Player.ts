@@ -43,7 +43,6 @@ import type { IInPlayCard } from './card/baseClasses/InPlayCard';
 import type { ICardWithExhaustProperty, IPlayableCard } from './card/baseClasses/PlayableOrDeployableCard';
 import type { Zone } from '../Interfaces';
 import type { IGetMatchingCostAdjusterProperties, IRunCostAdjustmentProperties } from './cost/CostInterfaces';
-import type { IUnitCard } from './card/propertyMixins/UnitProperties';
 import type { GameObjectRef } from './GameObjectBase';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
