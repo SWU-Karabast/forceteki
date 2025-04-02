@@ -4,6 +4,7 @@ import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import jwt from 'jsonwebtoken';
 import { dynamoDbService } from '../../services/DynamoDBService';
+import * as Contract from '../../game/core/utils/Contract';
 
 
 /**
@@ -11,20 +12,7 @@ import { dynamoDbService } from '../../services/DynamoDBService';
  * based on authentication status and data
  */
 export class UserFactory {
-    private dynamoDbService: typeof dynamoDbService;
-    private static instance: UserFactory;
-
-    // Singleton pattern
-    public static getInstance(): UserFactory {
-        if (!UserFactory.instance) {
-            UserFactory.instance = new UserFactory();
-        }
-        return UserFactory.instance;
-    }
-
-    private constructor() {
-        this.dynamoDbService = dynamoDbService;
-    }
+    private dynamoDbService: typeof dynamoDbService = dynamoDbService;
 
     /**
      * Creates a user instance from a JWT token
@@ -42,12 +30,12 @@ export class UserFactory {
             const userData = await this.dynamoDbService.getUserProfile(basicUser.id);
             if (!userData) {
                 logger.warn(`User profile not found for authenticated user ${basicUser.id}`);
-                return this.createAnonymousUser();
+                throw new Error(`User profile not found for authenticated user ${basicUser.id}`);
             }
             return new AuthenticatedUser({ ...userData, playerId: basicUser.playerId });
         } catch (error) {
             logger.error('Error creating user from token:', error);
-            return this.createAnonymousUser();
+            throw error;
         }
     }
 
@@ -62,21 +50,17 @@ export class UserFactory {
     }
 
     /**
-     * Change username with rate limiting (30 days)
+     * TODO Change username with rate limiting (30 days) change the rate limit
      * @param userId The user ID
      * @param newUsername The new username
      * @returns Object with success status and message
      */
-    public async changeUsername(userId: string, newUsername: string): Promise<{ success: boolean; message: string }> {
+    public async changeUsername(userId: string, newUsername: string): Promise<boolean> {
         try {
             const userProfile = await this.dynamoDbService.getUserProfile(userId);
             if (!userProfile) {
-                return {
-                    success: false,
-                    message: 'User not found'
-                };
+                return false;
             }
-
             // Check if username was changed recently (within the last 30 days)
             if (userProfile.usernameSetAt) {
                 const lastChange = new Date(userProfile.usernameSetAt).getTime();
@@ -86,10 +70,7 @@ export class UserFactory {
                 // If changed within the last 30 days, don't allow another change
                 if (daysSinceLastChange < 30) {
                     const daysRemaining = Math.ceil(30 - daysSinceLastChange);
-                    return {
-                        success: false,
-                        message: `Username can only be changed once every 30 days. You can change again in ${daysRemaining} days.`
-                    };
+                    return false;
                 }
             }
 
@@ -100,16 +81,10 @@ export class UserFactory {
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);
-            return {
-                success: true,
-                message: 'Username successfully updated'
-            };
+            return true;
         } catch (error) {
             logger.error('Error changing username:', error);
-            return {
-                success: false,
-                message: 'An error occurred while updating username'
-            };
+            return false;
         }
     }
 
@@ -134,26 +109,25 @@ export class UserFactory {
      * @param token JWT token
      * @returns The authenticated user or null if authentication failed
      */
-    private async authenticateWithToken(token: string): Promise<{ id: string; username: string; playerId: string } | null> {
+    private async authenticateWithToken(token?: string): Promise<{ id: string; username: string; playerId: string } | null> {
         try {
             if (!token) {
                 return null;
             }
 
-            const secret = process.env.NEXTAUTH_SECRET || '';
-
+            const secret = process.env.NEXTAUTH_SECRET;
+            Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
 
             const decoded = jwt.verify(token, secret) as any;
-
-            if (!decoded || (!decoded.id && !decoded.sub)) {
+            if (!decoded || (!decoded.id)) {
                 return null;
             }
 
-            const userId = decoded.id || decoded.sub;
-            const username = decoded.name || 'Anonymous';
+            const userId = decoded.id;
+            const username = decoded.name;
             const email = decoded.email;
-            const provider = decoded.provider || 'unknown';
-            const providerId = decoded.providerId || userId;
+            const provider = decoded.provider;
+            const providerId = decoded.providerId;
 
             // First try to find user by OAuth provider ID
             let dbUserId = await this.dynamoDbService.getUserIdByOAuth(provider, providerId);
@@ -182,30 +156,27 @@ export class UserFactory {
                 }
             }
 
-            // If user not found, create a new one
+            // If the user ever finds himself in a weird state where the profile doesn't exist but a dbUserID does
+            // we recreate a userProfile with a new id
             const newUser = {
                 id: uuid(),
                 username: username,
                 lastLogin: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
                 usernameSetAt: new Date().toISOString(),
-                preferences: { cardback: 'default' },
+                preferences: { cardback: null },
             };
 
             // Create OAuth link
             await this.dynamoDbService.saveOAuthLink(provider, providerId, newUser.id);
-
             // Save the user profile
             await this.dynamoDbService.saveUserProfile(newUser);
-
-
             // Create email link if email is available
-            if (email) {
-                await this.dynamoDbService.saveEmailLink(email, newUser.id);
+            if (!email) {
+                throw new Error(`Email not found for user ${newUser.id}`);
             }
-
+            await this.dynamoDbService.saveEmailLink(email, newUser.id);
             logger.info(`Created new user: ${newUser.id} (${username}) with ${provider} authentication`);
-
             return {
                 id: newUser.id,
                 username: newUser.username,
@@ -214,7 +185,9 @@ export class UserFactory {
         } catch (error) {
             // This should never happen but if it does its so we don't create two accounts
             if (error.name === 'ConditionalCheckFailedException') {
-                logger.info('Concurrent user creation detected');
+                // This could happen if there's a race condition while creating user records
+                // or if the unique constraints we're enforcing are violated for other reasons
+                logger.error(`DynamoDB conditional check failed during user authentication: ${error}`);
                 return null;
             }
             // This catches both JWT verification errors and database errors

@@ -18,7 +18,7 @@ declare global {
 }
 
 export const authMiddleware = () => {
-    const userFactory = UserFactory.getInstance();
+    const userFactory = new UserFactory();
 
     return async (req: Request, res: Response, next: NextFunction) => {
         try {

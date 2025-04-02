@@ -98,7 +98,7 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
-    private readonly userFactory: UserFactory = UserFactory.getInstance();
+    private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
 
     private constructor(
@@ -256,7 +256,7 @@ export class GameServer {
             }
             // we retrieve the decks for the FE
             try {
-                const usersDecks = await this.deckService.getUserDecksFavouritesFirst(user.getId());
+                const usersDecks = await this.deckService.getUserDecks(user.getId());
                 return res.status(200).json(usersDecks);
             } catch (err) {
                 logger.error('GameServer: Error in getting a users decks: ', err);

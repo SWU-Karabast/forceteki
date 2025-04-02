@@ -16,7 +16,7 @@ export class DeckService {
      * @param userId The user ID
      * @returns Array of user decks with favorites first
      */
-    public async getUserDecksFavouritesFirst(userId: string): Promise<ILocalStorageDeckData[]> {
+    public async getUserDecks(userId: string): Promise<ILocalStorageDeckData[]> {
         try {
             // Get all decks for the user
             const decks = await this.dbService.getUserDecks(userId);
