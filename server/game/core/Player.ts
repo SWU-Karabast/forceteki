@@ -209,17 +209,6 @@ export class Player extends GameObject<IPlayerState> {
         return this.game.allArenas.getUnitCards({ ...filter, controller: this });
     }
 
-    // TODO: this will be refactored to merge with getArenaUnits
-    /**
-     * Get all units in designated play arena(s) controlled by this player
-     * @param arena Arena to select units from
-     * @param cardCondition Condition to filter cards
-     * @deprecated getArenaUnits() should be used instead
-     */
-    public getUnitsInPlay(arena: WildcardZoneName.AnyArena | ZoneName.GroundArena | ZoneName.SpaceArena = WildcardZoneName.AnyArena, cardCondition: (card: IUnitCard) => boolean = () => true) {
-        return this.getArenaUnits({ arena, condition: cardCondition });
-    }
-
     public getArenaUpgrades(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
         return this.game.allArenas.getUpgradeCards({ ...filter, controller: this });
     }
