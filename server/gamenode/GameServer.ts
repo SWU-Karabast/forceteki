@@ -602,6 +602,7 @@ export class GameServer {
                     socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
                 }
             }
+
             this.registerDisconnect(socket, user.id);
             return Promise.resolve();
         }

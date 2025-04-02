@@ -264,9 +264,18 @@ export class Lobby {
         }
 
         if (this.gameType === MatchType.Quick) {
+            if (!socket.eventContainsListener('requeue')) {
+                socket.registerEvent(
+                    'requeue',
+                    () => this.server.requeueUser(socket, this.format, user, existingUser?.deck?.getDecklist())
+                );
+            }
+
             if (this.matchingCountdownTimeoutHandle == null) {
                 await this.quickLobbyCountdownAsync();
             }
+
+            this.sendLobbyState();
 
             return Promise.resolve();
         }
@@ -482,6 +491,14 @@ export class Lobby {
         } else {
             return;
         }
+
+        if (this.lobbyOwnerId === id) {
+            const newOwner = this.users.find((u) => u.id !== id);
+            this.lobbyOwnerId = newOwner?.id;
+        }
+        this.users = this.users.filter((u) => u.id !== id);
+        logger.info(`Removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`, { lobbyId: this.id, userName: user.username, userId: user.id });
+
         if (this.game) {
             this.game.addMessage(`${user.username} has left the game`);
             const winner = this.users.find((u) => u.id !== id);
@@ -490,13 +507,6 @@ export class Lobby {
             }
             this.sendGameState(this.game);
         }
-
-        if (this.lobbyOwnerId === id) {
-            const newOwner = this.users.find((u) => u.id !== id);
-            this.lobbyOwnerId = newOwner?.id;
-        }
-        this.users = this.users.filter((u) => u.id !== id);
-        logger.info(`Removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         if (!this.game) {
             this.checkIncrementUsersLeftCount();
