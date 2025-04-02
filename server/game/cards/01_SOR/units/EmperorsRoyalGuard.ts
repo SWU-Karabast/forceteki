@@ -13,7 +13,7 @@ export default class EmperorsRoyalGuard extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'While you control an Official unit, this gains Sentinel',
-            condition: (context) => context.player.getArenaUnits({ trait: Trait.Official }).length > 0,
+            condition: (context) => context.player.hasSomeArenaUnit({ trait: Trait.Official }),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword({ keyword: KeywordName.Sentinel })
         });
 

@@ -143,7 +143,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             properties.attacker.hasSomeKeyword(KeywordName.Saboteur) ||
             this.attackerGainsSaboteur(targetCard, context, additionalProperties);
         if (!attackerHasSaboteur) {
-            if (targetCard.controller.getArenaUnits({ arena: attackerZone, keyword: KeywordName.Sentinel }).length > 0) {
+            if (targetCard.controller.hasSomeArenaUnit({ arena: attackerZone, keyword: KeywordName.Sentinel })) {
                 return targetCard.hasSomeKeyword(KeywordName.Sentinel);
             }
         }

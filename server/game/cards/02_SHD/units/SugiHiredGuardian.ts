@@ -13,7 +13,7 @@ export default class SugiHiredGuardian extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addConstantAbility({
             title: 'Gain Sentinel while an enemy unit is upgraded',
-            condition: (context) => context.player.opponent.getArenaUnits({ condition: (card) => card.isUnit() && card.isUpgraded() }).length > 0,
+            condition: (context) => context.player.opponent.hasSomeArenaUnit({ condition: (card) => card.isUnit() && card.isUpgraded() }),
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
         });
     }

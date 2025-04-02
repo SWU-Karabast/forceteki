@@ -14,7 +14,7 @@ export default class TradeFederationShuttle extends NonLeaderUnitCard {
             title: 'Create a Battle Droid token.',
 
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.getArenaUnits({ condition: (card) => card.isUnit() && card.damage > 0 }).length > 0,
+                condition: (context) => context.player.hasSomeArenaUnit({ condition: (card) => card.isUnit() && card.damage > 0 }),
 
                 onTrue: AbilityHelper.immediateEffects.createBattleDroid(),
             })

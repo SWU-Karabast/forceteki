@@ -37,7 +37,7 @@ export default class BombingRun extends EventCard {
             onFalse: AbilityHelper.immediateEffects.noAction((context) => {
                 return {
                     // If there are no units in play, return no legal target so the card is autoresolved.
-                    hasLegalTarget: context.game.getPlayers().some((player) => player.getArenaUnits().length > 0)
+                    hasLegalTarget: context.game.getPlayers().some((player) => player.hasSomeArenaUnit())
                 };
             })
         }));

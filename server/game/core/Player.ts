@@ -228,7 +228,7 @@ export class Player extends GameObject<IPlayerState> {
         return this.game.allArenas.hasSomeCard({ ...filter, controller: this });
     }
 
-    public hasSomeArenaUnit(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties) {
+    public hasSomeArenaUnit(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties = {}) {
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Unit, controller: this });
     }
 

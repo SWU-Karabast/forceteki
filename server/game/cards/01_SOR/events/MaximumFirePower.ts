@@ -24,7 +24,7 @@ export default class MaximumFirePower extends EventCard {
                     dependsOn: 'firstImperial',
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
-                    cardCondition: (_, context) => (context.player.getArenaUnits({ trait: Trait.Imperial }).length > 0),
+                    cardCondition: (_, context) => (context.player.hasSomeArenaUnit({ trait: Trait.Imperial })),
                     immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                         amount: context.targets.firstImperial.getPower(),
                         source: context.targets.firstImperial,

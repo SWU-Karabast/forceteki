@@ -16,7 +16,7 @@ export default class PlanetaryBombardment extends EventCard {
             targetResolver: {
                 mode: TargetMode.Player,
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
-                    condition: (context) => context.player.getArenaUnits({ trait: Trait.CapitalShip }).length > 0,
+                    condition: (context) => context.player.hasSomeArenaUnit({ trait: Trait.CapitalShip }),
                     onTrue: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 12 }),
                     onFalse: AbilityHelper.immediateEffects.indirectDamageToPlayer({ amount: 8 })
                 })
