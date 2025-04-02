@@ -17,7 +17,6 @@ import {
     Stage,
     WildcardCardType,
     WildcardRelativePlayer,
-    WildcardZoneName,
     ZoneName
 } from './Constants';
 
