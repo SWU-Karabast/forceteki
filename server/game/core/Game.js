@@ -45,6 +45,7 @@ const { GameObjectBase } = require('./GameObjectBase.js');
 
 class Game extends EventEmitter {
     #debug;
+    #experimental;
 
     get isInitiativeClaimed() {
         return this.state.isInitiativeClaimed;
@@ -135,6 +136,8 @@ class Game extends EventEmitter {
 
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this.#debug = { pipeline: false };
+        // Experimental flags, intended only for manual testing. Use the enable methods to temporarily flag these on during tests.
+        this.#experimental = { undo: false };
 
         this.manualMode = false;
         this.gameMode = details.gameMode;
@@ -1550,7 +1553,7 @@ class Game extends EventEmitter {
     }
 
     takeSnapshot() {
-        if (this.pipeline.currentStep instanceof ActionPhase) {
+        if (this.#experimental.undo && this.pipeline.currentStep instanceof ActionPhase) {
             return this.gameObjectManager.takeSnapshot();
         }
 
@@ -1561,13 +1564,12 @@ class Game extends EventEmitter {
      * @param {number} snapshotId
      */
     rollbackToSnapshot(snapshotId) {
-        if (this.pipeline.currentStep instanceof ActionPhase) {
+        if (this.#experimental.undo && this.pipeline.currentStep instanceof ActionPhase) {
             const actionPhase = this.pipeline.currentStep;
             this.gameObjectManager.rollbackToSnapshot(snapshotId);
             actionPhase.resetPhase();
             actionPhase.queueNextAction();
-            // continue to the takeSnapshot step and then the ActionWindow step.
-            actionPhase.continue();
+            // continue the action phase again.
             actionPhase.continue();
             return true;
         }
@@ -1603,8 +1605,25 @@ class Game extends EventEmitter {
         }
     }
 
+    /**
+     * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
+     * @param {() => void} fcn
+     */
+    enableUndo(fcn) {
+        this.#experimental.undo = true;
+        try {
+            return fcn();
+        } finally {
+            this.#experimental.undo = false;
+        }
+    }
+
     get isDebugPipeline() {
         return this.#debug.pipeline;
+    }
+
+    get isUndoEnabled() {
+        return this.#experimental.undo;
     }
 
     // return this.getSummary(notInactivePlayerName);

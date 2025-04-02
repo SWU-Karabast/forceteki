@@ -124,8 +124,11 @@ global.integration = function (definitions) {
 const jit = it;
 global.uit = function(expectation, assertion, timeout) {
     jit(expectation + ' (with Undo)', async function() {
-        const { context } = this.contextRef;
-        const snapshotId = context.game.takeSnapshot();
+        /** @type {SwuTestContext} */
+        const context = this.contextRef.context;
+        const snapshotId = context.game.enableUndo(() => {
+            return context.game.takeSnapshot();
+        });
         if (snapshotId === -1) {
             throw new Error('Snapshot ID missing');
         }
@@ -135,7 +138,9 @@ global.uit = function(expectation, assertion, timeout) {
             // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
             return;
         }
-        const rolledBack = context.game.rollbackToSnapshot(snapshotId);
+        const rolledBack = context.game.enableUndo(() => {
+            return context.game.rollbackToSnapshot(snapshotId);
+        });
         if (!rolledBack) {
             // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
             return;
