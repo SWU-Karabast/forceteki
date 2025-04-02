@@ -1395,6 +1395,7 @@ class Game extends EventEmitter {
         );
 
         const player = token.owner;
+        // Functionality did nothing previously, now that it's fixed, disabling until we're ready to activate again.
         // this.filterCardFromList(token, this.state.allCards);
         // this.filterCardFromList(token, player.decklist.tokens);
         // this.filterCardFromList(token, player.decklist.allCards);
@@ -1416,10 +1417,18 @@ class Game extends EventEmitter {
      * @param {import('./GameObjectBase.js').GameObjectRef[]} list
      */
     filterCardFromList(removeCard, list) {
-        const index = list.findIndex((x) => x.uuid === removeCard.uuid);
-        Contract.assertNonNegative(index, `Tried to remove card from list but ${removeCard?.title} was not found.`);
+        const indexes = [];
 
-        list.splice(index, 1);
+        for (let i = list.length - 1; i >= 0; i--) {
+            const ref = list[i];
+            if (ref.uuid === removeCard.uuid) {
+                indexes.push(i);
+            }
+        }
+
+        for (let index of indexes) {
+            list.splice(index, 1);
+        }
     }
 
     // formatDeckForSaving(deck) {
