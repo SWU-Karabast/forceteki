@@ -132,16 +132,14 @@ global.uit = function(expectation, assertion, timeout) {
 
         await assertion();
         if (snapshotId == null) {
-            // Snapshot was taken outside of the Action Phase, probably because a test has the setup _within_ the it call. Not worth testing en-masse, just let the test end assuming no issues on the first run.
+            // Snapshot was taken outside of the Action Phase. Not worth testing en-masse, just let the test end assuming no issues on the first run.
             return;
         }
         const rolledBack = context.game.rollbackToSnapshot(snapshotId);
         if (!rolledBack) {
-            // Probably want this to throw an error later, but for now this will let us filter out tests outside of the scope vs tests that are actually breaking rollback.
+            // Probably want this to throw an error later, but for now this will let us filter out tests outside the scope vs tests that are actually breaking rollback.
             return;
         }
         await assertion();
     }, timeout);
 };
-
-// global.it = global.uit;
