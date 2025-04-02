@@ -1,5 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
-import {Trait, WildcardCardType} from '../../../core/Constants';
+import { Trait, WildcardCardType } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';

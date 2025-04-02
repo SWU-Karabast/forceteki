@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType } from '../../../core/Constants';
 
 export default class KrakenConfederateTactician extends NonLeaderUnitCard {
     protected override getImplementationId() {

@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import {WildcardCardType} from '../../../core/Constants';
 
 export default class Evacuate extends EventCard {
     protected override getImplementationId() {
