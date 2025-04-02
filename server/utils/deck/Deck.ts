@@ -9,6 +9,17 @@ import type { ITokenCard } from '../../game/core/card/propertyMixins/Token';
 import type { IBaseCard } from '../../game/core/card/BaseCard';
 import type { ILeaderCard } from '../../game/core/card/propertyMixins/LeaderProperties';
 import { cards } from '../../game/cards/Index';
+import type { GameObjectRef } from '../../game/core/GameObjectBase';
+
+export interface IDeskList {
+    deckCards: GameObjectRef<IPlayableCard>[];
+    outOfPlayCards: any[];
+    outsideTheGameCards: GameObjectRef<Card>[];
+    tokens: GameObjectRef<ITokenCard>[];
+    base: GameObjectRef<IBaseCard> | undefined;
+    leader: GameObjectRef<ILeaderCard> | undefined;
+    allCards: GameObjectRef<Card>[];
+}
 
 export class Deck {
     private static buildDecklistEntry(cardId: string, count: number, cardDataGetter: CardDataGetter): IInternalCardEntry {
@@ -92,15 +103,15 @@ export class Deck {
         };
     }
 
-    public async buildCardsAsync(player: Player, cardDataGetter: CardDataGetter) {
-        const result = {
-            deckCards: [] as IPlayableCard[],
+    public async buildCardsAsync(player: Player, cardDataGetter: CardDataGetter): Promise<IDeskList> {
+        const result: IDeskList = {
+            deckCards: [],
             outOfPlayCards: [],
-            outsideTheGameCards: [] as Card[],
-            tokens: [] as ITokenCard[],
-            base: undefined as IBaseCard | undefined,
-            leader: undefined as ILeaderCard | undefined,
-            allCards: [] as Card[]
+            outsideTheGameCards: [],
+            tokens: [],
+            base: undefined,
+            leader: undefined,
+            allCards: []
         };
 
         // TODO: get all card data at once to reduce async calls
@@ -111,19 +122,19 @@ export class Deck {
 
             for (const cardCopy of cardCopies) {
                 Contract.assertTrue(cardCopy.isPlayable(), `Card ${cardCopy.internalName} cannot be in the deck`);
-                result.deckCards.push(cardCopy);
+                result.deckCards.push(cardCopy.getRef());
             }
         }
 
         // base
         const baseCard = (await this.buildCardsFromSetCodeAsync(this.base.id, player, cardDataGetter, 1))[0];
         Contract.assertTrue(baseCard.isBase());
-        result.base = baseCard;
+        result.base = baseCard.getRef();
 
         // leader
         const leaderCard = (await this.buildCardsFromSetCodeAsync(this.leader.id, player, cardDataGetter, 1))[0];
         Contract.assertTrue(leaderCard.isLeader());
-        result.leader = leaderCard;
+        result.leader = leaderCard.getRef();
 
         result.allCards.push(...result.deckCards);
         result.allCards.push(result.base);
@@ -157,7 +168,7 @@ export class Deck {
 
         // TODO: use Object.freeze() to make card data immutable
         const cardData = await cardDataGetter.getCardBySetCodeAsync(setCode);
-        const generatedCards = [];
+        const generatedCards: Card[] = [];
 
         for (let i = 0; i < count; i++) {
             const CardConstructor = cards.get(cardData.id) ?? CardHelpers.createUnimplementedCard;

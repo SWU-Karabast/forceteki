@@ -99,6 +99,10 @@ class Game extends EventEmitter {
         this.state.actionPhaseActivePlayer = value?.getRef();
     }
 
+    get allCards() {
+        return this.state.allCards.map((x) => this.getCard(x));
+    }
+
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
      * @param {import('./GameInterfaces.js').GameOptions} options
@@ -144,7 +148,8 @@ class Game extends EventEmitter {
             initiativePlayer: null,
             actionPhaseActivePlayer: null,
             roundNumber: 0,
-            isInitiativeClaimed: false
+            isInitiativeClaimed: false,
+            allCards: []
         };
 
         this.tokenFactories = null;
@@ -953,7 +958,7 @@ class Game extends EventEmitter {
     async initialiseAsync() {
         await Promise.all(this.getPlayers().map((player) => player.initialiseAsync()));
 
-        this.allCards = this.getPlayers().reduce(
+        this.state.allCards = this.getPlayers().reduce(
             (cards, player) => {
                 return cards.concat(player.decklist.allCards);
             },
@@ -1371,11 +1376,13 @@ class Game extends EventEmitter {
      * @returns {Card}
      */
     generateToken(player, tokenName, additionalProperties = null) {
+        /** @type {import('./card/propertyMixins/Token.js').ITokenCard} */
         const token = this.tokenFactories[tokenName](player, additionalProperties);
 
-        this.allCards.push(token);
-        player.decklist.tokens.push(token);
-        player.decklist.allCards.push(token);
+        // TODO: Rework allCards to be GO Refs
+        this.state.allCards.push(token.getRef());
+        player.decklist.tokens.push(token.getRef());
+        player.decklist.allCards.push(token.getRef());
         player.outsideTheGameZone.addCard(token);
         token.initializeZone(player.outsideTheGameZone);
 
@@ -1392,9 +1399,9 @@ class Game extends EventEmitter {
         );
 
         const player = token.owner;
-        this.filterCardFromList(token, this.allCards);
-        this.filterCardFromList(token, player.decklist.tokens);
-        this.filterCardFromList(token, player.decklist.allCards);
+        // this.filterCardFromList(token, this.state.allCards);
+        // this.filterCardFromList(token, player.decklist.tokens);
+        // this.filterCardFromList(token, player.decklist.allCards);
         token.removeFromGame();
     }
 
@@ -1407,8 +1414,16 @@ class Game extends EventEmitter {
         this.movedCards.push(card);
     }
 
+    /**
+     *
+     * @param {Card} removeCard
+     * @param {import('./GameObjectBase.js').GameObjectRef[]} list
+     */
     filterCardFromList(removeCard, list) {
-        list = list.filter((card) => card !== removeCard);
+        const index = list.findIndex((x) => x.uuid === removeCard.uuid);
+        Contract.assertNonNegative(index, `Tried to remove card from list but ${removeCard?.title} was not found.`);
+
+        list.splice(index, 1);
     }
 
     // formatDeckForSaving(deck) {
@@ -1484,6 +1499,15 @@ class Game extends EventEmitter {
     //     };
     // }
 
+    /**
+     * @template {GameObjectBase} T
+     * @param {import('./GameObjectBase.js').GameObjectRef<T>} gameRef
+     * @returns {T | null}
+     */
+    getCard(gameRef) {
+        return this.gameObjectManager.get(gameRef);
+    }
+
     // /*
     //  * This information is sent to the client
     //  */
@@ -1520,11 +1544,13 @@ class Game extends EventEmitter {
         return {};
     }
 
-    // takeSnapshot() {
-    //     const snapshot = this.gameObjectManager.takeSnapshot();
-    //     this.gameObjectManager.pushSnapshot(snapshot);
-    //     return snapshot.id;
-    // }
+    takeSnapshot() {
+        if (this.pipeline.currentStep instanceof ActionPhase) {
+            return this.gameObjectManager.takeSnapshot();
+        }
+
+        return null;
+    }
 
     /**
      * @param {number} snapshotId
@@ -1538,9 +1564,9 @@ class Game extends EventEmitter {
             // continue to the takeSnapshot step and then the ActionWindow step.
             actionPhase.continue();
             actionPhase.continue();
-        } else {
-            throw new Error('Cannout Undo outside of Action Phase');
+            return true;
         }
+        return false;
     }
 
     // TODO: Make a debug object type.

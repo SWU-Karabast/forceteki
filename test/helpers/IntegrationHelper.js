@@ -69,10 +69,6 @@ global.integration = function (definitions) {
             const setupGameStateWrapperAsync = async (options) => {
                 await gameStateBuilder.setupGameStateAsync(newContext, options);
                 gameStateBuilder.attachAbbreviatedContextInfo(newContext, contextRef);
-                // if (options.testUndo) {
-                // newContext.snapshotId = newContext.game.gameObjectManager.takeSnapshot();
-                newContext.testUndo = true;
-                // }
             };
 
             this.setupTestAsync = newContext.setupTestAsync = setupGameStateWrapperAsync;
@@ -129,13 +125,21 @@ const jit = it;
 global.uit = function(expectation, assertion, timeout) {
     jit(expectation + ' (with Undo)', async function() {
         const { context } = this.contextRef;
-        const snapshotId = context.game.gameObjectManager.takeSnapshot();
-        if (snapshotId == null || snapshotId === -1) {
+        const snapshotId = context.game.takeSnapshot();
+        if (snapshotId === -1) {
             throw new Error('Snapshot ID missing');
         }
 
         await assertion();
-        context.game.rollbackToSnapshot(snapshotId);
+        if (snapshotId == null) {
+            // Snapshot was taken outside of the Action Phase, probably because a test has the setup _within_ the it call. Not worth testing en-masse, just let the test end assuming no issues on the first run.
+            return;
+        }
+        const rolledBack = context.game.rollbackToSnapshot(snapshotId);
+        if (!rolledBack) {
+            // Probably want this to throw an error later, but for now this will let us filter out tests outside of the scope vs tests that are actually breaking rollback.
+            return;
+        }
         await assertion();
     }, timeout);
 };

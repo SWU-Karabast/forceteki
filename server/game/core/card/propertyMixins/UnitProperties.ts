@@ -199,7 +199,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override isUpgrade(): this is IUpgradeCard {
-            return this._parentCard !== null;
+            return this.state.parentCard != null;
         }
 
         // ****************************************** CONSTRUCTOR ******************************************
@@ -252,7 +252,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         public override isUnit(): this is IUnitCard {
-            return this._parentCard === null;
+            return this.state.parentCard == null;
         }
 
         protected override getType(): CardType {

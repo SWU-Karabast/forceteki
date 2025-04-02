@@ -1,6 +1,6 @@
 import type { IGameObjectState } from './GameObject';
 import { GameObject } from './GameObject';
-import type { Deck } from '../../utils/deck/Deck.js';
+import type { Deck, IDeskList as IDeckList } from '../../utils/deck/Deck.js';
 import UpgradePrompt from './gameSteps/prompts/UpgradePrompt.js';
 import type { ClockConfig } from './clocks/ClockSelector.js';
 import { clockFor } from './clocks/ClockSelector.js';
@@ -47,6 +47,8 @@ export interface IPlayerState extends IGameObjectState {
     leader: GameObjectRef<ILeaderCard>;
     base: GameObjectRef<IBaseCard>;
     passedActionPhase: boolean;
+    // IDeckList is made up of arrays and GameObjectRefs, so it's serializable.
+    decklist: IDeckList;
 }
 
 export class Player extends GameObject<IPlayerState> {
@@ -98,13 +100,24 @@ export class Player extends GameObject<IPlayerState> {
         this.state.passedActionPhase = value;
     }
 
+    public get decklist(): IDeckList {
+        return this.state.decklist;
+    }
+
+    public get allCards() {
+        return this.state.decklist.allCards.map(this.game.getCard);
+    }
+
+    public get tokens() {
+        return this.state.decklist.tokens.map(this.game.getCard);
+    }
+
     private canTakeActionsThisPhase: null;
     // STATE TODO: Does Deck need to be a GameObject?
     private decklistNames: Deck | null;
     public clock: IClock;
     private limitedPlayed: number;
-    // INCOMPLETE
-    public decklist: Record<string, any>;
+
     private costAdjusters: any[];
     private abilityMaxByIdentifier: Record<string, any>;
     public promptedActionWindows: { setup?: boolean; action: boolean; regroup: boolean };
@@ -142,7 +155,6 @@ export class Player extends GameObject<IPlayerState> {
         this.clock = clockFor(this, clockDetails);
 
         this.limitedPlayed = 0;
-        this.decklist = {};
 
         /** @type {Deck} */
         this.decklistNames = null;
@@ -711,10 +723,10 @@ export class Player extends GameObject<IPlayerState> {
     public async prepareDecksAsync() {
         const preparedDecklist = await this.decklistNames.buildCardsAsync(this, this.game.cardDataGetter);
 
-        this.state.base = preparedDecklist.base.getRef();
-        this.state.leader = preparedDecklist.leader.getRef();
+        this.state.base = preparedDecklist.base;
+        this.state.leader = preparedDecklist.leader;
 
-        this.deckZone.initialize(preparedDecklist.deckCards);
+        this.deckZone.initialize(preparedDecklist.deckCards.map((x) => this.game.getCard(x)));
 
         // set up playable zones now that all relevant zones are created
         // STATE: This _is_ OK for now, as the gameObject references are still kept, but ideally these would also be changed to Refs in the future.
@@ -731,7 +743,7 @@ export class Player extends GameObject<IPlayerState> {
 
         this.state.baseZone = new BaseZone(this.game, this, this.base, this.leader).getRef();
 
-        this.decklist = preparedDecklist;
+        this.state.decklist = preparedDecklist;
     }
 
     /**

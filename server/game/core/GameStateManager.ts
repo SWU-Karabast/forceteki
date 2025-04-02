@@ -1,3 +1,4 @@
+import type { Card } from './card/Card';
 import type Game from './Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from './GameObjectBase';
 import type { Player } from './Player';
@@ -18,6 +19,7 @@ export interface IGameState {
     initiativePlayer: GameObjectRef<Player> | null;
     actionPhaseActivePlayer: GameObjectRef<Player> | null;
     isInitiativeClaimed: boolean;
+    allCards: GameObjectRef<Card>[];
 }
 
 export class GameStateManager {

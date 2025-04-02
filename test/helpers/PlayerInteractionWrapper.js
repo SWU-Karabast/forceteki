@@ -479,7 +479,7 @@ class PlayerInteractionWrapper {
      * Filters all of a player's cards using the name and zone of a card
      * @param {String} names - the names of the cards
      * @param {String[]|String} [zones = 'any'] - zones in which to look for. 'provinces' = 'province 1', 'province 2', etc.
-     * @param {?String} side - set to 'opponent' to search in opponent's cards
+     * @param {String?} side - set to 'opponent' to search in opponent's cards
      */
     filterCardsByName(names, zones = 'any', side) {
         // So that function can accept either lists or single zones
@@ -507,13 +507,16 @@ class PlayerInteractionWrapper {
      *   Filters cards by given condition
      *   @param {function(card: DrawCard)} condition - card matching function
      *   @param {String} [side] - set to 'opponent' to search in opponent's cards
+     *   @returns {any[]}
      */
     filterCards(condition, side) {
-        var player = this.player;
+        let player = this.player;
         if (side === 'opponent') {
             player = this.opponent;
         }
-        return player.decklist.allCards.filter(condition);
+        return player.decklist.allCards.map(
+            (x) => this.game.getCard(x)
+        ).filter(condition);
     }
 
     exhaustResources(number) {
