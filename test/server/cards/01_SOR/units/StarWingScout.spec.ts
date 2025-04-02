@@ -65,6 +65,29 @@ describe('Star Wing Scout', function () {
                     expect(context.player1.handSize).toBe(0);
                 });
             });
+
+            it('should work with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: ['star-wing-scout']
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        deck: ['battlefield-marine', 'vanguard-infantry'],
+                        hasInitiative: true
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.starWingScout);
+                expect(context.player2.handSize).toBe(2);
+                expect(context.battlefieldMarine).toBeInZone('hand', context.player2);
+                expect(context.vanguardInfantry).toBeInZone('hand', context.player2);
+
+                context.player1.passAction();
+            });
         });
     });
 });

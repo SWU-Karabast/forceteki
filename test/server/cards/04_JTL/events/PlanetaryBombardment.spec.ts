@@ -37,6 +37,7 @@ describe('Planetary Bombardment', function() {
                 [context.bobaFett, 2],
                 [context.chirrutImwe, 1],
             ]));
+            expect(context.getChatLogs(1)[0]).toContain('player1 uses Planetary Bombardment to distribute 12 indirect damage among enemy cards');
 
             expect(context.player2).toBeActivePlayer();
             expect(context.wampa.damage).toBe(4);
@@ -60,6 +61,7 @@ describe('Planetary Bombardment', function() {
             context.player1.clickPrompt('You');
 
             expect(context.p1Base.damage).toBe(8);
+            expect(context.getChatLogs(1)[0]).toContain('player1 uses Planetary Bombardment to distribute 8 indirect damage among friendly cards');
         });
     });
 });

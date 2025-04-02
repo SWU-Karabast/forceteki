@@ -2,7 +2,7 @@ import { EffectName, PhaseName } from '../../Constants';
 import type Game from '../../Game';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
-import ActionWindow from '../ActionWindow';
+import { ActionWindow } from '../ActionWindow';
 
 export class ActionPhase extends Phase {
     // each ActionWindow will use this handler to indicate if the window was passed or not
