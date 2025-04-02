@@ -1235,7 +1235,22 @@ class Game extends EventEmitter {
 
     /** Goes through the list of cards moved during event resolution and does a uniqueness rule check for each */
     checkUniqueRule() {
-        for (const movedCard of this.movedCards) {
+        const dedupedMovedCards = this.movedCards.reduce((acc, card) => {
+            // Only prompt once per copy of a unique card controlled by the same player
+            const existingCard = acc.find((otherCard) =>
+                otherCard.title === card.title &&
+                otherCard.subtitle === card.subtitle &&
+                otherCard.controller === card.controller
+            );
+
+            if (!existingCard) {
+                acc.push(card);
+            }
+
+            return acc;
+        }, []);
+
+        for (const movedCard of dedupedMovedCards) {
             if (EnumHelpers.isArena(movedCard.zoneName) && movedCard.unique) {
                 movedCard.checkUnique();
             }
