@@ -12,7 +12,6 @@ describe('Force Lightning', function() {
                         resources: 10
                     },
                     player2: {
-                        base: { card: 'chopper-base', damage: 5 },
                         groundArena: ['atst'],
                         spaceArena: ['victor-leader#leading-from-the-front', 'tie-bomber'],
                     }
@@ -132,6 +131,53 @@ describe('Force Lightning', function() {
                 context.moveToNextActionPhase();
                 expect(context.fireball.damage).toBe(1);
             });
+        });
+
+        it('Force Lightning\'s ability should do blanking but no damage if there is no friendly Force unit', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    hand: ['force-lightning'],
+                    spaceArena: ['tieln-fighter']
+                },
+                player2: {
+                    spaceArena: ['victor-leader#leading-from-the-front', 'tie-bomber'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.forceLightning);
+            expect(context.player1).toBeAbleToSelectExactly([
+                context.tielnFighter,
+                context.victorLeader,
+                context.tieBomber
+            ]);
+
+            context.player1.clickCard(context.victorLeader);
+            expect(context.tieBomber.getPower()).toBe(0);
+            expect(context.tieBomber.getHp()).toBe(4);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.player1.exhaustedResourceCount).toBe(1);
+        });
+
+        it('Force Lightning\'s ability should do nothing if there are no units on the field', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    hand: ['force-lightning']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.forceLightning);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.player1.exhaustedResourceCount).toBe(1);
         });
     });
 });
