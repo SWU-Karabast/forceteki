@@ -17,7 +17,8 @@ export default class HanSoloNeverTellMeTheOdds extends LeaderUnitCard {
         this.addActionAbility({
             title: 'Reveal the top card of your deck',
             immediateEffect: AbilityHelper.immediateEffects.reveal((context) => ({
-                target: context.player.getTopCardOfDeck()
+                target: context.player.getTopCardOfDeck(),
+                useDisplayPrompt: true
             })),
             cost: AbilityHelper.costs.exhaustSelf(),
             then: (thenContext) => ({

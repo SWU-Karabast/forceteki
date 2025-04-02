@@ -52,8 +52,9 @@ export class Lobby {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly server: GameServer;
+    private readonly lobbyCreateTime: Date = new Date();
 
-    private game: Game;
+    private game?: Game;
     public users: LobbyUser[] = [];
     public spectators: LobbySpectator[] = [];
     private lobbyOwnerId: string;
@@ -61,6 +62,7 @@ export class Lobby {
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
     private userLastActivity = new Map<string, Date>();
+    private usersLeftCount = 0;
 
     public constructor(
         lobbyName: string,
@@ -424,6 +426,10 @@ export class Lobby {
         return this.users.length >= 2;
     }
 
+    public hasConnectedPlayer(): boolean {
+        return this.users.some((u) => u.state === 'connected');
+    }
+
     public removeUser(id: string): void {
         const user = this.users.find((u) => u.id === id);
         if (user) {
@@ -447,8 +453,25 @@ export class Lobby {
         this.users = this.users.filter((u) => u.id !== id);
         logger.info(`Removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
+        if (!this.game) {
+            this.checkIncrementUsersLeftCount();
+        }
+
         this.sendLobbyState();
     }
+
+    private checkIncrementUsersLeftCount() {
+        this.usersLeftCount++;
+        if (this.usersLeftCount > 4) {
+            const minutesSinceLobbyCreation = Math.floor((new Date().getTime() - this.lobbyCreateTime.getTime()) / 1000 / 60);
+
+            if (minutesSinceLobbyCreation >= 5) {
+                logger.info(`Cleaning lobby ${this.id} after more than 5 minutes of inactivity and 5 users left`, { lobbyId: this.id });
+                this.server.removeLobby(this, 'Lobby timed out');
+            }
+        }
+    }
+
 
     public isEmpty(): boolean {
         return this.users.length === 0;

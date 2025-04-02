@@ -40,4 +40,8 @@ export class DistributeDamageSystem<
     protected override getDistributedAmountFromEvent(event: any): number {
         return event.damageDealt;
     }
+
+    protected override getDistributionType(): string {
+        return 'damage';
+    }
 }

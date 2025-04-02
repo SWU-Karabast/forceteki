@@ -87,6 +87,29 @@ describe('Greedo, Slow on the Draw', function () {
                 // deck is empty, nothing to discard, no prompt
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should work with No Glory, Only Results', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['greedo#slow-on-the-draw', 'wampa']
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        deck: ['protector'],
+                        hasInitiative: true
+                    }
+                });
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.greedo);
+                context.player2.clickPrompt('Trigger');
+                context.player2.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(2);
+
+                context.player1.passAction();
+            });
         });
     });
 });

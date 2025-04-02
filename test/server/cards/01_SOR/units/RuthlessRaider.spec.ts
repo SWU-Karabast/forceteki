@@ -43,5 +43,30 @@ describe('Ruthless Raider', function() {
                 expect(context.greenSquadronAwing).toBeInZone('discard');
             });
         });
+
+        it('should work with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['wampa'],
+                    spaceArena: ['ruthless-raider']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['maul#shadow-collective-visionary'],
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.ruthlessRaider);
+            expect(context.player2).toBeAbleToSelectExactly([context.wampa]);
+            context.player2.clickCard(context.wampa);
+            expect(context.ruthlessRaider).toBeInZone('discard', context.player1);
+
+            context.player1.passAction();
+        });
     });
 });

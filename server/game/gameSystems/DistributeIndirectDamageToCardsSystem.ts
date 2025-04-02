@@ -56,4 +56,8 @@ export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityConte
 
         return properties;
     }
+
+    protected override getDistributionType(): string {
+        return 'indirect damage';
+    }
 }
