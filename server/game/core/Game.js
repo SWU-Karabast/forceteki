@@ -41,6 +41,7 @@ const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 const { GameStateManager } = require('./GameStateManager.js');
 const { ActionWindow } = require('./gameSteps/ActionWindow.js');
+const { GameObjectBase } = require('./GameObjectBase.js');
 
 class Game extends EventEmitter {
     #debug;
