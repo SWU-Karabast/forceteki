@@ -22,6 +22,9 @@ export interface IGameObjectBase<T extends IGameObjectBaseState = IGameObjectBas
 export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
     isRef: true;
     uuid: string;
+
+    /** This property is for debugging purposes only and will be wiped during rollback. Do not use it anywhere in the code. */
+    // gameObject: never;
 }
 
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
@@ -64,15 +67,32 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         return structuredClone(this.state);
     }
 
-    /** A function for game to call on all objects after all state has been set. for example, to cache calculated values. */
+    /** A function for game to call on all objects after all state has been rolled back. for example, to cache calculated values. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public afterSetAllState() { }
 
-    /** A function for game to call on all objects after all state has been set. for example, to cache calculated values. */
+    /** A function for game to call after the state for this object has been rolled back. This can be used to compare old and new states and trigger function calls if needed. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected afterSetState(oldState: T) { }
 
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
-        return { isRef: true, uuid: this.state.uuid };
+        const ref = { isRef: true, uuid: this.state.uuid };
+
+        if (process.env.ENVIRONMENT === 'development') {
+            // This property is for debugging purposes only and should never be referenced within the code.
+            Object.defineProperty(ref, 'gameObject', {
+                value: this,
+                writable: false,
+                enumerable: false,
+                configurable: false,
+            });
+        }
+
+        return ref as GameObjectRef<T>;
+    }
+
+    /** Shortcut to get the Game Object from a Ref */
+    public getObject<T extends GameObjectBase>(ref: GameObjectRef<T>): T {
+        return this.game.gameObjectManager.get(ref);
     }
 }
