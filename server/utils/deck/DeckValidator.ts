@@ -12,16 +12,17 @@ enum SwuSet {
     SOR = 'sor',
     SHD = 'shd',
     TWI = 'twi',
-    JTL = 'jtl'
+    JTL = 'jtl',
+    LOF = 'lof',
 }
 
-const legalSets = [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI, SwuSet.JTL];
+const premierLegalSets = [SwuSet.SOR, SwuSet.SHD, SwuSet.TWI, SwuSet.JTL];
 
 const bannedCards = new Map([
     ['4626028465', 'boba-fett#collecting-the-bounty']
 ]);
 
-const maxCopiesOfCards = new Map([
+const maxCopiesOfCardModifier = new Map([
     ['2177194044', 15], // Swarming Vulture Droid
 ]);
 
@@ -71,7 +72,7 @@ export class DeckValidator {
                 banned: bannedCards.has(cardData.id),
                 implemented: !Card.checkHasNonKeywordAbilityText(cardData) || implementedCardIds.has(cardData.id),
                 minDeckSizeModifier: minDeckSizeModifier.get(cardData.id),
-                maxCopiesOfCardOverride: maxCopiesOfCards.get(cardData.id)
+                maxCopiesOfCardOverride: maxCopiesOfCardModifier.get(cardData.id)
             };
 
             this.cardData.set(cardData.id, cardCheckData);
@@ -248,7 +249,7 @@ export class DeckValidator {
     protected checkFormatLegality(cardData: ICardCheckData, format: SwuGameFormat, failures: IDeckValidationFailures) {
         if (
             (cardData.banned && format !== SwuGameFormat.Open) ||
-            (!legalSets.includes(cardData.set) && format === SwuGameFormat.Premier)
+            (!premierLegalSets.includes(cardData.set) && format === SwuGameFormat.Premier)
         ) {
             failures[DeckValidationFailureReason.IllegalInFormat].push({ id: cardData.set, name: cardData.titleAndSubtitle });
         }
