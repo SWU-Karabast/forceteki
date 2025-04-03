@@ -2,6 +2,7 @@ const { logger } = require('./logger');
 const EventEmitter = require('events');
 const jwt = require('jsonwebtoken');
 const env = require('./env.js');
+const Contract = require("./game/core/utils/Contract");
 
 class Socket extends EventEmitter {
     constructor(socket) {
@@ -67,6 +68,7 @@ class Socket extends EventEmitter {
     }
 
     onAuthenticate(token) {
+        Contract.assertTrue(!!env.NEXTAUTH_SECRET, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
         jwt.verify(token, env.NEXTAUTH_SECRET, (err, user) => {
             if (err) {
                 logger.info(err);

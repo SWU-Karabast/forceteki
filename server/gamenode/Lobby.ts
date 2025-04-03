@@ -13,7 +13,7 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
 import type { SwuGameFormat } from '../SwuGameFormat';
-import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
+import {IDeckValidationFailures, ScoreType} from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
@@ -626,6 +626,33 @@ export class Lobby {
         }
     }
 
+
+    /**
+     * Private method to update a players stats
+     */
+    private async updatePlayerStats(playerUser: LobbyUser, opponentPlayerUser: LobbyUser, score: ScoreType) {
+        // Get the deck service
+        const deckService = this.server.getDeckService();
+        if (!deckService) {
+            logger.error(`Lobby ${this.id}: Could not get DeckService`);
+            throw Error(`Lobby ${this.id}: Could not get DeckService`);
+        }
+
+        const opponentPlayerLeaderId = opponentPlayerUser.deck.leader.id;
+        const opponentPlayerBaseId = opponentPlayerUser.deck.base.id;
+
+        if (playerUser.socket.user.isAuthenticatedUser()) {
+            await deckService.updateDeckStats(
+                playerUser.socket.user.getId(),
+                playerUser.deck.id,
+                score,
+                opponentPlayerLeaderId,
+                opponentPlayerBaseId
+            );
+        }
+    }
+
+
     /**
      * Updates deck statistics when a game ends
      * @param game The game that has ended
@@ -661,6 +688,10 @@ export class Lobby {
             // If we have a draw (or couldn't determine winner/loser), set as draw
             const isDraw = !winner || !loser || game.winner.length > 1;
 
+            // set winner/loser state
+            const player1Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Win : ScoreType.Lose;
+            const player2Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Win : ScoreType.Lose;
+
             // Get the user & deck information for each player
             const player1User = this.users.find((u) => u.id === player1.id);
             const player2User = this.users.find((u) => u.id === player2.id);
@@ -670,74 +701,9 @@ export class Lobby {
                 return;
             }
 
-            // Get the leader & base IDs for each player
-            const player1LeaderId = player1User.deck.leader.id;
-            const player1BaseId = player1User.deck.base.id;
-            const player2LeaderId = player2User.deck.leader.id;
-            const player2BaseId = player2User.deck.base.id;
+            await this.updatePlayerStats(player1User, player2User, player1Score);
+            await this.updatePlayerStats(player2User, player1User, player2Score);
 
-            // Get the deck service
-            const deckService = this.server.getDeckService();
-            if (!deckService) {
-                logger.warn(`Lobby ${this.id}: Could not get DeckService`);
-                return;
-            }
-            if (player1User.socket.user.isAuthenticatedUser()) {
-                // Update stats for player 1's deck
-                if (isDraw) {
-                    await deckService.updateDeckStats(
-                        player1User.socket.user.getId(),
-                        player1User.deck.id,
-                        'draw',
-                        player2LeaderId,
-                        player2BaseId
-                    );
-                } else if (winner === player1) {
-                    await deckService.updateDeckStats(
-                        player1User.socket.user.getId(),
-                        player1User.deck.id,
-                        'win',
-                        player2LeaderId,
-                        player2BaseId
-                    );
-                } else {
-                    await deckService.updateDeckStats(
-                        player1User.id,
-                        player1User.deck.id,
-                        'loss',
-                        player2LeaderId,
-                        player2BaseId
-                    );
-                }
-            }
-            if (player2User.socket.user.isAuthenticatedUser()) {
-                // Update stats for player 2's deck
-                if (isDraw) {
-                    await deckService.updateDeckStats(
-                        player2User.id,
-                        player2User.deck.id,
-                        'draw',
-                        player1LeaderId,
-                        player1BaseId
-                    );
-                } else if (winner === player2) {
-                    await deckService.updateDeckStats(
-                        player2User.id,
-                        player2User.deck.id,
-                        'win',
-                        player1LeaderId,
-                        player1BaseId
-                    );
-                } else {
-                    await deckService.updateDeckStats(
-                        player2User.id,
-                        player2User.deck.id,
-                        'loss',
-                        player1LeaderId,
-                        player1BaseId
-                    );
-                }
-            }
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
         } catch (error) {
             logger.error(`Lobby ${this.id}: Error updating deck stats:`, error);

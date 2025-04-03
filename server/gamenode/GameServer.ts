@@ -130,10 +130,9 @@ export class GameServer {
         logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
 
         // check if NEXTAUTH variable is set
-        const secret = process.env.NEXTAUTH_SECRET || null;
-        if (!secret) {
-            logger.warn('GameServer: NEXTAUTH_SECRET not found in environment, authentication won\'t work correctly.');
-        }
+        const secret = process.env.NEXTAUTH_SECRET;
+        Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
+
         // Setup socket server
         this.io = new IOServer(server, {
             perMessageDeflate: false,
@@ -149,26 +148,22 @@ export class GameServer {
             try {
                 // Get token from handshake auth
                 const token = socket.handshake.auth.token;
-                let user: User | null = null;
+                let user: User | null;
 
                 if (token) {
+                    // standard jwt authentication
                     user = await this.userFactory.createUserFromToken(token);
-                    // Try standard JWT verification first
-                    if (user.isAuthenticatedUser()) {
-                        socket.data.user = user;
-                        return next();
-                    }
+                } else {
+                    user = this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
                 }
 
-                const queryUser = socket.handshake.query.user
-                    ? JSON.parse(socket.handshake.query.user as string)
-                    : null;
-                if (queryUser) {
-                    user = this.userFactory.createAnonymousUser(queryUser.id, queryUser.username);
+                // we check if we have an actual user
+                if (user.isAnonymousUser() || user.isAuthenticatedUser()) {
                     socket.data.user = user;
                     return next();
                 }
-                logger.info('Socket connection rejected: No valid authentication provided');
+
+                logger.info('Socket connection rejected: Error when creating user, no valid authentication provided');
                 return next(new Error('Authentication failed'));
             } catch (error) {
                 logger.error('Socket auth middleware error:', error);
@@ -382,6 +377,7 @@ export class GameServer {
                 const user = req.user;
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getPlayerId())) {
+                    // TODO shouldn't return 403
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'

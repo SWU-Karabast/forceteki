@@ -4,6 +4,7 @@ import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import type { User } from '../user/User';
 import * as Contract from '../../game/core/utils/Contract';
+import { ScoreType } from './DeckInterfaces';
 
 /**
  * Service class for handling deck-related operations
@@ -178,7 +179,7 @@ export class DeckService {
     public async updateDeckStats(
         userId: string,
         deckId: string,
-        result: 'win' | 'loss' | 'draw',
+        result: ScoreType,
         opponentLeaderId: string,
         opponentBaseId: string
     ): Promise<IDeckStatsEntity> {
@@ -206,13 +207,13 @@ export class DeckService {
 
             // Update overall stats
             switch (result) {
-                case 'win':
+                case ScoreType.Win:
                     stats.wins += 1;
                     break;
-                case 'loss':
+                case ScoreType.Lose:
                     stats.losses += 1;
                     break;
-                case 'draw':
+                case ScoreType.Draw:
                     stats.draws += 1;
                     break;
                 default:
@@ -236,13 +237,13 @@ export class DeckService {
 
             // Update opponent-specific stats
             switch (result) {
-                case 'win':
+                case ScoreType.Win:
                     opponentStat.wins += 1;
                     break;
-                case 'loss':
+                case ScoreType.Lose:
                     opponentStat.losses += 1;
                     break;
-                case 'draw':
+                case ScoreType.Draw:
                     opponentStat.draws += 1;
                     break;
                 default:

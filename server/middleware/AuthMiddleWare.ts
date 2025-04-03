@@ -27,7 +27,7 @@ export const authMiddleware = () => {
             const token = cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
             if (!token) {
                 // No token found, so no user info. We let the request proceed with an attached anon user.
-                req.user = userFactory.createAnonymousUser(req.body.user?.id, req.body.user?.username);
+                req.user = userFactory.createAnonymousUserFromQuery(req.body);
                 return next();
             }
 

@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid';
 import jwt from 'jsonwebtoken';
 import { dynamoDbService } from '../../services/DynamoDBService';
 import * as Contract from '../../game/core/utils/Contract';
+import type { ParsedUrlQuery } from 'node:querystring';
 
 
 /**
@@ -23,13 +24,13 @@ export class UserFactory {
         try {
             const basicUser = await this.authenticateWithToken(token);
             if (!basicUser) {
-                logger.info('Token authentication failed, creating anonymous user');
-                return this.createAnonymousUser();
+                logger.error('Token authentication failed');
+                throw new Error('User not found from token');
             }
 
             const userData = await this.dynamoDbService.getUserProfile(basicUser.id);
             if (!userData) {
-                logger.warn(`User profile not found for authenticated user ${basicUser.id}`);
+                logger.error(`User profile not found for authenticated user ${basicUser.id}`);
                 throw new Error(`User profile not found for authenticated user ${basicUser.id}`);
             }
             return new AuthenticatedUser({ ...userData, playerId: basicUser.playerId });
@@ -47,6 +48,17 @@ export class UserFactory {
      */
     public createAnonymousUser(id?: string, name?: string): AnonymousUser {
         return new AnonymousUser(id || uuid(), name || 'Anonymous');
+    }
+
+    public createAnonymousUserFromQuery(query?: ParsedUrlQuery): AnonymousUser {
+        const queryUser = query.user
+            ? JSON.parse(query.user as string)
+            : null;
+        if (queryUser) {
+            return new AnonymousUser(queryUser.id, queryUser.username);
+        }
+        logger.error(`Unable to create Anon user from query: ${query}`);
+        throw new Error(`Unable to create Anon user from query: ${query}`);
     }
 
     /**
