@@ -327,7 +327,7 @@ class DynamoDBService {
      * @param deckLink The deck link to search for
      * @returns The deck data if found, undefined otherwise
      */
-    public async getDeckByLink(userId: string, deckLink: string): Promise<IDeckDataEntity | undefined> {
+    public async getDeckByLink(userId: string, deckLinkID: string): Promise<IDeckDataEntity | undefined> {
         return await this.executeDbOperation(async () => {
             // Query all decks for this user
             const result = await this.queryItems(`USER#${userId}`, { beginsWith: 'DECK#' });
@@ -338,7 +338,7 @@ class DynamoDBService {
 
             // Find the deck with matching deckLink
             return result.Items.find((item: any) =>
-                item.deck && item.deck.deckLink === deckLink
+                item.deck && item.deck.deckLinkID === deckLinkID
             ) as IDeckDataEntity | undefined;
         }, 'Error finding deck by link');
     }

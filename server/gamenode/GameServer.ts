@@ -320,14 +320,52 @@ export class GameServer {
                     });
                 }
                 // we save the deck
-                await this.deckService.saveDeck(deck, user);
+                const newDeck = await this.deckService.saveDeck(deck, user);
                 return res.status(200).json({
                     success: true,
                     message: 'Deck saved successfully',
-                    deckId: deck.id
+                    deck: newDeck
                 });
             } catch (err) {
                 logger.error('GameServer: Error in saving deck: ', err);
+                next(err);
+            }
+        });
+
+        app.put('/api/deck/:deckId/favorite', authMiddleware(), async (req, res, next) => {
+            try {
+                const { deckId } = req.params;
+                const { isFavorite } = req.body;
+                const user = req.user as User;
+
+                if (user.isAnonymousUser()) {
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required'
+                    });
+                }
+
+                if (isFavorite === undefined) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'isFavorite parameter is required'
+                    });
+                }
+                const success = await this.deckService.toggleDeckFavorite(user.getId(), deckId, isFavorite);
+
+                if (!success) {
+                    return res.status(404).json({
+                        success: false,
+                        message: `Deck with ID ${deckId} not found or could not be updated`
+                    });
+                }
+
+                return res.status(200).json({
+                    success: true,
+                    message: `Deck ${isFavorite ? 'added to' : 'removed from'} favorites successfully`
+                });
+            } catch (err) {
+                logger.error('GameServer: Error in toggle-deck-favorite:', err);
                 next(err);
             }
         });

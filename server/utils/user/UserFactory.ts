@@ -51,14 +51,19 @@ export class UserFactory {
     }
 
     public createAnonymousUserFromQuery(query?: ParsedUrlQuery): AnonymousUser {
-        const queryUser = query.user
-            ? JSON.parse(query.user as string)
-            : null;
-        if (queryUser) {
-            return new AnonymousUser(queryUser.id, queryUser.username);
+        if (query.user) {
+            // Check if it's a string that needs parsing
+            let queryUser;
+            if (typeof query.user === 'string') {
+                queryUser = JSON.parse(query.user);
+            } else {
+                queryUser = query.user;
+            }
+            if (queryUser) {
+                return new AnonymousUser(queryUser.id, queryUser.username);
+            }
         }
-        logger.error(`Unable to create Anon user from query: ${query}`);
-        throw new Error(`Unable to create Anon user from query: ${query}`);
+        return new AnonymousUser(uuid(), 'AnonymousPlayer');
     }
 
     /**

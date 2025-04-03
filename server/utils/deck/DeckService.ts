@@ -50,14 +50,14 @@ export class DeckService {
             // if we create a map it will be faster to lookup.
             const existingDeckLinks = new Map();
             existingDecks.forEach((deck) => {
-                if (deck.deck.deckLink) {
-                    existingDeckLinks.set(deck.deck.deckLink, deck);
+                if (deck.deck.deckLinkID) {
+                    existingDeckLinks.set(deck.deck.deckLinkID, deck);
                 }
             });
 
             for (const unsyncedDeck of unsyncedDecks) {
                 // skip if deck link already exists
-                if (unsyncedDeck.deckLink && existingDeckLinks.has(unsyncedDeck.deckLink)) {
+                if (unsyncedDeck.deckLinkID && existingDeckLinks.has(unsyncedDeck.deckLinkID)) {
                     continue;
                 }
 
@@ -103,13 +103,13 @@ export class DeckService {
                 throw new Error('Deck data is missing required fields "userId" and "deck"');
             }
 
-            // Check if a deck with this link already exists for this user
-            const deckLink = deckData.deck.deckLink;
+            // Check if a deck with this link id already exists for this user
+            const deckLinkID = deckData.deck.deckLinkID;
             let updatedDeckData = null;
-            const existingDeck = await this.dbService.getDeckByLink(user.getId(), deckLink);
-            if (deckLink && existingDeck) {
+            const existingDeck = await this.dbService.getDeckByLink(user.getId(), deckLinkID);
+            if (deckLinkID && existingDeck) {
                 // If the deck already exists, update it instead of creating a new one
-                logger.info(`DeckService: Deck with link ${deckLink} already exists for user ${user.getUsername()}, updating existing deck`);
+                logger.info(`DeckService: Deck with link ${deckLinkID} already exists for user ${user.getUsername()}, updating existing deck`);
                 // Use the existing deck's ID
                 updatedDeckData = {
                     ...deckData,
@@ -128,10 +128,43 @@ export class DeckService {
             // Save the new deck to the database
             await this.dbService.saveDeck(updatedDeckData);
             logger.info(`DeckService: Saved/updated new deck ${updatedDeckData.id} for user ${deckData.userId}`);
-            return updatedDeckData.id;
+            return updatedDeckData;
         } catch (error) {
             logger.error(`Error saving deck for user ${user.getId()}:`, error);
             throw error;
+        }
+    }
+
+    /**
+     * Toggle the favorite status of a deck
+     * @param userId User ID
+     * @param deckId Deck ID
+     * @param isFavorite Whether the deck should be marked as favorite
+     * @returns Promise resolving to true if successful, false otherwise
+     */
+    public async toggleDeckFavorite(userId: string, deckId: string, isFavorite: boolean): Promise<boolean> {
+        Contract.assertTrue(userId && deckId && isFavorite != null, `userId ${userId} or deckId ${deckId} or isFavorite ${isFavorite} doesn't exist`);
+        try {
+            // Get the deck using our flexible lookup method
+            const deck = await this.getDeckById(userId, deckId);
+
+            // If not found, return false
+            if (!deck) {
+                logger.warn(`DeckService: Deck ${deckId} not found for user ${userId} when trying to toggle favorite`);
+                return false;
+            }
+
+            // Update the favorite status
+            deck.deck.favourite = isFavorite;
+
+            // Save the updated deck
+            await this.dbService.saveDeck(deck);
+
+            logger.info(`DeckService: Successfully ${isFavorite ? 'added' : 'removed'} deck ${deckId} as favorite for user ${userId}`);
+            return true;
+        } catch (error) {
+            logger.error(`DeckService: Error toggling favorite for deck ${deckId}, user ${userId}:`, error);
+            return false;
         }
     }
 
