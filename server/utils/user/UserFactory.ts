@@ -33,7 +33,7 @@ export class UserFactory {
                 logger.error(`User profile not found for authenticated user ${basicUser.id}`);
                 throw new Error(`User profile not found for authenticated user ${basicUser.id}`);
             }
-            return new AuthenticatedUser({ ...userData, playerId: basicUser.playerId });
+            return new AuthenticatedUser(userData);
         } catch (error) {
             logger.error('Error creating user from token:', error);
             throw error;
@@ -121,7 +121,7 @@ export class UserFactory {
      * @param token JWT token
      * @returns The authenticated user or null if authentication failed
      */
-    private async authenticateWithToken(token?: string): Promise<{ id: string; username: string; playerId: string } | null> {
+    private async authenticateWithToken(token?: string): Promise<{ id: string; username: string } | null> {
         try {
             if (!token) {
                 return null;
@@ -162,7 +162,6 @@ export class UserFactory {
                     await this.dynamoDbService.recordNewLogin(dbUserId);
                     return {
                         id: dbUserId,
-                        playerId: userId,
                         username: userProfile.username
                     };
                 }
@@ -192,7 +191,6 @@ export class UserFactory {
             return {
                 id: newUser.id,
                 username: newUser.username,
-                playerId: userId
             };
         } catch (error) {
             // This should never happen but if it does its so we don't create two accounts

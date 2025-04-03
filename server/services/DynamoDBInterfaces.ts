@@ -2,7 +2,6 @@ export interface IUserDataEntity {
     id: string;
     username: string;
     preferences?: Record<string, any>;
-    playerId?: string;
 }
 
 // Interface for opponent stats

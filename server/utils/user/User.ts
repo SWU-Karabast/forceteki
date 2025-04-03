@@ -20,11 +20,6 @@ export abstract class User {
     public abstract getId(): string;
 
     /**
-     * Gets the user's FRONTEND ID (either authenticated user ID or anonymous ID)
-     */
-    public abstract getId(): string;
-
-    /**
      * Gets the user's username
      */
     public abstract getUsername(): string;
@@ -66,10 +61,6 @@ export class AuthenticatedUser extends User {
 
     public getId(): string {
         return this.userData.id;
-    }
-
-    public getPlayerId(): string {
-        return this.userData.playerId;
     }
 
     public getUsername(): string {
@@ -118,10 +109,6 @@ export class AnonymousUser extends User {
     }
 
     public getId(): string {
-        return this.id;
-    }
-
-    public getPlayerId(): string {
         return this.id;
     }
 
