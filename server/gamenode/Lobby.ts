@@ -13,7 +13,8 @@ import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
 import { Deck } from '../utils/deck/Deck';
 import type { DeckValidator } from '../utils/deck/DeckValidator';
 import type { SwuGameFormat } from '../SwuGameFormat';
-import {IDeckValidationFailures, ScoreType} from '../utils/deck/DeckInterfaces';
+import type { IDeckValidationFailures } from '../utils/deck/DeckInterfaces';
+import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
@@ -155,7 +156,7 @@ export class Lobby {
     }
 
     public createLobbyUser(user: User, decklist = null): void {
-        const existingUser = this.users.find((u) => u.id === user.getPlayerId());
+        const existingUser = this.users.find((u) => u.id === user.getId());
         const deck = decklist ? new Deck(decklist, this.cardDataGetter) : null;
         if (existingUser) {
             existingUser.deck = deck;
@@ -163,7 +164,7 @@ export class Lobby {
         }
 
         this.users.push(({
-            id: user.getPlayerId(),
+            id: user.getId(),
             username: user.getUsername(),
             state: null,
             ready: false,
@@ -171,25 +172,25 @@ export class Lobby {
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
             deck
         }));
-        logger.info(`Creating username: ${user.getUsername()}, id: ${user.getPlayerId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getPlayerId() });
+        logger.info(`Creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
         this.gameChat.addMessage(`${user.getUsername()} has created and joined the lobby`);
 
-        this.updateUserLastActivity(user.getPlayerId());
+        this.updateUserLastActivity(user.getId());
     }
 
     public addSpectator(user: User, socket: Socket): void {
-        const existingSpectator = this.spectators.find((s) => s.id === user.getPlayerId());
-        const existingPlayer = this.users.find((s) => s.id === user.getPlayerId());
+        const existingSpectator = this.spectators.find((s) => s.id === user.getId());
+        const existingPlayer = this.users.find((s) => s.id === user.getId());
         if (existingPlayer) {
             // we remove the player and disconnect since the user should not come here
-            this.removeUser(user.getPlayerId());
+            this.removeUser(user.getId());
             socket.disconnect();
             return;
         }
         if (!existingSpectator) {
             this.spectators.push({
-                id: user.getPlayerId(),
-                username: user.getPlayerId(),
+                id: user.getId(),
+                username: user.getId(),
                 socket,
                 state: 'connected'
             });
@@ -199,11 +200,11 @@ export class Lobby {
         }
         // If game is ongoing, send the current state to the spectator
         if (this.game) {
-            this.sendGameStateToSpectator(socket, user.getPlayerId());
+            this.sendGameStateToSpectator(socket, user.getId());
         } else {
             this.sendLobbyStateToSpectator(socket);
         }
-        logger.info(`Adding spectator: ${user.getUsername()}, id: ${user.getPlayerId()} (${this.spectators.length} spectator(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getPlayerId() });
+        logger.info(`Adding spectator: ${user.getUsername()}, id: ${user.getId()} (${this.spectators.length} spectator(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
     }
 
     public removeSpectator(id: string): void {
@@ -219,16 +220,16 @@ export class Lobby {
     }
 
     public addLobbyUser(user: User, socket: Socket): void {
-        const existingUser = this.users.find((u) => u.id === user.getPlayerId());
-        const existingSpectator = this.spectators.find((s) => s.id === user.getPlayerId());
+        const existingUser = this.users.find((u) => u.id === user.getId());
+        const existingSpectator = this.spectators.find((s) => s.id === user.getId());
         if (existingSpectator) {
             // we remove the spectator and disconnect since the user should not come here
-            this.removeSpectator(user.getPlayerId());
+            this.removeSpectator(user.getId());
             socket.disconnect();
             return;
         }
 
-        Contract.assertFalse(!existingUser && this.isFilled(), `Attempting to add user ${user.getPlayerId()} to lobby ${this.id}, but the lobby already has ${this.users.length} users`);
+        Contract.assertFalse(!existingUser && this.isFilled(), `Attempting to add user ${user.getId()} to lobby ${this.id}, but the lobby already has ${this.users.length} users`);
 
         // we check if listeners for the events already exist
         if (socket.eventContainsListener('game') || socket.eventContainsListener('lobby')) {
@@ -241,29 +242,29 @@ export class Lobby {
         if (existingUser) {
             existingUser.state = 'connected';
             existingUser.socket = socket;
-            logger.info(`addLobbyUser: setting state to connected for existing user: ${user.getUsername()}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getPlayerId() });
+            logger.info(`addLobbyUser: setting state to connected for existing user: ${user.getUsername()}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
         } else {
             this.users.push({
-                id: user.getPlayerId(),
+                id: user.getId(),
                 username: user.getUsername(),
                 state: 'connected',
                 ready: false,
                 socket
             });
-            logger.info(`addLobbyUser: adding username: ${user.getUsername()}, id: ${user.getPlayerId()} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getPlayerId() });
+            logger.info(`addLobbyUser: adding username: ${user.getUsername()}, id: ${user.getId()} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
             this.gameChat.addMessage(`${user.getUsername()} has joined the lobby`);
         }
 
-        this.updateUserLastActivity(user.getPlayerId());
+        this.updateUserLastActivity(user.getId());
 
         if (this.game) {
             this.sendGameState(this.game);
         } else {
             // do a check to make sure that the lobby owner is still registered in the lobby. if not, set the incoming user as the new lobby owner.
             if (this.server.getUserLobbyId(this.lobbyOwnerId) !== this.id) {
-                logger.info(`Lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.getPlayerId()}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getPlayerId() });
+                logger.info(`Lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.getId()}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
                 this.removeUser(this.lobbyOwnerId);
-                this.lobbyOwnerId = user.getPlayerId();
+                this.lobbyOwnerId = user.getId();
             }
 
             this.sendLobbyState();
@@ -272,7 +273,7 @@ export class Lobby {
 
     private setReadyStatus(socket: Socket, ...args) {
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'boolean', 'Ready status arguments aren\'t boolean or present');
-        const currentUser = this.users.find((u) => u.id === socket.user.getPlayerId());
+        const currentUser = this.users.find((u) => u.id === socket.user.getId());
         if (!currentUser) {
             return;
         }
@@ -282,8 +283,8 @@ export class Lobby {
     }
 
     private sendChatMessage(socket: Socket, ...args) {
-        const existingUser = this.users.find((u) => u.id === socket.user.getPlayerId());
-        Contract.assertNotNullLike(existingUser, `Unable to find user with id ${socket.user.getPlayerId()} in lobby ${this.id}`);
+        const existingUser = this.users.find((u) => u.id === socket.user.getId());
+        Contract.assertNotNullLike(existingUser, `Unable to find user with id ${socket.user.getId()} in lobby ${this.id}`);
         Contract.assertTrue(args.length === 1 && typeof args[0] === 'string', 'Chat message arguments are not present or not of type string');
         if (!existingUser) {
             return;
@@ -303,10 +304,10 @@ export class Lobby {
         // Set the rematch request property (allow only one request at a time)
         if (!this.rematchRequest) {
             this.rematchRequest = {
-                initiator: socket.user.getPlayerId(),
+                initiator: socket.user.getId(),
                 mode,
             };
-            logger.info(`User: ${socket.user.getPlayerId()} requested a rematch (${mode})`, { lobbyId: this.id, userName: socket.user.username, userId: socket.user.id });
+            logger.info(`User: ${socket.user.getId()} requested a rematch (${mode})`, { lobbyId: this.id, userName: socket.user.username, userId: socket.user.id });
         }
         this.sendLobbyState();
     }
@@ -326,7 +327,7 @@ export class Lobby {
     }
 
     private changeDeck(socket: Socket, ...args) {
-        const activeUser = this.users.find((u) => u.id === socket.user.getPlayerId());
+        const activeUser = this.users.find((u) => u.id === socket.user.getId());
 
         // we check if the deck is valid.
         activeUser.importDeckValidationErrors = this.deckValidator.validateSwuDbDeck(args[0], this.gameFormat);
@@ -349,7 +350,7 @@ export class Lobby {
 
         Contract.assertTrue(source === 'Deck' || source === 'Sideboard', `source isn't 'Deck' or 'Sideboard' but ${source}`);
 
-        const user = this.getUser(socket.user.getPlayerId());
+        const user = this.getUser(socket.user.getId());
         const userDeck = user.deck;
 
         if (source === 'Deck') {
@@ -584,7 +585,7 @@ export class Lobby {
             }
 
             this.game.stopNonChessClocks();
-            await this.game[command](socket.user.getPlayerId(), ...args);
+            await this.game[command](socket.user.getId(), ...args);
 
             this.game.continue();
 

@@ -22,7 +22,7 @@ export abstract class User {
     /**
      * Gets the user's FRONTEND ID (either authenticated user ID or anonymous ID)
      */
-    public abstract getPlayerId(): string;
+    public abstract getId(): string;
 
     /**
      * Gets the user's username
