@@ -371,5 +371,25 @@ describe('Piloting keyword', function() {
             expect(context.greenSquadronAwing.getPower()).toBe(2);
             expect(context.greenSquadronAwing.getHp()).toBe(4);
         });
+
+        it('Piloting respects aspect costs', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    hand: ['dagger-squadron-pilot'],
+                    spaceArena: ['concord-dawn-interceptors'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            const p1Resources = context.player1.readyResourceCount;
+            context.player1.clickCard(context.daggerSquadronPilot);
+            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Dagger Squadron Pilot', 'Play Dagger Squadron Pilot with Piloting']);
+            context.player1.clickPrompt('Play Dagger Squadron Pilot');
+            expect(context.player1.readyResourceCount).toBe(p1Resources - 5);
+            expect(context.daggerSquadronPilot).toBeInZone('groundArena');
+        });
     });
 });
