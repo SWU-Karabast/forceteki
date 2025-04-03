@@ -249,9 +249,10 @@ export class GameServer {
         app.post('/api/get-decks', authMiddleware(), async (req, res, next) => {
             const user = req.user as User;
             if (user.isAnonymousUser()) {
+                logger.warn('GameServer: User is not logged in and attempted to get decks ');
                 return res.status(403).json({
                     success: false,
-                    message: 'User is not logged in'
+                    message: 'Server error'
                 });
             }
             // we retrieve the decks for the FE
@@ -271,25 +272,28 @@ export class GameServer {
                 const user = req.user;
 
                 if (!user || user.isAnonymousUser()) {
+                    logger.warn('User is not logged in and attempted to get decks from DB');
                     return res.status(401).json({
                         success: false,
-                        message: 'Authentication required'
+                        message: 'Authentication error'
                     });
                 }
 
                 if (!deckId) {
+                    logger.warn(`GameServer: User attempted to get deck with invalid deckId: ${deckId}`);
                     return res.status(400).json({
                         success: false,
-                        message: 'deckId parameter is required'
+                        message: 'Server error'
                     });
                 }
 
                 // Get the deck using the flexible lookup method
                 const deck = await this.deckService.getDeckById(user.getId(), deckId);
                 if (!deck) {
+                    logger.warn(`User attempted to get deck that does not exist: ${deckId}`);
                     return res.status(404).json({
                         success: false,
-                        message: `Deck with ID ${deckId} not found`
+                        message: 'Server error'
                     });
                 }
                 // Clean up the response data - remove internal DB fields
@@ -316,7 +320,7 @@ export class GameServer {
                 if (user.isAnonymousUser()) {
                     return res.status(401).json({
                         success: false,
-                        message: 'User is not logged in'
+                        message: 'Authentication error'
                     });
                 }
                 // we save the deck
@@ -339,16 +343,18 @@ export class GameServer {
                 const user = req.user as User;
 
                 if (user.isAnonymousUser()) {
+                    logger.warn('User attempted to favorite deck without logging in');
                     return res.status(401).json({
                         success: false,
-                        message: 'Authentication required'
+                        message: 'Authentication error'
                     });
                 }
 
                 if (isFavorite === undefined) {
+                    logger.warn('User attempted to favorite deck without providing isFavorite param');
                     return res.status(400).json({
                         success: false,
-                        message: 'isFavorite parameter is required'
+                        message: 'Server error'
                     });
                 }
                 const updatedDeck = await this.deckService.toggleDeckFavorite(user.getId(), deckId, isFavorite);
@@ -371,7 +377,7 @@ export class GameServer {
                 if (!user || user.isAnonymousUser()) {
                     return res.status(401).json({
                         success: false,
-                        message: 'Authentication required'
+                        message: 'Authentication error'
                     });
                 }
 
