@@ -265,7 +265,7 @@ export class GameServer {
         });
 
         // Add this to the setupAppRoutes method in GameServer.ts
-        app.get('/api/get-deck/:deckId', authMiddleware(), async (req, res, next) => {
+        app.get('/api/get-deck:deckId', authMiddleware(), async (req, res, next) => {
             try {
                 const { deckId } = req.params;
                 const user = req.user;
