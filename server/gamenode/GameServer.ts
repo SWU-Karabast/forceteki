@@ -249,7 +249,6 @@ export class GameServer {
         app.post('/api/get-decks', authMiddleware(), async (req, res, next) => {
             const user = req.user as User;
             if (user.isAnonymousUser()) {
-                logger.warn('GameServer: User is not logged in and attempted to get decks ');
                 return res.status(403).json({
                     success: false,
                     message: 'Server error'
@@ -296,12 +295,13 @@ export class GameServer {
                         message: 'Server error'
                     });
                 }
+                const processedDeck = await this.deckService.convertOpponentStatsForFe(deck, this.cardDataGetter);
                 // Clean up the response data - remove internal DB fields
                 const cleanDeck = {
-                    id: deck.id,
-                    userId: deck.userId,
-                    deck: deck.deck,
-                    stats: deck.stats
+                    id: processedDeck.id,
+                    userId: processedDeck.userId,
+                    deck: processedDeck.deck,
+                    stats: processedDeck.stats
                 };
                 return res.status(200).json({
                     success: true,
@@ -314,6 +314,10 @@ export class GameServer {
         });
 
         app.post('/api/save-deck', authMiddleware(), async (req, res, next) => {
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication error'
+            });
             try {
                 const { deck } = req.body;
                 const user = req.user as User;

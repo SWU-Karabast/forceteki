@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid';
 import type { User } from '../user/User';
 import * as Contract from '../../game/core/utils/Contract';
 import { ScoreType } from './DeckInterfaces';
+import type { CardDataGetter } from '../cardData/CardDataGetter';
 
 /**
  * Service class for handling deck-related operations
@@ -211,7 +212,7 @@ export class DeckService {
         deckId: string,
         result: ScoreType,
         opponentLeaderId: string,
-        opponentBaseId: string
+        opponentBaseId: string,
     ): Promise<IDeckStatsEntity> {
         try {
             // Get the deck using our new flexible lookup method
@@ -319,6 +320,7 @@ export class DeckService {
 
                 if (deck) {
                     logger.info(`DeckService: Found deck with matching deckID/deckLinkID property: ${deck.id}`);
+                    // convert every opponents internal name into a card id
                     return deck;
                 }
             }
@@ -330,5 +332,37 @@ export class DeckService {
             logger.error(`Error getting deck by ID ${deckId} for user ${userId}:`, error);
             return null;
         }
+    }
+
+    /**
+     * Converts all opponent stats' internal names to card IDs
+     * @param deck The deck data to process
+     * @returns The processed deck data
+     */
+    public async convertOpponentStatsForFe(deck: IDeckDataEntity, cardDataGetter: CardDataGetter): Promise<IDeckDataEntity> {
+        // If there are no stats or no opponent stats, return the deck as is
+        if (!deck.stats || !deck.stats.opponentStats || !deck.stats.opponentStats.length) {
+            return deck;
+        }
+
+        // Process each opponent stat
+        deck.stats.opponentStats = await Promise.all(
+            deck.stats.opponentStats.map(async (opponentStat) => {
+            // Try to find card IDs for the leader and base internal names
+                const leaderCardId = await cardDataGetter.getCardByNameAsync(opponentStat.leaderId);
+                const baseCardId = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);
+
+                // If conversion was successful, use the card IDs
+                if (leaderCardId) {
+                    opponentStat.leaderId = leaderCardId.setId.set + '_' + leaderCardId.setId.number;
+                }
+
+                if (baseCardId) {
+                    opponentStat.baseId = baseCardId.setId.set + '_' + baseCardId.setId.number;
+                }
+
+                return opponentStat;
+            }));
+        return deck;
     }
 }

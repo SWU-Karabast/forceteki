@@ -639,16 +639,15 @@ export class Lobby {
             throw Error(`Lobby ${this.id}: Could not get DeckService`);
         }
 
-        const opponentPlayerLeaderId = opponentPlayerUser.deck.leader.id;
-        const opponentPlayerBaseId = opponentPlayerUser.deck.base.id;
-
+        const opponentPlayerLeaderId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.deck.leader.id);
+        const opponentPlayerBaseId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.deck.base.id);
         if (playerUser.socket.user.isAuthenticatedUser()) {
             await deckService.updateDeckStats(
                 playerUser.socket.user.getId(),
                 playerUser.deck.id,
                 score,
-                opponentPlayerLeaderId,
-                opponentPlayerBaseId
+                opponentPlayerLeaderId.internalName,
+                opponentPlayerBaseId.internalName,
             );
         }
     }

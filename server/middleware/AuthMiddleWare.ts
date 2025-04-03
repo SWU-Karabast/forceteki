@@ -35,7 +35,7 @@ export const authMiddleware = () => {
             return next();
         } catch (error) {
             console.error('Auth middleware error:', error);
-            return res.status(401).json({ error: 'Authentication failed' });
+            return res.status(401).json({ success: false, message: 'Authentication failed' });
         }
     };
 };
