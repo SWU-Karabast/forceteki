@@ -106,18 +106,15 @@ export class DeckService {
             // Check if a deck with this link already exists for this user
             const deckLink = deckData.deck.deckLink;
             let updatedDeckData = null;
-            if (deckLink) {
-                const existingDeck = await this.dbService.getDeckByLink(user.getId(), deckLink);
-
-                if (existingDeck) {
-                    // If the deck already exists, update it instead of creating a new one
-                    logger.info(`DeckService: Deck with link ${deckLink} already exists for user ${user.getUsername()}, updating existing deck`);
-                    // Use the existing deck's ID
-                    updatedDeckData = {
-                        ...deckData,
-                        id: existingDeck.id
-                    };
-                }
+            const existingDeck = await this.dbService.getDeckByLink(user.getId(), deckLink);
+            if (deckLink && existingDeck) {
+                // If the deck already exists, update it instead of creating a new one
+                logger.info(`DeckService: Deck with link ${deckLink} already exists for user ${user.getUsername()}, updating existing deck`);
+                // Use the existing deck's ID
+                updatedDeckData = {
+                    ...deckData,
+                    id: existingDeck.id
+                };
             } else {
                 // If no existing deck with the same link, or no link provided, create a new deck
                 const newDeckId = uuid();
