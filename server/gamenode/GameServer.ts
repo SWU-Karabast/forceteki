@@ -20,6 +20,7 @@ import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import type { QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
+import * as Helpers from '../game/core/utils/Helpers';
 
 /**
  * Represents a user object
@@ -35,6 +36,7 @@ interface User {
 
 interface SocketData {
     manualDisconnect?: boolean;
+    user?: User;
 }
 
 enum UserRole {
@@ -344,16 +346,18 @@ export class GameServer {
             if (previousLobby) {
                 const userLastActivity = previousLobby.getLastActivityForUser(userId);
 
-                if (userLastActivity == null) {
-                    return true;
+                if (previousRole === UserRole.Player) {
+                    if (userLastActivity == null) {
+                        return true;
+                    }
+
+                    const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
+                    if (elapsedSeconds < 60) {
+                        return false;
+                    }
                 }
 
-                const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
-
-                if (elapsedSeconds < 60 && previousRole === UserRole.Player) {
-                    return false;
-                }
-
+                this.userLobbyMap.delete(userId);
                 this.removeUserMaybeCleanupLobby(previousLobby, userId);
             }
         }
@@ -513,9 +517,9 @@ export class GameServer {
         });
     }
 
-    public async onConnectionAsync(ioSocket): Promise<void> {
-        const user = JSON.parse(ioSocket.handshake.query.user);
-        const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
+    public async onConnectionAsync(ioSocket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>): Promise<void> {
+        const user = JSON.parse(Helpers.getSingleOrThrow(ioSocket.handshake.query.user));
+        const requestedLobby = JSON.parse(Helpers.getSingleOrThrow(ioSocket.handshake.query.lobby));
         const isSpectator = ioSocket.handshake.query.spectator === 'true';
 
         if (user) {
@@ -547,7 +551,7 @@ export class GameServer {
                 return Promise.resolve();
             }
             const socket = new Socket(ioSocket);
-            this.registerDisconnect(ioSocket, user.id);
+            this.registerDisconnect(socket, user.id);
             lobby.addSpectator(user, socket);
             return Promise.resolve();
         }
@@ -636,13 +640,13 @@ export class GameServer {
                 const newUser = { username: 'Player2', id: user.id };
                 await lobby.addLobbyUserAsync(newUser, socket);
                 this.userLobbyMap.set(newUser.id, { lobbyId: lobby.id, role: UserRole.Player });
-                this.registerDisconnect(ioSocket, user.id);
+                this.registerDisconnect(socket, user.id);
                 return Promise.resolve();
             }
 
             await lobby.addLobbyUserAsync(user, socket);
             this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Player });
-            this.registerDisconnect(ioSocket, user.id);
+            this.registerDisconnect(socket, user.id);
             return Promise.resolve();
         }
 
@@ -650,10 +654,13 @@ export class GameServer {
         const queueEntry = this.queue.findPlayer(user.id);
         if (queueEntry) {
             const queuedPlayer = queueEntry.player;
-            queuedPlayer.socket = new Socket(ioSocket);
+
+            const socket = new Socket(ioSocket);
+
+            queuedPlayer.socket = socket;
 
             // handle queue-specific events and add lobby disconnect
-            queuedPlayer.socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(ioSocket, queueEntry.player));
+            queuedPlayer.socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket, queueEntry.player));
 
             this.queue.connectPlayer(user.id, queuedPlayer.socket);
 
@@ -673,12 +680,6 @@ export class GameServer {
      * Put a user into the queue array. They always start with a null socket.
      */
     private enterQueue(format: SwuGameFormat, user: any, deck: any): boolean {
-        // Quick check: if they're already in a lobby, no queue
-        if (this.userLobbyMap.has(user.id)) {
-            logger.info(`GameServer: User ${user.id} is in a lobby, ignoring queue request.`);
-            return false;
-        }
-
         this.queue.addPlayer(
             format,
             {
