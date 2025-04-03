@@ -491,5 +491,70 @@ describe('Uniqueness rule', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('When multiple copies of the same unique unit enter play simultaneously for both players,', function() {
+            it('each player is prompted to choose which copy to defeat', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: [
+                            'superlaser-blast'
+                        ],
+                        groundArena: [
+                            {
+                                card: 'jabba-the-hutt#cunning-daimyo',
+                                capturedUnits: [
+                                    'hevy#staunch-martyr',
+                                    'hevy#staunch-martyr'
+                                ]
+                            }
+                        ]
+                    },
+                    player2: {
+                        groundArena: [
+                            {
+                                card: 'cad-bane#hostage-taker',
+                                capturedUnits: [
+                                    'hevy#staunch-martyr',
+                                    'hevy#staunch-martyr'
+                                ]
+                            }
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+                const p1Hevy1 = context.cadBane.capturedUnits[0];
+                const p1Hevy2 = context.cadBane.capturedUnits[1];
+                const p2Hevy1 = context.jabbaTheHutt.capturedUnits[0];
+                const p2Hevy2 = context.jabbaTheHutt.capturedUnits[1];
+
+                // Blast the board, rescuing multiple copies of the same unique unit for both players
+                context.player1.clickCard(context.superlaserBlast);
+
+                // Both players must choose which copy to defeat before abilities are resolved
+                expect(context.player2).toHavePrompt('Choose which copy of Hevy, Staunch Martyr to defeat');
+                expect(context.player2).toBeAbleToSelectExactly([p2Hevy1, p2Hevy2]);
+
+                context.player2.clickCard(p2Hevy1);
+
+                expect(context.player1).toHavePrompt('Choose which copy of Hevy, Staunch Martyr to defeat');
+                expect(context.player1).toBeAbleToSelectExactly([p1Hevy1, p1Hevy2]);
+
+                context.player1.clickCard(p1Hevy1);
+
+                // Chose when defeated resolution order
+                expect(context.player1).toHavePrompt('Both players have triggered abilities in response. Choose a player to resolve all of their abilities first:');
+                expect(context.player1).toHaveExactPromptButtons(['You', 'Opponent']);
+
+                context.player1.clickPrompt('You');
+
+                // Each remaining copy of Hevy should have 1 damage
+                expect(p1Hevy2.damage).toBe(1);
+                expect(p2Hevy2.damage).toBe(1);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
