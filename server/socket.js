@@ -2,7 +2,7 @@ const { logger } = require('./logger');
 const EventEmitter = require('events');
 const jwt = require('jsonwebtoken');
 const env = require('./env.js');
-const Contract = require("./game/core/utils/Contract");
+const Contract = require('./game/core/utils/Contract');
 
 class Socket extends EventEmitter {
     constructor(socket) {
