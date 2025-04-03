@@ -314,10 +314,6 @@ export class GameServer {
         });
 
         app.post('/api/save-deck', authMiddleware(), async (req, res, next) => {
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication error'
-            });
             try {
                 const { deck } = req.body;
                 const user = req.user as User;
