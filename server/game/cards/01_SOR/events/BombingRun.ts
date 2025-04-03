@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { Arena } from '../../../core/Constants';
-import { ZoneName, TargetMode } from '../../../core/Constants';
+import { TargetMode, ZoneName } from '../../../core/Constants';
 
 export default class BombingRun extends EventCard {
     protected override getImplementationId() {
@@ -27,17 +27,17 @@ export default class BombingRun extends EventCard {
 
     private eventEffect(arena: Arena) {
         return AbilityHelper.immediateEffects.conditional((context) => ({
-            condition: context.game.getPlayers().some((player) => player.getUnitsInPlay(arena).length > 0),
+            condition: context.game.getPlayers().some((player) => player.hasSomeArenaUnit({ arena: arena })),
             onTrue: AbilityHelper.immediateEffects.damage((context) => {
                 return {
                     amount: 3,
-                    target: context.game.getPlayers().reduce((units, player) => units.concat(player.getUnitsInPlay(arena)), [])
+                    target: context.game.getPlayers().reduce((units, player) => units.concat(player.getArenaUnits({ arena: arena })), [])
                 };
             }),
             onFalse: AbilityHelper.immediateEffects.noAction((context) => {
                 return {
                     // If there are no units in play, return no legal target so the card is autoresolved.
-                    hasLegalTarget: context.game.getPlayers().some((player) => player.getUnitsInPlay().length > 0)
+                    hasLegalTarget: context.game.getPlayers().some((player) => player.hasSomeArenaUnit())
                 };
             })
         }));

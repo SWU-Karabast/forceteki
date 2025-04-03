@@ -39,9 +39,8 @@ const { DisplayCardsForSelectionPrompt } = require('./gameSteps/prompts/DisplayC
 const { DisplayCardsBasicPrompt } = require('./gameSteps/prompts/DisplayCardsBasicPrompt.js');
 const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
-const { GameObject } = require('./GameObject.js');
-const { GameObjectBase } = require('./GameObjectBase.js');
 const { GameStateManager } = require('./GameStateManager.js');
+const { ActionWindow } = require('./gameSteps/ActionWindow.js');
 const { User } = require('../../utils/user/User');
 
 class Game extends EventEmitter {
@@ -74,7 +73,10 @@ class Game extends EventEmitter {
         this.playStarted = false;
         this.gameObjectManager = new GameStateManager(this);
         this.createdAt = new Date();
+
+        /** @type { ActionWindow | null } */
         this.currentActionWindow = null;
+
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this.#debug = { pipeline: false };
 
@@ -938,6 +940,9 @@ class Game extends EventEmitter {
         }
     }
 
+    /**
+     * @param { Player } player
+     */
     claimInitiative(player) {
         this.initiativePlayer = player;
         this.isInitiativeClaimed = true;
@@ -965,17 +970,6 @@ class Game extends EventEmitter {
      */
     queueSimpleStep(handler, stepName) {
         this.pipeline.queueStep(new SimpleStep(this, handler, stepName));
-    }
-
-    /*
-     * Tells the current action window that the player with priority has taken
-     * an action (and so priority should pass to the other player)
-     * @returns {undefined}
-     */
-    markActionAsTaken() {
-        if (this.currentActionWindow) {
-            this.currentActionWindow.markActionAsTaken();
-        }
     }
 
     /**

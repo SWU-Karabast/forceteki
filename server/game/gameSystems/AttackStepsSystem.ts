@@ -1,6 +1,15 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { CardTypeFilter } from '../core/Constants';
-import { AbilityRestriction, CardType, Duration, EffectName, KeywordName, MetaEventName, WildcardCardType, ZoneName } from '../core/Constants';
+import {
+    AbilityRestriction,
+    CardType,
+    Duration,
+    EffectName,
+    KeywordName,
+    MetaEventName,
+    WildcardCardType,
+    ZoneName
+} from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { AttackFlow } from '../core/attack/AttackFlow';
@@ -134,7 +143,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             properties.attacker.hasSomeKeyword(KeywordName.Saboteur) ||
             this.attackerGainsSaboteur(targetCard, context, additionalProperties);
         if (!attackerHasSaboteur) {
-            if (targetCard.controller.getUnitsInPlay(attackerZone, (card) => card.hasSomeKeyword(KeywordName.Sentinel)).length > 0) {
+            if (targetCard.controller.hasSomeArenaUnit({ arena: attackerZone, keyword: KeywordName.Sentinel })) {
                 return targetCard.hasSomeKeyword(KeywordName.Sentinel);
             }
         }

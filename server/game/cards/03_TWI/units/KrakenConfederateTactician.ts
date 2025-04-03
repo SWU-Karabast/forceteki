@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType } from '../../../core/Constants';
 
 export default class KrakenConfederateTactician extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -19,7 +18,7 @@ export default class KrakenConfederateTactician extends NonLeaderUnitCard {
         this.addOnAttackAbility({
             title: 'Give each friendly token unit +1/+1 for this phase.',
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
-                target: context.player.getUnitsInPlay().filter((card) => card.type === CardType.TokenUnit),
+                target: context.player.getArenaUnits({ condition: (card) => card.isTokenUnit() }),
                 effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 1 }),
             })),
         });

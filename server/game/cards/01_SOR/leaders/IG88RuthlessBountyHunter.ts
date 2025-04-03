@@ -19,7 +19,7 @@ export default class IG88RuthlessBountyHunter extends LeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.attack({
                     attackerLastingEffects: {
-                        condition: (_, context) => context.player.getUnitsInPlay().length > context.player.opponent.getUnitsInPlay().length,
+                        condition: (_, context) => context.player.getArenaUnits().length > context.player.opponent.getArenaUnits().length,
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 1, hp: 0 })
                     }
                 })

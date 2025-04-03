@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import * as Helpers from '../../../core/utils/Helpers';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardZoneName } from '../../../core/Constants';
 
 export default class JarJarBinksFoolishGungan extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -19,8 +18,8 @@ export default class JarJarBinksFoolishGungan extends NonLeaderUnitCard {
     }
 
     private chooseRandomTarget(context) {
-        const controllerUnits = context.player.getUnitsInPlay(WildcardZoneName.AnyArena);
-        const opponentUnits = context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena);
+        const controllerUnits = context.player.getArenaUnits();
+        const opponentUnits = context.player.opponent.getArenaUnits();
         const allTargets = [...controllerUnits, ...opponentUnits, context.player.opponent.base, context.player.base]; // All units and bases
         return Helpers.randomItem(allTargets, context.game.randomGenerator);
     }

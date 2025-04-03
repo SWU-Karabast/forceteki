@@ -15,7 +15,7 @@ export default class FinalShowdown extends EventCard {
             title: 'Ready each unit you control. At the start of the regroup phase, you lose the game',
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.ready((context) => ({
-                    target: context.player.getUnitsInPlay(),
+                    target: context.player.getArenaUnits(),
                 })),
                 AbilityHelper.immediateEffects.delayedPlayerEffect((context) => ({
                     title: 'You lose the game',
