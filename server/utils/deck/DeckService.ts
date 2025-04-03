@@ -142,7 +142,7 @@ export class DeckService {
      * @param isFavorite Whether the deck should be marked as favorite
      * @returns Promise resolving to true if successful, false otherwise
      */
-    public async toggleDeckFavorite(userId: string, deckId: string, isFavorite: boolean): Promise<boolean> {
+    public async toggleDeckFavorite(userId: string, deckId: string, isFavorite: boolean): Promise<IDeckDataEntity> {
         Contract.assertTrue(userId && deckId && isFavorite != null, `userId ${userId} or deckId ${deckId} or isFavorite ${isFavorite} doesn't exist`);
         try {
             // Get the deck using our flexible lookup method
@@ -150,8 +150,8 @@ export class DeckService {
 
             // If not found, return false
             if (!deck) {
-                logger.warn(`DeckService: Deck ${deckId} not found for user ${userId} when trying to toggle favorite`);
-                return false;
+                logger.error(`DeckService: Deck ${deckId} not found for user ${userId} when trying to toggle favorite`);
+                throw new Error(`DeckService: Deck ${deckId} not found for user ${userId} when trying to toggle favorite`);
             }
 
             // Update the favorite status
@@ -161,10 +161,10 @@ export class DeckService {
             await this.dbService.saveDeck(deck);
 
             logger.info(`DeckService: Successfully ${isFavorite ? 'added' : 'removed'} deck ${deckId} as favorite for user ${userId}`);
-            return true;
+            return deck;
         } catch (error) {
             logger.error(`DeckService: Error toggling favorite for deck ${deckId}, user ${userId}:`, error);
-            return false;
+            throw error;
         }
     }
 

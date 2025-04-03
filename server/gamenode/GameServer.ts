@@ -351,18 +351,11 @@ export class GameServer {
                         message: 'isFavorite parameter is required'
                     });
                 }
-                const success = await this.deckService.toggleDeckFavorite(user.getId(), deckId, isFavorite);
-
-                if (!success) {
-                    return res.status(404).json({
-                        success: false,
-                        message: `Deck with ID ${deckId} not found or could not be updated`
-                    });
-                }
-
+                const updatedDeck = await this.deckService.toggleDeckFavorite(user.getId(), deckId, isFavorite);
                 return res.status(200).json({
                     success: true,
-                    message: `Deck ${isFavorite ? 'added to' : 'removed from'} favorites successfully`
+                    message: `Deck ${isFavorite ? 'added to' : 'removed from'} favorites successfully`,
+                    deck: updatedDeck
                 });
             } catch (err) {
                 logger.error('GameServer: Error in toggle-deck-favorite:', err);
