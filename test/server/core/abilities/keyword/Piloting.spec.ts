@@ -348,5 +348,28 @@ describe('Piloting keyword', function() {
             context.player1.clickCard(context.ruthlessRaider);
             expect(context.ruthlessRaider.damage).toBe(4);
         });
+
+        it('Piloting works when the ability has no aspect costs', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['sullustan-spacer'],
+                    spaceArena: ['green-squadron-awing']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // no error should happen in this test
+            context.player1.clickCard(context.sullustanSpacer);
+            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Sullustan Spacer', 'Play Sullustan Spacer with Piloting']);
+
+            context.player1.clickPrompt('Play Sullustan Spacer with Piloting');
+            expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing]);
+            context.player1.clickCard(context.greenSquadronAwing);
+            expect(context.sullustanSpacer).toBeAttachedTo(context.greenSquadronAwing);
+            expect(context.greenSquadronAwing.getPower()).toBe(2);
+            expect(context.greenSquadronAwing.getHp()).toBe(4);
+        });
     });
 });
