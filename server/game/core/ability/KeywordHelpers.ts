@@ -164,7 +164,12 @@ function parseKeywordWithCostValuesIfEnabled(keyword: KeywordName, cardText: str
 
     const cost = Number(match.value[1]);
     const aspectString = match.value[2];
-    const aspects = EnumHelpers.checkConvertToEnum(aspectString.toLowerCase().split(' '), Aspect);
+
+    let aspects: Aspect[] = [];
+    if (aspectString && aspectString.length > 0) {
+        aspects = EnumHelpers.checkConvertToEnum(aspectString.toLowerCase().split(' '), Aspect);
+    }
+
     const additionalCosts = match.value[3] !== undefined;
 
     // regex capture group will be keyword value with costs
@@ -191,7 +196,7 @@ function getRegexForKeyword(keyword: KeywordName) {
         case KeywordName.Overwhelm:
             return /(?:^|(?:\n))Overwhelm/g;
         case KeywordName.Piloting:
-            return /Piloting\s\[\s*(\d+)\s+resource(?:s)?(?:,\s*|\s+)([\w\s]+)\]/g;
+            return /Piloting\s\[\s*(\d+)\s+resource(?:s)?\s*([\w\s]*)\]/g;
         case KeywordName.Raid:
             return /(?:^|(?:\n))Raid ([\d]+)/g;
         case KeywordName.Restore:

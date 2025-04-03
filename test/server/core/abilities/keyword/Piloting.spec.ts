@@ -348,5 +348,48 @@ describe('Piloting keyword', function() {
             context.player1.clickCard(context.ruthlessRaider);
             expect(context.ruthlessRaider.damage).toBe(4);
         });
+
+        it('Piloting works when the ability has no aspect costs', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['sullustan-spacer'],
+                    spaceArena: ['green-squadron-awing']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // no error should happen in this test
+            context.player1.clickCard(context.sullustanSpacer);
+            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Sullustan Spacer', 'Play Sullustan Spacer with Piloting']);
+
+            context.player1.clickPrompt('Play Sullustan Spacer with Piloting');
+            expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing]);
+            context.player1.clickCard(context.greenSquadronAwing);
+            expect(context.sullustanSpacer).toBeAttachedTo(context.greenSquadronAwing);
+            expect(context.greenSquadronAwing.getPower()).toBe(2);
+            expect(context.greenSquadronAwing.getHp()).toBe(4);
+        });
+
+        it('Piloting respects aspect costs', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'darth-vader#dark-lord-of-the-sith',
+                    hand: ['dagger-squadron-pilot'],
+                    spaceArena: ['concord-dawn-interceptors'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            const p1Resources = context.player1.readyResourceCount;
+            context.player1.clickCard(context.daggerSquadronPilot);
+            expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Play Dagger Squadron Pilot', 'Play Dagger Squadron Pilot with Piloting']);
+            context.player1.clickPrompt('Play Dagger Squadron Pilot');
+            expect(context.player1.readyResourceCount).toBe(p1Resources - 5);
+            expect(context.daggerSquadronPilot).toBeInZone('groundArena');
+        });
     });
 });
