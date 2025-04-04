@@ -1,5 +1,5 @@
 import { dynamoDbService } from '../../services/DynamoDBService';
-import type { IDeckDataEntity, IDeckStatsEntity, ILocalStorageDeckData, IOpponentStatEntity } from '../../services/DynamoDBInterfaces';
+import type { IDeckDataEntity, IDeckStatsEntity, ILocalStorageDeckData, IMatchupStatEntity } from '../../services/DynamoDBInterfaces';
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import type { User } from '../user/User';
@@ -79,7 +79,7 @@ export class DeckService {
                         wins: 0,
                         losses: 0,
                         draws: 0,
-                        opponentStats: []
+                        statsByMatchup: []
                     }
                 };
                 await this.dbService.saveDeck(deckData);
@@ -138,7 +138,7 @@ export class DeckService {
         }
     }
 
-    private updateScore(result: ScoreType, stats: IDeckStatsEntity | IOpponentStatEntity) {
+    private updateScore(result: ScoreType, stats: IDeckStatsEntity | IMatchupStatEntity) {
         // Update stats
         switch (result) {
             case ScoreType.Win:
@@ -245,19 +245,19 @@ export class DeckService {
                 wins: 0,
                 losses: 0,
                 draws: 0,
-                opponentStats: []
+                statsByMatchup: []
             };
 
             // Ensure opponentStats exists
-            if (!stats.opponentStats) {
-                stats.opponentStats = [];
+            if (!stats.statsByMatchup) {
+                stats.statsByMatchup = [];
             }
 
             // Update overall stats
             this.updateScore(result, stats);
 
             // Find or create opponent stat
-            let opponentStat = stats.opponentStats.find((stat) =>
+            let opponentStat = stats.statsByMatchup.find((stat) =>
                 stat.leaderId === opponentLeaderId && stat.baseId === opponentBaseId
             );
             if (!opponentStat) {
@@ -268,7 +268,7 @@ export class DeckService {
                     losses: 0,
                     draws: 0
                 };
-                stats.opponentStats.push(opponentStat);
+                stats.statsByMatchup.push(opponentStat);
             }
 
             this.updateScore(result, opponentStat);
@@ -333,13 +333,13 @@ export class DeckService {
      */
     public async convertOpponentStatsForFe(deck: IDeckDataEntity, cardDataGetter: CardDataGetter): Promise<IDeckDataEntity> {
         // If there are no stats or no opponent stats, return the deck as is
-        if (!deck.stats || !deck.stats.opponentStats || !deck.stats.opponentStats.length) {
+        if (!deck.stats || !deck.stats.statsByMatchup || !deck.stats.statsByMatchup.length) {
             return deck;
         }
 
         // Process each opponent stat
-        deck.stats.opponentStats = await Promise.all(
-            deck.stats.opponentStats.map(async (opponentStat) => {
+        deck.stats.statsByMatchup = await Promise.all(
+            deck.stats.statsByMatchup.map(async (opponentStat) => {
             // Try to find card IDs for the leader and base internal names
                 const leaderCardId = await cardDataGetter.getCardByNameAsync(opponentStat.leaderId);
                 const baseCardId = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);

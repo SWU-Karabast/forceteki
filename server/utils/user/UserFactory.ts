@@ -79,8 +79,8 @@ export class UserFactory {
                 return false;
             }
             // Check if username was changed recently (within the last 30 days)
-            if (userProfile.usernameSetAt) {
-                const lastChange = new Date(userProfile.usernameSetAt).getTime();
+            if (userProfile.usernameLastUpdatedAt) {
+                const lastChange = new Date(userProfile.usernameLastUpdatedAt).getTime();
                 const now = Date.now();
                 const daysSinceLastChange = (now - lastChange) / (1000 * 60 * 60 * 24);
 
@@ -94,7 +94,7 @@ export class UserFactory {
             // Update username and set the timestamp
             await this.dynamoDbService.updateUserProfile(userId, {
                 username: newUsername,
-                usernameSetAt: new Date().toISOString()
+                usernameLastUpdatedAt: new Date().toISOString()
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);

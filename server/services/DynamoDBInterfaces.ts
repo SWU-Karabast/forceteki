@@ -4,8 +4,8 @@ export interface IUserDataEntity {
     preferences?: Record<string, any>;
 }
 
-// Interface for opponent stats
-export interface IOpponentStatEntity {
+// Interface for matchups a win here means the OP wins not opponents wins.
+export interface IMatchupStatEntity {
     leaderId: string;
     baseId: string;
     wins: number;
@@ -18,7 +18,7 @@ export interface IDeckStatsEntity {
     wins: number;
     losses: number;
     draws: number;
-    opponentStats?: IOpponentStatEntity[];
+    statsByMatchup?: IMatchupStatEntity[];
 }
 
 // Define user interface
@@ -27,7 +27,7 @@ export interface IUserProfileDataEntity extends IUserDataEntity {
     username: string;
     lastLogin: string;
     createdAt: string;
-    usernameSetAt?: string; // When username was set/changed
+    usernameLastUpdatedAt?: string; // When username was set/changed
     preferences?: Record<string, any>;
 }
 
@@ -69,5 +69,6 @@ export interface IGameRecordEntity {
     player1BaseId: string;
     player2LeaderId: string;
     player2BaseId: string;
-    timestamp: string;
+    timestampStart: string;
+    timestampEnd: string;
 }
