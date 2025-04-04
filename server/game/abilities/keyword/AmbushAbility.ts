@@ -7,8 +7,6 @@ import * as Contract from '../../core/utils/Contract';
 import { ConditionalSystem } from '../../gameSystems/ConditionalSystem';
 import { InitiateAttackSystem } from '../../gameSystems/InitiateAttackSystem';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
-import { ReadySystem } from '../../gameSystems/ReadySystem';
-import { SequentialSystem } from '../../gameSystems/SequentialSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class AmbushAbility extends TriggeredAbility {
@@ -26,14 +24,13 @@ export class AmbushAbility extends TriggeredAbility {
             zoneFilter: WildcardZoneName.AnyArena,
             immediateEffect: new ConditionalSystem({
                 condition: AmbushAbility.unitWouldHaveAmbushTarget<TSource>,
-                onTrue: new SequentialSystem([
-                    new ReadySystem({}),
-                    new InitiateAttackSystem((context) => ({
-                        isAmbush: true,
-                        attacker: context.source,
-                        targetCondition: (card) => !card.isBase(),
-                        optional: false     // override the default optional behavior - once we've triggered ambush, the attack is no longer optional
-                    }))]),
+                onTrue: new InitiateAttackSystem((context) => ({
+                    isAmbush: true,
+                    allowExhaustedAttacker: true,
+                    attacker: context.source,
+                    targetCondition: (card) => !card.isBase(),
+                    optional: false     // override the default optional behavior - once we've triggered ambush, the attack is no longer optional
+                })),
                 onFalse: new NoActionSystem({})
             })
         };

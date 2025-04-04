@@ -30,4 +30,8 @@ export class DistributeExperienceSystem<TContext extends AbilityContext = Abilit
     protected override getDistributedAmountFromEvent(event: any): number {
         return event.amount;
     }
+
+    protected override getDistributionType(): string {
+        return 'experience';
+    }
 }

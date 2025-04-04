@@ -40,5 +40,27 @@ describe('Obi-Wan Kenobi, Following Fate', function() {
                 expect(context.player2.hand.length).toBe(handSizeBeforeTriggerResolves + 1);
             });
         });
+        it('should work with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['obiwan-kenobi#following-fate']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['maul#shadow-collective-visionary'],
+                    hasInitiative: true
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.obiwanKenobi);
+            context.player2.clickCard(context.maul);
+            expect(context.maul).toHaveExactUpgradeNames(['experience', 'experience']);
+            expect(context.player2.handSize).toBe(1);
+
+            context.player1.passAction();
+        });
     });
 });
