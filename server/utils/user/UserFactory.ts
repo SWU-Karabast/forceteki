@@ -23,16 +23,11 @@ export class UserFactory {
     public async createUserFromToken(token: string): Promise<User> {
         try {
             const basicUser = await this.authenticateWithToken(token);
-            if (!basicUser) {
-                logger.error('Token authentication failed');
-                throw new Error('User not found from token');
-            }
+            Contract.assertNotNullLike(basicUser, 'Token authentication failed, User not found from token');
 
             const userData = await this.dynamoDbService.getUserProfile(basicUser.id);
-            if (!userData) {
-                logger.error(`User profile not found for authenticated user ${basicUser.id}`);
-                throw new Error(`User profile not found for authenticated user ${basicUser.id}`);
-            }
+            Contract.assertNotNullLike(userData, `User profile not found for authenticated user ${basicUser.id}`);
+
             return new AuthenticatedUser(userData);
         } catch (error) {
             logger.error('Error creating user from token:', error);
@@ -111,13 +106,12 @@ export class UserFactory {
      * @param preferences The updated preferences object
      * @returns True if update was successful
      */
-    public async updateUserPreferences(userId: string, preferences: Record<string, any>): Promise<boolean> {
+    public async updateUserPreferences(userId: string, preferences: Record<string, any>): Promise<void> {
         try {
             await this.dynamoDbService.saveUserSettings(userId, preferences);
-            return true;
         } catch (error) {
             logger.error('Error updating user preferences:', error);
-            return false;
+            throw error;
         }
     }
 

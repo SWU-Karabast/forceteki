@@ -633,12 +633,11 @@ export class Lobby {
      */
     private async updatePlayerStats(playerUser: LobbyUser, opponentPlayerUser: LobbyUser, score: ScoreType) {
         // Get the deck service
-        const deckService = this.server.getDeckService();
         const opponentPlayerLeaderId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.deck.leader.id);
         const opponentPlayerBaseId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.deck.base.id);
 
         Contract.assertTrue(playerUser.socket.user.isAuthenticatedUser());
-        await deckService.updateDeckStats(
+        await this.server.deckService.updateDeckStats(
             playerUser.socket.user.getId(),
             playerUser.deck.id,
             score,

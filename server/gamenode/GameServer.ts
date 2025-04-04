@@ -148,22 +148,17 @@ export class GameServer {
             try {
                 // Get token from handshake auth
                 const token = socket.handshake.auth.token;
-                let user: User | null;
 
-                if (token) {
-                    // standard jwt authentication
-                    user = await this.userFactory.createUserFromToken(token);
-                } else {
-                    user = this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
-                }
+                const user = token
+                    ? await this.userFactory.createUserFromToken(token)
+                    : this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
 
                 // we check if we have an actual user
                 if (user.isAnonymousUser() || user.isAuthenticatedUser()) {
                     socket.data.user = user;
                     return next();
                 }
-
-                logger.info('Socket connection rejected: Error when creating user, no valid authentication provided');
+                logger.error('Socket connection rejected: Error when creating user, no valid authentication provided');
                 return next(new Error('Authentication failed'));
             } catch (error) {
                 logger.error('Socket auth middleware error:', error);
@@ -188,20 +183,12 @@ export class GameServer {
         this.deckValidator = deckValidator;
     }
 
-    /**
-     * Gets the DeckService instance
-     * @returns The DeckService instance
-     */
-    public getDeckService(): DeckService {
-        return this.deckService;
-    }
-
     private setupAppRoutes(app: express.Application) {
         app.get('/api/get-unimplemented', (req, res, next) => {
             try {
                 return res.json(this.deckValidator.getUnimplementedCards());
             } catch (err) {
-                logger.error('GameServer: Error in setupAppRoutes:', err);
+                logger.error('GameServer (get-unimplemented) Server error: ', err);
                 next(err);
             }
         });
@@ -212,12 +199,14 @@ export class GameServer {
                 const lobby = this.lobbies.get(gameId);
                 // if they are in a game already we give them 403 forbidden
                 if (!this.canUserJoinNewLobby(user.id)) {
+                    logger.error(`GameServer (spectate-game): User ${user.id} attempted to spectate a game while playing a game`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a game'
                     });
                 }
                 if (!lobby || !lobby.hasOngoingGame() || lobby.isPrivate) {
+                    logger.error(`GameServer (spectate-game): User ${user.id} attempted to spectate a game that does not exist or is set to private`);
                     return res.status(404).json({
                         success: false,
                         message: 'Game not found or does not allow spectators'
@@ -228,50 +217,63 @@ export class GameServer {
                 this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Spectator });
                 return res.status(200).json({ success: true });
             } catch (err) {
-                logger.error('GameServer: Error in spectate-game:', err);
+                logger.error('GameServer (spectate-game) Server error: ', err);
                 next(err);
             }
         });
 
         app.post('/api/get-user', authMiddleware(), async (req, res, next) => {
-            const { decks } = req.body;
-            const user = req.user as User;
-            // We try to sync the decks first
             try {
-                await this.deckService.syncDecks(user.getId(), decks);
+                const { decks } = req.body;
+                const user = req.user as User;
+                // We try to sync the decks first
+                if (decks.length > 0) {
+                    try {
+                        await this.deckService.syncDecks(user.getId(), decks);
+                    } catch (err) {
+                        logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
+                        next(err);
+                    }
+                }
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername() } });
             } catch (err) {
-                logger.error('GameServer: Error with syncing decks:', err);
+                logger.error('GameServer (get-user) Server error:', err);
                 next(err);
             }
-            return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername() } });
         });
         // user DECKS
         app.post('/api/get-decks', authMiddleware(), async (req, res, next) => {
-            const user = req.user as User;
-            if (user.isAnonymousUser()) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Server error'
-                });
-            }
-            // we retrieve the decks for the FE
             try {
-                const usersDecks = await this.deckService.getUserDecks(user.getId());
-                return res.status(200).json(usersDecks);
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (get-decks): Authentication error for anonymous user ${user.getId()}`);
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Server error'
+                    });
+                }
+                // we retrieve the decks for the FE
+                try {
+                    const usersDecks = await this.deckService.getUserDecks(user.getId());
+                    return res.status(200).json(usersDecks);
+                } catch (err) {
+                    logger.error(`GameServer (get-decks): Error in getting a users ${user.getId()} decks: `, err);
+                    next(err);
+                }
             } catch (err) {
-                logger.error('GameServer: Error in getting a users decks: ', err);
+                logger.error('GameServer (get-decks) Server error: ', err);
                 next(err);
             }
         });
 
         // Add this to the setupAppRoutes method in GameServer.ts
-        app.get('/api/get-deck:deckId', authMiddleware(), async (req, res, next) => {
+        app.get('/api/get-deck/:deckId', authMiddleware(), async (req, res, next) => {
             try {
                 const { deckId } = req.params;
                 const user = req.user;
 
                 if (!user || user.isAnonymousUser()) {
-                    logger.warn('User is not logged in and attempted to get decks from DB');
+                    logger.error(`GameServer (get-deck/:deckId): Authentication error for user ${user} with id ${user.getId()}`);
                     return res.status(401).json({
                         success: false,
                         message: 'Authentication error'
@@ -279,7 +281,7 @@ export class GameServer {
                 }
 
                 if (!deckId) {
-                    logger.warn(`GameServer: User attempted to get deck with invalid deckId: ${deckId}`);
+                    logger.error(`GameServer (get-deck/:deckId): User ${user.getId()} attempted to get deck with invalid deckId: ${deckId}`);
                     return res.status(400).json({
                         success: false,
                         message: 'Server error'
@@ -289,7 +291,7 @@ export class GameServer {
                 // Get the deck using the flexible lookup method
                 const deck = await this.deckService.getDeckById(user.getId(), deckId);
                 if (!deck) {
-                    logger.warn(`User attempted to get deck that does not exist: ${deckId}`);
+                    logger.error(`GameServer (get-deck/:deckId): User ${user.getId()} attempted to get deck that does not exist: ${deckId}`);
                     return res.status(404).json({
                         success: false,
                         message: 'Server error'
@@ -308,7 +310,7 @@ export class GameServer {
                     deck: cleanDeck
                 });
             } catch (err) {
-                logger.error('GameServer: Error in get-deck:', err);
+                logger.error('GameServer (get-deck/:deckId) Server error: ', err);
                 next(err);
             }
         });
@@ -318,6 +320,7 @@ export class GameServer {
                 const { deck } = req.body;
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (save-deck): A anonymous user ${user.getId()} attempted to save deck ${deck.id}`);
                     return res.status(401).json({
                         success: false,
                         message: 'Authentication error'
@@ -331,7 +334,7 @@ export class GameServer {
                     deck: newDeck
                 });
             } catch (err) {
-                logger.error('GameServer: Error in saving deck: ', err);
+                logger.error('GameServer (save-deck) Server error: ', err);
                 next(err);
             }
         });
@@ -341,9 +344,8 @@ export class GameServer {
                 const { deckId } = req.params;
                 const { isFavorite } = req.body;
                 const user = req.user as User;
-
                 if (user.isAnonymousUser()) {
-                    logger.warn('User attempted to favorite deck without logging in');
+                    logger.error(`GameServer (deck/:deckId/favorite): A anonymous user ${user.getId()} attempted to favorite a deck ${deckId}`);
                     return res.status(401).json({
                         success: false,
                         message: 'Authentication error'
@@ -351,7 +353,7 @@ export class GameServer {
                 }
 
                 if (isFavorite === undefined) {
-                    logger.warn('User attempted to favorite deck without providing isFavorite param');
+                    logger.error(`GameServer (deck/:deckId/favorite): A User ${user.getId()} attempted to favorite a deck ${deckId} without isFavorite param`);
                     return res.status(400).json({
                         success: false,
                         message: 'Server error'
@@ -364,7 +366,7 @@ export class GameServer {
                     deck: updatedDeck
                 });
             } catch (err) {
-                logger.error('GameServer: Error in toggle-deck-favorite:', err);
+                logger.error('GameServer (deck/:deckId/favorite) Server error: ', err);
                 next(err);
             }
         });
@@ -375,6 +377,7 @@ export class GameServer {
                 const user = req.user as User;
 
                 if (!user || user.isAnonymousUser()) {
+                    logger.error(`GameServer (delete-decks): A anonymous user ${user.getId()} attempted to delete decks ${deckIds}`);
                     return res.status(401).json({
                         success: false,
                         message: 'Authentication error'
@@ -382,7 +385,7 @@ export class GameServer {
                 }
 
                 if (!deckIds || !Array.isArray(deckIds) || deckIds.length === 0) {
-                    logger.error('GameServer: Error in delete-decks received empty array of deck ids from user: ' + req.user.getId());
+                    logger.error(`GameServer (delete-decks): Error in delete-decks received empty array of deck ids ${deckIds} from user ${user.getId()}`);
                     return res.status(400).json({
                         success: false,
                         message: 'Server error'
@@ -399,7 +402,7 @@ export class GameServer {
                     deckIds
                 });
             } catch (err) {
-                logger.error('GameServer: Error in delete-decks:', err);
+                logger.error('GameServer (delete-decks) Server error :', err);
                 next(err);
             }
         });
@@ -408,7 +411,7 @@ export class GameServer {
             try {
                 return res.json(this.getOngoingGamesData());
             } catch (err) {
-                logger.error('GameServer: Error in ongoing-games:', err);
+                logger.error('GameServer (ongoing-games) Server Error: ', err);
                 next(err);
             }
         });
@@ -420,6 +423,7 @@ export class GameServer {
                 // Check if the user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
                     // TODO shouldn't return 403
+                    logger.error(`GameServer (create-lobby): Error in create-lobby User ${user.getId()} attempted to create a different lobby while already being in a lobby`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'
@@ -430,7 +434,7 @@ export class GameServer {
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
-                logger.error('GameServer: Error in create lobby:', err);
+                logger.error('GameServer (create-lobby) Server error:', err);
                 next(err);
             }
         });
@@ -444,7 +448,7 @@ export class GameServer {
                 }));
                 return res.json(availableLobbies);
             } catch (err) {
-                logger.error('GameServer: Error in available-lobbies:', err);
+                logger.error('GameServer (available-lobbies) Server error: ', err);
                 next(err);
             }
         });
@@ -455,6 +459,7 @@ export class GameServer {
                 const user = req.user;
 
                 if (!this.canUserJoinNewLobby(user.getId())) {
+                    logger.error(`GameServer (join-lobby): Error in join-lobby User ${user.getId()} attempted to join a different lobby while already being in a lobby`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'
@@ -462,6 +467,7 @@ export class GameServer {
                 }
                 const lobby = this.lobbies.get(lobbyId);
                 if (!lobby) {
+                    logger.error(`GameServer (join-lobby): Error in join-lobby User ${user.getId()} attempted to join a lobby that doesn't exist`);
                     return res.status(404).json({ success: false, message: 'Lobby not found' });
                 }
 
@@ -473,7 +479,7 @@ export class GameServer {
                 this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
                 return res.status(200).json({ success: true });
             } catch (err) {
-                logger.error('GameServer: Error in join-lobby:', err);
+                logger.error('GameServer (join-lobby) Server error:', err);
                 next(err);
             }
         });
@@ -505,6 +511,7 @@ export class GameServer {
                 const user = req.user;
                 // check if user is already in a lobby
                 if (!this.canUserJoinNewLobby(user.getId())) {
+                    logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} attempted to join queue while being in a lobby`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'
@@ -513,12 +520,13 @@ export class GameServer {
                 await this.processDeckValidation(deck, format, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
+                        logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(400).json({ success: false, message: 'Failed to enter queue' });
                     }
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
-                logger.error('GameServer: Error in enter-queue:', err);
+                logger.error('GameServer (enter-queue) Server error: ', err);
                 next(err);
             }
         });
