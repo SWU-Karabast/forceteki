@@ -421,6 +421,44 @@ describe('Uniqueness rule', function() {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('works the same as above if the player chooses the other copy', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: [
+                            'fell-the-dragon'
+                        ]
+                    },
+                    player2: {
+                        groundArena: [
+                            {
+                                card: 'cad-bane#hostage-taker',
+                                capturedUnits: [
+                                    'kuiil#i-have-spoken',
+                                    'kuiil#i-have-spoken'
+                                ]
+                            }
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+                const kuiil1 = context.cadBane.capturedUnits[0];
+                const kuiil2 = context.cadBane.capturedUnits[1];
+
+                context.player1.clickCard(context.fellTheDragon);
+                context.player1.clickCard(context.cadBane);
+
+                expect(context.player1).toHavePrompt('Choose which copy of Kuiil, I Have Spoken to defeat');
+
+                context.player1.clickCard(kuiil2);
+
+                expect(kuiil1).toBeInZone('groundArena');
+                expect(kuiil2).toBeInZone('discard');
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('and one copy was already in play, the player is prompted to defeat two copies', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -488,6 +526,76 @@ describe('Uniqueness rule', function() {
                 context.player1.clickCard(obi3);
 
                 expect(obi3).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('works the same as above if the player chooses the other copy', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: [
+                            'fell-the-dragon'
+                        ],
+                        groundArena: [
+                            'obiwan-kenobi#following-fate'
+                        ]
+                    },
+                    player2: {
+                        groundArena: [
+                            {
+                                card: 'cad-bane#hostage-taker',
+                                capturedUnits: [
+                                    'obiwan-kenobi#following-fate',
+                                    'obiwan-kenobi#following-fate'
+                                ]
+                            }
+                        ]
+                    }
+                });
+
+                const { context } = contextRef;
+                const obi1 = context.cadBane.capturedUnits[0];
+                const obi2 = context.cadBane.capturedUnits[1];
+                const obi3 = context.player1.findCardByName('obiwan-kenobi#following-fate', 'groundArena');
+
+                context.player1.clickCard(context.fellTheDragon);
+                context.player1.clickCard(context.cadBane);
+
+                expect(context.player1).toHavePrompt('Choose which copies of Obi-Wan Kenobi, Following Fate to defeat');
+                expect(context.player1).not.toHaveExactPromptButtons(['Done']);
+                expect(context.player1).toBeAbleToSelectExactly([obi1, obi2, obi3]);
+
+                context.player1.clickCard(obi2);
+
+                expect(context.player1).toHavePrompt('Choose which copies of Obi-Wan Kenobi, Following Fate to defeat');
+                expect(context.player1).not.toHaveExactPromptButtons(['Done']);
+
+                context.player1.clickCard(obi3);
+
+                expect(context.player1).toHavePrompt('Choose which copies of Obi-Wan Kenobi, Following Fate to defeat');
+                expect(context.player1).toHaveExactPromptButtons(['Done']);
+
+                context.player1.clickPrompt('Done');
+
+                expect(obi1).toBeInZone('groundArena');
+                expect(obi2).toBeInZone('discard');
+                expect(obi3).toBeInZone('discard');
+
+                // Once both are defeated, the player can resolve the When Defeated abilities
+                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.',
+                    'Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.'
+                ]);
+
+                context.player1.clickPrompt('Give 2 Experience tokens to another friendly unit. If it\'s a Force unit, draw a card.');
+
+                expect(context.player1).toBeAbleToSelectExactly([obi1]);
+
+                context.player1.clickCardNonChecking(obi1);
+                context.player1.clickCard(obi1);
+
+                expect(obi1).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience']);
                 expect(context.player2).toBeActivePlayer();
             });
         });
