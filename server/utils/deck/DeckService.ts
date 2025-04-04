@@ -1,5 +1,5 @@
 import { dynamoDbService } from '../../services/DynamoDBService';
-import type { IDeckDataEntity, IDeckStatsEntity, ILocalStorageDeckData } from '../../services/DynamoDBInterfaces';
+import type { IDeckDataEntity, IDeckStatsEntity, ILocalStorageDeckData, IOpponentStatEntity } from '../../services/DynamoDBInterfaces';
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import type { User } from '../user/User';
@@ -11,7 +11,7 @@ import type { CardDataGetter } from '../cardData/CardDataGetter';
  * Service class for handling deck-related operations
  */
 export class DeckService {
-    private dbService: typeof dynamoDbService = dynamoDbService;
+    private dbService = dynamoDbService;
 
     /**
      * Get all decks for a user with favorites first
@@ -34,7 +34,7 @@ export class DeckService {
                 }));
         } catch (error) {
             logger.error(`Error retrieving decks for user ${userId}:`, error);
-            return [];
+            throw error;
         }
     }
 
@@ -50,11 +50,11 @@ export class DeckService {
 
             // if we create a map it will be faster to lookup.
             const existingDeckLinks = new Map();
-            existingDecks.forEach((deck) => {
+            for (const deck of existingDecks) {
                 if (deck.deck.deckLinkID) {
                     existingDeckLinks.set(deck.deck.deckLinkID, deck);
                 }
-            });
+            }
 
             for (const unsyncedDeck of unsyncedDecks) {
                 // skip if deck link already exists
@@ -108,10 +108,12 @@ export class DeckService {
             const deckLinkID = deckData.deck.deckLinkID;
             let updatedDeckData = null;
             const existingDeck = await this.dbService.getDeckByLink(user.getId(), deckLinkID);
+            let isUpdate = false;
             if (deckLinkID && existingDeck) {
                 // If the deck already exists, update it instead of creating a new one
                 logger.info(`DeckService: Deck with link ${deckLinkID} already exists for user ${user.getUsername()}, updating existing deck`);
                 // Use the existing deck's ID
+                isUpdate = true;
                 updatedDeckData = {
                     ...deckData,
                     id: existingDeck.id
@@ -128,11 +130,28 @@ export class DeckService {
             }
             // Save the new deck to the database
             await this.dbService.saveDeck(updatedDeckData);
-            logger.info(`DeckService: Saved/updated new deck ${updatedDeckData.id} for user ${deckData.userId}`);
+            logger.info(`DeckService: ${isUpdate ? 'Updated deck' : 'Saved new deck'} ${updatedDeckData.id} for user ${deckData.userId}`);
             return updatedDeckData;
         } catch (error) {
             logger.error(`Error saving deck for user ${user.getId()}:`, error);
             throw error;
+        }
+    }
+
+    private updateScore(result: ScoreType, stats: IDeckStatsEntity | IOpponentStatEntity) {
+        // Update stats
+        switch (result) {
+            case ScoreType.Win:
+                stats.wins += 1;
+                break;
+            case ScoreType.Lose:
+                stats.losses += 1;
+                break;
+            case ScoreType.Draw:
+                stats.draws += 1;
+                break;
+            default:
+                Contract.fail(`Invalid match result: ${result}`);
         }
     }
 
@@ -184,7 +203,7 @@ export class DeckService {
             // Verify the deck belongs to this user before deleting
             const deck = await this.dbService.getDeck(userId, deckId);
             if (!deck) {
-                logger.warn(`DeckService: Deck ${deckId} not found for user ${userId}`);
+                logger.error(`DeckService: Deck ${deckId} not found for user ${userId}`);
                 return;
             }
 
@@ -218,10 +237,8 @@ export class DeckService {
             // Get the deck using our new flexible lookup method
             const deck = await this.getDeckById(userId, deckId);
 
-            // If not found after all lookup methods, throw error
-            if (!deck) {
-                throw new Error(`Deck with ID ${deckId} not found for user ${userId}`);
-            }
+            // If not found after all lookup methods.
+            Contract.assertNotNullLike(deck, `Deck with ID ${deckId} not found for user ${userId}`);
 
             // Initialize stats if they don't exist
             const stats: IDeckStatsEntity = deck.stats || {
@@ -237,19 +254,7 @@ export class DeckService {
             }
 
             // Update overall stats
-            switch (result) {
-                case ScoreType.Win:
-                    stats.wins += 1;
-                    break;
-                case ScoreType.Lose:
-                    stats.losses += 1;
-                    break;
-                case ScoreType.Draw:
-                    stats.draws += 1;
-                    break;
-                default:
-                    Contract.fail(`Invalid match result: ${result}`);
-            }
+            this.updateScore(result, stats);
 
             // Find or create opponent stat
             let opponentStat = stats.opponentStats.find((stat) =>
@@ -266,23 +271,10 @@ export class DeckService {
                 stats.opponentStats.push(opponentStat);
             }
 
-            // Update opponent-specific stats
-            switch (result) {
-                case ScoreType.Win:
-                    opponentStat.wins += 1;
-                    break;
-                case ScoreType.Lose:
-                    opponentStat.losses += 1;
-                    break;
-                case ScoreType.Draw:
-                    opponentStat.draws += 1;
-                    break;
-                default:
-                    Contract.fail(`Invalid match result for opponent stats: ${result}`);
-            }
+            this.updateScore(result, opponentStat);
             // Save updated stats
             await this.dbService.updateDeckStats(userId, deckId, stats);
-            logger.info(`DeckService: Updated stats for deck ${deckId}, user ${userId}, result: ${result}, opponent leader: ${opponentLeaderId}, opponent base: ${opponentBaseId}, stats: ${stats}`);
+            logger.info(`DeckService: Updated stats for deck ${deckId}, user ${userId}, result: ${result}, opponent leader: ${opponentLeaderId}, opponent base: ${opponentBaseId}, stats: ${JSON.stringify(stats)}`);
             return stats;
         } catch (error) {
             logger.error(`Error updating deck stats for deck ${deckId}, user ${userId}:`, error);
@@ -320,7 +312,6 @@ export class DeckService {
 
                 if (deck) {
                     logger.info(`DeckService: Found deck with matching deckID/deckLinkID property: ${deck.id}`);
-                    // convert every opponents internal name into a card id
                     return deck;
                 }
             }
@@ -337,6 +328,7 @@ export class DeckService {
     /**
      * Converts all opponent stats' internal names to card IDs
      * @param deck The deck data to process
+     * @param cardDataGetter
      * @returns The processed deck data
      */
     public async convertOpponentStatsForFe(deck: IDeckDataEntity, cardDataGetter: CardDataGetter): Promise<IDeckDataEntity> {
@@ -353,14 +345,9 @@ export class DeckService {
                 const baseCardId = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);
 
                 // If conversion was successful, use the card IDs
-                if (leaderCardId) {
-                    opponentStat.leaderId = leaderCardId.setId.set + '_' + leaderCardId.setId.number;
-                }
-
-                if (baseCardId) {
-                    opponentStat.baseId = baseCardId.setId.set + '_' + baseCardId.setId.number;
-                }
-
+                Contract.assertNotNullLike(leaderCardId && baseCardId, `When converting match stats to for FE leaderCardId ${leaderCardId} and baseCardId ${baseCardId} are null`);
+                opponentStat.leaderId = leaderCardId.setId.set + '_' + leaderCardId.setId.number;
+                opponentStat.baseId = baseCardId.setId.set + '_' + baseCardId.setId.number;
                 return opponentStat;
             }));
         return deck;
