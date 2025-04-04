@@ -634,22 +634,17 @@ export class Lobby {
     private async updatePlayerStats(playerUser: LobbyUser, opponentPlayerUser: LobbyUser, score: ScoreType) {
         // Get the deck service
         const deckService = this.server.getDeckService();
-        if (!deckService) {
-            logger.error(`Lobby ${this.id}: Could not get DeckService`);
-            throw Error(`Lobby ${this.id}: Could not get DeckService`);
-        }
-
         const opponentPlayerLeaderId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.deck.leader.id);
         const opponentPlayerBaseId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.deck.base.id);
-        if (playerUser.socket.user.isAuthenticatedUser()) {
-            await deckService.updateDeckStats(
-                playerUser.socket.user.getId(),
-                playerUser.deck.id,
-                score,
-                opponentPlayerLeaderId.internalName,
-                opponentPlayerBaseId.internalName,
-            );
-        }
+
+        Contract.assertTrue(playerUser.socket.user.isAuthenticatedUser());
+        await deckService.updateDeckStats(
+            playerUser.socket.user.getId(),
+            playerUser.deck.id,
+            score,
+            opponentPlayerLeaderId.internalName,
+            opponentPlayerBaseId.internalName,
+        );
     }
 
 
@@ -696,8 +691,12 @@ export class Lobby {
             const player1User = this.users.find((u) => u.id === player1.id);
             const player2User = this.users.find((u) => u.id === player2.id);
 
-            if (!player1User?.deck || !player2User?.deck) {
-                logger.warn(`Lobby ${this.id}: Missing deck information for one or both players`);
+            if (!player1User?.deck) {
+                logger.error(`Lobby ${this.id}: Missing deck information (${player1User.deck}) for  player1 ${player1User.id}`);
+                return;
+            }
+            if (!player2User?.deck) {
+                logger.error(`Lobby ${this.id}: Missing deck information (${player2User.deck}) for  player2 ${player2User.id}`);
                 return;
             }
 
