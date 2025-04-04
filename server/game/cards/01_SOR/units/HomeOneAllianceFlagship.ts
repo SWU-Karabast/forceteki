@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Aspect, KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
+import {Aspect, KeywordName, RelativePlayer, WildcardCardType, ZoneName} from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
@@ -20,6 +20,7 @@ export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 },
+                    playAsType: WildcardCardType.Unit
                 }),
             }
         });
