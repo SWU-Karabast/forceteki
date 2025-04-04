@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { RelativePlayer, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, ZoneName } from '../../../core/Constants';
 import type { ICardTargetResolver } from '../../../TargetInterfaces';
 import type { TriggeredAbilityContext } from '../../../core/ability/TriggeredAbilityContext';
 
@@ -34,7 +34,7 @@ export default class HunterOutcastSergeant extends LeaderUnitCard {
             controller: RelativePlayer.Self,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) =>
-                    context.player.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.unique)
+                    context.player.getArenaUnits({ condition: (card) => card.unique })
                         .map((unit) => unit.title)
                         .includes(context.target?.title),
                 onTrue: AbilityHelper.immediateEffects.simultaneous([

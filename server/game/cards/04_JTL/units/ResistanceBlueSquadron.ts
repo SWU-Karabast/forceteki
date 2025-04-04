@@ -17,7 +17,7 @@ export default class ResistanceBlueSquadron extends NonLeaderUnitCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
-                    amount: context.player.getUnitsInPlay(ZoneName.SpaceArena).length
+                    amount: context.player.getArenaUnits({ arena: ZoneName.SpaceArena }).length
                 })),
             },
         });

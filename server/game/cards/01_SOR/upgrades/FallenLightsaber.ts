@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { ZoneName, Trait } from '../../../core/Constants';
+import { Trait, ZoneName } from '../../../core/Constants';
 
 export default class FallenLightsaber extends UpgradeCard {
     protected override getImplementationId() {
@@ -17,7 +17,7 @@ export default class FallenLightsaber extends UpgradeCard {
         this.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 1 damage to each ground unit the defending player controls',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) =>
-                ({ target: context.player.opponent.getUnitsInPlay(ZoneName.GroundArena), amount: 1 })
+                ({ target: context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena }), amount: 1 })
             ),
             gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force)
         });

@@ -17,7 +17,7 @@ export default class SavageOpressMonster extends NonLeaderUnitCard {
                     condition: (context) => {
                         const player = context.player;
                         const opponent = player.opponent;
-                        return player.getUnitsInPlay().length < opponent.getUnitsInPlay().length;
+                        return player.getArenaUnits().length < opponent.getArenaUnits().length;
                     },
                     onTrue: AbilityHelper.immediateEffects.ready(),
                 }

@@ -83,5 +83,32 @@ describe('Inferno Four - Unforgetting', function() {
                 context.player1.clickPrompt('Done');
             });
         });
+
+        it('should work with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['inferno-four#unforgetting']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay'],
+                    hasInitiative: true
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.infernoFour);
+            expect(context.player2).toHaveExactSelectableDisplayPromptCards([context.sabineWren, context.battlefieldMarine]);
+            expect(context.player2).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
+            context.player2.clickDisplayCardPromptButton(context.sabineWren.uuid, 'top');
+            context.player2.clickDisplayCardPromptButton(context.battlefieldMarine.uuid, 'bottom');
+
+            expect(context.infernoFour).toBeInZone('discard');
+            expect(context.infernoFour).toBeInZone('discard', context.player1);
+
+            context.player1.passAction();
+        });
     });
 });
