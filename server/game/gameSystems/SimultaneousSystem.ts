@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { MetaEventName } from '../core/Constants';
+import * as Contract from '../core/utils/Contract';
 import { GameStateChangeRequired } from '../core/Constants';
 import type { GameObject } from '../core/GameObject';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
@@ -23,6 +24,8 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
     protected override readonly eventName: MetaEventName.Simultaneous;
     protected readonly everyGameSystemMustBeLegal: boolean;
     public constructor(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = false, everyGameSystemMustBeLegal = false) {
+        Contract.assertFalse(ignoreTargetingRequirements && everyGameSystemMustBeLegal, 'ignoreTargetingRequirements and everyGameSystemMustBeLegal cannot be used together');
+
         if (typeof gameSystems === 'function') {
             super((context: TContext) => ({ gameSystems: gameSystems(context), ignoreTargetingRequirements }));
         } else {
