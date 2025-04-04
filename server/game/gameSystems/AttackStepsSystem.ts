@@ -151,9 +151,12 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
 
         const canAttackTarget = properties.targetCondition(targetCard, context) &&
           EnumHelpers.isAttackableZone(targetCard.zoneName);
+        if (!canAttackTarget) {
+            return false;
+        }
 
         // If the target can be attack and the attacker has a "must attack" effect, ensure that the target meets the "must attack" condition
-        if (canAttackTarget && properties.attacker.hasOngoingEffect(EffectName.MustAttack)) {
+        if (properties.attacker.hasOngoingEffect(EffectName.MustAttack)) {
             const mustAttackProperties = properties.attacker.getOngoingEffectValues<MustAttackProperties>(EffectName.MustAttack)[0];
             const targetUnitIfAble = mustAttackProperties.targetUnitIfAble ?? false;
             if (!targetCard.isUnit() && targetUnitIfAble && targetCard.controller.hasSomeArenaUnit({ condition: (card) => this.canAffectInternal(card, context, additionalProperties) })) {
@@ -161,7 +164,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             }
         }
 
-        return canAttackTarget;
+        return true;
     }
 
     public attackCosts(prompt, context: TContext, additionalProperties = {}): void {
