@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import {Aspect, KeywordName, RelativePlayer, WildcardCardType, ZoneName} from '../../../core/Constants';
+import { Aspect, KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class HomeOneAllianceFlagship extends NonLeaderUnitCard {
