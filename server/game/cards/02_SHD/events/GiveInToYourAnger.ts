@@ -16,13 +16,13 @@ export default class GiveInToYourAnger extends EventCard {
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Opponent,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous((simultaneousContext) => ([
+                immediateEffect: AbilityHelper.immediateEffects.sequential((context) => ([
                     AbilityHelper.immediateEffects.damage({ amount: 1 }),
                     AbilityHelper.immediateEffects.cardLastingEffect({
                         duration: Duration.Custom,
                         until: {
                             onPhaseEnded: () => true,
-                            onActionTaken: (event) => event.player === simultaneousContext.player.opponent,
+                            onActionTaken: (event) => event.player === context.player.opponent,
                         },
                         effect: AbilityHelper.ongoingEffects.mustAttack({
                             targetUnitIfAble: true,
