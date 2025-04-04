@@ -9,6 +9,7 @@ import {
     UpdateCommand
 } from '@aws-sdk/lib-dynamodb';
 import { logger } from '../logger';
+import * as Contract from '../game/core/utils/Contract';
 import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity } from './DynamoDBInterfaces';
 
 class DynamoDBService {
@@ -38,9 +39,11 @@ class DynamoDBService {
             };
         } else {
             // Use actual AWS credentials for production
+            Contract.assertNotNullLike(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY,
+                'AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY are undefined');
             dbClientConfig.credentials = {
-                accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
             };
         }
 
