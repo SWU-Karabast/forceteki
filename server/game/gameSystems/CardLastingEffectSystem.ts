@@ -69,7 +69,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
                 durationStr = '';
                 break;
             default:
-                Contract.fail('Unknown duration');
+                Contract.fail(`Unknown duration: ${(properties as any).duration}`);
         }
 
         return [`${description} {0}${durationStr}`, [properties.target]];
