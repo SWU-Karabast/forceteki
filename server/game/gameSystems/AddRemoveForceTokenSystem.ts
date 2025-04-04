@@ -1,0 +1,48 @@
+import type { AbilityContext } from '../core/ability/AbilityContext';
+import { EventName, GameStateChangeRequired } from '../core/Constants';
+import type { Player } from '../core/Player.js';
+import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
+import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IUseTheForceProperties extends IPlayerTargetSystemProperties {}
+
+export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IUseTheForceProperties = IUseTheForceProperties> extends PlayerTargetSystem<TContext, TProperties> {
+    public override readonly name = 'useTheForce';
+    public override readonly eventName = EventName.OnReadyResources;
+
+    public override eventHandler(event): void {
+        event.player.readyResources(event.amount);
+    }
+
+    public override getEffectMessage(context: TContext): [string, any[]] {
+        const { amount } = this.generatePropertiesFromContext(context);
+        return amount === 1 ? ['ready a resource', []] : ['ready {0} resources', [amount]];
+    }
+
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        const { isCost, amount } = this.generatePropertiesFromContext(context);
+
+        // if this is a cost or an "if you do" condition, must ready all required resources
+        if ((isCost || mustChangeGameState === GameStateChangeRequired.MustFullyResolve) && player.exhaustedResourceCount < amount) {
+            return false;
+        }
+
+        // if this is for the effect of an ability, just need to have some effect
+        if (mustChangeGameState === GameStateChangeRequired.MustFullyOrPartiallyResolve && player.exhaustedResourceCount === 0) {
+            return false;
+        }
+
+        return super.canAffectInternal(player, context, additionalProperties, mustChangeGameState);
+    }
+
+    public override defaultTargets(context: TContext): Player[] {
+        return [context.player];
+    }
+
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
+        const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
+        super.addPropertiesToEvent(event, player, context, additionalProperties);
+        event.amount = amount;
+    }
+}

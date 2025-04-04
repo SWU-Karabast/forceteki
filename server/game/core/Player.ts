@@ -56,6 +56,7 @@ export interface IPlayerState extends IGameObjectState {
     deckZone: GameObjectRef<DeckZone>;
     leader: GameObjectRef<ILeaderCard>;
     base: GameObjectRef<IBaseCard>;
+    hasTheForce: boolean;
 }
 
 export class Player extends GameObject<IPlayerState> {
@@ -99,6 +100,10 @@ export class Player extends GameObject<IPlayerState> {
         return this.game.gameObjectManager.get(this.state.base);
     }
 
+    public get hasTheForce(): boolean {
+        return this.state.hasTheForce;
+    }
+
     private canTakeActionsThisPhase: null;
     // STATE TODO: Does Deck need to be a GameObject?
     private decklistNames: Deck | null;
@@ -140,6 +145,7 @@ export class Player extends GameObject<IPlayerState> {
         this.state.outsideTheGameZone = new OutsideTheGameZone(game, this).getRef();
         this.state.baseZone = null;
         this.state.deckZone = new DeckZone(game, this).getRef();
+        this.state.hasTheForce = false;
 
         this.clock = clockFor(this, clockDetails);
 
@@ -1263,7 +1269,8 @@ export class Player extends GameObject<IPlayerState> {
             user: safeUser,
             promptState: promptState,
             isActionPhaseActivePlayer,
-            clock: undefined
+            clock: undefined,
+            hasTheForce: this.hasTheForce,
         };
 
         // if (this.showDeck) {
