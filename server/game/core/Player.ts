@@ -1263,7 +1263,8 @@ export class Player extends GameObject<IPlayerState> {
             user: safeUser,
             promptState: promptState,
             isActionPhaseActivePlayer,
-            clock: undefined
+            clock: undefined,
+            aspects: this.getAspects(),
         };
 
         // if (this.showDeck) {
