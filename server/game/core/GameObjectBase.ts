@@ -76,7 +76,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
         const ref = { isRef: true, uuid: this.state.uuid };
 
-        if (Helpers.isDevelopment) {
+        if (Helpers.isDevelopment()) {
             // This property is for debugging purposes only and should never be referenced within the code.
             Object.defineProperty(ref, 'gameObject', {
                 value: this,

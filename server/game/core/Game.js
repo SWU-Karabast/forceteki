@@ -1619,7 +1619,7 @@ class Game extends EventEmitter {
      * @param {() => void} fcn
      */
     debugPipeline(fcn) {
-        this.#debug.pipeline = Helpers.isDevelopment;
+        this.#debug.pipeline = Helpers.isDevelopment();
         try {
             fcn();
         } finally {
@@ -1632,7 +1632,7 @@ class Game extends EventEmitter {
      * @param {() => any} fcn
      */
     enableUndo(fcn) {
-        this.#experimental.undo = Helpers.isDevelopment;
+        this.#experimental.undo = Helpers.isDevelopment();
         try {
             return fcn();
         } finally {

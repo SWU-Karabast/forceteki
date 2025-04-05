@@ -28,6 +28,7 @@ export class GameStateManager {
     private readonly allGameObjects: GameObjectBase[];
     private readonly gameObjectMapping: Map<string, GameObjectBase>;
     private lastId = 0;
+    private lastSnapshotId = 0;
 
     public constructor(game: Game) {
         this.game = game;
@@ -67,12 +68,14 @@ export class GameStateManager {
     }
 
     public takeSnapshot(): number {
+        const nextId = this.lastSnapshotId + 1;
         const snapshot: IGameSnapshot = {
-            id: this.snapshots.length,
+            id: nextId,
             lastId: this.lastId,
             gameState: structuredClone(this.game.state),
             states: this.allGameObjects.map((x) => x.getState())
         };
+        this.lastSnapshotId = nextId;
 
         this.snapshots.push(snapshot);
 
@@ -89,7 +92,7 @@ export class GameStateManager {
             // We take a snapshot at the start of someone's turn, so hitting undo would mean we need to back to the second most recent snapshot.
             snapshotId = this.snapshots[this.snapshots.length - 2].id;
         }
-        Contract.assertNonNegative(snapshotId, 'Tried to rollback but snapshot ID is invalid ' + snapshotId);
+        Contract.assertPositiveNonZero(snapshotId, 'Tried to rollback but snapshot ID is invalid ' + snapshotId);
 
         const snapshotIdx = this.snapshots.findIndex((x) => x.id === snapshotId);
         Contract.assertNonNegative(snapshotIdx, `Tried to rollback to snapshot ID ${snapshotId} but the snapshot was not found.`);

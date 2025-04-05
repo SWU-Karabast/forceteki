@@ -1,16 +1,14 @@
 describe('Ability resolver', function() {
     integration(function(contextRef) {
-        beforeEach(function () {
-            return contextRef.setupTestAsync({
+        it('Triggers during an "if you do" sub-step for an event ability should go in the same resolution window as triggers from the beginning of the ability', async function() {
+            await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
                     hand: ['selfdestruct'],
                     spaceArena: ['star-wing-scout', 'rhokai-gunship']
                 }
             });
-        });
 
-        it('Triggers during an "if you do" sub-step for an event ability should go in the same resolution window as triggers from the beginning of the ability', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.selfdestruct);

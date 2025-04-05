@@ -12,8 +12,7 @@ describe('Undo', function() {
                     player2: {
                         groundArena: ['wampa', 'superlaser-technician'],
                         spaceArena: ['tieln-fighter']
-                    },
-                    testUndo: true
+                    }
                 });
             });
 
