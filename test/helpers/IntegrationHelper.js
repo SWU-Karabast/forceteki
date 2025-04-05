@@ -122,7 +122,7 @@ global.integration = function (definitions) {
 };
 
 const jit = it;
-global.uit = function(expectation, assertion, timeout) {
+global.undoIt = function(expectation, assertion, timeout) {
     jit(expectation + ' (with Undo)', async function() {
         /** @type {SwuTestContext} */
         const context = this.contextRef.context;

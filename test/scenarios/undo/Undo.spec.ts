@@ -17,7 +17,7 @@ describe('Undo', function() {
                 });
             });
 
-            uit('can only target ground units & can damage itself', function () {
+            undoIt('can only target ground units & can damage itself', function () {
                 const { context } = contextRef;
 
                 // Play Death Trooper
@@ -36,7 +36,7 @@ describe('Undo', function() {
                 expect(context.wampa.damage).toEqual(2);
             });
 
-            uit('works when no enemy ground units', function () {
+            undoIt('works when no enemy ground units', function () {
                 const { context } = contextRef;
 
                 // Play Death Trooper
@@ -68,7 +68,7 @@ describe('Undo', function() {
                 });
             });
 
-            uit('should heal a target with 1 damage to full', function () {
+            undoIt('should heal a target with 1 damage to full', function () {
                 const { context } = contextRef;
 
                 // Attack
@@ -86,7 +86,7 @@ describe('Undo', function() {
                 expect(context.c3po.damage).toBe(0);
             });
 
-            uit('should heal 2 damage from a unit', function () {
+            undoIt('should heal 2 damage from a unit', function () {
                 const { context } = contextRef;
 
                 // Attack
@@ -104,7 +104,7 @@ describe('Undo', function() {
                 expect(context.r2d2.damage).toBe(1);
             });
 
-            uit('should be able to heal an enemy unit', function () {
+            undoIt('should be able to heal an enemy unit', function () {
                 const { context } = contextRef;
 
                 // Attack
@@ -123,7 +123,7 @@ describe('Undo', function() {
                 expect(context.wampa.damage).toBe(0);
             });
 
-            uit('should be able to be passed', function () {
+            undoIt('should be able to be passed', function () {
                 const { context } = contextRef;
 
                 expect(context.r2d2.damage).toBe(3);

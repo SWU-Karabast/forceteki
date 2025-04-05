@@ -142,4 +142,4 @@ declare namespace jasmine {
  * @param assertion Function that contains the code of your test. If not provided the test will be pending.
  * @param timeout Custom timeout for an async spec.
  */
-declare function uit(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number): void;
+declare function undoIt(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number): void;
