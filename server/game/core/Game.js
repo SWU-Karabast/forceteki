@@ -100,7 +100,7 @@ class Game extends EventEmitter {
     }
 
     set roundNumber(value) {
-        Contract.assertNonNegative(value, 'Round Number must be non-zero.');
+        Contract.assertNonNegative(value, 'Round Number must be non-zero: ' + value);
         this.state.roundNumber = value;
     }
 
