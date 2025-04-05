@@ -32,6 +32,7 @@ export class InitiateAttackAction extends PlayerAction {
             minNumCardsFunc: () => 1,
             maxNumCardsFunc: (context) => context.source.getMaxUnitAttackLimit(),
             useSingleSelectModeFunc: (possibleTargets) => possibleTargets.some((card) => card.isBase() && possibleTargets.filter((card) => card.isUnit()).length === 1),
+            multiSelectCardCondition: (card, selectedCards) => (card.isBase() ? selectedCards.length === 0 : !selectedCards.some((card) => card.isBase())),
             immediateEffect: new AttackStepsSystem(Object.assign({}, attackProperties, { attacker: card })),
             zoneFilter: WildcardZoneName.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'

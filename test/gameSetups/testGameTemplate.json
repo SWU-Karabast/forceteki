@@ -6,7 +6,7 @@
         "leader": "luke-skywalker#faithful-friend"
     },
     "player2": {
-        "groundArena": [{ "card": "seasoned-shoretrooper", "upgrades": ["shield"] }],
+        "groundArena": ["wampa", "moisture-farmer"],
         "base": { "card": "chopper-base", "damage": 5 },
         "leader": "sabine-wren#galvanized-revolutionary"
     }
