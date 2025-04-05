@@ -42,6 +42,7 @@ const { validateGameConfiguration, validateGameOptions } = require('./GameInterf
 const { GameStateManager } = require('./GameStateManager.js');
 const { ActionWindow } = require('./gameSteps/ActionWindow.js');
 const { GameObjectBase } = require('./GameObjectBase.js');
+const Helpers = require('./utils/Helpers.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -1603,7 +1604,9 @@ class Game extends EventEmitter {
      */
     debug(settings, fcn) {
         const currDebug = this.#debug;
-        this.#debug = settings;
+        if (Helpers.isDevelopment) {
+            this.#debug = settings;
+        }
         try {
             fcn();
         } finally {
@@ -1616,7 +1619,7 @@ class Game extends EventEmitter {
      * @param {() => void} fcn
      */
     debugPipeline(fcn) {
-        this.#debug.pipeline = true;
+        this.#debug.pipeline = Helpers.isDevelopment;
         try {
             fcn();
         } finally {
@@ -1626,10 +1629,10 @@ class Game extends EventEmitter {
 
     /**
      * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
-     * @param {() => void} fcn
+     * @param {() => any} fcn
      */
     enableUndo(fcn) {
-        this.#experimental.undo = true;
+        this.#experimental.undo = Helpers.isDevelopment;
         try {
             return fcn();
         } finally {

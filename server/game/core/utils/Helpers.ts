@@ -99,6 +99,8 @@ export function asArray<T>(val: T | T[]): T[] {
     return Array.isArray(val) ? val : [val];
 }
 
+export const isDevelopment = process.env.ENVIRONMENT === 'development';
+
 export function getRandomArrayElements(array: any[], nValues: number, randomGenerator: seedrandom) {
     Contract.assertTrue(nValues <= array.length, `Attempting to retrieve ${nValues} random elements from an array of length ${array.length}`);
 
