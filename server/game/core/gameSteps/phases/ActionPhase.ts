@@ -61,4 +61,16 @@ export class ActionPhase extends Phase {
     public override resetPhase(): void {
         this.pipeline.clearSteps();
     }
+
+    public takeSnapshot() {
+        return this.game.gameObjectManager.takeSnapshot();
+    }
+
+    public rollbackToSnapshot(snapshotId: number | null) {
+        this.game.gameObjectManager.rollbackToSnapshot(snapshotId);
+        this.resetPhase();
+        this.queueNextAction();
+        // continue the action phase again.
+        this.continue();
+    }
 }

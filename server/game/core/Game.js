@@ -1573,26 +1573,22 @@ class Game extends EventEmitter {
     }
 
     takeSnapshot() {
-        if (this.#experimental.undo && this.pipeline.currentStep instanceof ActionPhase) {
-            return this.gameObjectManager.takeSnapshot();
+        if (this.#experimental.undo && 'takeSnapshot' in this.pipeline.currentStep) {
+            return this.pipeline.currentStep.takeSnapshot();
         }
 
         return null;
     }
 
     /**
-     * @param {number} snapshotId
+     * @param {number | null} snapshotId
      */
     rollbackToSnapshot(snapshotId) {
-        if (this.#experimental.undo && this.pipeline.currentStep instanceof ActionPhase) {
-            const actionPhase = this.pipeline.currentStep;
-            this.gameObjectManager.rollbackToSnapshot(snapshotId);
-            actionPhase.resetPhase();
-            actionPhase.queueNextAction();
-            // continue the action phase again.
-            actionPhase.continue();
+        if (this.#experimental.undo && 'rollbackToSnapshot' in this.pipeline.currentStep) {
+            this.pipeline.currentStep.rollbackToSnapshot(snapshotId);
             return true;
         }
+
         return false;
     }
 
