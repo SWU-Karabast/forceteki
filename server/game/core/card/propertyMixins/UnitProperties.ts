@@ -74,6 +74,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean;
     attachUpgrade(upgrade);
     getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
+    getMaxUnitAttackLimit(): number;
 }
 
 /**
@@ -217,8 +218,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 Contract.assertNotNullLike(cardData.upgradeHp, `Card ${this.internalName} is missing upgradeHp`);
                 Contract.assertNotNullLike(cardData.upgradePower, `Card ${this.internalName} is missing upgradePower`);
             }
-
-            this.attackAction = new InitiateAttackAction(this.game, this);
         }
 
         protected override initializeStateForAbilitySetup() {
@@ -314,7 +313,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 return this.pilotingActionAbilities;
             }
 
-            return super.getActions().concat(this.attackAction);
+            return super.getActions().concat(new InitiateAttackAction(this.game, this));
         }
 
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {
@@ -899,6 +898,18 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             if (upgrade.printedHp !== 0) {
                 this._lastPlayerToModifyHp = upgrade.controller;
             }
+        }
+
+        public getMaxUnitAttackLimit(): number {
+            let attackLimit = 1;
+            if (this.hasOngoingEffect(EffectName.CanAttackMultipleUnitsSimultaneously)) {
+                this.getOngoingEffectValues(EffectName.CanAttackMultipleUnitsSimultaneously).forEach((effect) => {
+                    if (effect.amount > attackLimit) {
+                        attackLimit = effect.amount;
+                    }
+                });
+            }
+            return attackLimit;
         }
 
         public override getSummary(activePlayer: Player) {

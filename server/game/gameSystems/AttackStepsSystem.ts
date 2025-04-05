@@ -63,8 +63,17 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         const attacker = event.attacker;
 
         Contract.assertTrue(attacker.isUnit());
-        if (!attacker.isInPlay() || !EnumHelpers.isAttackableZone(target.zoneName)) {
-            context.game.addMessage('The attack cannot proceed as the attacker or defender is no longer in play');
+        if (!attacker.isInPlay()) {
+            context.game.addMessage('The attack cannot proceed as the attacker is no longer in play');
+            return;
+        }
+        if (Array.isArray(target)) {
+            if (!target.some((card) => EnumHelpers.isAttackableZone(card.zoneName))) {
+                context.game.addMessage('The attack cannot proceed as no defenders remain in play');
+                return;
+            }
+        } else if (!EnumHelpers.isAttackableZone(target.zoneName)) {
+            context.game.addMessage('The attack cannot proceed as the defender is no longer in play');
             return;
         }
 
@@ -155,15 +164,16 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
-        const { target } = this.generatePropertiesFromContext(
+        const { attacker, target } = this.generatePropertiesFromContext(
             context,
             additionalProperties
         );
 
         const cards = Helpers.asArray(target).filter((card) => this.canAffect(card, context));
-        if (cards.length !== 1) {
+        if (cards.length < 1) {
             return;
         }
+        Contract.assertTrue(attacker.isUnit() && attacker.getMaxUnitAttackLimit() >= cards.length, 'Card cannot attack ' + cards.length + ' targets');
 
         const event = this.createEvent(null, context, additionalProperties);
         this.updateEvent(event, cards, context, additionalProperties);
@@ -177,23 +187,27 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         Contract.assertTrue(properties.attacker.isUnit(), `Attacking card '${properties.attacker.internalName}' is not a unit`);
 
         if (isArray(target)) {
-            if (target.length !== 1) {
-                context.game.addMessage(`Attack requires exactly one target, cannot attack ${target.length} targets`);
+            const maxAttackTargetLimit = properties.attacker.getMaxUnitAttackLimit();
+            if (target.length !== 1 && target.length > maxAttackTargetLimit) {
+                context.game.addMessage(`Attacker can attack at most ${maxAttackTargetLimit} targets`);
                 return;
             }
 
-            event.target = target[0];
-        } else {
-            event.target = target;
-        }
+            for (const singleTarget of target) {
+                Contract.assertTrue(singleTarget.isUnit() || singleTarget.isBase(), `Attack target card '${singleTarget.internalName}' is not a unit or base`);
+            }
 
-        Contract.assertTrue(event.target.isUnit() || event.target.isBase(), `Attack target card '${event.target.internalName}' is not a unit or base`);
+            event.target = target;
+        } else {
+            Contract.assertTrue(target.isUnit() || target.isBase(), `Attack target card '${target.internalName}' is not a unit or base`);
+            event.target = [target];
+        }
 
         event.attacker = properties.attacker;
         event.attack = new Attack(
             context.game,
             properties.attacker as IUnitCard,
-            [event.target] as IAttackableCard[],
+            event.target as IAttackableCard[],
             properties.isAmbush
         );
 
@@ -202,7 +216,12 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     public override checkEventCondition(event, additionalProperties): boolean {
-        return this.canAffect(event.target, event.context, additionalProperties);
+        for (const target of event.target) {
+            if (!this.canAffect(target, event.context, additionalProperties)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // TODO ATTACKS: change attack effects so that they check the specific attack they are affecting,

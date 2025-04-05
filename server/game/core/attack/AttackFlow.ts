@@ -69,7 +69,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
 
         // TSTODO: This will need to be updated to account for attacking units owned by different opponents
-        const targetControllerBase = this.attack.getSingleTarget().controller.base;
+        const targetControllerBase = this.attack.getAllTargets()[0].controller.base;
 
         if (overwhelmDamageOnly) {
             new DamageSystem({
