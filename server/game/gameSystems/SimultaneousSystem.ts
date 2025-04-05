@@ -3,33 +3,56 @@ import type { MetaEventName } from '../core/Constants';
 import * as Contract from '../core/utils/Contract';
 import { GameStateChangeRequired } from '../core/Constants';
 import type { GameObject } from '../core/GameObject';
-import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
+import type { IBaseAggregateSystemProperties } from './SequentialSystem';
 
-export interface ISimultaneousSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
-    gameSystems: GameSystem<TContext>[];
+// Type guard to ensure both flags can't be true
+export type ValidSimultaneousSystemOptions = {
+    ignoreTargetingRequirements?: boolean;
+    everyGameSystemMustBeLegal?: boolean;
+} & (
+  | { ignoreTargetingRequirements?: false; everyGameSystemMustBeLegal?: boolean }
+  | { ignoreTargetingRequirements?: boolean; everyGameSystemMustBeLegal?: false }
+);
+
+export interface ISimultaneousSystemProperties<TContext extends AbilityContext = AbilityContext>
+    extends IBaseAggregateSystemProperties<TContext> {
 
     /**
      * If this is set to true, we will assume every system has a legal target and trigger it.
      * Needed for situations where there currently isn't a target but an earlier system in the chain will create one.
+     * Cannot be true if everyGameSystemMustBeLegal is true.
      */
     ignoreTargetingRequirements?: boolean;
-
-    // If true, all game systems must be legal for the entire "simultaneous" to be legal
-    everyGameSystemMustBeLegal?: boolean;
 }
 
 export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISimultaneousSystemProperties<TContext>> {
     protected override readonly eventName: MetaEventName.Simultaneous;
     protected readonly everyGameSystemMustBeLegal: boolean;
-    public constructor(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = false, everyGameSystemMustBeLegal = false) {
-        Contract.assertFalse(ignoreTargetingRequirements && everyGameSystemMustBeLegal, 'ignoreTargetingRequirements and everyGameSystemMustBeLegal cannot be used together');
+    public constructor(
+        gameSystems: ISystemArrayOrFactory<TContext>,
+        options: ValidSimultaneousSystemOptions = {}
+    ) {
+        const { ignoreTargetingRequirements = false, everyGameSystemMustBeLegal = false } = options;
+        Contract.assertFalse(
+            ignoreTargetingRequirements && everyGameSystemMustBeLegal,
+            'ignoreTargetingRequirements and everyGameSystemMustBeLegal cannot be used together'
+        );
 
         if (typeof gameSystems === 'function') {
-            super((context: TContext) => ({ gameSystems: gameSystems(context), ignoreTargetingRequirements }));
+            super((context: TContext) => ({
+                gameSystems: gameSystems(context),
+                ignoreTargetingRequirements,
+                everyGameSystemMustBeLegal
+            }));
         } else {
-            super({ gameSystems, ignoreTargetingRequirements });
+            super({
+                gameSystems,
+                ignoreTargetingRequirements,
+                everyGameSystemMustBeLegal
+            });
         }
         this.everyGameSystemMustBeLegal = everyGameSystemMustBeLegal;
     }
