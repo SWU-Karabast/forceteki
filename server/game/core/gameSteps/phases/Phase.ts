@@ -8,7 +8,6 @@ import { TriggerHandlingMode } from '../../event/EventWindow';
 
 export abstract class Phase extends BaseStepWithPipeline {
     private steps: IStep[] = [];
-    private endStep: IStep;
 
     public constructor(
         game: Game,
@@ -20,8 +19,8 @@ export abstract class Phase extends BaseStepWithPipeline {
     public initialise(steps: IStep[]): void {
         this.pipeline.initialise([new SimpleStep(this.game, () => this.createPhase(), 'createPhase')]);
         const startStep = new SimpleStep(this.game, () => this.startPhase(), 'startPhase');
-        this.endStep = new SimpleStep(this.game, () => this.endPhase(), 'endPhase');
-        this.steps = [startStep, ...steps, this.endStep];
+        const endStep = new SimpleStep(this.game, () => this.endPhase(), 'endPhase');
+        this.steps = [startStep, ...steps, endStep];
     }
 
     protected createPhase(): void {
