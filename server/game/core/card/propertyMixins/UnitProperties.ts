@@ -314,7 +314,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 return this.pilotingActionAbilities;
             }
 
-            return super.getActions().concat(this.attackAction);
+            const actions = super.getActions().concat(this.attackAction);
+
+            // If this unit must attack and an attack action is available, return just that action.
+            // This is used by cards such as Give In to Your Anger
+            if (this.hasOngoingEffect(EffectName.MustAttack) && actions.some((action) => action.isAttackAction() && action.meetsRequirements() === '')) {
+                return actions.filter((action) => action.isAttackAction());
+            }
+
+            return actions;
         }
 
         protected addOnAttackAbility(properties: Omit<ITriggeredAbilityProps<this>, 'when' | 'aggregateWhen'>): void {

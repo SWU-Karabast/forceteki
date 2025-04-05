@@ -140,5 +140,37 @@ describe('Home One', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Home One\'s when played ability', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['battlefield-marine'],
+                        hand: ['home-one#alliance-flagship'],
+                        base: 'echo-base',
+                        leader: 'han-solo#audacious-smuggler',
+                        discard: ['anakin-skywalker#ill-try-spinning'],
+                        resources: 9
+                    },
+                    player2: {
+                        groundArena: ['rugged-survivors', 'cargo-juggernaut']
+                    },
+                });
+            });
+
+            it('should play a heroic unit not as pilot', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.homeOne);
+                context.player1.clickCard(context.anakinSkywalker);
+
+                // should only exhaust resources up to home one's cost
+                expect(context.player1.exhaustedResourceCount).toBe(8);
+                expect(context.anakinSkywalker).toBeInZone('groundArena');
+
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });

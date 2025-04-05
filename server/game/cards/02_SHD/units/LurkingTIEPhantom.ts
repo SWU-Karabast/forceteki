@@ -1,7 +1,6 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { AbilityRestriction } from '../../../core/Constants';
-import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 
 export default class LurkingTIEPhantom extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +16,7 @@ export default class LurkingTIEPhantom extends NonLeaderUnitCard {
             ongoingEffect: [
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.ReceiveDamage,
-                    restrictedActionCondition: (context) => !(context.ability instanceof InitiateAttackAction) && context.ability.controller !== this.controller,
+                    restrictedActionCondition: (context) => !context.ability.isAttackAction() && context.ability.controller !== this.controller,
                 }),
                 AbilityHelper.ongoingEffects.cardCannot({
                     cannot: AbilityRestriction.BeCaptured,

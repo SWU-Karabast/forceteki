@@ -1,5 +1,5 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { RelativePlayer, PromptType } from '../Constants.js';
+import { RelativePlayer, PromptType, EventName, EffectName } from '../Constants.js';
 import * as EnumHelpers from '../utils/EnumHelpers.js';
 import * as Contract from '../utils/Contract.js';
 import type Game from '../Game.js';
@@ -8,6 +8,7 @@ import type { Card } from '../card/Card.js';
 import type { IPlayerPromptStateProperties } from '../PlayerPromptState.js';
 import type AbilityResolver from './AbilityResolver.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
+import type { IButton } from './PromptInterfaces.js';
 
 export class ActionWindow extends UiPrompt {
     private activePlayer: Player;
@@ -90,14 +91,16 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override activePrompt(player: Player): IPlayerPromptStateProperties {
-        const buttons = [
-            { text: 'Pass', arg: 'pass' }
+        const { mustTakeCardAction } = this.getSelectableCards();
+
+        const buttons: IButton[] = [
+            { text: 'Pass', arg: 'pass', disabled: mustTakeCardAction },
         ];
         if (!this.game.isInitiativeClaimed) {
-            buttons.push({ text: 'Claim Initiative', arg: 'claimInitiative' });
+            buttons.push({ text: 'Claim Initiative', arg: 'claimInitiative', disabled: mustTakeCardAction });
         }
         if (this.game.manualMode) {
-            buttons.unshift({ text: 'Manual Action', arg: 'manual' });
+            buttons.unshift({ text: 'Manual Action', arg: 'manual', disabled: mustTakeCardAction });
         }
         return {
             menuTitle: 'Choose an action',
@@ -180,11 +183,20 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override complete() {
+        this.game.emitEvent(EventName.OnActionTaken, null, { player: this.activePlayer });
+
         // this.teardownBonusActions();
         super.complete();
     }
 
     protected override highlightSelectableCards() {
+        const { cardsWithLegalActions: selectableCards } = this.getSelectableCards();
+
+        this.activePlayer.setSelectableCards(selectableCards);
+        this.activePlayer.opponent.setSelectableCards([]);
+    }
+
+    private getSelectableCards() {
         const allPossibleCards: Card[] = this.game.findAnyCardsInPlay().concat(
             this.activePlayer.discardZone.cards,
             this.activePlayer.opponent.discardZone.cards,
@@ -193,15 +205,20 @@ export class ActionWindow extends UiPrompt {
             this.activePlayer.baseZone.cards
         );
 
-        const cardsWithLegalActions = [];
+        let mustTakeCardAction = false;
+        const cardsWithLegalActions: Card[] = [];
         for (const card of allPossibleCards) {
-            if (this.getCardLegalActions(card, this.activePlayer).length > 0) {
+            const legalActions = this.getCardLegalActions(card, this.activePlayer);
+            if (card.hasOngoingEffect(EffectName.MustAttack) && legalActions.some((action) => action.isAttackAction())) {
+                mustTakeCardAction = true;
+                cardsWithLegalActions.splice(0, cardsWithLegalActions.length, card);
+                break;
+            } else if (legalActions.length > 0) {
                 cardsWithLegalActions.push(card);
             }
         }
 
-        this.activePlayer.setSelectableCards(cardsWithLegalActions);
-        this.activePlayer.opponent.setSelectableCards([]);
+        return { cardsWithLegalActions, mustTakeCardAction };
     }
 
     // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
