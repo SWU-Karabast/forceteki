@@ -73,7 +73,7 @@ describe('Waylay', function() {
             context.player1.clickCard(context.bobaFett);
             context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
             context.player1.clickCard(context.cartelSpacer);
-            context.player1.clickPrompt('Choose no targets');
+            context.player1.setDistributeDamagePromptState(new Map([]));
 
             context.player2.clickCard('waylay');
             expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.pykeSentinel]);
