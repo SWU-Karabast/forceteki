@@ -94,6 +94,7 @@ export enum EffectName {
     ModifyStartingHandSize = 'modifyStartingHandSize',
     ModifyPower = 'modifyPower',
     ModifyStats = 'modifyStats',
+    MustAttack = 'mustAttack',
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
     SetPower = 'setPower',
@@ -221,6 +222,7 @@ export type TokenName = TokenUpgradeName | TokenUnitName;
 export enum EventName {
     OnAbilityResolved = 'onAbilityResolved',
     OnAbilityResolverInitiated = 'onAbilityResolverInitiated',
+    OnActionTaken = 'onActionTaken',
     OnAddTokenToCard = 'onAddTokenToCard',
     OnAttackCompleted = 'onAttackCompleted',
     OnAttackDamageResolved = 'onAttackDamageResolved',

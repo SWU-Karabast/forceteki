@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { MetaEventName } from '../core/Constants';
+import * as Contract from '../core/utils/Contract';
 import { GameStateChangeRequired } from '../core/Constants';
 import type { GameObject } from '../core/GameObject';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
@@ -14,17 +15,23 @@ export interface ISimultaneousSystemProperties<TContext extends AbilityContext =
      * Needed for situations where there currently isn't a target but an earlier system in the chain will create one.
      */
     ignoreTargetingRequirements?: boolean;
+
+    // If true, all game systems must be legal for the entire "simultaneous" to be legal
+    everyGameSystemMustBeLegal?: boolean;
 }
 
 export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISimultaneousSystemProperties<TContext>> {
     protected override readonly eventName: MetaEventName.Simultaneous;
+    protected readonly everyGameSystemMustBeLegal: boolean;
+    public constructor(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = false, everyGameSystemMustBeLegal = false) {
+        Contract.assertFalse(ignoreTargetingRequirements && everyGameSystemMustBeLegal, 'ignoreTargetingRequirements and everyGameSystemMustBeLegal cannot be used together');
 
-    public constructor(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = false) {
         if (typeof gameSystems === 'function') {
             super((context: TContext) => ({ gameSystems: gameSystems(context), ignoreTargetingRequirements }));
         } else {
             super({ gameSystems, ignoreTargetingRequirements });
         }
+        this.everyGameSystemMustBeLegal = everyGameSystemMustBeLegal;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -50,6 +57,11 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
     }
 
+    private allGameSystemsAreLegal(context: TContext, additionalProperties = {}): boolean {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        return properties.gameSystems.every((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
+    }
+
     public override canAffectInternal(target: GameObject, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.gameSystems.some((gameSystem) => gameSystem.canAffect(target, context, additionalProperties, mustChangeGameState));
@@ -72,6 +84,9 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
             };
             generateStepName = (gameSystem: GameSystem<TContext>) => `queue generate event game steps for ${gameSystem.name}`;
         } else {
+            if (this.everyGameSystemMustBeLegal && !this.allGameSystemsAreLegal(context, additionalProperties)) {
+                return;
+            }
             queueGenerateEventGameStepsFn = (gameSystem: GameSystem<TContext>) => () => {
                 if (gameSystem.hasLegalTarget(context, additionalProperties)) {
                     gameSystem.queueGenerateEventGameSteps(events, context, additionalProperties);
