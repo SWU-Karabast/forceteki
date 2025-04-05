@@ -26,7 +26,7 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
                             target: context.game.getOtherPlayer(context.player).getArenaUnits({ arena: ZoneName.GroundArena })
                         };
                     })
-                ], true)
+                ], { ignoreTargetingRequirements: true })
             },
             effect: 'defeat him and deal 3 damage to each enemy ground unit instead',
             effectArgs: (context) => [context.source],
