@@ -51,7 +51,5 @@ export abstract class Phase extends BaseStepWithPipeline {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public resetPhase(): void {
-
-    }
+    public resetPhase(): void { }
 }
