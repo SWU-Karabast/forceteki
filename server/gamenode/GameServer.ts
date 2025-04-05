@@ -10,6 +10,7 @@ import { logger } from '../logger';
 
 import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
+import type { User } from '../utils/user/User';
 import * as env from '../env';
 import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
@@ -19,14 +20,10 @@ import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import QueueHandler from './QueueHandler';
+import { authMiddleware } from '../middleware/AuthMiddleWare';
+import { UserFactory } from '../utils/user/UserFactory';
+import { DeckService } from '../utils/deck/DeckService';
 
-/**
- * Represents a user object
- */
-interface User {
-    id: string;
-    username: string;
-}
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -101,6 +98,9 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
+    private readonly userFactory: UserFactory = new UserFactory();
+    public readonly deckService: DeckService = new DeckService();
+
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
@@ -112,7 +112,7 @@ export class GameServer {
 
         const corsOptions = {
             origin: ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'],
-            methods: ['GET', 'POST'],
+            methods: ['GET', 'POST', 'PUT', 'DELETE'],
             credentials: true, // Allow cookies or authorization headers
         };
         app.use(cors(corsOptions));
@@ -129,6 +129,10 @@ export class GameServer {
         server.listen(env.gameNodeSocketIoPort);
         logger.info(`GameServer: listening on port ${env.gameNodeSocketIoPort}`);
 
+        // check if NEXTAUTH variable is set
+        const secret = process.env.NEXTAUTH_SECRET;
+        Contract.assertTrue(!!secret, 'NEXTAUTH_SECRET environment variable must be set and not empty for authentication to work');
+
         // Setup socket server
         this.io = new IOServer(server, {
             perMessageDeflate: false,
@@ -139,6 +143,28 @@ export class GameServer {
             }
         });
 
+        // Setup Socket.IO middleware for Next-auth token verification
+        this.io.use(async (socket, next) => {
+            try {
+                // Get token from handshake auth
+                const token = socket.handshake.auth.token;
+
+                const user = token
+                    ? await this.userFactory.createUserFromToken(token)
+                    : this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
+
+                // we check if we have an actual user
+                if (user.isAnonymousUser() || user.isAuthenticatedUser()) {
+                    socket.data.user = user;
+                    return next();
+                }
+                logger.error('Socket connection rejected: Error when creating user, no valid authentication provided');
+                return next(new Error('Authentication failed'));
+            } catch (error) {
+                logger.error('Socket auth middleware error:', error);
+                next(new Error('Authentication error'));
+            }
+        });
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
         this.io.on('connection', async (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
             try {
@@ -162,7 +188,7 @@ export class GameServer {
             try {
                 return res.json(this.deckValidator.getUnimplementedCards());
             } catch (err) {
-                logger.error('GameServer: Error in setupAppRoutes:', err);
+                logger.error('GameServer (get-unimplemented) Server error: ', err);
                 next(err);
             }
         });
@@ -173,12 +199,14 @@ export class GameServer {
                 const lobby = this.lobbies.get(gameId);
                 // if they are in a game already we give them 403 forbidden
                 if (!this.canUserJoinNewLobby(user.id)) {
+                    logger.error(`GameServer (spectate-game): User ${user.id} attempted to spectate a game while playing a game`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a game'
                     });
                 }
                 if (!lobby || !lobby.hasOngoingGame() || lobby.isPrivate) {
+                    logger.error(`GameServer (spectate-game): User ${user.id} attempted to spectate a game that does not exist or is set to private`);
                     return res.status(404).json({
                         success: false,
                         message: 'Game not found or does not allow spectators'
@@ -189,7 +217,238 @@ export class GameServer {
                 this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Spectator });
                 return res.status(200).json({ success: true });
             } catch (err) {
-                logger.error('GameServer: Error in spectate-game:', err);
+                logger.error('GameServer (spectate-game) Server error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/get-user', authMiddleware(), async (req, res, next) => {
+            try {
+                const { decks } = req.body;
+                const user = req.user as User;
+                // We try to sync the decks first
+                if (decks.length > 0) {
+                    try {
+                        await this.deckService.syncDecks(user.getId(), decks);
+                    } catch (err) {
+                        logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
+                        next(err);
+                    }
+                }
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername() } });
+            } catch (err) {
+                logger.error('GameServer (get-user) Server error:', err);
+                next(err);
+            }
+        });
+
+        // Add this to the setupAppRoutes method in GameServer.ts
+
+        app.post('/api/change-username', authMiddleware(), async (req, res, next) => {
+            try {
+                const { newUsername } = req.body;
+                const user = req.user as User;
+
+                // Check if user is authenticated (not an anonymous user)
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (change-username): Anonymous user ${user.getId()} is attempting to change username`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to change username'
+                    });
+                }
+
+                // Validate the new username
+                if (!newUsername || typeof newUsername !== 'string') {
+                    logger.error(`GameServer (change-username): User ${user.getId()} submitted a invalid username ${newUsername}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Username invalid'
+                    });
+                }
+
+                // Call the changeUsername method
+                const result = await this.userFactory.changeUsername(user.getId(), newUsername);
+                if (result) {
+                    return res.status(200).json({
+                        succeess: true,
+                        message: 'Username successfully changed',
+                        username: result
+                    });
+                }
+                logger.error(`GameServer (change-username): User ${user.getId()} did not wait till 1h has passed from last username change`);
+                return res.status(403).json({
+                    success: false,
+                    message: '1h did not past since your last username change'
+                });
+            } catch (err) {
+                logger.error('GameServer (change-username) Server Error: ', err);
+                next(err);
+            }
+        });
+
+        // user DECKS
+        app.post('/api/get-decks', authMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (get-decks): Authentication error for anonymous user ${user.getId()}`);
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Server error'
+                    });
+                }
+                // we retrieve the decks for the FE
+                try {
+                    const usersDecks = await this.deckService.getUserDecks(user.getId());
+                    return res.status(200).json(usersDecks);
+                } catch (err) {
+                    logger.error(`GameServer (get-decks): Error in getting a users ${user.getId()} decks: `, err);
+                    next(err);
+                }
+            } catch (err) {
+                logger.error('GameServer (get-decks) Server error: ', err);
+                next(err);
+            }
+        });
+
+        // Add this to the setupAppRoutes method in GameServer.ts
+        app.get('/api/get-deck/:deckId', authMiddleware(), async (req, res, next) => {
+            try {
+                const { deckId } = req.params;
+                const user = req.user;
+
+                if (!user || user.isAnonymousUser()) {
+                    logger.error(`GameServer (get-deck/:deckId): Authentication error for user ${user} with id ${user.getId()}`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication error'
+                    });
+                }
+
+                if (!deckId) {
+                    logger.error(`GameServer (get-deck/:deckId): User ${user.getId()} attempted to get deck with invalid deckId: ${deckId}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Server error'
+                    });
+                }
+
+                // Get the deck using the flexible lookup method
+                const deck = await this.deckService.getDeckById(user.getId(), deckId);
+                if (!deck) {
+                    logger.error(`GameServer (get-deck/:deckId): User ${user.getId()} attempted to get deck that does not exist: ${deckId}`);
+                    return res.status(404).json({
+                        success: false,
+                        message: 'Server error'
+                    });
+                }
+                const processedDeck = await this.deckService.convertOpponentStatsForFe(deck, this.cardDataGetter);
+                // Clean up the response data - remove internal DB fields
+                const cleanDeck = {
+                    id: processedDeck.id,
+                    userId: processedDeck.userId,
+                    deck: processedDeck.deck,
+                    stats: processedDeck.stats
+                };
+                return res.status(200).json({
+                    success: true,
+                    deck: cleanDeck
+                });
+            } catch (err) {
+                logger.error('GameServer (get-deck/:deckId) Server error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/save-deck', authMiddleware(), async (req, res, next) => {
+            try {
+                const { deck } = req.body;
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (save-deck): A anonymous user ${user.getId()} attempted to save deck ${deck.id}`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication error'
+                    });
+                }
+                // we save the deck
+                const newDeck = await this.deckService.saveDeck(deck, user);
+                return res.status(200).json({
+                    success: true,
+                    message: 'Deck saved successfully',
+                    deck: newDeck
+                });
+            } catch (err) {
+                logger.error('GameServer (save-deck) Server error: ', err);
+                next(err);
+            }
+        });
+
+        app.put('/api/deck/:deckId/favorite', authMiddleware(), async (req, res, next) => {
+            try {
+                const { deckId } = req.params;
+                const { isFavorite } = req.body;
+                const user = req.user as User;
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (deck/:deckId/favorite): A anonymous user ${user.getId()} attempted to favorite a deck ${deckId}`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication error'
+                    });
+                }
+
+                if (isFavorite === undefined) {
+                    logger.error(`GameServer (deck/:deckId/favorite): A User ${user.getId()} attempted to favorite a deck ${deckId} without isFavorite param`);
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Server error'
+                    });
+                }
+                const updatedDeck = await this.deckService.toggleDeckFavorite(user.getId(), deckId, isFavorite);
+                return res.status(200).json({
+                    success: true,
+                    message: `Deck ${isFavorite ? 'added to' : 'removed from'} favorites successfully`,
+                    deck: updatedDeck
+                });
+            } catch (err) {
+                logger.error('GameServer (deck/:deckId/favorite) Server error: ', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/delete-decks', authMiddleware(), async (req, res, next) => {
+            try {
+                const { deckIds } = req.body;
+                const user = req.user as User;
+
+                if (!user || user.isAnonymousUser()) {
+                    logger.error(`GameServer (delete-decks): A anonymous user ${user.getId()} attempted to delete decks ${deckIds}`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication error'
+                    });
+                }
+
+                if (!deckIds || !Array.isArray(deckIds) || deckIds.length === 0) {
+                    logger.error(`GameServer (delete-decks): Error in delete-decks received empty array of deck ids ${deckIds} from user ${user.getId()}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Server error'
+                    });
+                }
+
+                // Delete the decks
+                for (const deckId of deckIds) {
+                    await this.deckService.deleteDeck(user.getId(), deckId);
+                }
+                return res.status(200).json({
+                    success: true,
+                    message: `Successfully deleted ${deckIds.length} decks`,
+                    deckIds
+                });
+            } catch (err) {
+                logger.error('GameServer (delete-decks) Server error :', err);
                 next(err);
             }
         });
@@ -198,28 +457,30 @@ export class GameServer {
             try {
                 return res.json(this.getOngoingGamesData());
             } catch (err) {
-                logger.error('GameServer: Error in ongoing-games:', err);
+                logger.error('GameServer (ongoing-games) Server Error: ', err);
                 next(err);
             }
         });
 
-        app.post('/api/create-lobby', async (req, res, next) => {
+        app.post('/api/create-lobby', authMiddleware(), async (req, res, next) => {
             try {
-                const { user, deck, format, isPrivate, lobbyName } = req.body;
+                const { deck, format, isPrivate, lobbyName } = req.body;
+                const user = req.user;
                 // Check if the user is already in a lobby
-                const userId = typeof user === 'string' ? user : user.id;
-                if (!this.canUserJoinNewLobby(userId)) {
+                if (!this.canUserJoinNewLobby(user.getId())) {
+                    // TODO shouldn't return 403
+                    logger.error(`GameServer (create-lobby): Error in create-lobby User ${user.getId()} attempted to create a different lobby while already being in a lobby`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'
                     });
                 }
-                await this.processDeckValidation(deck, format, res, async () => {
-                    await this.createLobby(lobbyName, user, deck, format, isPrivate);
+                await this.processDeckValidation(deck, format, res, () => {
+                    this.createLobby(lobbyName, user, deck, format, isPrivate);
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
-                logger.error('GameServer: Error in create lobby:', err);
+                logger.error('GameServer (create-lobby) Server error:', err);
                 next(err);
             }
         });
@@ -233,25 +494,26 @@ export class GameServer {
                 }));
                 return res.json(availableLobbies);
             } catch (err) {
-                logger.error('GameServer: Error in available-lobbies:', err);
+                logger.error('GameServer (available-lobbies) Server error: ', err);
                 next(err);
             }
         });
 
-        app.post('/api/join-lobby', (req, res, next) => {
+        app.post('/api/join-lobby', authMiddleware(), (req, res, next) => {
             try {
-                const { lobbyId, user } = req.body;
+                const { lobbyId } = req.body;
+                const user = req.user;
 
-                const userId = typeof user === 'string' ? user : user.id;
-                if (!this.canUserJoinNewLobby(userId)) {
+                if (!this.canUserJoinNewLobby(user.getId())) {
+                    logger.error(`GameServer (join-lobby): Error in join-lobby User ${user.getId()} attempted to join a different lobby while already being in a lobby`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'
                     });
                 }
-
                 const lobby = this.lobbies.get(lobbyId);
                 if (!lobby) {
+                    logger.error(`GameServer (join-lobby): Error in join-lobby User ${user.getId()} attempted to join a lobby that doesn't exist`);
                     return res.status(404).json({ success: false, message: 'Lobby not found' });
                 }
 
@@ -260,10 +522,10 @@ export class GameServer {
                 }
 
                 // Add the user to the lobby
-                this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Player });
+                this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
                 return res.status(200).json({ success: true });
             } catch (err) {
-                logger.error('GameServer: Error in join-lobby:', err);
+                logger.error('GameServer (join-lobby) Server error:', err);
                 next(err);
             }
         });
@@ -289,12 +551,13 @@ export class GameServer {
             }
         });
 
-        app.post('/api/enter-queue', async (req, res, next) => {
+        app.post('/api/enter-queue', authMiddleware(), async (req, res, next) => {
             try {
-                const { format, user, deck } = req.body;
+                const { format, deck } = req.body;
+                const user = req.user;
                 // check if user is already in a lobby
-                const userId = typeof user === 'string' ? user : user.id;
-                if (!this.canUserJoinNewLobby(userId)) {
+                if (!this.canUserJoinNewLobby(user.getId())) {
+                    logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} attempted to join queue while being in a lobby`);
                     return res.status(403).json({
                         success: false,
                         message: 'User is already in a lobby'
@@ -303,12 +566,13 @@ export class GameServer {
                 await this.processDeckValidation(deck, format, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
+                        logger.error(`GameServer (enter-queue): Error in enter-queue User ${user.getId()} failed to enter queue`);
                         return res.status(400).json({ success: false, message: 'Failed to enter queue' });
                     }
                     res.status(200).json({ success: true });
                 });
             } catch (err) {
-                logger.error('GameServer: Error in enter-queue:', err);
+                logger.error('GameServer (enter-queue) Server error: ', err);
                 next(err);
             }
         });
@@ -410,7 +674,7 @@ export class GameServer {
      * @param {boolean} isPrivate - Whether or not this lobby is private.
      * @returns {string} The ID of the user who owns and created the newly created lobby.
      */
-    private createLobby(lobbyName: string, user: User | string, deck: Deck, format: SwuGameFormat, isPrivate: boolean) {
+    private createLobby(lobbyName: string, user: User, deck: Deck, format: SwuGameFormat, isPrivate: boolean) {
         if (!user) {
             throw new Error('User must be provided to create a lobby');
         }
@@ -419,11 +683,6 @@ export class GameServer {
         }
 
         // set default user if anonymous user is supplied for private lobbies
-        if (typeof user === 'string') {
-            user = { id: user, username: 'Player1' };
-        }
-
-
         const lobby = new Lobby(
             lobbyName,
             isPrivate ? MatchType.Private : MatchType.Custom,
@@ -434,10 +693,9 @@ export class GameServer {
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
-
         lobby.createLobbyUser(user, deck);
-        lobby.setLobbyOwner(user.id);
-        this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Player });
+        lobby.setLobbyOwner(user.getId());
+        this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
     }
 
     private async startTestGame(filename: string) {
@@ -451,8 +709,8 @@ export class GameServer {
             this.testGameBuilder
         );
         this.lobbies.set(lobby.id, lobby);
-        const order66 = { id: 'exe66', username: 'Order66' };
-        const theWay = { id: 'th3w4y', username: 'ThisIsTheWay' };
+        const order66 = this.userFactory.createAnonymousUser('exe66', 'Order66');
+        const theWay = this.userFactory.createAnonymousUser('th3w4y', 'ThisIsTheWay');
         lobby.createLobbyUser(order66);
         lobby.createLobbyUser(theWay);
         this.userLobbyMap.set(order66.id, { lobbyId: lobby.id, role: UserRole.Player });
@@ -487,13 +745,9 @@ export class GameServer {
     // }
 
     public async onConnection(ioSocket) {
-        const user = JSON.parse(ioSocket.handshake.query.user);
+        const user = ioSocket.data.user as User;
         const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
         const isSpectator = ioSocket.handshake.query.spectator === 'true';
-
-        if (user) {
-            ioSocket.data.user = user;
-        }
 
         if (!ioSocket.data.user) {
             logger.info('GameServer: socket connected with no user, disconnecting');
@@ -501,27 +755,27 @@ export class GameServer {
             return;
         }
 
-        const lobbyUserEntry = this.userLobbyMap.get(user.id);
+        const lobbyUserEntry = this.userLobbyMap.get(user.getId());
         // 0. If user is spectator
         if (isSpectator) {
             // Check if user is registered as a spectator
             if (!lobbyUserEntry || lobbyUserEntry.role !== UserRole.Spectator) {
-                logger.info(`GameServer: User ${user.id} attempted to connect as spectator but is not registered`);
+                logger.info(`GameServer: User ${user.getId()} attempted to connect as spectator but is not registered`);
                 ioSocket.disconnect();
                 return;
             }
-            const lobbyId = this.userLobbyMap.get(user.id).lobbyId;
+            const lobbyId = this.userLobbyMap.get(user.getId()).lobbyId;
             const lobby = this.lobbies.get(lobbyId);
 
             if (!lobby || !lobby.hasOngoingGame()) {
-                logger.info(`GameServer: No lobby or ongoing game for spectator ${user.username}, disconnecting`);
-                this.userLobbyMap.delete(user.id);
+                logger.info(`GameServer: No lobby or ongoing game for spectator ${user.getUsername()}, disconnecting`);
+                this.userLobbyMap.delete(user.getId());
                 ioSocket.disconnect();
                 return;
             }
             const socket = new Socket(ioSocket);
             socket.registerEvent('disconnect', () => {
-                this.onSocketDisconnected(ioSocket, user.id);
+                this.onSocketDisconnected(ioSocket, user.getId());
             });
             lobby.addSpectator(user, socket);
             return;
@@ -540,7 +794,7 @@ export class GameServer {
             const lobby = this.lobbies.get(lobbyId);
 
             if (!lobby) {
-                this.userLobbyMap.delete(user.id);
+                this.userLobbyMap.delete(user.getId());
                 logger.info('GameServer: No lobby for', ioSocket.data.user.username, 'disconnecting');
                 ioSocket.emit('connection_error', 'Lobby does not exist');
                 ioSocket.disconnect();
@@ -548,10 +802,10 @@ export class GameServer {
             }
 
             // there can be a race condition where two users hit `join-lobby` at the same time, so we need to check if the lobby is filled already
-            if (lobby.isFilled() && !lobby.hasPlayer(user.id)) {
-                logger.info('GameServer: Lobby is full for user', user.username, 'disconnecting');
+            if (lobby.isFilled() && !lobby.hasPlayer(user.getId())) {
+                logger.info('GameServer: Lobby is full for user', user.getUsername(), 'disconnecting');
                 ioSocket.emit('connection_error', 'Lobby is full');
-                this.userLobbyMap.delete(user.id);
+                this.userLobbyMap.delete(user.getId());
                 return;
             }
 
@@ -561,23 +815,23 @@ export class GameServer {
             try {
                 lobby.addLobbyUser(user, socket);
             } catch (err) {
-                this.userLobbyMap.delete(user.id);
+                this.userLobbyMap.delete(user.getId());
                 ioSocket.emit('connection_error', 'Error connecting to lobby');
                 ioSocket.disconnect();
                 throw err;
             }
 
-            socket.send('connectedUser', user.id);
+            socket.send('connectedUser', user.getId());
 
             // If a user refreshes while they are matched with another player in the queue they lose the requeue listener
             // this is why we reinitialize the requeue listener
             if (lobby.gameType === MatchType.Quick) {
                 if (!socket.eventContainsListener('requeue')) {
-                    const lobbyUser = lobby.users.find((u) => u.id === user.id);
+                    const lobbyUser = lobby.users.find((u) => u.id === user.getId());
                     socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
                 }
             }
-            socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
+            socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.getId()));
             return;
         }
 
@@ -600,28 +854,28 @@ export class GameServer {
             const socket = new Socket(ioSocket);
 
             // check if user is already in a lobby
-            if (!this.canUserJoinNewLobby(user.id)) {
+            if (!this.canUserJoinNewLobby(user.getId())) {
                 logger.info('GameServer: User ', user, 'is already in a different lobby, disconnecting');
                 ioSocket.disconnect();
                 return;
             }
             // anonymous user joining existing game
-            if (!user.username) {
+            /* if (!user.getUsername()) {
                 const newUser = { username: 'Player2', id: user.id };
                 lobby.addLobbyUser(newUser, socket);
                 this.userLobbyMap.set(newUser.id, { lobbyId: lobby.id, role: UserRole.Player });
                 socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
                 return;
-            }
+            }*/
 
             lobby.addLobbyUser(user, socket);
-            this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Player });
-            socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
+            this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+            socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.getId()));
             return;
         }
 
         // 3. if they are not in the lobby they could be in a queue
-        const queuedPlayer = this.queue.findPlayerInQueue(user.id);
+        const queuedPlayer = this.queue.findPlayerInQueue(user.getId());
         if (queuedPlayer) {
             queuedPlayer.socket = new Socket(ioSocket);
 
@@ -633,7 +887,7 @@ export class GameServer {
             }
 
             // handle queue-specific events and add lobby disconnect
-            queuedPlayer.socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
+            queuedPlayer.socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.getId()));
 
             await this.matchmakeAllQueues();
             return;
@@ -643,16 +897,16 @@ export class GameServer {
         ioSocket.emit('connection_error', 'Error connecting to lobby/game');
         ioSocket.disconnect();
         // this can happen when someone tries to reconnect to the game but are out of the mapping TODO make a notification for the player
-        logger.info(`GameServer: Error state when connecting to lobby/game ${user.id} disconnecting`);
+        logger.info(`GameServer: Error state when connecting to lobby/game ${user.getId()} disconnecting`);
     }
 
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
-    private enterQueue(format: SwuGameFormat, user: any, deck: any): boolean {
+    private enterQueue(format: SwuGameFormat, user: User, deck: any): boolean {
         // Quick check: if they're already in a lobby, no queue
-        if (this.userLobbyMap.has(user.id)) {
-            logger.info(`GameServer: User ${user.id} already in a lobby, ignoring queue request.`);
+        if (this.userLobbyMap.has(user.getId())) {
+            logger.info(`GameServer: User ${user.getId()} already in a lobby, ignoring queue request.`);
             return false;
         }
 
@@ -686,7 +940,7 @@ export class GameServer {
      * Matchmake two users in a queue
      */
     private matchmakeQueuePlayers(format: SwuGameFormat, [p1, p2]: [IQueuedPlayer, IQueuedPlayer]): void {
-        Contract.assertFalse(p1.user.id === p2.user.id, 'Cannot matchmake the same user');
+        Contract.assertFalse(p1.user.getId() === p2.user.getId(), 'Cannot matchmake the same user');
         // Create a new Lobby
         const lobby = new Lobby(
             'Quick Game',
@@ -708,39 +962,39 @@ export class GameServer {
         const socket2 = p2.socket ? p2.socket : null;
         if (socket1) {
             lobby.addLobbyUser(p1.user, socket1);
-            socket1.registerEvent('disconnect', () => this.onSocketDisconnected(socket1.socket, p1.user.id));
+            socket1.registerEvent('disconnect', () => this.onSocketDisconnected(socket1.socket, p1.user.getId()));
             if (!socket1.eventContainsListener('requeue')) {
                 socket1.registerEvent('requeue', () => this.requeueUser(socket1, format, p1.user, p1.deck));
             }
         }
         if (socket2) {
             lobby.addLobbyUser(p2.user, socket2);
-            socket2.registerEvent('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.id));
+            socket2.registerEvent('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.getId()));
             if (!socket2.eventContainsListener('requeue')) {
                 socket2.registerEvent('requeue', () => this.requeueUser(socket2, format, p2.user, p2.deck));
             }
         }
 
         // Save user => lobby mapping
-        this.userLobbyMap.set(p1.user.id, { lobbyId: lobby.id, role: UserRole.Player });
-        this.userLobbyMap.set(p2.user.id, { lobbyId: lobby.id, role: UserRole.Player });
+        this.userLobbyMap.set(p1.user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
+        this.userLobbyMap.set(p2.user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
 
         // If needed, set tokens async
-        lobby.setLobbyOwner(p1.user.id);
+        lobby.setLobbyOwner(p1.user.getId());
         // this needs to be here since we only send start game via the LobbyOwner.
         lobby.sendLobbyState();
-        logger.info(`GameServer: Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
+        logger.info(`GameServer: Matched players ${p1.user.getUsername()} and ${p2.user.getUsername()} in lobby ${lobby.id}.`);
     }
 
     /**
      * requeues the user and removes him from the previous lobby. If the lobby is empty, it cleans it up.
      */
     private async requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: any) {
-        if (this.userLobbyMap.has(user.id)) {
-            const lobbyId = this.userLobbyMap.get(user.id).lobbyId;
+        if (this.userLobbyMap.has(user.getId())) {
+            const lobbyId = this.userLobbyMap.get(user.getId()).lobbyId;
             const lobby = this.lobbies.get(lobbyId);
-            this.userLobbyMap.delete(user.id);
-            lobby.removeUser(user.id);
+            this.userLobbyMap.delete(user.getId());
+            lobby.removeUser(user.getId());
             // check if lobby is empty
             if (lobby.isEmpty()) {
                 // cleanup process

@@ -33,7 +33,7 @@ import type Game from './Game';
 import type { ZoneAbstract } from './zone/ZoneAbstract';
 import type { Card } from './card/Card';
 import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
-import type { User } from '../../Settings';
+import type { IUser } from '../../Settings';
 import type { IClock } from './clocks/IClock';
 import type {
     IAllArenasForPlayerCardFilterProperties,
@@ -59,7 +59,7 @@ export interface IPlayerState extends IGameObjectState {
 }
 
 export class Player extends GameObject<IPlayerState> {
-    public user: User;
+    public user: IUser;
     public printedType: string;
     // TODO: INCOMPLETE
     public socket: any;
@@ -117,7 +117,7 @@ export class Player extends GameObject<IPlayerState> {
     private playableZones: PlayableZone[];
     private noTimer: boolean;
     public passedActionPhase: boolean;
-    public constructor(id: string, user: User, game: Game, clockDetails?: ClockConfig) {
+    public constructor(id: string, user: IUser, game: Game, clockDetails?: ClockConfig) {
         super(game, user.username);
 
         Contract.assertNotNullLike(id);

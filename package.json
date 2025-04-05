@@ -16,6 +16,8 @@
     "get-cards": "node ./scripts/fetchdata.js"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.758.0",
+    "@aws-sdk/lib-dynamodb": "^3.758.0",
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.8.0",
     "@stylistic/eslint-plugin": "^2.9.0",
