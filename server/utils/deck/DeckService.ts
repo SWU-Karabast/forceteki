@@ -213,7 +213,7 @@ export class DeckService {
             return;
         } catch (error) {
             logger.error(`DeckService: Error deleting deck ${deckId} for user ${userId}:`, error);
-            return;
+            throw error;
         }
     }
 
@@ -321,7 +321,7 @@ export class DeckService {
             return null;
         } catch (error) {
             logger.error(`Error getting deck by ID ${deckId} for user ${userId}:`, error);
-            return null;
+            throw error;
         }
     }
 
@@ -331,16 +331,16 @@ export class DeckService {
      * @param cardDataGetter
      * @returns The processed deck data
      */
-    public async convertOpponentStatsForFe(deck: IDeckDataEntity, cardDataGetter: CardDataGetter): Promise<IDeckDataEntity> {
+    public convertOpponentStatsForFe(deck: IDeckDataEntity, cardDataGetter: CardDataGetter): Promise<IDeckDataEntity> {
         // If there are no stats or no opponent stats, return the deck as is
         if (!deck.stats || !deck.stats.statsByMatchup || !deck.stats.statsByMatchup.length) {
-            return deck;
+            return Promise.resolve(deck);
         }
 
         // Process each opponent stat
-        deck.stats.statsByMatchup = await Promise.all(
+        return Promise.all(
             deck.stats.statsByMatchup.map(async (opponentStat) => {
-            // Try to find card IDs for the leader and base internal names
+                // Try to find card IDs for the leader and base internal names
                 const leaderCardId = await cardDataGetter.getCardByNameAsync(opponentStat.leaderId);
                 const baseCardId = await cardDataGetter.getCardByNameAsync(opponentStat.baseId);
 
@@ -349,7 +349,10 @@ export class DeckService {
                 opponentStat.leaderId = leaderCardId.setId.set + '_' + leaderCardId.setId.number;
                 opponentStat.baseId = baseCardId.setId.set + '_' + baseCardId.setId.number;
                 return opponentStat;
-            }));
-        return deck;
+            })
+        ).then((statsByMatchup) => {
+            deck.stats.statsByMatchup = statsByMatchup;
+            return deck;
+        });
     }
 }

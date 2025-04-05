@@ -96,7 +96,7 @@ export class UserFactory {
             return true;
         } catch (error) {
             logger.error('Error changing username:', error);
-            return false;
+            throw error;
         }
     }
 
@@ -197,11 +197,11 @@ export class UserFactory {
                 // This could happen if there's a race condition while creating user records
                 // or if the unique constraints we're enforcing are violated for other reasons
                 logger.error(`DynamoDB conditional check failed during user authentication: ${error}`);
-                return null;
+                throw error;
             }
             // This catches both JWT verification errors and database errors
             logger.error('Authentication error:', error);
-            return null;
+            throw error;
         }
     }
 }

@@ -69,6 +69,6 @@ export interface IGameRecordEntity {
     player1BaseId: string;
     player2LeaderId: string;
     player2BaseId: string;
-    timestampStart: string;
-    timestampEnd: string;
+    timestampStart: Date;
+    timestampEnd: Date;
 }
