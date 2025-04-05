@@ -72,6 +72,7 @@ export interface IDistributeAmongTargetsPromptData {
     amount: number;
     isIndirectDamage: boolean;
     canDistributeLess: boolean;
+    canChooseNoTargets: boolean;
     maxTargets?: number;
 }
 
