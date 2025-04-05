@@ -73,31 +73,29 @@ describe('Mace Windu, Party Crasher', function() {
             });
         });
 
-        // TODO: update trigger condition so that defender being defeated by attacker at the 'on attack' stage will also work
+        describe('Mace\'s triggered ability', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'mace-windu#party-crasher', upgrades: ['fallen-lightsaber'] }]
+                    },
+                    player2: {
+                        groundArena: ['jawa-scavenger']
+                    }
+                });
+            });
 
-        // describe('Mace\'s triggered ability', function() {
-        //     beforeEach(function () {
-        //         contextRef.setupTest({
-        //             phase: 'action',
-        //             player1: {
-        //                 groundArena: [{ card: 'mace-windu#party-crasher', upgrades: ['fallen-lightsaber'] }]
-        //             },
-        //             player2: {
-        //                 groundArena: ['jawa-scavenger']
-        //             }
-        //         });
-        //     });
-        //
-        //     it('will not ready him if the unit is defeated by an on-attack ability', function () {
-        //         const { context } = contextRef;
-        //
-        //         context.player1.clickCard(context.maceWindu);
-        //         context.player1.clickCard(context.jawaScavenger);
-        //
-        //         expect(context.jawaScavenger).toBeInZone('discard');
-        //         expect(context.maceWindu.damage).toBe(0);
-        //         expect(context.maceWindu.exhausted).toBeFalse();
-        //     });
-        // });
+            it('will not ready him if the unit is defeated by an on-attack ability', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.maceWindu);
+                context.player1.clickCard(context.jawaScavenger);
+
+                expect(context.jawaScavenger).toBeInZone('discard');
+                expect(context.maceWindu.damage).toBe(0);
+                expect(context.maceWindu.exhausted).toBeTrue();
+            });
+        });
     });
 });
