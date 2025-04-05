@@ -1,55 +1,51 @@
-const { UiPrompt } = require('./prompts/UiPrompt.js');
-const { RelativePlayer, WildcardZoneName, PromptType } = require('../Constants.js');
-const EnumHelpers = require('../utils/EnumHelpers.js');
-const Contract = require('../utils/Contract');
-const KeywordHelpers = require('../ability/KeywordHelpers.js');
-const { cardCannot } = require('../../ongoingEffects/CardCannot.js');
+import { UiPrompt } from './prompts/UiPrompt.js';
+import { RelativePlayer, PromptType, EventName, EffectName } from '../Constants.js';
+import * as EnumHelpers from '../utils/EnumHelpers.js';
+import * as Contract from '../utils/Contract.js';
+import type Game from '../Game.js';
+import type { Player } from '../Player.js';
+import type { Card } from '../card/Card.js';
+import type { IPlayerPromptStateProperties } from '../PlayerPromptState.js';
+import type AbilityResolver from './AbilityResolver.js';
+import type { AbilityContext } from '../ability/AbilityContext.js';
+import type { IButton } from './PromptInterfaces.js';
 
-class ActionWindow extends UiPrompt {
-    constructor(game, title, windowName, prevPlayerPassed, setPassStatus, activePlayer = null) {
+export class ActionWindow extends UiPrompt {
+    private activePlayer: Player;
+
+    public constructor(game: Game, public title: string, public windowName: string, private prevPlayerPassed: boolean, private setPassStatus: (passed: boolean) => boolean, activePlayer?: Player) {
         super(game);
 
-        this.title = title;
-        this.windowName = windowName;
-        this.activePlayerConsecutiveActions = 0;
-        this.opportunityCounter = 0;
-
         this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
+
         Contract.assertNotNullLike(this.activePlayer);
-
-        // whether the previous player passed their action
-        this.prevPlayerPassed = prevPlayerPassed;
-
-        // used to inform the owning ActionPhase of whether this window was passed or not
-        this.setPassStatus = setPassStatus;
     }
 
-    /** @override */
-    activeCondition(player) {
+    protected override activeCondition(player: Player) {
         return player === this.activePlayer;
     }
 
-    /** @override */
-    onCardClicked(player, card) {
+    public override onCardClicked(player: Player, card: Card) {
         if (player !== this.activePlayer) {
             return false;
         }
 
-        let legalActions = this.getCardLegalActions(card, this.activePlayer);
+        const legalActions = this.getCardLegalActions(card, this.activePlayer);
         if (legalActions.length === 0) {
             return false;
         }
 
         if (legalActions.length === 1) {
-            let action = legalActions[0];
-            let targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.properties.choosingPlayer !== RelativePlayer.Opponent);
-            if (!this.activePlayer.optionSettings.confirmOneClick || action.cost.some((cost) => cost.promptsPlayer) || targetPrompts) {
+            const confirmOneClick = false;
+            const action = legalActions[0];
+            const targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.properties.choosingPlayer !== RelativePlayer.Opponent);
+            if (!confirmOneClick || action.cost.some((cost) => cost.promptsPlayer) || targetPrompts) {
                 this.resolveAbility(action.createContext(player));
                 return true;
             }
         }
         this.game.promptWithHandlerMenu(player, {
-            activePromptTitle: (EnumHelpers.isArena(card.zoneName) ? 'Choose an ability:' : 'Play ' + card.name + ':'),
+            activePromptTitle: (EnumHelpers.isArena(card.zoneName) ? 'Choose an ability:' : 'Play ' + card.title + ':'),
             source: card,
             choices: legalActions.map((action) => action.title).concat('Cancel'),
             handlers: legalActions.map((action) => (() => this.resolveAbility(action.createContext(player)))).concat(() => true)
@@ -57,7 +53,7 @@ class ActionWindow extends UiPrompt {
         return true;
     }
 
-    resolveAbility(context) {
+    private resolveAbility(context: AbilityContext) {
         const resolver = this.game.resolveAbility(context);
         this.game.queueSimpleStep(() => {
             if (resolver.resolutionComplete) {
@@ -66,7 +62,7 @@ class ActionWindow extends UiPrompt {
         }, `Check and pass priority for ${resolver.context.ability}`);
     }
 
-    postResolutionUpdate(resolver) {
+    private postResolutionUpdate(resolver: AbilityResolver) {
         this.setPassStatus(false);
 
         // if (this.activePlayerConsecutiveActions > 1) {
@@ -77,14 +73,13 @@ class ActionWindow extends UiPrompt {
     }
 
     // TODO: confirm that this works correctly
-    /** @override */
-    continue() {
+    public override continue() {
         // TODO: do we need promptedActionWindows?
         if (!this.activePlayer.promptedActionWindows[this.windowName]) {
             this.pass();
         }
 
-        let completed = super.continue();
+        const completed = super.continue();
 
         if (!completed) {
             this.highlightSelectableCards();
@@ -95,16 +90,17 @@ class ActionWindow extends UiPrompt {
         return completed;
     }
 
-    /** @override */
-    activePrompt() {
-        let buttons = [
-            { text: 'Pass', arg: 'pass' }
+    public override activePrompt(player: Player): IPlayerPromptStateProperties {
+        const { mustTakeCardAction } = this.getSelectableCards();
+
+        const buttons: IButton[] = [
+            { text: 'Pass', arg: 'pass', disabled: mustTakeCardAction },
         ];
         if (!this.game.isInitiativeClaimed) {
-            buttons.push({ text: 'Claim Initiative', arg: 'claimInitiative' });
+            buttons.push({ text: 'Claim Initiative', arg: 'claimInitiative', disabled: mustTakeCardAction });
         }
         if (this.game.manualMode) {
-            buttons.unshift({ text: 'Manual Action', arg: 'manual' });
+            buttons.unshift({ text: 'Manual Action', arg: 'manual', disabled: mustTakeCardAction });
         }
         return {
             menuTitle: 'Choose an action',
@@ -115,13 +111,11 @@ class ActionWindow extends UiPrompt {
         };
     }
 
-    /** @override */
-    waitingPrompt() {
+    public override waitingPrompt() {
         return { menuTitle: 'Waiting for opponent to take an action or pass' };
     }
 
-    /** @override */
-    menuCommand(player, choice) {
+    public override menuCommand(player: Player, choice: string, uuid: string) {
         switch (choice) {
             // case 'manual':
             //     this.game.promptForSelect(this.activePlayer, {
@@ -151,7 +145,7 @@ class ActionWindow extends UiPrompt {
         }
     }
 
-    pass(showMessage = true) {
+    public pass(showMessage = true) {
         if (showMessage) {
             this.game.addMessage('{0} passes', this.activePlayer);
         }
@@ -180,7 +174,7 @@ class ActionWindow extends UiPrompt {
         // }
     }
 
-    claimInitiative() {
+    public claimInitiative() {
         this.game.addMessage('{0} claims initiative and passes', this.activePlayer);
         this.game.claimInitiative(this.activePlayer);
 
@@ -188,15 +182,22 @@ class ActionWindow extends UiPrompt {
         this.pass(false);
     }
 
-    /** @override */
-    complete() {
+    public override complete() {
+        this.game.emitEvent(EventName.OnActionTaken, null, { player: this.activePlayer });
+
         // this.teardownBonusActions();
         super.complete();
     }
 
-    /** @override */
-    highlightSelectableCards() {
-        const allPossibleCards = this.game.findAnyCardsInPlay().concat(
+    protected override highlightSelectableCards() {
+        const { cardsWithLegalActions: selectableCards } = this.getSelectableCards();
+
+        this.activePlayer.setSelectableCards(selectableCards);
+        this.activePlayer.opponent.setSelectableCards([]);
+    }
+
+    private getSelectableCards() {
+        const allPossibleCards: Card[] = this.game.findAnyCardsInPlay().concat(
             this.activePlayer.discardZone.cards,
             this.activePlayer.opponent.discardZone.cards,
             this.activePlayer.resourceZone.cards,
@@ -204,20 +205,25 @@ class ActionWindow extends UiPrompt {
             this.activePlayer.baseZone.cards
         );
 
-        const cardsWithLegalActions = [];
+        let mustTakeCardAction = false;
+        const cardsWithLegalActions: Card[] = [];
         for (const card of allPossibleCards) {
-            if (this.getCardLegalActions(card, this.activePlayer).length > 0) {
+            const legalActions = this.getCardLegalActions(card, this.activePlayer);
+            if (card.hasOngoingEffect(EffectName.MustAttack) && legalActions.some((action) => action.isAttackAction())) {
+                mustTakeCardAction = true;
+                cardsWithLegalActions.splice(0, cardsWithLegalActions.length, card);
+                break;
+            } else if (legalActions.length > 0) {
                 cardsWithLegalActions.push(card);
             }
         }
 
-        this.activePlayer.setSelectableCards(cardsWithLegalActions);
-        this.activePlayer.opponent.setSelectableCards([]);
+        return { cardsWithLegalActions, mustTakeCardAction };
     }
 
     // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.
-    getCardLegalActions(card, player) {
-        let actions = card.getActions();
+    private getCardLegalActions(card: Card, player: Player) {
+        const actions = card.getActions();
         const legalActions = actions.filter((action) => action.meetsRequirements(action.createContext(player)) === '');
         return legalActions;
     }
@@ -304,5 +310,3 @@ class ActionWindow extends UiPrompt {
     //     this.bonusActions = undefined;
     // }
 }
-
-module.exports = ActionWindow;

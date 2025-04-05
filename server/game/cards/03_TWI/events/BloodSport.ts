@@ -15,7 +15,7 @@ export default class BloodSport extends EventCard {
             title: 'Deal 2 damage to each ground unit',
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 2,
-                target: context.game.getPlayers().reduce((units, player) => units.concat(player.getUnitsInPlay(ZoneName.GroundArena)), [])
+                target: context.game.getPlayers().reduce((units, player) => units.concat(player.getArenaUnits({ arena: ZoneName.GroundArena })), [])
             }))
         });
     }

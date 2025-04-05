@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { KeywordName, ZoneName, WildcardCardType, WildcardZoneName } from '../../../core/Constants';
+import { KeywordName, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class KrrsantanMuscleForHire extends NonLeaderUnitCard {
             title: 'Ready this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.opponent.getUnitsInPlay(WildcardZoneName.AnyArena, (card) => card.hasSomeKeyword(KeywordName.Bounty)).length > 0,
+                condition: (context) => context.player.opponent.hasSomeArenaUnit({ keyword: KeywordName.Bounty }),
                 onTrue: AbilityHelper.immediateEffects.ready(),
             })
         });

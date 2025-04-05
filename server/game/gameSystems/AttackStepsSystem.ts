@@ -1,6 +1,15 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { CardTypeFilter } from '../core/Constants';
-import { AbilityRestriction, CardType, Duration, EffectName, KeywordName, MetaEventName, WildcardCardType, ZoneName } from '../core/Constants';
+import {
+    AbilityRestriction,
+    CardType,
+    Duration,
+    EffectName,
+    KeywordName,
+    MetaEventName,
+    WildcardCardType,
+    ZoneName
+} from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import { Attack } from '../core/attack/Attack';
 import { AttackFlow } from '../core/attack/AttackFlow';
@@ -15,6 +24,7 @@ import type { IAttackableCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import type { KeywordNameOrProperties } from '../Interfaces';
 import { KeywordInstance } from '../core/ability/KeywordInstance';
+import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 
 export interface IAttackLastingEffectProperties<TContext extends AbilityContext = AbilityContext> {
     condition?: (attack: Attack, context: TContext) => boolean;
@@ -134,15 +144,27 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
             properties.attacker.hasSomeKeyword(KeywordName.Saboteur) ||
             this.attackerGainsSaboteur(targetCard, context, additionalProperties);
         if (!attackerHasSaboteur) {
-            if (targetCard.controller.getUnitsInPlay(attackerZone, (card) => card.hasSomeKeyword(KeywordName.Sentinel)).length > 0) {
+            if (targetCard.controller.hasSomeArenaUnit({ arena: attackerZone, keyword: KeywordName.Sentinel })) {
                 return targetCard.hasSomeKeyword(KeywordName.Sentinel);
             }
         }
 
-        return (
-            properties.targetCondition(targetCard, context) &&
-            EnumHelpers.isAttackableZone(targetCard.zoneName)
-        );
+        const canAttackTarget = properties.targetCondition(targetCard, context) &&
+          EnumHelpers.isAttackableZone(targetCard.zoneName);
+        if (!canAttackTarget) {
+            return false;
+        }
+
+        // If the target can be attack and the attacker has a "must attack" effect, ensure that the target meets the "must attack" condition
+        if (properties.attacker.hasOngoingEffect(EffectName.MustAttack)) {
+            const mustAttackProperties = properties.attacker.getOngoingEffectValues<MustAttackProperties>(EffectName.MustAttack)[0];
+            const targetUnitIfAble = mustAttackProperties.targetUnitIfAble ?? false;
+            if (!targetCard.isUnit() && targetUnitIfAble && targetCard.controller.hasSomeArenaUnit({ condition: (card) => this.canAffectInternal(card, context, additionalProperties) })) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public attackCosts(prompt, context: TContext, additionalProperties = {}): void {

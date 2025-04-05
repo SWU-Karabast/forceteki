@@ -251,3 +251,5 @@ function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergePropert
     const oldPropValue = propertySet[newPropName] as TMergeProperty;
     return { ...propertySet, [newPropName]: mergeFn(oldPropValue, newPropValue) };
 }
+
+export type DistributiveOmit<T, K extends keyof T> = T extends any ? Omit<T, K> : never;

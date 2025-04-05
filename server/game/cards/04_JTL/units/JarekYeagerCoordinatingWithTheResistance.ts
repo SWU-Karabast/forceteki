@@ -11,7 +11,7 @@ export default class JarekYeagerCoordinatingWithTheResistance extends NonLeaderU
 
     public override setupCardAbilities() {
         this.addPilotingGainKeywordTargetingAttached({
-            gainCondition: (context) => context.player.getCardsInZone(ZoneName.SpaceArena).length > 0 && context.player.getCardsInZone(ZoneName.GroundArena).length > 0,
+            gainCondition: (context) => context.player.hasSomeArenaCard({ arena: ZoneName.SpaceArena }) && context.player.getCardsInZone(ZoneName.GroundArena).length > 0,
             keyword: KeywordName.Sentinel
         });
     }

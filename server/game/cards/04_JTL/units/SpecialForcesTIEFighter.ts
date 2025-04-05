@@ -21,6 +21,6 @@ export default class SpecialForcesTIEFighter extends NonLeaderUnitCard {
     }
 
     private controlsLessUnitsInSpaceArena(context) {
-        return context.player.getUnitsInPlay(ZoneName.SpaceArena).length < context.player.opponent.getUnitsInPlay(ZoneName.SpaceArena).length;
+        return context.player.getArenaUnits({ arena: ZoneName.SpaceArena }).length < context.player.opponent.getArenaUnits({ arena: ZoneName.SpaceArena }).length;
     }
 }
