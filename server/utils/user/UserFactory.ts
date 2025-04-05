@@ -62,27 +62,27 @@ export class UserFactory {
     }
 
     /**
-     * TODO Change username with rate limiting (30 days) change the rate limit
+     * Change username with rate limiting (1 hour)
      * @param userId The user ID
      * @param newUsername The new username
-     * @returns Object with success status and message
+     * @returns Boolean indicating if the username change was successful
      */
-    public async changeUsername(userId: string, newUsername: string): Promise<boolean> {
+    public async changeUsername(userId: string, newUsername: string): Promise<string | null> {
         try {
             const userProfile = await this.dynamoDbService.getUserProfile(userId);
-            if (!userProfile) {
-                return false;
-            }
-            // Check if username was changed recently (within the last 30 days)
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+
+            // Check if username was changed recently (within the last hour)
             if (userProfile.usernameLastUpdatedAt) {
                 const lastChange = new Date(userProfile.usernameLastUpdatedAt).getTime();
                 const now = Date.now();
-                const daysSinceLastChange = (now - lastChange) / (1000 * 60 * 60 * 24);
 
-                // If changed within the last 30 days, don't allow another change
-                if (daysSinceLastChange < 30) {
-                    const daysRemaining = Math.ceil(30 - daysSinceLastChange);
-                    return false;
+                // floating point representation of an hour
+                const hoursSinceLastChange = (now - lastChange) / (1000 * 60 * 60);
+
+                // If changed within the last hour, don't allow another change
+                if (hoursSinceLastChange < 1) {
+                    return null;
                 }
             }
 
@@ -93,7 +93,7 @@ export class UserFactory {
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);
-            return true;
+            return newUsername;
         } catch (error) {
             logger.error('Error changing username:', error);
             throw error;

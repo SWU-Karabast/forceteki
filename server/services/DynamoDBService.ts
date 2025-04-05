@@ -210,7 +210,7 @@ class DynamoDBService {
             sk: 'PROFILE',
             ...userData,
             usernameSetAt: userData.usernameLastUpdatedAt || new Date().toISOString(),
-            preferences: userData.preferences || { cardback: 'default' },
+            preferences: userData.preferences || { cardback: null },
         };
         return await this.putItem(item);
     }

@@ -241,6 +241,52 @@ export class GameServer {
                 next(err);
             }
         });
+
+        // Add this to the setupAppRoutes method in GameServer.ts
+
+        app.post('/api/change-username', authMiddleware(), async (req, res, next) => {
+            try {
+                const { newUsername } = req.body;
+                const user = req.user as User;
+
+                // Check if user is authenticated (not an anonymous user)
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (change-username): Anonymous user ${user.getId()} is attempting to change username`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to change username'
+                    });
+                }
+
+                // Validate the new username
+                if (!newUsername || typeof newUsername !== 'string') {
+                    logger.error(`GameServer (change-username): User ${user.getId()} submitted a invalid username ${newUsername}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Username invalid'
+                    });
+                }
+
+                // Call the changeUsername method
+                const result = await this.userFactory.changeUsername(user.getId(), newUsername);
+                if (result) {
+                    return res.status(200).json({
+                        succeess: true,
+                        message: 'Username successfully changed',
+                        username: result
+                    });
+                }
+                logger.error(`GameServer (change-username): User ${user.getId()} did not wait till 1h has passed from last username change`);
+                return res.status(403).json({
+                    success: false,
+                    message: '1h did not past since your last username change'
+                });
+            } catch (err) {
+                logger.error('GameServer (change-username) Server Error: ', err);
+                next(err);
+            }
+        });
+
         // user DECKS
         app.post('/api/get-decks', authMiddleware(), async (req, res, next) => {
             try {
