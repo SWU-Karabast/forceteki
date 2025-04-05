@@ -1,6 +1,6 @@
 import type { IGameObjectState } from './GameObject';
 import { GameObject } from './GameObject';
-import type { Deck, IDeskList as IDeckList } from '../../utils/deck/Deck.js';
+import type { Deck, IDeckList as IDeckList } from '../../utils/deck/Deck.js';
 import UpgradePrompt from './gameSteps/prompts/UpgradePrompt.js';
 import type { ClockConfig } from './clocks/ClockSelector.js';
 import { clockFor } from './clocks/ClockSelector.js';

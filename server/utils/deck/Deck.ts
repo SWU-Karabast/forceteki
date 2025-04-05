@@ -11,7 +11,7 @@ import type { ILeaderCard } from '../../game/core/card/propertyMixins/LeaderProp
 import { cards } from '../../game/cards/Index';
 import type { GameObjectRef } from '../../game/core/GameObjectBase';
 
-export interface IDeskList {
+export interface IDeckList {
     deckCards: GameObjectRef<IPlayableCard>[];
     outOfPlayCards: any[];
     outsideTheGameCards: GameObjectRef<Card>[];
@@ -103,8 +103,8 @@ export class Deck {
         };
     }
 
-    public async buildCardsAsync(player: Player, cardDataGetter: CardDataGetter): Promise<IDeskList> {
-        const result: IDeskList = {
+    public async buildCardsAsync(player: Player, cardDataGetter: CardDataGetter): Promise<IDeckList> {
+        const result: IDeckList = {
             deckCards: [],
             outOfPlayCards: [],
             outsideTheGameCards: [],
