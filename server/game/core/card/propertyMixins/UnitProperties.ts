@@ -958,7 +958,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             super.afterSetState(oldState);
             // STATE: I don't wholly trust this covers all cases, but it's a good start at least.
             if (oldState.zone?.uuid !== this.state.zone.uuid) {
-                const oldZone = this.game.gameObjectManager.get(oldState.zone) as Zone;
+                const oldZone = this.game.gameObjectManager.get<Zone>(oldState.zone);
                 this.movedFromZone = oldZone?.name;
                 this.resolveAbilitiesForNewZone();
             }
