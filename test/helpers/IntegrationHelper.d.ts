@@ -16,15 +16,6 @@ interface SwuTestContextRef {
     snapshotId?: number;
     setupTestAsync: (options?: SwuSetupTestOptions) => Promise;
 
-    /**
-     * Define a single spec. A spec should contain one or more expectations that test the state of the code.
-     * A spec whose expectations all succeed will be passing and a spec with any failures will fail.
-     * @param expectation Textual description of what this spec is checking
-     * @param assertion Function that contains the code of your test. If not provided the test will be pending.
-     * @param timeout Custom timeout for an async spec.
-     */
-    undoIt(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number): void;
-
     buildImportAllCardsTools: () => {
         deckBuilder: DeckBuilder;
         implementedCardsCtors: Map<string, new (owner: Player, cardData: any) => Card>;
@@ -143,3 +134,12 @@ declare namespace jasmine {
         toHaveExactDisabledDisplayPromptPerCardButtons<T extends PlayerInteractionWrapper>(this: Matchers<T>, expectedButtonsInPrompt: string[]): boolean;
     }
 }
+
+/**
+ * Define a single spec. A spec should contain one or more expectations that test the state of the code.
+ * A spec whose expectations all succeed will be passing and a spec with any failures will fail.
+ * @param expectation Textual description of what this spec is checking
+ * @param assertion Function that contains the code of your test. If not provided the test will be pending.
+ * @param timeout Custom timeout for an async spec.
+ */
+declare function uit(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number): void;

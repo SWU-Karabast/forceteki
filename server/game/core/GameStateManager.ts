@@ -1,5 +1,7 @@
+import type { Card } from './card/Card';
 import type Game from './Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from './GameObjectBase';
+import type { Player } from './Player';
 import * as Contract from './utils/Contract.js';
 import * as Helpers from './utils/Helpers.js';
 
@@ -7,7 +9,17 @@ export interface IGameSnapshot {
     id: number;
     lastId: number;
 
+    gameState: IGameState;
     states: IGameObjectBaseState[];
+}
+
+export interface IGameState {
+    roundNumber: number;
+    initialFirstPlayer: GameObjectRef<Player> | null;
+    initiativePlayer: GameObjectRef<Player> | null;
+    actionPhaseActivePlayer: GameObjectRef<Player> | null;
+    isInitiativeClaimed: boolean;
+    allCards: GameObjectRef<Card>[];
 }
 
 export class GameStateManager {
@@ -50,10 +62,15 @@ export class GameStateManager {
         }
     }
 
+    public clearSnapshots() {
+        this.snapshots.length = 0;
+    }
+
     public takeSnapshot(): number {
         const snapshot: IGameSnapshot = {
             id: this.snapshots.length,
             lastId: this.lastId,
+            gameState: structuredClone(this.game.state),
             states: this.allGameObjects.map((x) => x.getState())
         };
 
@@ -62,8 +79,16 @@ export class GameStateManager {
         return snapshot.id;
     }
 
-    // TODO: Where are all of the places GameObjects are stored? Obviously here, but what about Token GOs? Attack GOs? We need to ensure those are all GameObjectRefs, or we'll start building up garbage.
-    public rollbackToSnapshot(snapshotId: number) {
+    /**
+     *
+     * @param snapshotId The specific snapshotId to return to. If not provided, will return to the last snapshot.
+     */
+    public rollbackToSnapshot(snapshotId?: number) {
+        if (snapshotId == null) {
+            Contract.assertTrue(this.snapshots.length > 1, 'No snapshots to rollback to.');
+            // We take a snapshot at the start of someone's turn, so hitting undo would mean we need to back to the second most recent snapshot.
+            snapshotId = this.snapshots[this.snapshots.length - 2].id;
+        }
         Contract.assertNonNegative(snapshotId, 'Tried to rollback but snapshot ID is invalid ' + snapshotId);
 
         const snapshotIdx = this.snapshots.findIndex((x) => x.id === snapshotId);
@@ -71,9 +96,11 @@ export class GameStateManager {
 
         const snapshot = this.snapshots[snapshotIdx];
 
+        this.game.state = structuredClone(snapshot.gameState);
+
         const removals: { index: number; uuid: string }[] = [];
         // Indexes in last to first for the purpose of removal.
-        for (let i = this.allGameObjects.length - 1; i >= this.allGameObjects.length; i--) {
+        for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
             const go = this.allGameObjects[i];
             const updatedState = snapshot.states.find((x) => x.uuid === go.uuid);
             if (!updatedState) {

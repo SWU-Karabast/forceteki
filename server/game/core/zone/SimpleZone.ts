@@ -38,7 +38,7 @@ export interface IZoneState<TCard extends Card> extends IGameObjectBaseState {
 /**
  * Base class for all Zones that contain a list of Cards. Defines some common properties and methods.
  */
-export abstract class SimpleZone<TCard extends Card, TState extends IZoneState<TCard> = IZoneState<TCard>> extends ZoneAbstract<TCard, TState> {
+export abstract class SimpleZone<TCard extends Card = Card, TState extends IZoneState<TCard> = IZoneState<TCard>> extends ZoneAbstract<TCard, TState> {
     /** Number of cards in the zone */
     public override get count(): number {
         return this.state.cards.length;

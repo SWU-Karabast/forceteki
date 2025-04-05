@@ -41,9 +41,68 @@ const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 const { GameStateManager } = require('./GameStateManager.js');
 const { ActionWindow } = require('./gameSteps/ActionWindow.js');
+const { GameObjectBase } = require('./GameObjectBase.js');
 
 class Game extends EventEmitter {
     #debug;
+    #experimental;
+
+    get isInitiativeClaimed() {
+        return this.state.isInitiativeClaimed;
+    }
+
+    set isInitiativeClaimed(value) {
+        this.state.isInitiativeClaimed = value;
+    }
+
+    get roundNumber() {
+        return this.state.roundNumber;
+    }
+
+    set roundNumber(value) {
+        Contract.assertNonNegative(value, 'Round Number must be non-zero.');
+        this.state.roundNumber = value;
+    }
+
+    /** @returns { Player | null } */
+    get initialFirstPlayer() {
+        return this.gameObjectManager.get(this.state.initialFirstPlayer);
+    }
+
+    /**
+     * @argument {Player | null} value
+     */
+    set initialFirstPlayer(value) {
+        this.state.initialFirstPlayer = value?.getRef();
+    }
+
+    /** @returns { Player | null } */
+    get initiativePlayer() {
+        return this.gameObjectManager.get(this.state.initiativePlayer);
+    }
+
+    /**
+     * @argument {Player | null} value
+     */
+    set initiativePlayer(value) {
+        this.state.initiativePlayer = value?.getRef();
+    }
+
+    /** @returns { Player | null } */
+    get actionPhaseActivePlayer() {
+        return this.gameObjectManager.get(this.state.actionPhaseActivePlayer);
+    }
+
+    /**
+     * @argument {Player | null} value
+     */
+    set actionPhaseActivePlayer(value) {
+        this.state.actionPhaseActivePlayer = value?.getRef();
+    }
+
+    get allCards() {
+        return this.state.allCards.map((x) => this.getCard(x));
+    }
 
     /**
      * @param {import('./GameInterfaces.js').GameConfiguration} details
@@ -77,24 +136,34 @@ class Game extends EventEmitter {
 
         // Debug flags, intended only for manual testing, and should always be false. Use the debug methods to temporarily flag these on.
         this.#debug = { pipeline: false };
+        // Experimental flags, intended only for manual testing. Use the enable methods to temporarily flag these on during tests.
+        this.#experimental = { undo: false };
+
+        this.manualMode = false;
+        this.gameMode = details.gameMode;
 
         /** @type { EventWindow } */
         this.currentEventWindow = null;
-
         this.currentAttack = null;
-        this.manualMode = false;
-        this.gameMode = details.gameMode;
         this.currentPhase = null;
-        this.roundNumber = 0;
-        this.initialFirstPlayer = null;
-        this.initiativePlayer = null;
-        this.isInitiativeClaimed = false;
-        this.actionPhaseActivePlayer = null;
+        this.currentActionWindow = null;
+        this.currentOpenPrompt = null;
+
+        /** @type { import('./GameStateManager.js').IGameState } */
+        this.state = {
+            initialFirstPlayer: null,
+            initiativePlayer: null,
+            actionPhaseActivePlayer: null,
+            roundNumber: 0,
+            isInitiativeClaimed: false,
+            allCards: []
+        };
+
         this.tokenFactories = null;
         this.stateWatcherRegistrar = new StateWatcherRegistrar(this);
         this.movedCards = [];
+        // STATE TODO: Move the generator logic into the state object.
         this.randomGenerator = seedrandom();
-        this.currentOpenPrompt = null;
         this.cardDataGetter = details.cardDataGetter;
         this.playableCardTitles = this.cardDataGetter.playableCardTitles;
 
@@ -110,8 +179,7 @@ class Game extends EventEmitter {
 
         // TODO TWIN SUNS
         Contract.assertArraySize(
-            details.players, 2, `
-            Game must have exactly 2 players, received ${details.players.length}: ${details.players.map((player) => player.id).join(', ')}`
+            details.players, 2, `Game must have exactly 2 players, received ${details.players.length}: ${details.players.map((player) => player.id).join(', ')}`
         );
 
         details.players.forEach((player) => {
@@ -897,7 +965,7 @@ class Game extends EventEmitter {
     async initialiseAsync() {
         await Promise.all(this.getPlayers().map((player) => player.initialiseAsync()));
 
-        this.allCards = this.getPlayers().reduce(
+        this.state.allCards = this.getPlayers().reduce(
             (cards, player) => {
                 return cards.concat(player.decklist.allCards);
             },
@@ -1318,11 +1386,13 @@ class Game extends EventEmitter {
      * @returns {Card}
      */
     generateToken(player, tokenName, additionalProperties = null) {
+        /** @type {import('./card/propertyMixins/Token.js').ITokenCard} */
         const token = this.tokenFactories[tokenName](player, additionalProperties);
 
-        this.allCards.push(token);
-        player.decklist.tokens.push(token);
-        player.decklist.allCards.push(token);
+        // TODO: Rework allCards to be GO Refs
+        this.state.allCards.push(token.getRef());
+        player.decklist.tokens.push(token.getRef());
+        player.decklist.allCards.push(token.getRef());
         player.outsideTheGameZone.addCard(token);
         token.initializeZone(player.outsideTheGameZone);
 
@@ -1339,9 +1409,10 @@ class Game extends EventEmitter {
         );
 
         const player = token.owner;
-        this.filterCardFromList(token, this.allCards);
-        this.filterCardFromList(token, player.decklist.tokens);
-        this.filterCardFromList(token, player.decklist.allCards);
+        // Functionality did nothing previously, now that it's fixed, disabling until we're ready to activate again.
+        // this.filterCardFromList(token, this.state.allCards);
+        // this.filterCardFromList(token, player.decklist.tokens);
+        // this.filterCardFromList(token, player.decklist.allCards);
         token.removeFromGame();
     }
 
@@ -1354,8 +1425,24 @@ class Game extends EventEmitter {
         this.movedCards.push(card);
     }
 
+    /**
+     *
+     * @param {Card} removeCard
+     * @param {import('./GameObjectBase.js').GameObjectRef[]} list
+     */
     filterCardFromList(removeCard, list) {
-        list = list.filter((card) => card !== removeCard);
+        const indexes = [];
+
+        for (let i = list.length - 1; i >= 0; i--) {
+            const ref = list[i];
+            if (ref.uuid === removeCard.uuid) {
+                indexes.push(i);
+            }
+        }
+
+        for (let index of indexes) {
+            list.splice(index, 1);
+        }
     }
 
     // formatDeckForSaving(deck) {
@@ -1431,6 +1518,15 @@ class Game extends EventEmitter {
     //     };
     // }
 
+    /**
+     * @template {GameObjectBase} T
+     * @param {import('./GameObjectBase.js').GameObjectRef<T>} gameRef
+     * @returns {T | null}
+     */
+    getCard(gameRef) {
+        return this.gameObjectManager.get(gameRef);
+    }
+
     // /*
     //  * This information is sent to the client
     //  */
@@ -1467,15 +1563,29 @@ class Game extends EventEmitter {
         return {};
     }
 
-    // takeSnapshot() {
-    //     const snapshot = this.gameObjectManager.takeSnapshot();
-    //     this.gameObjectManager.pushSnapshot(snapshot);
-    //     return snapshot.id;
-    // }
+    takeSnapshot() {
+        if (this.#experimental.undo && this.pipeline.currentStep instanceof ActionPhase) {
+            return this.gameObjectManager.takeSnapshot();
+        }
 
-    // rollbackToSnapshot(snapshotId) {
-    //     this.gameObjectManager.rollbackToSnapshot(snapshotId);
-    // }
+        return null;
+    }
+
+    /**
+     * @param {number} snapshotId
+     */
+    rollbackToSnapshot(snapshotId) {
+        if (this.#experimental.undo && this.pipeline.currentStep instanceof ActionPhase) {
+            const actionPhase = this.pipeline.currentStep;
+            this.gameObjectManager.rollbackToSnapshot(snapshotId);
+            actionPhase.resetPhase();
+            actionPhase.queueNextAction();
+            // continue the action phase again.
+            actionPhase.continue();
+            return true;
+        }
+        return false;
+    }
 
     // TODO: Make a debug object type.
     /**
@@ -1506,8 +1616,25 @@ class Game extends EventEmitter {
         }
     }
 
+    /**
+     * Should only be used for manual testing inside of unit tests, *never* committing any usage into main.
+     * @param {() => void} fcn
+     */
+    enableUndo(fcn) {
+        this.#experimental.undo = true;
+        try {
+            return fcn();
+        } finally {
+            this.#experimental.undo = false;
+        }
+    }
+
     get isDebugPipeline() {
         return this.#debug.pipeline;
+    }
+
+    get isUndoEnabled() {
+        return this.#experimental.undo;
     }
 
     // return this.getSummary(notInactivePlayerName);
