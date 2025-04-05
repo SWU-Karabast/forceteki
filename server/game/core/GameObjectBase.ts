@@ -23,9 +23,6 @@ export interface IGameObjectBase<T extends IGameObjectBaseState = IGameObjectBas
 export interface GameObjectRef<T extends GameObjectBase = GameObjectBase> {
     isRef: true;
     uuid: string;
-
-    /** This property is for debugging purposes only and will be wiped during rollback. Do not use it anywhere in the code. */
-    // gameObject: never;
 }
 
 /** GameObjectBase simply defines this as an object with state, and with a unique identifier. */
