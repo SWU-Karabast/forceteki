@@ -47,21 +47,20 @@ class Game extends EventEmitter {
     #debug;
     #experimental;
 
-    get isInitiativeClaimed() {
-        return this.state.isInitiativeClaimed;
+    /** @returns { Player | null } */
+    get actionPhaseActivePlayer() {
+        return this.gameObjectManager.get(this.state.actionPhaseActivePlayer);
     }
 
-    set isInitiativeClaimed(value) {
-        this.state.isInitiativeClaimed = value;
+    /**
+     * @argument {Player | null} value
+     */
+    set actionPhaseActivePlayer(value) {
+        this.state.actionPhaseActivePlayer = value?.getRef();
     }
 
-    get roundNumber() {
-        return this.state.roundNumber;
-    }
-
-    set roundNumber(value) {
-        Contract.assertNonNegative(value, 'Round Number must be non-zero.');
-        this.state.roundNumber = value;
+    get allCards() {
+        return this.state.allCards.map((x) => this.getCard(x));
     }
 
     /** @returns { Player | null } */
@@ -88,20 +87,29 @@ class Game extends EventEmitter {
         this.state.initiativePlayer = value?.getRef();
     }
 
-    /** @returns { Player | null } */
-    get actionPhaseActivePlayer() {
-        return this.gameObjectManager.get(this.state.actionPhaseActivePlayer);
+    get isInitiativeClaimed() {
+        return this.state.isInitiativeClaimed;
     }
 
-    /**
-     * @argument {Player | null} value
-     */
-    set actionPhaseActivePlayer(value) {
-        this.state.actionPhaseActivePlayer = value?.getRef();
+    set isInitiativeClaimed(value) {
+        this.state.isInitiativeClaimed = value;
     }
 
-    get allCards() {
-        return this.state.allCards.map((x) => this.getCard(x));
+    get roundNumber() {
+        return this.state.roundNumber;
+    }
+
+    set roundNumber(value) {
+        Contract.assertNonNegative(value, 'Round Number must be non-zero.');
+        this.state.roundNumber = value;
+    }
+
+    get isDebugPipeline() {
+        return this.#debug.pipeline;
+    }
+
+    get isUndoEnabled() {
+        return this.#experimental.undo;
     }
 
     /**
@@ -1627,14 +1635,6 @@ class Game extends EventEmitter {
         } finally {
             this.#experimental.undo = false;
         }
-    }
-
-    get isDebugPipeline() {
-        return this.#debug.pipeline;
-    }
-
-    get isUndoEnabled() {
-        return this.#experimental.undo;
     }
 
     // return this.getSummary(notInactivePlayerName);
