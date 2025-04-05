@@ -106,6 +106,34 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('can attack two targets if there are two Sentinels', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: ['moisture-farmer', 'wampa', 'pyke-sentinel', 'village-protectors']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.villageProtectors]);
+            expect(context.player1).not.toHaveEnabledPromptButton('Done');
+            context.player1.clickCard(context.pykeSentinel);
+            expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.villageProtectors]);
+            expect(context.player1).toHaveEnabledPromptButton('Done');
+            context.player1.clickCard(context.villageProtectors);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(4);
+            expect(context.pykeSentinel).toBeInZone('discard');
+            expect(context.villageProtectors).toBeInZone('discard');
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('should not be able to attack a unit and a base', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
