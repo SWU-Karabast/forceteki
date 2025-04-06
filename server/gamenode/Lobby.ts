@@ -65,6 +65,8 @@ export class Lobby {
     public gameFormat: SwuGameFormat;
     private rematchRequest?: RematchRequest = null;
     private userLastActivity = new Map<string, Date>();
+    private matchingCountdownText?: string;
+    private matchingCountdownTimeoutHandle?: NodeJS.Timeout;
     private usersLeftCount = 0;
 
     public constructor(
@@ -133,6 +135,7 @@ export class Lobby {
             gameType: this.gameType,
             gameFormat: this.gameFormat,
             rematchRequest: this.rematchRequest,
+            matchingCountdownText: this.matchingCountdownText
         };
     }
 
@@ -219,14 +222,14 @@ export class Lobby {
         this.sendLobbyState();
     }
 
-    public addLobbyUser(user: User, socket: Socket): void {
+    public async addLobbyUserAsync(user: User, socket: Socket): Promise<void> {
         const existingUser = this.users.find((u) => u.id === user.getId());
         const existingSpectator = this.spectators.find((s) => s.id === user.getId());
         if (existingSpectator) {
             // we remove the spectator and disconnect since the user should not come here
             this.removeSpectator(user.getId());
             socket.disconnect();
-            return;
+            return Promise.resolve();
         }
 
         Contract.assertFalse(!existingUser && this.isFilled(), `Attempting to add user ${user.getId()} to lobby ${this.id}, but the lobby already has ${this.users.length} users`);
@@ -257,18 +260,69 @@ export class Lobby {
 
         this.updateUserLastActivity(user.getId());
 
+        // if the game is already going, send game state and stop here
         if (this.game) {
             this.sendGameState(this.game);
-        } else {
-            // do a check to make sure that the lobby owner is still registered in the lobby. if not, set the incoming user as the new lobby owner.
-            if (this.server.getUserLobbyId(this.lobbyOwnerId) !== this.id) {
-                logger.info(`Lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.getId()}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
-                this.removeUser(this.lobbyOwnerId);
-                this.lobbyOwnerId = user.getId();
+            return Promise.resolve();
+        }
+
+        if (this.gameType === MatchType.Quick) {
+            if (!socket.eventContainsListener('requeue')) {
+                socket.registerEvent(
+                    'requeue',
+                    () => this.server.requeueUser(socket, this.format, user, existingUser?.deck?.getDecklist())
+                );
+            }
+
+            if (this.matchingCountdownTimeoutHandle == null) {
+                await this.quickLobbyCountdownAsync();
             }
 
             this.sendLobbyState();
+
+            return Promise.resolve();
         }
+
+        // do a check to make sure that the lobby owner is still registered in the lobby. if not, set the incoming user as the new lobby owner.
+        if (this.server.getUserLobbyId(this.lobbyOwnerId) !== this.id) {
+            logger.info(`Lobby owner ${this.lobbyOwnerId} is not in the lobby, setting new lobby owner to ${user.getId()}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
+            this.removeUser(this.lobbyOwnerId);
+            this.lobbyOwnerId = user.getId();
+        }
+
+        this.sendLobbyState();
+
+        return Promise.resolve();
+    }
+
+    private quickLobbyCountdownAsync(remainingSeconds = 5) {
+        if (remainingSeconds > -1) {
+            this.matchingCountdownText = `Starts in ${remainingSeconds}`;
+        } else if (remainingSeconds > -4) {
+            this.matchingCountdownText = 'Waiting for opponent to connect...';
+
+            if (this.users.length === 2 && this.users.every((u) => u.state === 'connected')) {
+                this.sendLobbyState();
+                return this.onStartGameAsync();
+            }
+        } else {
+            logger.info('Both users failed to connect within 3s, removing lobby and requeuing users', { lobbyId: this.id });
+            this.server.removeLobby(this);
+            return Promise.resolve();
+        }
+
+        this.matchingCountdownTimeoutHandle = setTimeout(() => {
+            try {
+                return this.quickLobbyCountdownAsync(remainingSeconds - 1);
+            } catch (err) {
+                logger.error('Error during quick lobby countdown', { error: { message: err.message, stack: err.stack }, lobbyId: this.id });
+            }
+
+            return Promise.resolve();
+        }, 1000);
+
+        this.sendLobbyState();
+        return Promise.resolve();
     }
 
     private setReadyStatus(socket: Socket, ...args) {
@@ -440,6 +494,14 @@ export class Lobby {
         } else {
             return;
         }
+
+        if (this.lobbyOwnerId === id) {
+            const newOwner = this.users.find((u) => u.id !== id);
+            this.lobbyOwnerId = newOwner?.id;
+        }
+        this.users = this.users.filter((u) => u.id !== id);
+        logger.info(`Removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`, { lobbyId: this.id, userName: user.username, userId: user.id });
+
         if (this.game) {
             this.game.addMessage(`${user.username} has left the game`);
             const winner = this.users.find((u) => u.id !== id);
@@ -448,13 +510,6 @@ export class Lobby {
             }
             this.sendGameState(this.game);
         }
-
-        if (this.lobbyOwnerId === id) {
-            const newOwner = this.users.find((u) => u.id !== id);
-            this.lobbyOwnerId = newOwner?.id;
-        }
-        this.users = this.users.filter((u) => u.id !== id);
-        logger.info(`Removing user: ${user.username}, id: ${user.id}. User list size = ${this.users.length}`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         if (!this.game) {
             this.checkIncrementUsersLeftCount();
@@ -514,23 +569,47 @@ export class Lobby {
     }
 
     private async onStartGameAsync() {
-        this.rematchRequest = null;
-        const game = new Game(this.buildGameSettings(), { router: this });
-        this.game = game;
-        game.started = true;
+        try {
+            this.rematchRequest = null;
+            const game = new Game(this.buildGameSettings(), { router: this });
+            this.game = game;
+            game.started = true;
 
-        logger.info(`Starting game id: ${game.id}`, { lobbyId: this.id });
+            logger.info(`Starting game id: ${game.id}`, { lobbyId: this.id });
 
-        // For each user, if they have a deck, select it in the game
-        this.users.forEach((user) => {
-            if (user.deck) {
-                game.selectDeck(user.id, user.deck);
+            // Give each user the standard disconnect handler (longer timeout than during matchmaking)
+            this.users.forEach((user) => {
+                this.server.registerDisconnect(user.socket, user.id);
+            });
+
+            // For each user, if they have a deck, select it in the game
+            this.users.forEach((user) => {
+                if (user.deck) {
+                    game.selectDeck(user.id, user.deck);
+                }
+            });
+
+            await game.initialiseAsync();
+
+            this.sendGameState(game);
+        } catch (error) {
+            if (this.gameType === MatchType.Quick) {
+                logger.error(
+                    'Error attempting to start matchmaking lobby, cancelling and requeueing users',
+                    { error: { message: error.message, stack: error.stack }, lobbyId: this.id }
+                );
+                this.matchmakingFailed(error);
             }
-        });
+        }
+    }
 
-        await game.initialiseAsync();
+    private matchmakingFailed(error?: Error) {
+        this.server.removeLobby(this);
 
-        this.sendGameState(game);
+        for (const user of this.users) {
+            // this will end up resolving to a call to GameServer.requeueUser, putting them back in the queue
+            user.socket.send('matchmakingFailed', error.message);
+        }
     }
 
     private buildGameSettings(): GameConfiguration {
@@ -595,6 +674,34 @@ export class Lobby {
         }
     }
 
+    public handleMatchmakingDisconnect() {
+        if (this.gameType !== MatchType.Quick) {
+            logger.error('Attempting to use quick lobby disconnect on non-quick lobby', { lobbyId: this.id });
+            return;
+        }
+
+        if (this.game) {
+            return;
+        }
+
+        if (this.matchingCountdownTimeoutHandle) {
+            clearTimeout(this.matchingCountdownTimeoutHandle);
+        }
+
+        this.matchingCountdownText = 'Opponent has disconnected, re-entering queue';
+        this.sendLobbyState();
+
+        setTimeout(() => {
+            for (const user of this.users) {
+                logger.error(`Requeueing user ${user.id} after matched user disconnected`);
+
+                this.server.requeueUser(user.socket, this.format, user.socket.user, user.deck.getDecklist());
+                user.socket.send('matchmakingFailed', 'Player disconnected');
+            }
+
+            this.server.removeLobby(this);
+        }, 2000);
+    }
 
     // TODO: Review this to make sure we're getting the info we need for debugging
     public handleError(game: Game, error: Error, severeGameMessage = false) {

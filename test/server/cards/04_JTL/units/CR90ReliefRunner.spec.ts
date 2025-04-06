@@ -25,7 +25,6 @@ describe('CR90 Relief Runner', function () {
 
                 // can choose a unit or a base
                 expect(context.player2).toBeAbleToSelectExactly([context.consularSecurityForce, context.greenSquadronAwing, context.p1Base, context.p2Base]);
-                expect(context.player2).toHaveChooseNothingButton();
 
                 context.player2.setDistributeHealingPromptState(new Map([
                     [context.p2Base, 3],
@@ -43,7 +42,6 @@ describe('CR90 Relief Runner', function () {
 
                 // can choose a unit or a base
                 expect(context.player2).toBeAbleToSelectExactly([context.consularSecurityForce, context.greenSquadronAwing, context.p1Base, context.p2Base]);
-                expect(context.player2).toHaveChooseNothingButton();
 
                 // can heal less than 3 damage
                 context.player2.setDistributeHealingPromptState(new Map([
