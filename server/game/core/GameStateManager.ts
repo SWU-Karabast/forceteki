@@ -68,30 +68,42 @@ export class GameStateManager {
     }
 
     public takeSnapshot(): number {
-        const nextId = this.lastSnapshotId + 1;
+        const nextSnapshotId = this.lastSnapshotId + 1;
         const snapshot: IGameSnapshot = {
-            id: nextId,
+            id: nextSnapshotId,
             lastId: this.lastId,
             gameState: structuredClone(this.game.state),
             states: this.allGameObjects.map((x) => x.getState())
         };
-        this.lastSnapshotId = nextId;
+        this.lastSnapshotId = nextSnapshotId;
 
         this.snapshots.push(snapshot);
 
         return snapshot.id;
     }
 
+    public rollbackToPlayerSnapshot(player: Player) {
+        Contract.assertPositiveNonZero(this.snapshots.length, `Tried to to rollback to ${player.name}'s snapshot but there are none.`);
+
+        // This assumes snapshots are taken at the start of a player's turn.
+        let snapshot: IGameSnapshot;
+        if (snapshot && this.game.state.actionPhaseActivePlayer.uuid !== player.uuid) {
+            snapshot = this.getLatestSnapshot(1);
+        } else {
+            snapshot = this.getLatestSnapshot(2);
+        }
+
+        Contract.assertNotNullLike(snapshot, `Tried to get ${player.name}'s previous snapshot, but no snapshot was found.`);
+        Contract.assertNotNullLike(snapshot.gameState.actionPhaseActivePlayer.uuid === player.uuid, () => `Expected player ${player.name} to have been the active player for the rollback snapshot, but a snapshot for ${this.get(snapshot.gameState.actionPhaseActivePlayer).name} was found at the expected index.`);
+
+        return this.rollbackToSnapshot(snapshot.id);
+    }
+
     /**
      *
      * @param snapshotId The specific snapshotId to return to. If not provided, will return to the last snapshot.
      */
-    public rollbackToSnapshot(snapshotId?: number) {
-        if (snapshotId == null) {
-            Contract.assertTrue(this.snapshots.length > 1, 'No snapshots to rollback to.');
-            // We take a snapshot at the start of someone's turn, so hitting undo would mean we need to back to the second most recent snapshot.
-            snapshotId = this.snapshots[this.snapshots.length - 2].id;
-        }
+    public rollbackToSnapshot(snapshotId: number) {
         Contract.assertPositiveNonZero(snapshotId, 'Tried to rollback but snapshot ID is invalid ' + snapshotId);
 
         const snapshotIdx = this.snapshots.findIndex((x) => x.id === snapshotId);
@@ -129,7 +141,24 @@ export class GameStateManager {
         this.snapshots.splice(snapshotIdx + 1);
     }
 
+    private getLatestSnapshot(offset = 0) {
+        Contract.assertNonNegative(offset, `Tried to get snapshot from end but argument was negative ${offset}.`);
+        return this.snapshots[this.snapshots.length - 1 - offset];
+    }
+
     public getLatestSnapshotId() {
-        return this.snapshots[this.snapshots.length - 1]?.id ?? -1;
+        return this.getLatestSnapshot()?.id ?? 0;
+    }
+
+    public canUndo(player: Player) {
+        let snapshot: IGameSnapshot;
+
+        if (this.game.state.actionPhaseActivePlayer.uuid === player.uuid) {
+            snapshot = this.getLatestSnapshot(1);
+        } else {
+            snapshot = this.getLatestSnapshot(2);
+        }
+
+        return !!snapshot;
     }
 }

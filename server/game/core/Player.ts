@@ -1282,6 +1282,7 @@ export class Player extends GameObject<IPlayerState> {
             // stats: this.getStats(),
             user: safeUser,
             promptState: promptState,
+            canUndo: this.game.gameObjectManager.canUndo(this),
             isActionPhaseActivePlayer,
             clock: undefined
         };
