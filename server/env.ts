@@ -9,7 +9,8 @@ const parsedEnv = z
         GAME_NODE_HOST: z.string(),
         GAME_NODE_NAME: z.string(),
         GAME_NODE_SOCKET_IO_PORT: z.coerce.number().int(),
-        SECRET: z.string()
+        SECRET: z.string(),
+        DISCORD_BUG_REPORT_WEBHOOK_URL: z.string(),
     })
     .safeParse(process.env);
 
@@ -61,4 +62,5 @@ export const gameNodeSocketIoPort = parsedEnv.data.GAME_NODE_SOCKET_IO_PORT;
 // export const maxGames = parsedEnv.data.MAX_GAMES;
 // export const mqUrl = parsedEnv.data.MQ_URL;
 export const secret = parsedEnv.data.SECRET;
+export const DISCORD_BUG_REPORT_WEBHOOK_URL = parsedEnv.data.DISCORD_BUG_REPORT_WEBHOOK_URL;
 // export const sentryDsn = parsedEnv.data.SENTRY_DSN;

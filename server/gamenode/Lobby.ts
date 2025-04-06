@@ -761,4 +761,68 @@ export class Lobby {
             }
         }
     }
+
+    // Add this method to the Lobby class
+    private async reportBug(socket: Socket, description: string): Promise<void> {
+        try {
+            // Validate description
+            if (!description || description.trim().length === 0) {
+                socket.send('bugReportResult', {
+                    success: false,
+                    message: 'Bug description cannot be empty'
+                });
+                return;
+            }
+
+            // Limit description length
+            if (description.length > 500) {
+                socket.send('bugReportResult', {
+                    success: false,
+                    message: 'Bug description must be 500 characters or less'
+                });
+                return;
+            }
+
+            // Create game state snapshot
+            const gameState = this.game
+                ? this.server.bugReportHandler.captureGameState(this.game)
+                : { phase: 'action', player1: {}, player2: {} };
+
+            // Create bug report
+            const bugReport = this.server.bugReportHandler.createBugReport(
+                description,
+                gameState,
+                socket.user,
+                this.id,
+                this.game?.id
+            );
+
+            // Send to Discord
+            const success = await this.server.bugReportHandler.sendBugReportToDiscord(bugReport);
+
+            // Send result back to client
+            if (success) {
+                this.gameChat.addMessage(`${socket.user.username} has reported a bug. Thank you for your feedback!`);
+                socket.send('bugReportResult', {
+                    success: true,
+                    message: 'Bug report submitted successfully. Thank you for helping improve the game!'
+                });
+            } else {
+                socket.send('bugReportResult', {
+                    success: false,
+                    message: 'Failed to submit bug report. Please try again later.'
+                });
+            }
+        } catch (error) {
+            logger.error('Error processing bug report', {
+                error: { message: error.message, stack: error.stack },
+                lobbyId: this.id,
+                userId: socket.user.id
+            });
+            socket.send('bugReportResult', {
+                success: false,
+                message: 'An error occurred while processing your bug report'
+            });
+        }
+    }
 }
