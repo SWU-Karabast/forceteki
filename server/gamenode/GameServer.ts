@@ -22,7 +22,6 @@ import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import type { QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
-import QueueHandler from './QueueHandler';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
@@ -824,7 +823,7 @@ export class GameServer {
 
             if (!lobby) {
                 this.userLobbyMap.delete(user.getId());
-                logger.info('GameServer: No lobby for', ioSocket.data.user.username, 'disconnecting');
+                logger.info('GameServer: No lobby for', ioSocket.data.user.getUsername(), 'disconnecting');
                 ioSocket.emit('connection_error', 'Lobby does not exist');
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -869,7 +868,7 @@ export class GameServer {
         if (requestedLobby.lobbyId) {
             const lobby = this.lobbies.get(requestedLobby.lobbyId);
             if (!lobby) {
-                logger.info('GameServer: No lobby with this link for', ioSocket.data.user.username, 'disconnecting');
+                logger.info('GameServer: No lobby with this link for', ioSocket.data.user.getUsername(), 'disconnecting');
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
@@ -916,7 +915,7 @@ export class GameServer {
             // handle queue-specific events and add lobby disconnect
             queuedPlayer.socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket, queueEntry.player));
 
-            this.queue.connectPlayer(user.id, queuedPlayer.socket);
+            this.queue.connectPlayer(user.getId(), queuedPlayer.socket);
 
             return this.matchmakeAllQueuesAsync();
         }
@@ -1087,7 +1086,7 @@ export class GameServer {
         socket: Socket,
         player: QueuedPlayer
     ) {
-        this.onSocketDisconnected(socket.socket, player.user.id, 3, true);
+        this.onSocketDisconnected(socket.socket, player.user.getId(), 3, true);
     }
 
     public onSocketDisconnected(
