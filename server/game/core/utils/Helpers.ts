@@ -101,6 +101,17 @@ export function asArray<T>(val: T | T[]): T[] {
 
 export const isDevelopment = () => process.env.ENVIRONMENT === 'development';
 
+export function getSingleOrThrow<T>(val: T | T[]): T {
+    Contract.assertNotNullLike(val);
+
+    if (!Array.isArray(val)) {
+        return val;
+    }
+
+    Contract.assertArraySize(val, 1);
+    return val[0];
+}
+
 export function getRandomArrayElements(array: any[], nValues: number, randomGenerator: seedrandom) {
     Contract.assertTrue(nValues <= array.length, `Attempting to retrieve ${nValues} random elements from an array of length ${array.length}`);
 
