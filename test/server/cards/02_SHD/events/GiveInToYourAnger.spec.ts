@@ -26,6 +26,7 @@ describe('Give In to Your Anger', function() {
                 expect(context.player2).toBeAbleToSelectExactly([context.fettsFirespray]);
                 expect(context.player2).not.toHaveClaimInitiativeAbilityButton();
                 expect(context.player2).not.toHavePassAbilityButton();
+                expect(context.player2).toHavePrompt('You must attack with Fett\'s Firespray because of Give In to Your Anger');
 
                 context.player2.clickCard(context.fettsFirespray);
                 expect(context.player2).toBeAbleToSelectExactly([context.avenger]);
