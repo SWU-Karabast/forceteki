@@ -10,14 +10,20 @@ describe('Han Solo Resource Interaction Scenarios', function() {
                         hand: ['pyke-sentinel'],
                         deck: ['liberated-slaves'],
                         resources: [
-                            'dj#blatant-thief', 'atst', 'atst', 'atst', 'atst', 'atst'
+                            'dj#blatant-thief', 'dj#blatant-thief', 'atst', 'atst', 'atst', 'atst'
                         ]
                     },
                     player2: {
                         groundArena: ['moisture-farmer'],
-                        resources: ['wampa']
+                        resources: 5
                     }
                 });
+
+                const { context } = contextRef;
+
+                const [dj1, dj2] = context.player1.findCardsByName('dj#blatant-thief');
+                context.dj1 = dj1;
+                context.dj2 = dj2;
             });
 
             it('Han can defeat opponent\'s resource for DJ if Han\'s ability has been used', function() {
@@ -31,8 +37,12 @@ describe('Han Solo Resource Interaction Scenarios', function() {
 
                 // P2 Pass and P1 use DJ
                 context.player2.passAction();
-                context.player1.clickCard(context.djBlatantThief);
+                context.player1.clickCard(context.dj1);
                 expect(context.player1.readyResourceCount).toBe(1);
+
+                const stolenResourceList = context.player1.resources.filter((resource) => resource.owner === context.player2Object);
+                expect(stolenResourceList.length).toBe(1);
+                const stolenResource1 = stolenResourceList[0];
 
                 context.player2.claimInitiative();
                 context.player1.passAction();
@@ -41,10 +51,19 @@ describe('Han Solo Resource Interaction Scenarios', function() {
 
                 // Han defeats P2's Wampa and ensure it goes to P2 discard
                 expect(context.player1).toHavePrompt('Choose a resource to defeat');
-                context.player1.clickCard(context.wampa);
-                expect(context.wampa).toBeInZone('discard', context.player2);
+                context.player1.clickCard(stolenResource1);
+                expect(stolenResource1).toBeInZone('discard', context.player2);
                 expect(context.player1.readyResourceCount).toBe(7);
-                expect(context.player2.readyResourceCount).toBe(0);
+                expect(context.player2.readyResourceCount).toBe(4);
+
+                // P1 plays DJ again, defeat the original one due to unique rule
+                context.player2.passAction();
+                context.player1.clickCard(context.dj2);
+
+                expect(context.player1).toHavePrompt('Choose which copy of DJ, Blatant Thief to defeat');
+                context.player1.clickCard(context.dj1);
+                expect(context.player1.readyResourceCount).toBe(1);
+                expect(context.player2.readyResourceCount).toBe(3);
             });
         });
 
