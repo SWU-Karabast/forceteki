@@ -61,7 +61,7 @@ describe('Deploy a Leader as a Pilot', function() {
                 expect(context.cartelSpacer.getHp()).toBe(7);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
-                context.player1.clickPrompt('Choose no targets');
+                context.player1.setDistributeDamagePromptState(new Map([]));
 
                 context.player2.clickCard(context.rivalsFall);
                 expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
@@ -108,7 +108,7 @@ describe('Deploy a Leader as a Pilot', function() {
                 expect(context.cartelSpacer.getHp()).toBe(7);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.regionalGovernor]);
-                context.player1.clickPrompt('Choose no targets');
+                context.player1.setDistributeDamagePromptState(new Map([]));
             });
 
             it('can be defeated by an upgrade removal', async function () {
@@ -139,7 +139,7 @@ describe('Deploy a Leader as a Pilot', function() {
                 expect(context.cartelSpacer.getHp()).toBe(7);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
-                context.player1.clickPrompt('Choose no targets');
+                context.player1.setDistributeDamagePromptState(new Map([]));
 
                 context.player2.clickCard(context.confiscate);
                 expect(context.player2).toBeAbleToSelectExactly([context.bobaFett]);
@@ -181,7 +181,7 @@ describe('Deploy a Leader as a Pilot', function() {
                 expect(context.cartelSpacer.getHp()).toBe(7);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
-                context.player1.clickPrompt('Choose no targets');
+                context.player1.setDistributeDamagePromptState(new Map([]));
 
                 context.player2.clickCard(context.confiscate);
                 expect(context.player2).toBeAbleToSelectExactly([context.bobaFett]);
@@ -220,7 +220,7 @@ describe('Deploy a Leader as a Pilot', function() {
                 context.player1.clickCard(context.bobaFett);
                 context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
                 context.player1.clickCard(context.cartelSpacer);
-                context.player1.clickPrompt('Choose no targets');
+                context.player1.setDistributeDamagePromptState(new Map([]));
 
                 context.player2.clickCard(context.fellTheDragon);
                 expect(context.player2).toBeAbleToSelectExactly([context.wildRancor]);

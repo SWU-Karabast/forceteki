@@ -224,7 +224,7 @@ export class OngoingEffectEngine {
         this.customDurationEvents = remainingEvents;
     }
 
-    private createCustomDurationHandler(customDurationEffect) {
+    private createCustomDurationHandler(customDurationEffect: OngoingEffect) {
         return (...args) => {
             const event = args[0];
             const listener = customDurationEffect.until[event.name];

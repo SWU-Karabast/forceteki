@@ -99,6 +99,17 @@ export function asArray<T>(val: T | T[]): T[] {
     return Array.isArray(val) ? val : [val];
 }
 
+export function getSingleOrThrow<T>(val: T | T[]): T {
+    Contract.assertNotNullLike(val);
+
+    if (!Array.isArray(val)) {
+        return val;
+    }
+
+    Contract.assertArraySize(val, 1);
+    return val[0];
+}
+
 export function getRandomArrayElements(array: any[], nValues: number, randomGenerator: seedrandom) {
     Contract.assertTrue(nValues <= array.length, `Attempting to retrieve ${nValues} random elements from an array of length ${array.length}`);
 
@@ -240,3 +251,5 @@ function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergePropert
     const oldPropValue = propertySet[newPropName] as TMergeProperty;
     return { ...propertySet, [newPropName]: mergeFn(oldPropValue, newPropValue) };
 }
+
+export type DistributiveOmit<T, K extends keyof T> = T extends any ? Omit<T, K> : never;

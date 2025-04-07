@@ -25,6 +25,7 @@ import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/In
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl/PlayFromDiscardProperties';
 import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
+import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -160,6 +161,7 @@ export = {
     modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) =>
         OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
     noMulligan: () => OngoingEffectBuilder.card.static(EffectName.NoMulligan),
+    mustAttack: (properties: MustAttackProperties = {}) => OngoingEffectBuilder.card.static(EffectName.MustAttack, properties),
     // modifyMilitarySkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
     // switchAttachmentSkillModifiers,
     // modifyMilitarySkillMultiplier: (value) =>
