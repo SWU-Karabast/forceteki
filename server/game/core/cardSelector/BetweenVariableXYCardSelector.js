@@ -28,7 +28,7 @@ class BetweenVariableXYCardSelector extends BaseCardSelector {
     /** @override */
     hasReachedLimit(selectedCards, context, choosingPlayer) {
         const matchingCards = this.getMatchingCards(context, choosingPlayer);
-        const useSingleSelectMode = this.canUseSingleSelectMode === true && this.useSingleSelectModeFunc ? this.useSingleSelectModeFunc(matchingCards) : false;
+        const useSingleSelectMode = this.canUseSingleSelectMode === true && this.useSingleSelectModeFunc ? this.useSingleSelectModeFunc(context.source, matchingCards) : false;
         return (useSingleSelectMode && selectedCards.length > 0) || selectedCards.length === this.maxNumCardsFunc(context) ||
           (this.minNumCardsFunc(context) === 1 && selectedCards.length === 1 && this.getMatchingCards(context, choosingPlayer).length === 1);
     }
@@ -55,8 +55,13 @@ class BetweenVariableXYCardSelector extends BaseCardSelector {
         let minCards = this.minNumCardsFunc(context);
         let maxCards = this.maxNumCardsFunc(context);
         const matchingCards = this.getMatchingCards(context, choosingPlayer);
-        const useSingleSelectMode = this.canUseSingleSelectMode === true && this.useSingleSelectModeFunc ? this.useSingleSelectModeFunc(matchingCards) : false;
-        return useSingleSelectMode || (minCards === 1 && maxCards === 1);
+        if (this.canUseSingleSelectMode === true) {
+            if (this.useSingleSelectModeFunc) {
+                return this.useSingleSelectModeFunc(context.source, matchingCards);
+            }
+            return minCards === 1 && maxCards === 1;
+        }
+        return false;
     }
 
     getMatchingCards(context, choosingPlayer) {

@@ -131,7 +131,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         protected pilotingConstantAbilities: IConstantAbility[];
         protected pilotingTriggeredAbilities: TriggeredAbility[];
 
-        private readonly attackAction: InitiateAttackAction;
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         private _lastPlayerToModifyHp?: Player;
         private _whenCapturedKeywordAbilities?: TriggeredAbility[] = null;
