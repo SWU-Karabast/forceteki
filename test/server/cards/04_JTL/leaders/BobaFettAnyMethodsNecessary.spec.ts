@@ -29,7 +29,6 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
 
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
-                expect(context.player2).not.toHaveChooseNothingButton();
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.wampa, 1]
                 ]));
@@ -196,7 +195,6 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.auzituckLiberatorGunship).toHaveExactUpgradeNames(['boba-fett#any-methods-necessary']);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.auzituckLiberatorGunship, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
-                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.wampa, 2],
                     [context.concordDawnInterceptors, 1],

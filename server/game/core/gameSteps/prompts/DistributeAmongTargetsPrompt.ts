@@ -63,12 +63,10 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
             isIndirectDamage: this.properties.type === StatefulPromptType.DistributeIndirectDamage,
             canDistributeLess: this.properties.canDistributeLess,
             maxTargets: this.properties.maxTargets,
+            canChooseNoTargets: this.properties.canChooseNoTargets
         };
 
         const buttons = [{ text: 'Done', arg: 'done', command: 'statefulPromptResults' }];
-        if (this.properties.canChooseNoTargets) {
-            buttons.push({ text: 'Choose no targets', arg: 'noTargets', command: '' });
-        }
 
         this._activePrompt = {
             menuTitle,
@@ -99,11 +97,6 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
 
     public override menuCommand(player: Player, arg: string, uuid: string): boolean {
         this.checkPlayerAndUuid(player, uuid);
-
-        if (arg === 'noTargets') {
-            this.complete();
-            return true;
-        }
 
         Contract.fail(`Unexpected menu command: '${arg}'`);
     }
@@ -136,6 +129,15 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
 
         const distributedValues = Array.from(results.valueDistribution.values());
         const distributedSum = distributedValues.reduce((sum, curr) => sum + curr, 0);
+
+        if (distributedSum === 0) {
+            Contract.assertTrue(
+                this.properties.canChooseNoTargets,
+                `Illegal prompt results for '${this._activePrompt.menuTitle}', no targets were selected and prompt requires targets`
+            );
+
+            return;
+        }
 
         Contract.assertNonEmpty(
             distributedValues,
