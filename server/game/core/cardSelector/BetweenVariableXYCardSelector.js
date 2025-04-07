@@ -3,10 +3,11 @@ const Contract = require('../utils/Contract.js');
 const BaseCardSelector = require('./BaseCardSelector.js');
 
 class BetweenVariableXYCardSelector extends BaseCardSelector {
-    constructor(minNumCardsFunc, maxNumCardsFunc, useSingleSelectModeFunc, properties) {
+    constructor(minNumCardsFunc, maxNumCardsFunc, canUseSingleSelectMode, useSingleSelectModeFunc, properties) {
         super(properties);
         this.minNumCardsFunc = minNumCardsFunc;
         this.maxNumCardsFunc = maxNumCardsFunc;
+        this.canUseSingleSelectMode = canUseSingleSelectMode;
         this.useSingleSelectModeFunc = useSingleSelectModeFunc;
     }
 
@@ -27,8 +28,8 @@ class BetweenVariableXYCardSelector extends BaseCardSelector {
     /** @override */
     hasReachedLimit(selectedCards, context, choosingPlayer) {
         const matchingCards = this.getMatchingCards(context, choosingPlayer);
-        const useSingleSelectMode = this.useSingleSelectModeFunc ? this.useSingleSelectModeFunc(matchingCards, context) : false;
-        return (useSingleSelectMode && selectedCards.length > 0) ||
+        const useSingleSelectMode = this.canUseSingleSelectMode === true && this.useSingleSelectModeFunc ? this.useSingleSelectModeFunc(matchingCards) : false;
+        return (useSingleSelectMode && selectedCards.length > 0) || selectedCards.length === this.maxNumCardsFunc(context) ||
           (this.minNumCardsFunc(context) === 1 && selectedCards.length === 1 && this.getMatchingCards(context, choosingPlayer).length === 1);
     }
 
@@ -54,8 +55,8 @@ class BetweenVariableXYCardSelector extends BaseCardSelector {
         let minCards = this.minNumCardsFunc(context);
         let maxCards = this.maxNumCardsFunc(context);
         const matchingCards = this.getMatchingCards(context, choosingPlayer);
-        const useSingleSelectMode = this.useSingleSelectModeFunc ? this.useSingleSelectModeFunc(matchingCards, context) : false;
-        return (minCards === 1 && maxCards === 1) || useSingleSelectMode || matchingCards.length === minCards;
+        const useSingleSelectMode = this.canUseSingleSelectMode === true && this.useSingleSelectModeFunc ? this.useSingleSelectModeFunc(matchingCards) : false;
+        return useSingleSelectMode || (minCards === 1 && maxCards === 1);
     }
 
     getMatchingCards(context, choosingPlayer) {

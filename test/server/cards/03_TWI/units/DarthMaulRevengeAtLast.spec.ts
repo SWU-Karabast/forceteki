@@ -264,5 +264,35 @@ describe('Darth Maul, Revenge At Last', function() {
             // Moisture Farmer should have taken 10 new damage - 2 from the Flamethrower, 8 from the attack
             expect(context.moistureFarmer.damage).toBe(11);
         });
+
+        it('should deal Overwhelm damage from both targets if attacking with Overwhelm', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'maul#a-rival-in-darkness',
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: ['moisture-farmer', 'cantina-braggart'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.maulARivalInDarkness);
+            context.player1.clickPrompt('Attack with a unit. It gains Overwhelm for this attack');
+
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.moistureFarmer);
+            context.player1.clickCard(context.cantinaBraggart);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(0);
+            expect(context.moistureFarmer).toBeInZone('discard');
+            expect(context.cantinaBraggart).toBeInZone('discard');
+
+            // Maul should have dealt 1 Overwhelm from Moisture Farmer and 2 Overwhelm from Cantina Braggart
+            expect(context.p2Base.damage).toBe(3);
+        });
     });
 });

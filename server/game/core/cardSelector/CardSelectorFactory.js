@@ -18,7 +18,7 @@ const defaultProperties = {
 
 const ModeToSelector = {
     autoSingle: (p) => new SingleCardSelector(p),
-    betweenVariable: (p) => new BetweenVariableXYCardSelector(p.minNumCardsFunc, p.maxNumCardsFunc, p.useSingleSelectModeFunc, p),
+    betweenVariable: (p) => new BetweenVariableXYCardSelector(p.minNumCardsFunc, p.maxNumCardsFunc, p.canUseSingleSelectMode, p.useSingleSelectModeFunc, p),
     exactly: (p) => new ExactlyXCardSelector(p.numCards, p),
     exactlyVariable: (p) => new ExactlyVariableXCardSelector(p.numCardsFunc, p),
     maxStat: (p) => new MaxStatCardSelector(p),
