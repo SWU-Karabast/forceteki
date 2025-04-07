@@ -29,6 +29,7 @@ interface LobbyUser extends LobbySpectator {
     deck?: Deck;
     deckValidationErrors?: IDeckValidationFailures;
     importDeckValidationErrors?: IDeckValidationFailures;
+    reportedBugs: number;
 }
 
 export enum MatchType {
@@ -170,7 +171,8 @@ export class Lobby {
             ready: false,
             socket: null,
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
-            deck
+            deck,
+            reportedBugs: 0
         }));
         logger.info(`Creating username: ${user.username}, id: ${user.id} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.username, userId: user.id });
         this.gameChat.addMessage(`${user.username} has created and joined the lobby`);
@@ -249,7 +251,8 @@ export class Lobby {
                 username: user.username,
                 state: 'connected',
                 ready: false,
-                socket
+                socket,
+                reportedBugs: 0
             });
             logger.info(`addLobbyUser: adding username: ${user.username}, id: ${user.id} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.username, userId: user.id });
             this.gameChat.addMessage(`${user.username} has joined the lobby`);
@@ -799,29 +802,15 @@ export class Lobby {
 
             // Send to Discord
             const success = await this.server.bugReportHandler.sendBugReportToDiscord(bugReport);
-
-            // Send result back to client
-            if (success) {
-                this.gameChat.addMessage(`${socket.user.username} has reported a bug. Thank you for your feedback!`);
-                socket.send('bugReportResult', {
-                    success: true,
-                    message: 'Bug report submitted successfully. Thank you for helping improve the game!'
-                });
-            } else {
-                socket.send('bugReportResult', {
-                    success: false,
-                    message: 'Failed to submit bug report. Please try again later.'
-                });
-            }
+            // we find the user
+            const existingUser = this.users.find((u) => u.id === socket.user.id);
+            existingUser.reportedBugs += success ? 1 : 0;
+            this.sendLobbyState();
         } catch (error) {
             logger.error('Error processing bug report', {
                 error: { message: error.message, stack: error.stack },
                 lobbyId: this.id,
                 userId: socket.user.id
-            });
-            socket.send('bugReportResult', {
-                success: false,
-                message: 'An error occurred while processing your bug report'
             });
         }
     }

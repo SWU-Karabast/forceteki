@@ -94,7 +94,7 @@ export class BugReportHandler {
                     fields: [
                         {
                             name: 'Reporter',
-                            value: `${bugReport.reporter.username} (ID: ${bugReport.reporter.id})`,
+                            value: `${bugReport.reporter.username}`,
                             inline: true
                         },
                         {
@@ -202,7 +202,9 @@ export class BugReportHandler {
             if (player.game && player.game.groundArena) {
                 const groundArenaCards = player.game.groundArena.getCards({ controller: player });
                 if (groundArenaCards && groundArenaCards.length > 0) {
-                    state.groundArena = groundArenaCards.map((card) => this.captureCardState(card));
+                    state.groundArena = groundArenaCards
+                        .filter((card) => this.captureCardState(card) !== null)
+                        .map((card) => this.captureCardState(card));
                 }
             }
 
@@ -210,7 +212,9 @@ export class BugReportHandler {
             if (player.game && player.game.spaceArena) {
                 const spaceArenaCards = player.game.spaceArena.getCards({ controller: player });
                 if (spaceArenaCards && spaceArenaCards.length > 0) {
-                    state.spaceArena = spaceArenaCards.map((card) => this.captureCardState(card));
+                    state.spaceArena = spaceArenaCards
+                        .filter((card) => this.captureCardState(card) !== null)
+                        .map((card) => this.captureCardState(card));
                 }
             }
 
@@ -259,7 +263,7 @@ export class BugReportHandler {
      * @returns A simplified card state representation
      */
     private captureCardState(card: any): string | IBugReportCardState {
-        if (!card) {
+        if (!card || (card.isAttached() === 'function' && card.isAttached())) {
             return null;
         }
         try {
@@ -279,6 +283,10 @@ export class BugReportHandler {
 
             if (card.deployed !== undefined) {
                 cardState.deployed = card.deployed;
+            }
+
+            if (card.exhausted !== undefined) {
+                cardState.exhausted = card.exhausted;
             }
             // Capture upgrades/attachments
             if (card.upgrades && card.upgrades.length > 0) {

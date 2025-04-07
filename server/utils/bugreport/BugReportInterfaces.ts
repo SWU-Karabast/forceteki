@@ -4,6 +4,7 @@ export interface IBugReportCardState {
     damage?: number;
     upgrades?: string[];
     deployed?: boolean;
+    exhausted?: boolean;
 }
 
 export interface IPlayerBugReportState {
@@ -34,9 +35,4 @@ export interface IBugReport {
     lobbyId: string;
     timestamp: string;
     gameId?: string;
-}
-
-export interface IBugReportResponse {
-    success: boolean;
-    message: string;
 }
