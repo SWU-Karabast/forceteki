@@ -73,7 +73,7 @@ export class GameServer {
 
     private static buildRemoteCardDataGetter(): Promise<RemoteCardDataGetter> {
         // TODO: move this url to a config
-        return RemoteCardDataGetter.createAsync('https://karabast-assets.s3.amazonaws.com/data/');
+        return RemoteCardDataGetter.createAsync('https://karabast-data.s3.amazonaws.com/data/');
     }
 
     private static getTestGameBuilder() {
