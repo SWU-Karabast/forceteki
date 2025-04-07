@@ -66,7 +66,7 @@ describe('Hera Syndulla, We\'ve Lost Enough', function() {
 
                 context.player2.passAction();
 
-                context.heraSyndulla.exhausted = false;
+                context.readyCard(context.heraSyndulla);
                 context.player1.clickCard(context.heraSyndulla);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p1Base.damage).toBe(4);
@@ -89,7 +89,7 @@ describe('Hera Syndulla, We\'ve Lost Enough', function() {
 
                 context.player2.passAction();
 
-                context.allianceXwing.exhausted = false;
+                context.readyCard(context.allianceXwing);
                 context.player1.clickCard(context.allianceXwing);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p1Base.damage).toBe(4);

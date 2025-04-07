@@ -1,4 +1,4 @@
-import type Player from '../Player';
+import type { Player } from '../Player';
 import type { ZoneFilter } from '../Constants';
 import { CardType, DeployType, PlayType, RelativePlayer, Trait, WildcardCardType } from '../Constants';
 import { AbilityType, ZoneName } from '../Constants';

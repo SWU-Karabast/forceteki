@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, GameStateChangeRequired } from '../core/Constants';
-import type Player from '../core/Player.js';
+import type { Player } from '../core/Player.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 

@@ -34,7 +34,7 @@ describe('Fallen Lightsaber', function() {
                 // second attack with no saber to confirm the effect is gone
                 context.fallenLightsaber.unattach();
                 context.player1.moveCard(context.fallenLightsaber, 'discard');
-                context.guardianOfTheWhills.exhausted = false;
+                context.readyCard(context.guardianOfTheWhills);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.guardianOfTheWhills);

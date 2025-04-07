@@ -5,8 +5,9 @@ import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetS
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
 import * as Contract from '../core/utils/Contract';
+import type { DistributiveOmit } from '../core/utils/Helpers';
 
-export interface ICardLastingEffectProperties extends Omit<ILastingEffectPropertiesBase, 'target'>, ICardTargetSystemProperties {}
+export type ICardLastingEffectProperties = DistributiveOmit<ILastingEffectPropertiesBase, 'target'> & Pick<ICardTargetSystemProperties, 'target'>;
 
 /**
  * For a definition, see SWU 7.7.3 'Lasting Effects': "A lasting effect is a part of an ability that affects the game for a specified duration of time.
@@ -68,7 +69,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
                 durationStr = '';
                 break;
             default:
-                Contract.fail(`Unknown duration: ${properties.duration}`);
+                Contract.fail(`Unknown duration: ${(properties as any).duration}`);
         }
 
         return [`${description} {0}${durationStr}`, [properties.target]];

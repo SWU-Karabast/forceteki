@@ -29,7 +29,6 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
 
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p2Base]);
-                expect(context.player2).not.toHaveChooseNothingButton();
                 context.player2.setDistributeIndirectDamagePromptState(new Map([
                     [context.wampa, 1]
                 ]));
@@ -196,7 +195,6 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 expect(context.auzituckLiberatorGunship).toHaveExactUpgradeNames(['boba-fett#any-methods-necessary']);
 
                 expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer, context.auzituckLiberatorGunship, context.wampa, context.moistureFarmer, context.concordDawnInterceptors]);
-                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.wampa, 2],
                     [context.concordDawnInterceptors, 1],
@@ -219,6 +217,34 @@ describe('Boba Fett, Any Methods Necessary', function() {
 
                 context.moveToNextActionPhase();
                 expect(context.bobaFett).not.toHaveAvailableActionWhenClickedBy(context.player1);
+            });
+
+            it('will have its 4 damage negated by a Shield when deployed as a Pilot and choosing to damage a unit with a Shield', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'boba-fett#any-methods-necessary',
+                        spaceArena: ['cartel-spacer', 'auzituck-liberator-gunship'],
+                        resources: 6
+                    },
+                    player2: {
+                        groundArena: [{ card: 'wampa', upgrades: ['shield'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.bobaFett);
+                context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
+                context.player1.clickCard(context.auzituckLiberatorGunship);
+
+                context.player1.setDistributeDamagePromptState(new Map([
+                    [context.wampa, 4]
+                ]));
+
+                expect(context.wampa.damage).toBe(0);
+                expect(context.wampa).not.toHaveExactUpgradeNames(['shield']);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

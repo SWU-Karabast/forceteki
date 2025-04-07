@@ -17,7 +17,7 @@ export default class SlaversFreighter extends NonLeaderUnitCard {
             targetResolver: {
                 zoneFilter: WildcardZoneName.AnyArena,
                 cardCondition: (card, context) => {
-                    const opponentUpgradeCount = context.player.opponent.getUnitsInPlay().reduce(
+                    const opponentUpgradeCount = context.player.opponent.getArenaUnits().reduce(
                         (total, unit) => total + unit.upgrades.length,
                         0);
                     return card.isUnit() && card !== context.source && card.getPower() <= opponentUpgradeCount;

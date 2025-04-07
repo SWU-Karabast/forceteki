@@ -32,7 +32,7 @@ describe('R2D2 - Ignoring Protocol', function() {
 
                 // record new state.
                 context.player2.passAction();
-                context.r2d2.exhausted = false;
+                context.readyCard(context.r2d2);
                 preSwapDeck = context.player1.deck;
 
                 // Case 2 on attack move to top

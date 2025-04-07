@@ -16,10 +16,10 @@ describe('Rampart, Enjoy the Exit', function () {
             const { context } = contextRef;
 
             // exhaust all units
-            context.rampart.exhausted = true;
-            context.cartelSpacer.exhausted = true;
-            context.craftySmuggler.exhausted = true;
-            context.greenSquadronAwing.exhausted = true;
+            context.exhaustCard(context.rampart);
+            context.exhaustCard(context.cartelSpacer);
+            context.exhaustCard(context.craftySmuggler);
+            context.exhaustCard(context.greenSquadronAwing);
 
             // ready rampart with an ability
             context.player1.clickCard(context.keepFighting);
@@ -27,7 +27,7 @@ describe('Rampart, Enjoy the Exit', function () {
 
             expect(context.rampart.exhausted).toBeFalse();
 
-            context.rampart.exhausted = true;
+            context.exhaustCard(context.rampart);
 
             context.moveToNextActionPhase();
 
@@ -62,8 +62,8 @@ describe('Rampart, Enjoy the Exit', function () {
             const { context } = contextRef;
 
             // exhaust all units
-            context.rampart.exhausted = true;
-            context.cartelSpacer.exhausted = true;
+            context.exhaustCard(context.rampart);
+            context.exhaustCard(context.cartelSpacer);
 
             // play huyang and give rampart +2/+2
             context.player1.clickCard(context.huyang);
@@ -78,8 +78,8 @@ describe('Rampart, Enjoy the Exit', function () {
             expect(context.huyang.exhausted).toBeFalse();
 
             // exhaust all units
-            context.rampart.exhausted = true;
-            context.cartelSpacer.exhausted = true;
+            context.exhaustCard(context.rampart);
+            context.exhaustCard(context.cartelSpacer);
 
             // kill huyang
             context.player1.passAction();
@@ -107,8 +107,8 @@ describe('Rampart, Enjoy the Exit', function () {
             const { context } = contextRef;
 
             // exhaust all units
-            context.rampart.exhausted = true;
-            context.cartelSpacer.exhausted = true;
+            context.exhaustCard(context.rampart);
+            context.exhaustCard(context.cartelSpacer);
 
             // give a boost to rampart
             context.player1.clickCard(context.tacticalAdvantage);

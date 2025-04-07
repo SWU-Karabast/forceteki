@@ -4,7 +4,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
 

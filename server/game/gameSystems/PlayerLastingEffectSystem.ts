@@ -1,11 +1,11 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { RelativePlayer } from '../core/Constants';
-import { EventName, GameStateChangeRequired } from '../core/Constants';
+import { Duration, EventName, GameStateChangeRequired } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { GameObject } from '../core/GameObject';
 import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 
 export type IPlayerLastingEffectProperties = ILastingEffectPropertiesBase & {
 
@@ -28,7 +28,8 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
 
         const renamedProperties = Object.assign(otherProperties, { ongoingEffect: effect });
 
-        event.context.source[properties.duration](() => renamedProperties);
+        const effectType = properties.duration === Duration.Custom ? 'lastingEffect' : properties.duration;
+        event.context.source[effectType](() => renamedProperties);
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {

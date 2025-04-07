@@ -17,7 +17,7 @@ export default class SawGerreraResistanceIsNotTerrorism extends NonLeaderUnitCar
                 condition: (context) => context.player.base.damage >= 15,
                 onTrue: AbilityHelper.immediateEffects.damage((context) => ({
                     amount: 1,
-                    target: context.player.opponent.getUnitsInPlay(ZoneName.GroundArena)
+                    target: context.player.opponent.getArenaUnits({ arena: ZoneName.GroundArena })
                 }))
             })
         });

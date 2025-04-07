@@ -1,9 +1,9 @@
 import { EffectName, PhaseName } from '../../Constants';
 import type Game from '../../Game';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
-import ActionWindow from '../ActionWindow';
+import { ActionWindow } from '../ActionWindow';
 
 export class ActionPhase extends Phase {
     public activePlayer?: Player;

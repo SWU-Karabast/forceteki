@@ -32,7 +32,7 @@ describe('Kit Fisto, The Smiling Jedi', function() {
             context.player2.clickCard(context.vanquish);
             context.player2.clickCard(context.battlefieldMarine);
 
-            context.kitFisto.exhausted = false;
+            context.readyCard(context.kitFisto);
             context.player1.clickCard(context.kitFisto);
             context.player1.clickCard(context.p2Base);
 

@@ -308,5 +308,42 @@ describe('U-Wing Reinforcement', function() {
             context.player1.clickCard(context.admiralAckbar);
             expect(context.admiralAckbar.damage).toBe(2);
         });
+
+        it('should not be able to play units with Piloting as upgrades', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'hera-syndulla#spectre-two',
+                    hand: ['uwing-reinforcement'],
+                    spaceArena: ['cartel-turncoat'],
+                    deck: [
+                        'dagger-squadron-pilot',
+                        'vanguard-infantry',
+                        'battlefield-marine',
+                        'hunting-nexu',
+                        'wampa',
+                        'daring-raid',
+                        'protector',
+                        'strike-true',
+                        'atat-suppressor',
+                        'aurra-sing#crackshot-sniper',
+                        'atst'
+                    ],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.uwingReinforcement);
+
+            expect(context.player1).toHavePrompt('Choose up to 3 units with combined cost 7 or less to play for free');
+            expect(context.player1).toHaveExactDisplayPromptCards({
+                selectable: [context.daggerSquadronPilot, context.vanguardInfantry, context.battlefieldMarine, context.huntingNexu, context.wampa, context.aurraSingCrackshotSniper],
+                invalid: [context.daringRaid, context.protector, context.strikeTrue, context.atatSuppressor]
+            });
+            context.player1.clickCardInDisplayCardPrompt(context.daggerSquadronPilot);
+            context.player1.clickPrompt('Play cards in selection order');
+            expect(context.daggerSquadronPilot).toBeInZone('groundArena');
+        });
     });
 });

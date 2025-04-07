@@ -30,7 +30,7 @@ describe('Desperate Attack', function() {
                 expect(context.isbAgent.damage).toBe(2);
 
                 // second attack to confirm that the buff is gone
-                context.isbAgent.exhausted = false;
+                context.readyCard(context.isbAgent);
                 context.player2.passAction();
                 context.player1.clickCard(context.isbAgent);
                 context.player1.clickCard(context.p2Base);

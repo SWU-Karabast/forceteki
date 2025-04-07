@@ -32,7 +32,7 @@ describe('Chirrut Îmwe, One with the Force', function() {
             context.player2.clickCard(context.deathStarStormtrooper);
 
             // give the +2 effect to the TIE/LN Fighter as well
-            context.chirrutImwe.exhausted = false;
+            context.readyCard(context.chirrutImwe);
             context.player1.clickCard(context.chirrutImwe);
             expect(context.player1).toBeAbleToSelectExactly([context.deathStarStormtrooper, context.tielnFighter]);
             context.player1.clickCard(context.tielnFighter);

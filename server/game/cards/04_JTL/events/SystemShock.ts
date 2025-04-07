@@ -21,7 +21,7 @@ export default class SystemShock extends EventCard {
                 title: 'Deal 1 damage to that unit',
                 immediateEffect: AbilityHelper.immediateEffects.damage({
                     amount: 1,
-                    target: ifYouDoContext.events[0].lastKnownInformation.parentCard
+                    target: ifYouDoContext.events[0]?.lastKnownInformation?.parentCard
                 })
             })
         });

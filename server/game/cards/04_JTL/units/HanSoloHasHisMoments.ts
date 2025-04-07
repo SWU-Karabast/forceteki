@@ -18,6 +18,7 @@ export default class HanSoloHasHisMoments extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) => event.card === context.source && event.playType === PlayType.Piloting
             },
+            optional: true,
             immediateEffect: AbilityHelper.immediateEffects.attack((context) => ({
                 target: context.source.parentCard,
                 attackerLastingEffects: [{

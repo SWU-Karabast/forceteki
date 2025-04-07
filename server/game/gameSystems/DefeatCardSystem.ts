@@ -4,7 +4,7 @@ import type { IUpgradeCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
 import { AbilityRestriction, CardType, EventName, GameStateChangeRequired, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import type { IDamageSource, IDefeatSource } from '../IDamageOrDefeatSource';
 import { DefeatSourceType } from '../IDamageOrDefeatSource';
@@ -65,8 +65,8 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         }
     }
 
-    public override getEffectMessage(context: TContext): [string, any[]] {
-        const properties = this.generatePropertiesFromContext(context);
+    public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return ['defeat {0}', [properties.target]];
     }
 

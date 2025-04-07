@@ -41,9 +41,9 @@ describe('Losing and gaining keywords', function() {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.consularSecurityForce.damage = 0;
-                    context.consularSecurityForce.exhausted = false;
-                    context.vigilantHonorGuards.damage = 0;
+                    context.setDamage(context.consularSecurityForce, 0);
+                    context.readyCard(context.consularSecurityForce);
+                    context.setDamage(context.vigilantHonorGuards, 0);
                 };
 
                 // no effects beyond what's printed on the card: honor guards has sentinel
@@ -83,9 +83,9 @@ describe('Losing and gaining keywords', function() {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.consularSecurityForce.damage = 0;
-                    context.consularSecurityForce.exhausted = false;
-                    context.vigilantHonorGuards.damage = 0;
+                    context.setDamage(context.consularSecurityForce, 0);
+                    context.readyCard(context.consularSecurityForce);
+                    context.setDamage(context.vigilantHonorGuards, 0);
                 };
 
                 // no effects beyond what's printed on the card: honor guards has sentinel

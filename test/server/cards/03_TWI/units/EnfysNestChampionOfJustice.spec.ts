@@ -31,7 +31,7 @@ describe('Enfys Nest, Champion of Justice', function () {
                 context.player1.clickCard(context.academyTraining);
                 context.player1.clickCard(context.enfysNest);
 
-                context.enfysNest.exhausted = false;
+                context.readyCard(context.enfysNest);
                 context.player2.passAction();
 
                 context.player1.clickCard(context.enfysNest);

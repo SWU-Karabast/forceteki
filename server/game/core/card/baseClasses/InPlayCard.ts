@@ -1,8 +1,8 @@
 import type { IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
-import { ZoneName } from '../../Constants';
+import { TargetMode, ZoneName } from '../../Constants';
 import { CardType, RelativePlayer, WildcardZoneName } from '../../Constants';
-import type Player from '../../Player';
+import type { Player } from '../../Player';
 import * as EnumHelpers from '../../utils/EnumHelpers';
 import type { IDecreaseCostAbilityProps, IIgnoreAllAspectPenaltiesProps, IIgnoreSpecificAspectPenaltyProps, IPlayableOrDeployableCard, IPlayableOrDeployableCardState } from './PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './PlayableOrDeployableCard';
@@ -16,12 +16,13 @@ import type { ICardWithActionAbilities } from '../propertyMixins/ActionAbilityRe
 import type { ICardWithConstantAbilities } from '../propertyMixins/ConstantAbilityRegistration';
 import type { ICardWithTriggeredAbilities } from '../propertyMixins/TriggeredAbilityRegistration';
 import { WithAllAbilityTypes } from '../propertyMixins/AllAbilityTypeRegistrations';
-import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { IUnitCard } from '../propertyMixins/UnitProperties';
 import { InitializeCardStateOption, type Card } from '../Card';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { StandardTriggeredAbilityType } from '../../Constants';
 import * as Helpers from '../../utils/Helpers';
+import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
+import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 
 const InPlayCardParent = WithCost(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -333,7 +334,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
     // ******************************************** UNIQUENESS MANAGEMENT ********************************************
     public registerPendingUniqueDefeat() {
-        Contract.assertTrue(this.getDuplicatesInPlayForController().length === 1);
+        Contract.assertTrue(this.getDuplicatesInPlayForController().length > 0);
 
         this.state.pendingDefeat = true;
         this.state.disableOngoingEffectsForDefeat = true;
@@ -343,28 +344,37 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         Contract.assertTrue(this.unique);
 
         // need to filter for other cards that have unique = true since Clone will create non-unique duplicates
-        const uniqueDuplicatesInPlay = this.getDuplicatesInPlayForController();
-        if (uniqueDuplicatesInPlay.length === 0) {
+        const numUniqueDuplicatesInPlay = this.getDuplicatesInPlayForController().length;
+        if (numUniqueDuplicatesInPlay === 0) {
             return;
         }
 
-        Contract.assertTrue(
-            uniqueDuplicatesInPlay.length < 2,
-            `Found that ${this.controller.name} has ${uniqueDuplicatesInPlay.length} duplicates of ${this.internalName} in play`
-        );
-
         const unitDisplayName = this.title + (this.subtitle ? ', ' + this.subtitle : '');
 
-        const chooseDuplicateToDefeatPromptProperties = {
-            activePromptTitle: `Choose which copy of ${unitDisplayName} to defeat`,
-            waitingPromptTitle: `Waiting for opponent to choose which copy of ${unitDisplayName} to defeat`,
-            source: 'Unique rule',
-            selectCardMode: SelectCardMode.Single,
+        const selector = CardSelectorFactory.create({
+            mode: TargetMode.Exactly,
+            numCards: numUniqueDuplicatesInPlay,
             zoneFilter: WildcardZoneName.AnyArena,
             controller: RelativePlayer.Self,
             cardCondition: (card: InPlayCard) =>
                 card.unique && card.title === this.title && card.subtitle === this.subtitle && !card.pendingDefeat,
-            onSelect: (card) => this.resolveUniqueDefeat(card)
+        });
+
+        const chooseDuplicateToDefeatPromptProperties = {
+            activePromptTitle: `Choose which ${numUniqueDuplicatesInPlay > 1 ? 'copies' : 'copy'} of ${unitDisplayName} to defeat`,
+            waitingPromptTitle: `Waiting for opponent to choose which ${numUniqueDuplicatesInPlay > 1 ? 'copies' : 'copy'} of ${unitDisplayName} to defeat`,
+            source: 'Unique rule',
+            selectCardMode: numUniqueDuplicatesInPlay > 1 ? SelectCardMode.Multiple : SelectCardMode.Single,
+            selector: selector,
+            onSelect: (cardOrCards) => {
+                if (Array.isArray(cardOrCards)) {
+                    for (const card of cardOrCards) {
+                        this.resolveUniqueDefeat(card);
+                    }
+                    return true;
+                }
+                return this.resolveUniqueDefeat(cardOrCards);
+            }
         };
         this.game.promptForSelect(this.controller, chooseDuplicateToDefeatPromptProperties);
     }

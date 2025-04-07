@@ -12,10 +12,12 @@ describe('Death Trooper', function() {
                     player2: {
                         groundArena: ['wampa', 'superlaser-technician'],
                         spaceArena: ['tieln-fighter']
-                    }
+                    },
+                    // testUndo: true
                 });
             });
 
+            // contextRef.undoIt
             it('can only target ground units & can damage itself', function () {
                 const { context } = contextRef;
 

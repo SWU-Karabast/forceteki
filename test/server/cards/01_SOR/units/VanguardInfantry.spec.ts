@@ -51,5 +51,28 @@ describe('Vanguard Infantry', function() {
                 expect(context.cartelSpacer).toHaveExactUpgradeNames([]);
             });
         });
+
+        it('should work with No Glory, Only Results', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['vanguard-infantry', 'wampa']
+                },
+                player2: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['maul#shadow-collective-visionary'],
+                    hasInitiative: true
+                }
+            });
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.noGloryOnlyResults);
+            context.player2.clickCard(context.vanguardInfantry);
+            expect(context.player2).toBeAbleToSelectExactly([context.maul, context.wampa]);
+            context.player2.clickCard(context.maul);
+            expect(context.maul).toHaveExactUpgradeNames(['experience']);
+
+            context.player1.passAction();
+        });
     });
 });

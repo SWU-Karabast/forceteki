@@ -13,7 +13,7 @@ export default class OldAccessCodes extends UpgradeCard {
         this.addWhenPlayedAbility({
             title: 'Draw a card',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.getUnitsInPlay().length < context.player.opponent.getUnitsInPlay().length,
+                condition: (context) => context.player.getArenaUnits().length < context.player.opponent.getArenaUnits().length,
                 onTrue: AbilityHelper.immediateEffects.draw(),
             })
         });

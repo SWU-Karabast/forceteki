@@ -37,9 +37,9 @@ describe('Bendu, The One in the Middle', function() {
                 const benduAttack = () => {
                     context.player1.clickCard(context.bendu);
                     context.player1.clickCard(context.wampa);
-                    context.wampa.damage = 0;
-                    context.bendu.damage = 0;
-                    context.bendu.exhausted = false;
+                    context.setDamage(context.wampa, 0);
+                    context.setDamage(context.bendu, 0);
+                    context.readyCard(context.bendu);
                     context.player2.passAction();
                 };
 
@@ -109,7 +109,7 @@ describe('Bendu, The One in the Middle', function() {
 
                 // Bendu defeated due to combat
                 resetState();
-                context.bendu.damage = 5;
+                context.setDamage(context.bendu, 5);
                 context.player1.clickCard(context.bendu);
                 context.player1.clickCard(context.wampa);
                 context.player2.passAction();

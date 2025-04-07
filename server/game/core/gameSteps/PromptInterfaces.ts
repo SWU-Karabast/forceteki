@@ -4,7 +4,7 @@ import type { Card } from '../card/Card';
 import type BaseCardSelector from '../cardSelector/BaseCardSelector';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
-import type Player from '../Player';
+import type { Player } from '../Player';
 
 export enum DisplayCardSelectionState {
     Selectable = 'selectable',
@@ -72,6 +72,7 @@ export interface IDistributeAmongTargetsPromptData {
     amount: number;
     isIndirectDamage: boolean;
     canDistributeLess: boolean;
+    canChooseNoTargets: boolean;
     maxTargets?: number;
 }
 

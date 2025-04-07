@@ -29,7 +29,7 @@ describe('Anakin Skywalker, Maverick Mentor', function() {
             context.player2.clickCard(context.vanquish);
             context.player2.clickCard(context.battlefieldMarine);
 
-            context.anakinSkywalker.exhausted = false;
+            context.readyCard(context.anakinSkywalker);
             context.player1.clickCard(context.anakinSkywalker);
 
             expect(context.p2Base.damage).toBe(12);

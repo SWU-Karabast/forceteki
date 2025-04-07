@@ -21,7 +21,7 @@ describe('Enterprising Lackeys', function() {
             it('should defeat a resource and put this card as resource', function () {
                 const { context } = contextRef;
 
-                context.battlefieldMarine.exhausted = true;
+                context.exhaustCard(context.battlefieldMarine);
                 context.player2.clickCard(context.vanquish);
 
                 // select a resource to defeat

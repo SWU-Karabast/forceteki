@@ -35,7 +35,6 @@ describe('Redemption Medical Frigate', function() {
                 context.p2Base,
                 context.tielnFighter
             ]);
-            expect(context.player1).toHaveChooseNothingButton();
             context.player1.setDistributeHealingPromptState(new Map([
                 [context.yoda, 2], // We can heal all damages
                 [context.hanSolo, 1], // We can heal the leader unit
@@ -55,6 +54,7 @@ describe('Redemption Medical Frigate', function() {
             expect(context.atst.damage).toBe(2);
 
             expect(context.redemption.damage).toBe(8);
+            expect(context.getChatLogs(1)[0]).toContain('player1 uses Redemption to distribute 8 healing among cards');
 
             // Reset Redemption with Waylay
             context.player2.clickCard(context.waylay);
@@ -72,6 +72,7 @@ describe('Redemption Medical Frigate', function() {
             expect(context.p1Base.damage).toBe(2);
 
             expect(context.redemption.damage).toBe(5);
+            expect(context.getChatLogs(1)[0]).toContain('player1 uses Redemption to distribute 5 healing among cards');
 
             // Reset Redemption with Cantina Bouncer
             context.player2.clickCard(context.cantinaBouncer);
@@ -81,7 +82,7 @@ describe('Redemption Medical Frigate', function() {
 
             // We can heal 0 damage
             context.player1.clickCard(context.redemption);
-            context.player1.clickPrompt('Choose no targets');
+            context.player1.setDistributeHealingPromptState(new Map([]));
 
             expect(context.atst.damage).toBe(2);
             expect(context.p1Base.damage).toBe(2);

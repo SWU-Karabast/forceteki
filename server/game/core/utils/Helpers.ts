@@ -99,6 +99,17 @@ export function asArray<T>(val: T | T[]): T[] {
     return Array.isArray(val) ? val : [val];
 }
 
+export function getSingleOrThrow<T>(val: T | T[]): T {
+    Contract.assertNotNullLike(val);
+
+    if (!Array.isArray(val)) {
+        return val;
+    }
+
+    Contract.assertArraySize(val, 1);
+    return val[0];
+}
+
 export function getRandomArrayElements(array: any[], nValues: number, randomGenerator: seedrandom) {
     Contract.assertTrue(nValues <= array.length, `Attempting to retrieve ${nValues} random elements from an array of length ${array.length}`);
 
@@ -137,6 +148,60 @@ export function splitArray<T>(ara: T[], condition: (item: T) => boolean) {
             results.trueAra.push(item);
         } else {
             results.falseAra.push(item);
+        }
+    }
+
+    return results;
+}
+
+/**
+ * Splits an array into two based on a condition applied to each element.
+ */
+export function partitionArray<T>(ara: T[], condition: (item: T) => boolean) {
+    const trueCases: T[] = [];
+    const falseCases: T[] = [];
+
+    for (const item of ara) {
+        if (condition(item)) {
+            trueCases.push(item);
+        } else {
+            falseCases.push(item);
+        }
+    }
+
+    return [trueCases, falseCases];
+}
+
+const defaultFilterCallback = (item) => item != null;
+
+/** Combined array map then filter function. If filterCallback is not provided, it will default to "mapValue => mapValue != null" */
+export function mapFilter<T extends Record<any, any>, U = any>(obj: T, mapCallback: (item: keyof T) => U, filterCallback?: (mapValue: U) => boolean) {
+    const results: U[] = [];
+    filterCallback ??= defaultFilterCallback;
+
+    for (const prop in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+            const value = mapCallback(prop);
+            if (filterCallback(value)) {
+                results.push(value);
+            }
+        }
+    }
+
+    return results;
+}
+
+/** Combined array filter then map function. If filterCallback is not provided, it will default to "mapValue => mapValue != null" */
+export function filterMap<T extends Record<any, any>, U = any>(obj: T, mapCallback: (item: keyof T) => U, filterCallback?: (mapValue: keyof T) => boolean) {
+    const results: U[] = [];
+    filterCallback ??= defaultFilterCallback;
+
+    for (const prop in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+            if (filterCallback(prop)) {
+                const value = mapCallback(prop);
+                results.push(value);
+            }
         }
     }
 
@@ -186,3 +251,5 @@ function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergePropert
     const oldPropValue = propertySet[newPropName] as TMergeProperty;
     return { ...propertySet, [newPropName]: mergeFn(oldPropValue, newPropValue) };
 }
+
+export type DistributiveOmit<T, K extends keyof T> = T extends any ? Omit<T, K> : never;

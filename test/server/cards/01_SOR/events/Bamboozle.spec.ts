@@ -118,7 +118,7 @@ describe('Bamboozle', function () {
             context.player1.clickCard(context.bobaFett);
             context.player1.clickPrompt('Deploy Boba Fett as a Pilot');
             context.player1.clickCard(context.cartelSpacer);
-            context.player1.clickPrompt('Choose no targets');
+            context.player1.setDistributeDamagePromptState(new Map([]));
 
             context.player2.clickCard(context.bamboozle);
             expect(context.player2).toBeAbleToSelectExactly([context.cartelSpacer]);
@@ -155,7 +155,7 @@ describe('Bamboozle', function () {
                 context.setDamage(context.p1Base, 0);
                 context.player1.moveCard(context.bamboozle, 'hand');
                 context.player2.passAction();
-                context.bibFortuna.exhausted = false;
+                context.readyCard(context.bibFortuna);
             };
 
             // play Bamboozle using Bib Fortuna ability

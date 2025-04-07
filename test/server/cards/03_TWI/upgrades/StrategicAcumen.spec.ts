@@ -33,7 +33,7 @@ describe('Strategic Acumen', function() {
 
             const exhaustedResourceCount = context.player1.exhaustedResourceCount;
             context.player2.passAction();
-            context.wampa.exhausted = false;
+            context.readyCard(context.wampa);
 
             // can choose nothing and play it later without discount
             context.player1.clickCard(context.wampa);
@@ -48,7 +48,7 @@ describe('Strategic Acumen', function() {
             expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourceCount + 2);
 
             context.player2.passAction();
-            context.wampa.exhausted = false;
+            context.readyCard(context.wampa);
 
             // should be able to select and play a unit that costs exactly 1 more than ready resources
             context.player1.setResourceCount(2);

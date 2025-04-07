@@ -5,7 +5,7 @@ import type { GameEvent } from '../core/event/GameEvent';
 import type { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
-import type Player from '../core/Player';
+import type { Player } from '../core/Player';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
 

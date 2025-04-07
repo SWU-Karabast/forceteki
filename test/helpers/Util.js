@@ -134,6 +134,10 @@ function isTokenUpgrade(cardName) {
     return ['shield', 'experience'].includes(cardName);
 }
 
+/**
+ *
+ * @param {Game} game
+ */
 function refreshGameState(game) {
     game.resolveGameState(true);
 

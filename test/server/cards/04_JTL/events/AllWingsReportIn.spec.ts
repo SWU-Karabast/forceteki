@@ -49,8 +49,8 @@ describe('All Wings Report In', function() {
                 const { context } = contextRef;
 
                 // Assert game state
-                context.allianceXwing.exhausted = true;
-                context.redThree.exhausted = true;
+                context.exhaustCard(context.allianceXwing);
+                context.exhaustCard(context.redThree);
 
                 expect(context.allianceXwing.exhausted).toBe(true);
                 expect(context.redThree.exhausted).toBe(true);
@@ -70,7 +70,7 @@ describe('All Wings Report In', function() {
                 const { context } = contextRef;
 
                 // Assert game state
-                context.allianceXwing.exhausted = true;
+                context.exhaustCard(context.allianceXwing);
 
                 expect(context.allianceXwing.exhausted).toBe(true);
                 expect(context.redThree.exhausted).toBe(false);

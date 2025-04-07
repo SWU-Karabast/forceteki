@@ -39,7 +39,7 @@ describe('Paige Tico, Dropping the Hammer', function() {
 
                 context.player2.passAction();
 
-                context.paigeTico.exhausted = false;
+                context.readyCard(context.paigeTico);
                 context.player1.clickCard(context.paigeTico);
                 context.player1.clickCard(context.p2Base);
                 expect(context.paigeTico.isUpgraded()).toBeFalse();
@@ -78,7 +78,7 @@ describe('Paige Tico, Dropping the Hammer', function() {
 
                 context.player2.passAction();
 
-                context.allianceXwing.exhausted = false;
+                context.readyCard(context.allianceXwing);
                 context.player1.clickCard(context.allianceXwing);
                 context.player1.clickCard(context.p2Base);
                 expect(context.allianceXwing.isUpgraded()).toBeFalse();
@@ -102,7 +102,7 @@ describe('Paige Tico, Dropping the Hammer', function() {
 
                 context.player2.passAction();
 
-                context.survivorsGauntlet.exhausted = false;
+                context.readyCard(context.survivorsGauntlet);
                 context.player1.clickCard(context.survivorsGauntlet);
                 context.player1.clickCard(context.p2Base);
                 context.player1.clickPrompt('Give an Experience token to this unit, then deal 1 damage to it'); // triggered ability window

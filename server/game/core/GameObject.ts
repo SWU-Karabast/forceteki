@@ -3,10 +3,11 @@ import type { AbilityContext } from './ability/AbilityContext';
 import { AbilityRestriction, EffectName, Stage } from './Constants';
 import type { IOngoingCardEffect } from './ongoingEffect/IOngoingCardEffect';
 import type Game from './Game';
-import type Player from './Player';
+import type { Player } from './Player';
 import type { Card } from './card/Card';
 import type { IGameObjectBaseState } from './GameObjectBase';
 import { GameObjectBase } from './GameObjectBase';
+import type { Restriction } from './ongoingEffect/effectImpl/Restriction';
 
 export interface IGameObjectState extends IGameObjectBaseState {
     id: string;
@@ -66,7 +67,7 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
      * can be a value of {@link AbilityRestriction} or an arbitrary string such as a card name.
      */
     public hasRestriction(actionType: string, context?: AbilityContext) {
-        return this.getOngoingEffectValues(EffectName.AbilityRestrictions).some((restriction) =>
+        return this.getOngoingEffectValues<Restriction>(EffectName.AbilityRestrictions).some((restriction) =>
             restriction.isMatch(actionType, context, this)
         );
     }

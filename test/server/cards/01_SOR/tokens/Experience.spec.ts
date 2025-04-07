@@ -27,7 +27,7 @@ describe('Experience', function() {
 
                 // second attack to confirm that experience effect is still on
                 context.player2.passAction();
-                context.cartelSpacer.exhausted = false;
+                context.readyCard(context.cartelSpacer);
 
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCard(context.p2Base);
@@ -35,7 +35,7 @@ describe('Experience', function() {
 
                 // third attack to confirm that token goes to discard
                 context.player2.passAction();
-                context.cartelSpacer.exhausted = false;
+                context.readyCard(context.cartelSpacer);
 
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCard(context.valiantAssaultShip);

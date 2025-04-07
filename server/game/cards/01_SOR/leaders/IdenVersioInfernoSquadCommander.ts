@@ -35,7 +35,7 @@ export default class IdenVersioInfernoSquadCommander extends LeaderUnitCard {
         this.addTriggeredAbility({
             title: 'When an opponent\'s unit is defeated, heal 1 from base',
             when: {
-                onCardDefeated: (event, context) => EnumHelpers.isUnit(event.lastKnownInformation.type) && event.card.controller !== context.player
+                onCardDefeated: (event, context) => EnumHelpers.isUnit(event.lastKnownInformation.type) && event.lastKnownInformation.controller !== context.player
             },
             immediateEffect: AbilityHelper.immediateEffects.heal((context) => {
                 return { amount: 1, target: context.player.base };

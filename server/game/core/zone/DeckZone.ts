@@ -2,7 +2,7 @@ import type seedrandom from 'seedrandom';
 import type { Card } from '../card/Card';
 import type { MoveZoneDestination } from '../Constants';
 import { ZoneName, DeckZoneDestination, WildcardRelativePlayer } from '../Constants';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import type { IAddRemoveZone, IZoneCardFilterProperties } from './ZoneAbstract';

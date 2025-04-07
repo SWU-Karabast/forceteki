@@ -3,7 +3,7 @@ import { ActionAbility } from '../ability/ActionAbility';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type { IOngoingEffectSourceState } from '../ongoingEffect/OngoingEffectSource';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
-import type Player from '../Player';
+import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { KeywordName } from '../Constants';

@@ -21,7 +21,7 @@ describe('Lom Pyke, Dealer in Truths', function() {
                 const { context } = contextRef;
 
                 const reset = () => {
-                    context.lomPyke.exhausted = false;
+                    context.readyCard(context.lomPyke);
                     context.player2.passAction();
                 };
 

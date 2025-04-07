@@ -29,7 +29,7 @@ describe('General Hux, No Terms, No Surrender', function() {
             context.player1.clickPrompt('Draw a card');
             expect(context.player1.handSize).toBe(1);
 
-            context.kylosTieSilencer.exhausted = false;
+            context.readyCard(context.kylosTieSilencer);
             context.player2.clickCard(context.kylosTieSilencer);
             context.player2.clickCard(context.p1Base);
             expect(context.p1Base.damage).toBe(3);
@@ -38,7 +38,7 @@ describe('General Hux, No Terms, No Surrender', function() {
             context.player1.clickCard(context.kijimiPatrollers);
             context.player2.passAction();
 
-            context.generalHux.exhausted = false;
+            context.readyCard(context.generalHux);
 
             // use hux ability, a first order card was played, draw 1 card
             context.player1.clickCard(context.generalHux);
@@ -47,7 +47,7 @@ describe('General Hux, No Terms, No Surrender', function() {
 
             context.player2.passAction();
             context.setDamage(context.p2Base, 0);
-            context.generalHux.exhausted = false;
+            context.readyCard(context.generalHux);
 
             // attack with hux, should not get raid 1
             context.player1.clickCard(context.generalHux);
@@ -58,7 +58,7 @@ describe('General Hux, No Terms, No Surrender', function() {
 
             context.setDamage(context.p2Base, 0);
             context.player2.passAction();
-            context.kijimiPatrollers.exhausted = false;
+            context.readyCard(context.kijimiPatrollers);
 
             // attack with a first order unit, should get raid 1
             context.player1.clickCard(context.kijimiPatrollers);

@@ -29,6 +29,7 @@ describe('Lando Calrissian With Impeccable Taste', function () {
             // Proceeds to defeat resource
             expect(context.player1).toHavePrompt('Defeat a resource you own and control');
             expect(context.player1).toBeAbleToSelectExactly([context.aggression, context.protector, context.sparkOfRebellion, context.zoriiBliss, context.liberatedSlaves]);
+            expect(context.player1).not.toHaveChooseNothingButton();
 
             // Defeat a resource
             context.player1.clickCard(context.aggression);

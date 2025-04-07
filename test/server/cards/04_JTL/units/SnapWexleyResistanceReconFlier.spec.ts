@@ -58,7 +58,7 @@ describe('Snap Wexley, Resistance Recon Flier', function() {
 
                 context.player2.passAction();
 
-                context.snapWexley.exhausted = false;
+                context.readyCard(context.snapWexley);
                 context.player1.clickCard(context.snapWexley);
                 context.player1.clickCard(context.p2Base);
 

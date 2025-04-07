@@ -24,7 +24,7 @@ describe('Tranquility, Inspiring Flagship', function() {
             context.player1.clickCard(context.maceWindu);
             expect(context.maceWindu).toBeInZone('hand');
 
-            context.tranquility.exhausted = false;
+            context.readyCard(context.tranquility);
             context.player2.passAction();
 
             // attack with tranquility, the next 3 republic card cost 1 less

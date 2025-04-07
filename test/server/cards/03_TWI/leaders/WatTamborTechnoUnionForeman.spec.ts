@@ -86,7 +86,7 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                 context.player1.clickCard(context.watTambor);
                 context.player1.clickCard(context.allianceDispatcher);
                 expect(context.player2).toBeActivePlayer();
-                context.watTambor.exhausted = false;
+                context.readyCard(context.watTambor);
 
                 // yularen kill our guardian of the whills
                 context.player2.clickCard(context.admiralYularen);

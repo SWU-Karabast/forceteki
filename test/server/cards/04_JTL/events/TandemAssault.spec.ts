@@ -31,7 +31,7 @@ describe('Tandem Assualt', function() {
             context.player2.clickCard(context.deathStarStormtrooper);
             context.player2.clickCard(context.atst);
 
-            context.tandemAssault.moveTo('hand');
+            context.player1.moveCard(context.tandemAssault, 'hand');
 
             // Play Tandem Assault, attack with space unit, No viable target on the ground
             context.player1.clickCard(context.tandemAssault);

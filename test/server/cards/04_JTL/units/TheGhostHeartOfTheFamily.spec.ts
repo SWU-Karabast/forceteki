@@ -86,8 +86,8 @@ describe('The Ghost, Heart of the Family', () => {
                 context.player2.clickCard(context.p1Base);
 
                 context.moveToNextActionPhase();
-                context.sabineWren.damage = 0;
-                context.cloudCityWingGuard.damage = 0;
+                context.setDamage(context.sabineWren, 0);
+                context.setDamage(context.cloudCityWingGuard, 0);
 
                 // Play Infiltrator's Skill on The Ghost, giving it Sentinel & Saboteur
                 context.player1.clickCard(context.infiltratorsSkill);
