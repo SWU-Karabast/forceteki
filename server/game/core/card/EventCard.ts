@@ -50,6 +50,14 @@ export class EventCard extends EventCardParent {
         return true;
     }
 
+    public finishPlayingEvent(): void {
+        this.registerMove(this.zoneName);
+        this.moveTo(ZoneName.Discard);
+        if (this.movedFromZone === ZoneName.Discard) {
+            this.removeLastingEffects();
+        }
+    }
+
     /** Ability of event card when played. Will be a "blank" ability with no effect if this card is disabled by an effect. */
     public getEventAbility(): EventAbility {
         return this.isBlank() || !this.hasImplementationFile
@@ -59,6 +67,12 @@ export class EventCard extends EventCardParent {
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
             })
             : this._eventAbility;
+    }
+
+    public override registerMove(movedFromZone: ZoneName): void {
+        super.registerMove(movedFromZone);
+
+        this.movedFromZone = movedFromZone;
     }
 
     protected override initializeForCurrentZone(prevZone?: ZoneName): void {

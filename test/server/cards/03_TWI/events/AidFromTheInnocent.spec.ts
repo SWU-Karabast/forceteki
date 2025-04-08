@@ -93,6 +93,49 @@ describe('Aid From the Innocent ', function() {
                 // Ensure it cannot be played again
                 expect(context.dropIn).not.toHaveAvailableActionWhenClickedBy(context.player1);
             });
+
+            it('should allow a discarded card to be played if it was previously played and placed back in the deck', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'han-solo#audacious-smuggler',
+                        base: 'dagobah-swamp',
+                        hand: ['aid-from-the-innocent', 'restock', 'drop-in'],
+                        deck: ['sabine-wren#explosives-artist', 'battlefield-marine', 'waylay', 'rebel-assault', 'patrolling-vwing', 'devotion',
+                            'hello-there', 'swoop-racer', 'resupply'],
+                        resources: 20
+                    },
+                    player2: {
+                        spaceArena: ['system-patrol-craft'],
+                        groundArena: ['wampa']
+                    }
+                });
+                const { context } = contextRef;
+
+                // Play Drop In
+                context.player1.clickCard(context.dropIn);
+                context.player2.claimInitiative();
+
+                // Put it in the deck
+                context.player1.clickCard(context.restock);
+                context.player1.clickCard(context.dropIn);
+                context.player1.clickPrompt('Done');
+
+                context.player1.clickCard(context.aidFromTheInnocent);
+
+                // Select two cards
+                context.player1.clickCardInDisplayCardPrompt(context.dropIn);
+                context.player1.clickCardInDisplayCardPrompt(context.helloThere);
+                context.player1.clickPrompt('Done');
+
+                // Play one of the cards
+                context.player1.clickCard(context.dropIn);
+                const cloneTroopers = context.player1.findCardsByName('clone-trooper');
+                expect(cloneTroopers.length).toBe(4);
+
+                // Ensure it cannot be played again
+                expect(context.dropIn).not.toHaveAvailableActionWhenClickedBy(context.player1);
+            });
         });
     });
 });
