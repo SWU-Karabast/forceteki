@@ -1,5 +1,7 @@
+import type Force from '../../cards/05_LOF/tokens/Force';
 import type { IBaseCard } from '../card/BaseCard';
 import type { ILeaderCard } from '../card/propertyMixins/LeaderProperties';
+import type { TokenCard } from '../card/TokenCards';
 import { ZoneName } from '../Constants';
 import type Game from '../Game';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
@@ -10,19 +12,23 @@ import { ZoneAbstract } from './ZoneAbstract';
 
 export interface IBaseZoneState extends IGameObjectBaseState {
     leader: GameObjectRef<ILeaderCard> | null;
+    forceToken: GameObjectRef<Force> | null;    // Use abstraction or concrete type?
 }
+
+type BaseZoneCard = ILeaderCard | IBaseCard | TokenCard;
 
 /**
  * Base zone which holds the player's base and leader
  */
-export class BaseZone extends ZoneAbstract<ILeaderCard | IBaseCard, IBaseZoneState> {
+export class BaseZone extends ZoneAbstract<BaseZoneCard, IBaseZoneState> {
     public readonly base: IBaseCard;
     public override readonly hiddenForPlayers: null;
     public override readonly owner: Player;
     public override readonly name: ZoneName.Base;
 
-    public override get cards(): (ILeaderCard | IBaseCard)[] {
-        return this.state.leader ? [this.base, this.leader] : [this.base];
+    public override get cards(): (BaseZoneCard)[] {
+        return [this.base, this.forceToken, this.leader]
+            .filter((card) => card !== null);
     }
 
     public override get count() {
@@ -35,6 +41,18 @@ export class BaseZone extends ZoneAbstract<ILeaderCard | IBaseCard, IBaseZoneSta
 
     private set leader(value: ILeaderCard | null) {
         this.state.leader = value?.getRef();
+    }
+
+    public get forceToken(): Force | null {
+        return this.game.gameObjectManager.get(this.state.forceToken);
+    }
+
+    private set forceToken(value: Force | null) {
+        this.state.forceToken = value?.getRef();
+    }
+
+    public hasForceToken(): boolean {
+        return this.forceToken !== null;
     }
 
     public constructor(game: Game, owner: Player, base: IBaseCard, leader: ILeaderCard) {
@@ -54,7 +72,7 @@ export class BaseZone extends ZoneAbstract<ILeaderCard | IBaseCard, IBaseZoneSta
         this.state.leader = null;
     }
 
-    public override getCards(filter?: IZoneCardFilterProperties): (ILeaderCard | IBaseCard)[] {
+    public override getCards(filter?: IZoneCardFilterProperties): (BaseZoneCard)[] {
         return this.cards.filter(this.buildFilterFn(filter));
     }
 
