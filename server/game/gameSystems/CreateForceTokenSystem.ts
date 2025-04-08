@@ -22,6 +22,10 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
     protected override updateEvent(event, player: Player, context: TContext, additionalProperties): void {
         super.updateEvent(event, player, context, additionalProperties);
 
+        if (player.hasTheForce()) {
+            return;
+        }
+
         const forceToken = context.game.generateToken(player, TokenCardName.Force);
 
         event.generatedTokens = [forceToken];
