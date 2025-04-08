@@ -16,7 +16,6 @@ export default class HotshotManeuver extends EventCard {
         this.setEventAbility({
             title: 'For each “On Attack” abilities on a friendly unit, deal 2 damage to a different enemy unit',
             targetResolver: {
-                activePromptTitle: 'Choose a friendly unit',
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.sequential([
