@@ -35,7 +35,7 @@ interface LobbyUser extends LobbySpectator {
 }
 
 interface PlayerDetails {
-    id: string;
+    user: User;
     deckID: string;
     leaderID: string;
     baseID: string;
@@ -75,7 +75,7 @@ export class Lobby {
     private matchingCountdownText?: string;
     private matchingCountdownTimeoutHandle?: NodeJS.Timeout;
     private usersLeftCount = 0;
-    private playersDetails: PlayerDetails[];
+    private playersDetails: PlayerDetails[] = [];
 
     public constructor(
         lobbyName: string,
@@ -596,7 +596,7 @@ export class Lobby {
                     game.selectDeck(user.id, user.deck);
                     console.log(user.deck);
                     this.playersDetails.push({
-                        id: user.id,
+                        user: user.socket.user,
                         baseID: user.deck.base.id,
                         leaderID: user.deck.leader.id,
                         deckID: user.deck.id,
@@ -754,15 +754,15 @@ export class Lobby {
     /**
      * Private method to update a players stats
      */
-    private async updatePlayerStats(playerUser: LobbyUser, opponentPlayerUser: LobbyUser, score: ScoreType) {
+    private async updatePlayerStats(playerUser: PlayerDetails, opponentPlayerUser: PlayerDetails, score: ScoreType) {
         // Get the deck service
-        const opponentPlayerLeaderId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.deck.leader.id);
-        const opponentPlayerBaseId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.deck.base.id);
+        const opponentPlayerLeaderId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.leaderID);
+        const opponentPlayerBaseId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.baseID);
 
-        Contract.assertTrue(playerUser.socket.user.isAuthenticatedUser());
+        Contract.assertTrue(playerUser.user.isAuthenticatedUser());
         await this.server.deckService.updateDeckStats(
-            playerUser.socket.user.getId(),
-            playerUser.deck.id,
+            playerUser.user.getId(),
+            playerUser.deckID,
             score,
             opponentPlayerLeaderId.internalName,
             opponentPlayerBaseId.internalName,
@@ -810,15 +810,15 @@ export class Lobby {
             const player2Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Win : ScoreType.Lose;
 
             // Get the user & deck information for each player
-            const player1User = this.users.find((u) => u.id === player1.id);
-            const player2User = this.users.find((u) => u.id === player2.id);
+            const player1User = this.playersDetails.find((u) => u.user.getId() === player1.id);
+            const player2User = this.playersDetails.find((u) => u.user.getId() === player2.id);
 
-            if (!player1User?.deck) {
-                logger.error(`Lobby ${this.id}: Missing deck information (${player1User.deck}) for  player1 ${player1User.id}`);
+            if (!player1User) {
+                logger.error(`Lobby ${this.id}: Missing deck information (${player1User.deckID}) for  player1 ${player1.id}`);
                 return;
             }
-            if (!player2User?.deck) {
-                logger.error(`Lobby ${this.id}: Missing deck information (${player2User.deck}) for  player2 ${player2User.id}`);
+            if (!player2User) {
+                logger.error(`Lobby ${this.id}: Missing information (${player2User.deckID}) for  player2 ${player2.id}`);
                 return;
             }
 
