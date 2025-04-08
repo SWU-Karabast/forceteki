@@ -119,7 +119,8 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         Contract.assertNotNullLike(destination);
 
         if (card.isToken()) {
-            if (destination === ZoneName.Base) {
+            // Only the Force token can be moved to the base zone
+            if (destination === ZoneName.Base && !card.isForceToken()) {
                 return false;
             }
         } else {

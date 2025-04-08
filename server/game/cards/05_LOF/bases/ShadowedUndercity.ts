@@ -1,11 +1,23 @@
-import { LofCommonForceBase } from '../common/LofCommonForceBase';
+import AbilityHelper from '../../../AbilityHelper';
+import { BaseCard } from '../../../core/card/BaseCard';
+import { Trait } from '../../../core/Constants';
 
-// Note: Implementation and test are under the super class since all common LOF bases share the same text
-export default class ShadowedUndercity extends LofCommonForceBase {
+export default class ShadowedUndercity extends BaseCard {
     protected override getImplementationId() {
         return {
-            id: '0119018087',
+            id: 'temp-shadowed-undercity-id',
             internalName: 'shadowed-undercity',
         };
+    }
+
+    protected override setupCardAbilities() {
+        this.addTriggeredAbility({
+            title: 'The Force is with you',
+            when: {
+                onAttackDeclared: (event, context) => event.attack.attacker.hasSomeTrait(Trait.Force) &&
+                  event.attack.attacker.controller === context.source.owner
+            },
+            immediateEffect: AbilityHelper.immediateEffects.createForceToken()
+        });
     }
 }

@@ -15,7 +15,6 @@ import {
     PlayType,
     RelativePlayer,
     Stage,
-    TokenCardName,
     WildcardCardType,
     WildcardRelativePlayer,
     ZoneName
@@ -34,7 +33,7 @@ import type Game from './Game';
 import type { ZoneAbstract } from './zone/ZoneAbstract';
 import type { Card } from './card/Card';
 import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
-import type { IUser } from '../../Settings';
+import type { User } from '../../Settings';
 import type { IClock } from './clocks/IClock';
 import type {
     IAllArenasForPlayerCardFilterProperties,
@@ -64,7 +63,7 @@ export interface IPlayerState extends IGameObjectState {
 }
 
 export class Player extends GameObject<IPlayerState> {
-    public user: IUser;
+    public user: User;
     public printedType: string;
     // TODO: INCOMPLETE
     public socket: any;
@@ -140,7 +139,7 @@ export class Player extends GameObject<IPlayerState> {
     public opponent: Player;
     private playableZones: PlayableZone[];
     private noTimer: boolean;
-    public constructor(id: string, user: IUser, game: Game, clockDetails?: ClockConfig) {
+    public constructor(id: string, user: User, game: Game, clockDetails?: ClockConfig) {
         super(game, user.username);
 
         Contract.assertNotNullLike(id);
@@ -245,7 +244,7 @@ export class Player extends GameObject<IPlayerState> {
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
     }
 
-    public get hasTheForce(): boolean {
+    public hasTheForce(): boolean {
         return this.baseZone.hasForceToken();
     }
 
@@ -705,10 +704,9 @@ export class Player extends GameObject<IPlayerState> {
     /**
      * Called when the Game object starts the game. Creates all cards on this players decklist, shuffles the decks and initialises player parameters for the start of the game
      */
-    public async initialiseAsync() {
+    public initialiseAsync() {
         this.opponent = this.game.getOtherPlayer(this);
-        await this.prepareDecksAsync();
-        this.game.generateToken(this, TokenCardName.Force);
+        return this.prepareDecksAsync();
     }
 
     /**
@@ -1293,7 +1291,6 @@ export class Player extends GameObject<IPlayerState> {
             isActionPhaseActivePlayer,
             clock: undefined,
             aspects: this.getAspects(),
-            hasForceToken: this.hasTheForce
         };
 
         // if (this.showDeck) {
