@@ -34,6 +34,13 @@ interface LobbyUser extends LobbySpectator {
     importDeckValidationErrors?: IDeckValidationFailures;
 }
 
+interface PlayerDetails {
+    id: string;
+    deckID: string;
+    leaderID: string;
+    baseID: string;
+}
+
 export enum MatchType {
     Custom = 'Custom',
     Private = 'Private',
@@ -68,6 +75,7 @@ export class Lobby {
     private matchingCountdownText?: string;
     private matchingCountdownTimeoutHandle?: NodeJS.Timeout;
     private usersLeftCount = 0;
+    private playersDetails: PlayerDetails[];
 
     public constructor(
         lobbyName: string,
@@ -586,6 +594,14 @@ export class Lobby {
             this.users.forEach((user) => {
                 if (user.deck) {
                     game.selectDeck(user.id, user.deck);
+                    console.log(user.deck);
+                    this.playersDetails.push({
+                        id: user.id,
+                        baseID: user.deck.base.id,
+                        leaderID: user.deck.leader.id,
+                        deckID: user.deck.id,
+                    });
+                    console.log(this.playersDetails);
                 }
             });
 

@@ -72,7 +72,7 @@ export class DeckService {
                         name: unsyncedDeck.name,
                         favourite: unsyncedDeck.favourite,
                         deckLink: unsyncedDeck.deckLink,
-                        deckLinkID: unsyncedDeck.deckLinkID,
+                        deckLinkID: unsyncedDeck.deckLinkID ?? unsyncedDeck.deckID,
                         source: unsyncedDeck.source
                     },
                     stats: {

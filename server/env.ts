@@ -9,9 +9,9 @@ const parsedEnv = z
         GAME_NODE_HOST: z.string(),
         GAME_NODE_NAME: z.string(),
         GAME_NODE_SOCKET_IO_PORT: z.coerce.number().int(),
-        AWS_REGION: z.string(),
-        AWS_ACCESS_KEY_ID: z.string(),
-        AWS_SECRET_ACCESS_KEY: z.string(),
+        AWS_REGION: z.string().optional(),
+        AWS_ACCESS_KEY_ID: z.string().optional(),
+        AWS_SECRET_ACCESS_KEY: z.string().optional(),
         NEXTAUTH_SECRET: z.string(),
     })
     .safeParse(process.env);

@@ -37,7 +37,8 @@ export interface ILocalStorageDeckData {
     name: string;
     favourite: boolean;
     deckLink: string;
-    deckLinkID: string;
+    deckLinkID?: string;
+    deckID?: string; // we need this for backwards compatibility
     source?: string;
 }
 
