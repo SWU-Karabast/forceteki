@@ -433,7 +433,7 @@ export class Lobby {
         const user = this.users.find((u) => u.id === id);
         if (user) {
             user.state = 'disconnected';
-            logger.info(`Setting user: ${user.username} to disconnected!`, { lobbyId: this.id, userName: user.username, userId: user.id });
+            logger.info(`Setting user: ${user.username} to disconnected`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
     }
 

@@ -75,7 +75,7 @@ export class GameServer {
 
     private static buildRemoteCardDataGetter(): Promise<RemoteCardDataGetter> {
         // TODO: move this url to a config
-        return RemoteCardDataGetter.createAsync('https://karabast-assets.s3.amazonaws.com/data/');
+        return RemoteCardDataGetter.createAsync('https://karabast-data.s3.amazonaws.com/data/');
     }
 
     private static getTestGameBuilder() {
@@ -529,8 +529,8 @@ export class GameServer {
             ioSocket.data.user = user;
         }
 
-        if (!ioSocket.data.user) {
-            logger.info('GameServer: socket connected with no user, disconnecting');
+        if (!ioSocket.data.user || !ioSocket.data.user.id) {
+            logger.info(`GameServer: socket connected with no user${!!ioSocket.data.user ? ' id' : ''}, disconnecting`);
             ioSocket.disconnect();
             return Promise.resolve();
         }
@@ -540,7 +540,7 @@ export class GameServer {
         if (isSpectator) {
             // Check if user is registered as a spectator
             if (!lobbyUserEntry || lobbyUserEntry.role !== UserRole.Spectator) {
-                logger.info(`GameServer: User ${user.id} attempted to connect as spectator but is not registered`);
+                logger.info(`GameServer: User ${user.id} attempted to connect as spectator but is not registered in any lobby, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
@@ -548,7 +548,7 @@ export class GameServer {
             const lobby = this.lobbies.get(lobbyId);
 
             if (!lobby || !lobby.hasOngoingGame()) {
-                logger.info(`GameServer: No lobby or ongoing game for spectator ${user.username}, disconnecting`);
+                logger.info(`GameServer: No lobby or ongoing game for spectator ${user.id}, disconnecting`);
                 this.userLobbyMap.delete(user.id);
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -563,8 +563,7 @@ export class GameServer {
         if (lobbyUserEntry) {
             // we check the role if it is correct
             if (lobbyUserEntry.role !== UserRole.Player) {
-                logger.info('GameServer: User ', user, 'tried  to join lobby with '
-                    , lobbyUserEntry.role, 'instead of ', UserRole.Player);
+                logger.info(`GameServer: User ${user.id} tried to join lobby with ${lobbyUserEntry.role} instead of ${UserRole.Player}, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
@@ -573,7 +572,7 @@ export class GameServer {
 
             if (!lobby) {
                 this.userLobbyMap.delete(user.id);
-                logger.info('GameServer: No lobby for', ioSocket.data.user.username, 'disconnecting');
+                logger.info(`GameServer: Found no lobby for user ${user.id}, disconnecting`);
                 ioSocket.emit('connection_error', 'Lobby does not exist');
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -581,7 +580,7 @@ export class GameServer {
 
             // there can be a race condition where two users hit `join-lobby` at the same time, so we need to check if the lobby is filled already
             if (lobby.isFilled() && !lobby.hasPlayer(user.id)) {
-                logger.info('GameServer: Lobby is full for user', user.username, 'disconnecting');
+                logger.info(`GameServer: Lobby is full for user ${user.id}, disconnecting`);
                 ioSocket.emit('connection_error', 'Lobby is full');
                 this.userLobbyMap.delete(user.id);
                 return;
@@ -615,17 +614,17 @@ export class GameServer {
         }
 
         // 2. If user connected to the lobby via a link.
-        if (requestedLobby.lobbyId) {
+        if (requestedLobby?.lobbyId) {
             const lobby = this.lobbies.get(requestedLobby.lobbyId);
             if (!lobby) {
-                logger.info('GameServer: No lobby with this link for', ioSocket.data.user.username, 'disconnecting');
+                logger.info(`GameServer: No lobby with this link for user ${user.id}, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
 
             // check if the lobby is full
             if (lobby.isFilled() || lobby.hasOngoingGame()) {
-                logger.info('GameServer: Requested lobby', requestedLobby.lobbyId, 'is full or already in game, disconnecting');
+                logger.info(`GameServer: Requested lobby ${requestedLobby.lobbyId} is full or already in game, disconnecting user ${user.id}`);
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
@@ -634,7 +633,7 @@ export class GameServer {
 
             // check if user is already in a lobby
             if (!this.canUserJoinNewLobby(user.id)) {
-                logger.info('GameServer: User ', user, 'is already in a different lobby, disconnecting');
+                logger.info(`GameServer: User ${user.id} is already in a different lobby, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
@@ -674,7 +673,7 @@ export class GameServer {
         ioSocket.emit('connection_error', 'Connection error, please try again');
         ioSocket.disconnect();
         // this can happen when someone tries to reconnect to the game but are out of the mapping TODO make a notification for the player
-        logger.info(`GameServer: Error state when connecting to lobby/game ${user.id} disconnecting`);
+        logger.info(`GameServer: Error state when connecting to lobby/game, ${user.id} disconnecting`);
 
         return Promise.resolve();
     }
