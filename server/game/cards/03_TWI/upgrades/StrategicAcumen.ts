@@ -20,7 +20,8 @@ export default class StrategicAcumen extends UpgradeCard {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
+                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
+                    playAsType: WildcardCardType.Unit
                 })
             }
         });
