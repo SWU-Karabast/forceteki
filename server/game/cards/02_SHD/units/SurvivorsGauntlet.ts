@@ -17,7 +17,7 @@ export default class SurvivorsGauntlet extends NonLeaderUnitCard {
             optional: true,
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onAttack: true,
             },
             targetResolvers: {
                 chooseUpgrade: {

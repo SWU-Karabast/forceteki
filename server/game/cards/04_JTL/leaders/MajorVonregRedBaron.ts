@@ -44,7 +44,7 @@ export default class MajorVonregRedBaron extends LeaderUnitCard {
             title: 'Give another unit in this arena +1/+0 for this phase.',
             optional: true,
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

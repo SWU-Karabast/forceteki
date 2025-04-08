@@ -34,7 +34,7 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'The next Pilot you play this phase costs 1 less',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
