@@ -3,20 +3,30 @@ import { EventName } from '../core/Constants';
 import type { Player } from '../core/Player';
 import type { IViewCardProperties } from './ViewCardSystem';
 import { ViewCardInteractMode, ViewCardSystem } from './ViewCardSystem';
-
+import * as Helpers from '../core/utils/Helpers';
 
 export type ILookAtProperties = IViewCardProperties;
 
 export class LookAtSystem<TContext extends AbilityContext = AbilityContext> extends ViewCardSystem<TContext, ILookAtProperties> {
     public override readonly name = 'lookAt';
     public override readonly eventName = EventName.OnLookAtCard;
-    public override readonly effectDescription = 'look at a card';
 
     protected override defaultProperties: IViewCardProperties = {
         interactMode: ViewCardInteractMode.ViewOnly,
         message: '{0} sees {1}',
         useDisplayPrompt: null
     };
+
+    public override getEffectMessage(context: TContext, additionalProperties?: any): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        let effectArg = 'a card';
+        if (Helpers.equalArrays(Helpers.asArray(properties.target), context.player.opponent.hand)) {
+            effectArg = 'the opponent hand';
+        }
+
+        return ['look at {0}', [effectArg]];
+    }
 
     public override getMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -26,8 +36,17 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         return messageArgs;
     }
 
-    protected override getChatMessage(useDisplayPrompt: boolean): string {
-        return useDisplayPrompt ? '{0} looks at a card' : '{0} sees {1}';
+    protected override getChatMessage(useDisplayPrompt: boolean, context: TContext, additionalProperties: any): string {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        if (useDisplayPrompt) {
+            if (Helpers.equalArrays(Helpers.asArray(properties.target), context.player.opponent.hand)) {
+                return '{0} looks at the opponent hand';
+            }
+            return '{0} looks at a card';
+        }
+
+        return Helpers.derive(properties.message, context);
     }
 
     protected override getPromptedPlayer(properties: ILookAtProperties, context: TContext): Player {
