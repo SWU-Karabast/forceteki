@@ -12,6 +12,8 @@ export default class SuperheavyIonCannon extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
+        this.disableOnAttackCheck = true;
+
         this.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.CapitalShip) || card.hasSomeTrait(Trait.Transport));
 
         this.addGainOnAttackAbilityTargetingAttached({

@@ -11,6 +11,8 @@ export default class MajorVonregRedBaron extends LeaderUnitCard {
     }
 
     protected override setupLeaderSideAbilities() {
+        this.disableOnAttackCheck = true;
+
         this.addPilotDeploy();
 
         this.addActionAbility({

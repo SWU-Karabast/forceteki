@@ -13,6 +13,8 @@ export default class PadmeAmidalaServingTheRepublic extends LeaderUnitCard {
     }
 
     protected override setupLeaderSideAbilities() {
+        this.disableOnAttackCheck = true;
+
         this.addCoordinateAbility({
             type: AbilityType.Action,
             title: 'Search the top 3 cards of your deck for a Republic card, reveal it, and draw it',

@@ -20,6 +20,8 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
     }
 
     protected override setupLeaderSideAbilities() {
+        this.disableOnAttackCheck = true;
+
         this.addPilotDeploy();
 
         this.addActionAbility({

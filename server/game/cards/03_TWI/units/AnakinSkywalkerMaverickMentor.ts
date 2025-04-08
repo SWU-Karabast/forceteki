@@ -11,6 +11,8 @@ export default class AnakinSkywalkerMaverickMentor extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities () {
+        this.disableOnAttackCheck = true;
+
         this.addCoordinateAbility({
             type: AbilityType.Triggered,
             title: 'Draw a card',

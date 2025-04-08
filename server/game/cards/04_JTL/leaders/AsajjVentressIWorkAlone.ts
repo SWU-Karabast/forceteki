@@ -11,6 +11,8 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
     }
 
     protected override setupLeaderSideAbilities() {
+        this.disableOnAttackCheck = true;
+
         this.addPilotDeploy();
 
         this.addActionAbility({

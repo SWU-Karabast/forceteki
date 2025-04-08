@@ -12,6 +12,8 @@ export default class VambraceFlamethrower extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
+        this.disableOnAttackCheck = true;
+
         this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle));
 
         this.addGainOnAttackAbilityTargetingAttached({

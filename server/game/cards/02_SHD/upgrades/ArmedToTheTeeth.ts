@@ -11,6 +11,8 @@ export default class ArmedToTheTeeth extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
+        this.disableOnAttackCheck = true;
+
         this.addGainOnAttackAbilityTargetingAttached({
             title: 'Give another friendly unit +2/+0 for this phase',
             targetResolver: {
