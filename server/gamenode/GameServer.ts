@@ -21,7 +21,7 @@ import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import type { QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
-import {BugReportHandler} from "../utils/bugreport/BugReportHandler";
+import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 
 
 /**
