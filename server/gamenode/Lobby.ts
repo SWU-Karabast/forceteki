@@ -115,6 +115,7 @@ export class Lobby {
                 state: u.state,
                 ready: u.ready,
                 deck: u.deck?.getDecklist(),
+                reportedBugs: u.reportedBugs,
                 deckErrors: u.deckValidationErrors,
                 importDeckErrors: u.importDeckValidationErrors,
                 unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist()),

@@ -263,15 +263,18 @@ export class BugReportHandler {
      * @returns A simplified card state representation
      */
     private captureCardState(card: any): string | IBugReportCardState {
-        if (!card || (card.isAttached() === 'function' && card.isAttached())) {
+        if (!card || (typeof card.isAttached === 'function' && card.isAttached())) {
             return null;
         }
         try {
-            // If the card is simple, just return its internal name
-            if (!card.damage && !card.deployed && !card.upgrades) {
+            if (card.isLeader() && !card.deployed) {
                 return card.internalName;
             }
 
+            // If the card is simple, just return its internal name
+            if (!card.damage && !card.upgrades) {
+                return card.internalName;
+            }
             // Return a more detailed card state
             const cardState: IBugReportCardState = {
                 card: card.internalName
