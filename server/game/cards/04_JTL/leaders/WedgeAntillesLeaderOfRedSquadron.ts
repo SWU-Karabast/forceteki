@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { AbilityType, CardType, KeywordName, PlayType, RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
+import { AbilityType, KeywordName, PlayType, RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
@@ -40,7 +40,6 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
-                    cardTypeFilter: CardType.BasicUnit, // TODO: does this need to allow upgrades?
                     match: (card) => card.hasSomeTrait(Trait.Pilot),
                     limit: AbilityHelper.limit.perGame(1),
                     amount: 1
