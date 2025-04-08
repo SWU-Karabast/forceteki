@@ -244,6 +244,10 @@ export class Player extends GameObject<IPlayerState> {
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
     }
 
+    public hasTheForce(): boolean {
+        return this.baseZone.hasForceToken();
+    }
+
     /**
      * @param { String } title the title of the unit or leader to check for control of
      * @returns { boolean } true if this player controls a unit or leader with the given title

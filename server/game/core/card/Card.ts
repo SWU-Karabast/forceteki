@@ -494,6 +494,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return false;
     }
 
+    public isForceToken(): this is ITokenCard {
+        return false;
+    }
+
     public isTokenUnit(): this is ITokenUnitCard {
         return false;
     }
@@ -738,8 +742,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         switch (zoneName) {
             case ZoneName.Base:
                 this.zone = this.owner.baseZone;
-                Contract.assertTrue(this.isLeader());
-                this.zone.setLeader(this);
+
+                if (this.isLeader()) {
+                    this.zone.setLeader(this);
+                } else if (this.isForceToken()) {
+                    this.zone.forceToken = this;
+                } else {
+                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader or force token`);
+                }
+
                 break;
 
             case DeckZoneDestination.DeckBottom:

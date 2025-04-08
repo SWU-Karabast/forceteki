@@ -1,6 +1,6 @@
-import type Force from '../../cards/05_LOF/tokens/Force';
 import type { IBaseCard } from '../card/BaseCard';
 import type { ILeaderCard } from '../card/propertyMixins/LeaderProperties';
+import type { ITokenCard } from '../card/propertyMixins/Token';
 import type { TokenCard } from '../card/TokenCards';
 import { ZoneName } from '../Constants';
 import type Game from '../Game';
@@ -12,7 +12,7 @@ import { ZoneAbstract } from './ZoneAbstract';
 
 export interface IBaseZoneState extends IGameObjectBaseState {
     leader: GameObjectRef<ILeaderCard> | null;
-    forceToken: GameObjectRef<Force> | null;    // Use abstraction or concrete type?
+    forceToken: GameObjectRef<ITokenCard> | null;    // Use abstraction or concrete type?
 }
 
 type BaseZoneCard = ILeaderCard | IBaseCard | TokenCard;
@@ -43,11 +43,11 @@ export class BaseZone extends ZoneAbstract<BaseZoneCard, IBaseZoneState> {
         this.state.leader = value?.getRef();
     }
 
-    public get forceToken(): Force | null {
+    public get forceToken(): ITokenCard | null {
         return this.game.gameObjectManager.get(this.state.forceToken);
     }
 
-    private set forceToken(value: Force | null) {
+    public set forceToken(value: ITokenCard | null) {
         this.state.forceToken = value?.getRef();
     }
 

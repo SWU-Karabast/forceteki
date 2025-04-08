@@ -140,6 +140,8 @@ import type { IFlipAndAttachLeaderPilotProperties } from './FlipAndAttachPilotLe
 import { FlipAndAttachPilotLeaderSystem } from './FlipAndAttachPilotLeaderSystem';
 import type { IUseWhenDefeatedProperties } from './UseWhenDefeatedSystem';
 import { UseWhenDefeatedSystem } from './UseWhenDefeatedSystem';
+import type { ICreateForceTokenProperties } from './CreateForceTokenSystem';
+import { CreateForceTokenSystem } from './CreateForceTokenSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -186,6 +188,9 @@ export function createXWing<TContext extends AbilityContext = AbilityContext>(pr
 }
 export function createTieFighter<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTieFighterProperties, TContext> = {}) {
     return new CreateTieFighterSystem<TContext>(propertyFactory);
+}
+export function createForceToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateForceTokenProperties, TContext> = {}) {
+    return new CreateForceTokenSystem<TContext>(propertyFactory);
 }
 export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IAbilityDamageProperties, 'type' | 'indirect'>, TContext>) {
     return new DamageSystem<TContext, IDamageProperties>(
