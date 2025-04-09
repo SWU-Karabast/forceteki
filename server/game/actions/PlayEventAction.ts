@@ -1,10 +1,9 @@
-import { AbilityRestriction, PlayType, RelativePlayer } from '../core/Constants.js';
+import { AbilityRestriction, PlayType, RelativePlayer, ZoneName } from '../core/Constants.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import AbilityResolver from '../core/gameSteps/AbilityResolver.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
-import type { EventCard } from '../core/card/EventCard.js';
 
 export class PlayEventAction extends PlayCardAction {
     private earlyTargetResults?: any = null;
@@ -73,9 +72,7 @@ export class PlayEventAction extends PlayCardAction {
     public moveEventToDiscard(context: PlayCardContext) {
         const cardPlayedEvent = this.generateOnPlayEvent(context, {
             resolver: this,
-            handler: () => {
-                (context.source as EventCard).finishPlayingEvent();
-            }
+            handler: () => context.source.moveTo(ZoneName.Discard)
         });
 
         const events = [cardPlayedEvent];

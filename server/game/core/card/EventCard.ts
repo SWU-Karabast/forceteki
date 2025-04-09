@@ -1,6 +1,7 @@
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from './propertyMixins/Cost';
 import { WithCost } from './propertyMixins/Cost';
+import type { MoveZoneDestination } from '../Constants';
 import { CardType, ZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
@@ -12,11 +13,13 @@ import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup'
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 import type { ICardCanChangeControllers } from './CardInterfaces';
+import type { InitializeCardStateOption } from './Card';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
 export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeControllers, ICardWithCostProperty {
     getEventAbility(): EventAbility;
+    finishPlayingEvent(): void;
 }
 
 export class EventCard extends EventCardParent {
@@ -50,14 +53,6 @@ export class EventCard extends EventCardParent {
         return true;
     }
 
-    public finishPlayingEvent(): void {
-        this.registerMove(this.zoneName);
-        this.moveTo(ZoneName.Discard);
-        if (this.movedFromZone === ZoneName.Discard) {
-            this.removeLastingEffects();
-        }
-    }
-
     /** Ability of event card when played. Will be a "blank" ability with no effect if this card is disabled by an effect. */
     public getEventAbility(): EventAbility {
         return this.isBlank() || !this.hasImplementationFile
@@ -73,6 +68,13 @@ export class EventCard extends EventCardParent {
         super.registerMove(movedFromZone);
 
         this.movedFromZone = movedFromZone;
+    }
+
+    public override moveTo(targetZoneName: MoveZoneDestination, initializeCardState?: InitializeCardStateOption): void {
+        if (this.zoneName === ZoneName.Discard && targetZoneName === ZoneName.Discard) {
+            this.removeLastingEffects();
+        }
+        super.moveTo(targetZoneName, initializeCardState);
     }
 
     protected override initializeForCurrentZone(prevZone?: ZoneName): void {
