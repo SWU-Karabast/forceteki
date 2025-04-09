@@ -2,6 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { AbilityRestriction, CardType, DamageType, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as Helpers from '../core/utils/Helpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import type { Attack } from '../core/attack/Attack';
@@ -194,13 +195,9 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         let damageDealtBy: IUnitCard[];
 
         if (properties.source) {
-            if (Array.isArray(properties.source)) {
-                Contract.assertTrue(properties.source.every((source) => source.isUnit()));
-                damageDealtBy = properties.source;
-            } else {
-                Contract.assertTrue(properties.source.isUnit());
-                damageDealtBy = [properties.source];
-            }
+            const sourceArray = Helpers.asArray(properties.source);
+            Contract.assertTrue(sourceArray.every((source) => source.isUnit()));
+            damageDealtBy = sourceArray;
         } else if (event.isOverwhelmDamage) {
             damageDealtBy = [properties.sourceAttack.attacker];
         } else {

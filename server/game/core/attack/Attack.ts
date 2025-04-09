@@ -65,7 +65,7 @@ export class Attack {
         }
 
         if (!allowMultipleMatches) {
-            Contract.assertFalse(matchingUnits.length > 1, 'Expected at most one target to match the condition');
+            Contract.assertFalse(this.targets.length > 1, 'Expected at most one target');
         }
         return matchingUnits.length > 0;
     }

@@ -910,11 +910,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         public getMaxUnitAttackLimit(): number {
             let attackLimit = 1;
             if (this.hasOngoingEffect(EffectName.CanAttackMultipleUnitsSimultaneously)) {
-                this.getOngoingEffectValues(EffectName.CanAttackMultipleUnitsSimultaneously).forEach((effect) => {
-                    if (effect.amount > attackLimit) {
-                        attackLimit = effect.amount;
+                for (const ongoingEffect of this.getOngoingEffectValues(EffectName.CanAttackMultipleUnitsSimultaneously)) {
+                    if (ongoingEffect.amount > attackLimit) {
+                        attackLimit = ongoingEffect.amount;
                     }
-                });
+                }
             }
             return attackLimit;
         }

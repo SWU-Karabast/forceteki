@@ -238,7 +238,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     public override checkEventCondition(event, additionalProperties): boolean {
-        for (const target of event.target) {
+        for (const target of Helpers.asArray(event.target)) {
             if (!this.canAffect(target, event.context, additionalProperties)) {
                 return false;
             }
