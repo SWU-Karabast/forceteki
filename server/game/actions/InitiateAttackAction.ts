@@ -31,7 +31,6 @@ export class InitiateAttackAction extends PlayerAction {
             mode: TargetMode.BetweenVariable,
             minNumCardsFunc: () => 1,
             maxNumCardsFunc: (context) => context.source.getMaxUnitAttackLimit(),
-            canUseSingleSelectMode: true,
             useSingleSelectModeFunc: (attacker, possibleTargets) => attacker.getMaxUnitAttackLimit() === 1 || possibleTargets.length === 1 || possibleTargets.some((card) => card.isBase()) && possibleTargets.filter((card) => card.isUnit()).length === 1,
             multiSelectCardCondition: (card, selectedCards) => (card.isBase() ? selectedCards.length === 0 : !selectedCards.some((card) => card.isBase())),
             immediateEffect: new AttackStepsSystem(Object.assign({}, attackProperties, { attacker: card })),
