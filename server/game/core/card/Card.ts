@@ -962,7 +962,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return (
             this.unique &&
             this.game.allCards.some(
-                (card) =>
+                (card: any) =>
                     card.isInPlay() &&
                     card.title === this.title &&
                     card !== this &&
@@ -976,7 +976,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return (
             this.unique &&
             this.game.allCards.some(
-                (card) =>
+                (card: any) =>
                     card.isInPlay() &&
                     card.title === this.title &&
                     card !== this &&

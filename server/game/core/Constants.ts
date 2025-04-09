@@ -18,6 +18,12 @@ export enum DeckZoneDestination {
     DeckBottom = 'deckBottom'
 }
 
+export enum SnapshotType {
+    Player = 'player',
+    Phase = 'phase',
+    Round = 'round'
+}
+
 /**
  * Helper type used when a passed ZoneName represents a move destination.
  * Used to account for moving to top or bottom of deck.
