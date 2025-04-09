@@ -58,6 +58,11 @@ export abstract class GameObject<T extends IGameObjectState = IGameObjectState> 
         return filteredEffects.map((ongoingEffect) => ongoingEffect.getValue(this));
     }
 
+    public getOngoingEffectSources(type: EffectName): Card[] {
+        const filteredEffects = this.getOngoingEffects().filter((ongoingEffect) => ongoingEffect.type === type);
+        return filteredEffects.map((ongoingEffect) => ongoingEffect.context.source);
+    }
+
     public hasOngoingEffect(type: EffectName) {
         return this.getOngoingEffectValues(type).length > 0;
     }
