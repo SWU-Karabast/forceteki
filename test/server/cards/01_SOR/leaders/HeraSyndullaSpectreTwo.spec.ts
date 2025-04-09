@@ -59,8 +59,6 @@ describe('Hera Syndulla, Spectre Two', function() {
                 expect(context.heraSyndullaWeveLostEnough).toBeAttachedTo(context.concordDawnInterceptors);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
             });
-
-            // TODO: Add an upgrade test if a Spectre upgrade is ever printed
         });
 
         describe('Hera\'s undeployed ability', function() {
