@@ -49,22 +49,7 @@ export class Attack {
         return this.targets;
     }
 
-    public isTargetUnit(allowMultipleMatches: boolean = false): boolean {
-        const matchingUnits = [];
-
-        for (const target of this.targets) {
-            if (target.isUnit()) {
-                matchingUnits.push(target);
-            }
-        }
-
-        if (!allowMultipleMatches) {
-            Contract.assertFalse(matchingUnits.length > 1, 'Expected at most one target to match the condition');
-        }
-        return matchingUnits.length > 0;
-    }
-
-    public isTargetUnitWithCondition(condition: (card: IUnitCard) => boolean, allowMultipleMatches: boolean = false): boolean {
+    public targetIsUnit(condition: (card: IUnitCard) => boolean = () => true, allowMultipleMatches: boolean = false): boolean {
         const matchingUnits = [];
 
         for (const target of this.targets) {

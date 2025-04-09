@@ -20,12 +20,12 @@ export default class SwoopDown extends EventCard {
                     { effect: OngoingEffectBuilder.card.static(EffectName.CanAttackGroundArenaFromSpaceArena) },
                     { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur) },
                     {
-                        condition: (attack) => attack.isTargetUnitWithCondition((card) => card.zoneName === ZoneName.GroundArena),
+                        condition: (attack) => attack.targetIsUnit((card) => card.zoneName === ZoneName.GroundArena),
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),
                     },
                 ],
                 defenderLastingEffects: {
-                    condition: (attack) => attack.isTargetUnitWithCondition((card) => card.zoneName === ZoneName.GroundArena),
+                    condition: (attack) => attack.targetIsUnit((card) => card.zoneName === ZoneName.GroundArena),
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: 0 }),
                 }
             }

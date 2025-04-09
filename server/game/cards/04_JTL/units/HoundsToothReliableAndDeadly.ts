@@ -22,7 +22,7 @@ export default class HoundsToothReliableAndDeadly extends NonLeaderUnitCard {
             title: 'While attacking an exhausted unit that didn\'t enter play this phase, this unit deals combat damage before the defender',
             condition: (context) =>
                 context.source.isAttacking() &&
-                context.source.activeAttack?.isTargetUnitWithCondition((card) => card.exhausted) &&
+                context.source.activeAttack?.targetIsUnit((card) => card.exhausted) &&
                 this.cardsEnteredPlayThisPhaseWatcher.getCardsPlayed((entry) => entry.card === context.source.activeAttack?.getSingleTarget()).length === 0,
             ongoingEffect: AbilityHelper.ongoingEffects.dealsDamageBeforeDefender()
         });

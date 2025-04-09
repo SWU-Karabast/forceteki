@@ -31,11 +31,8 @@ export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
 
                     let target: Shield[] = [];
                     const attack: Attack = context.event.attack;
-                    for (const attackTarget of attack.getAllTargets()) {
-                        if (attackTarget.isUnit() && attackTarget.hasShield()) {
-                            target = target.concat(attackTarget.upgrades.filter((card) => card.isShield()));
-                        }
-                    }
+                    target = attack.getAllTargets().filter((target) => target.isUnit())
+                        .flatMap((target) => target.upgrades.filter((card) => card.isShield()));
 
                     return { target };
                 })
