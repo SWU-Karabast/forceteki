@@ -10,6 +10,7 @@ interface ILastingEffectPropertiesAnyDuration extends IGameSystemProperties {
     condition?: (context: AbilityContext) => boolean;
     effect?: any;
     ongoingEffectDescription?: string;
+    ongoingEffectTargetDescription?: string;
 }
 
 interface ILastingEffectPropertiesSetDuration extends ILastingEffectPropertiesAnyDuration {

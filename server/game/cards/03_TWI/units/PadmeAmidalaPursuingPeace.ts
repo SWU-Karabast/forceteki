@@ -15,7 +15,7 @@ export default class PadmeAmidalaPursuingPeace extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Give an enemy unit -3/-0 for this phase.',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

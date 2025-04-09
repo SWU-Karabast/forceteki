@@ -263,3 +263,21 @@ export function objectForEach<T extends Record<any, any>, TK extends Extract<key
 }
 
 export type DistributiveOmit<T, K extends keyof T> = T extends any ? Omit<T, K> : never;
+
+export function equalArrays<T>(first: T[], second: T[]): boolean {
+    if (first === second) {
+        return true;
+    }
+
+    if (first.length !== second.length) {
+        return false;
+    }
+
+    for (let i = 0; i < first.length; i++) {
+        if (first[i] !== second[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}

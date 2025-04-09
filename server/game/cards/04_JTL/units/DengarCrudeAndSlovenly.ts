@@ -15,7 +15,7 @@ export default class DengarCrudeAndSlovenly extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Deal 2 indirect damage to a player. If attached unit is Underworld, deal 3 indirect damage instead.',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             targetResolver: {
                 activePromptTitle: (context) => `Choose a player to deal ${context.source.hasSomeTrait(Trait.Underworld) ? '3' : '2'} indirect damage to`,

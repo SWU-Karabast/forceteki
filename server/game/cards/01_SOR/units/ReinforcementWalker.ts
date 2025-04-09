@@ -15,7 +15,7 @@ export default class ReinforcementWalker extends NonLeaderUnitCard {
             title: 'Look at the top card of your deck. Draw it or discard it and heal 3 damage from your base.',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onAttack: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.lookAtAndChooseOption(
                 (context) => {
