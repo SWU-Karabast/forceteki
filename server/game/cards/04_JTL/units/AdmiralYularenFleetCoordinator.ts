@@ -18,24 +18,26 @@ export default class AdmiralYularenFleetCoordinator extends NonLeaderUnitCard {
                 mode: TargetMode.Select,
                 activePromptTitle: 'Choose Grit, Restore 1, Sentinel, or Shielded',
                 choices: {
-                    ['Grit']: this.buildYularenEffect(KeywordName.Grit),
-                    ['Restore 1']: this.buildYularenEffect({ keyword: KeywordName.Restore, amount: 1 }),
-                    ['Sentinel']: this.buildYularenEffect(KeywordName.Sentinel),
-                    ['Shielded']: this.buildYularenEffect(KeywordName.Shielded)
+                    ['Grit']: this.buildYularenEffect(KeywordName.Grit, 'Grit'),
+                    ['Restore 1']: this.buildYularenEffect({ keyword: KeywordName.Restore, amount: 1 }, 'Restore 1'),
+                    ['Sentinel']: this.buildYularenEffect(KeywordName.Sentinel, 'Sentinel'),
+                    ['Shielded']: this.buildYularenEffect(KeywordName.Shielded, 'Shielded')
                 }
             }
         });
     }
 
-    private buildYularenEffect(choice: KeywordNameOrProperties) {
+    private buildYularenEffect(choice: KeywordNameOrProperties, keywordDescription: string) {
         return AbilityHelper.immediateEffects.whileSourceInPlayCardEffect({
+            ongoingEffectDescription: `give ${keywordDescription} to`,
+            ongoingEffectTargetDescription: 'each friendly Vehicle unit',
             effect: AbilityHelper.ongoingEffects.gainAbility({
                 type: AbilityType.Constant,
                 title: `Friendly Vehicle units gains ${choice}`,
                 targetController: RelativePlayer.Self,
                 targetCardTypeFilter: WildcardCardType.Unit,
                 matchTarget: (card) => card.hasSomeTrait(Trait.Vehicle),
-                ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(choice)
+                ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(choice),
             })
         });
     }

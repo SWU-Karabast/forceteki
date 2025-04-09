@@ -16,6 +16,7 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
                 expect(context.player1).toHaveExactPromptButtons(['Grit', 'Restore 1', 'Sentinel', 'Shielded']);
                 expect(context.player1).not.toHavePassAbilityButton();
                 context.player1.clickPrompt('Grit');
+                expect(context.getChatLogs(1)[0]).toContain('to give Grit to each friendly Vehicle unit while in play');
 
                 expect(context.player2).toBeActivePlayer();
             });
@@ -52,6 +53,7 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
 
                 context.player1.clickCard(context.admiralYularen);
                 context.player1.clickPrompt('Sentinel');
+                expect(context.getChatLogs(1)[0]).toContain('to give Sentinel to each friendly Vehicle unit while in play');
                 context.player2.clickCard(context.concordDawnInterceptors);
                 expect(context.player2).toBeAbleToSelectExactly([context.tielnFighter]);
                 context.player2.clickCard(context.tielnFighter);
@@ -71,6 +73,7 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
 
                 context.player1.clickCard(context.admiralYularen);
                 context.player1.clickPrompt('Restore 1');
+                expect(context.getChatLogs(1)[0]).toContain('to give Restore 1 to each friendly Vehicle unit while in play');
                 context.player2.passAction();
 
                 context.player1.clickCard(context.tielnFighter);
@@ -91,6 +94,7 @@ describe('Admiral Yularen, Fleet Coordinator', function() {
 
                 context.player1.clickCard(context.admiralYularen);
                 context.player1.clickPrompt('Shielded');
+                expect(context.getChatLogs(1)[0]).toContain('to give Shielded to each friendly Vehicle unit while in play');
                 expect(context.concordDawnInterceptors).not.toHaveExactUpgradeNames(['shield']);
                 context.player2.passAction();
 
