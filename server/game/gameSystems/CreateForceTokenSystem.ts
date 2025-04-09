@@ -3,6 +3,7 @@ import { EventName, TokenCardName, ZoneName } from '../core/Constants';
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { MoveCardSystem } from './MoveCardSystem';
+import * as Helpers from '../core/utils/Helpers';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ICreateForceTokenProperties extends IPlayerTargetSystemProperties {}
@@ -19,24 +20,37 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
         return ['the force is with {0}', [context.player]];
     }
 
+    public override defaultTargets(context: TContext): Player[] {
+        return [context.player];
+    }
+
     protected override updateEvent(event, player: Player, context: TContext, additionalProperties): void {
         super.updateEvent(event, player, context, additionalProperties);
 
-        if (player.hasTheForce()) {
-            return;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        event.generatedTokens = [];
+
+        for (const player of Helpers.asArray(properties.target)) {
+            if (player.hasTheForce()) {
+                continue;
+            }
+            event.generatedTokens.push(context.game.generateToken(player, TokenCardName.Force));
         }
 
-        const forceToken = context.game.generateToken(player, TokenCardName.Force);
-
-        event.generatedTokens = [forceToken];
-
         event.setContingentEventsGenerator((event) => {
-            const moveCardEvent = new MoveCardSystem({
-                target: forceToken,
-                destination: ZoneName.Base,
-            }).generateEvent(event.context);
+            const events = [];
 
-            return [moveCardEvent];
+            for (const token of event.generatedTokens) {
+                const moveCardEvent = new MoveCardSystem({
+                    target: token,
+                    destination: ZoneName.Base,
+                }).generateEvent(event.context);
+
+                events.push(moveCardEvent);
+            }
+
+            return events;
         });
     }
 

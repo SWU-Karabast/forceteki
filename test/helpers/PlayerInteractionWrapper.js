@@ -417,6 +417,10 @@ class PlayerInteractionWrapper {
         return this.game.initiativePlayer != null && this.game.initiativePlayer.id === this.player.id;
     }
 
+    get hasTheForce() {
+        return this.player.hasTheForce();
+    }
+
     get actionPhaseActivePlayer() {
         return this.game.actionPhaseActivePlayer;
     }

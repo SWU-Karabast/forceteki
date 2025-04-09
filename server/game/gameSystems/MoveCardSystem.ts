@@ -38,7 +38,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
 export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IMoveCardProperties> {
     public override readonly name = 'move';
     protected override readonly eventName = EventName.OnCardMoved;
-    public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
+    public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event, WildcardCardType.Token];
 
     protected override defaultProperties: IMoveCardProperties = {
         destination: null,
