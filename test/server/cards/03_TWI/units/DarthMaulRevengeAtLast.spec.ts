@@ -55,6 +55,26 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.wampa).toBeInZone('discard');
         });
 
+        it('should not be prompted to select multiple targets when there is only one targetable enemy ground unit', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: ['sabine-wren#explosives-artist', 'battlefield-marine'],
+                    spaceArena: ['cartel-spacer'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.darthMaul.damage).toBe(3);
+            expect(context.battlefieldMarine).toBeInZone('discard');
+        });
+
         it('should be able to attack a single unit when multiple can be attacked', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -136,6 +156,89 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.moistureFarmer).toBeInZone('discard');
             expect(context.wampa).toBeInZone('discard');
             expect(context.p2Base.damage).toBe(0);
+        });
+
+        it('should be able to attack two of many units when played with Ambush', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['timely-intervention', 'darth-maul#revenge-at-last']
+                },
+                player2: {
+                    groundArena: ['moisture-farmer', 'wampa', 'cantina-braggart', 'guerilla-soldier']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.timelyIntervention);
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickPrompt('Trigger');
+
+            expect(context.player1).not.toHaveEnabledPromptButton('Done');
+            expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa, context.cantinaBraggart, context.guerillaSoldier]);
+            context.player1.clickCard(context.moistureFarmer);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa, context.cantinaBraggart, context.guerillaSoldier]);
+            context.player1.clickCard(context.wampa);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(4);
+            expect(context.moistureFarmer).toBeInZone('discard');
+            expect(context.wampa).toBeInZone('discard');
+            expect(context.p2Base.damage).toBe(0);
+        });
+
+        it('should simultaneously trigger when defeated abilities', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: ['battle-droid-escort', 'vanguard-infantry']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.battleDroidEscort);
+            context.player1.clickCard(context.vanguardInfantry);
+            context.player1.clickPrompt('Done');
+
+            expect(context.player2).toHaveExactPromptButtons(['Create a Battle Droid token.', 'Give an Experience token to a unit']);
+            context.player2.clickPrompt('Create a Battle Droid token.');
+            const droids = context.player2.findCardsByName('battle-droid');
+            expect(droids.length).toBe(1);
+            context.player2.clickCard(droids[0]);
+            expect(droids[0].getPower()).toBe(2);
+        });
+
+        it('should not be able to select an untargetable enemy unit when using multi-select', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: ['sabine-wren#explosives-artist', 'battlefield-marine', 'moisture-farmer'],
+                    spaceArena: ['cartel-spacer'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.moistureFarmer, context.p2Base]);
+            context.player1.clickCard(context.battlefieldMarine);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.moistureFarmer]);
+            context.player1.clickCard(context.moistureFarmer);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(3);
+            expect(context.battlefieldMarine).toBeInZone('discard');
+            expect(context.moistureFarmer).toBeInZone('discard');
         });
 
         it('can only attack one target if there is a single Sentinel', async function () {
@@ -287,6 +390,80 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.shield).not.toBeAttachedTo(context.darthMaul);
         });
 
+        it('should interact correctly with a defender with a shield', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: [{ card: 'moisture-farmer', upgrades: ['shield'] }, 'wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.moistureFarmer);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(4);
+            expect(context.moistureFarmer.damage).toBe(0);
+            expect(context.wampa).toBeInZone('discard');
+            expect(context.shield).not.toBeAttachedTo(context.moistureFarmer);
+        });
+
+        it('should interact correctly with two defenders with a shield', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: [{ card: 'moisture-farmer', upgrades: ['shield'] }, { card: 'wampa', upgrades: ['shield'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.moistureFarmer);
+            context.player1.clickPrompt('Done');
+
+            context.player2.clickPrompt('Defeat shield to prevent attached unit from taking damage');
+
+            expect(context.darthMaul.damage).toBe(4);
+            expect(context.moistureFarmer.damage).toBe(0);
+            expect(context.moistureFarmer.upgrades.length).toBe(0);
+            expect(context.wampa.damage).toBe(0);
+            expect(context.wampa.upgrades.length).toBe(0);
+        });
+
+        it('should not cause both defenders to have damaged reduced when only one should', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: [{ card: 'boba-fett#disintegrator', upgrades: ['boba-fetts-armor'] }, 'moisture-farmer']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.bobaFett);
+            context.player1.clickCard(context.moistureFarmer);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(5);
+            expect(context.moistureFarmer).toBeInZone('discard'); // If damage were reduced, this would survive
+            expect(context.bobaFett.damage).toBe(3); // Damage reduced by 2
+        });
+
         it('should trigger Ruthlessness twice when defeating two units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -375,6 +552,34 @@ describe('Darth Maul, Revenge At Last', function() {
 
             // Maul should have dealt 1 Overwhelm from Moisture Farmer and 2 Overwhelm from Cantina Braggart
             expect(context.p2Base.damage).toBe(3);
+        });
+
+        it('should deal Overwhelm damage from both targets if both died in the attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'maul#a-rival-in-darkness',
+                    groundArena: [{ card: 'darth-maul#revenge-at-last', upgrades: ['fallen-lightsaber'] }],
+                },
+                player2: {
+                    groundArena: [{ card: 'moisture-farmer', damage: 3 }, { card: 'cantina-braggart', damage: 2 }],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.maulARivalInDarkness);
+            context.player1.clickPrompt('Attack with a unit. It gains Overwhelm for this attack');
+
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.moistureFarmer);
+            context.player1.clickCard(context.cantinaBraggart);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(0);
+            expect(context.moistureFarmer).toBeInZone('discard');
+            expect(context.cantinaBraggart).toBeInZone('discard');
+            expect(context.p2Base.damage).toBe(16); // 8 from full Overwhelm damage on each target
         });
     });
 });
