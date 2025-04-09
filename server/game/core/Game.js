@@ -383,7 +383,7 @@ class Game extends EventEmitter {
                 EventName.OnPassActionPhasePriority,
                 null,
                 { player: this.actionPhaseActivePlayer, actionWindow: this },
-                TriggerHandlingMode.ResolvesTriggers,
+                { triggerMode: TriggerHandlingMode.ResolvesTriggers },
                 () => {
                     this.actionPhaseActivePlayer = this.actionPhaseActivePlayer.opponent;
                 }
@@ -997,7 +997,7 @@ class Game extends EventEmitter {
     beginRound() {
         this.roundNumber++;
         this.actionPhaseActivePlayer = this.initiativePlayer;
-        this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, TriggerHandlingMode.ResolvesTriggers);
+        this.createEventAndOpenWindow(EventName.OnBeginRound, null, {}, { triggerMode: TriggerHandlingMode.ResolvesTriggers });
         this.queueStep(new ActionPhase(this));
         this.queueStep(new RegroupPhase(this));
         this.queueSimpleStep(() => this.roundEnded(), 'roundEnded');
@@ -1005,7 +1005,7 @@ class Game extends EventEmitter {
     }
 
     roundEnded() {
-        this.createEventAndOpenWindow(EventName.OnRoundEnded, null, {}, TriggerHandlingMode.ResolvesTriggers);
+        this.createEventAndOpenWindow(EventName.OnRoundEnded, null, {}, { triggerMode: TriggerHandlingMode.ResolvesTriggers });
 
         // at end of round, any tokens in outsideTheGameZone are removed completely
         for (const player of this.getPlayers()) {
@@ -1022,7 +1022,7 @@ class Game extends EventEmitter {
         this.initiativePlayer = player;
         this.isInitiativeClaimed = true;
         player.passedActionPhase = true;
-        this.createEventAndOpenWindow(EventName.OnClaimInitiative, null, { player }, TriggerHandlingMode.ResolvesTriggers);
+        this.createEventAndOpenWindow(EventName.OnClaimInitiative, null, { player }, { triggerMode: TriggerHandlingMode.ResolvesTriggers });
 
         // update game state for the sake of constant abilities that check initiative
         this.resolveGameState();
@@ -1063,15 +1063,14 @@ class Game extends EventEmitter {
      * @param {String} eventName
      * @param {AbilityContext} context - context for this event. Uses getFrameworkContext() to populate if null
      * @param {Object} params - parameters for this event
-     * @param {TriggerHandlingMode} triggerHandlingMode - whether the EventWindow should make its own TriggeredAbilityWindow to resolve
-     * after its events and any nested events
+     * @param {import('./event/EventWindow').IEventWindowTriggerProps?} triggerProps Trigger handling properties
      * @param {(event: GameEvent) => void} handler - (GameEvent + params) => undefined
      * returns {GameEvent} - this allows the caller to track GameEvent.resolved and
      * tell whether or not the handler resolved successfully
      */
-    createEventAndOpenWindow(eventName, context = null, params = {}, triggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow, handler = () => undefined) {
+    createEventAndOpenWindow(eventName, context = null, params = {}, triggerProps = null, handler = () => undefined) {
         let event = new GameEvent(eventName, context ?? this.getFrameworkContext(), params, handler);
-        this.openEventWindow([event], triggerHandlingMode);
+        this.openEventWindow([event], triggerProps);
         return event;
     }
 
@@ -1090,14 +1089,14 @@ class Game extends EventEmitter {
      * Creates an EventWindow which will open windows for each kind of triggered
      * ability which can respond any passed events, and execute their handlers.
      * @param events
-     * @param {TriggerHandlingMode} triggerHandlingMode
+     * @param {import('./event/EventWindow').IEventWindowTriggerProps?} triggerProps Trigger handling properties
      * @returns {import('./gameSteps/IStep.js').IStep}
      */
-    openEventWindow(events, triggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow) {
+    openEventWindow(events, triggerProps = null) {
         if (!Array.isArray(events)) {
             events = [events];
         }
-        return this.queueStep(new EventWindow(this, events, triggerHandlingMode));
+        return this.queueStep(new EventWindow(this, events, triggerProps));
     }
 
     /**

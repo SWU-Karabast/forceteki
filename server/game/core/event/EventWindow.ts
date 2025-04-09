@@ -18,9 +18,17 @@ export enum TriggerHandlingMode {
     CannotHaveTriggers = 'cannotHaveTriggers',
 }
 
+export interface IEventWindowTriggerProps {
+    triggerMode?: TriggerHandlingMode;
+    skipPostResolutionTrigger?: boolean;
+}
+
 export class EventWindow extends BaseStepWithPipeline {
     protected _events: any[] = [];
     protected _triggeredAbilityWindow?: TriggeredAbilityWindow = null;
+
+    private readonly _skipPostResolutionTrigger: boolean;
+    private readonly _triggerHandlingMode: TriggerHandlingMode;
 
     private parentWindow?: EventWindow = null;
     private resolvedEvents: any[] = [];
@@ -54,9 +62,12 @@ export class EventWindow extends BaseStepWithPipeline {
     public constructor(
         game,
         events,
-        private _triggerHandlingMode: TriggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow
+        triggerProps?: IEventWindowTriggerProps
     ) {
         super(game);
+
+        this._triggerHandlingMode = triggerProps?.triggerMode ?? TriggerHandlingMode.PassesTriggersToParentWindow;
+        this._skipPostResolutionTrigger = !!triggerProps?.skipPostResolutionTrigger;
 
         events.forEach((event) => {
             if (event.canResolve) {
@@ -223,7 +234,7 @@ export class EventWindow extends BaseStepWithPipeline {
         }
 
         // trigger again here to catch any events for cards that entered play during event resolution
-        if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {
+        if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers && !this._skipPostResolutionTrigger) {
             this._triggeredAbilityWindow.emitEvents();
         }
     }

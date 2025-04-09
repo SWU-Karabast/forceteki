@@ -48,6 +48,6 @@ export class RegroupPhase extends Phase {
         GameSystemLibrary.ready({ isRegroupPhaseReadyStep: true, target: cardsToReady })
             .queueGenerateEventGameSteps(events, this.game.getFrameworkContext());
 
-        this.game.queueSimpleStep(() => this.game.openEventWindow(events, TriggerHandlingMode.ResolvesTriggers), 'open event window for card readying effects');
+        this.game.queueSimpleStep(() => this.game.openEventWindow(events, { triggerMode: TriggerHandlingMode.ResolvesTriggers }), 'open event window for card readying effects');
     }
 }

@@ -271,7 +271,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
 
         const events = [];
         this.queueGenerateEventGameSteps(events, context);
-        context.game.queueSimpleStep(() => context.game.openEventWindow(events, triggerHandlingMode), `openEventWindow for '${this}'`);
+        context.game.queueSimpleStep(() => context.game.openEventWindow(events, { triggerMode: triggerHandlingMode }), `openEventWindow for '${this}'`);
     }
 
     public checkEventCondition(event: GameEvent, additionalProperties: any = {}): boolean {
