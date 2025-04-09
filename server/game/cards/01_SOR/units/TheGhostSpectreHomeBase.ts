@@ -14,7 +14,7 @@ export default class TheGhostSpectreHomeBase extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Give a shield token to another Spectre unit',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onAttack: true,
                 onCardPlayed: (event, context) => event.card === context.source
             },
             optional: true,

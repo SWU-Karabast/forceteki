@@ -16,7 +16,7 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
             title: 'The next Resistance card you play this phase costs 1 resource less',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source && event.playType !== PlayType.Piloting,
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onAttack: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({

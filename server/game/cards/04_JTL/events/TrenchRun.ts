@@ -24,7 +24,7 @@ export default class TrenchRun extends EventCard {
                             effect: AbilityHelper.ongoingEffects.gainAbility({
                                 title: 'Discard 2 cards from the defending player\'s deck. Deal unpreventable damage equal to the difference in the discarded cards\' costs to this unit.',
                                 type: AbilityType.Triggered,
-                                when: { onAttackDeclared: (event, context) => event.attack.attacker === context.source },
+                                when: { onAttack: true },
                                 immediateEffect: AbilityHelper.immediateEffects.sequential([
                                     AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                                         target: context.player.opponent,
