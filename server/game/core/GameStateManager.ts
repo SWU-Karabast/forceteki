@@ -196,7 +196,7 @@ export class GameStateManager {
     private getSnapshotForRound(round: number) {
         const roundDiff = this.game.roundNumber - round;
 
-        const snapshotIdx = this.roundSnapshots[this.snapshots.length - 2 - roundDiff];
+        const snapshotIdx = this.roundSnapshots[this.snapshots.length - 1 - roundDiff];
 
         return this.snapshots[snapshotIdx];
     }
