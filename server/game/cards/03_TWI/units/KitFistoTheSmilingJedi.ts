@@ -11,8 +11,6 @@ export default class KitFistoTheSmilingJedi extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities () {
-        this.disableOnAttackCheck = true;
-
         this.addCoordinateAbility({
             type: AbilityType.Triggered,
             title: 'Deal 3 damage to a ground unit',

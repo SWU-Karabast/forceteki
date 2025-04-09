@@ -12,8 +12,6 @@ export default class WedgeAntillesLeaderOfRedSquadron extends LeaderUnitCard {
     }
 
     protected override setupLeaderSideAbilities() {
-        this.disableOnAttackCheck = true;
-
         this.addPilotDeploy();
 
         this.addActionAbility({

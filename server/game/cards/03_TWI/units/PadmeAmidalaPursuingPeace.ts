@@ -11,8 +11,6 @@ export default class PadmeAmidalaPursuingPeace extends NonLeaderUnitCard {
     }
 
     public override setupCardAbilities() {
-        this.disableOnAttackCheck = true;
-
         this.addCoordinateAbility({
             type: AbilityType.Triggered,
             title: 'Give an enemy unit -3/-0 for this phase.',
