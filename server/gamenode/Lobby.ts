@@ -431,6 +431,12 @@ export class Lobby {
             user.state = 'disconnected';
             logger.info(`Lobby: setting user ${user.username} to disconnected`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
+
+        const spectator = this.spectators.find((u) => u.id === id);
+        if (spectator) {
+            spectator.state = 'disconnected';
+            logger.info(`Lobby: setting spectator ${spectator.username} to disconnected`, { lobbyId: this.id, userName: spectator.username, userId: spectator.id });
+        }
     }
 
     public hasOngoingGame(): boolean {
