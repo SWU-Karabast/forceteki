@@ -15,7 +15,7 @@ export default class TamRyvoraSearchingForPurpose extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Give an enemy unit in this arena –1/–1 for this phase',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

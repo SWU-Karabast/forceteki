@@ -21,7 +21,7 @@ export default class JabbasRancorPateesa extends NonLeaderUnitCard {
             title: 'Deal 3 damage to another friendly ground unit and 3 damage to an enemy ground unit',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onAttack: true,
             },
             targetResolvers: {
                 myGroundUnit: {

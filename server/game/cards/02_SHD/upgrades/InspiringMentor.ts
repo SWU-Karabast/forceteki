@@ -19,7 +19,7 @@ export default class InspiringMentor extends UpgradeCard {
         this.addGainTriggeredAbilityTargetingAttached({
             title: 'Give an Experience token to another friendly unit',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onAttack: true,
                 whenDefeated: true,
             },
             targetResolver: {

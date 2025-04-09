@@ -15,7 +15,7 @@ export default class AnakinSkywalkerMaverickMentor extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Draw a card',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.draw()
         });

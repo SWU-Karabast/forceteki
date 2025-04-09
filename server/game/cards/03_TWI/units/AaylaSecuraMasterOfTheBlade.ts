@@ -15,7 +15,7 @@ export default class AaylaSecuraMasterOfTheBlade extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Prevent all combat damage that would be dealt to this unit for this attack.',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({
                 target: context.source,
