@@ -164,6 +164,7 @@ export const isToken = (cardType: CardTypeFilter) => {
         case WildcardCardType.Token:
         case CardType.TokenUpgrade:
         case CardType.TokenUnit:
+        case CardType.TokenCard:
             return true;
         default:
             return false;

@@ -191,6 +191,7 @@ export enum CardType {
     LeaderUpgrade = 'leaderUpgrade',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
+    TokenCard = 'tokenCard',
     NonLeaderUnitUpgrade = 'nonLeaderUnitUpgrade',
 }
 

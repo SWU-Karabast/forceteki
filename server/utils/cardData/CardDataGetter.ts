@@ -1,5 +1,5 @@
 import type { TokenName } from '../../game/core/Constants';
-import { TokenUnitName, TokenUpgradeName } from '../../game/core/Constants';
+import { TokenCardName, TokenUnitName, TokenUpgradeName } from '../../game/core/Constants';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ICardDataJson, ICardMap, ICardMapEntry, ICardMapJson } from './CardDataInterfaces';
 
@@ -80,6 +80,7 @@ export abstract class CardDataGetter {
             [TokenUnitName.XWing]: await getCardAsync('xwing'),
             [TokenUpgradeName.Experience]: await getCardAsync('experience'),
             [TokenUpgradeName.Shield]: await getCardAsync('shield'),
+            [TokenCardName.Force]: await getCardAsync('force'),
         };
     }
 
@@ -91,6 +92,7 @@ export abstract class CardDataGetter {
             [TokenUnitName.XWing]: getCard('xwing'),
             [TokenUpgradeName.Experience]: getCard('experience'),
             [TokenUpgradeName.Shield]: getCard('shield'),
+            [TokenCardName.Force]: getCard('force'),
         };
     }
 
