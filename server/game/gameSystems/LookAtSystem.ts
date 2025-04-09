@@ -22,7 +22,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
 
         let effectArg = 'a card';
         if (Helpers.equalArrays(Helpers.asArray(properties.target), context.player.opponent.hand)) {
-            effectArg = 'the opponent hand';
+            effectArg = 'the opponent’s hand';
         }
 
         return ['look at {0}', [effectArg]];
@@ -41,7 +41,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
 
         if (useDisplayPrompt) {
             if (Helpers.equalArrays(Helpers.asArray(properties.target), context.player.opponent.hand)) {
-                return '{0} looks at the opponent hand';
+                return '{0} looks at the opponent’s hand';
             }
             return '{0} looks at a card';
         }
