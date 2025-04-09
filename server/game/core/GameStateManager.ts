@@ -1,4 +1,5 @@
 import type { Card } from './card/Card';
+import { SnapshotType } from './Constants';
 import type Game from './Game';
 import type { GameObjectBase, GameObjectRef, IGameObjectBaseState } from './GameObjectBase';
 import type { Player } from './Player';
@@ -8,7 +9,6 @@ import * as Helpers from './utils/Helpers.js';
 export interface IGameSnapshot {
     id: number;
     lastId: number;
-    lastPlayerSnapshot: Record<string, number[]>;
 
     gameState: IGameState;
     states: IGameObjectBaseState[];
@@ -28,7 +28,6 @@ const maxPlayerSnapshots = 2; // 2 for current and previous turns.
 const maxPhaseSnapshots = 2; // 2 for current and previous of a specific phase.
 const maxRoundSnapshots = 2; // Current and previous start of round.
 
-export type SnapshotType = 'Player' | 'Phase' | 'Round' | 'Test';
 export interface ISnapshotSettings {
     type: SnapshotType;
     phaseName?: string;
@@ -43,9 +42,9 @@ export class GameStateManager {
     private readonly allGameObjects: GameObjectBase[];
     private readonly gameObjectMapping: Map<string, GameObjectBase>;
 
-    // These contain snapshot indexes, not the ID. This _should_ be safe, the snapshots list will rollback with this, so there shouldn't be a problem.
-    private playerSnapshots: Record<string, number[]>;
-    private phaseSnapshots: Record<string, number[]>;
+    // These contain snapshot indexes, not the ID, to cut down on a loop. This is safe as long as we maintain a flat list of snapshots.
+    private allPlayerSnapshots: Map<string, number[]>;
+    private allPhaseSnapshots: Map<string, number[]>;
     private roundSnapshots: number[];
     private lastId = 0;
     private lastSnapshotId = 0;
@@ -54,9 +53,9 @@ export class GameStateManager {
         this.game = game;
         this.allGameObjects = [];
         this.snapshots = [];
-        this.gameObjectMapping = new Map<string, GameObjectBase>();
-        this.playerSnapshots = {};
-        this.phaseSnapshots = {};
+        this.gameObjectMapping = new Map();
+        this.allPlayerSnapshots = new Map();
+        this.allPhaseSnapshots = new Map();
         this.roundSnapshots = [];
     }
 
@@ -88,7 +87,7 @@ export class GameStateManager {
 
     public clearSnapshots() {
         this.snapshots.length = 0;
-        this.playerSnapshots = {};
+        this.allPlayerSnapshots.clear();
     }
 
     public takeSnapshot(options: ISnapshotSettings): number {
@@ -97,7 +96,6 @@ export class GameStateManager {
             id: nextSnapshotId,
 
             lastId: this.lastId,
-            lastPlayerSnapshot: structuredClone(this.playerSnapshots),
             gameState: structuredClone(this.game.state),
             states: this.allGameObjects.map((x) => x.getState()),
 
@@ -105,27 +103,27 @@ export class GameStateManager {
         };
         this.lastSnapshotId = nextSnapshotId;
 
-        if (options.type === 'Player') {
-            let playerSnapshots = this.playerSnapshots[this.game.state.actionPhaseActivePlayer.uuid];
+        if (options.type === SnapshotType.Player) {
+            let playerSnapshots = this.allPlayerSnapshots.get(this.game.state.actionPhaseActivePlayer.uuid);
             if (!playerSnapshots) {
                 playerSnapshots = [];
-                this.playerSnapshots[this.game.state.actionPhaseActivePlayer.uuid] = playerSnapshots;
+                this.allPlayerSnapshots.set(this.game.state.actionPhaseActivePlayer.uuid, playerSnapshots);
             }
             playerSnapshots.push(this.snapshots.length - 1);
             if (playerSnapshots.length > maxPlayerSnapshots) {
                 playerSnapshots.splice(0, 1);
             }
-        } else if (options.type === 'Phase') {
-            let phaseSnapshots = this.phaseSnapshots[options.phaseName];
+        } else if (options.type === SnapshotType.Phase) {
+            let phaseSnapshots = this.allPhaseSnapshots.get(options.phaseName);
             if (!phaseSnapshots) {
                 phaseSnapshots = [];
-                this.phaseSnapshots[options.phaseName] = phaseSnapshots;
+                this.allPhaseSnapshots.set(options.phaseName, phaseSnapshots);
             }
             phaseSnapshots.push(this.snapshots.length - 1);
             if (phaseSnapshots.length > maxPhaseSnapshots) {
                 phaseSnapshots.splice(0, 1);
             }
-        } else if (options.type === 'Round') {
+        } else if (options.type === SnapshotType.Round) {
             this.roundSnapshots.push(this.snapshots.length - 1);
             if (this.roundSnapshots.length > maxRoundSnapshots) {
                 this.roundSnapshots.splice(0, 1);
@@ -140,13 +138,13 @@ export class GameStateManager {
     public rollbackTo(settings: ISnapshotSettings) {
         let snapshot: IGameSnapshot;
 
-        if (settings.type === 'Player') {
+        if (settings.type === SnapshotType.Player) {
             snapshot = this.getSnapshotForPlayer(settings.playerRef);
             Contract.assertNotNullLike(snapshot, () => `Unable to find last snapshot for player ${this.get(settings.playerRef).name}`);
-        } else if (settings.type === 'Phase') {
+        } else if (settings.type === SnapshotType.Phase) {
             snapshot = this.getSnapshotForPhase(settings.phaseName, settings.phaseOffset);
             Contract.assertNotNullLike(snapshot, () => `Unable to find last snapshot for ${settings.phaseName} Phase`);
-        } else if (settings.type === 'Round') {
+        } else if (settings.type === SnapshotType.Round) {
             snapshot = this.getSnapshotForRound(settings.round);
             Contract.assertNotNullLike(snapshot, () => `Unable to find last snapshot for Round ${settings.round}`);
         } else {
@@ -156,8 +154,8 @@ export class GameStateManager {
         return this.rollbackToSnapshot(snapshot.id);
     }
 
-    private getSnapshotForPlayer(playerRef: GameObjectRef<Player>): IGameSnapshot {
-        const playerSnapshots = this.playerSnapshots[playerRef.uuid];
+    private getSnapshotForPlayer(playerRef: GameObjectRef<Player>): IGameSnapshot | undefined {
+        const playerSnapshots = this.allPlayerSnapshots.get(playerRef.uuid);
         if (!playerSnapshots) {
             return undefined;
         }
@@ -178,8 +176,8 @@ export class GameStateManager {
         return this.snapshots[snapshotIdx];
     }
 
-    private getSnapshotForPhase(phaseName: string, offset: number = 0) {
-        const phaseSnapshots = this.phaseSnapshots[phaseName];
+    private getSnapshotForPhase(phaseName: string, offset: number = 0): IGameSnapshot | undefined {
+        const phaseSnapshots = this.allPhaseSnapshots.get(phaseName);
         if (!phaseSnapshots) {
             return undefined;
         }
@@ -193,7 +191,7 @@ export class GameStateManager {
         return this.snapshots[snapshotIdx];
     }
 
-    private getSnapshotForRound(round: number) {
+    private getSnapshotForRound(round: number): IGameSnapshot | undefined {
         const roundDiff = this.game.roundNumber - round;
 
         const snapshotIdx = this.roundSnapshots[this.snapshots.length - 1 - roundDiff];
@@ -246,8 +244,8 @@ export class GameStateManager {
 
     private clearMappedSnapshots(type: SnapshotType, snapshotIdx: number) {
         // Clear out any of the snapshot mappings that were later than this snapshot.
-        if (type === 'Player') {
-            Helpers.objectForEach(this.playerSnapshots, (playerUuid, playerSnapshots) => {
+        if (type === SnapshotType.Player) {
+            for (const [playerUuid, playerSnapshots] of this.allPlayerSnapshots) {
                 const length = playerSnapshots.length;
                 for (let i = length - 1; i >= 0; i--) {
                     const index = playerSnapshots[i];
@@ -255,11 +253,12 @@ export class GameStateManager {
                         playerSnapshots.splice(i, 1);
                     }
                 }
-            });
+            }
         } else {
-            this.playerSnapshots = {};
+            this.allPlayerSnapshots.clear();
         }
-        Helpers.objectForEach(this.phaseSnapshots, (phaseName, phaseSnapshots) => {
+
+        for (const [phaseName, phaseSnapshots] of this.allPhaseSnapshots) {
             const length = phaseSnapshots.length;
             for (let i = length - 1; i >= 0; i--) {
                 const index = phaseSnapshots[i];
@@ -267,7 +266,7 @@ export class GameStateManager {
                     phaseSnapshots.splice(i, 1);
                 }
             }
-        });
+        }
 
         const length = this.roundSnapshots.length;
         for (let i = length - 1; i >= 0; i--) {
