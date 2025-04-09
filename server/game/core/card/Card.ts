@@ -336,7 +336,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // **************************************** INITIALIZATION HELPERS ****************************************
     public static buildTypeFromPrinted(printedTypes: string[]): CardType {
-        Contract.assertArraySize(printedTypes, 1, `Unexpected card types: ${printedTypes}`);
+        Contract.assertNonEmpty(printedTypes, 'No card types provided');
 
         if (printedTypes[0] === 'token') {
             switch (printedTypes[1]) {
