@@ -176,6 +176,7 @@ export const isPlayable = (cardType: CardTypeFilter) => {
         case CardType.Event:
         case CardType.BasicUnit:
         case CardType.BasicUpgrade:
+        case CardType.NonLeaderUnitUpgrade:
             return true;
         default:
             return false;
