@@ -23,8 +23,9 @@ export default class EnergyConversionLab extends BaseCard {
                         AbilityHelper.immediateEffects.playCardFromHand(),
                         AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush) }),
                     ],
-                    false, // We do not ignore targeting requirements
-                    true // All effect must have a legal target
+                    {
+                        everyGameSystemMustBeLegal: true
+                    }
                 )
             }
         });

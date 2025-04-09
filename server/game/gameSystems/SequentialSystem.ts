@@ -7,11 +7,8 @@ import type { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
 import type { Player } from '../core/Player';
 
-
-export interface ISequentialSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
+export interface IBaseAggregateSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     gameSystems: GameSystem<TContext>[];
-
-    // If true, all game systems must be legal for the entire sequence to be legal
     everyGameSystemMustBeLegal?: boolean;
 }
 
@@ -23,14 +20,20 @@ export interface ISequentialSystemProperties<TContext extends AbilityContext = A
  *
  * In terms of game text, this is the exact behavior of "do [X], then do [Y], then do..." or "do [X] [N] times"
  */
-export class SequentialSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISequentialSystemProperties<TContext>> {
+export class SequentialSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, IBaseAggregateSystemProperties<TContext>> {
     protected override readonly eventName: MetaEventName.Sequential;
     protected readonly everyGameSystemMustBeLegal: boolean;
     public constructor(gameSystems: ISystemArrayOrFactory<TContext>, everyGameSystemMustBeLegal: boolean = false) {
         if (typeof gameSystems === 'function') {
-            super((context: TContext) => ({ gameSystems: gameSystems(context) }));
+            super((context: TContext) => ({
+                gameSystems: gameSystems(context),
+                everyGameSystemMustBeLegal
+            }));
         } else {
-            super({ gameSystems });
+            super({
+                gameSystems,
+                everyGameSystemMustBeLegal
+            });
         }
         this.everyGameSystemMustBeLegal = everyGameSystemMustBeLegal;
     }
@@ -67,7 +70,7 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
         }
     }
 
-    public override getInnerSystems(properties: ISequentialSystemProperties<TContext>) {
+    public override getInnerSystems(properties: IBaseAggregateSystemProperties<TContext>) {
         return properties.gameSystems;
     }
 
