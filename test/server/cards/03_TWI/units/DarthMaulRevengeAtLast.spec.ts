@@ -55,6 +55,31 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.wampa).toBeInZone('discard');
         });
 
+        it('should be able to attack a single unit when multiple can be attacked', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: ['moisture-farmer', 'wampa']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            expect(context.player1).toHaveEnabledPromptButton('Cancel');
+            expect(context.player1).not.toHaveEnabledPromptButton('Done');
+            expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa, context.p2Base]);
+            context.player1.clickCard(context.moistureFarmer);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(0);
+            expect(context.moistureFarmer).toBeInZone('discard');
+            expect(context.p2Base.damage).toBe(0);
+        });
+
         it('should be able to attack multiple units', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -75,6 +100,35 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.moistureFarmer);
 
             expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa]);
+            context.player1.clickCard(context.wampa);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(4);
+            expect(context.moistureFarmer).toBeInZone('discard');
+            expect(context.wampa).toBeInZone('discard');
+            expect(context.p2Base.damage).toBe(0);
+        });
+
+        it('should be able to attack two of many units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: ['moisture-farmer', 'wampa', 'cantina-braggart', 'guerilla-soldier']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            expect(context.player1).toHaveEnabledPromptButton('Cancel');
+            expect(context.player1).not.toHaveEnabledPromptButton('Done');
+            expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa, context.p2Base, context.cantinaBraggart, context.guerillaSoldier]);
+            context.player1.clickCard(context.moistureFarmer);
+
+            expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa, context.cantinaBraggart, context.guerillaSoldier]);
             context.player1.clickCard(context.wampa);
             context.player1.clickPrompt('Done');
 
@@ -134,6 +188,34 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('can attack two targets if there are 3+ Sentinels', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: [{ card: 'moisture-farmer', upgrades: ['protector'] }, 'wampa', 'pyke-sentinel', 'village-protectors', 'academy-graduate']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.villageProtectors, context.moistureFarmer, context.academyGraduate]);
+            expect(context.player1).not.toHaveEnabledPromptButton('Done');
+            context.player1.clickCard(context.pykeSentinel);
+            expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.villageProtectors, context.moistureFarmer, context.academyGraduate]);
+            expect(context.player1).toHaveEnabledPromptButton('Done');
+            context.player1.clickCard(context.villageProtectors);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(4);
+            expect(context.pykeSentinel).toBeInZone('discard');
+            expect(context.villageProtectors).toBeInZone('discard');
+            expect(context.player2).toBeActivePlayer();
+        });
+
         it('should not be able to attack a unit and a base', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -153,7 +235,7 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.player1).toBeAbleToSelectExactly([context.moistureFarmer, context.wampa, context.p2Base]);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player1).toBeAbleToSelectNoneOf([context.moistureFarmer, context.wampa]);
+            expect(context.player1).toBeAbleToSelectExactly([context.p2Base]);
             context.player1.clickPrompt('Done');
 
             expect(context.darthMaul.damage).toBe(0);
