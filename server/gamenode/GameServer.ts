@@ -229,11 +229,20 @@ export class GameServer {
 
         app.get('/api/available-lobbies', (_, res, next) => {
             try {
-                const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, lobby]) => ({
-                    id,
-                    name: lobby.name,
-                    format: lobby.format,
-                }));
+                const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, lobby]) => {
+                    const lobbyState = lobby.getLobbyState();
+                    const lobbyOwnerUser = lobby.users.find((user) => user.id === lobbyState.lobbyOwnerId);
+
+                    return {
+                        id,
+                        name: lobby.name,
+                        format: lobby.format,
+                        host: lobbyOwnerUser?.deck ? {
+                            leader: lobbyOwnerUser.deck.leader,
+                            base: lobbyOwnerUser.deck.base
+                        } : null
+                    };
+                });
                 return res.json(availableLobbies);
             } catch (err) {
                 logger.error('GameServer: Error in available-lobbies:', err);
