@@ -27,7 +27,7 @@ export class ActionPhase extends Phase {
 
     public queueNextAction() {
         if (this.game.isUndoEnabled) {
-            this.game.queueSimpleStep(() => this.game.gameObjectManager.takeSnapshot(), 'actionTakeSnapshot');
+            this.game.queueSimpleStep(() => this.game.gameObjectManager.takeSnapshot({ type: 'Player' }), 'actionTakeSnapshot');
         }
         this.game.queueStep(new ActionWindow(this.game, 'Action Window', 'action', this.prevPlayerPassed, this.passStatusHandler));
         this.game.queueSimpleStep(() => this.rotateActiveQueueNextAction(), 'rotateActiveQueueNextAction');
@@ -63,7 +63,7 @@ export class ActionPhase extends Phase {
     }
 
     public takeSnapshot() {
-        return this.game.gameObjectManager.takeSnapshot();
+        return this.game.gameObjectManager.takeSnapshot({ type: 'Phase', phaseName: 'Action' });
     }
 
     public rollbackToSnapshot(snapshotId: number | null) {

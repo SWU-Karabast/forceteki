@@ -254,4 +254,12 @@ function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergePropert
     return { ...propertySet, [newPropName]: mergeFn(oldPropValue, newPropValue) };
 }
 
+export function objectForEach<T extends Record<any, any>, TK extends Extract<keyof T, string> = Extract<keyof T, string>>(obj: T, fcn: (prop: TK, value?: T[TK]) => void) {
+    for (const prop in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+            fcn(prop as TK, obj[prop] as T[TK]);
+        }
+    }
+}
+
 export type DistributiveOmit<T, K extends keyof T> = T extends any ? Omit<T, K> : never;

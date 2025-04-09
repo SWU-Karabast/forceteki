@@ -8,9 +8,11 @@ import * as Helpers from './utils/Helpers.js';
 export interface IGameSnapshot {
     id: number;
     lastId: number;
+    lastPlayerSnapshot: Record<string, number[]>;
 
     gameState: IGameState;
     states: IGameObjectBaseState[];
+    settings: ISnapshotSettings;
 }
 
 export interface IGameState {
@@ -22,11 +24,29 @@ export interface IGameState {
     allCards: GameObjectRef<Card>[];
 }
 
+const maxPlayerSnapshots = 2; // 2 for current and previous turns.
+const maxPhaseSnapshots = 2; // 2 for current and previous of a specific phase.
+const maxRoundSnapshots = 2; // Current and previous start of round.
+
+export type SnapshotType = 'Player' | 'Phase' | 'Round' | 'Test';
+export interface ISnapshotSettings {
+    type: SnapshotType;
+    phaseName?: string;
+    phaseOffset?: number;
+    playerRef?: GameObjectRef<Player>;
+    round?: number;
+}
+
 export class GameStateManager {
     private readonly game: Game;
     private readonly snapshots: IGameSnapshot[];
     private readonly allGameObjects: GameObjectBase[];
     private readonly gameObjectMapping: Map<string, GameObjectBase>;
+
+    // These contain snapshot indexes, not the ID. This _should_ be safe, the snapshots list will rollback with this, so there shouldn't be a problem.
+    private playerSnapshots: Record<string, number[]>;
+    private phaseSnapshots: Record<string, number[]>;
+    private roundSnapshots: number[];
     private lastId = 0;
     private lastSnapshotId = 0;
 
@@ -35,6 +55,9 @@ export class GameStateManager {
         this.allGameObjects = [];
         this.snapshots = [];
         this.gameObjectMapping = new Map<string, GameObjectBase>();
+        this.playerSnapshots = {};
+        this.phaseSnapshots = {};
+        this.roundSnapshots = [];
     }
 
     public get<T extends GameObjectBase>(gameObjectRef: GameObjectRef<T>): T | null {
@@ -65,43 +88,122 @@ export class GameStateManager {
 
     public clearSnapshots() {
         this.snapshots.length = 0;
+        this.playerSnapshots = {};
     }
 
-    public takeSnapshot(): number {
+    public takeSnapshot(options: ISnapshotSettings): number {
         const nextSnapshotId = this.lastSnapshotId + 1;
         const snapshot: IGameSnapshot = {
             id: nextSnapshotId,
+
             lastId: this.lastId,
+            lastPlayerSnapshot: structuredClone(this.playerSnapshots),
             gameState: structuredClone(this.game.state),
-            states: this.allGameObjects.map((x) => x.getState())
+            states: this.allGameObjects.map((x) => x.getState()),
+
+            settings: structuredClone(options)
         };
         this.lastSnapshotId = nextSnapshotId;
+
+        if (options.type === 'Player') {
+            let playerSnapshots = this.playerSnapshots[this.game.state.actionPhaseActivePlayer.uuid];
+            if (!playerSnapshots) {
+                playerSnapshots = [];
+                this.playerSnapshots[this.game.state.actionPhaseActivePlayer.uuid] = playerSnapshots;
+            }
+            playerSnapshots.push(this.snapshots.length - 1);
+            if (playerSnapshots.length > maxPlayerSnapshots) {
+                playerSnapshots.splice(0, 1);
+            }
+        } else if (options.type === 'Phase') {
+            let phaseSnapshots = this.phaseSnapshots[options.phaseName];
+            if (!phaseSnapshots) {
+                phaseSnapshots = [];
+                this.phaseSnapshots[options.phaseName] = phaseSnapshots;
+            }
+            phaseSnapshots.push(this.snapshots.length - 1);
+            if (phaseSnapshots.length > maxPhaseSnapshots) {
+                phaseSnapshots.splice(0, 1);
+            }
+        } else if (options.type === 'Round') {
+            this.roundSnapshots.push(this.snapshots.length - 1);
+            if (this.roundSnapshots.length > maxRoundSnapshots) {
+                this.roundSnapshots.splice(0, 1);
+            }
+        }
 
         this.snapshots.push(snapshot);
 
         return snapshot.id;
     }
 
-    public rollbackToPlayerSnapshot(player: Player) {
-        Contract.assertPositiveNonZero(this.snapshots.length, `Tried to to rollback to ${player.name}'s snapshot but there are none.`);
-
-        // This assumes snapshots are taken at the start of a player's turn.
+    public rollbackTo(settings: ISnapshotSettings) {
         let snapshot: IGameSnapshot;
-        if (snapshot && this.game.state.actionPhaseActivePlayer.uuid !== player.uuid) {
-            snapshot = this.getLatestSnapshot(1);
-        } else {
-            snapshot = this.getLatestSnapshot(2);
-        }
 
-        Contract.assertNotNullLike(snapshot, `Tried to get ${player.name}'s previous snapshot, but no snapshot was found.`);
-        Contract.assertNotNullLike(snapshot.gameState.actionPhaseActivePlayer.uuid === player.uuid, () => `Expected player ${player.name} to have been the active player for the rollback snapshot, but a snapshot for ${this.get(snapshot.gameState.actionPhaseActivePlayer).name} was found at the expected index.`);
+        if (settings.type === 'Player') {
+            snapshot = this.getSnapshotForPlayer(settings.playerRef);
+            Contract.assertNotNullLike(snapshot, () => `Unable to find last snapshot for player ${this.get(settings.playerRef).name}`);
+        } else if (settings.type === 'Phase') {
+            snapshot = this.getSnapshotForPhase(settings.phaseName, settings.phaseOffset);
+            Contract.assertNotNullLike(snapshot, () => `Unable to find last snapshot for ${settings.phaseName} Phase`);
+        } else if (settings.type === 'Round') {
+            snapshot = this.getSnapshotForRound(settings.round);
+            Contract.assertNotNullLike(snapshot, () => `Unable to find last snapshot for Round ${settings.round}`);
+        } else {
+            Contract.fail('Invalid rollback settings provided.');
+        }
 
         return this.rollbackToSnapshot(snapshot.id);
     }
 
+    private getSnapshotForPlayer(playerRef: GameObjectRef<Player>): IGameSnapshot {
+        const playerSnapshots = this.playerSnapshots[playerRef.uuid];
+        if (!playerSnapshots) {
+            return undefined;
+        }
+
+        const isActiveTurnPlayer = this.game.state.actionPhaseActivePlayer.uuid === playerRef.uuid;
+        let snapshotIdx: number = undefined;
+        if (!isActiveTurnPlayer) {
+            snapshotIdx = playerSnapshots[this.snapshots.length - 1];
+        } else {
+            // Latest snapshot is the current turn, go back to the next one.
+            snapshotIdx = playerSnapshots[this.snapshots.length - 2];
+        }
+
+        if (!snapshotIdx) {
+            return undefined;
+        }
+
+        return this.snapshots[snapshotIdx];
+    }
+
+    private getSnapshotForPhase(phaseName: string, offset: number = 0) {
+        const phaseSnapshots = this.phaseSnapshots[phaseName];
+        if (!phaseSnapshots) {
+            return undefined;
+        }
+
+        const snapshotIdx = phaseSnapshots[this.snapshots.length - 1 - offset];
+
+        if (!snapshotIdx) {
+            return undefined;
+        }
+
+        return this.snapshots[snapshotIdx];
+    }
+
+    private getSnapshotForRound(round: number) {
+        const roundDiff = this.game.roundNumber - round;
+
+        const snapshotIdx = this.roundSnapshots[this.snapshots.length - 2 - roundDiff];
+
+        return this.snapshots[snapshotIdx];
+    }
+
     /**
      *
-     * @param snapshotId The specific snapshotId to return to. If not provided, will return to the last snapshot.
+     * @param snapshotId The specific snapshotId to return to.
      */
     public rollbackToSnapshot(snapshotId: number) {
         Contract.assertPositiveNonZero(snapshotId, 'Tried to rollback but snapshot ID is invalid ' + snapshotId);
@@ -139,6 +241,41 @@ export class GameStateManager {
 
         // Throw out all snapshots after the rollback snapshot.
         this.snapshots.splice(snapshotIdx + 1);
+        this.clearMappedSnapshots(snapshot.settings.type, snapshotIdx);
+    }
+
+    private clearMappedSnapshots(type: SnapshotType, snapshotIdx: number) {
+        // Clear out any of the snapshot mappings that were later than this snapshot.
+        if (type === 'Player') {
+            Helpers.objectForEach(this.playerSnapshots, (playerUuid, playerSnapshots) => {
+                const length = playerSnapshots.length;
+                for (let i = length - 1; i >= 0; i--) {
+                    const index = playerSnapshots[i];
+                    if (index > snapshotIdx) {
+                        playerSnapshots.splice(i, 1);
+                    }
+                }
+            });
+        } else {
+            this.playerSnapshots = {};
+        }
+        Helpers.objectForEach(this.phaseSnapshots, (phaseName, phaseSnapshots) => {
+            const length = phaseSnapshots.length;
+            for (let i = length - 1; i >= 0; i--) {
+                const index = phaseSnapshots[i];
+                if (index > snapshotIdx) {
+                    phaseSnapshots.splice(i, 1);
+                }
+            }
+        });
+
+        const length = this.roundSnapshots.length;
+        for (let i = length - 1; i >= 0; i--) {
+            const index = this.roundSnapshots[i];
+            if (index > snapshotIdx) {
+                this.roundSnapshots.splice(i, 1);
+            }
+        }
     }
 
     private getLatestSnapshot(offset = 0) {
@@ -151,14 +288,6 @@ export class GameStateManager {
     }
 
     public canUndo(player: Player) {
-        let snapshot: IGameSnapshot;
-
-        if (this.game.state.actionPhaseActivePlayer.uuid === player.uuid) {
-            snapshot = this.getLatestSnapshot(1);
-        } else {
-            snapshot = this.getLatestSnapshot(2);
-        }
-
-        return !!snapshot;
+        return !!this.getSnapshotForPlayer(player.getRef());
     }
 }
