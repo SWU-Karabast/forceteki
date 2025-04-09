@@ -5,7 +5,7 @@ import { TargetMode, WildcardCardType, WildcardRelativePlayer, WildcardZoneName 
 export default class DarthMaulSithRevealed extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '0024560758',
+            id: 'tbd-darth-maul-id',
             internalName: 'darth-maul#sith-revealed',
         };
     }
@@ -18,27 +18,11 @@ export default class DarthMaulSithRevealed extends LeaderUnitCard {
                 AbilityHelper.costs.useTheForce()
             ],
             targetResolver: {
-                activePromptTitle: 'Choose units to deal 1 damage to',
-                mode: TargetMode.ExactlyVariable,
+                mode: TargetMode.Exactly,
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: WildcardZoneName.AnyArena,
                 controller: WildcardRelativePlayer.Any,
-                numCardsFunc: (context) => Math.min(2, context.game.getArenaUnits().length),
-                immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
-            }
-        });
-    }
-
-    protected override setupLeaderUnitSideAbilities() {
-        this.addOnAttackAbility({
-            title: 'Deal 1 damage to a unit and 1 damage to a different unit',
-            targetResolver: {
-                activePromptTitle: 'Choose units to deal 1 damage to',
-                mode: TargetMode.ExactlyVariable,
-                cardTypeFilter: WildcardCardType.Unit,
-                zoneFilter: WildcardZoneName.AnyArena,
-                controller: WildcardRelativePlayer.Any,
-                numCardsFunc: (context) => Math.min(2, context.game.getArenaUnits().length),
+                numCards: 2,
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             }
         });

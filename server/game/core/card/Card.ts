@@ -336,22 +336,19 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // **************************************** INITIALIZATION HELPERS ****************************************
     public static buildTypeFromPrinted(printedTypes: string[]): CardType {
-        if (printedTypes.length === 2) {
-            if (printedTypes[0] !== 'token') {
-                throw new Error(`Unexpected card types: ${printedTypes}`);
-            }
+        Contract.assertArraySize(printedTypes, 1, `Unexpected card types: ${printedTypes}`);
 
+        if (printedTypes[0] === 'token') {
             switch (printedTypes[1]) {
                 case 'unit':
                     return CardType.TokenUnit;
                 case 'upgrade':
                     return CardType.TokenUpgrade;
                 default:
-                    throw new Error(`Unexpected token types: ${printedTypes}`);
+                    return CardType.TokenCard;
             }
         }
 
-        Contract.assertArraySize(printedTypes, 1, `Unexpected card types: ${printedTypes}`);
         switch (printedTypes[0]) {
             case 'event':
                 return CardType.Event;
@@ -699,8 +696,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     protected removeFromCurrentZone() {
         if (this.zone.name === ZoneName.Base) {
-            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${this.zone}`);
-            this.zone.removeLeader();
+            if (this.isLeader()) {
+                this.zone.removeLeader();
+            } else if (this.isForceToken()) {
+                this.zone.forceToken = null;
+            } else {
+                Contract.fail(`Attempting to move card ${this.internalName} from ${this.zone}`);
+            }
         } else {
             this.zone.removeCard(this);
         }

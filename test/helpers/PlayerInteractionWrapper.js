@@ -418,7 +418,7 @@ class PlayerInteractionWrapper {
     }
 
     get hasTheForce() {
-        return this.player.hasTheForce;
+        return this.player.hasTheForce();
     }
 
     get actionPhaseActivePlayer() {
@@ -780,38 +780,6 @@ class PlayerInteractionWrapper {
             this.game.currentActionWindow.activePlayer = this.player;
         }
         Util.refreshGameState(this.game);
-    }
-
-    /**
-     * Sets the Force Token state for the player
-     * @param {Boolean} hasForce - true if the player should have the Force Token
-     */
-    setHasTheForce(hasForce = true) {
-        if (hasForce) {
-            if (this.player.hasTheForce) {
-                throw new TestSetupError(`Attempting to give Force Token to ${this.player.name}, but they already have it.`);
-            }
-
-            const forceTokens = this.player.outsideTheGameZone
-                .getCards({ condition: (card) => card.isForceToken() });
-
-            if (forceTokens.length === 0) {
-                throw new TestSetupError(`Failed to find a Force Token for ${this.player.name}`);
-            }
-
-            forceTokens[0].moveTo(ZoneName.Base);
-        } else {
-            if (!this.player.hasTheForce) {
-                throw new TestSetupError(`Attempting to remove Force Token from ${this.player.name}, but they don't have it.`);
-            }
-            const forceToken = this.player.baseZone.forceToken;
-
-            if (!forceToken) {
-                throw new TestSetupError(`Failed to find a Force Token for ${this.player.name}`);
-            }
-
-            forceToken.moveTo(ZoneName.OutsideTheGame);
-        }
     }
 
     playAttachment(attachment, target) {
