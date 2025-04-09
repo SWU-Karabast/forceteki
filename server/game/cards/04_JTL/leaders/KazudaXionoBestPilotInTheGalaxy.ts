@@ -52,7 +52,7 @@ export default class KazudaXionoBestPilotInTheGalaxy extends LeaderUnitCard {
         this.addPilotingGainTriggeredAbilityTargetingAttached({
             title: 'Choose any number of friendly units. They lose all abilities for this round.',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             targetResolver: {
                 activePromptTitle: 'Choose friendly units to lose all abilities for this round',

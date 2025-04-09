@@ -15,7 +15,7 @@ export default class CassianAndorThreadingTheEye extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Discard a card from the defending player\'s deck',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 1,

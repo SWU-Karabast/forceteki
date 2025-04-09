@@ -20,7 +20,7 @@ export default class ResoluteUnderAnakinsCommand extends NonLeaderUnitCard {
             title: 'Deal 2 damage to an enemy unit and each other enemy unit with the same name as that unit',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onAttack: true,
             },
             targetResolver: {
                 controller: RelativePlayer.Opponent,

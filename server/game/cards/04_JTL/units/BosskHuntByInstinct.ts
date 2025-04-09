@@ -22,7 +22,7 @@ export default class BosskHuntByInstinct extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Exhaust the defender and deal 1 damage to it (if it\'s a unit)',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             immediateEffect: this.buildAbility()
         });

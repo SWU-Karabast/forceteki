@@ -15,7 +15,7 @@ export default class TraceMartezTrustingSister extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Heal 2 total damage from any number of units',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.distributeHealingAmong({
                 amountToDistribute: 2,

@@ -46,7 +46,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
             title: 'You may deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.',
             optional: true,
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

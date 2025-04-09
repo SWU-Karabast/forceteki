@@ -16,7 +16,7 @@ export default class RafaMartezShrewdSister extends NonLeaderUnitCard {
             title: 'Deal 1 damage to a friendly unit and ready a resource',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             targetResolver: {
                 controller: RelativePlayer.Self,

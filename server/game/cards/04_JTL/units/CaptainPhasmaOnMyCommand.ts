@@ -15,7 +15,7 @@ export default class CaptainPhasmaOnMyCommand extends NonLeaderUnitCard {
             title: 'Give another First Order unit +2/+2 for this phase',
             optional: true,
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onAttack: true,
                 onCardPlayed: (event, context) => event.card === context.source
             },
             targetResolver: {
