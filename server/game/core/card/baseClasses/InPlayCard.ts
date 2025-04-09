@@ -324,33 +324,33 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         }
     }
 
-    protected override validateCardAbilities(cardText?: string) {
+    protected override validateCardAbilities(abilities: TriggeredAbility[], cardText?: string) {
         if (!this.hasImplementationFile || cardText == null) {
             return;
         }
 
         Contract.assertFalse(
             !this.disableWhenDefeatedCheck &&
-            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Defeated/g) &&
-            !this.triggeredAbilities.some((ability) => ability.isWhenDefeated),
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Defeated/gi) &&
+            !abilities.some((ability) => ability.isWhenDefeated),
             `Card ${this.internalName} has one or more 'When Defeated' keywords in its text but no corresponding ability definition or set property 'disableWhenDefeatedCheck' to true on card implementation`
         );
         Contract.assertFalse(
             !this.disableOnAttackCheck &&
-            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))On Attack\b/g) &&
-            !this.triggeredAbilities.some((ability) => ability.isOnAttackAbility),
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))On Attack\b/gi) &&
+            !abilities.some((ability) => ability.isOnAttackAbility),
             `Card ${this.internalName} has one or more 'On Attack' keywords in its text but no corresponding ability definition or set property 'disableOnAttackCheck' to true on card implementation`
         );
         Contract.assertFalse(
             !this.disableWhenPlayedCheck &&
-            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Played\b/g) &&
-            !this.triggeredAbilities.some((ability) => ability.isWhenPlayed),
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Played\b/gi) &&
+            !abilities.some((ability) => ability.isWhenPlayed),
             `Card ${this.internalName} has one or more 'When Played' keywords in its text but no corresponding ability definition or set property 'disableWhenPlayedCheck' to true on card implementation`
         );
         Contract.assertFalse(
             !this.disableWhenPlayedUsingSmuggleCheck &&
-            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Played using Smuggle\b/g) &&
-            !this.triggeredAbilities.some((ability) => ability.isWhenPlayedUsingSmuggle),
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Played using Smuggle\b/gi) &&
+            !abilities.some((ability) => ability.isWhenPlayedUsingSmuggle),
             `Card ${this.internalName} has one or more 'When Played using Smuggle' keywords in its text but no corresponding ability definition or set property 'disableWhenPlayedUsingSmuggleCheck' to true on card implementation`
         );
     }
