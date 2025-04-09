@@ -62,5 +62,25 @@ describe('Alliance Dispatcher', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(3);
             });
         });
+
+        it('should not be able to play a unit as a Pilot for a discount', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['alliance-dispatcher'],
+                    leader: 'fennec-shand#honoring-the-deal',
+                    hand: ['han-solo#has-his-moments'],
+                    spaceArena: ['cartel-turncoat']
+                },
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.allianceDispatcher);
+            context.player1.clickPrompt('Play a unit from your hand. It costs 1 less');
+            context.player1.clickCard(context.hanSolo);
+            expect(context.allianceDispatcher.exhausted).toBe(true);
+            expect(context.hanSolo).toBeInZone('groundArena');
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

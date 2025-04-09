@@ -326,9 +326,15 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
         Contract.assertFalse(
             !this.disableWhenDefeatedCheck &&
-            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:\n)|(?:\/))When Defeated/g) &&
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Defeated/g) &&
             !this.triggeredAbilities.some((ability) => ability.isWhenDefeated),
             `Card ${this.internalName} has one or more 'When Defeated' keywords in its text but no corresponding ability definition or set property 'disableWhenDefeatedCheck' to true on card implementation`
+        );
+        Contract.assertFalse(
+            !this.disableOnAttackCheck &&
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))On Attack\b/g) &&
+            !this.triggeredAbilities.some((ability) => ability.isOnAttackAbility),
+            `Card ${this.internalName} has one or more 'On Attack' keywords in its text but no corresponding ability definition or set property 'disableOnAttackCheck' to true on card implementation`
         );
     }
 

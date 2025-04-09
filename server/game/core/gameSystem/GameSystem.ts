@@ -186,7 +186,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * given the current game state. See {@link GameSystem.generatePropertiesFromContext} for details on target generation.
      * @param context Context of ability being executed
      * @param additionalProperties Any additional properties to extend the default ones with
-     * @param mustChangeGameState If set to true, will only consider targets legal if applying the effect on thmem will alter game state.
+     * @param mustChangeGameState If set to true, will only consider targets legal if applying the effect on them will alter game state.
      * False by default as ability effects can still be triggered even if they will not change game state.
      * @returns True if all of the candidate targets are legal, false otherwise
      */

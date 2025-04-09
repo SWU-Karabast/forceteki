@@ -72,7 +72,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
                 Contract.fail(`Unknown duration: ${(properties as any).duration}`);
         }
 
-        return [`${description} {0}${durationStr}`, [properties.target]];
+        return [`${description} {0}${durationStr}`, [properties.ongoingEffectTargetDescription ?? properties.target]];
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): ICardLastingEffectProperties {

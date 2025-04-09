@@ -15,7 +15,7 @@ export default class XanaduBloodCadBanesReward extends NonLeaderUnitCard {
             title: 'Return another friendly non-leader Underworld unit to its owner’s hand',
             when: {
                 onCardPlayed: (event, context) => event.card === context.source,
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onAttack: true,
             },
             optional: true,
             targetResolver: {

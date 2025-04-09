@@ -14,7 +14,7 @@ export default class FirstOrderStormtrooper extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Deal 1 indirect damage to a player',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onAttack: true,
                 whenDefeated: true,
             },
             targetResolver: {

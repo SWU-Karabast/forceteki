@@ -2,7 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { IAbilityLimit } from '../ability/AbilityLimit';
 import type { Card } from '../card/Card';
 import type { Aspect, CardTypeFilter } from '../Constants';
-import { WildcardCardType } from '../Constants';
+import { CardType, PlayType, WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../../core/utils/Contract';
@@ -151,7 +151,9 @@ export class CostAdjuster {
             return false;
         }
 
-        return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) &&
+        const cardType = context.playType === PlayType.Piloting ? CardType.NonLeaderUnitUpgrade : card.type;
+
+        return EnumHelpers.cardTypeMatches(cardType, this.cardTypeFilter) &&
           this.checkMatch(card) &&
           this.checkAttachTargetCondition(context, adjustParams?.attachTarget);
     }

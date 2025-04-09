@@ -15,7 +15,7 @@ export default class ObiWansAetherspriteThisIsWhyIHateFlying extends NonLeaderUn
             title: 'Deal 1 damage to this unit',
             optional: true,
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
+                onAttack: true,
                 onCardPlayed: (event, context) => event.card === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
