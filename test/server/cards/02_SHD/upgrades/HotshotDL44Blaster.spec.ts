@@ -10,9 +10,6 @@ describe('Hotshot DL-44 Blaster', function() {
                         hand: ['hotshot-dl44-blaster'],
                         base: 'tarkintown'
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
@@ -20,6 +17,7 @@ describe('Hotshot DL-44 Blaster', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.hotshotDl44Blaster);
+                context.player1.clickCard(context.battlefieldMarine);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['hotshot-dl44-blaster']);
                 expect(context.battlefieldMarine.exhausted).toBe(false);
@@ -38,9 +36,6 @@ describe('Hotshot DL-44 Blaster', function() {
                         resources: ['hotshot-dl44-blaster', 'atst', 'atst', 'atst', 'atst', 'atst'],
                         base: 'administrators-tower'
                     },
-
-                    // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
-                    autoSingleTarget: true
                 });
             });
 
@@ -48,6 +43,8 @@ describe('Hotshot DL-44 Blaster', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.hotshotDl44Blaster);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.p2Base);
                 expect(context.player2).toBeActivePlayer();
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['hotshot-dl44-blaster']);
                 expect(context.battlefieldMarine.exhausted).toBe(true);

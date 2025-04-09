@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, EventName, PlayType } from '../../../core/Constants';
+import { AbilityType, EventName } from '../../../core/Constants';
 
 export default class BoShekCharismaticSmuggler extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,9 +15,7 @@ export default class BoShekCharismaticSmuggler extends NonLeaderUnitCard {
             title: 'Discard 2 cards from your deck',
             type: AbilityType.Triggered,
             when: {
-                onCardPlayed: (event, context) =>
-                    event.card === context.source &&
-                    event.playType === PlayType.Piloting
+                whenPlayed: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 2,

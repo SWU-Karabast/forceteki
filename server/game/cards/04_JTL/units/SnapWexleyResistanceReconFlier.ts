@@ -1,5 +1,5 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, PlayType, Trait } from '../../../core/Constants';
+import { AbilityType, Trait } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
@@ -15,7 +15,7 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'The next Resistance card you play this phase costs 1 resource less',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source && event.playType !== PlayType.Piloting,
+                whenPlayed: true,
                 onAttack: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
@@ -31,9 +31,7 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
             title: 'Search the top 5 cards of your deck for a Resistance card, reveal it, and draw it',
             type: AbilityType.Triggered,
             when: {
-                onCardPlayed: (event, context) =>
-                    event.card === context.source &&
-                    event.playType === PlayType.Piloting
+                whenPlayed: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 5,

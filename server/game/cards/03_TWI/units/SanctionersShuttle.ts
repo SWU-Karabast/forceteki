@@ -15,7 +15,7 @@ export default class SanctionersShuttle extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'This unit captures an enemy non-leader unit that costs 3 or less. ',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source
+                whenPlayed: true,
             },
             targetResolver: {
                 cardCondition: (card) => card.isNonLeaderUnit() && card.cost <= 3,

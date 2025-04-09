@@ -13,7 +13,7 @@ export default class BattleDroidEscort extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Create a Battle Droid token.',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
+                whenPlayed: true,
                 whenDefeated: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.createBattleDroid()

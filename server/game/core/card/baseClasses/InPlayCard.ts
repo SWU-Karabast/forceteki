@@ -273,8 +273,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
-        const triggeredProperties = Object.assign(properties, { when: { onCardPlayed: (event, context) => event.card === context.source } });
-        return this.addTriggeredAbility(triggeredProperties);
+        const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenPlayed]: true };
+        return this.addTriggeredAbility({ ...properties, when });
     }
 
     protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
@@ -340,6 +340,18 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
             cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))On Attack\b/g) &&
             !this.triggeredAbilities.some((ability) => ability.isOnAttackAbility),
             `Card ${this.internalName} has one or more 'On Attack' keywords in its text but no corresponding ability definition or set property 'disableOnAttackCheck' to true on card implementation`
+        );
+        Contract.assertFalse(
+            !this.disableWhenPlayedCheck &&
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Played\b/g) &&
+            !this.triggeredAbilities.some((ability) => ability.isWhenPlayed),
+            `Card ${this.internalName} has one or more 'When Played' keywords in its text but no corresponding ability definition or set property 'disableWhenPlayedCheck' to true on card implementation`
+        );
+        Contract.assertFalse(
+            !this.disableWhenPlayedUsingSmuggleCheck &&
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Played using Smuggle\b/g) &&
+            !this.triggeredAbilities.some((ability) => ability.isWhenPlayedUsingSmuggle),
+            `Card ${this.internalName} has one or more 'When Played using Smuggle' keywords in its text but no corresponding ability definition or set property 'disableWhenPlayedUsingSmuggleCheck' to true on card implementation`
         );
     }
 

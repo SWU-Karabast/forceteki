@@ -16,7 +16,7 @@ export default class ObiWansAetherspriteThisIsWhyIHateFlying extends NonLeaderUn
             optional: true,
             when: {
                 onAttack: true,
-                onCardPlayed: (event, context) => event.card === context.source
+                whenPlayed: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.damage({ amount: 1 }),

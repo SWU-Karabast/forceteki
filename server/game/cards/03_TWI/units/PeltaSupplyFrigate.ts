@@ -15,7 +15,7 @@ export default class PeltaSupplyFrigate extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Create a Clone Trooper token',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source
+                whenPlayed: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.createCloneTrooper()
         });

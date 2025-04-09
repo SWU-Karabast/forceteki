@@ -20,7 +20,7 @@ export default class JabbasRancorPateesa extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Deal 3 damage to another friendly ground unit and 3 damage to an enemy ground unit',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
+                whenPlayed: true,
                 onAttack: true,
             },
             targetResolvers: {

@@ -22,7 +22,7 @@ describe('Subjugating Starfighter', function() {
                 context.player1.clickCard(context.subjugatingStarfighter);
 
                 // Check if the Battle Droid token was created if the player has initiative.'
-                context.player1.clickPrompt('Create a Battle Droid token.');
+                context.player1.clickPrompt('Create a Battle Droid token');
                 expect(context.player1.findCardsByName('battle-droid').length).toBe(1);
                 expect(context.player1.findCardsByName('battle-droid')).toAllBeInZone('groundArena', context.player1);
                 expect(context.player1.findCardsByName('battle-droid').every((battleDroid) => battleDroid.exhausted)).toBeTrue();
@@ -43,7 +43,7 @@ describe('Subjugating Starfighter', function() {
                 context.player1.clickCard(context.subjugatingStarfighter);
 
                 // Check if the Battle Droid token was created if the player has initiative.'
-                context.player1.clickPrompt('Create a Battle Droid token.');
+                context.player1.clickPrompt('Create a Battle Droid token');
                 expect(context.player1.findCardsByName('battle-droid').length).toBe(1);
                 expect(context.player1.findCardsByName('battle-droid')).toAllBeInZone('groundArena', context.player1);
                 expect(context.player1.findCardsByName('battle-droid').every((battleDroid) => battleDroid.exhausted)).toBeTrue();
