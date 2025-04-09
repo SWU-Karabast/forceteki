@@ -38,7 +38,7 @@ describe('Hera Syndulla, Spectre Two', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(10);
             });
 
-            it('ignores aspect penalties for Spectre unit and event', async function () {
+            it('ignores aspect penalties for Spectre pilot upgrade', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
