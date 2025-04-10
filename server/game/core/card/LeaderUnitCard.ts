@@ -78,7 +78,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     }
 
     public override isUnit(): this is IUnitCard {
-        return this.state.deployed;
+        return this.state.deployed && !this.isAttached();
     }
 
     public override isDeployableLeader(): this is IDeployableLeaderCard {
@@ -90,7 +90,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
     }
 
     public override isLeaderUnit(): this is ILeaderUnitCard {
-        return this.state.deployed;
+        return this.isUnit();
     }
 
     public override initializeForStartZone(): void {
@@ -215,6 +215,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
                 this.setDamageEnabled(true);
                 this.setActiveAttackEnabled(true);
                 this.setUpgradesEnabled(true);
+                this.setExhaustEnabled(true);
                 this.exhausted = false;
                 this.setCaptureZoneEnabled(true);
                 break;
@@ -224,6 +225,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
                 this.setDamageEnabled(false);
                 this.setActiveAttackEnabled(false);
                 this.setUpgradesEnabled(false);
+                this.setExhaustEnabled(true);
                 this.exhausted = prevZone ? EnumHelpers.isArena(prevZone) : false;
                 this.setCaptureZoneEnabled(false);
                 break;
