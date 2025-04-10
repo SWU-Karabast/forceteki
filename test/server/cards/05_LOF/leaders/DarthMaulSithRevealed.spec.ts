@@ -202,6 +202,23 @@ describe('Darth Maul, Sith Revealed', function() {
                 expect(context.player1.hasTheForce).toBe(false);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('cannot be used if the player does not have the Force', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-maul#sith-revealed',
+                        base: 'shadowed-undercity'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthMaul);
+
+                // Darth Maul is deployed because there is no other valid action
+                expect(context.darthMaul).toBeInZone('groundArena');
+            });
         });
 
         describe('Darth Maul\'s Unit side ability', function () {
