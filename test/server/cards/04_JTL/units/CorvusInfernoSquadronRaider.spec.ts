@@ -117,5 +117,54 @@ describe('Corvus, Inferno Squadron Raider', function() {
                 expect(context.corvus).toHaveExactUpgradeNames(['major-vonreg#red-baron']);
             });
         });
+
+        describe('Corvus\'s ability with Asajj', function() {
+            it('can attach Asajj Ventress as a pilot when she is deployed as a ground unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['corvus#inferno-squadron-raider', 'atst'],
+                        groundArena: [{ card: 'astromech-pilot', upgrades: ['devotion', 'protector'], damage: 2 }, { card: 'escort-skiff', upgrades: ['sullustan-spacer'] }, 'battlefield-marine'],
+                        spaceArena: [{ card: 'green-squadron-awing', upgrades: ['determined-recruit'], damage: 1 }],
+                        base: { card: 'echo-base', damage: 15 },
+                        leader: 'asajj-ventress#i-work-alone',
+                        resources: 20
+                    },
+                    player2: {
+                        hand: ['change-of-heart'],
+                        groundArena: ['clone-pilot'],
+                        spaceArena: [{ card: 'distant-patroller', upgrades: ['hopeful-volunteer'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Deploy AT-ST first
+                context.player1.clickCard('atst');
+                context.player2.passAction();
+
+                // Deploy Asajj as a ground unit
+                context.player1.clickCard(context.asajjVentress);
+                expect(context.player1).toHaveExactPromptButtons(['Cancel', 'Deploy Asajj Ventress', 'Deploy Asajj Ventress as a Pilot',
+                    'Deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.'
+                ]);
+                context.player1.clickPrompt('Deploy Asajj Ventress');
+                expect(context.asajjVentress.deployed).toBe(true);
+                expect(context.asajjVentress).toBeInZone('groundArena');
+                context.player2.passAction();
+
+                // Play Corvus and try to attach Asajj
+                context.player1.clickCard('corvus#inferno-squadron-raider');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.astromechPilot,
+                    context.determinedRecruit,
+                    context.sullustanSpacer,
+                    context.asajjVentress
+                ]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.asajjVentress);
+                expect(context.corvus).toHaveExactUpgradeNames(['asajj-ventress#i-work-alone']);
+            });
+        });
     });
 });
