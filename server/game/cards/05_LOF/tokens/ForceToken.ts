@@ -1,7 +1,6 @@
-import type { ITokenCard } from '../../../core/card/propertyMixins/Token';
 import { TokenCard } from '../../../core/card/TokenCards';
 
-export default class Force extends TokenCard {
+export default class ForceToken extends TokenCard {
     protected override getImplementationId() {
         return {
             id: 'temp-force-id',
@@ -9,7 +8,7 @@ export default class Force extends TokenCard {
         };
     }
 
-    public override isForceToken(): this is ITokenCard {
+    public override isForceToken(): this is ForceToken {
         return true;
     }
 }

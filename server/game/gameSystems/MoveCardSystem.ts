@@ -38,7 +38,7 @@ export interface IMoveCardProperties extends ICardTargetSystemProperties {
 export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IMoveCardProperties> {
     public override readonly name = 'move';
     protected override readonly eventName = EventName.OnCardMoved;
-    public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event, WildcardCardType.Token];
+    public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade, CardType.Event];
 
     protected override defaultProperties: IMoveCardProperties = {
         destination: null,
@@ -119,8 +119,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         Contract.assertNotNullLike(destination);
 
         if (card.isToken()) {
-            // Only the Force token can be moved to the base zone
-            if (destination === ZoneName.Base && !card.isForceToken()) {
+            if (destination === ZoneName.Base) {
                 return false;
             }
         } else {

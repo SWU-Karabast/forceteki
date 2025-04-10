@@ -15,9 +15,9 @@ export default class ShadowedUndercity extends BaseCard {
             title: 'The Force is with you',
             when: {
                 onAttackDeclared: (event, context) => event.attack.attacker.hasSomeTrait(Trait.Force) &&
-                  event.attack.attacker.controller === context.source.owner
+                  event.attack.attacker.controller === context.player
             },
-            immediateEffect: AbilityHelper.immediateEffects.createForceToken()
+            immediateEffect: AbilityHelper.immediateEffects.theForceIsWithYou()
         });
     }
 }
