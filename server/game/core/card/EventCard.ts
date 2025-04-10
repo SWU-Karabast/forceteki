@@ -19,7 +19,6 @@ const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCa
 
 export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeControllers, ICardWithCostProperty {
     getEventAbility(): EventAbility;
-    finishPlayingEvent(): void;
 }
 
 export class EventCard extends EventCardParent {
@@ -62,12 +61,6 @@ export class EventCard extends EventCardParent {
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
             })
             : this._eventAbility;
-    }
-
-    public override registerMove(movedFromZone: ZoneName): void {
-        super.registerMove(movedFromZone);
-
-        this.movedFromZone = movedFromZone;
     }
 
     public override moveTo(targetZoneName: MoveZoneDestination, initializeCardState?: InitializeCardStateOption): void {
