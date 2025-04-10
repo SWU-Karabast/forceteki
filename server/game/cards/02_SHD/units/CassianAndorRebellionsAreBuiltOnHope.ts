@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { PlayType } from '../../../core/Constants';
 
 export default class CassianAndorRebellionsAreBuiltOnHope extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -11,12 +10,12 @@ export default class CassianAndorRebellionsAreBuiltOnHope extends NonLeaderUnitC
     }
 
     public override setupCardAbilities () {
-        this.addWhenPlayedAbility({
-            title: 'Ready this unit.',
-            immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.event.playType === PlayType.Smuggle,
-                onTrue: AbilityHelper.immediateEffects.ready(),
-            })
+        this.addTriggeredAbility({
+            title: 'Ready this unit',
+            when: {
+                whenPlayedUsingSmuggle: true,
+            },
+            immediateEffect: AbilityHelper.immediateEffects.ready(),
         });
     }
 }

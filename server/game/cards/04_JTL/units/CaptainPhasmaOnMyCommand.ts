@@ -16,7 +16,7 @@ export default class CaptainPhasmaOnMyCommand extends NonLeaderUnitCard {
             optional: true,
             when: {
                 onAttack: true,
-                onCardPlayed: (event, context) => event.card === context.source
+                whenPlayed: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

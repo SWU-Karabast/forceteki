@@ -15,7 +15,7 @@ export default class AvengerHuntingStarDestroyer extends NonLeaderUnitCard {
             title: 'Opponent chooses a non-leader unit they control to defeat',
             when: {
                 onAttack: true,
-                onCardPlayed: (event, context) => event.card === context.source
+                whenPlayed: true,
             },
             targetResolver: {
                 activePromptTitle: 'Choose a non-leader unit to defeat',

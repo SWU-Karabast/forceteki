@@ -14,7 +14,7 @@ export default class GeneralDravenDoingWhatMustBeDone extends NonLeaderUnitCard 
             title: 'Create an X-Wing token',
             when: {
                 onAttack: true,
-                onCardPlayed: (event, context) => event.card === context.source
+                whenPlayed: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.createXWing()
         });

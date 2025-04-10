@@ -16,7 +16,7 @@ export default class AnnihilatorTaggesFlagship extends NonLeaderUnitCard {
             title: 'Defeat an enemy unit',
             optional: true,
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
+                whenPlayed: true,
                 whenDefeated: true
             },
             targetResolver: {

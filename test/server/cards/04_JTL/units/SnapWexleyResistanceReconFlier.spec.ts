@@ -5,7 +5,7 @@ describe('Snap Wexley, Resistance Recon Flier', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['snap-wexley#resistance-recon-flier', 'poe-dameron#quick-to-improvise', 'black-one#straight-at-them', 'battlefield-marine'],
+                        hand: ['snap-wexley#resistance-recon-flier', 'poe-dameron#quick-to-improvise', 'black-one#straight-at-them', 'battlefield-marine', 'dilapidated-ski-speeder', 'resistance-xwing', 'desperate-commando'],
                         spaceArena: ['green-squadron-awing'],
                         deck: ['atst', 'wampa', 'protector', 'fireball#an-explosion-with-wings', 'determined-recruit', 'bb8#happy-beeps'],
                         base: 'echo-base',
@@ -68,6 +68,36 @@ describe('Snap Wexley, Resistance Recon Flier', function() {
 
                 context.player1.clickCard(context.blackOne);
 
+                expect(context.player1.exhaustedResourceCount - resourceCount).toBe(1);
+
+                context.player2.passAction();
+
+                resourceCount = context.player1.exhaustedResourceCount;
+                context.player1.clickCard(context.dilapidatedSkiSpeeder);
+                expect(context.player1.exhaustedResourceCount - resourceCount).toBe(3);
+
+                context.player2.passAction();
+
+                context.readyCard(context.snapWexley);
+                context.player1.clickCard(context.snapWexley);
+                context.player1.clickCard(context.p2Base);
+
+                // Esnsure that the discount is not applied in the next phase
+                context.moveToNextActionPhase();
+
+                resourceCount = context.player1.exhaustedResourceCount;
+                context.player1.clickCard(context.desperateCommando);
+                expect(context.player1.exhaustedResourceCount - resourceCount).toBe(4);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.snapWexley);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                resourceCount = context.player1.exhaustedResourceCount;
+                context.player1.clickCard(context.resistanceXwing);
                 expect(context.player1.exhaustedResourceCount - resourceCount).toBe(1);
             });
         });

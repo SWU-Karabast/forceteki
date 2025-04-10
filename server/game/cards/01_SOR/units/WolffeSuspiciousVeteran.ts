@@ -14,7 +14,7 @@ export default class WolffeSuspiciousVeteran extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Bases can\'t be healed',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
+                whenPlayed: true,
                 onAttack: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({

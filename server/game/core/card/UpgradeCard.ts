@@ -57,8 +57,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
     }
 
     public override moveTo(targetZoneName: MoveZoneDestination) {
-        Contract.assertFalse(this._parentCard && targetZoneName !== this._parentCard.zoneName,
-            `Attempting to move upgrade ${this.internalName} while it is still attached to ${this._parentCard?.internalName}`);
+        Contract.assertTrue(!this.state.parentCard || targetZoneName === this.parentCard.zoneName, `Attempting to move upgrade ${this.internalName} while it is still attached to ${this.state.parentCard ? this.parentCard.internalName : ''}`);
 
         super.moveTo(targetZoneName);
     }
