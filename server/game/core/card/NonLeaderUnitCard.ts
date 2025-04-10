@@ -77,14 +77,6 @@ export class NonLeaderUnitCardInternal extends NonLeaderUnitCardParent implement
         }
     }
 
-    protected override updateStateOnAttach() {
-        this.setActiveAttackEnabled(false);
-        this.setDamageEnabled(false);
-        this.setExhaustEnabled(false);
-        this.setUpgradesEnabled(false);
-        this.setCaptureZoneEnabled(false);
-    }
-
     public override checkIsAttachable(): void {
         Contract.assertTrue(this.hasSomeTrait(Trait.Pilot));
     }

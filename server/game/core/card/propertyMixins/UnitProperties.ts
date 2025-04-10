@@ -925,6 +925,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
         }
 
+        protected override updateStateOnAttach() {
+            this.setActiveAttackEnabled(false);
+            this.setDamageEnabled(false);
+            this.setExhaustEnabled(false);
+            this.setUpgradesEnabled(false);
+            this.setCaptureZoneEnabled(false);
+        }
+
         public override getSummary(activePlayer: Player) {
             if (this.isInPlay()) {
                 // Check for sentinel keyword and no blanking effects
