@@ -225,6 +225,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             if (this.hasSomeKeyword(KeywordName.Piloting)) {
                 Contract.assertNotNullLike(cardData.upgradeHp, `Card ${this.internalName} is missing upgradeHp`);
                 Contract.assertNotNullLike(cardData.upgradePower, `Card ${this.internalName} is missing upgradePower`);
+
+                this.validateCardAbilities(this.pilotingTriggeredAbilities, cardData.pilotText);
             }
 
             this.attackAction = new InitiateAttackAction(this.game, this);

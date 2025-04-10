@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, PlayType, Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
+import { AbilityType, Trait, WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class BobaFettFearedBountyHunter extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -15,9 +15,7 @@ export default class BobaFettFearedBountyHunter extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Deal 1 damage to a unit. If attached unit is a Transport, deal 2 damage instead.',
             when: {
-                onCardPlayed: (event, context) =>
-                    event.card === context.source &&
-                    event.playType === PlayType.Piloting
+                whenPlayed: true,
             },
             optional: true,
             targetResolver: {

@@ -147,8 +147,10 @@ export enum WildcardRelativePlayer {
 export type RelativePlayerFilter = RelativePlayer | WildcardRelativePlayer;
 
 export enum StandardTriggeredAbilityType {
+    OnAttack = 'onAttack',
     WhenDefeated = 'whenDefeated',
-    OnAttack = 'onAttack'
+    WhenPlayed = 'whenPlayed',
+    WhenPlayedUsingSmuggle = 'whenPlayedUsingSmuggle',
 }
 
 export enum TargetMode {

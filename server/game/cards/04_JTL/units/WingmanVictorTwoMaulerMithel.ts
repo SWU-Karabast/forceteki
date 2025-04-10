@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, PlayType } from '../../../core/Constants';
+import { AbilityType } from '../../../core/Constants';
 
 export default class WingmanVictorTwoMaulerMithel extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -15,9 +15,7 @@ export default class WingmanVictorTwoMaulerMithel extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Create a TIE Fighter',
             when: {
-                onCardPlayed: (event, context) =>
-                    event.card === context.source &&
-                    event.playType === PlayType.Piloting
+                whenPlayed: true,
             },
             immediateEffect: AbilityHelper.immediateEffects.createTieFighter((context) => ({
                 target: context.player

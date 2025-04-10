@@ -14,7 +14,7 @@ export default class ExecutorMightOfTheEmpire extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Create 3 TIE Fighter tokens.',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
+                whenPlayed: true,
                 whenDefeated: true,
                 onAttack: true,
             },

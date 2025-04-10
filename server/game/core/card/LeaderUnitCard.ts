@@ -59,7 +59,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
 
         this.setupLeaderUnitSide = true;
         this.setupLeaderUnitSideAbilities(this);
-        this.validateCardAbilities(cardData.deployBox);
+        this.validateCardAbilities(this.triggeredAbilities, cardData.deployBox);
     }
 
     protected override setupDefaultState() {
