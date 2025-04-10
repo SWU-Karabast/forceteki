@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, PlayType, WildcardRelativePlayer } from '../../../core/Constants';
+import { AbilityType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class WingmanVictorThreeBackstabber extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -15,9 +15,7 @@ export default class WingmanVictorThreeBackstabber extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Give an Experience token to another unit',
             when: {
-                onCardPlayed: (event, context) =>
-                    event.card === context.source &&
-                    event.playType === PlayType.Piloting
+                whenPlayed: true,
             },
             optional: true,
             targetResolver: {

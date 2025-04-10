@@ -14,7 +14,7 @@ export default class SteelaGerreraBelovedTactician extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Deal 2 damage to your base',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
+                whenPlayed: true,
                 whenDefeated: true
             },
             optional: true,

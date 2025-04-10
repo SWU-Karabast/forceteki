@@ -99,6 +99,8 @@ export function asArray<T>(val: T | T[]): T[] {
     return Array.isArray(val) ? val : [val];
 }
 
+export const isDevelopment = () => process.env.ENVIRONMENT === 'development';
+
 export function getSingleOrThrow<T>(val: T | T[]): T {
     Contract.assertNotNullLike(val);
 
@@ -250,6 +252,14 @@ function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergePropert
 
     const oldPropValue = propertySet[newPropName] as TMergeProperty;
     return { ...propertySet, [newPropName]: mergeFn(oldPropValue, newPropValue) };
+}
+
+export function objectForEach<T extends Record<any, any>, TK extends Extract<keyof T, string> = Extract<keyof T, string>>(obj: T, fcn: (prop: TK, value?: T[TK]) => void) {
+    for (const prop in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+            fcn(prop as TK, obj[prop] as T[TK]);
+        }
+    }
 }
 
 export type DistributiveOmit<T, K extends keyof T> = T extends any ? Omit<T, K> : never;

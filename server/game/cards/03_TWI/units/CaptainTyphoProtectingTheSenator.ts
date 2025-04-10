@@ -16,7 +16,7 @@ export default class CaptainTyphoProtectingTheSenator extends NonLeaderUnitCard 
             optional: false,
             when: {
                 onAttack: true,
-                onCardPlayed: (event, context) => event.card === context.source
+                whenPlayed: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

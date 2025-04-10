@@ -13,6 +13,8 @@ export interface IStep {
     queueStep?(step: IStep): void;
     cancelStep?(): void;
     isComplete?(): boolean;
+    takeSnapshot?(): number;
+    rollbackToSnapshot?(snapshotId: number | null): void;
 
     /**
      * Resolve the pipeline step

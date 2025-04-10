@@ -21,6 +21,7 @@ import { InitializeCardStateOption, type Card } from '../Card';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import { StandardTriggeredAbilityType } from '../../Constants';
 import * as Helpers from '../../utils/Helpers';
+import type { GameObjectRef } from '../../GameObjectBase';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 
@@ -34,6 +35,7 @@ export interface IInPlayCardState extends IPlayableOrDeployableCardState {
     mostRecentInPlayId: number;
     pendingDefeat: boolean | null;
     movedFromZone: ZoneName | null;
+    parentCard: GameObjectRef<IUnitCard> | null;
 }
 
 export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostProperty, ICardWithActionAbilities, ICardWithConstantAbilities, ICardWithTriggeredAbilities {
@@ -65,8 +67,6 @@ export interface IInPlayCard extends IPlayableOrDeployableCard, ICardWithCostPro
 export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends InPlayCardParent<T> implements IInPlayCard {
     public readonly printedUpgradeHp: number;
     public readonly printedUpgradePower: number;
-
-    protected _parentCard?: IUnitCard = null;
 
     protected attachCondition: (card: Card) => boolean;
 
@@ -106,11 +106,15 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
     /** The card that this card is underneath */
     public get parentCard(): IUnitCard {
-        Contract.assertNotNullLike(this._parentCard);
+        Contract.assertNotNullLike(this.state.parentCard);
         // TODO: move IsInPlay to be usable here
         Contract.assertTrue(this.isInPlay());
 
-        return this._parentCard;
+        return this.game.gameObjectManager.get(this.state.parentCard);
+    }
+
+    protected set parentCard(value: IUnitCard | null) {
+        this.state.parentCard = value?.getRef();
     }
 
     /**
@@ -152,6 +156,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         this.state.pendingDefeat = null;
         this.state.mostRecentInPlayId = -1;
         this.state.disableOngoingEffectsForDefeat = null;
+        this.state.parentCard = null;
     }
 
     public isInPlay(): boolean {
@@ -173,7 +178,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
     public assertIsUpgrade(): void {
         Contract.assertTrue(this.isUpgrade());
-        Contract.assertNotNullLike(this.parentCard);
+        Contract.assertNotNullLike(this.state.parentCard);
     }
 
     public getUpgradeHp(): number {
@@ -191,7 +196,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         // this assert needed for type narrowing or else the moveTo fails
         Contract.assertTrue(newParentCard.zoneName === ZoneName.SpaceArena || newParentCard.zoneName === ZoneName.GroundArena);
 
-        if (this._parentCard) {
+        if (this.state.parentCard) {
             this.unattach();
         }
 
@@ -208,7 +213,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
         newParentCard.attachUpgrade(this);
 
-        this._parentCard = newParentCard;
+        this.parentCard = newParentCard;
     }
 
     protected updateStateOnAttach() {
@@ -218,15 +223,15 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     public isAttached(): boolean {
         // TODO: I think we can't check this here because we need to be able to check if this is attached in some places like the getType method
         // this.assertIsUpgrade();
-        return !!this._parentCard;
+        return !!this.state.parentCard;
     }
 
     public unattach(event = null) {
-        Contract.assertNotNullLike(this._parentCard, 'Attempting to unattach upgrade when already unattached');
+        Contract.assertNotNullLike(this.state.parentCard, 'Attempting to unattach upgrade when already unattached');
         this.assertIsUpgrade();
 
         this.parentCard.unattachUpgrade(this, event);
-        this._parentCard = null;
+        this.parentCard = null;
     }
 
     /**
@@ -254,7 +259,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
     public override getSummary(activePlayer: Player) {
         return { ...super.getSummary(activePlayer),
-            parentCardId: this._parentCard ? this._parentCard.uuid : null };
+            parentCardId: this.state.parentCard ? this.state.parentCard.uuid : null };
     }
 
     // ********************************************* ABILITY SETUP *********************************************
@@ -268,8 +273,8 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
-        const triggeredProperties = Object.assign(properties, { when: { onCardPlayed: (event, context) => event.card === context.source } });
-        return this.addTriggeredAbility(triggeredProperties);
+        const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenPlayed]: true };
+        return this.addTriggeredAbility({ ...properties, when });
     }
 
     protected addWhenDefeatedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
@@ -319,22 +324,34 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         }
     }
 
-    protected override validateCardAbilities(cardText?: string) {
+    protected override validateCardAbilities(abilities: TriggeredAbility[], cardText?: string) {
         if (!this.hasImplementationFile || cardText == null) {
             return;
         }
 
         Contract.assertFalse(
             !this.disableWhenDefeatedCheck &&
-            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Defeated/g) &&
-            !this.triggeredAbilities.some((ability) => ability.isWhenDefeated),
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Defeated/gi) &&
+            !abilities.some((ability) => ability.isWhenDefeated),
             `Card ${this.internalName} has one or more 'When Defeated' keywords in its text but no corresponding ability definition or set property 'disableWhenDefeatedCheck' to true on card implementation`
         );
         Contract.assertFalse(
             !this.disableOnAttackCheck &&
-            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))On Attack\b/g) &&
-            !this.triggeredAbilities.some((ability) => ability.isOnAttackAbility),
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))On Attack\b/gi) &&
+            !abilities.some((ability) => ability.isOnAttackAbility),
             `Card ${this.internalName} has one or more 'On Attack' keywords in its text but no corresponding ability definition or set property 'disableOnAttackCheck' to true on card implementation`
+        );
+        Contract.assertFalse(
+            !this.disableWhenPlayedCheck &&
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Played\b/gi) &&
+            !abilities.some((ability) => ability.isWhenPlayed),
+            `Card ${this.internalName} has one or more 'When Played' keywords in its text but no corresponding ability definition or set property 'disableWhenPlayedCheck' to true on card implementation`
+        );
+        Contract.assertFalse(
+            !this.disableWhenPlayedUsingSmuggleCheck &&
+            cardText && Helpers.hasSomeMatch(cardText, /(?:^|(?:[\n/]))When Played using Smuggle\b/gi) &&
+            !abilities.some((ability) => ability.isWhenPlayedUsingSmuggle),
+            `Card ${this.internalName} has one or more 'When Played using Smuggle' keywords in its text but no corresponding ability definition or set property 'disableWhenPlayedUsingSmuggleCheck' to true on card implementation`
         );
     }
 

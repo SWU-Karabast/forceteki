@@ -14,7 +14,7 @@ export default class CalculatingMagnaGuard extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'This unit gains Sentinel for this phase',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
+                whenPlayed: true,
                 onCardDefeated: (event, context) => event.card.isUnit() && event.card.controller === context.player && event.card !== context.source,
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
