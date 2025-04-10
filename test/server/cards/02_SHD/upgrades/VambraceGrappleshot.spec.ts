@@ -63,5 +63,28 @@ describe('Vambrace Grappleshot', function() {
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['vambrace-grappleshot']);
             });
         });
+
+        it('should be able to exhaust both targets if attached to Darth Maul', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: [{ card: 'darth-maul#revenge-at-last', upgrades: ['vambrace-grappleshot'] }],
+                },
+                player2: {
+                    groundArena: [{ card: 'moisture-farmer', upgrades: ['resilient', 'resilient', 'resilient'] }, { card: 'cantina-braggart', upgrades: ['resilient', 'resilient', 'resilient'] }]
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.darthMaul);
+            context.player1.clickCard(context.cantinaBraggart);
+            context.player1.clickCard(context.moistureFarmer);
+            context.player1.clickPrompt('Done');
+
+            // Use Vambrace Flamethrower to spread 3 damage
+            expect(context.moistureFarmer.exhausted).toBe(true);
+            expect(context.cantinaBraggart.exhausted).toBe(true);
+        });
     });
 });

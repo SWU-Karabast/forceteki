@@ -17,7 +17,7 @@ export default class AurraSingCrackshotSniper extends NonLeaderUnitCard {
                 onAttackDeclared: (event, context) =>
                     event.attack.attacker.controller !== context.player &&
                     event.attack.attacker.zoneName === ZoneName.GroundArena &&
-                    event.attack.target === context.player.base,
+                    event.attack.getAllTargets().some((target) => target.isBase()),
             },
             immediateEffect: AbilityHelper.immediateEffects.ready(),
         });

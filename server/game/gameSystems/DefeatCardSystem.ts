@@ -99,10 +99,10 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
             event.isDefeatedByAttackerDamage =
                 eventDefeatSource.type === DefeatSourceType.Attack &&
-                eventDefeatSource.damageDealtBy === eventDefeatSource.attack.attacker;
+                eventDefeatSource.damageDealtBy.includes(eventDefeatSource.attack.attacker);
 
             if (eventDefeatSource?.type === DefeatSourceType.Attack) {
-                eventDefeatSource.player = eventDefeatSource.damageDealtBy.controller;
+                eventDefeatSource.player = eventDefeatSource.damageDealtBy[0].controller; // TODO: See if we can do this without [0]
             } else {
                 eventDefeatSource.type = DefeatSourceType.NonCombatDamage;
             }

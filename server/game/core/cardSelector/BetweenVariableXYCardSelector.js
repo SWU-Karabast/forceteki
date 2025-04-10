@@ -1,11 +1,13 @@
+const { match } = require('assert');
 const Contract = require('../utils/Contract.js');
 const BaseCardSelector = require('./BaseCardSelector.js');
 
 class BetweenVariableXYCardSelector extends BaseCardSelector {
-    constructor(minNumCardsFunc, maxNumCardsFunc, properties) {
+    constructor(minNumCardsFunc, maxNumCardsFunc, useSingleSelectModeFunc, properties) {
         super(properties);
         this.minNumCardsFunc = minNumCardsFunc;
         this.maxNumCardsFunc = maxNumCardsFunc;
+        this.useSingleSelectModeFunc = useSingleSelectModeFunc;
     }
 
     /** @override */
@@ -23,8 +25,11 @@ class BetweenVariableXYCardSelector extends BaseCardSelector {
     }
 
     /** @override */
-    hasReachedLimit(selectedCards, context) {
-        return selectedCards.length >= this.maxNumCardsFunc(context);
+    hasReachedLimit(selectedCards, context, choosingPlayer) {
+        const matchingCards = this.getMatchingCards(context, choosingPlayer);
+        const useSingleSelectMode = this.useSingleSelectModeFunc == null ? false : this.useSingleSelectModeFunc(context.source, matchingCards);
+        return (useSingleSelectMode && selectedCards.length > 0) || selectedCards.length === this.maxNumCardsFunc(context) ||
+          (this.minNumCardsFunc(context) === 1 && selectedCards.length === 1 && this.getMatchingCards(context, choosingPlayer).length === 1);
     }
 
     /** @override */
@@ -39,8 +44,25 @@ class BetweenVariableXYCardSelector extends BaseCardSelector {
 
     /** @override */
     hasEnoughTargets(context, choosingPlayer) {
+        let numMatchingCards = this.getMatchingCards(context, choosingPlayer).length;
+
+        return numMatchingCards >= this.minNumCardsFunc(context);
+    }
+
+    /** @override */
+    automaticFireOnSelect(context, choosingPlayer) {
+        let minCards = this.minNumCardsFunc(context);
+        let maxCards = this.maxNumCardsFunc(context);
+        const matchingCards = this.getMatchingCards(context, choosingPlayer);
+        if (this.useSingleSelectModeFunc != null) {
+            return this.useSingleSelectModeFunc(context.source, matchingCards);
+        }
+        return false;
+    }
+
+    getMatchingCards(context, choosingPlayer) {
         let matchedCards = [];
-        let numMatchingCards = context.game.allCards.reduce((total, card) => {
+        context.game.allCards.reduce((total, card) => {
             if (this.canTarget(card, context, choosingPlayer, matchedCards)) {
                 matchedCards.push(card);
                 return total + 1;
@@ -48,7 +70,7 @@ class BetweenVariableXYCardSelector extends BaseCardSelector {
             return total;
         }, 0);
 
-        return numMatchingCards >= this.minNumCardsFunc(context);
+        return matchedCards;
     }
 }
 

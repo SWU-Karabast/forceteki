@@ -19,9 +19,9 @@ export default class StrafingGunship extends NonLeaderUnitCard {
 
         this.addConstantAbility({
             title: 'While this unit is attacking a ground unit, the defender gets –2/–0.',
-            condition: (context) => context.source.isAttacking() && context.source.activeAttack?.target.isUnit() && context.source.activeAttack?.target.zoneName === ZoneName.GroundArena,
+            condition: (context) => context.source.isAttacking() && context.source.activeAttack?.targetIsUnit((card) => card.zoneName === ZoneName.GroundArena),
             targetController: RelativePlayer.Opponent,
-            matchTarget: (card, context) => card === context.source.activeAttack?.target,
+            matchTarget: (card, context) => card === context.source.activeAttack?.getSingleTarget(),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -2, hp: 0 })
         });
     }

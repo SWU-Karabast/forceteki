@@ -14,7 +14,7 @@ export default class ClanSaxonGauntlet extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Give an experience token to a unit',
             when: {
-                onAttackDeclared: (event, context) => event.attack.target === context.source,
+                onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.source),
             },
             optional: true,
             targetResolver: {

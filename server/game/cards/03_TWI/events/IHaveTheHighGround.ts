@@ -21,7 +21,7 @@ export default class IHaveTheHighGround extends EventCard {
                         title: 'Each enemy unit gets -4/-0 while attacking',
                         type: AbilityType.Constant,
                         targetController: RelativePlayer.Opponent,
-                        matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isAttacking() && card.activeAttack.target === context.source,
+                        matchTarget: (card, context) => card.isUnit() && card.isInPlay() && card.isAttacking() && card.activeAttack?.getAllTargets().some((card) => card === context.source),
                         ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 })
                     })
                 })

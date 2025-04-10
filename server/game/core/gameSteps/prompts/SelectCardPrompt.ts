@@ -156,7 +156,7 @@ export class SelectCardPrompt extends UiPrompt {
 
     public override activePrompt() {
         let buttons = this.properties.buttons;
-        if (!this.selector.automaticFireOnSelect(this.context) || this.selector.optional) {
+        if (!this.selector.automaticFireOnSelect(this.context, this.choosingPlayer) || this.selector.optional) {
             if (buttons.every((button) => button.arg !== 'done')) {
                 if (this.selector.optional && this.selectedCards.length === 0) {
                     buttons = [{ text: 'Choose nothing', arg: 'done' }].concat(buttons);
@@ -193,7 +193,7 @@ export class SelectCardPrompt extends UiPrompt {
             return false;
         }
 
-        if (this.selector.automaticFireOnSelect(this.context) && this.selector.hasReachedLimit(this.selectedCards, this.context)) {
+        if (this.selector.automaticFireOnSelect(this.context, this.choosingPlayer) && this.selector.hasReachedLimit(this.selectedCards, this.context, this.choosingPlayer)) {
             return this.fireOnSelect();
         }
 

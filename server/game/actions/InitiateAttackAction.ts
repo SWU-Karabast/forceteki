@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import PlayerAction from '../core/ability/PlayerAction.js';
-import { AbilityRestriction, WildcardZoneName } from '../core/Constants.js';
+import { AbilityRestriction, TargetMode, WildcardZoneName } from '../core/Constants.js';
 import * as EnumHelpers from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';
 import type { Card } from '../core/card/Card';
@@ -28,6 +28,11 @@ export class InitiateAttackAction extends PlayerAction {
             : exhaustSelf();
 
         super(game, card, 'Attack', [exhaustCost], {
+            mode: TargetMode.BetweenVariable,
+            minNumCardsFunc: () => 1,
+            maxNumCardsFunc: (context) => context.source.getMaxUnitAttackLimit(),
+            useSingleSelectModeFunc: (attacker, possibleTargets) => attacker.getMaxUnitAttackLimit() === 1 || possibleTargets.length === 1 || possibleTargets.some((card) => card.isBase()) && possibleTargets.filter((card) => card.isUnit()).length === 1,
+            multiSelectCardCondition: (card, selectedCards) => (card.isBase() ? selectedCards.length === 0 : !selectedCards.some((card) => card.isBase())),
             immediateEffect: new AttackStepsSystem(Object.assign({}, attackProperties, { attacker: card })),
             zoneFilter: WildcardZoneName.AnyAttackable,
             activePromptTitle: 'Choose a target for attack'

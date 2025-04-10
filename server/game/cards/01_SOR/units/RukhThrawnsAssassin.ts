@@ -17,10 +17,10 @@ export default class RukhThrawnsAssassin extends NonLeaderUnitCard {
                 onDamageDealt: (event, context) =>
                     event.type === DamageType.Combat &&
                     event.damageSource.attack.attacker === context.source &&
-                    event.damageSource.damageDealtBy === context.source &&
-                    event.damageSource.attack.target?.isNonLeaderUnit()
+                    event.damageSource.damageDealtBy.includes(context.source) &&
+                    event.damageSource.attack.getSingleTarget().isNonLeaderUnit()
             },
-            immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({ target: context.event.damageSource.attack.target })),
+            immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({ target: context.event.damageSource.attack.getSingleTarget() })),
         });
     }
 }

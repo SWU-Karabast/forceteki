@@ -26,7 +26,7 @@ export enum DefeatSourceType {
 export interface IDamagedOrDefeatedByAttack extends IDamageOrDefeatSourceBase {
     type: DamageSourceType.Attack | DefeatSourceType.Attack;
     attack: Attack;
-    damageDealtBy: IUnitCard;
+    damageDealtBy: IUnitCard[];
     isOverwhelmDamage: boolean;
     event: any;
 }

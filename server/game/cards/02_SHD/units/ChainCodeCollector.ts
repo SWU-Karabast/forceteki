@@ -14,12 +14,9 @@ export default class ChainCodeCollector extends NonLeaderUnitCard {
         this.addOnAttackAbility({
             title: 'If the defender has a Bounty, it gets –4/–0 for this attack',
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => {
-                    const target = context.event.attack.target;
-                    return target.isUnit() && target.hasSomeKeyword(KeywordName.Bounty);
-                },
+                condition: (context) => context.event.attack.targetIsUnit((card) => card.hasSomeKeyword(KeywordName.Bounty)),
                 onTrue: AbilityHelper.immediateEffects.forThisAttackCardEffect((context) => ({
-                    target: context.event.attack.target,
+                    target: context.event.attack.getSingleTarget(),
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 }),
                 })),
             })

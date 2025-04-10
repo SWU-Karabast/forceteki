@@ -24,18 +24,15 @@ export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
                         return false;
                     }
 
-                    return card === context.event.attack.target && card.hasShield();
+                    return context.event.attack.getAllTargets().includes(card) && card.hasShield();
                 },
                 immediateEffect: new DefeatCardSystem((context) => {
                     Contract.assertTrue(context.source.isUnit());
 
-                    let target: Shield[];
+                    let target: Shield[] = [];
                     const attack: Attack = context.event.attack;
-                    if (attack.target.isUnit() && attack.target.isInPlay()) {
-                        target = attack.target.upgrades?.filter((card) => card.isShield());
-                    } else {
-                        target = [];
-                    }
+                    target = attack.getAllTargets().filter((target) => target.isUnit())
+                        .flatMap((target) => target.upgrades.filter((card) => card.isShield()));
 
                     return { target };
                 })

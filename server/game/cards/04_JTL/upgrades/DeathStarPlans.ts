@@ -21,7 +21,7 @@ export default class DeathStarPlans extends UpgradeCard {
         this.addTriggeredAbility({
             title: 'The attacking player takes control of this upgrade and attaches it to a unit they control',
             when: {
-                onAttackDeclared: (event, context) => context.source.isAttached() && event.attack.target === context.source.parentCard,
+                onAttackDeclared: (event, context) => context.source.isAttached() && event.attack.getAllTargets().includes(context.source.parentCard),
             },
             targetResolver: {
                 choosingPlayer: RelativePlayer.Opponent,

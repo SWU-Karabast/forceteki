@@ -25,7 +25,7 @@ export default class EphantMonHeadOfSecurity extends NonLeaderUnitCard {
                 enemyUnit: {
                     controller: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
-                    cardCondition: (card, context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({ controller: context.player.opponent, filter: (entry) => entry.attacker === card && entry.target === context.player.base }),
+                    cardCondition: (card, context) => this.attacksThisPhaseWatcher.someUnitAttackedControlledByPlayer({ controller: context.player.opponent, filter: (entry) => entry.attacker === card && entry.targets.includes(context.player.base) }),
                 },
                 friendlyUnit: {
                     dependsOn: 'enemyUnit',

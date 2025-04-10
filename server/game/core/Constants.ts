@@ -78,6 +78,7 @@ export enum EffectName {
     Blank = 'blank',
     CanAttackGroundArenaFromSpaceArena = 'canAttackGroundArenaFromSpaceArena',
     CanAttackSpaceArenaFromGroundArena = 'canAttackSpaceArenaFromGroundArena',
+    CanAttackMultipleUnitsSimultaneously = 'canAttackMultipleUnitsSimultaneously',
     CanBeTriggeredByOpponent = 'canBeTriggeredByOpponent',
     CanBePlayedWithPilotingIgnoringPilotLimit = 'canBePlayedWithPilotingIgnoringPilotLimit',
     CannotBeDefeatedByDamage = 'cannotBeDefeatedByDamage',
