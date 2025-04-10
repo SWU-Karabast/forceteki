@@ -189,7 +189,7 @@ export function createXWing<TContext extends AbilityContext = AbilityContext>(pr
 export function createTieFighter<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateTieFighterProperties, TContext> = {}) {
     return new CreateTieFighterSystem<TContext>(propertyFactory);
 }
-export function createForceToken<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateForceTokenProperties, TContext> = {}) {
+export function theForceIsWithYou<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ICreateForceTokenProperties, TContext> = {}) {
     return new CreateForceTokenSystem<TContext>(propertyFactory);
 }
 export function damage<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IAbilityDamageProperties, 'type' | 'indirect'>, TContext>) {

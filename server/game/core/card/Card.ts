@@ -339,13 +339,19 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         Contract.assertNonEmpty(printedTypes, 'No card types provided');
 
         if (printedTypes[0] === 'token') {
+            if (printedTypes.length === 1) {
+                // TODO: This assumes the Force token JSON will contain "types": ["token"]
+                //       Check this assumption when real card data is released.
+                return CardType.TokenCard;
+            }
+
             switch (printedTypes[1]) {
                 case 'unit':
                     return CardType.TokenUnit;
                 case 'upgrade':
                     return CardType.TokenUpgrade;
                 default:
-                    return CardType.TokenCard;
+                    throw new Error(`Unexpected token types: ${printedTypes}`);
             }
         }
 
@@ -699,7 +705,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             if (this.isLeader()) {
                 this.zone.removeLeader();
             } else if (this.isForceToken()) {
-                this.zone.forceToken = null;
+                this.zone.removeForceToken();
             } else {
                 Contract.fail(`Attempting to move card ${this.internalName} from ${this.zone}`);
             }
@@ -748,7 +754,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                 if (this.isLeader()) {
                     this.zone.setLeader(this);
                 } else if (this.isForceToken()) {
-                    this.zone.forceToken = this;
+                    this.zone.setForceToken(this);
                 } else {
                     Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader or force token`);
                 }

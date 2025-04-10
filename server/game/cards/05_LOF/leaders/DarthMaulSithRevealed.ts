@@ -18,11 +18,11 @@ export default class DarthMaulSithRevealed extends LeaderUnitCard {
                 AbilityHelper.costs.useTheForce()
             ],
             targetResolver: {
-                mode: TargetMode.Exactly,
+                mode: TargetMode.ExactlyVariable,
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: WildcardZoneName.AnyArena,
                 controller: WildcardRelativePlayer.Any,
-                numCards: 2,
+                numCardsFunc: (context) => Math.min(2, context.game.getArenaUnits().length),
                 immediateEffect: AbilityHelper.immediateEffects.damage({ amount: 1 })
             }
         });

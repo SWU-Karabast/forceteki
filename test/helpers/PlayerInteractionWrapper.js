@@ -418,7 +418,7 @@ class PlayerInteractionWrapper {
     }
 
     get hasTheForce() {
-        return this.player.hasTheForce();
+        return this.player.hasTheForce;
     }
 
     get actionPhaseActivePlayer() {
