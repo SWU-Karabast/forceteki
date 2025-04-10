@@ -244,7 +244,7 @@ export class Player extends GameObject<IPlayerState> {
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
     }
 
-    public hasTheForce(): boolean {
+    public get hasTheForce(): boolean {
         return this.baseZone.hasForceToken();
     }
 

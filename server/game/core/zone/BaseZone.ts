@@ -1,7 +1,6 @@
 import type { IBaseCard } from '../card/BaseCard';
 import type { ILeaderCard } from '../card/propertyMixins/LeaderProperties';
 import type { ITokenCard } from '../card/propertyMixins/Token';
-import type { TokenCard } from '../card/TokenCards';
 import { ZoneName } from '../Constants';
 import type Game from '../Game';
 import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
@@ -15,18 +14,18 @@ export interface IBaseZoneState extends IGameObjectBaseState {
     forceToken: GameObjectRef<ITokenCard> | null;    // Use abstraction or concrete type?
 }
 
-type BaseZoneCard = ILeaderCard | IBaseCard | TokenCard;
+type IBaseZoneCard = ILeaderCard | IBaseCard | ITokenCard;
 
 /**
  * Base zone which holds the player's base and leader
  */
-export class BaseZone extends ZoneAbstract<BaseZoneCard, IBaseZoneState> {
+export class BaseZone extends ZoneAbstract<IBaseZoneCard, IBaseZoneState> {
     public readonly base: IBaseCard;
     public override readonly hiddenForPlayers: null;
     public override readonly owner: Player;
     public override readonly name: ZoneName.Base;
 
-    public override get cards(): (BaseZoneCard)[] {
+    public override get cards(): (IBaseZoneCard)[] {
         return [this.base, this.forceToken, this.leader]
             .filter((card) => card !== null);
     }
@@ -47,7 +46,7 @@ export class BaseZone extends ZoneAbstract<BaseZoneCard, IBaseZoneState> {
         return this.game.gameObjectManager.get(this.state.forceToken);
     }
 
-    public set forceToken(value: ITokenCard | null) {
+    private set forceToken(value: ITokenCard | null) {
         this.state.forceToken = value?.getRef();
     }
 
@@ -72,7 +71,7 @@ export class BaseZone extends ZoneAbstract<BaseZoneCard, IBaseZoneState> {
         this.state.leader = null;
     }
 
-    public override getCards(filter?: IZoneCardFilterProperties): (BaseZoneCard)[] {
+    public override getCards(filter?: IZoneCardFilterProperties): (IBaseZoneCard)[] {
         return this.cards.filter(this.buildFilterFn(filter));
     }
 
@@ -87,5 +86,18 @@ export class BaseZone extends ZoneAbstract<BaseZoneCard, IBaseZoneState> {
         Contract.assertNotNullLike(this.state.leader, `Attempting to remove leader from ${this} but it is in zone ${this.owner.leader.zone}`);
 
         this.leader = null;
+    }
+
+    public setForceToken(forceToken: ITokenCard) {
+        Contract.assertEqual(forceToken.controller, this.owner, `Attempting to add a force token to ${this} but its controller is ${forceToken.controller}`);
+        Contract.assertIsNullLike(this.forceToken, `Attempting to add a force token to ${this} but a force token is already there`);
+
+        this.forceToken = forceToken;
+    }
+
+    public removeForceToken() {
+        Contract.assertNotNullLike(this.forceToken, `Attempting to remove force token from ${this} but none exists`);
+
+        this.forceToken = null;
     }
 }
