@@ -89,3 +89,49 @@ export function detectBinary(state: unknown, path = '', results = []): { path: s
 export function setCodeToString(setCodeObj: ISetCode): string {
     return `${setCodeObj.set}_${String(setCodeObj.number).padStart(3, '0')}`;
 }
+
+/**
+ * Makes an HTTP POST request with form data
+ * @param url The URL to post to
+ * @param formData The FormData object to send
+ * @returns Promise resolving to the response body
+ */
+export function httpPostFormData(url: string, formData: any): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const lib = url.startsWith('https') ? https : http;
+
+        // Get the form data as a buffer and the necessary headers
+        const formDataBuffer = formData.getBuffer();
+        const formDataHeaders = formData.getHeaders();
+
+        // Prepare request options
+        const options = {
+            method: 'POST',
+            headers: {
+                ...formDataHeaders
+            }
+        };
+
+        const req = lib.request(url, options, (response) => {
+            if (response.statusCode < 200 || response.statusCode > 299) {
+                return reject(new Error(`Failed to request, status code: ${response.statusCode}`));
+            }
+
+            const body: Buffer[] = [];
+
+            response.on('data', (chunk) => {
+                body.push(chunk);
+            });
+
+            response.on('end', () => {
+                resolve(Buffer.concat(body).toString());
+            });
+        });
+
+        req.on('error', (err) => reject(err));
+
+        // Write the form data to the request
+        req.write(formDataBuffer);
+        req.end();
+    });
+}
