@@ -61,13 +61,15 @@ class PlayerOrCardAbility {
 
         // TODO: Ensure that nested abilities(triggers resolving during a trigger resolution) are resolving as expected.
 
-        if (properties.triggerHandlingMode != null) {
-            this.triggerHandlingMode = properties.triggerHandlingMode;
+        if (properties.triggerProps?.triggerHandlingMode != null) {
+            this.triggerHandlingMode = properties.triggerProps?.triggerHandlingMode;
         } else {
             this.triggerHandlingMode = [AbilityType.Triggered, AbilityType.Action].includes(this.type)
                 ? TriggerHandlingMode.ResolvesTriggers
                 : TriggerHandlingMode.PassesTriggersToParentWindow;
         }
+
+        this.skipPostResolutionTrigger = properties.triggerProps?.skipPostResolutionTrigger ?? false;
 
         this.buildTargetResolvers(properties);
 

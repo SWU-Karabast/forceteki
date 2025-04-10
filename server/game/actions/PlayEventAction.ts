@@ -4,9 +4,17 @@ import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import AbilityResolver from '../core/gameSteps/AbilityResolver.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
+import type Game from '../core/Game.js';
+import type { Card } from '../core/card/Card.js';
 
 export class PlayEventAction extends PlayCardAction {
     private earlyTargetResults?: any = null;
+
+    public constructor(game: Game, card: Card, properties: IPlayCardActionProperties) {
+        // UP NEXT: uncomment this
+        // super(game, card, { skipPostResolutionTrigger: true, ...properties });
+        super(game, card, properties);
+    }
 
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isEvent());

@@ -158,7 +158,13 @@ class AbilityResolver extends BaseStepWithPipeline {
             }
         }
         this.events.push(new GameEvent(eventName, this.context, eventProps, () => this.queueInitiateAbilitySteps()));
-        this.game.openEventWindow(this.events, { triggerMode: this.context.ability.triggerHandlingMode });
+        this.game.openEventWindow(
+            this.events,
+            {
+                triggerMode: this.context.ability.triggerHandlingMode,
+                skipPostResolutionTrigger: this.context.ability.skipPostResolutionTrigger
+            }
+        );
     }
 
     // if there is an "if you do not" part of this ability, we need to resolve it if the main ability doesn't resolve

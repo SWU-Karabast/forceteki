@@ -4,8 +4,11 @@ const { Stage, PhaseName } = require('../Constants.js');
 const { TriggerHandlingMode } = require('../event/EventWindow.js');
 
 class PlayerAction extends PlayerOrCardAbility {
-    constructor(game, card, title, costs = [], targetResolver, triggerHandlingMode = TriggerHandlingMode.ResolvesTriggers) {
-        let properties = { cost: costs, title, triggerHandlingMode };
+    /**
+     * @param {import('../event/EventWindow.js').IEventWindowTriggerProps} triggerProps
+     */
+    constructor(game, card, title, costs = [], targetResolver, triggerProps = null) {
+        let properties = { cost: costs, title, triggerProps };
         if (targetResolver) {
             properties.targetResolver = targetResolver;
         }

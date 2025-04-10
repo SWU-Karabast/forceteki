@@ -53,8 +53,19 @@ export abstract class TriggerWindowBase extends BaseStep {
         }
     }
 
-    public emitEvents() {
-        const events = this.triggeringEvents.filter((event) => !event.isCancelledOrReplaced);
+    public emitEvents(specificEvents = null) {
+        let events;
+        if (specificEvents) {
+            for (const event of specificEvents) {
+                Contract.assertArrayIncludes(this.triggeringEvents, event, `Event ${event.name} not found in triggering events: ${this.triggeringEvents.map((e) => e.name).join(', ')}`);
+            }
+
+            events = specificEvents;
+        } else {
+            events = this.triggeringEvents;
+        }
+
+        events = events.filter((event) => !event.isCancelledOrReplaced);
 
         for (const event of events) {
             this.game.emit(event.name + ':' + this.triggerAbilityType, event, this);

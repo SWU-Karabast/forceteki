@@ -6,6 +6,7 @@ import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Cons
 import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
 import PlayerAction from './PlayerAction';
+import type { IEventWindowTriggerProps } from '../event/EventWindow.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import type { CostAdjuster } from '../cost/CostAdjuster';
 import * as Helpers from '../utils/Helpers';
@@ -21,6 +22,7 @@ export interface IPlayCardActionPropertiesBase {
     playType: PlayType;
     title?: string;
     triggerHandlingMode?: TriggerHandlingMode;
+    skipPostResolutionTrigger?: boolean;
     costAdjusters?: CostAdjuster | CostAdjuster[];
     targetResolver?: IActionTargetResolver;
     additionalCosts?: ICost[];
@@ -97,13 +99,18 @@ export abstract class PlayCardAction extends PlayerAction {
 
         const playCost = new PlayCardResourceCost(propertiesWithDefaults.playType, cost, aspects);
 
+        const triggerProps: IEventWindowTriggerProps = {
+            triggerMode: propertiesWithDefaults.triggerHandlingMode,
+            skipPostResolutionTrigger: propertiesWithDefaults.skipPostResolutionTrigger
+        };
+
         super(
             game,
             card,
             PlayCardAction.getTitle(propertiesWithDefaults.title, propertiesWithDefaults.playType, appendToTitle),
             propertiesWithDefaults.additionalCosts.concat(playCost),
             propertiesWithDefaults.targetResolver,
-            propertiesWithDefaults.triggerHandlingMode
+            triggerProps
         );
 
         this.playType = propertiesWithDefaults.playType;
