@@ -1,23 +1,10 @@
-import AbilityHelper from '../../../AbilityHelper';
-import { BaseCard } from '../../../core/card/BaseCard';
-import { Trait } from '../../../core/Constants';
+import { LOFCommonBase } from '../../../core/card/LOFCommonBase';
 
-export default class ShadowedUndercity extends BaseCard {
+export default class ShadowedUndercity extends LOFCommonBase {
     protected override getImplementationId() {
         return {
             id: 'temp-shadowed-undercity-id',
             internalName: 'shadowed-undercity',
         };
-    }
-
-    protected override setupCardAbilities() {
-        this.addTriggeredAbility({
-            title: 'The Force is with you',
-            when: {
-                onAttackDeclared: (event, context) => event.attack.attacker.hasSomeTrait(Trait.Force) &&
-                  event.attack.attacker.controller === context.player
-            },
-            immediateEffect: AbilityHelper.immediateEffects.theForceIsWithYou()
-        });
     }
 }
