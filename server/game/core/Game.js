@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -1366,6 +1366,7 @@ class Game extends EventEmitter {
     initialiseTokens(tokenCardsData) {
         this.checkTokenDataProvided(TokenUpgradeName, tokenCardsData);
         this.checkTokenDataProvided(TokenUnitName, tokenCardsData);
+        this.checkTokenDataProvided(TokenCardName, tokenCardsData);
 
         this.tokenFactories = {};
 

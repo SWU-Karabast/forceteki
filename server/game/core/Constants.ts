@@ -190,6 +190,7 @@ export enum CardType {
     LeaderUpgrade = 'leaderUpgrade',
     TokenUnit = 'tokenUnit',
     TokenUpgrade = 'tokenUpgrade',
+    TokenCard = 'tokenCard',
     NonLeaderUnitUpgrade = 'nonLeaderUnitUpgrade',
 }
 
@@ -224,7 +225,11 @@ export enum TokenUnitName {
     TIEFighter = 'tieFighter',
 }
 
-export type TokenName = TokenUpgradeName | TokenUnitName;
+export enum TokenCardName {
+    Force = 'force'
+}
+
+export type TokenName = TokenUpgradeName | TokenUnitName | TokenCardName;
 
 // TODO: start removing these if they aren't used
 export enum EventName {
