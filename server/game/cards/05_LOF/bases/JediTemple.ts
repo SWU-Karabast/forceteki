@@ -1,10 +1,9 @@
-import { LofCommonForceBase } from '../common/LofCommonForceBase';
+import { LOFCommonBase } from '../../../core/card/LOFCommonBase';
 
-// Note: Implementation and test are under the super class since all common LOF bases share the same text
-export default class JediTemple extends LofCommonForceBase {
+export default class JediTemple extends LOFCommonBase {
     protected override getImplementationId() {
         return {
-            id: '0450346170',
+            id: 'temp-jedi-temple-id',
             internalName: 'jedi-temple',
         };
     }
