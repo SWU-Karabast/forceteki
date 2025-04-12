@@ -811,7 +811,7 @@ export class GameServer {
             const lobby = this.lobbies.get(lobbyId);
 
             if (!lobby || !lobby.hasOngoingGame()) {
-                logger.warn(`GameServer: No lobby or ongoing game for spectator ${user.id}, disconnecting`);
+                logger.warn(`GameServer: No lobby or ongoing game for spectator ${user.getId()}, disconnecting`);
                 this.userLobbyMap.delete(user.getId());
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -887,7 +887,7 @@ export class GameServer {
 
             // check if the lobby is full
             if (lobby.isFilled() || lobby.hasOngoingGame()) {
-                logger.warn(`GameServer: Requested lobby ${requestedLobby.lobbyId} is full or already in game, disconnecting user ${user.id}`);
+                logger.warn(`GameServer: Requested lobby ${requestedLobby.lobbyId} is full or already in game, disconnecting user ${user.getId()}`);
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
