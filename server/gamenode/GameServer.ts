@@ -162,7 +162,11 @@ export class GameServer {
         setInterval(() => this.queue.sendHeartbeat(), 1000);
 
         logger.info(`discord webhook url: ${process.env.DISCORD_BUG_REPORT_WEBHOOK_URL}`);
-        this.bugHandler.sendBugReportToDiscord('THIS IS A TEST');
+        try {
+            this.bugHandler.sendBugReportToDiscord('THIS IS A TEST');
+        } catch (error) {
+            logger.error('An error occurred while sending a message to Discord', { error: { message: error.message, stack: error.stack } });
+        }
     }
 
     private setupAppRoutes(app: express.Application) {
