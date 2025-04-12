@@ -12,8 +12,8 @@ export default class NienNunbLoyalCoPilot extends NonLeaderUnitCard {
     }
 
     private getOtherFriendlyPilotUnitsAndUpgradesCount(context: AbilityContext) {
-        // Check for other friendly Pilot units and upgrades -- and make sure we don't count this card (subtract 1)
-        return context.player.getArenaCards({ trait: Trait.Pilot }).length - 1;
+        // Check for other friendly Pilot units and upgrades -- and make sure we don't count this card
+        return context.player.getArenaCards({ trait: Trait.Pilot }).reduce((total, card) => total + (card !== this ? 1 : 0), 0);
     }
 
     public override setupCardAbilities () {
