@@ -4,7 +4,7 @@ const { ZoneName, Stage, CardType, EventName, AbilityType, RelativePlayer } = re
 const { GameEvent } = require('../event/GameEvent.js');
 
 class AbilityResolver extends BaseStepWithPipeline {
-    constructor(game, context, optional = false, canCancel = null, earlyTargetingOverride = null) {
+    constructor(game, context, optional = false, canCancel = null, earlyTargetingOverride = null, ignoredRequirements = []) {
         super(game);
 
         this.context = context;
@@ -12,6 +12,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.targetResults = {};
         this.costResults = this.getCostResults();
         this.earlyTargetingOverride = earlyTargetingOverride;
+        this.ignoredRequirements = ignoredRequirements;
         this.initialise();
 
         /** Indicates that we should skip all remaining ability resolution steps */
@@ -76,7 +77,7 @@ class AbilityResolver extends BaseStepWithPipeline {
 
         this.context.stage = Stage.PreTarget;
 
-        if (this.context.ability.meetsRequirements(this.context, [], true) !== '') {
+        if (this.context.ability.meetsRequirements(this.context, this.ignoredRequirements, true) !== '') {
             this.cancelled = true;
             this.resolutionComplete = true;
             return;
