@@ -20,12 +20,12 @@ export class UserFactory {
      * @param token JWT token
      * @returns A Promise that resolves to a User instance (either Authenticated or Anonymous)
      */
-    public async createUserFromToken(token: string): Promise<User> {
+    public async createUserFromTokenAsync(token: string): Promise<User> {
         try {
-            const basicUser = await this.authenticateWithToken(token);
+            const basicUser = await this.authenticateWithTokenAsync(token);
             Contract.assertNotNullLike(basicUser, 'Token authentication failed, User not found from token');
 
-            const userData = await this.dynamoDbService.getUserProfile(basicUser.id);
+            const userData = await this.dynamoDbService.getUserProfileAsync(basicUser.id);
             Contract.assertNotNullLike(userData, `User profile not found for authenticated user ${basicUser.id}`);
 
             return new AuthenticatedUser(userData);
@@ -67,9 +67,9 @@ export class UserFactory {
      * @param newUsername The new username
      * @returns Boolean indicating if the username change was successful
      */
-    public async changeUsername(userId: string, newUsername: string): Promise<string | null> {
+    public async changeUsernameAsync(userId: string, newUsername: string): Promise<string | null> {
         try {
-            const userProfile = await this.dynamoDbService.getUserProfile(userId);
+            const userProfile = await this.dynamoDbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
 
             // Check if username was changed recently (within the last hour)
@@ -87,7 +87,7 @@ export class UserFactory {
             }
 
             // Update username and set the timestamp
-            await this.dynamoDbService.updateUserProfile(userId, {
+            await this.dynamoDbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString()
             });
@@ -106,9 +106,9 @@ export class UserFactory {
      * @param preferences The updated preferences object
      * @returns True if update was successful
      */
-    public async updateUserPreferences(userId: string, preferences: Record<string, any>): Promise<void> {
+    public async updateUserPreferencesAsync(userId: string, preferences: Record<string, any>): Promise<void> {
         try {
-            await this.dynamoDbService.saveUserSettings(userId, preferences);
+            await this.dynamoDbService.saveUserSettingsAsync(userId, preferences);
         } catch (error) {
             logger.error('Error updating user preferences:', error);
             throw error;
@@ -120,7 +120,7 @@ export class UserFactory {
      * @param token JWT token
      * @returns The authenticated user or null if authentication failed
      */
-    private async authenticateWithToken(token?: string): Promise<{ id: string; username: string } | null> {
+    private async authenticateWithTokenAsync(token?: string): Promise<{ id: string; username: string } | null> {
         try {
             if (!token) {
                 return null;
@@ -133,32 +133,30 @@ export class UserFactory {
             if (!decoded || (!decoded.id)) {
                 return null;
             }
-
-            const userId = decoded.id;
             const username = decoded.name;
             const email = decoded.email;
             const provider = decoded.provider;
             const providerId = decoded.providerId;
 
             // First try to find user by OAuth provider ID
-            let dbUserId = await this.dynamoDbService.getUserIdByOAuth(provider, providerId);
+            let dbUserId = await this.dynamoDbService.getUserIdByOAuthAsync(provider, providerId);
             // If not found by OAuth and email is available, try to find by email
             if (!dbUserId && email) {
-                dbUserId = await this.dynamoDbService.getUserIdByEmail(email);
+                dbUserId = await this.dynamoDbService.getUserIdByEmailAsync(email);
 
                 // If found user by email but not by OAuth, create the OAuth link
                 if (dbUserId) {
                     logger.info(`User found by email ${email} but not by OAuth, creating OAuth link`);
-                    await this.dynamoDbService.saveOAuthLink(provider, providerId, dbUserId);
+                    await this.dynamoDbService.saveOAuthLinkAsync(provider, providerId, dbUserId);
                 }
             }
 
             // If we found a user (by OAuth or email), get the profile and update login time
             if (dbUserId) {
-                const userProfile = await this.dynamoDbService.getUserProfile(dbUserId);
+                const userProfile = await this.dynamoDbService.getUserProfileAsync(dbUserId);
                 if (userProfile) {
                     // Update the last login time
-                    await this.dynamoDbService.recordNewLogin(dbUserId);
+                    await this.dynamoDbService.recordNewLoginAsync(dbUserId);
                     return {
                         id: dbUserId,
                         username: userProfile.username
@@ -178,14 +176,14 @@ export class UserFactory {
             };
 
             // Create OAuth link
-            await this.dynamoDbService.saveOAuthLink(provider, providerId, newUser.id);
+            await this.dynamoDbService.saveOAuthLinkAsync(provider, providerId, newUser.id);
             // Save the user profile
-            await this.dynamoDbService.saveUserProfile(newUser);
+            await this.dynamoDbService.saveUserProfileAsync(newUser);
             // Create email link if email is available
             if (!email) {
                 throw new Error(`Email not found for user ${newUser.id}`);
             }
-            await this.dynamoDbService.saveEmailLink(email, newUser.id);
+            await this.dynamoDbService.saveEmailLinkAsync(email, newUser.id);
             logger.info(`Created new user: ${newUser.id} (${username}) with ${provider} authentication`);
             return {
                 id: newUser.id,

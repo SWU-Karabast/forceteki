@@ -31,7 +31,7 @@ export const authMiddleware = () => {
                 return next();
             }
 
-            req.user = await userFactory.createUserFromToken(token);
+            req.user = await userFactory.createUserFromTokenAsync(token);
             return next();
         } catch (error) {
             console.error('Auth middleware error:', error);

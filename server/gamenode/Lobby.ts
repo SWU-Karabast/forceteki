@@ -752,13 +752,13 @@ export class Lobby {
     /**
      * Private method to update a players stats
      */
-    private async updatePlayerStats(playerUser: PlayerDetails, opponentPlayerUser: PlayerDetails, score: ScoreType) {
+    private async updatePlayerStatsAsync(playerUser: PlayerDetails, opponentPlayerUser: PlayerDetails, score: ScoreType) {
         // Get the deck service
         const opponentPlayerLeaderId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.leaderID);
         const opponentPlayerBaseId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.baseID);
 
         Contract.assertTrue(playerUser.user.isAuthenticatedUser());
-        await this.server.deckService.updateDeckStats(
+        await this.server.deckService.updateDeckStatsAsync(
             playerUser.user.getId(),
             playerUser.deckID,
             score,
@@ -772,7 +772,7 @@ export class Lobby {
      * Updates deck statistics when a game ends
      * @param game The game that has ended
      */
-    private async endGameUpdateStats(game: Game): Promise<void> {
+    private async endGameUpdateStatsAsync(game: Game): Promise<void> {
         try {
             // Only update stats if the game has a winner
             if (!game.winner || !game.finishedAt) {
@@ -820,8 +820,8 @@ export class Lobby {
                 return;
             }
 
-            await this.updatePlayerStats(player1User, player2User, player1Score);
-            await this.updatePlayerStats(player2User, player1User, player2Score);
+            await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
+            await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
 
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
         } catch (error) {
@@ -844,7 +844,7 @@ export class Lobby {
         if (game.winner && game.finishedAt && !game.statsUpdated) {
             // Update deck stats asynchronously
             game.statsUpdated = true;
-            this.endGameUpdateStats(game).catch((error) => {
+            this.endGameUpdateStatsAsync(game).catch((error) => {
                 logger.error(`Lobby ${this.id}: Failed to update deck stats:`, error);
             });
         }

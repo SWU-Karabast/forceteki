@@ -145,7 +145,7 @@ export class GameServer {
                 const token = socket.handshake.auth.token;
 
                 const user = token
-                    ? await this.userFactory.createUserFromToken(token)
+                    ? await this.userFactory.createUserFromTokenAsync(token)
                     : this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
 
                 // we check if we have an actual user
@@ -231,7 +231,7 @@ export class GameServer {
                 // We try to sync the decks first
                 if (decks.length > 0) {
                     try {
-                        await this.deckService.syncDecks(user.getId(), decks);
+                        await this.deckService.syncDecksAsync(user.getId(), decks);
                     } catch (err) {
                         logger.error(`GameServer (get-user): Error with syncing decks for User ${user.getId()}`, err);
                         next(err);
@@ -270,7 +270,7 @@ export class GameServer {
                 }
 
                 // Call the changeUsername method
-                const result = await this.userFactory.changeUsername(user.getId(), newUsername);
+                const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername);
                 if (result) {
                     return res.status(200).json({
                         succeess: true,
@@ -302,7 +302,7 @@ export class GameServer {
                 }
                 // we retrieve the decks for the FE
                 try {
-                    const usersDecks = await this.deckService.getUserDecks(user.getId());
+                    const usersDecks = await this.deckService.getUserDecksAsync(user.getId());
                     return res.status(200).json(usersDecks);
                 } catch (err) {
                     logger.error(`GameServer (get-decks): Error in getting a users ${user.getId()} decks: `, err);
@@ -337,7 +337,7 @@ export class GameServer {
                 }
 
                 // Get the deck using the flexible lookup method
-                const deck = await this.deckService.getDeckById(user.getId(), deckId);
+                const deck = await this.deckService.getDeckByIdAsync(user.getId(), deckId);
                 if (!deck) {
                     logger.error(`GameServer (get-deck/:deckId): User ${user.getId()} attempted to get deck that does not exist: ${deckId}`);
                     return res.status(404).json({
@@ -345,7 +345,7 @@ export class GameServer {
                         message: 'Server error'
                     });
                 }
-                const processedDeck = await this.deckService.convertOpponentStatsForFe(deck, this.cardDataGetter);
+                const processedDeck = await this.deckService.convertOpponentStatsForFeAsync(deck, this.cardDataGetter);
                 // Clean up the response data - remove internal DB fields
                 const cleanDeck = {
                     id: processedDeck.id,
@@ -375,7 +375,7 @@ export class GameServer {
                     });
                 }
                 // we save the deck
-                const newDeck = await this.deckService.saveDeck(deck, user);
+                const newDeck = await this.deckService.saveDeckAsync(deck, user);
                 return res.status(200).json({
                     success: true,
                     message: 'Deck saved successfully',
@@ -407,7 +407,7 @@ export class GameServer {
                         message: 'Server error'
                     });
                 }
-                const updatedDeck = await this.deckService.toggleDeckFavorite(user.getId(), deckId, isFavorite);
+                const updatedDeck = await this.deckService.toggleDeckFavoriteAsync(user.getId(), deckId, isFavorite);
                 return res.status(200).json({
                     success: true,
                     message: `Deck ${isFavorite ? 'added to' : 'removed from'} favorites successfully`,
@@ -442,7 +442,7 @@ export class GameServer {
 
                 // Delete the decks
                 for (const deckId of deckIds) {
-                    await this.deckService.deleteDeck(user.getId(), deckId);
+                    await this.deckService.deleteDeckAsync(user.getId(), deckId);
                 }
                 return res.status(200).json({
                     success: true,
