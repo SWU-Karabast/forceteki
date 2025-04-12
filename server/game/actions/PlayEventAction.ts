@@ -18,7 +18,7 @@ export class PlayEventAction extends PlayCardAction {
             this.copyContextTargets(context, abilityContext);
         }
 
-        context.game.queueStep(new AbilityResolver(context.game, abilityContext, false, null, this.earlyTargetResults));
+        context.game.queueStep(new AbilityResolver(context.game, abilityContext, false, null, this.earlyTargetResults, ['player']));
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
