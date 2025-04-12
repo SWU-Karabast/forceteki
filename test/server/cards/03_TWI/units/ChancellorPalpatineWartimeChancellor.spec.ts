@@ -103,5 +103,27 @@ describe('Chancellor Palpatine Wartime Chancellor', function() {
             const controllerTieFighter = context.player1.findCardByName('tie-fighter');
             expect(controllerTieFighter.exhausted).toBeFalse();
         });
+
+        it('Chancellor Palpatine\'s ability should not ready token units created for the opponent', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['the-clone-wars'],
+                    groundArena: ['chancellor-palpatine#wartime-chancellor'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.theCloneWars);
+            context.player1.chooseListOption('2');
+
+            const cloneTroopers = context.player1.findCardsByName('clone-trooper');
+            const battleDroids = context.player2.findCardsByName('battle-droid');
+            expect(cloneTroopers.length).toBe(2);
+            expect(battleDroids.length).toBe(2);
+            expect(cloneTroopers.every((cloneTrooper) => cloneTrooper.ready)).toBeTrue();
+            expect(battleDroids.every((battleDroid) => battleDroid.exhausted)).toBeTrue();
+        });
     });
 });
