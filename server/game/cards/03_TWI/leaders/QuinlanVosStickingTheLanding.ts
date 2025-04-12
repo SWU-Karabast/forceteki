@@ -15,7 +15,7 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
             title: 'Exhaust this leader',
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.controller === context.player &&
+                    event.player === context.player &&
                     event.cardTypeWhenInPlay === CardType.BasicUnit,
             },
             optional: true,
@@ -37,7 +37,7 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
             title: 'Deal 1 damage to an enemy unit that costs the same as or less than the played unit',
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.controller === context.player &&
+                    event.player === context.player &&
                     event.card.isUnit(),
             },
             optional: true,

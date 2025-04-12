@@ -16,7 +16,7 @@ export default class BobaFettDaimyo extends LeaderUnitCard {
             optional: true,
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.isUnit() && event.card.controller === context.player && event.card.keywords.length > 0
+                    event.card.isUnit() && event.player === context.player && event.card.keywords.length > 0
             },
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: {

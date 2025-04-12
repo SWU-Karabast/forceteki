@@ -16,7 +16,7 @@ export default class ColonelYularenIsbDirector extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) =>
                     event.card.isUnit() &&
-                    event.card.controller === context.player &&
+                    event.player === context.player &&
                     event.card.hasSomeAspect(Aspect.Command)
             },
             immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
