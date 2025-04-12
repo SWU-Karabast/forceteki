@@ -30,7 +30,7 @@ export class UserFactory {
 
             return new AuthenticatedUser(userData);
         } catch (error) {
-            logger.error('Error creating user from token:', error);
+            logger.error('Error creating user from token:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -95,7 +95,7 @@ export class UserFactory {
             logger.info(`Username for ${userId} changed to ${newUsername}`);
             return newUsername;
         } catch (error) {
-            logger.error('Error changing username:', error);
+            logger.error('Error changing username:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -110,7 +110,7 @@ export class UserFactory {
         try {
             await this.dynamoDbService.saveUserSettingsAsync(userId, preferences);
         } catch (error) {
-            logger.error('Error updating user preferences:', error);
+            logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -194,11 +194,11 @@ export class UserFactory {
             if (error.name === 'ConditionalCheckFailedException') {
                 // This could happen if there's a race condition while creating user records
                 // or if the unique constraints we're enforcing are violated for other reasons
-                logger.error(`DynamoDB conditional check failed during user authentication: ${error}`);
+                logger.error('DynamoDB conditional check failed during user authentication: ', { error: { message: error.message, stack: error.stack } });
                 throw error;
             }
             // This catches both JWT verification errors and database errors
-            logger.error('Authentication error:', error);
+            logger.error('Authentication error:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }

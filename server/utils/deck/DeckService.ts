@@ -33,7 +33,7 @@ export class DeckService {
                     deckID: deckData.id
                 }));
         } catch (error) {
-            logger.error(`Error retrieving decks for user ${userId}:`, error);
+            logger.error(`Error retrieving decks for user ${userId}:`, { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -85,7 +85,7 @@ export class DeckService {
                 await this.dbService.saveDeckAsync(deckData);
             }
         } catch (error) {
-            logger.error(`Error syncing decks ${unsyncedDecks} for user ${userId}: `, error);
+            logger.error(`Error syncing decks ${unsyncedDecks} for user ${userId}: `, { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -133,7 +133,7 @@ export class DeckService {
             logger.info(`DeckService: ${isUpdate ? 'Updated deck' : 'Saved new deck'} ${updatedDeckData.id} for user ${deckData.userId}`);
             return updatedDeckData;
         } catch (error) {
-            logger.error(`Error saving deck for user ${user.getId()}:`, error);
+            logger.error(`Error saving deck for user ${user.getId()}:`, { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -183,7 +183,7 @@ export class DeckService {
             logger.info(`DeckService: Successfully ${isFavorite ? 'added' : 'removed'} deck ${deckId} as favorite for user ${userId}`);
             return deck;
         } catch (error) {
-            logger.error(`DeckService: Error toggling favorite for deck ${deckId}, user ${userId}:`, error);
+            logger.error(`DeckService: Error toggling favorite for deck ${deckId}, user ${userId}:`, { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -212,7 +212,7 @@ export class DeckService {
             logger.info(`DeckService: Successfully deleted deck ${deckId} for user ${userId}`);
             return;
         } catch (error) {
-            logger.error(`DeckService: Error deleting deck ${deckId} for user ${userId}:`, error);
+            logger.error(`DeckService: Error deleting deck ${deckId} for user ${userId}:`, { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -277,7 +277,7 @@ export class DeckService {
             logger.info(`DeckService: Updated stats for deck ${deckId}, user ${userId}, result: ${result}, opponent leader: ${opponentLeaderId}, opponent base: ${opponentBaseId}, stats: ${JSON.stringify(stats)}`);
             return stats;
         } catch (error) {
-            logger.error(`Error updating deck stats for deck ${deckId}, user ${userId}:`, error);
+            logger.error(`Error updating deck stats for deck ${deckId}, user ${userId}:`, { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -320,7 +320,7 @@ export class DeckService {
             logger.error(`DeckService: Deck with ID ${deckId} not found for user ${userId} (checked both direct ID and deckID/deckLinkID properties)`);
             return null;
         } catch (error) {
-            logger.error(`Error getting deck by ID ${deckId} for user ${userId}:`, error);
+            logger.error(`Error getting deck by ID ${deckId} for user ${userId}:`, { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }

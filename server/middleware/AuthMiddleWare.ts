@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { parse } from 'cookie';
 import { UserFactory } from '../utils/user/UserFactory';
+import {logger} from "../logger";
 
 // Extend Express Request type
 declare global {
@@ -34,7 +35,7 @@ export const authMiddleware = () => {
             req.user = await userFactory.createUserFromTokenAsync(token);
             return next();
         } catch (error) {
-            console.error('Auth middleware error:', error);
+            logger.error('Error with authentication: ', { error: { message: error.message, stack: error.stack } });
             return res.status(401).json({ success: false, message: 'Authentication failed' });
         }
     };

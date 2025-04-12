@@ -117,7 +117,7 @@ class DynamoDBService {
             if (error.code === 'ECONNREFUSED') {
                 logger.warn('A gentle reminder that the docker container for the DynamoDB might not be turned on');
             }
-            logger.error(`Error creating local DynamoDB table: ${error}`);
+            logger.error('Error creating local DynamoDB table:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -129,7 +129,7 @@ class DynamoDBService {
         try {
             return await operation();
         } catch (error) {
-            logger.error(`${errorMessage}: ${error}`);
+            logger.error('An error occurred executing Db operation', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
