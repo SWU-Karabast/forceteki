@@ -21,6 +21,7 @@ import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
 import type { QueuedPlayer } from './QueueHandler';
 import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
+import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 
 /**
  * Represents a user object
@@ -96,6 +97,7 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
+    public bugHandler = new BugReportHandler();
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -160,6 +162,7 @@ export class GameServer {
         setInterval(() => this.queue.sendHeartbeat(), 1000);
 
         logger.info(`discord webhook url: ${process.env.DISCORD_BUG_REPORT_WEBHOOK_URL}`);
+        this.bugHandler.sendBugReportToDiscord('THIS IS A TEST');
     }
 
     private setupAppRoutes(app: express.Application) {
