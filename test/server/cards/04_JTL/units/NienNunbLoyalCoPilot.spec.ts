@@ -69,6 +69,7 @@ describe('Nien Nunb Loyal Co-Pilot', function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
+                        groundArena: ['tam-ryvora#searching-for-purpose'],
                         spaceArena: [{ card: 'green-squadron-awing', upgrades: ['nien-nunb#loyal-copilot'] }],
                     },
                     player2: {
@@ -80,13 +81,13 @@ describe('Nien Nunb Loyal Co-Pilot', function () {
 
                 const { context } = contextRef;
 
-                expect(context.greenSquadronAwing.getPower()).toBe(2);
+                expect(context.greenSquadronAwing.getPower()).toBe(3);
                 expect(context.greenSquadronAwing.getHp()).toBe(5);
 
                 context.player2.clickCard(context.changeOfHeart);
                 context.player2.clickCard(context.greenSquadronAwing);
 
-                expect(context.greenSquadronAwing.getPower()).toBe(4);
+                expect(context.greenSquadronAwing.getPower()).toBe(3);
                 expect(context.greenSquadronAwing.getHp()).toBe(5);
             });
         });
