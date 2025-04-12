@@ -3,7 +3,7 @@ import { AuthenticatedUser, AnonymousUser } from './User';
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
 import jwt from 'jsonwebtoken';
-import { dynamoDbService } from '../../services/DynamoDBService';
+import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 import * as Contract from '../../game/core/utils/Contract';
 import type { ParsedUrlQuery } from 'node:querystring';
 
@@ -13,7 +13,7 @@ import type { ParsedUrlQuery } from 'node:querystring';
  * based on authentication status and data
  */
 export class UserFactory {
-    private dynamoDbService: typeof dynamoDbService = dynamoDbService;
+    private dbServicePromise = getDynamoDbServiceAsync();
 
     /**
      * Creates a user instance from a JWT token
@@ -22,10 +22,11 @@ export class UserFactory {
      */
     public async createUserFromTokenAsync(token: string): Promise<User> {
         try {
+            const dbService = await this.dbServicePromise;
             const basicUser = await this.authenticateWithTokenAsync(token);
             Contract.assertNotNullLike(basicUser, 'Token authentication failed, User not found from token');
 
-            const userData = await this.dynamoDbService.getUserProfileAsync(basicUser.id);
+            const userData = await dbService.getUserProfileAsync(basicUser.id);
             Contract.assertNotNullLike(userData, `User profile not found for authenticated user ${basicUser.id}`);
 
             return new AuthenticatedUser(userData);
@@ -69,7 +70,8 @@ export class UserFactory {
      */
     public async changeUsernameAsync(userId: string, newUsername: string): Promise<string | null> {
         try {
-            const userProfile = await this.dynamoDbService.getUserProfileAsync(userId);
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
 
             // Check if username was changed recently (within the last hour)
@@ -87,7 +89,7 @@ export class UserFactory {
             }
 
             // Update username and set the timestamp
-            await this.dynamoDbService.updateUserProfileAsync(userId, {
+            await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString()
             });
@@ -108,7 +110,8 @@ export class UserFactory {
      */
     public async updateUserPreferencesAsync(userId: string, preferences: Record<string, any>): Promise<void> {
         try {
-            await this.dynamoDbService.saveUserSettingsAsync(userId, preferences);
+            const dbService = await this.dbServicePromise;
+            await dbService.saveUserSettingsAsync(userId, preferences);
         } catch (error) {
             logger.error('Error updating user preferences:', { error: { message: error.message, stack: error.stack } });
             throw error;
@@ -122,6 +125,7 @@ export class UserFactory {
      */
     private async authenticateWithTokenAsync(token?: string): Promise<{ id: string; username: string } | null> {
         try {
+            const dbService = await this.dbServicePromise;
             if (!token) {
                 return null;
             }
@@ -139,24 +143,24 @@ export class UserFactory {
             const providerId = decoded.providerId;
 
             // First try to find user by OAuth provider ID
-            let dbUserId = await this.dynamoDbService.getUserIdByOAuthAsync(provider, providerId);
+            let dbUserId = await dbService.getUserIdByOAuthAsync(provider, providerId);
             // If not found by OAuth and email is available, try to find by email
             if (!dbUserId && email) {
-                dbUserId = await this.dynamoDbService.getUserIdByEmailAsync(email);
+                dbUserId = await dbService.getUserIdByEmailAsync(email);
 
                 // If found user by email but not by OAuth, create the OAuth link
                 if (dbUserId) {
                     logger.info(`User found by email ${email} but not by OAuth, creating OAuth link`);
-                    await this.dynamoDbService.saveOAuthLinkAsync(provider, providerId, dbUserId);
+                    await dbService.saveOAuthLinkAsync(provider, providerId, dbUserId);
                 }
             }
 
             // If we found a user (by OAuth or email), get the profile and update login time
             if (dbUserId) {
-                const userProfile = await this.dynamoDbService.getUserProfileAsync(dbUserId);
+                const userProfile = await dbService.getUserProfileAsync(dbUserId);
                 if (userProfile) {
                     // Update the last login time
-                    await this.dynamoDbService.recordNewLoginAsync(dbUserId);
+                    await dbService.recordNewLoginAsync(dbUserId);
                     return {
                         id: dbUserId,
                         username: userProfile.username
@@ -176,14 +180,14 @@ export class UserFactory {
             };
 
             // Create OAuth link
-            await this.dynamoDbService.saveOAuthLinkAsync(provider, providerId, newUser.id);
+            await dbService.saveOAuthLinkAsync(provider, providerId, newUser.id);
             // Save the user profile
-            await this.dynamoDbService.saveUserProfileAsync(newUser);
+            await dbService.saveUserProfileAsync(newUser);
             // Create email link if email is available
             if (!email) {
                 throw new Error(`Email not found for user ${newUser.id}`);
             }
-            await this.dynamoDbService.saveEmailLinkAsync(email, newUser.id);
+            await dbService.saveEmailLinkAsync(email, newUser.id);
             logger.info(`Created new user: ${newUser.id} (${username}) with ${provider} authentication`);
             return {
                 id: newUser.id,

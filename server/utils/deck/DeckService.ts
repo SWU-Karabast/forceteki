@@ -1,4 +1,3 @@
-import { dynamoDbService } from '../../services/DynamoDBService';
 import type { IDeckDataEntity, IDeckStatsEntity, ILocalStorageDeckData, IMatchupStatEntity } from '../../services/DynamoDBInterfaces';
 import { logger } from '../../logger';
 import { v4 as uuid } from 'uuid';
@@ -6,12 +5,13 @@ import type { User } from '../user/User';
 import * as Contract from '../../game/core/utils/Contract';
 import { ScoreType } from './DeckInterfaces';
 import type { CardDataGetter } from '../cardData/CardDataGetter';
+import { getDynamoDbServiceAsync } from '../../services/DynamoDBService';
 
 /**
  * Service class for handling deck-related operations
  */
 export class DeckService {
-    private dbService = dynamoDbService;
+    private dbServicePromise = getDynamoDbServiceAsync();
 
     /**
      * Get all decks for a user with favorites first
@@ -20,8 +20,9 @@ export class DeckService {
      */
     public async getUserDecksAsync(userId: string): Promise<ILocalStorageDeckData[]> {
         try {
+            const dbService = await this.dbServicePromise;
             // Get all decks for the user
-            const decks = await this.dbService.getUserDecksAsync(userId);
+            const decks = await dbService.getUserDecksAsync(userId);
             if (!decks || decks.length === 0) {
                 return [];
             }
@@ -46,7 +47,8 @@ export class DeckService {
     public async syncDecksAsync(userId: string, unsyncedDecks: ILocalStorageDeckData[]) {
         try {
             // First get existing decks
-            const existingDecks = await this.dbService.getUserDecksAsync(userId) || [];
+            const dbService = await this.dbServicePromise;
+            const existingDecks = await dbService.getUserDecksAsync(userId) || [];
 
             // if we create a map it will be faster to lookup.
             const existingDeckLinks = new Map();
@@ -82,7 +84,7 @@ export class DeckService {
                         statsByMatchup: []
                     }
                 };
-                await this.dbService.saveDeckAsync(deckData);
+                await dbService.saveDeckAsync(deckData);
             }
         } catch (error) {
             logger.error(`Error syncing decks ${unsyncedDecks} for user ${userId}: `, { error: { message: error.message, stack: error.stack } });
@@ -103,11 +105,11 @@ export class DeckService {
             if (!deckData.userId || !deckData.deck) {
                 throw new Error('Deck data is missing required fields "userId" and "deck"');
             }
-
+            const dbService = await this.dbServicePromise;
             // Check if a deck with this link id already exists for this user
             const deckLinkID = deckData.deck.deckLinkID;
             let updatedDeckData = null;
-            const existingDeck = await this.dbService.getDeckByLinkAsync(user.getId(), deckLinkID);
+            const existingDeck = await dbService.getDeckByLinkAsync(user.getId(), deckLinkID);
             let isUpdate = false;
             if (deckLinkID && existingDeck) {
                 // If the deck already exists, update it instead of creating a new one
@@ -129,7 +131,7 @@ export class DeckService {
                 };
             }
             // Save the new deck to the database
-            await this.dbService.saveDeckAsync(updatedDeckData);
+            await dbService.saveDeckAsync(updatedDeckData);
             logger.info(`DeckService: ${isUpdate ? 'Updated deck' : 'Saved new deck'} ${updatedDeckData.id} for user ${deckData.userId}`);
             return updatedDeckData;
         } catch (error) {
@@ -165,6 +167,7 @@ export class DeckService {
     public async toggleDeckFavoriteAsync(userId: string, deckId: string, isFavorite: boolean): Promise<IDeckDataEntity> {
         Contract.assertTrue(userId && deckId && isFavorite != null, `userId ${userId} or deckId ${deckId} or isFavorite ${isFavorite} doesn't exist`);
         try {
+            const dbService = await this.dbServicePromise;
             // Get the deck using our flexible lookup method
             const deck = await this.getDeckByIdAsync(userId, deckId);
 
@@ -178,7 +181,7 @@ export class DeckService {
             deck.deck.favourite = isFavorite;
 
             // Save the updated deck
-            await this.dbService.saveDeckAsync(deck);
+            await dbService.saveDeckAsync(deck);
 
             logger.info(`DeckService: Successfully ${isFavorite ? 'added' : 'removed'} deck ${deckId} as favorite for user ${userId}`);
             return deck;
@@ -196,19 +199,20 @@ export class DeckService {
      */
     public async deleteDeckAsync(userId: string, deckId: string) {
         try {
+            const dbService = await this.dbServicePromise;
             Contract.assertTrue(
                 userId && deckId.length > 0,
                 `DeckService: Invalid parameters for delete operation. userId: ${userId}, deckId: ${deckId}`
             );
             // Verify the deck belongs to this user before deleting
-            const deck = await this.dbService.getDeckAsync(userId, deckId);
+            const deck = await dbService.getDeckAsync(userId, deckId);
             if (!deck) {
                 logger.error(`DeckService: Deck ${deckId} not found for user ${userId}`);
                 return;
             }
 
             // Delete the deck
-            await this.dbService.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`);
+            await dbService.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`);
             logger.info(`DeckService: Successfully deleted deck ${deckId} for user ${userId}`);
             return;
         } catch (error) {
@@ -234,6 +238,7 @@ export class DeckService {
         opponentBaseId: string,
     ): Promise<IDeckStatsEntity> {
         try {
+            const dbService = await this.dbServicePromise;
             // Get the deck using our new flexible lookup method
             const deck = await this.getDeckByIdAsync(userId, deckId);
 
@@ -273,7 +278,7 @@ export class DeckService {
 
             this.updateScore(result, opponentStat);
             // Save updated stats
-            await this.dbService.updateDeckStatsAsync(userId, deckId, stats);
+            await dbService.updateDeckStatsAsync(userId, deckId, stats);
             logger.info(`DeckService: Updated stats for deck ${deckId}, user ${userId}, result: ${result}, opponent leader: ${opponentLeaderId}, opponent base: ${opponentBaseId}, stats: ${JSON.stringify(stats)}`);
             return stats;
         } catch (error) {
@@ -290,8 +295,9 @@ export class DeckService {
      */
     public async getDeckByIdAsync(userId: string, deckId: string): Promise<IDeckDataEntity | null> {
         try {
+            const dbService = await this.dbServicePromise;
             // First, try direct lookup by ID
-            let deck = await this.dbService.getDeckAsync(userId, deckId);
+            let deck = await dbService.getDeckAsync(userId, deckId);
 
             // If found directly, return it
             if (deck) {
@@ -302,7 +308,7 @@ export class DeckService {
             logger.info(`DeckService: Deck with ID ${deckId} not found directly for user ${userId}, trying to find by deckID/deckLinkID properties`);
 
             // Get all decks for the user
-            const allDecks = await this.dbService.getUserDecksAsync(userId);
+            const allDecks = await dbService.getUserDecksAsync(userId);
 
             if (allDecks && allDecks.length > 0) {
                 // Find a deck where deck.deck.deckLID or deck.deck.deckID matches the provided deckId

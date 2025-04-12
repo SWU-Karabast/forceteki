@@ -12,10 +12,35 @@ import { logger } from '../logger';
 import * as Contract from '../game/core/utils/Contract';
 import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity } from './DynamoDBInterfaces';
 
+// global variable
+let dynamoDbService: DynamoDBService;
+
+/**
+ * Get a properly initialized DynamoDB service
+ * This ensures the service is only created once and properly initialized
+ */
+export async function getDynamoDbServiceAsync() {
+    if (dynamoDbService) {
+        return dynamoDbService;
+    }
+
+    // Create a new instance
+    dynamoDbService = new DynamoDBService();
+
+    // Initialize it (this will ensure local tables exist if in local mode)
+    if (dynamoDbService.isLocalMode) {
+        await dynamoDbService.ensureLocalTableExistsAsync().catch((err) => {
+            logger.error(`Failed to ensure DynamoDB local table exists: ${err}`);
+        });
+    }
+
+    return dynamoDbService;
+}
+
 class DynamoDBService {
     private client: DynamoDBDocumentClient;
     private tableName: string;
-    private isLocalMode: boolean;
+    public isLocalMode: boolean;
 
     public constructor() {
         this.isLocalMode = process.env.ENVIRONMENT === 'development';
@@ -49,19 +74,13 @@ class DynamoDBService {
 
         const dbClient = new DynamoDBClient(dbClientConfig);
         this.client = DynamoDBDocumentClient.from(dbClient);
-
-        if (this.isLocalMode) {
-            this.ensureLocalTableExistsAsync().catch((err) => {
-                logger.error(`Failed to ensure DynamoDB local table exists: ${err}`);
-            });
-        }
     }
 
     /**
      * Ensures the table exists in DynamoDB Local with the appropriate GSI
      * This is only used in local development mode
      */
-    private async ensureLocalTableExistsAsync(): Promise<void> {
+    public async ensureLocalTableExistsAsync(): Promise<void> {
         if (!this.isLocalMode) {
             return;
         }
@@ -426,5 +445,3 @@ class DynamoDBService {
         }, 'Error clearing local DynamoDB data');
     }
 }
-
-export const dynamoDbService = new DynamoDBService();
