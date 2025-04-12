@@ -79,7 +79,7 @@ describe('Boba Fett, Daimyo', function () {
                         groundArena: ['battlefield-marine'],
                         spaceArena: ['red-three#unstoppable'],
                         leader: 'boba-fett#daimyo',
-                        resource: 4
+                        resources: 4
                     },
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
@@ -112,7 +112,7 @@ describe('Boba Fett, Daimyo', function () {
                         hand: ['hunting-nexu'],
                         groundArena: ['battlefield-marine'],
                         leader: 'boba-fett#daimyo',
-                        resource: 4
+                        resources: 4
                     },
 
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code

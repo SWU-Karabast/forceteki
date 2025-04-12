@@ -778,15 +778,6 @@ export class Lobby {
                 return;
             }
 
-            // Limit description length
-            if (description.length > 500) {
-                socket.send('bugReportResult', {
-                    success: false,
-                    message: 'Bug description must be 500 characters or less'
-                });
-                return;
-            }
-
             // Create game state snapshot
             const gameState = this.game
                 ? this.server.bugReportHandler.captureGameState(this.game)
@@ -813,6 +804,7 @@ export class Lobby {
                 lobbyId: this.id,
                 userId: socket.user.id
             });
+            throw error;
         }
     }
 }

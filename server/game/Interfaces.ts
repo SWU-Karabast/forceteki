@@ -275,6 +275,49 @@ export interface ISetId {
     number: number;
 }
 
+/* Serialized state retrieving interfaces */
+export interface ISerializedCardState {
+    card: string;
+    damage?: number;
+    upgrades?: (ISerializedCardState | string)[];
+    deployed?: boolean;
+    exhausted?: boolean;
+    capturedUnits?: (ISerializedCardState | string)[];
+    flipped?: boolean;
+    ownerAndController?: string;
+    owner?: string;
+}
+
+export interface IPlayerSerializedState {
+    hand?: number | string[];
+    groundArena?: (string | ISerializedCardState)[];
+    spaceArena?: (string | ISerializedCardState)[];
+    discard?: string[];
+    resources?: number | (string | ISerializedCardState)[];
+    base?: string | ISerializedCardState;
+    leader?: string | ISerializedCardState;
+    deck?: number | string[];
+    hasInitiative?: boolean;
+}
+
+export interface ISerializedGameState {
+    phase?: string;
+    player1?: IPlayerSerializedState;
+    player2?: IPlayerSerializedState;
+}
+
+export interface ISerializedReportState {
+    description: string;
+    gameState: ISerializedGameState;
+    reporter: {
+        id: string;
+        username: string;
+    };
+    lobbyId: string;
+    timestamp: string;
+    gameId?: string;
+}
+
 // ********************************************** INTERNAL TYPES **********************************************
 interface IReplacementEffectAbilityBaseProps<TSource extends Card = Card> extends Omit<ITriggeredAbilityBaseProps<TSource>,
         'immediateEffect' | 'targetResolver' | 'targetResolvers' | 'handler'

@@ -1,4 +1,11 @@
-import type { IActionAbilityProps, IConstantAbilityProps, ISetId, Zone, ITriggeredAbilityProps } from '../../Interfaces';
+import type {
+    IActionAbilityProps,
+    IConstantAbilityProps,
+    ISetId,
+    Zone,
+    ITriggeredAbilityProps,
+    ISerializedCardState
+} from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type { IOngoingEffectSourceState } from '../ongoingEffect/OngoingEffectSource';
@@ -37,6 +44,7 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
 import type { GameObjectRef } from '../GameObjectBase';
+import { logger } from '../../../logger';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -1119,6 +1127,78 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             default:
                 Contract.fail(`Unknown player: ${player}`);
                 return false;
+        }
+    }
+
+    /**
+     * Captures a card's state
+     * @param card The card object
+     * @param player Either player1 or player2
+     * @param currentPlayerID The current players id
+     * @returns A simplified card state representation
+     */
+    public captureCardState(card: any, player: string, currentPlayerID: string): string | ISerializedCardState {
+        if (!card || (typeof card.isAttached === 'function' && card.isAttached())) {
+            return null;
+        }
+        try {
+            const opponent = player === 'player1' ? 'player2' : 'player1';
+            if (card.isLeader() && !card.deployed) {
+                return card.internalName;
+            }
+            // If the card is completely simple with no additional properties, just return its internal name
+            if (!card.damage && !card.upgrades && !card.deployed && !card.exhausted &&
+              !card.capturedUnits && card.flipped === undefined &&
+              !card.owner && !card.controller) {
+                return card.internalName;
+            }
+            // Return a more detailed card state
+            const cardState: ISerializedCardState = {
+                card: card.internalName
+            };
+
+            // Add all available properties from ISerializedCardState
+            if (card.damage !== undefined) {
+                cardState.damage = card.damage;
+            }
+
+            if (card.deployed !== undefined) {
+                cardState.deployed = card.deployed;
+            }
+
+            if (card.exhausted !== undefined) {
+                cardState.exhausted = card.exhausted;
+            }
+
+            // Capture upgrades
+            if (card.upgrades && card.upgrades.length > 0) {
+                cardState.upgrades = card.upgrades.map((upgrade) => this.captureCardState(upgrade, player, currentPlayerID));
+            }
+
+            // Capture captured units if present
+            if (card.capturedUnits && card.capturedUnits.length > 0) {
+                cardState.capturedUnits = card.capturedUnits.map((unit) => this.captureCardState(unit, player, currentPlayerID));
+            }
+
+            // Check for flipped state
+            if (card.flipped !== undefined) {
+                cardState.flipped = card.flipped;
+            }
+
+            // check for ownerAndController
+            if (card.ownerAndController !== undefined) {
+                if (card.ownerAndController.id !== currentPlayerID) {
+                    cardState.ownerAndController = opponent;
+                }
+                cardState.ownerAndController = player;
+            }
+            return cardState;
+        } catch (error) {
+            logger.error('Error capturing card state for bug report', {
+                error: { message: error.message, stack: error.stack },
+                cardId: card.id
+            });
+            return card.internalName || 'unknown-card';
         }
     }
 

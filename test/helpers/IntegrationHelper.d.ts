@@ -1,3 +1,4 @@
+type ISerializedGameState = import('../../server/game/Interfaces').ISerializedGameState;
 type PhaseName = import('../../server/game/core/Constants').PhaseName;
 type IBaseCard = import('../../server/game/core/card/BaseCard').IBaseCard;
 type ILeaderCard = import('../../server/game/core/card/propertyMixins/LeaderProperties').ILeaderCard;
@@ -75,25 +76,10 @@ interface PlayerInfo {
     username: string;
 }
 
-interface SwuSetupTestOptions {
-    phase?: string;
-    player1?: SwuPlayerSetupOptions;
-    player2?: SwuPlayerSetupOptions;
+interface SwuSetupTestOptions extends ISerializedGameState {
     autoSingleTarget?: boolean;
     phaseTransitionHandler?: (phase: PhaseName) => void;
     testUndo?: boolean;
-
-    [field: string]: any;
-}
-
-interface SwuPlayerSetupOptions {
-    groundArena?: any[];
-    spaceArena?: any[];
-    hand?: any[];
-    discard?: any[];
-    leader?: any;
-    base?: any;
-    hasInitiative?: boolean;
 
     [field: string]: any;
 }

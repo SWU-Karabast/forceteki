@@ -41,11 +41,12 @@ import type {
 } from './zone/AllArenasZone';
 import type { IInPlayCard } from './card/baseClasses/InPlayCard';
 import type { ICardWithExhaustProperty, IPlayableCard } from './card/baseClasses/PlayableOrDeployableCard';
-import type { Zone } from '../Interfaces';
+import type { IPlayerSerializedState, Zone } from '../Interfaces';
 import type { IGetMatchingCostAdjusterProperties, IRunCostAdjustmentProperties } from './cost/CostInterfaces';
 import type { GameObjectRef } from './GameObjectBase';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
+import { logger } from '../../logger';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -1280,6 +1281,78 @@ export class Player extends GameObject<IPlayerState> {
         }
 
         return summary;
+    }
+
+    /**
+     * Captures a player's current state in readable format
+     * @param player The player string object
+     * @returns A simplified player state representation
+     */
+    public capturePlayerState(player: string): IPlayerSerializedState {
+        const state: IPlayerSerializedState = {};
+        try {
+            // Hand cards
+            if (this.handZone && this.handZone.cards && this.handZone.cards.length > 0) {
+                state.hand = this.handZone.cards.map((card) => card.internalName);
+            }
+
+            // Ground arena units
+            if (this.game && this.game.groundArena) {
+                const groundArenaCards = this.game.groundArena.getCards({ controller: this });
+                if (groundArenaCards && groundArenaCards.length > 0) {
+                    state.groundArena = groundArenaCards
+                        .filter((card) => !card.isLeaderUnit() && card.captureCardState(card, player, this.id) !== null)
+                        .map((card) => card.captureCardState(card, player, this.id));
+                }
+            }
+
+            // Space arena units
+            if (this.game && this.game.spaceArena) {
+                const spaceArenaCards = this.game.spaceArena.getCards({ controller: this });
+                if (spaceArenaCards && spaceArenaCards.length > 0) {
+                    state.spaceArena = spaceArenaCards
+                        .filter((card) => !card.isLeaderUnit() && card.captureCardState(card, player, this.id) !== null)
+                        .map((card) => card.captureCardState(card, player, this.id));
+                }
+            }
+
+            // Discard pile
+            if (this.discardZone && this.discardZone.cards && this.discardZone.cards.length > 0) {
+                state.discard = this.discardZone.cards.map((card) => card.internalName);
+            }
+
+            // Deck (top few cards only to avoid excessive data)
+            if (this.deckZone && this.deckZone.cards && this.deckZone.cards.length > 0) {
+                state.deck = this.deckZone.cards.slice(0, 5).map((card) => card.internalName);
+            }
+
+            // Resources
+            if (this.readyResourceCount !== undefined) {
+                state.resources = this.resourceZone.cards.map((card) => card.internalName);
+            }
+
+            // Leader
+            if (this.leader) {
+                state.leader = this.leader.captureCardState(this.leader, player, this.id);
+            }
+
+            // Base
+            if (this.base) {
+                state.base = this.base.captureCardState(this.base, player, this.id);
+            }
+
+            // Initiative
+            if (this.game && this.game.initiativePlayer === this) {
+                state.hasInitiative = true;
+            }
+        } catch (error) {
+            logger.error('Error capturing player state', {
+                error: { message: error.message, stack: error.stack },
+                playerId: this.id
+            });
+        }
+
+        return state;
     }
 
     /** @override */
