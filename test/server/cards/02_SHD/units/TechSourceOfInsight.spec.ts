@@ -96,7 +96,6 @@ describe('Tech, Source of Insight', function () {
             expect(context.player1.exhaustedResourceCount).toBe(6);
         });
 
-
         it('Tech\'s ability should give Smuggle to all cards in the resource zone and handle alternate costs correctly', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -136,6 +135,53 @@ describe('Tech, Source of Insight', function () {
             expect(context.infiltratingDemolisher).toBeInZone('groundArena');
             expect(context.player1.exhaustedResourceCount).toBe(4); // 4 base cost + 2 from smuggle - 2 from exploit 1
             expect(context.player1.resources.length).toBe(7);
+        });
+
+        it('Tech\'s ability should allow to give Smuggle to stolen resources', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'boba-fett#daimyo', deployed: true },
+                    base: 'tarkintown',
+                    groundArena: ['bendu#the-one-in-the-middle', 'death-trooper', 'tech#source-of-insight'],
+                    resources: [
+                        'dj#blatant-thief',
+                        'wampa',
+                        'moment-of-peace',
+                        'battlefield-marine',
+                        'collections-starhopper',
+                        'resilient',
+                        'mercenary-company',
+                        'atst',
+                        'atst',
+                        'atst',
+                        'atst',
+                        'atst',
+                        'atst',
+                        'atst',
+                        'atst',
+                        'atst',
+                    ]
+                },
+                player2: {
+                    resources: ['daring-raid'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.dj);
+            expect(context.daringRaid).toBeInZone('resource', context.player1);
+
+            context.player2.passAction();
+
+            expect(context.player1).toBeAbleToSelect(context.daringRaid);
+
+            context.player1.clickCard(context.daringRaid);
+            context.player1.clickCard(context.p2Base);
+
+            expect(context.daringRaid).toBeInZone('discard', context.player2);
+            expect(context.p2Base.damage).toBe(2);
         });
     });
 });

@@ -224,7 +224,7 @@ export class EventWindow extends BaseStepWithPipeline {
 
         // trigger again here to catch any events for cards that entered play during event resolution
         if (this.triggerHandlingMode !== TriggerHandlingMode.CannotHaveTriggers) {
-            this._triggeredAbilityWindow.emitEvents();
+            this._triggeredAbilityWindow.emitEvents(this.resolvedEvents);
         }
     }
 

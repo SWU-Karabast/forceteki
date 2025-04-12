@@ -50,6 +50,27 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(0);
                 expect(context.hanSolo.exhausted).toBeTrue();
             });
+
+            it('should not be able to play a unit as a Pilot for a discount', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'han-solo#worth-the-risk',
+                        hand: ['anakin-skywalker#ill-try-spinning'],
+                        spaceArena: ['cartel-turncoat']
+                    },
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.');
+                expect(context.player1).toBeAbleToSelectExactly([context.anakinSkywalker]);
+                context.player1.clickCard(context.anakinSkywalker);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.anakinSkywalker).toBeInZone('groundArena');
+                expect(context.anakinSkywalker.damage).toBe(2);
+            });
         });
 
         describe('Han Solo\'s leader deployed ability', function () {
@@ -130,6 +151,27 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.hanSolo.exhausted).toBeTrue();
                 expect(context.hanSolo).not.toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should not be able to play a unit as a Pilot for a discount', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'han-solo#worth-the-risk', deployed: true },
+                        hand: ['anakin-skywalker#ill-try-spinning'],
+                        spaceArena: ['cartel-turncoat']
+                    },
+                });
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hanSolo);
+                context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.');
+                expect(context.player1).toBeAbleToSelectExactly([context.anakinSkywalker]);
+                context.player1.clickCard(context.anakinSkywalker);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.anakinSkywalker).toBeInZone('groundArena');
+                expect(context.anakinSkywalker.damage).toBe(2);
             });
         });
     });

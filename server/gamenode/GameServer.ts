@@ -18,7 +18,10 @@ import { RemoteCardDataGetter } from '../utils/cardData/RemoteCardDataGetter';
 import { DeckValidator } from '../utils/deck/DeckValidator';
 import { SwuGameFormat } from '../SwuGameFormat';
 import type { ISwuDbDecklist } from '../utils/deck/DeckInterfaces';
-import QueueHandler from './QueueHandler';
+import type { QueuedPlayer } from './QueueHandler';
+import { QueueHandler } from './QueueHandler';
+import * as Helpers from '../game/core/utils/Helpers';
+import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 
 /**
  * Represents a user object
@@ -34,15 +37,7 @@ interface User {
 
 interface SocketData {
     manualDisconnect?: boolean;
-}
-
-/**
- * Represents a player waiting in the queue.
- */
-interface IQueuedPlayer {
-    deck: Deck;
-    socket?: Socket;
-    user: User;
+    user?: User;
 }
 
 enum UserRole {
@@ -79,7 +74,7 @@ export class GameServer {
 
     private static buildRemoteCardDataGetter(): Promise<RemoteCardDataGetter> {
         // TODO: move this url to a config
-        return RemoteCardDataGetter.createAsync('https://karabast-assets.s3.amazonaws.com/data/');
+        return RemoteCardDataGetter.createAsync('https://karabast-data.s3.amazonaws.com/data/');
     }
 
     private static getTestGameBuilder() {
@@ -95,12 +90,15 @@ export class GameServer {
     }
 
     private readonly lobbies = new Map<string, Lobby>();
+    private readonly playerMatchmakingDisconnectedTime = new Map<string, Date>();
     private readonly userLobbyMap = new Map<string, ILobbyMapping>();
     private readonly io: IOServer;
     private readonly cardDataGetter: CardDataGetter;
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
+    public bugHandler = new BugReportHandler();
+
     private constructor(
         cardDataGetter: CardDataGetter,
         deckValidator: DeckValidator,
@@ -142,10 +140,14 @@ export class GameServer {
         // Currently for IOSockets we can use DefaultEventsMap but later we can customize these.
         this.io.on('connection', async (socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>) => {
             try {
-                await this.onConnection(socket);
+                await this.onConnectionAsync(socket);
                 socket.on('manualDisconnect', () => {
-                    socket.data.manualDisconnect = true;
-                    socket.disconnect();
+                    try {
+                        socket.data.manualDisconnect = true;
+                        socket.disconnect();
+                    } catch (err) {
+                        logger.error('GameServer: Error in manualDisconnect:', err);
+                    }
                 });
             } catch (err) {
                 logger.error('GameServer: Error in socket connection:', err);
@@ -155,6 +157,9 @@ export class GameServer {
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
+
+        // set up queue heartbeat once a second
+        setInterval(() => this.queue.sendHeartbeat(), 1000);
     }
 
     private setupAppRoutes(app: express.Application) {
@@ -226,11 +231,20 @@ export class GameServer {
 
         app.get('/api/available-lobbies', (_, res, next) => {
             try {
-                const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, lobby]) => ({
-                    id,
-                    name: lobby.name,
-                    format: lobby.format,
-                }));
+                const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, lobby]) => {
+                    const lobbyState = lobby.getLobbyState();
+                    const lobbyOwnerUser = lobby.users.find((user) => user.id === lobbyState.lobbyOwnerId);
+
+                    return {
+                        id,
+                        name: lobby.name,
+                        format: lobby.format,
+                        host: lobbyOwnerUser?.deck ? {
+                            leader: lobbyOwnerUser.deck.leader,
+                            base: lobbyOwnerUser.deck.base
+                        } : null
+                    };
+                });
                 return res.json(availableLobbies);
             } catch (err) {
                 logger.error('GameServer: Error in available-lobbies:', err);
@@ -303,7 +317,7 @@ export class GameServer {
                 await this.processDeckValidation(deck, format, res, () => {
                     const success = this.enterQueue(format, user, deck);
                     if (!success) {
-                        return res.status(400).json({ success: false, message: 'Failed to enter queue' });
+                        return res.status(500).json({ success: false, message: 'Failed to enter queue' });
                     }
                     res.status(200).json({ success: true });
                 });
@@ -324,6 +338,18 @@ export class GameServer {
     }
 
     private canUserJoinNewLobby(userId: string) {
+        // player ditched out of a matchmaking game, make them wait 20s
+        const playerLeftMatchmakingTime = this.playerMatchmakingDisconnectedTime.get(userId);
+        if (playerLeftMatchmakingTime) {
+            const elapsedSeconds = Math.floor((Date.now() - playerLeftMatchmakingTime.getTime()) / 1000);
+            if (elapsedSeconds < 20) {
+                return false;
+            }
+
+            this.playerMatchmakingDisconnectedTime.delete(userId);
+        }
+
+        // check if user is already in a lobby and if their last activity was within 30s, just in case the lobby entry is stale somehow
         const previousLobbyForUser = this.userLobbyMap.get(userId)?.lobbyId;
         if (previousLobbyForUser) {
             const previousRole = this.userLobbyMap.get(userId)?.role;
@@ -331,25 +357,33 @@ export class GameServer {
             if (previousLobby) {
                 const userLastActivity = previousLobby.getLastActivityForUser(userId);
 
-                if (userLastActivity == null) {
-                    return true;
+                if (previousRole === UserRole.Player) {
+                    if (userLastActivity == null) {
+                        return true;
+                    }
+
+                    const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
+                    if (elapsedSeconds < 60) {
+                        return false;
+                    }
                 }
 
-                const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
-
-                if (elapsedSeconds < 60 && previousRole === UserRole.Player) {
-                    return false;
-                }
-
+                this.userLobbyMap.delete(userId);
                 this.removeUserMaybeCleanupLobby(previousLobby, userId);
+            } else {
+                this.userLobbyMap.delete(userId);
             }
+        }
+
+        if (this.queue.findPlayer(userId)) {
+            this.queue.removePlayer(userId, 'User made an API call for creating / joining / queueing');
         }
 
         return true;
     }
 
     public getUserLobbyId(userId: string): string | undefined {
-        return this.userLobbyMap.get(userId).lobbyId;
+        return this.userLobbyMap.get(userId)?.lobbyId;
     }
 
     // method for validating the deck via API
@@ -486,19 +520,29 @@ export class GameServer {
     //     next();
     // }
 
-    public async onConnection(ioSocket) {
-        const user = JSON.parse(ioSocket.handshake.query.user);
-        const requestedLobby = JSON.parse(ioSocket.handshake.query.lobby);
+    public registerDisconnect(socket: Socket, userId: string) {
+        if (socket.eventContainsListener('disconnect')) {
+            socket.removeEventsListeners(['disconnect']);
+        }
+
+        socket.registerEvent('disconnect', () => {
+            this.onSocketDisconnected(socket.socket, userId);
+        });
+    }
+
+    public async onConnectionAsync(ioSocket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>): Promise<void> {
+        const user = JSON.parse(Helpers.getSingleOrThrow(ioSocket.handshake.query.user));
+        const requestedLobby = JSON.parse(Helpers.getSingleOrThrow(ioSocket.handshake.query.lobby));
         const isSpectator = ioSocket.handshake.query.spectator === 'true';
 
         if (user) {
             ioSocket.data.user = user;
         }
 
-        if (!ioSocket.data.user) {
-            logger.info('GameServer: socket connected with no user, disconnecting');
+        if (!ioSocket.data.user || !ioSocket.data.user.id) {
+            logger.warn(`GameServer: socket connected with no user${!!ioSocket.data.user ? ' id' : ''}, disconnecting`);
             ioSocket.disconnect();
-            return;
+            return Promise.resolve();
         }
 
         const lobbyUserEntry = this.userLobbyMap.get(user.id);
@@ -506,50 +550,47 @@ export class GameServer {
         if (isSpectator) {
             // Check if user is registered as a spectator
             if (!lobbyUserEntry || lobbyUserEntry.role !== UserRole.Spectator) {
-                logger.info(`GameServer: User ${user.id} attempted to connect as spectator but is not registered`);
+                logger.warn(`GameServer: User ${user.id} attempted to connect as spectator but is not registered in any lobby, disconnecting`);
                 ioSocket.disconnect();
-                return;
+                return Promise.resolve();
             }
             const lobbyId = this.userLobbyMap.get(user.id).lobbyId;
             const lobby = this.lobbies.get(lobbyId);
 
             if (!lobby || !lobby.hasOngoingGame()) {
-                logger.info(`GameServer: No lobby or ongoing game for spectator ${user.username}, disconnecting`);
+                logger.warn(`GameServer: No lobby or ongoing game for spectator ${user.id}, disconnecting`);
                 this.userLobbyMap.delete(user.id);
                 ioSocket.disconnect();
-                return;
+                return Promise.resolve();
             }
             const socket = new Socket(ioSocket);
-            socket.registerEvent('disconnect', () => {
-                this.onSocketDisconnected(ioSocket, user.id);
-            });
+            this.registerDisconnect(socket, user.id);
             lobby.addSpectator(user, socket);
-            return;
+            return Promise.resolve();
         }
 
         // 1. If user is already in a lobby
         if (lobbyUserEntry) {
             // we check the role if it is correct
             if (lobbyUserEntry.role !== UserRole.Player) {
-                logger.info('GameServer: User ', user, 'tried  to join lobby with '
-                    , lobbyUserEntry.role, 'instead of ', UserRole.Player);
+                logger.warn(`GameServer: User ${user.id} tried to join lobby with ${lobbyUserEntry.role} instead of ${UserRole.Player}, disconnecting`);
                 ioSocket.disconnect();
-                return;
+                return Promise.resolve();
             }
             const lobbyId = lobbyUserEntry.lobbyId;
             const lobby = this.lobbies.get(lobbyId);
 
             if (!lobby) {
                 this.userLobbyMap.delete(user.id);
-                logger.info('GameServer: No lobby for', ioSocket.data.user.username, 'disconnecting');
+                logger.warn(`GameServer: Found no lobby for user ${user.id}, disconnecting`);
                 ioSocket.emit('connection_error', 'Lobby does not exist');
                 ioSocket.disconnect();
-                return;
+                return Promise.resolve();
             }
 
             // there can be a race condition where two users hit `join-lobby` at the same time, so we need to check if the lobby is filled already
             if (lobby.isFilled() && !lobby.hasPlayer(user.id)) {
-                logger.info('GameServer: Lobby is full for user', user.username, 'disconnecting');
+                logger.warn(`GameServer: Lobby is full for user ${user.id}, disconnecting`);
                 ioSocket.emit('connection_error', 'Lobby is full');
                 this.userLobbyMap.delete(user.id);
                 return;
@@ -559,7 +600,7 @@ export class GameServer {
             const socket = new Socket(ioSocket);
 
             try {
-                lobby.addLobbyUser(user, socket);
+                await lobby.addLobbyUserAsync(user, socket);
             } catch (err) {
                 this.userLobbyMap.delete(user.id);
                 ioSocket.emit('connection_error', 'Error connecting to lobby');
@@ -577,85 +618,80 @@ export class GameServer {
                     socket.registerEvent('requeue', () => this.requeueUser(socket, lobby.format, user, lobbyUser.deck.getDecklist()));
                 }
             }
-            socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
-            return;
+
+            this.registerDisconnect(socket, user.id);
+            return Promise.resolve();
         }
 
         // 2. If user connected to the lobby via a link.
-        if (requestedLobby.lobbyId) {
+        if (requestedLobby?.lobbyId) {
             const lobby = this.lobbies.get(requestedLobby.lobbyId);
             if (!lobby) {
-                logger.info('GameServer: No lobby with this link for', ioSocket.data.user.username, 'disconnecting');
+                logger.warn(`GameServer: No lobby with this link for user ${user.id}, disconnecting`);
                 ioSocket.disconnect();
-                return;
+                return Promise.resolve();
             }
 
             // check if the lobby is full
             if (lobby.isFilled() || lobby.hasOngoingGame()) {
-                logger.info('GameServer: Requested lobby', requestedLobby.lobbyId, 'is full or already in game, disconnecting');
+                logger.warn(`GameServer: Requested lobby ${requestedLobby.lobbyId} is full or already in game, disconnecting user ${user.id}`);
                 ioSocket.disconnect();
-                return;
+                return Promise.resolve();
             }
 
             const socket = new Socket(ioSocket);
 
             // check if user is already in a lobby
             if (!this.canUserJoinNewLobby(user.id)) {
-                logger.info('GameServer: User ', user, 'is already in a different lobby, disconnecting');
+                logger.warn(`GameServer: User ${user.id} is already in a different lobby, disconnecting`);
                 ioSocket.disconnect();
-                return;
+                return Promise.resolve();
             }
             // anonymous user joining existing game
             if (!user.username) {
                 const newUser = { username: 'Player2', id: user.id };
-                lobby.addLobbyUser(newUser, socket);
+                await lobby.addLobbyUserAsync(newUser, socket);
                 this.userLobbyMap.set(newUser.id, { lobbyId: lobby.id, role: UserRole.Player });
-                socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
-                return;
+                this.registerDisconnect(socket, user.id);
+                return Promise.resolve();
             }
 
-            lobby.addLobbyUser(user, socket);
+            await lobby.addLobbyUserAsync(user, socket);
             this.userLobbyMap.set(user.id, { lobbyId: lobby.id, role: UserRole.Player });
-            socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
-            return;
+            this.registerDisconnect(socket, user.id);
+            return Promise.resolve();
         }
 
         // 3. if they are not in the lobby they could be in a queue
-        const queuedPlayer = this.queue.findPlayerInQueue(user.id);
-        if (queuedPlayer) {
-            queuedPlayer.socket = new Socket(ioSocket);
+        const queueEntry = this.queue.findPlayer(user.id);
+        if (queueEntry) {
+            const queuedPlayer = queueEntry.player;
 
-            // we check here if user is already in a lobby just in case
-            if (lobbyUserEntry) {
-                logger.info('GameServer: Queued User ', queuedPlayer, 'is already in a different lobby, disconnecting');
-                ioSocket.disconnect();
-                return;
-            }
+            const socket = new Socket(ioSocket);
+
+            queuedPlayer.socket = socket;
 
             // handle queue-specific events and add lobby disconnect
-            queuedPlayer.socket.registerEvent('disconnect', () => this.onSocketDisconnected(ioSocket, user.id));
+            queuedPlayer.socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket, queueEntry.player));
 
-            await this.matchmakeAllQueues();
-            return;
+            this.queue.connectPlayer(user.id, queuedPlayer.socket);
+
+            return this.matchmakeAllQueuesAsync();
         }
 
         // A user should not get here
-        ioSocket.emit('connection_error', 'Error connecting to lobby/game');
+        ioSocket.emit('connection_error', 'Connection error, please try again');
         ioSocket.disconnect();
         // this can happen when someone tries to reconnect to the game but are out of the mapping TODO make a notification for the player
-        logger.info(`GameServer: Error state when connecting to lobby/game ${user.id} disconnecting`);
+        logger.error(`GameServer: Error state when connecting to lobby/game, ${user.id} disconnecting`);
+
+        return Promise.resolve();
     }
 
     /**
      * Put a user into the queue array. They always start with a null socket.
      */
     private enterQueue(format: SwuGameFormat, user: any, deck: any): boolean {
-        // Quick check: if they're already in a lobby, no queue
-        if (this.userLobbyMap.has(user.id)) {
-            logger.info(`GameServer: User ${user.id} already in a lobby, ignoring queue request.`);
-            return false;
-        }
-
         this.queue.addPlayer(
             format,
             {
@@ -664,28 +700,52 @@ export class GameServer {
                 socket: null
             }
         );
+
         return true;
     }
 
-    private matchmakeAllQueues() {
+    private async matchmakeAllQueuesAsync(): Promise<void> {
         const formatsWithMatches = this.queue.findReadyFormats();
 
         for (const format of formatsWithMatches) {
-            while (true) {
-                const matchedPlayers = this.queue.getNextMatchPair(format);
-                if (!matchedPlayers) {
-                    break;
-                }
+            // track exceptions to avoid getting stuck in a loop
+            let exceptionCount = 0;
 
-                this.matchmakeQueuePlayers(format, matchedPlayers);
+            while (true) {
+                let matchedPlayers: [QueuedPlayer, QueuedPlayer];
+
+                // try-catch here so that all matchmaking doesn't halt on a single failure
+                try {
+                    matchedPlayers = this.queue.getNextMatchPair(format);
+                    if (!matchedPlayers) {
+                        break;
+                    }
+
+                    await this.matchmakeQueuePlayersAsync(format, matchedPlayers);
+                } catch (error) {
+                    logger.error(
+                        `GameServer: Error matchmaking players ${matchedPlayers?.map((p) => p?.user?.id).join(', ')} for format ${format}`,
+                        { error: { message: error.message, stack: error.stack } }
+                    );
+
+                    exceptionCount++;
+
+                    if (exceptionCount > 10) {
+                        // TODO: should we flush the queue here?
+                        logger.error(`GameServer: Too many exceptions in matchmaking for format ${format}, moving to next queue`);
+                        break;
+                    }
+                }
             }
         }
+
+        return Promise.resolve();
     }
 
     /**
      * Matchmake two users in a queue
      */
-    private matchmakeQueuePlayers(format: SwuGameFormat, [p1, p2]: [IQueuedPlayer, IQueuedPlayer]): void {
+    private async matchmakeQueuePlayersAsync(format: SwuGameFormat, [p1, p2]: [QueuedPlayer, QueuedPlayer]): Promise<void> {
         Contract.assertFalse(p1.user.id === p2.user.id, 'Cannot matchmake the same user');
         // Create a new Lobby
         const lobby = new Lobby(
@@ -694,72 +754,69 @@ export class GameServer {
             format,
             this.cardDataGetter,
             this.deckValidator,
-            this,
-            this.testGameBuilder
+            this
         );
+
         this.lobbies.set(lobby.id, lobby);
 
         // Create the 2 lobby users
         lobby.createLobbyUser(p1.user, p1.deck);
         lobby.createLobbyUser(p2.user, p2.deck);
 
-        // Attach their sockets to the lobby (if they exist)
-        const socket1 = p1.socket ? p1.socket : null;
-        const socket2 = p2.socket ? p2.socket : null;
-        if (socket1) {
-            lobby.addLobbyUser(p1.user, socket1);
-            socket1.registerEvent('disconnect', () => this.onSocketDisconnected(socket1.socket, p1.user.id));
-            if (!socket1.eventContainsListener('requeue')) {
-                socket1.registerEvent('requeue', () => this.requeueUser(socket1, format, p1.user, p1.deck));
-            }
-        }
-        if (socket2) {
-            lobby.addLobbyUser(p2.user, socket2);
-            socket2.registerEvent('disconnect', () => this.onSocketDisconnected(socket2.socket, p2.user.id));
-            if (!socket2.eventContainsListener('requeue')) {
-                socket2.registerEvent('requeue', () => this.requeueUser(socket2, format, p2.user, p2.deck));
-            }
-        }
-
         // Save user => lobby mapping
         this.userLobbyMap.set(p1.user.id, { lobbyId: lobby.id, role: UserRole.Player });
         this.userLobbyMap.set(p2.user.id, { lobbyId: lobby.id, role: UserRole.Player });
 
-        // If needed, set tokens async
-        lobby.setLobbyOwner(p1.user.id);
+        // Attach their sockets to the lobby (if they exist)
+        await this.setupQueueSocketAsync(p1, lobby, format);
+        await this.setupQueueSocketAsync(p2, lobby, format);
+
         // this needs to be here since we only send start game via the LobbyOwner.
+        lobby.setLobbyOwner(p1.user.id);
         lobby.sendLobbyState();
+
         logger.info(`GameServer: Matched players ${p1.user.username} and ${p2.user.username} in lobby ${lobby.id}.`);
+
+        return Promise.resolve();
+    }
+
+    private async setupQueueSocketAsync(player: QueuedPlayer, lobby: Lobby, format: SwuGameFormat): Promise<void> {
+        const socket = player?.socket;
+        if (!socket) {
+            return Promise.resolve();
+        }
+
+        await lobby.addLobbyUserAsync(player.user, socket);
+        socket.registerEvent('disconnect', () => this.onQueueSocketDisconnected(socket.socket, player));
+
+        if (!socket.eventContainsListener('requeue')) {
+            socket.registerEvent('requeue', () => this.requeueUser(socket, format, player.user, player.deck));
+        }
+
+        return Promise.resolve();
     }
 
     /**
-     * requeues the user and removes him from the previous lobby. If the lobby is empty, it cleans it up.
+     * requeues the user and removes them from the previous lobby. If the lobby is empty, it cleans it up.
      */
-    private async requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: any) {
-        if (this.userLobbyMap.has(user.id)) {
-            const lobbyId = this.userLobbyMap.get(user.id).lobbyId;
-            const lobby = this.lobbies.get(lobbyId);
-            this.userLobbyMap.delete(user.id);
-            lobby.removeUser(user.id);
-            // check if lobby is empty
-            if (lobby.isEmpty()) {
-                // cleanup process
-                lobby.cleanLobby();
-                this.lobbies.delete(lobbyId);
-            }
-        }
-        // add user to queue
-        this.queue.addPlayer(
-            format,
-            {
-                user,
-                deck,
-                socket: socket
-            }
-        );
+    public requeueUser(socket: Socket, format: SwuGameFormat, user: User, deck: any) {
+        try {
+            const userLobbyMapEntry = this.userLobbyMap.get(user.id);
+            if (userLobbyMapEntry) {
+                const lobbyId = userLobbyMapEntry.lobbyId;
+                this.userLobbyMap.delete(user.id);
 
-        // perform matchmaking
-        await this.matchmakeAllQueues();
+                const lobby = this.lobbies.get(lobbyId);
+                this.removeUserMaybeCleanupLobby(lobby, user.id);
+            }
+
+            // add user to queue
+            this.queue.addPlayer(format, { user, deck, socket });
+
+            this.matchmakeAllQueuesAsync();
+        } catch (err) {
+            logger.error('GameServer: Error in requeueUser:', err);
+        }
     }
 
     private removeUserMaybeCleanupLobby(lobby: Lobby | null, userId: string) {
@@ -768,12 +825,12 @@ export class GameServer {
         // Check if lobby is empty
         if (lobby?.isEmpty()) {
             // Start the cleanup process
-            lobby?.cleanLobby();
-            this.lobbies.delete(lobby?.id);
+            lobby.cleanLobby();
+            this.lobbies.delete(lobby.id);
         }
     }
 
-    public removeLobby(lobby: Lobby, errorMessage: string) {
+    public removeLobby(lobby: Lobby, errorMessage?: string) {
         this.lobbies.delete(lobby.id);
 
         for (const user of lobby.users) {
@@ -784,38 +841,67 @@ export class GameServer {
         lobby.cleanLobby();
     }
 
-    public onSocketDisconnected(socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>, id: string) {
+    public onQueueSocketDisconnected(
+        socket: Socket,
+        player: QueuedPlayer
+    ) {
+        this.onSocketDisconnected(socket.socket, player.user.id, 3, true);
+    }
+
+    public onSocketDisconnected(
+        socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>,
+        id: string,
+        timeoutSeconds = 20,
+        isMatchmaking = false
+    ) {
         try {
             const lobbyEntry = this.userLobbyMap.get(id);
-            if (!lobbyEntry) {
-                this.queue.removePlayer(id);
+            let lobby = null;
+
+            if (lobbyEntry) {
+                const lobbyId = lobbyEntry.lobbyId;
+                lobby = this.lobbies.get(lobbyId);
+            } else if (!isMatchmaking) {
                 return;
             }
-            const lobbyId = lobbyEntry.lobbyId;
-            const lobby = this.lobbies.get(lobbyId);
 
             const wasManualDisconnect = !!socket?.data?.manualDisconnect;
             if (wasManualDisconnect) {
+                this.queue.removePlayer(id, 'Manual disconnect');
                 this.userLobbyMap.delete(id);
                 this.removeUserMaybeCleanupLobby(lobby, id);
                 return;
             }
-            // TODO perhaps add a timeout for lobbies so they clean themselves up if somehow they become empty
-            //  without triggering onSocketDisconnect
+
             lobby?.setUserDisconnected(id);
+            this.queue.disconnectPlayer(id);
+
+            const timeoutValue = timeoutSeconds * 1000;
+
             setTimeout(() => {
                 try {
+                    if (isMatchmaking && !this.queue.isConnected(id)) {
+                        this.queue.removePlayer(id, 'Timeout disconnect');
+                    }
+
                     // Check if the user is still disconnected after the timer
                     if (lobby?.getUserState(id) === 'disconnected') {
                         this.userLobbyMap.delete(id);
-                        this.removeUserMaybeCleanupLobby(lobby, id);
+
+                        if (isMatchmaking) {
+                            lobby.removeUser(id);
+                            this.playerMatchmakingDisconnectedTime.set(id, new Date());
+                            lobby.handleMatchmakingDisconnect();
+                        } else {
+                            this.removeUserMaybeCleanupLobby(lobby, id);
+                        }
                     }
                 } catch (err) {
-                    logger.error('Error in setTimeout for onSocketDisconnected:', err);
+                    logger.error('GameServer: Error in setTimeout for onSocketDisconnected:', err);
                 }
-            }, 20000);
+            }, timeoutValue);
         } catch (err) {
-            logger.error('Error in onSocketDisconnected:', err);
+            logger.error('GameServer: Error in onSocketDisconnected:', err);
         }
     }
 }

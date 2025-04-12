@@ -14,8 +14,8 @@ export default class GeneralRieekanDefensiveStrategist extends NonLeaderUnitCard
         this.addTriggeredAbility({
             title: 'Choose a friendly unit. If it has Sentinel, give an Experience token to it. Otherwise, it gains Sentinel for this phase',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
-                onCardPlayed: (event, context) => event.card === context.source
+                onAttack: true,
+                whenPlayed: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

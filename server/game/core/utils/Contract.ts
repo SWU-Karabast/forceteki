@@ -1,5 +1,4 @@
 
-import assert from 'assert';
 
 export enum AssertMode {
     Assert,
@@ -20,7 +19,7 @@ class AssertContractCheckImpl implements IContractCheckImpl {
         }
 
         if (process.env.ENVIRONMENT === 'development') {
-            assert.fail(`Contract assertion failure: ${message}`);
+            throw new Error(`Contract assertion failure: ${message}`);
         } else {
             throw new Error(`Contract assertion failure: ${message}`);
         }
@@ -54,9 +53,9 @@ export function assertNotEqual<T>(val1: T, val2: T, message?: string) {
     }
 }
 
-export function assertNotNullLike<T>(val: T, message?: string): asserts val is NonNullable<T> {
+export function assertNotNullLike<T>(val: T, message?: string | (() => string)): asserts val is NonNullable<T> {
     if (val == null) {
-        contractCheckImpl.fail(message ?? `Null-like object value: ${val}`);
+        contractCheckImpl.fail(message ? (typeof message === 'function' ? message() : message) : `Null-like object value: ${val}`);
     }
 }
 

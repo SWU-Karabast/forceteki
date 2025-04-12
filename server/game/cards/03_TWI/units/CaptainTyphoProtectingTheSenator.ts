@@ -15,8 +15,8 @@ export default class CaptainTyphoProtectingTheSenator extends NonLeaderUnitCard 
             title: 'Give a unit Sentinel for this phase',
             optional: false,
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
-                onCardPlayed: (event, context) => event.card === context.source
+                onAttack: true,
+                whenPlayed: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

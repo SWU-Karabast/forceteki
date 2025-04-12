@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class AllianceDispatcher extends NonLeaderUnitCard {
@@ -20,7 +20,8 @@ export default class AllianceDispatcher extends NonLeaderUnitCard {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
+                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
+                    playAsType: WildcardCardType.Unit
                 })
             }
         });

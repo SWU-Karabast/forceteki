@@ -1,4 +1,4 @@
-import { AbilityRestriction, ZoneName, PlayType, RelativePlayer } from '../core/Constants.js';
+import { AbilityRestriction, PlayType, RelativePlayer, ZoneName } from '../core/Constants.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability/PlayCardAction.js';
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
@@ -18,7 +18,7 @@ export class PlayEventAction extends PlayCardAction {
             this.copyContextTargets(context, abilityContext);
         }
 
-        context.game.queueStep(new AbilityResolver(context.game, abilityContext, false, null, this.earlyTargetResults));
+        context.game.queueStep(new AbilityResolver(context.game, abilityContext, false, null, this.earlyTargetResults, ['player']));
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {

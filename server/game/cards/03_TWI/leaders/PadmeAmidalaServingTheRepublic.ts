@@ -26,7 +26,7 @@ export default class PadmeAmidalaServingTheRepublic extends LeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Search the top 3 cards of your deck for a Republic card, reveal it, and draw it',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             immediateEffect: this.buildCoordinateAbilityEffect(),
         });

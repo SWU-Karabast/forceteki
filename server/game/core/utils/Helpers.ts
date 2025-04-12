@@ -99,6 +99,19 @@ export function asArray<T>(val: T | T[]): T[] {
     return Array.isArray(val) ? val : [val];
 }
 
+export const isDevelopment = () => process.env.ENVIRONMENT === 'development';
+
+export function getSingleOrThrow<T>(val: T | T[]): T {
+    Contract.assertNotNullLike(val);
+
+    if (!Array.isArray(val)) {
+        return val;
+    }
+
+    Contract.assertArraySize(val, 1);
+    return val[0];
+}
+
 export function getRandomArrayElements(array: any[], nValues: number, randomGenerator: seedrandom) {
     Contract.assertTrue(nValues <= array.length, `Attempting to retrieve ${nValues} random elements from an array of length ${array.length}`);
 
@@ -241,4 +254,30 @@ function mergeProperty<TPropertySet extends { [key in TPropName]?: TMergePropert
     return { ...propertySet, [newPropName]: mergeFn(oldPropValue, newPropValue) };
 }
 
+export function objectForEach<T extends Record<any, any>, TK extends Extract<keyof T, string> = Extract<keyof T, string>>(obj: T, fcn: (prop: TK, value?: T[TK]) => void) {
+    for (const prop in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+            fcn(prop as TK, obj[prop] as T[TK]);
+        }
+    }
+}
+
 export type DistributiveOmit<T, K extends keyof T> = T extends any ? Omit<T, K> : never;
+
+export function equalArrays<T>(first: T[], second: T[]): boolean {
+    if (first === second) {
+        return true;
+    }
+
+    if (first.length !== second.length) {
+        return false;
+    }
+
+    for (let i = 0; i < first.length; i++) {
+        if (first[i] !== second[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}

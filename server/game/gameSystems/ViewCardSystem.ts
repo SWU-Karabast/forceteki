@@ -70,7 +70,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         }
     }
 
-    protected abstract getChatMessage(useDisplayPrompt: boolean): string;
+    protected abstract getChatMessage(useDisplayPrompt: boolean, context: TContext, additionalProperties: any): string;
     protected abstract getPromptedPlayer(properties: IViewCardProperties, context: TContext): Player;
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
@@ -102,7 +102,7 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         Contract.assertFalse(!useDisplayPrompt && properties.interactMode !== ViewCardInteractMode.ViewOnly, 'Cannot disable display prompt for non-basic view card prompts');
 
         event.cards = cards;
-        event.message = this.getChatMessage(useDisplayPrompt);
+        event.message = this.getChatMessage(useDisplayPrompt, context, additionalProperties);
         event.messageArgs = this.getMessageArgs(event, context, additionalProperties);
         event.displayTextByCardUuid = properties.displayTextByCardUuid;
         event.promptHandler = useDisplayPrompt ? this.buildPromptHandler(cards, properties, context) : null;

@@ -16,7 +16,7 @@ export default class DarthVaderScourgeOfSquadrons extends NonLeaderUnitCard {
             title: 'Deal 1 damage to a unit',
             optional: true,
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

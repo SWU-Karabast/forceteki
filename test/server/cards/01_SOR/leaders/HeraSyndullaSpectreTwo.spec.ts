@@ -1,8 +1,8 @@
 describe('Hera Syndulla, Spectre Two', function() {
     integration(function(contextRef) {
         describe('Hera\'s undeployed ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('ignores aspect penalties for Spectre unit and event', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['sabine-wren#explosives-artist', 'wampa', 'karabast'],
@@ -17,10 +17,9 @@ describe('Hera Syndulla, Spectre Two', function() {
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
                 });
-            });
 
-            it('ignores aspect penalties for Spectre unit and event', function () {
                 const { context } = contextRef;
+
                 context.player1.clickCard(context.sabineWren);
                 expect(context.player1.exhaustedResourceCount).toBe(2);
 
@@ -39,7 +38,27 @@ describe('Hera Syndulla, Spectre Two', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(10);
             });
 
-            // TODO: Add an upgrade test if a Spectre upgrade is ever printed
+            it('ignores aspect penalties for Spectre pilot upgrade', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['hera-syndulla#weve-lost-enough'],
+                        spaceArena: ['concord-dawn-interceptors'],
+                        leader: 'hera-syndulla#spectre-two',
+                        base: 'echo-base'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.heraSyndullaWeveLostEnough);
+                context.player1.clickPrompt('Play Hera Syndulla with Piloting');
+                expect(context.player1).toBeAbleToSelectExactly([context.concordDawnInterceptors]);
+                context.player1.clickCard(context.concordDawnInterceptors);
+
+                expect(context.heraSyndullaWeveLostEnough).toBeAttachedTo(context.concordDawnInterceptors);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+            });
         });
 
         describe('Hera\'s undeployed ability', function() {

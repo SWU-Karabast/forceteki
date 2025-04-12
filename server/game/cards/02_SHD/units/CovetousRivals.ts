@@ -14,8 +14,8 @@ export default class CovetousRivals extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Deal 2 damage to a unit with a Bounty',
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source,
-                onCardPlayed: (event, context) => event.card === context.source
+                onAttack: true,
+                whenPlayed: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

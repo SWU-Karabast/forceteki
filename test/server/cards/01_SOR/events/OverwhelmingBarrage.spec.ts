@@ -27,7 +27,6 @@ describe('Overwhelming Barrage', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine, context.leiaOrgana]);
                 context.player1.clickCard(context.wampa);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.leiaOrgana, context.atst, context.tielnFighter, context.hanSolo]);
-                expect(context.player1).toHaveChooseNothingButton();
                 context.player1.setDistributeDamagePromptState(new Map([
                     [context.atst, 2],
                     [context.battlefieldMarine, 2],
@@ -78,7 +77,7 @@ describe('Overwhelming Barrage', function() {
                 context.player1.clickCard(context.overwhelmingBarrage);
                 context.player1.clickCard(context.wampa);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.leiaOrgana, context.atst, context.tielnFighter, context.hanSolo]);
-                context.player1.clickPrompt('Choose no targets');
+                context.player1.setDistributeDamagePromptState(new Map([]));
 
                 expect(context.leiaOrgana.damage).toBe(0);
                 expect(context.wampa.damage).toBe(0);
@@ -121,7 +120,7 @@ describe('Overwhelming Barrage', function() {
 
                 context.player1.clickCard(context.overwhelmingBarrage);
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
-                context.player1.clickPrompt('Choose no targets');
+                context.player1.setDistributeDamagePromptState(new Map([]));
             });
         });
     });

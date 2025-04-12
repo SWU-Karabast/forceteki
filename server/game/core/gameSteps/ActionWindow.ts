@@ -91,7 +91,7 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override activePrompt(player: Player): IPlayerPromptStateProperties {
-        const { mustTakeCardAction } = this.getSelectableCards();
+        const { mustTakeCardAction, overrideActionPromptTitle } = this.getSelectableCards();
 
         const buttons: IButton[] = [
             { text: 'Pass', arg: 'pass', disabled: mustTakeCardAction },
@@ -103,7 +103,7 @@ export class ActionWindow extends UiPrompt {
             buttons.unshift({ text: 'Manual Action', arg: 'manual', disabled: mustTakeCardAction });
         }
         return {
-            menuTitle: 'Choose an action',
+            menuTitle: overrideActionPromptTitle ?? 'Choose an action',
             buttons: buttons,
             promptTitle: this.title,
             promptUuid: this.uuid,
@@ -205,12 +205,14 @@ export class ActionWindow extends UiPrompt {
             this.activePlayer.baseZone.cards
         );
 
+        let overrideActionPromptTitle: string | undefined;
         let mustTakeCardAction = false;
         const cardsWithLegalActions: Card[] = [];
         for (const card of allPossibleCards) {
             const legalActions = this.getCardLegalActions(card, this.activePlayer);
             if (card.hasOngoingEffect(EffectName.MustAttack) && legalActions.some((action) => action.isAttackAction())) {
                 mustTakeCardAction = true;
+                overrideActionPromptTitle = `You must attack with ${card.title} because of ${card.getOngoingEffectSources(EffectName.MustAttack)[0].title}`;
                 cardsWithLegalActions.splice(0, cardsWithLegalActions.length, card);
                 break;
             } else if (legalActions.length > 0) {
@@ -218,7 +220,7 @@ export class ActionWindow extends UiPrompt {
             }
         }
 
-        return { cardsWithLegalActions, mustTakeCardAction };
+        return { cardsWithLegalActions, mustTakeCardAction, overrideActionPromptTitle };
     }
 
     // IMPORTANT: the below code is referenced in the debugging guide (docs/debugging-guide.md). If you make changes here, make sure to update that document as well.

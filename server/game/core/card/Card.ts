@@ -121,6 +121,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected actionAbilities: ActionAbility[] = [];
     protected constantAbilities: IConstantAbility[] = [];
     protected disableWhenDefeatedCheck = false;
+    protected disableOnAttackCheck = false;
+    protected disableWhenPlayedCheck = false;
+    protected disableWhenPlayedUsingSmuggleCheck = false;
     protected triggeredAbilities: TriggeredAbility[] = [];
 
     protected get hiddenForController() {
@@ -402,7 +405,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected validateCardAbilities(cardText: string) {
+    protected validateCardAbilities(abilities: TriggeredAbility[], cardText?: string) {
     }
 
     // ******************************************* ABILITY HELPERS *******************************************
@@ -961,7 +964,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return (
             this.unique &&
             this.game.allCards.some(
-                (card) =>
+                (card: any) =>
                     card.isInPlay() &&
                     card.title === this.title &&
                     card !== this &&
@@ -975,7 +978,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return (
             this.unique &&
             this.game.allCards.some(
-                (card) =>
+                (card: any) =>
                     card.isInPlay() &&
                     card.title === this.title &&
                     card !== this &&
