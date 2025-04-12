@@ -161,6 +161,8 @@ export class GameServer {
         this.bugReportHandler = new BugReportHandler();
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 1000);
+
+        logger.info(`discord webhook url: ${process.env.DISCORD_BUG_REPORT_WEBHOOK_URL}`);
     }
 
     private setupAppRoutes(app: express.Application) {
@@ -232,11 +234,20 @@ export class GameServer {
 
         app.get('/api/available-lobbies', (_, res, next) => {
             try {
-                const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, lobby]) => ({
-                    id,
-                    name: lobby.name,
-                    format: lobby.format,
-                }));
+                const availableLobbies = Array.from(this.lobbiesWithOpenSeat().entries()).map(([id, lobby]) => {
+                    const lobbyState = lobby.getLobbyState();
+                    const lobbyOwnerUser = lobby.users.find((user) => user.id === lobbyState.lobbyOwnerId);
+
+                    return {
+                        id,
+                        name: lobby.name,
+                        format: lobby.format,
+                        host: lobbyOwnerUser?.deck ? {
+                            leader: lobbyOwnerUser.deck.leader,
+                            base: lobbyOwnerUser.deck.base
+                        } : null
+                    };
+                });
                 return res.json(availableLobbies);
             } catch (err) {
                 logger.error('GameServer: Error in available-lobbies:', err);
@@ -362,11 +373,13 @@ export class GameServer {
 
                 this.userLobbyMap.delete(userId);
                 this.removeUserMaybeCleanupLobby(previousLobby, userId);
+            } else {
+                this.userLobbyMap.delete(userId);
             }
         }
 
         if (this.queue.findPlayer(userId)) {
-            this.queue.removePlayer(userId, 'User joined a lobby');
+            this.queue.removePlayer(userId, 'User made an API call for creating / joining / queueing');
         }
 
         return true;
@@ -530,7 +543,7 @@ export class GameServer {
         }
 
         if (!ioSocket.data.user || !ioSocket.data.user.id) {
-            logger.info(`GameServer: socket connected with no user${!!ioSocket.data.user ? ' id' : ''}, disconnecting`);
+            logger.warn(`GameServer: socket connected with no user${!!ioSocket.data.user ? ' id' : ''}, disconnecting`);
             ioSocket.disconnect();
             return Promise.resolve();
         }
@@ -540,7 +553,7 @@ export class GameServer {
         if (isSpectator) {
             // Check if user is registered as a spectator
             if (!lobbyUserEntry || lobbyUserEntry.role !== UserRole.Spectator) {
-                logger.info(`GameServer: User ${user.id} attempted to connect as spectator but is not registered in any lobby, disconnecting`);
+                logger.warn(`GameServer: User ${user.id} attempted to connect as spectator but is not registered in any lobby, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
@@ -548,7 +561,7 @@ export class GameServer {
             const lobby = this.lobbies.get(lobbyId);
 
             if (!lobby || !lobby.hasOngoingGame()) {
-                logger.info(`GameServer: No lobby or ongoing game for spectator ${user.id}, disconnecting`);
+                logger.warn(`GameServer: No lobby or ongoing game for spectator ${user.id}, disconnecting`);
                 this.userLobbyMap.delete(user.id);
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -563,7 +576,7 @@ export class GameServer {
         if (lobbyUserEntry) {
             // we check the role if it is correct
             if (lobbyUserEntry.role !== UserRole.Player) {
-                logger.info(`GameServer: User ${user.id} tried to join lobby with ${lobbyUserEntry.role} instead of ${UserRole.Player}, disconnecting`);
+                logger.warn(`GameServer: User ${user.id} tried to join lobby with ${lobbyUserEntry.role} instead of ${UserRole.Player}, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
@@ -572,7 +585,7 @@ export class GameServer {
 
             if (!lobby) {
                 this.userLobbyMap.delete(user.id);
-                logger.info(`GameServer: Found no lobby for user ${user.id}, disconnecting`);
+                logger.warn(`GameServer: Found no lobby for user ${user.id}, disconnecting`);
                 ioSocket.emit('connection_error', 'Lobby does not exist');
                 ioSocket.disconnect();
                 return Promise.resolve();
@@ -580,7 +593,7 @@ export class GameServer {
 
             // there can be a race condition where two users hit `join-lobby` at the same time, so we need to check if the lobby is filled already
             if (lobby.isFilled() && !lobby.hasPlayer(user.id)) {
-                logger.info(`GameServer: Lobby is full for user ${user.id}, disconnecting`);
+                logger.warn(`GameServer: Lobby is full for user ${user.id}, disconnecting`);
                 ioSocket.emit('connection_error', 'Lobby is full');
                 this.userLobbyMap.delete(user.id);
                 return;
@@ -617,14 +630,14 @@ export class GameServer {
         if (requestedLobby?.lobbyId) {
             const lobby = this.lobbies.get(requestedLobby.lobbyId);
             if (!lobby) {
-                logger.info(`GameServer: No lobby with this link for user ${user.id}, disconnecting`);
+                logger.warn(`GameServer: No lobby with this link for user ${user.id}, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
 
             // check if the lobby is full
             if (lobby.isFilled() || lobby.hasOngoingGame()) {
-                logger.info(`GameServer: Requested lobby ${requestedLobby.lobbyId} is full or already in game, disconnecting user ${user.id}`);
+                logger.warn(`GameServer: Requested lobby ${requestedLobby.lobbyId} is full or already in game, disconnecting user ${user.id}`);
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
@@ -633,7 +646,7 @@ export class GameServer {
 
             // check if user is already in a lobby
             if (!this.canUserJoinNewLobby(user.id)) {
-                logger.info(`GameServer: User ${user.id} is already in a different lobby, disconnecting`);
+                logger.warn(`GameServer: User ${user.id} is already in a different lobby, disconnecting`);
                 ioSocket.disconnect();
                 return Promise.resolve();
             }
@@ -673,7 +686,7 @@ export class GameServer {
         ioSocket.emit('connection_error', 'Connection error, please try again');
         ioSocket.disconnect();
         // this can happen when someone tries to reconnect to the game but are out of the mapping TODO make a notification for the player
-        logger.info(`GameServer: Error state when connecting to lobby/game, ${user.id} disconnecting`);
+        logger.error(`GameServer: Error state when connecting to lobby/game, ${user.id} disconnecting`);
 
         return Promise.resolve();
     }
@@ -714,7 +727,7 @@ export class GameServer {
                     await this.matchmakeQueuePlayersAsync(format, matchedPlayers);
                 } catch (error) {
                     logger.error(
-                        `Error matchmaking players ${matchedPlayers?.map((p) => p?.user?.id).join(', ')} for format ${format}`,
+                        `GameServer: Error matchmaking players ${matchedPlayers?.map((p) => p?.user?.id).join(', ')} for format ${format}`,
                         { error: { message: error.message, stack: error.stack } }
                     );
 
@@ -887,11 +900,11 @@ export class GameServer {
                         }
                     }
                 } catch (err) {
-                    logger.error('Error in setTimeout for onSocketDisconnected:', err);
+                    logger.error('GameServer: Error in setTimeout for onSocketDisconnected:', err);
                 }
             }, timeoutValue);
         } catch (err) {
-            logger.error('Error in onSocketDisconnected:', err);
+            logger.error('GameServer: Error in onSocketDisconnected:', err);
         }
     }
 }

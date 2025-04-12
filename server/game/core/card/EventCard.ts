@@ -1,6 +1,7 @@
 import type { Player } from '../Player';
 import type { ICardWithCostProperty } from './propertyMixins/Cost';
 import { WithCost } from './propertyMixins/Cost';
+import type { MoveZoneDestination } from '../Constants';
 import { CardType, ZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
@@ -12,6 +13,7 @@ import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup'
 import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 import type { ICardCanChangeControllers } from './CardInterfaces';
+import type { InitializeCardStateOption } from './Card';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
@@ -59,6 +61,13 @@ export class EventCard extends EventCardParent {
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
             })
             : this._eventAbility;
+    }
+
+    public override moveTo(targetZoneName: MoveZoneDestination, initializeCardState?: InitializeCardStateOption): void {
+        if (this.zoneName === ZoneName.Discard && targetZoneName === ZoneName.Discard) {
+            this.removeLastingEffects();
+        }
+        super.moveTo(targetZoneName, initializeCardState);
     }
 
     protected override initializeForCurrentZone(prevZone?: ZoneName): void {

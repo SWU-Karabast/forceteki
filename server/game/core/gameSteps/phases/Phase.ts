@@ -7,7 +7,7 @@ import type { IStep } from '../IStep';
 import { TriggerHandlingMode } from '../../event/EventWindow';
 
 export abstract class Phase extends BaseStepWithPipeline {
-    public steps: IStep[] = [];
+    private steps: IStep[] = [];
 
     public constructor(
         game: Game,
@@ -37,6 +37,7 @@ export abstract class Phase extends BaseStepWithPipeline {
             if (this.name !== PhaseName.Setup) {
                 this.game.addAlert('endofround', 'turn: {0} - {1} phase', this.game.roundNumber, this.name);
             }
+            this.game.gameObjectManager.clearSnapshots();
         });
     }
 
@@ -48,4 +49,7 @@ export abstract class Phase extends BaseStepWithPipeline {
             this.game.emit(EventName.OnPhaseEndedCleanup, { phase: this.name });
         }
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public resetPhase(): void { }
 }

@@ -57,7 +57,7 @@ export default class LukeSkywalkerHeroOfYavin extends LeaderUnitCard {
             optional: true,
             gainCondition: (context) => context.source.parentCard.hasSomeTrait(Trait.Fighter),
             when: {
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                onAttack: true,
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

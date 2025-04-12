@@ -15,8 +15,8 @@ export default class C3POProtocolDroid extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Choose a number',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source,
-                onAttackDeclared: (event, context) => event.attack.attacker === context.source
+                whenPlayed: true,
+                onAttack: true,
             },
             targetResolver: {
                 mode: TargetMode.DropdownList,

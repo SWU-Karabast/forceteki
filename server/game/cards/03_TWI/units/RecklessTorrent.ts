@@ -15,7 +15,7 @@ export default class RecklessTorrent extends NonLeaderUnitCard {
             type: AbilityType.Triggered,
             title: 'Deal 2 damage to a friendly unit and 2 damage to an enemy unit in the same arena',
             when: {
-                onCardPlayed: (event, context) => event.card === context.source
+                whenPlayed: true,
             },
             targetResolvers: {
                 friendlyUnit: {

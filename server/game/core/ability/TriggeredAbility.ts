@@ -1,6 +1,6 @@
 import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
-import { EventName, StandardTriggeredAbilityType } from '../Constants';
+import { EventName, PlayType, StandardTriggeredAbilityType } from '../Constants';
 import { AbilityType, GameStateChangeRequired, RelativePlayer, Stage } from '../Constants';
 import type { ITriggeredAbilityProps, WhenType, WhenTypeOrStandard } from '../../Interfaces';
 import type { GameEvent } from '../event/GameEvent';
@@ -64,6 +64,17 @@ export default class TriggeredAbility extends CardAbility {
         return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.WhenDefeated);
     }
 
+    public get isWhenPlayed() {
+        return this.standardTriggerTypes.some((trigger) =>
+            trigger === StandardTriggeredAbilityType.WhenPlayed ||
+            trigger === StandardTriggeredAbilityType.WhenPlayedUsingSmuggle
+        );
+    }
+
+    public get isWhenPlayedUsingSmuggle() {
+        return this.standardTriggerTypes.includes(StandardTriggeredAbilityType.WhenPlayedUsingSmuggle);
+    }
+
     public constructor(
         game: Game,
         card: Card,
@@ -125,6 +136,12 @@ export default class TriggeredAbility extends CardAbility {
                         break;
                     case StandardTriggeredAbilityType.OnAttack:
                         updatedWhen[EventName.OnAttackDeclared] = (event, context) => event.attack.attacker === context.source;
+                        break;
+                    case StandardTriggeredAbilityType.WhenPlayed:
+                        updatedWhen[EventName.OnCardPlayed] = (event, context) => event.card === context.source;
+                        break;
+                    case StandardTriggeredAbilityType.WhenPlayedUsingSmuggle:
+                        updatedWhen[EventName.OnCardPlayed] = (event, context) => event.card === context.source && event.playType === PlayType.Smuggle;
                         break;
                     default:
                         Contract.fail(`Unexpected standard trigger type: ${trigger}`);

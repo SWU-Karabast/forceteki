@@ -1,5 +1,5 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, PlayType, WildcardCardType } from '../../../core/Constants';
+import { AbilityType, WildcardCardType } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 
 export default class AstromechPilot extends NonLeaderUnitCard {
@@ -15,9 +15,7 @@ export default class AstromechPilot extends NonLeaderUnitCard {
             title: 'Heal 2 damage from a unit',
             type: AbilityType.Triggered,
             when: {
-                onCardPlayed: (event, context) =>
-                    event.card === context.source &&
-                    event.playType === PlayType.Piloting
+                whenPlayed: true,
             },
             optional: true,
             targetResolver: {
