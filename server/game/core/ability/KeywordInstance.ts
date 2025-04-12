@@ -1,7 +1,8 @@
 import type { IAbilityPropsWithType, ITriggeredAbilityBaseProps } from '../../Interfaces';
 import type { Card } from '../card/Card';
-import { EffectName, type Aspect, type KeywordName } from '../Constants';
+import { EffectName, RelativePlayer, type Aspect, type KeywordName } from '../Constants';
 import * as Contract from '../utils/Contract';
+import * as EnumHelpers from '../utils/EnumHelpers';
 
 export class KeywordInstance {
     public readonly name: KeywordName;
@@ -9,7 +10,11 @@ export class KeywordInstance {
     private readonly card: Card;
 
     public get isBlank() {
-        if (this.card.hasOngoingEffect(EffectName.Blank)) {
+        if (EnumHelpers.isHiddenFromOpponent(this.card.zoneName, RelativePlayer.Self) && this.hasCostValue()) {
+            return false;
+        }
+
+        if (this.card.isBlank()) {
             return true;
         }
 

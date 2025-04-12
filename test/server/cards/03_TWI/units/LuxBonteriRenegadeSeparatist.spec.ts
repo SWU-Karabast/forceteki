@@ -138,5 +138,30 @@ describe('Lux Bonteri, Renegade Separatist', function () {
             expect(context.battlefieldMarine.exhausted).toBeTrue();
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('Lux Bonteri\'s ability should not trigger when playing units owned by the opponent', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    spaceArena: ['stolen-athauler'],
+                },
+                player2: {
+                    hand: ['takedown'],
+                    groundArena: ['lux-bonteri#renegade-separatist'],
+                    hasInitiative: true,
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.takedown);
+            context.player2.clickCard(context.stolenAthauler);
+
+            context.player1.passAction();
+
+            context.player2.clickCard(context.stolenAthauler);
+
+            expect(context.player1).toBeActivePlayer();
+        });
     });
 });

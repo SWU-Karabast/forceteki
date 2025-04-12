@@ -46,5 +46,36 @@ describe('Black Squadron Scout Wing', function() {
             expect(context.blackSquadronScoutWing).toHaveExactUpgradeNames(['academy-training', 'armed-to-the-teeth', 'bounty-hunters-quarry']);
             expect(context.player1).toBeActivePlayer();
         });
+
+        it('Black Squadron Scout Wing\'s ability should trigger when played an upgrade owned by the opponent', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['takedown', 'a-fine-addition'],
+                    spaceArena: ['black-squadron-scout-wing']
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                    discard: ['twin-laser-turret'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.takedown);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            context.player2.passAction();
+
+            context.player1.clickCard(context.aFineAddition);
+            context.player1.clickCard(context.twinLaserTurret);
+            context.player1.clickCard(context.blackSquadronScoutWing);
+
+            expect(context.player1).toHavePassAbilityPrompt('Attack with this unit. It gets +1/+0 for this attack.');
+
+            context.player1.clickPrompt('Pass');
+
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

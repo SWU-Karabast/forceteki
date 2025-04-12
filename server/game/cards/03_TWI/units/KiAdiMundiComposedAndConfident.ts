@@ -31,7 +31,7 @@ export default class KiAdiMundiComposedAndConfident extends NonLeaderUnitCard {
     }
 
     private isSecondCardPlayedByOpponentThisPhase(event) {
-        if (event.card.controller === this.controller) {
+        if (event.player === this.controller) {
             return false;
         }
         const cardsPlayedByOpponent = this.cardsPlayedThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>

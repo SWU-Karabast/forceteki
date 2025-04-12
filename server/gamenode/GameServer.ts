@@ -25,6 +25,7 @@ import * as Helpers from '../game/core/utils/Helpers';
 import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
+import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 
 
 /**
@@ -95,6 +96,7 @@ export class GameServer {
     private readonly queue: QueueHandler = new QueueHandler();
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
+    public bugHandler = new BugReportHandler();
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -185,6 +187,11 @@ export class GameServer {
         setInterval(() => this.queue.sendHeartbeat(), 1000);
 
         logger.info(`discord webhook url: ${process.env.DISCORD_BUG_REPORT_WEBHOOK_URL}`);
+        try {
+            this.bugHandler.sendBugReportToDiscord('THIS IS A TEST');
+        } catch (error) {
+            logger.error('An error occurred while sending a message to Discord', { error: { message: error.message, stack: error.stack } });
+        }
     }
 
     private setupAppRoutes(app: express.Application) {

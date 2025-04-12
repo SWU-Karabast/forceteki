@@ -61,7 +61,7 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
                     parentCard: event.card.isUpgrade() && event.card.isAttached() ? event.card.parentCard : null,
                     parentCardInPlayId: event.card.isUpgrade() && event.card.parentCard?.canBeInPlay() ? event.card.parentCard.inPlayId : null,
                     inPlayId: event.card.inPlayId ?? null,
-                    playedBy: event.card.controller,
+                    playedBy: event.player,
                     hasWhenDefeatedAbilities: event.card.canBeInPlay() && event.card.getTriggeredAbilities().some((ability) => ability.isWhenDefeated),
                     playedAsType: event.card.type,
                 })
