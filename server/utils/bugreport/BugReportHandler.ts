@@ -3,8 +3,6 @@ import { logger } from '../../logger';
 import type { User } from '../../Settings';
 import { httpPostFormData } from '../../Util';
 import type {
-    IPlayerSerializedState,
-    ISerializedCardState,
     ISerializedGameState,
     ISerializedReportState
 } from '../../game/Interfaces';
