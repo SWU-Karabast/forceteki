@@ -158,6 +158,8 @@ export class GameServer {
 
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 1000);
+
+        logger.info(`discord webhook url: ${process.env.DISCORD_BUG_REPORT_WEBHOOK_URL}`);
     }
 
     private setupAppRoutes(app: express.Application) {
