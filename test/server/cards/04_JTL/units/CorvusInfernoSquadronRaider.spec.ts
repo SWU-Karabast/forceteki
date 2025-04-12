@@ -117,5 +117,64 @@ describe('Corvus, Inferno Squadron Raider', function() {
                 expect(context.corvus).toHaveExactUpgradeNames(['major-vonreg#red-baron']);
             });
         });
+
+        describe('Corvus\'s ability with damaged pilot leader unit', function() {
+            it('can attach pilot leader deployed as a unit when damage is over pilot hp', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['corvus#inferno-squadron-raider'],
+                        groundArena: [{ card: 'astromech-pilot', upgrades: ['devotion', 'protector'], damage: 2 }, { card: 'escort-skiff', upgrades: ['sullustan-spacer'] }, 'battlefield-marine'],
+                        spaceArena: [{ card: 'green-squadron-awing', upgrades: ['determined-recruit'], damage: 1 }],
+                        leader: { card: 'asajj-ventress#i-work-alone', deployed: true, damage: 4 },
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'distant-patroller', upgrades: ['hopeful-volunteer'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Corvus and attach Asajj Ventress
+                context.player1.clickCard('corvus#inferno-squadron-raider');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.astromechPilot,
+                    context.determinedRecruit,
+                    context.sullustanSpacer,
+                    context.asajjVentress
+                ]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.asajjVentress);
+                expect(context.corvus).toHaveExactUpgradeNames(['asajj-ventress#i-work-alone']);
+            });
+        });
+
+        describe('Corvus\'s ability with damaged pilot non leader unit', function() {
+            it('can attach pilot non leader unit when damage is over pilot hp', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['corvus#inferno-squadron-raider'],
+                        groundArena: [{ card: 'dagger-squadron-pilot', upgrades: ['experience', 'experience'], damage: 2 }, 'battlefield-marine'],
+                        spaceArena: [{ card: 'green-squadron-awing', upgrades: ['determined-recruit'], damage: 1 }],
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'distant-patroller', upgrades: ['hopeful-volunteer'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Play Corvus and attach Dagger Squadron Pilot
+                context.player1.clickCard('corvus#inferno-squadron-raider');
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.daggerSquadronPilot,
+                    context.determinedRecruit,
+                ]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickCard(context.daggerSquadronPilot);
+                expect(context.corvus).toHaveExactUpgradeNames(['dagger-squadron-pilot']);
+            });
+        });
     });
 });

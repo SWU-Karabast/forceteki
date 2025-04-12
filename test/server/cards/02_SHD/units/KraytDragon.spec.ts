@@ -38,7 +38,6 @@ describe('Krayt Dragon', function () {
                 context.player2.clickCard(context.privateerCrew);
 
                 // should choose which player resolve their triggers first
-                context.player2.clickPrompt('You');
                 expect(context.player1).toBeAbleToSelectExactly([context.p2Base, context.wampa, context.privateerCrew]);
                 context.player1.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(2);

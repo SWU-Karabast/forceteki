@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, PlayType, Trait } from '../../../core/Constants';
+import { AbilityType, Trait } from '../../../core/Constants';
 
 export default class BB8HappyBeeps extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -14,9 +14,7 @@ export default class BB8HappyBeeps extends NonLeaderUnitCard {
         this.addPilotingAbility({
             type: AbilityType.Triggered,
             when: {
-                onCardPlayed: (event, context) =>
-                    event.card === context.source &&
-                    event.playType === PlayType.Piloting
+                whenPlayed: true,
             },
             title: 'Pay 2 resources',
             optional: true,
