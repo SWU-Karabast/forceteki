@@ -1284,7 +1284,8 @@ export class Player extends GameObject<IPlayerState> {
             promptState: promptState,
             canUndo: this.game.gameObjectManager.canUndo(this),
             isActionPhaseActivePlayer,
-            clock: undefined
+            clock: undefined,
+            aspects: this.getAspects(),
         };
 
         // if (this.showDeck) {
