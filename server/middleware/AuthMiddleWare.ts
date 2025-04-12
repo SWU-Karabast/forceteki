@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { parse } from 'cookie';
 import { UserFactory } from '../utils/user/UserFactory';
-import {logger} from "../logger";
+import { logger } from '../logger';
 
 // Extend Express Request type
 declare global {
