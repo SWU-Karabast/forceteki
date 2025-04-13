@@ -772,21 +772,17 @@ export class Lobby {
         }
     }
 
-    // Add this method to the Lobby class
+    // Report bug method
     private async reportBug(socket: Socket, description: string): Promise<void> {
         try {
             // Validate description
             if (!description || description.trim().length === 0) {
-                socket.send('bugReportResult', {
-                    success: false,
-                    message: 'Bug description cannot be empty'
-                });
-                return;
+                throw new Error('description is invalid');
             }
 
             // Create game state snapshot
             const gameState = this.game
-                ? this.server.bugReportHandler.captureGameState(this.game)
+                ? this.game.captureGameState(socket.user.id)
                 : { phase: 'action', player1: {}, player2: {} };
 
             // Create bug report
@@ -800,6 +796,9 @@ export class Lobby {
 
             // Send to Discord
             const success = await this.server.bugReportHandler.sendBugReportToDiscord(bugReport);
+            if (!success) {
+                throw new Error('Bug report failed to send to discord.');
+            }
             // we find the user
             const existingUser = this.users.find((u) => u.id === socket.user.id);
             existingUser.reportedBugs += success ? 1 : 0;

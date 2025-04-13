@@ -29,7 +29,8 @@ export class BugReportHandler {
             logger.info(`Bug report received from user ${bugReport.reporter.username}`, {
                 lobbyId: bugReport.lobbyId,
                 reporterId: bugReport.reporter.id,
-                description: bugReport.description
+                description: bugReport.description,
+                gameStateJson: JSON.stringify(bugReport.gameState, null, 0)
             });
 
             // If no webhook URL is configured, just log it
@@ -75,6 +76,22 @@ export class BugReportHandler {
         }
     }
 
+    // Helper function to sanitize strings for JSON
+    private sanitizeForJson(str: string): string {
+        if (!str) {
+            return '';
+        }
+        return str
+            .replace(/\\/g, '\\\\')     // Backslashes
+            .replace(/"/g, '\\"')       // Double quotes
+            .replace(/\n/g, '\\n')      // New lines
+            .replace(/\r/g, '\\r')      // Carriage returns
+            .replace(/\t/g, '\\t')      // Tabs
+            .replace(/\f/g, '\\f')      // Form feeds
+            .replace(/[\u0000-\u001F\u007F-\u009F]/g, ''); // Control characters
+    }
+
+
     /**
      * Format the bug report as a Discord message
      * @param bugReport The bug report data
@@ -96,8 +113,8 @@ export class BugReportHandler {
                     fields: [
                         {
                             name: 'Reporter',
-                            value: `${bugReport.reporter.username}`,
-                            inline: true
+                            value: `${bugReport.reporter.username} (player1)`,
+                            inline: true,
                         },
                         {
                             name: 'Lobby ID',
@@ -142,48 +159,16 @@ export class BugReportHandler {
         gameId?: string
     ): ISerializedReportState {
         return {
-            description,
+            description: this.sanitizeForJson(description),
             gameState,
             reporter: {
                 id: user.id,
-                username: user.username
+                username: user.username,
+                playerInGameState: 'player1'
             },
             lobbyId,
             gameId,
             timestamp: new Date().toISOString()
-        };
-    }
-
-    /**
-     * Captures the current game state for a bug report
-     * @param game The current game instance
-     * @returns A simplified game state representation
-     */
-    public captureGameState(game: any): ISerializedGameState {
-        if (!game) {
-            return {
-                phase: 'unknown',
-                player1: {},
-                player2: {}
-            };
-        }
-
-        const players = game.getPlayers();
-        if (players.length !== 2) {
-            return {
-                phase: game.currentPhase || 'unknown',
-                player1: {},
-                player2: {}
-            };
-        }
-
-        const player1 = players[0];
-        const player2 = players[1];
-
-        return {
-            phase: game.currentPhase || 'unknown',
-            player1: player1.capturePlayerState('player1'),
-            player2: player2.capturePlayerState('player2'),
         };
     }
 }

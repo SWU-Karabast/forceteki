@@ -124,6 +124,11 @@ global.integration = function (definitions) {
 
                 throw new TestSetupError(`The test ended with an unresolved prompt for one or both players. Unresolved prompts:\n${activePromptsText}`);
             }
+            try {
+                context.game.captureGameState();
+            } catch (error) {
+                throw new TestSetupError('Failed to correctly serialize post-test game state', { error: { message: error.message, stack: error.stack } });
+            }
         });
 
         definitions(contextRef);

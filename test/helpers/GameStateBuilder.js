@@ -238,7 +238,9 @@ class GameStateBuilder {
         const setupPhase = [
             'leader',
             'deck',
-            'base'
+            'base',
+            'hand',
+            'hasInitiative'
         ];
 
         // Check for unknown properties

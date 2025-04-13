@@ -10,7 +10,7 @@ const parsedEnv = z
         GAME_NODE_NAME: z.string(),
         GAME_NODE_SOCKET_IO_PORT: z.coerce.number().int(),
         SECRET: z.string(),
-        DISCORD_BUG_REPORT_WEBHOOK_URL: z.string(),
+        DISCORD_BUG_REPORT_WEBHOOK_URL: z.string().optional(),
     })
     .safeParse(process.env);
 

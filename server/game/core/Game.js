@@ -1636,6 +1636,44 @@ class Game extends EventEmitter {
         }
     }
 
+    /**
+     * Captures the current game state for a bug report
+     * @param reportingPlayer
+     * @returns A simplified game state representation
+     */
+    captureGameState(reportingPlayer) {
+        if (!this) {
+            return {
+                phase: 'unknown',
+                player1: {},
+                player2: {}
+            };
+        }
+
+        const players = this.getPlayers();
+        if (players.length !== 2) {
+            return {
+                phase: this.currentPhase,
+                player1: {},
+                player2: {}
+            };
+        }
+        let player1;
+        let player2;
+        if (players[0].id === reportingPlayer) {
+            player1 = players[0];
+            player2 = players[1];
+        } else {
+            player1 = players[1];
+            player2 = players[0];
+        }
+        return {
+            phase: this.currentPhase,
+            player1: player1.capturePlayerState('player1'),
+            player2: player2.capturePlayerState('player2'),
+        };
+    }
+
     // return this.getSummary(notInactivePlayerName);
     // }
 

@@ -1135,29 +1135,29 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     /**
      * Captures a card's state
-     * @param card The card object
      * @param player Either player1 or player2
-     * @param currentPlayerID The current players id
+     * @param currentPlayer
      * @returns A simplified card state representation
      */
-    public captureCardState(card: any, player: string, currentPlayerID: string): string | ISerializedCardState {
-        if (!card || (typeof card.isAttached === 'function' && card.isAttached())) {
-            return null;
-        }
+    public captureCardState(player: string, currentPlayer: Player): string | ISerializedCardState {
         try {
-            const opponent = player === 'player1' ? 'player2' : 'player1';
-            if (card.isLeader() && !card.deployed) {
-                return card.internalName;
+            const card = this.getSummary(currentPlayer);
+            if (this.isUpgrade()) {
+                return null;
+            }
+            const opponent = player === 'player1' ? 'Order66' : 'thisIsTheWay';
+            if (this.isLeader() && !card.deployed) {
+                return this.internalName;
             }
             // If the card is completely simple with no additional properties, just return its internal name
             if (!card.damage && !card.upgrades && !card.deployed && !card.exhausted &&
               !card.capturedUnits && card.flipped === undefined &&
               !card.owner && !card.controller) {
-                return card.internalName;
+                return this.internalName;
             }
             // Return a more detailed card state
             const cardState: ISerializedCardState = {
-                card: card.internalName
+                card: this.internalName
             };
 
             // Add all available properties from ISerializedCardState
@@ -1174,34 +1174,26 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             }
 
             // Capture upgrades
-            if (card.upgrades && card.upgrades.length > 0) {
-                cardState.upgrades = card.upgrades.map((upgrade) => this.captureCardState(upgrade, player, currentPlayerID));
+            if (this.isUnit() && this.upgrades && this.upgrades.length > 0) {
+                cardState.upgrades = this.upgrades.map((upgrade) => upgrade.internalName);
             }
 
             // Capture captured units if present
-            if (card.capturedUnits && card.capturedUnits.length > 0) {
-                cardState.capturedUnits = card.capturedUnits.map((unit) => this.captureCardState(unit, player, currentPlayerID));
+            if (this.isUnit() && this.capturedUnits && this.capturedUnits.length > 0) {
+                cardState.capturedUnits = this.capturedUnits.map((unit) => unit.internalName);
             }
 
             // Check for flipped state
             if (card.flipped !== undefined) {
                 cardState.flipped = card.flipped;
             }
-
-            // check for ownerAndController
-            if (card.ownerAndController !== undefined) {
-                if (card.ownerAndController.id !== currentPlayerID) {
-                    cardState.ownerAndController = opponent;
-                }
-                cardState.ownerAndController = player;
-            }
             return cardState;
         } catch (error) {
             logger.error('Error capturing card state for bug report', {
                 error: { message: error.message, stack: error.stack },
-                cardId: card.id
+                cardId: this.id
             });
-            return card.internalName || 'unknown-card';
+            throw error;
         }
     }
 

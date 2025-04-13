@@ -1312,65 +1312,53 @@ export class Player extends GameObject<IPlayerState> {
     public capturePlayerState(player: string): IPlayerSerializedState {
         const state: IPlayerSerializedState = {};
         try {
+            Contract.assertNotNullLike(this.game, `Game object in capturePlayerState is null for player ${this.id}`);
             // Hand cards
             if (this.handZone && this.handZone.cards && this.handZone.cards.length > 0) {
                 state.hand = this.handZone.cards.map((card) => card.internalName);
             }
 
             // Ground arena units
-            if (this.game && this.game.groundArena) {
-                const groundArenaCards = this.game.groundArena.getCards({ controller: this });
-                if (groundArenaCards && groundArenaCards.length > 0) {
-                    state.groundArena = groundArenaCards
-                        .filter((card) => !card.isLeaderUnit() && card.captureCardState(card, player, this.id) !== null)
-                        .map((card) => card.captureCardState(card, player, this.id));
-                }
+            const groundArenaCards = this.game.groundArena.getCards({ controller: this });
+            if (groundArenaCards.length > 0) {
+                state.groundArena = groundArenaCards
+                    .filter((card) => !card.isLeaderUnit() && card.captureCardState(player, this) !== null)
+                    .map((card) => card.captureCardState(player, this));
             }
-
             // Space arena units
-            if (this.game && this.game.spaceArena) {
-                const spaceArenaCards = this.game.spaceArena.getCards({ controller: this });
-                if (spaceArenaCards && spaceArenaCards.length > 0) {
-                    state.spaceArena = spaceArenaCards
-                        .filter((card) => !card.isLeaderUnit() && card.captureCardState(card, player, this.id) !== null)
-                        .map((card) => card.captureCardState(card, player, this.id));
-                }
+            const spaceArenaCards = this.game.spaceArena.getCards({ controller: this });
+            if (spaceArenaCards.length > 0) {
+                state.spaceArena = spaceArenaCards
+                    .filter((card) => !card.isLeaderUnit() && card.captureCardState(player, this) !== null)
+                    .map((card) => card.captureCardState(player, this));
             }
-
             // Discard pile
-            if (this.discardZone && this.discardZone.cards && this.discardZone.cards.length > 0) {
+            if (this.discardZone.count > 0) {
                 state.discard = this.discardZone.cards.map((card) => card.internalName);
             }
 
             // Deck (top few cards only to avoid excessive data)
-            if (this.deckZone && this.deckZone.cards && this.deckZone.cards.length > 0) {
-                state.deck = this.deckZone.cards.slice(0, 5).map((card) => card.internalName);
-            }
+            state.deck = this.deckZone.cards.slice(0, 5).map((card) => card.internalName);
 
             // Resources
-            if (this.readyResourceCount !== undefined) {
+            if (this.resourceZone.count > 0) {
                 state.resources = this.resourceZone.cards.map((card) => card.internalName);
             }
 
             // Leader
-            if (this.leader) {
-                state.leader = this.leader.captureCardState(this.leader, player, this.id);
-            }
+            state.leader = this.leader.captureCardState(player, this);
 
             // Base
-            if (this.base) {
-                state.base = this.base.captureCardState(this.base, player, this.id);
-            }
+            state.base = this.base.captureCardState(player, this);
 
             // Initiative
-            if (this.game && this.game.initiativePlayer === this) {
-                state.hasInitiative = true;
-            }
+            state.hasInitiative = true;
         } catch (error) {
             logger.error('Error capturing player state', {
                 error: { message: error.message, stack: error.stack },
                 playerId: this.id
             });
+            throw error;
         }
 
         return state;

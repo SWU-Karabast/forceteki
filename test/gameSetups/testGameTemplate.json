@@ -1,99 +1,21 @@
 {
     "phase": "action",
     "player1": {
-        "hand": [
-            "cartel-spacer",
-            "swoop-down",
-            "elite-p38-starfighter",
-            "fetts-firespray#pursuing-the-bounty"
-        ],
-        "groundArena": [
-            {
-                "card": "greedo#slow-on-the-draw",
-                "damage": 0,
-                "exhausted": false
-            }
-        ],
-        "spaceArena": [
-            {
-                "card": "lurking-tie-phantom",
-                "damage": 1,
-                "exhausted": false
-            },
-            {
-                "card": "elite-p38-starfighter",
-                "damage": 1,
-                "exhausted": false
-            }
-        ],
-        "deck": [
-            "lurking-tie-phantom",
-            "kylos-tie-silencer#ruthlessly-efficient",
-            "daring-raid",
-            "surprise-strike",
-            "isb-agent"
-        ],
-        "resources": [
-            "seventh-fleet-defender",
-            "breaking-in",
-            "lurking-tie-phantom",
-            "greedo#slow-on-the-draw",
-            "kylos-tie-silencer#ruthlessly-efficient"
-        ],
-        "leader": {
-            "card": "jango-fett#concealing-the-conspiracy",
-            "damage": 0,
-            "deployed": true,
-            "exhausted": false
-        },
-        "base": {
-            "card": "tarkintown",
-            "damage": 0
-        }
+        "hand": ["the-emperors-legion", "wilderness-fighter"],
+        "groundArena": [{ "card": "pyke-sentinel", "damage": 1 }, "blizzard-assault-atat"],
+        "spaceArena": [{ "card": "cartel-spacer", "upgrades": ["academy-training"] }],
+        "discard": ["keep-fighting", "disarm"],
+        "base": "echo-base",
+        "leader": "luke-skywalker#faithful-friend"
     },
     "player2": {
-        "hand": [
-            "waylay",
-            "guerilla-soldier",
-            "ruthless-raider",
-            "sneak-attack"
-        ],
-        "spaceArena": [
-            {
-                "card": "zygerrian-starhopper",
-                "damage": 0,
-                "exhausted": false
-            },
-            {
-                "card": "tie-bomber",
-                "damage": 1,
-                "exhausted": false
-            },
-            {
-                "card": "fetts-firespray#feared-silhouette",
-                "damage": 0,
-                "exhausted": true
-            }
-        ],
-        "deck": [
-            "electromagnetic-pulse",
-            "ruthless-raider",
-            "bib-fortuna#jabbas-majordomo",
-            "allegiant-general-pryde#ruthless-and-loyal",
-            "devastator#hunting-the-rebellion"
-        ],
-        "resources": [
-            "droid-missile-platform",
-            "bib-fortuna#jabbas-majordomo",
-            "no-good-to-me-dead",
-            "surprise-strike",
-            "darth-vader#scourge-of-squadrons"
-        ],
-        "leader": "boba-fett#any-methods-necessary",
-        "base": {
-            "card": "level-1313",
-            "damage": 0
-        },
+        "deck": ["wampa", "atst"],
+        "hand": ["superlaser-blast", "takedown"],
+        "groundArena": [{ "card": "seasoned-shoretrooper", "upgrades": ["shield"] }],
+        "discard": ["tactical-advantage", "guerilla-attack-pod"],
+        "resources": 10,
+        "base": { "card": "chopper-base", "damage": 5 },
+        "leader": { "card": "sabine-wren#galvanized-revolutionary", "deployed": true, "damage": 2 },
         "hasInitiative": true
     }
 }

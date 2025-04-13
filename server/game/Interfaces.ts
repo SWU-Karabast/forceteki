@@ -279,12 +279,11 @@ export interface ISetId {
 export interface ISerializedCardState {
     card: string;
     damage?: number;
-    upgrades?: (ISerializedCardState | string)[];
+    upgrades?: ({ card: string; ownerAndController: string } | string)[];
     deployed?: boolean;
     exhausted?: boolean;
-    capturedUnits?: (ISerializedCardState | string)[];
+    capturedUnits?: ({ card: string; owner: string } | string)[];
     flipped?: boolean;
-    ownerAndController?: string;
     owner?: string;
 }
 
@@ -302,6 +301,8 @@ export interface IPlayerSerializedState {
 
 export interface ISerializedGameState {
     phase?: string;
+    reportingPlayer?: IPlayerSerializedState;
+    opponent?: IPlayerSerializedState;
     player1?: IPlayerSerializedState;
     player2?: IPlayerSerializedState;
 }
@@ -312,6 +313,7 @@ export interface ISerializedReportState {
     reporter: {
         id: string;
         username: string;
+        playerInGameState: string;
     };
     lobbyId: string;
     timestamp: string;
