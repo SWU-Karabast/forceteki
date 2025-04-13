@@ -18,7 +18,7 @@ export default class TacticalDroidCommander extends NonLeaderUnitCard {
                 onCardPlayed: (event, context) =>
                     event.card.isUnit() &&
                     event.card !== context.source &&
-                    event.card.controller === context.player &&
+                    event.player === context.player &&
                     event.card.hasSomeTrait(Trait.Separatist)
             },
             targetResolver: {

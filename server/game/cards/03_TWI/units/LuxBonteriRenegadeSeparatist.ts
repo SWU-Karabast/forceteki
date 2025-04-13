@@ -16,7 +16,7 @@ export default class LuxBonteriRenegadeSeparatist extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) =>
                     // the card is not written like this, but we want to avoid multiple trigger when player use card like Palpatine's Return
-                    event.card.controller === context.source.controller.opponent &&
+                    event.player === context.source.controller.opponent &&
                     event.costs.resources < event.card.cost,
             },
             targetResolver: {
