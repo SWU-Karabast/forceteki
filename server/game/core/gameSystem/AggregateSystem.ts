@@ -1,4 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
+import type { GameStateChangeRequired } from '../Constants';
 import type { GameObject } from '../GameObject';
 import type { IGameSystemProperties } from './GameSystem';
 import { GameSystem } from './GameSystem';
@@ -31,7 +32,7 @@ export abstract class AggregateSystem<TContext extends AbilityContext = AbilityC
         return properties;
     }
 
-    public abstract override hasLegalTarget(context: TContext, additionalProperties?: any): boolean;
+    public abstract override hasLegalTarget(context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean;
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
     protected override isTargetTypeValid(target: GameObject): boolean {
