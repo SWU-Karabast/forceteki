@@ -793,7 +793,6 @@ export class Lobby {
                 this.id,
                 this.game?.id
             );
-
             // Send to Discord
             const success = await this.server.bugReportHandler.sendBugReportToDiscord(bugReport);
             if (!success) {
@@ -802,6 +801,12 @@ export class Lobby {
             // we find the user
             const existingUser = this.users.find((u) => u.id === socket.user.id);
             existingUser.reportedBugs += success ? 1 : 0;
+            // Send success message to client
+            socket.send('bugReportResult', {
+                id: uuid(),
+                success: success,
+                message: 'Successfully sent bug report'
+            });
             this.sendLobbyState();
         } catch (error) {
             logger.error('Error processing bug report', {
@@ -809,7 +814,12 @@ export class Lobby {
                 lobbyId: this.id,
                 userId: socket.user.id
             });
-            throw error;
+            // Send error message to client
+            socket.send('bugReportResult', {
+                id: uuid(),
+                success: false,
+                message: 'An error occurred while processing your bug report.'
+            });
         }
     }
 }
