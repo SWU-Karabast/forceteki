@@ -1,10 +1,25 @@
-const { BaseStepWithPipeline } = require('./BaseStepWithPipeline.js');
-const { SimpleStep } = require('./SimpleStep.js');
-const { ZoneName, Stage, CardType, EventName, AbilityType, RelativePlayer } = require('../Constants.js');
-const { GameEvent } = require('../event/GameEvent.js');
+import { BaseStepWithPipeline } from './BaseStepWithPipeline.js';
+import { SimpleStep } from './SimpleStep.js';
+import { ZoneName, Stage, EventName, RelativePlayer } from '../Constants.js';
+import { GameEvent } from '../event/GameEvent.js';
+import type Game from '../Game.js';
 
-class AbilityResolver extends BaseStepWithPipeline {
-    constructor(game, context, optional = false, canCancel = null, earlyTargetingOverride = null, ignoredRequirements = []) {
+export class AbilityResolver extends BaseStepWithPipeline {
+    public context: any;
+    public events: any[];
+    // TODO: Make type more specific.
+    public targetResults: Record<string, any>;
+    public costResults: { cancelled: boolean; canCancel: any; events: any[]; playCosts: boolean; triggerCosts: boolean };
+    public earlyTargetingOverride: any;
+    public ignoredRequirements: any[];
+    public cancelled: boolean;
+    public resolutionComplete: boolean;
+    public canCancel: boolean;
+    public currentAbilityResolver: AbilityResolver;
+    public passButtonText: any;
+    public passAbilityHandler: { buttonText: any; arg: string; hasBeenShown: boolean; playerChoosing: any; handler: () => void };
+
+    public constructor(game: Game, context, optional = false, canCancel = null, earlyTargetingOverride = null, ignoredRequirements = []) {
         super(game);
 
         this.context = context;
@@ -59,7 +74,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         } : null;
     }
 
-    initialise() {
+    public initialise() {
         this.pipeline.initialise([
             // new SimpleStep(this.game, () => this.createSnapshot()),
             new SimpleStep(this.game, () => this.checkAbility(), 'checkAbility'),
@@ -70,7 +85,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         ]);
     }
 
-    checkAbility() {
+    public checkAbility() {
         if (this.cancelled) {
             return;
         }
@@ -89,7 +104,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
-    resolveEarlyTargets() {
+    public resolveEarlyTargets() {
         if (this.cancelled) {
             return;
         }
@@ -107,7 +122,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
-    checkForCancelOrPass() {
+    public checkForCancelOrPass() {
         if (this.cancelled) {
             return;
         }
@@ -126,7 +141,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     //     }
     // }
 
-    openInitiateAbilityEventWindow() {
+    public openInitiateAbilityEventWindow() {
         if (this.cancelled) {
             this.checkResolveIfYouDoNot();
             return;
@@ -163,7 +178,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     // if there is an "if you do not" part of this ability, we need to resolve it if the main ability doesn't resolve
-    checkResolveIfYouDoNot() {
+    public checkResolveIfYouDoNot() {
         if (!this.cancelled || !this.resolutionComplete) {
             return;
         }
@@ -176,7 +191,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
-    queueInitiateAbilitySteps() {
+    private queueInitiateAbilitySteps() {
         this.game.queueSimpleStep(() => this.resolveCosts(), 'resolveCosts');
         this.game.queueSimpleStep(() => this.payCosts(), 'payCosts');
         this.game.queueSimpleStep(() => this.checkCostsWerePaid(), 'checkCostsWerePaid');
@@ -185,7 +200,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.game.queueSimpleStep(() => this.executeHandler(), 'executeHandler');
     }
 
-    checkForCancel() {
+    public checkForCancel() {
         if (this.cancelled) {
             return;
         }
@@ -193,7 +208,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.checkTargetResultCancelState();
     }
 
-    checkTargetResultCancelState() {
+    public checkTargetResultCancelState() {
         this.cancelled = this.targetResults.cancelled;
 
         if (
@@ -207,7 +222,7 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     // TODO: add passHandler support here
-    resolveCosts() {
+    public resolveCosts() {
         if (this.cancelled) {
             return;
         }
@@ -216,7 +231,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.context.ability.resolveCosts(this.context, this.costResults);
     }
 
-    getCostResults() {
+    public getCostResults() {
         return {
             cancelled: false,
             canCancel: this.canCancel,
@@ -226,7 +241,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         };
     }
 
-    checkForPass() {
+    public checkForPass() {
         if (this.cancelled) {
             return;
         } else if (this.costResults.cancelled) {
@@ -240,6 +255,7 @@ class AbilityResolver extends BaseStepWithPipeline {
                 activePromptTitle: `Trigger the ability '${this.getAbilityPromptTitle(this.context)}' or pass`,
                 choices: ['Trigger', this.passAbilityHandler.buttonText],
                 handlers: [
+                    // eslint-disable-next-line @typescript-eslint/no-empty-function
                     () => {},
                     () => {
                         this.passAbilityHandler.handler();
@@ -249,14 +265,14 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
-    getAbilityPromptTitle(context) {
+    public getAbilityPromptTitle(context) {
         if (context.overrideTitle) {
             return context.overrideTitle;
         }
         return context.ability.title;
     }
 
-    payCosts() {
+    public payCosts() {
         if (this.cancelled) {
             return;
         } else if (this.costResults.cancelled) {
@@ -270,7 +286,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
-    checkCostsWerePaid() {
+    public checkCostsWerePaid() {
         if (this.cancelled) {
             return;
         }
@@ -280,7 +296,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
-    resolveTargets() {
+    public resolveTargets() {
         if (this.cancelled) {
             return;
         }
@@ -301,7 +317,7 @@ class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
-    executeHandler() {
+    public executeHandler() {
         if (this.cancelled) {
             this.checkResolveIfYouDoNot();
             for (const event of this.events) {
@@ -322,12 +338,12 @@ class AbilityResolver extends BaseStepWithPipeline {
         this.context.ability.executeHandler(this.context);
     }
 
-    resetGameAbilityResolver() {
+    public resetGameAbilityResolver() {
         this.game.currentAbilityResolver = this.currentAbilityResolver;
     }
 
     /** @override */
-    continue() {
+    public override continue() {
         try {
             return this.pipeline.continue(this.game);
         } catch (err) {
@@ -343,9 +359,9 @@ class AbilityResolver extends BaseStepWithPipeline {
     }
 
     /** @override */
-    toString() {
+    public override toString() {
         return `'AbilityResolver: ${this.context.ability}'`;
     }
 }
 
-module.exports = AbilityResolver;
+export default AbilityResolver;

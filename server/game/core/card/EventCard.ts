@@ -21,7 +21,7 @@ export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeCon
     getEventAbility(): EventAbility;
 }
 
-export class EventCard extends EventCardParent {
+export class EventCard extends EventCardParent implements IEventCard {
     private _eventAbility: EventAbility;
 
     public constructor(owner: Player, cardData: any) {
