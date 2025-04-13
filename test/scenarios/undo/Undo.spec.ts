@@ -134,5 +134,71 @@ describe('Undo', function() {
                 expect(context.r2d2.damage).toBe(3);
             });
         });
+
+        describe('Snoke\'s constant ability', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['supreme-leader-snoke#shadow-ruler'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                    player2: {
+                        hand: ['death-star-stormtrooper'],
+                        groundArena: ['wampa', 'specforce-soldier'],
+                        spaceArena: ['cartel-spacer'],
+                        leader: { card: 'jyn-erso#resisting-oppression', deployed: true }
+                    }
+                });
+            });
+
+            it('should give -2/-2 to all enemy non-leader units', function () {
+                const { context } = contextRef;
+
+                context.game.enableUndo(() => {
+                    const snapshotId = context.game.takeSnapshot();
+
+                    // TODO: A dumb check, but are the player 2 game objects created after player 1?
+                    //          Right now the ability is removed immediately after snoke's state is set, but I don't know
+                    //          how snoke's ability effects the health/power, IE does it directly effect the state or is it a modifier?
+                    //          Basically, do we need afterSetState.afterSetState to be moved to afterSetAllState to ensure all objects are up to date?
+                    context.player1.clickCard(context.supremeLeaderSnoke);
+
+                    // Allied BM should not be affected.
+                    expect(context.battlefieldMarine.getPower()).toBe(3);
+                    expect(context.battlefieldMarine.getHp()).toBe(3);
+
+                    expect(context.wampa.getPower()).toBe(2);
+                    expect(context.wampa.getHp()).toBe(3);
+
+                    expect(context.cartelSpacer.getPower()).toBe(0);
+                    expect(context.cartelSpacer.getHp()).toBe(1);
+
+                    expect(context.specforceSoldier).toBeInZone('discard');
+
+                    // Leader Unit, should be unaffected.
+                    expect(context.jynErso.getPower()).toBe(4);
+                    expect(context.jynErso.getHp()).toBe(7);
+
+                    context.player2.clickCard(context.deathStarStormtrooper);
+                    expect(context.deathStarStormtrooper).toBeInZone('discard');
+
+                    context.game.rollbackToSnapshot(snapshotId);
+
+                    expect(context.cartelSpacer.getPower()).toBe(2);
+                    expect(context.cartelSpacer.getHp()).toBe(3);
+
+                    expect(context.specforceSoldier).toBeInZone('groundArena');
+                    expect(context.specforceSoldier.getPower()).toBe(2);
+                    expect(context.specforceSoldier.getHp()).toBe(2);
+
+                    expect(context.deathStarStormtrooper).toBeInZone('hand');
+
+                    // Leader Unit, should be unaffected.
+                    expect(context.jynErso.getPower()).toBe(4);
+                    expect(context.jynErso.getHp()).toBe(7);
+                });
+            });
+        });
     });
 });

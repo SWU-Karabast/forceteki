@@ -36,6 +36,7 @@ import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
  *                        and the numerical value of the effect, if any.
  */
 export abstract class OngoingEffect {
+    public id: number;
     public game: Game;
     public source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?

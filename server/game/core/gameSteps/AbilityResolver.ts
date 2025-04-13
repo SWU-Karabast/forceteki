@@ -342,7 +342,6 @@ export class AbilityResolver extends BaseStepWithPipeline {
         this.game.currentAbilityResolver = this.currentAbilityResolver;
     }
 
-    /** @override */
     public override continue() {
         try {
             return this.pipeline.continue(this.game);
@@ -358,7 +357,6 @@ export class AbilityResolver extends BaseStepWithPipeline {
         }
     }
 
-    /** @override */
     public override toString() {
         return `'AbilityResolver: ${this.context.ability}'`;
     }

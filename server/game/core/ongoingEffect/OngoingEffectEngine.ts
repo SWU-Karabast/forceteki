@@ -14,11 +14,17 @@ interface ICustomDurationEvent {
     effect: OngoingEffect;
 }
 
+export interface IOngoingEffectState {
+    effects: number[]; // TODO: Can we make OngoingEffect have an ID w/o using GameObjectBase? Probably, do it similiar to how snapshot IDs work.
+}
+
 export class OngoingEffectEngine {
     public events: EventRegistrar;
     public effects: OngoingEffect[] = [];
     public customDurationEvents: ICustomDurationEvent[] = [];
     public effectsChangedSinceLastCheck = false;
+    private state: IOngoingEffectState;
+    private lastOngoingEffectId: number;
 
     public constructor(private game: Game) {
         this.events = new EventRegistrar(game, this);
@@ -27,9 +33,17 @@ export class OngoingEffectEngine {
             EventName.OnPhaseEnded,
             EventName.OnRoundEnded
         ]);
+        // TODO: This wouldn't work, if we rollback to when a ongoing effect was _in_ play, we wouldn't have the reference.
+        //          This means we need to rely on the newly returned to in-play card to add or remove the ongoing effect.
+        this.lastOngoingEffectId = 0;
+        this.state = { effects: [] };
     }
 
     public add(effect: OngoingEffect) {
+        // TODO: Are OngoingEffect's added this way always new objects, never reused?
+        // effect.id = this.lastOngoingEffectId + 1;
+        // this.lastOngoingEffectId = effect.id;
+
         this.effects.push(effect);
         if (effect.duration === Duration.Custom) {
             this.registerCustomDurationEvents(effect);

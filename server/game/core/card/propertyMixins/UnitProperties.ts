@@ -964,8 +964,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             super.addOngoingEffect(ongoingEffect);
         }
 
-        protected override afterSetState(oldState) {
-            super.afterSetState(oldState);
+        public override afterSetAllState(oldState) {
+            super.afterSetAllState(oldState);
+
             // STATE: I don't wholly trust this covers all cases, but it's a good start at least.
             if (oldState.zone?.uuid !== this.state.zone.uuid) {
                 const oldZone = this.game.gameObjectManager.get<Zone>(oldState.zone);

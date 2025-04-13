@@ -65,11 +65,11 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         return structuredClone(this.state);
     }
 
-    /** A function for game to call on all objects after all state has been rolled back. for example, to cache calculated values. */
+    /** A function for game to call on all objects after all state has been rolled back. Intended to be used when a class has state changes that have external changes, for example, updating OngoingEffectEngine. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public afterSetAllState() { }
+    public afterSetAllState(oldState: T) { }
 
-    /** A function for game to call after the state for this object has been rolled back. This can be used to compare old and new states and trigger function calls if needed. */
+    /** A function for game to call after the state for this object has been rolled back. Intended to be used when a class has state changes that have internal changes, such as caching state. */
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected afterSetState(oldState: T) { }
 
