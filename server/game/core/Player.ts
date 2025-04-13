@@ -1323,15 +1323,15 @@ export class Player extends GameObject<IPlayerState> {
             const groundArenaCards = this.game.groundArena.getCards({ controller: this });
             if (groundArenaCards.length > 0) {
                 state.groundArena = groundArenaCards
-                    .filter((card) => !card.isLeaderUnit() && card.captureCardState(player, this) !== null)
-                    .map((card) => card.captureCardState(player, this));
+                    .filter((card) => !card.isLeaderUnit() && card.captureCardState() !== null)
+                    .map((card) => card.captureCardState());
             }
             // Space arena units
             const spaceArenaCards = this.game.spaceArena.getCards({ controller: this });
             if (spaceArenaCards.length > 0) {
                 state.spaceArena = spaceArenaCards
-                    .filter((card) => !card.isLeaderUnit() && card.captureCardState(player, this) !== null)
-                    .map((card) => card.captureCardState(player, this));
+                    .filter((card) => !card.isLeaderUnit() && card.captureCardState() !== null)
+                    .map((card) => card.captureCardState());
             }
             // Discard pile
             if (this.discardZone.count > 0) {
@@ -1347,10 +1347,10 @@ export class Player extends GameObject<IPlayerState> {
             }
 
             // Leader
-            state.leader = this.leader.captureCardState(player, this);
+            state.leader = this.leader.captureCardState();
 
             // Base
-            state.base = this.base.captureCardState(player, this);
+            state.base = this.base.captureCardState();
 
             // Initiative
             state.hasInitiative = true;

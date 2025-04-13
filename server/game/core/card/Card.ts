@@ -1139,55 +1139,46 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * @param currentPlayer
      * @returns A simplified card state representation
      */
-    public captureCardState(player: string, currentPlayer: Player): string | ISerializedCardState {
+    public captureCardState(): string | ISerializedCardState {
         try {
-            const card = this.getSummary(currentPlayer);
             if (this.isUpgrade()) {
                 return null;
             }
-            const opponent = player === 'player1' ? 'Order66' : 'thisIsTheWay';
-            if (this.isLeader() && !card.deployed) {
-                return this.internalName;
-            }
-            // If the card is completely simple with no additional properties, just return its internal name
-            if (!card.damage && !card.upgrades && !card.deployed && !card.exhausted &&
-              !card.capturedUnits && card.flipped === undefined &&
-              !card.owner && !card.controller) {
-                return this.internalName;
-            }
-            // Return a more detailed card state
-            const cardState: ISerializedCardState = {
-                card: this.internalName
-            };
+            if (this.isLeaderUnit() || this.isUnit()) {
+                // If the card is completely simple with no additional properties, just return its internal name
+                if (!this.damage && !this.upgrades && !this.exhausted && !this.capturedUnits) {
+                    return this.internalName;
+                }
+                // Return a more detailed card state
+                const cardState: ISerializedCardState = {
+                    card: this.internalName
+                };
 
-            // Add all available properties from ISerializedCardState
-            if (card.damage !== undefined) {
-                cardState.damage = card.damage;
-            }
+                // Add all available properties from ISerializedCardState
+                if (this.damage !== undefined) {
+                    cardState.damage = this.damage;
+                }
 
-            if (card.deployed !== undefined) {
-                cardState.deployed = card.deployed;
-            }
+                if (this.exhausted !== undefined) {
+                    cardState.exhausted = this.exhausted;
+                }
 
-            if (card.exhausted !== undefined) {
-                cardState.exhausted = card.exhausted;
-            }
+                // Capture upgrades
+                if (this.upgrades && this.upgrades.length > 0) {
+                    cardState.upgrades = this.upgrades.map((upgrade) => upgrade.internalName);
+                }
 
-            // Capture upgrades
-            if (this.isUnit() && this.upgrades && this.upgrades.length > 0) {
-                cardState.upgrades = this.upgrades.map((upgrade) => upgrade.internalName);
+                // Capture captured units if present
+                if (this.capturedUnits && this.capturedUnits.length > 0) {
+                    cardState.capturedUnits = this.capturedUnits.map((unit) => unit.internalName);
+                }
+                // if leader unit then it is deployed
+                if (this.isLeaderUnit()) {
+                    cardState.deployed = true;
+                }
+                return cardState;
             }
-
-            // Capture captured units if present
-            if (this.isUnit() && this.capturedUnits && this.capturedUnits.length > 0) {
-                cardState.capturedUnits = this.capturedUnits.map((unit) => unit.internalName);
-            }
-
-            // Check for flipped state
-            if (card.flipped !== undefined) {
-                cardState.flipped = card.flipped;
-            }
-            return cardState;
+            return this.internalName;
         } catch (error) {
             logger.error('Error capturing card state for bug report', {
                 error: { message: error.message, stack: error.stack },
