@@ -214,7 +214,7 @@ export class GameStateManager {
         this.game.state = structuredClone(snapshot.gameState);
 
         const removals: { index: number; uuid: string }[] = [];
-        const updates: { go: GameObjectBase; updatedState: IGameObjectBaseState }[] = [];
+        const updates: { go: GameObjectBase; oldState: IGameObjectBaseState }[] = [];
 
         // Indexes in last to first for the purpose of removal.
         for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
@@ -225,8 +225,8 @@ export class GameStateManager {
                 continue;
             }
 
+            updates.push({ go, oldState: go.getState() });
             go.setState(updatedState);
-            updates.push({ go, updatedState });
         }
 
         // Because it's reversed we don't have to worry about deleted indexes shifting the array.
@@ -238,7 +238,7 @@ export class GameStateManager {
         this.lastId = snapshot.lastId;
 
         // Inform GOs that all states have been updated.
-        updates.forEach((update) => update.go.afterSetAllState(update.updatedState));
+        updates.forEach((update) => update.go.afterSetAllState(update.oldState));
 
         // Throw out all snapshots after the rollback snapshot.
         this.snapshots.splice(snapshotIdx + 1);
