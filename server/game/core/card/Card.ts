@@ -1125,6 +1125,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         }
     }
 
+    public override getObjectName(): string {
+        return 'Card';
+    }
+
     public override toString() {
         return this.internalName;
     }

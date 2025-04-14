@@ -1304,6 +1304,10 @@ export class Player extends GameObject<IPlayerState> {
         return summary;
     }
 
+    public override getObjectName(): string {
+        return 'Player';
+    }
+
     /** @override */
     public override toString() {
         return this.name;

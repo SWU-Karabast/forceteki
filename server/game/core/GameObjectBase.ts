@@ -93,4 +93,8 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     public getObject<T extends GameObjectBase>(ref: GameObjectRef<T>): T {
         return this.game.gameObjectManager.get(ref);
     }
+
+    public getObjectName(): string {
+        return 'GameObject';
+    }
 }

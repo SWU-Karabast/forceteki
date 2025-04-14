@@ -78,7 +78,7 @@ export class GameStateManager {
             );
 
             const nextId = this.lastId + 1;
-            go.uuid = 'GameObject_' + nextId;
+            go.uuid = go.getObjectName() + '_' + nextId;
             this.lastId = nextId;
             this.allGameObjects.push(go);
             this.gameObjectMapping.set(go.uuid, go);
@@ -219,6 +219,8 @@ export class GameStateManager {
         // Indexes in last to first for the purpose of removal.
         for (let i = this.allGameObjects.length - 1; i >= 0; i--) {
             const go = this.allGameObjects[i];
+
+            // NOTE: We aren't removing GameObjects, but this makes room for it.
             const updatedState = snapshot.states.find((x) => x.uuid === go.uuid);
             if (!updatedState) {
                 removals.push({ index: i, uuid: go.uuid });
@@ -229,7 +231,8 @@ export class GameStateManager {
             go.setState(updatedState);
         }
 
-        // Because it's reversed we don't have to worry about deleted indexes shifting the array.
+        // Remove GOs that hadn't yet been created by this point.
+        // Because the above for loop is reversed we don't have to worry about deleted indexes causing a problem when the array shifts.
         for (const removed of removals) {
             this.allGameObjects.splice(removed.index, 1);
             this.gameObjectMapping.delete(removed.uuid);
@@ -278,6 +281,11 @@ export class GameStateManager {
                 this.roundSnapshots.splice(i, 1);
             }
         }
+    }
+
+    private afterTakeSnapshot() {
+        // TODO: We want this to be able to go through
+        //          and remove any unused OngoingEffects from the list once they are no longer needed by any snapshots.
     }
 
     private getLatestSnapshot(offset = 0) {
