@@ -22,16 +22,16 @@ export interface ISimultaneousSystemProperties<TContext extends AbilityContext =
 
 export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISimultaneousSystemProperties<TContext>> {
     protected override readonly eventName: MetaEventName.Simultaneous;
-    protected readonly everyGameSystemMustBeLegal: boolean;
-    public constructor(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = false, everyGameSystemMustBeLegal = false) {
-        Contract.assertFalse(ignoreTargetingRequirements && everyGameSystemMustBeLegal, 'ignoreTargetingRequirements and everyGameSystemMustBeLegal cannot be used together');
+    protected readonly enforceTargeting: boolean;
+    public constructor(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = false, enforceTargeting = false) {
+        Contract.assertFalse(ignoreTargetingRequirements && enforceTargeting, 'ignoreTargetingRequirements and everyGameSystemMustBeLegal cannot be used together');
 
         if (typeof gameSystems === 'function') {
             super((context: TContext) => ({ gameSystems: gameSystems(context), ignoreTargetingRequirements }));
         } else {
             super({ gameSystems, ignoreTargetingRequirements });
         }
-        this.everyGameSystemMustBeLegal = everyGameSystemMustBeLegal;
+        this.enforceTargeting = enforceTargeting;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -52,7 +52,16 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         return properties.gameSystems;
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+        if (this.enforceTargeting) {
+            for (const candidateTarget of this.targets(context, additionalProperties)) {
+                if (this.canAffect(candidateTarget, context, additionalProperties, mustChangeGameState)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
     }
@@ -64,6 +73,11 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
 
     public override canAffectInternal(target: GameObject, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        if (this.enforceTargeting) {
+            return properties.gameSystems.every((gameSystem) => gameSystem.canAffect(target, context, additionalProperties, mustChangeGameState));
+        }
+
         return properties.gameSystems.some((gameSystem) => gameSystem.canAffect(target, context, additionalProperties, mustChangeGameState));
     }
 
@@ -84,9 +98,10 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
             };
             generateStepName = (gameSystem: GameSystem<TContext>) => `queue generate event game steps for ${gameSystem.name}`;
         } else {
-            if (this.everyGameSystemMustBeLegal && !this.allGameSystemsAreLegal(context, additionalProperties)) {
-                return;
-            }
+            Contract.assertFalse(
+                this.enforceTargeting && !this.allGameSystemsAreLegal(context, additionalProperties),
+                `Attempting to trigger simultaneous system with everyGameSystemMustBeLegal set to true, but not all game systems are legal. Systems: ${properties.gameSystems.map((gameSystem) => gameSystem.name).join(', ')}`
+            );
             queueGenerateEventGameStepsFn = (gameSystem: GameSystem<TContext>) => () => {
                 if (gameSystem.hasLegalTarget(context, additionalProperties)) {
                     gameSystem.queueGenerateEventGameSteps(events, context, additionalProperties);
