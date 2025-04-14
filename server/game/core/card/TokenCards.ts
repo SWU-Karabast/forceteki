@@ -8,7 +8,7 @@ import { InPlayCard } from './baseClasses/InPlayCard';
 
 const TokenUnitParent = AsToken(NonLeaderUnitCard);
 const TokenUpgradeParent = AsToken(UpgradeCard);
-export const TokenCard = AsToken(InPlayCard);
+const TokenCardParent = AsToken(InPlayCard);
 
 export interface ITokenUpgradeCard extends ITokenCard, IUpgradeCard {}
 export interface ITokenUnitCard extends ITokenCard, IUnitCard {}
@@ -27,4 +27,8 @@ export class TokenUpgradeCard extends TokenUpgradeParent implements ITokenUpgrad
     public override isTokenUpgrade(): this is ITokenUpgradeCard {
         return true;
     }
+}
+
+export class TokenCard extends TokenCardParent implements ITokenCard {
+    protected override state: never;
 }

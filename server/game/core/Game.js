@@ -981,6 +981,10 @@ class Game extends EventEmitter {
             []
         );
 
+        this.getPlayers().forEach((player) => {
+            this.generateToken(player, TokenCardName.Force);
+        });
+
         this.resolveGameState(true);
         this.pipeline.initialise([new SetupPhase(this), new SimpleStep(this, () => this.beginRound(), 'beginRound')]);
 
@@ -1007,9 +1011,9 @@ class Game extends EventEmitter {
     roundEnded() {
         this.createEventAndOpenWindow(EventName.OnRoundEnded, null, {}, TriggerHandlingMode.ResolvesTriggers);
 
-        // at end of round, any tokens in outsideTheGameZone are removed completely
+        // at end of round, any tokens (except the Force tokens) in outsideTheGameZone are removed completely
         for (const player of this.getPlayers()) {
-            for (const token of player.outsideTheGameZone.cards.filter((card) => card.isToken())) {
+            for (const token of player.outsideTheGameZone.cards.filter((card) => card.isToken() && !card.isForceToken())) {
                 this.removeTokenFromPlay(token);
             }
         }

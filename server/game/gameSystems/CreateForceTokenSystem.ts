@@ -12,8 +12,16 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
     protected override eventName = EventName.OnTokensCreated;
 
     public override eventHandler(event, additionalProperties = {}): void {
-        for (const token of event.generatedTokens) {
-            token.moveTo(ZoneName.Base);
+        const context = event.context;
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
+
+        for (const player of Helpers.asArray(properties.target)) {
+            const forceTokens = player.outsideTheGameZone
+                .getCards({ condition: (card) => card.isForceToken() });
+
+            if (forceTokens.length > 0) {
+                forceTokens[0].moveTo(ZoneName.Base);
+            }
         }
     }
 
@@ -23,21 +31,6 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
 
     public override defaultTargets(context: TContext): Player[] {
         return [context.player];
-    }
-
-    protected override updateEvent(event, player: Player, context: TContext, additionalProperties): void {
-        super.updateEvent(event, player, context, additionalProperties);
-
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
-        event.generatedTokens = [];
-
-        for (const player of Helpers.asArray(properties.target)) {
-            if (player.hasTheForce) {
-                continue;
-            }
-            event.generatedTokens.push(context.game.generateToken(player, TokenCardName.Force));
-        }
     }
 
     protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties): void {
