@@ -284,7 +284,6 @@ export interface ISerializedCardState {
     exhausted?: boolean;
     capturedUnits?: ({ card: string; owner: string } | string)[];
     flipped?: boolean;
-    keywords?: string[];
     owner?: string;
 }
 
