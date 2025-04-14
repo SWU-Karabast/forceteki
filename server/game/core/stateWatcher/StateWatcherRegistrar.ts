@@ -1,20 +1,19 @@
 import type { IStateListenerProperties } from '../../Interfaces';
-import type Game from '../Game';
+import { GameObjectBase, type IGameObjectBaseState } from '../GameObjectBase';
 import * as Contract from '../utils/Contract';
+
+export interface IStateWatcherRegistrarState extends IGameObjectBaseState {
+    watchedState: Map<string, any>;
+}
 
 /**
  * Helper for managing the operation of {@link StateWatcher} implementations.
  * Holds the state objects that the watchers interact with, registers the
  * triggers for updating them, and tracks which watcher types are registered.
  */
-export class StateWatcherRegistrar {
-    private watchedState = new Map<string, any>();
-
-    public constructor(public readonly game: Game) {
-    }
-
+export class StateWatcherRegistrar extends GameObjectBase<IStateWatcherRegistrarState> {
     public isRegistered(watcherKey: string) {
-        return this.watchedState.has(watcherKey);
+        return this.state.watchedState.has(watcherKey);
     }
 
     public register(watcherKey: string, initialValue: any, listeners: IStateListenerProperties<any>[]) {
@@ -48,7 +47,7 @@ export class StateWatcherRegistrar {
             return null;
         }
 
-        return this.watchedState.get(watcherKey);
+        return this.state.watchedState.get(watcherKey);
     }
 
     public setStateValue(watcherKey: string, newValue: any, initializing: boolean = false) {
@@ -56,12 +55,17 @@ export class StateWatcherRegistrar {
             return;
         }
 
-        this.watchedState.set(watcherKey, newValue);
+        this.state.watchedState.set(watcherKey, newValue);
+    }
+
+    protected override setupDefaultState() {
+        super.setupDefaultState();
+        this.state.watchedState = new Map<string, any>();
     }
 
     private assertRegistered(watcherKey: string) {
         Contract.assertTrue(this.isRegistered(watcherKey),
-            `Watcher '${watcherKey}' not found in registered watcher list: ${Array.from(this.watchedState.keys()).join(', ')}`);
+            `Watcher '${watcherKey}' not found in registered watcher list: ${Array.from(this.state.watchedState.keys()).join(', ')}`);
 
         return true;
     }
