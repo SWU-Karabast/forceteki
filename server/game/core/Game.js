@@ -984,6 +984,10 @@ class Game extends EventEmitter {
             []
         );
 
+        this.getPlayers().forEach((player) => {
+            this.generateToken(player, TokenCardName.Force);
+        });
+
         this.resolveGameState(true);
         this.pipeline.initialise([new SetupPhase(this), new SimpleStep(this, () => this.beginRound(), 'beginRound')]);
 

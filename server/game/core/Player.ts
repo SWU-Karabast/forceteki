@@ -1291,6 +1291,7 @@ export class Player extends GameObject<IPlayerState> {
             isActionPhaseActivePlayer,
             clock: undefined,
             aspects: this.getAspects(),
+            hasForceToken: this.hasTheForce
         };
 
         // if (this.showDeck) {
