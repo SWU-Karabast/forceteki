@@ -163,3 +163,5 @@ global.undoIt = function(expectation, assertion, timeout) {
         await assertion();
     }, timeout);
 };
+
+global.it = global.undoIt;
