@@ -957,6 +957,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             };
         }
 
+        public override getCardState(): any {
+            if (this.isInPlay()) {
+                return {
+                    ...super.getCardState(),
+                    upgrades: this.upgrades,
+                    capturedUnits: this.capturedUnits
+                };
+            }
+        }
+
         public override addOngoingEffect(ongoingEffect: IOngoingCardEffect): void {
             if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
                 this.lastPlayerToModifyHp = ongoingEffect.context.source.controller;

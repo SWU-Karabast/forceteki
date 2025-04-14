@@ -238,6 +238,11 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
             epicDeployActionSpent: this.deployEpicActionLimit.isAtMax(this.owner)
         };
     }
+
+    public override getCardState(): any {
+        return { ...super.getCardState(),
+            deployed: this.deployed };
+    }
 }
 
 export class LeaderUnitCard extends LeaderUnitCardInternal {
