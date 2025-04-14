@@ -1649,7 +1649,6 @@ class Game extends EventEmitter {
                 player2: {}
             };
         }
-
         const players = this.getPlayers();
         if (players.length !== 2) {
             return {
@@ -1668,6 +1667,10 @@ class Game extends EventEmitter {
             case players[1].id:
                 player1 = players[1];
                 player2 = players[0];
+                break;
+            case 'testrun':
+                player1 = players[0];
+                player2 = players[1];
                 break;
             default:
                 Contract.fail(`Reporting player ${reportingPlayer} is not a player in this game`);
