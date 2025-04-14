@@ -1114,6 +1114,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return state;
     }
 
+    public getCardState(): any {
+        return {
+            internalName: this.internalName,
+            controller: this.controller.getShortSummary(),
+            controlled: this.owner !== this.controller,
+            type: this.type
+        };
+    }
+
     public override getShortSummaryForControls(activePlayer: Player): any {
         if (!this.isHiddenForPlayer(activePlayer)) {
             return { hidden: true };
@@ -1135,8 +1144,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     /**
      * Captures a card's state
-     * @param player Either player1 or player2
-     * @param currentPlayer
      * @returns A simplified card state representation
      */
     public captureCardState(): string | ISerializedCardState {
@@ -1144,41 +1151,43 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             if (this.isUpgrade()) {
                 return null;
             }
-            if (this.isLeaderUnit() || this.isUnit()) {
-                // If the card is completely simple with no additional properties, just return its internal name
-                if (!this.damage && !this.upgrades && !this.exhausted && !this.capturedUnits) {
-                    return this.internalName;
-                }
-                // Return a more detailed card state
-                const cardState: ISerializedCardState = {
-                    card: this.internalName
-                };
+            const currentCardState = this.getCardState();
 
-                // Add all available properties from ISerializedCardState
-                if (this.damage !== undefined) {
-                    cardState.damage = this.damage;
-                }
-
-                if (this.exhausted !== undefined) {
-                    cardState.exhausted = this.exhausted;
-                }
-
-                // Capture upgrades
-                if (this.upgrades && this.upgrades.length > 0) {
-                    cardState.upgrades = this.upgrades.map((upgrade) => upgrade.internalName);
-                }
-
-                // Capture captured units if present
-                if (this.capturedUnits && this.capturedUnits.length > 0) {
-                    cardState.capturedUnits = this.capturedUnits.map((unit) => unit.internalName);
-                }
-                // if leader unit then it is deployed
-                if (this.isLeaderUnit()) {
-                    cardState.deployed = true;
-                }
-                return cardState;
+            // If the card is completely simple with no additional properties, just return its internal name
+            if (!currentCardState.damage &&
+              !currentCardState.upgrades &&
+              !currentCardState.exhausted &&
+              !currentCardState.capturedUnits) {
+                return currentCardState.internalName;
             }
-            return this.internalName;
+            // Return a more detailed card state
+            const cardState: ISerializedCardState = {
+                card: currentCardState.internalName
+            };
+
+            // Add all available properties from ISerializedCardState
+            if (currentCardState.damage !== undefined) {
+                cardState.damage = currentCardState.damage;
+            }
+
+            if (currentCardState.exhausted !== undefined) {
+                cardState.exhausted = currentCardState.exhausted;
+            }
+
+            // Capture upgrades
+            if (currentCardState.upgrades && currentCardState.upgrades.length > 0) {
+                cardState.upgrades = currentCardState.upgrades.map((upgrade) => upgrade.internalName);
+            }
+
+            // Capture captured units if present
+            if (currentCardState.capturedUnits && currentCardState.capturedUnits.length > 0) {
+                cardState.capturedUnits = currentCardState.capturedUnits.map((unit) => unit.internalName);
+            }
+            // if leader unit then it is deployed
+            if (currentCardState.deployed) {
+                cardState.deployed = currentCardState.deployed;
+            }
+            return cardState;
         } catch (error) {
             logger.error('Error capturing card state for bug report', {
                 error: { message: error.message, stack: error.stack },

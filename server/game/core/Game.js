@@ -1658,14 +1658,19 @@ class Game extends EventEmitter {
                 player2: {}
             };
         }
-        let player1;
-        let player2;
-        if (players[0].id === reportingPlayer) {
-            player1 = players[0];
-            player2 = players[1];
-        } else {
-            player1 = players[1];
-            player2 = players[0];
+        let player1, player2;
+
+        switch (reportingPlayer) {
+            case players[0].id:
+                player1 = players[0];
+                player2 = players[1];
+                break;
+            case players[1].id:
+                player1 = players[1];
+                player2 = players[0];
+                break;
+            default:
+                Contract.fail(`Reporting player ${reportingPlayer} is not a player in this game`);
         }
         return {
             phase: this.currentPhase,

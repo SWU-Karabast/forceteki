@@ -796,7 +796,7 @@ export class Lobby {
             // Send to Discord
             const success = await this.server.bugReportHandler.sendBugReportToDiscord(bugReport);
             if (!success) {
-                throw new Error('Bug report failed to send to discord.');
+                throw new Error('Bug report failed to send to discord. No webhook configured');
             }
             // we find the user
             const existingUser = this.users.find((u) => u.id === socket.user.id);
