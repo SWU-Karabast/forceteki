@@ -25,7 +25,7 @@ export default class HoundsToothReliableAndDeadly extends NonLeaderUnitCard {
                 context.source.activeAttack?.target.isUnit() &&
                 context.source.activeAttack?.target.isInPlay() &&
                 context.source.activeAttack?.target.exhausted &&
-                this.cardsEnteredPlayThisPhaseWatcher.getCardsPlayed((entry) => entry.card === context.source.activeAttack?.target).length === 0,
+                this.cardsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((entry) => entry.card === context.source.activeAttack?.target).length === 0,
             ongoingEffect: AbilityHelper.ongoingEffects.dealsDamageBeforeDefender()
         });
     }
