@@ -1152,7 +1152,9 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
                 return null;
             }
             const currentCardState = this.getCardState();
-
+            if (this.isLeader() && !currentCardState.deployed) {
+                return this.internalName;
+            }
             // If the card is completely simple with no additional properties, just return its internal name
             if (!currentCardState.damage &&
               !currentCardState.upgrades &&
