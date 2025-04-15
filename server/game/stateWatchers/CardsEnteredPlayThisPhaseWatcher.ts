@@ -36,6 +36,11 @@ export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEn
             .map((entry) => entry.card);
     }
 
+    /** Check the list of cards that entered play in the state if we found cards that match filters */
+    public someCardPlayed(filter: (entry: EnteredCardEntry) => boolean): boolean {
+        return this.getCardsPlayed(filter).length > 0;
+    }
+
     protected override setupWatcher() {
         // on card entered play, add the card to the player's list of cards entered play this phase
         this.addUpdater({
