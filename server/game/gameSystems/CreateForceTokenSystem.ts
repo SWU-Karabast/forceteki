@@ -3,6 +3,7 @@ import { EventName, GameStateChangeRequired, TokenCardName, ZoneName } from '../
 import { PlayerTargetSystem, type IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import * as Helpers from '../core/utils/Helpers';
+import * as Contract from '../core/utils/Contract';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface ICreateForceTokenProperties extends IPlayerTargetSystemProperties {}
@@ -19,9 +20,9 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
             const forceTokens = player.outsideTheGameZone
                 .getCards({ condition: (card) => card.isForceToken() });
 
-            if (forceTokens.length > 0) {
-                forceTokens[0].moveTo(ZoneName.Base);
-            }
+            Contract.assertEqual(forceTokens.length, 1, `There should be exactly one Force token in the outside the game zone for player ${player.name}.`);
+
+            forceTokens[0].moveTo(ZoneName.Base);
         }
     }
 
@@ -40,7 +41,9 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
     }
 
     public override canAffectInternal(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        if (mustChangeGameState !== GameStateChangeRequired.None && context.player.hasTheForce) {
+        const properties = this.generatePropertiesFromContext(context);
+
+        if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && context.player.hasTheForce) {
             return false;
         }
 

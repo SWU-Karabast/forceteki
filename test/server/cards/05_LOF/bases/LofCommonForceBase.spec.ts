@@ -6,11 +6,17 @@ describe('Common bases in Legens of the Force', function() {
                     phase: 'action',
                     player1: {
                         base: 'shadowed-undercity',
-                        hand: ['change-of-heart'],
+                        hand: [
+                            'change-of-heart',
+                            'luke-skywalker#you-still-with-me',
+                        ],
                         groundArena: [
                             'guardian-of-the-whills',
                             'general-krell#heartless-tactician',
                             'battlefield-marine'
+                        ],
+                        spaceArena: [
+                            'green-squadron-awing'
                         ]
                     },
                     player2: {
@@ -98,6 +104,25 @@ describe('Common bases in Legens of the Force', function() {
 
                 // Only Player 1 should have The Force token
                 expect(context.player1.hasTheForce).toBe(true);
+                expect(context.player2.hasTheForce).toBe(false);
+            });
+
+            it('does not give the Force token when a unit with a Force upagrade attacks', function () {
+                const { context } = contextRef;
+
+                // Play Luke Skywalker as a pilot on the A-Wing
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickPrompt('Play Luke Skywalker with Piloting');
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                context.player2.passAction();
+
+                // Attack with the A-Wing
+                context.player1.clickCard(context.greenSquadronAwing);
+                context.player1.clickCard(context.p2Base);
+
+                // Nobody should have The Force token
+                expect(context.player1.hasTheForce).toBe(false);
                 expect(context.player2.hasTheForce).toBe(false);
             });
         });

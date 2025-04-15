@@ -15,6 +15,7 @@ import {
     PlayType,
     RelativePlayer,
     Stage,
+    TokenCardName,
     WildcardCardType,
     WildcardRelativePlayer,
     ZoneName
@@ -704,9 +705,10 @@ export class Player extends GameObject<IPlayerState> {
     /**
      * Called when the Game object starts the game. Creates all cards on this players decklist, shuffles the decks and initialises player parameters for the start of the game
      */
-    public initialiseAsync() {
+    public async initialiseAsync() {
         this.opponent = this.game.getOtherPlayer(this);
-        return this.prepareDecksAsync();
+        await this.prepareDecksAsync();
+        this.game.generateToken(this, TokenCardName.Force);
     }
 
     /**

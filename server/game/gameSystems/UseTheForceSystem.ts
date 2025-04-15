@@ -12,7 +12,7 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
     public override eventHandler(event): void {
         const forceToken = event.context.player.baseZone.forceToken;
 
-        Contract.assertNotNullLike(forceToken, 'Force token should not be null for this player.');
+        Contract.assertNotNullLike(forceToken, `Force token should not be null for player ${event.context.player.name}.`);
 
         forceToken.moveTo(ZoneName.OutsideTheGame);
     }
