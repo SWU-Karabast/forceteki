@@ -213,6 +213,11 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
             exhausted: this.state.exhausted };
     }
 
+    public override getCardState(): any {
+        return { ...super.getCardState(),
+            exhausted: this.state.exhausted };
+    }
+
     protected setExhaustEnabled(enabledStatus: boolean) {
         this.state.exhausted = enabledStatus ? true : null;
     }

@@ -62,6 +62,32 @@ describe('Ki Adi Mundi, Composed and Confident', function() {
                 expect(context.consularSecurityForce).toBeInZone('hand');
                 expect(context.kashyyykDefender).toBeInZone('hand');
             });
+
+            it('should not trigger when playing units owned by the opponent', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['stolen-athauler'],
+                    },
+                    player2: {
+                        hand: ['takedown'],
+                        groundArena: ['kiadimundi#composed-and-confident', 'battlefield-marine', 'wampa'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.stolenAthauler);
+
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.stolenAthauler);
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.stolenAthauler);
+
+                expect(context.player1).toBeActivePlayer();
+            });
         });
     });
 });

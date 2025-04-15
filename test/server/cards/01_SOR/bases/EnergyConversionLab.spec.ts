@@ -52,17 +52,32 @@ describe('Energy Conversion Lab', function() {
 
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.energyConversionLab);
-                context.player1.clickCard(context.poeDameron);
-                expect(context.poeDameron).toBeInZone('hand');
-                expect(context.energyConversionLab.epicActionSpent).toBeTrue();
+                expect(context.energyConversionLab).not.toHaveAvailableActionWhenClickedBy(context.player1);
+                expect(context.energyConversionLab.epicActionSpent).toBeFalse();
+            });
 
-                context.player2.passAction();
-                context.player1.clickCard(context.hanSolo);
-                context.player1.clickCard(context.poeDameron);
-                expect(context.poeDameron.damage).toBe(2);
-                // We should not be able to Trigger the ambush ability
-                expect(context.player2).toBeActivePlayer();
+            // Cf issue: https://github.com/SWU-Karabast/forceteki/issues/1005:
+            it('should not give poe dameron ambush after attempting to use ECL', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['poe-dameron#quick-to-improvise', 'wampa'],
+                        base: 'energy-conversion-lab',
+                        leader: 'han-solo#worth-the-risk',
+                        resources: 4
+                    },
+                    player2: {
+                        groundArena: ['rugged-survivors']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.energyConversionLab);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+                expect(context.poeDameron).not.toHaveAvailableActionWhenClickedBy(context.player1);
+
+                context.allowTestToEndWithOpenPrompt = true;
             });
         });
     });

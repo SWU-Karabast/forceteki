@@ -15,7 +15,7 @@ export default class HondoOhnakaThatsGoodBusiness extends LeaderUnitCard {
             title: 'Exhaust this leader',
             optional: true,
             when: {
-                onCardPlayed: (event, context) => event.card.controller === context.player && event.playType === PlayType.Smuggle
+                onCardPlayed: (event, context) => event.player === context.player && event.playType === PlayType.Smuggle
             },
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: {
@@ -32,7 +32,7 @@ export default class HondoOhnakaThatsGoodBusiness extends LeaderUnitCard {
             title: 'Give an experience token to a unit',
             optional: true,
             when: {
-                onCardPlayed: (event, context) => event.card.controller === context.player && event.playType === PlayType.Smuggle
+                onCardPlayed: (event, context) => event.player === context.player && event.playType === PlayType.Smuggle
             },
             targetResolver: {
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()

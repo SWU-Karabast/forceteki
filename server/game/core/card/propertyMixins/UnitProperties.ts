@@ -923,6 +923,14 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
         }
 
+        protected override updateStateOnAttach() {
+            this.setActiveAttackEnabled(false);
+            this.setDamageEnabled(false);
+            this.setExhaustEnabled(false);
+            this.setUpgradesEnabled(false);
+            this.setCaptureZoneEnabled(false);
+        }
+
         public getMaxUnitAttackLimit(): number {
             let attackLimit = 1;
             if (this.hasOngoingEffect(EffectName.CanAttackMultipleUnitsSimultaneously)) {
@@ -957,6 +965,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 ...super.getSummary(activePlayer),
                 parentCardId: this.getCaptor()?.uuid,
             };
+        }
+
+        public override getCardState(): any {
+            if (this.isInPlay()) {
+                return {
+                    ...super.getCardState(),
+                    upgrades: this.upgrades,
+                    capturedUnits: this.capturedUnits
+                };
+            }
         }
 
         public override addOngoingEffect(ongoingEffect: IOngoingCardEffect): void {

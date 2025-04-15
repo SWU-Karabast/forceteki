@@ -16,7 +16,7 @@ export default class ToroCalicanAmbitiousUpstart extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) =>
                     event.card.hasSomeTrait(Trait.BountyHunter) &&
-                    event.card.controller === this.controller &&
+                    event.player === this.controller &&
                     event.card.isUnit() &&
                     event.card !== context.source
             },

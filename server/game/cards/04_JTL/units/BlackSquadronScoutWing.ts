@@ -13,7 +13,7 @@ export default class BlackSquadronScoutWing extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Attack with this unit. It gets +1/+0 for this attack.',
             when: {
-                onCardPlayed: (event, context) => event.card.controller === context.player &&
+                onCardPlayed: (event, context) => event.player === context.player &&
                   event.card.isUpgrade() &&
                   event.attachTarget === context.source
             },
