@@ -55,80 +55,87 @@ export class AttackFlow extends BaseStepWithPipeline {
             return;
         }
 
-        let overwhelmDamageOnly = false;
-        if (!this.attack.isAttackTargetLegal()) {
-            if (!this.attack.hasOverwhelm()) {
-                this.context.game.addMessage('The attack does not resolve because the defender is no longer in play');
-                return;
-            }
+        const inPlayTargets = [];
+        let overwhelmDamage = 0;
 
-            // if the defender is no longer in play but the attack has overwhelm, all damage is considered overwhelm damage and dealt to the base (SWU 5.7.G)
-            overwhelmDamageOnly = true;
+        // Handle any targets that left play
+        for (const target of this.attack.getAllTargets()) {
+            if (target.isBase() || target.isInPlay()) {
+                // Do nothing - normal attacks
+                inPlayTargets.push(target);
+            } else if (this.attack.hasOverwhelm()) {
+                // This target is no longer in play
+                overwhelmDamage += this.attack.getAttackerTotalPower();
+            }
         }
 
-        const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
+        const damageEvents = [];
 
         // TSTODO: This will need to be updated to account for attacking units owned by different opponents
         const targetControllerBase = this.attack.getAllTargets()[0].controller.base;
 
-        if (overwhelmDamageOnly) {
-            new DamageSystem({
+        if (overwhelmDamage > 0) {
+            damageEvents.push(new DamageSystem({
                 type: DamageType.Overwhelm,
-                amount: (this.attack.getAllTargets().length * this.attack.getAttackerTotalPower()),
-                sourceAttack: this.attack
-            }).resolve(targetControllerBase, this.context);
-        } else if (attackerDealsDamageBeforeDefender) {
-            this.context.game.openEventWindow(this.createAttackerDamageEvent());
-            this.context.game.queueSimpleStep(() => {
-                if (this.attack.getAllTargets().some((target) => !target.isBase() && target.isInPlay())) {
-                    this.context.game.openEventWindow(this.createDefenderDamageEvent());
+                amount: overwhelmDamage,
+                sourceAttack: this.attack,
+                target: targetControllerBase
+            }).generateEvent(this.context));
+        }
+
+        if (inPlayTargets.length > 0) {
+            const attackerDealsDamageBeforeDefender = this.attack.attackerDealsDamageBeforeDefender();
+
+            const attackerDamageEvents = inPlayTargets.map((target) => this.createAttackerDamageEvent(target));
+            damageEvents.push(...attackerDamageEvents);
+
+            if (attackerDealsDamageBeforeDefender) {
+                this.context.game.openEventWindow(damageEvents);
+                this.context.game.queueSimpleStep(() => {
+                    if (this.attack.getAllTargets().some((target) => !target.isBase() && target.isInPlay())) {
+                        this.context.game.openEventWindow(this.createDefenderDamageEvent());
+                    }
+                }, 'check and queue event for defender damage');
+            } else {
+                // normal attack
+                if (inPlayTargets.some((target) => !target.isBase())) {
+                    damageEvents.push(this.createDefenderDamageEvent());
                 }
-            }, 'check and queue event for defender damage');
-        } else {
-            // normal attack
-            const damageEvents = this.createAttackerDamageEvent();
-            if (this.attack.getAllTargets().some((target) => !target.isBase())) {
-                damageEvents.push(this.createDefenderDamageEvent());
+                this.context.game.openEventWindow(damageEvents);
             }
+        } else if (overwhelmDamage > 0) {
             this.context.game.openEventWindow(damageEvents);
         }
     }
 
-    private createAttackerDamageEvent(): GameEvent[] {
-        const attackerDamageEvents: GameEvent[] = [];
+    private createAttackerDamageEvent(target: IAttackableCard): GameEvent {
+        const attackerDamageEvent = new DamageSystem({
+            type: DamageType.Combat,
+            amount: this.attack.getAttackerTotalPower(),
+            sourceAttack: this.attack,
+            target: target
+        }).generateEvent(this.context);
 
-        // event for damage dealt to target by attacker
-        for (const target of this.attack.getAllTargets()) {
-            const attackerDamageEvent = new DamageSystem({
-                type: DamageType.Combat,
-                amount: this.attack.getAttackerTotalPower(),
-                sourceAttack: this.attack,
-                target: target
-            }).generateEvent(this.context);
+        if (this.attack.hasOverwhelm()) {
+            attackerDamageEvent.setContingentEventsGenerator((event) => {
+                const attackTarget: Card = event.card;
 
-            if (this.attack.hasOverwhelm()) {
-                attackerDamageEvent.setContingentEventsGenerator((event) => {
-                    const attackTarget: Card = event.card;
+                if (!attackTarget.isUnit() || event.damage <= attackTarget.remainingHp) {
+                    return [];
+                }
 
-                    if (!attackTarget.isUnit() || event.damage <= attackTarget.remainingHp) {
-                        return [];
-                    }
-
-                    const overwhelmSystem = new DamageSystem({
-                        type: DamageType.Overwhelm,
-                        contingentSourceEvent: attackerDamageEvent,
-                        sourceAttack: this.attack,
-                        target: event.card.controller.base
-                    });
-
-                    return [overwhelmSystem.generateEvent(this.context)];
+                const overwhelmSystem = new DamageSystem({
+                    type: DamageType.Overwhelm,
+                    contingentSourceEvent: attackerDamageEvent,
+                    sourceAttack: this.attack,
+                    target: event.card.controller.base
                 });
-            }
 
-            attackerDamageEvents.push(attackerDamageEvent);
+                return [overwhelmSystem.generateEvent(this.context)];
+            });
         }
 
-        return attackerDamageEvents;
+        return attackerDamageEvent;
     }
 
     private createDefenderDamageEvent(): GameEvent {

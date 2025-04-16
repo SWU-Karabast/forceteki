@@ -524,6 +524,58 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.moistureFarmer.damage).toBe(11);
         });
 
+        it('should work properly with a Shoot-First attack', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['shoot-first'],
+                    groundArena: ['darth-maul#revenge-at-last'],
+                },
+                player2: {
+                    groundArena: ['wampa', 'cantina-braggart']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.shootFirst);
+            context.player1.clickCard(context.darthMaul);
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.cantinaBraggart);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(0);
+            expect(context.wampa).toBeInZone('discard');
+            expect(context.cantinaBraggart).toBeInZone('discard');
+        });
+
+        it('should work properly with a Shoot-First attack where a unit dies in the on-attack step', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['shoot-first'],
+                    groundArena: [{ card: 'darth-maul#revenge-at-last', upgrades: ['fallen-lightsaber'] }],
+                },
+                player2: {
+                    groundArena: ['wampa', { card: 'cantina-braggart', damage: 2 }],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.shootFirst);
+            context.player1.clickCard(context.darthMaul);
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.cantinaBraggart);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(0);
+            expect(context.wampa).toBeInZone('discard');
+            expect(context.cantinaBraggart).toBeInZone('discard');
+        });
+
         it('should deal Overwhelm damage from both targets if attacking with Overwhelm', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
@@ -580,6 +632,60 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.moistureFarmer).toBeInZone('discard');
             expect(context.cantinaBraggart).toBeInZone('discard');
             expect(context.p2Base.damage).toBe(16); // 8 from full Overwhelm damage on each target
+        });
+
+        it('should work properly with Overwhelm and a Shoot-First attack where a unit dies in the on-attack step', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'maul#a-rival-in-darkness', deployed: true },
+                    hand: ['shoot-first'],
+                    groundArena: [{ card: 'darth-maul#revenge-at-last', upgrades: ['fallen-lightsaber'] }],
+                },
+                player2: {
+                    groundArena: ['wampa', { card: 'cantina-braggart', damage: 2 }],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.shootFirst);
+            context.player1.clickCard(context.darthMaul);
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.cantinaBraggart);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(0);
+            expect(context.cantinaBraggart).toBeInZone('discard');
+            expect(context.p2Base.damage).toBe(14); // 5 from Wampa Overwhelm and 9 from Cantina Overwhelm
+        });
+
+        it('should work properly with Overwhelm and a Shoot-First attack where both units dies in the on-attack step', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'maul#a-rival-in-darkness', deployed: true },
+                    hand: ['shoot-first'],
+                    groundArena: [{ card: 'darth-maul#revenge-at-last', upgrades: ['fallen-lightsaber'] }],
+                },
+                player2: {
+                    groundArena: [{ card: 'wampa', damage: 4 }, { card: 'cantina-braggart', damage: 2 }],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.shootFirst);
+            context.player1.clickCard(context.darthMaul);
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.cantinaBraggart);
+            context.player1.clickPrompt('Done');
+
+            expect(context.darthMaul.damage).toBe(0);
+            expect(context.cantinaBraggart).toBeInZone('discard');
+            expect(context.p2Base.damage).toBe(18);
         });
     });
 });
