@@ -7,6 +7,8 @@ import type Game from '../Game';
 import * as Contract from '../utils/Contract';
 import * as Helpers from '../utils/Helpers';
 import { DelayedEffectType } from '../../gameSystems/DelayedEffectSystem';
+import type { IGameObjectBaseState } from '../GameObjectBase';
+import { GameObjectBase, type GameObjectRef } from '../GameObjectBase';
 
 interface ICustomDurationEvent {
     name: string;
@@ -14,37 +16,35 @@ interface ICustomDurationEvent {
     effect: OngoingEffect;
 }
 
-export interface IOngoingEffectState {
-    effects: number[]; // TODO: Can we make OngoingEffect have an ID w/o using GameObjectBase? Probably, do it similiar to how snapshot IDs work.
+export interface IOngoingEffectState extends IGameObjectBaseState {
+    effects: GameObjectRef<OngoingEffect>[]; // TODO: Can we make OngoingEffect have an ID w/o using GameObjectBase? Probably, do it similiar to how snapshot IDs work.
 }
 
-export class OngoingEffectEngine {
+export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
     public events: EventRegistrar;
-    public effects: OngoingEffect[] = [];
     public customDurationEvents: ICustomDurationEvent[] = [];
     public effectsChangedSinceLastCheck = false;
-    private state: IOngoingEffectState;
-    private lastOngoingEffectId: number;
 
-    public constructor(private game: Game) {
+    public get effects() {
+        return this.state.effects.map((x) => this.game.gameObjectManager.get(x));
+    }
+
+    public constructor(game: Game) {
+        super(game);
         this.events = new EventRegistrar(game, this);
         this.events.register([
             EventName.OnAttackCompleted,
             EventName.OnPhaseEnded,
             EventName.OnRoundEnded
         ]);
-        // TODO: This wouldn't work, if we rollback to when a ongoing effect was _in_ play, we wouldn't have the reference.
-        //          This means we need to rely on the newly returned to in-play card to add or remove the ongoing effect.
-        this.lastOngoingEffectId = 0;
-        this.state = { effects: [] };
+    }
+
+    protected override setupDefaultState() {
+        this.state.effects = [];
     }
 
     public add(effect: OngoingEffect) {
-        // TODO: Are OngoingEffect's added this way always new objects, never reused?
-        // effect.id = this.lastOngoingEffectId + 1;
-        // this.lastOngoingEffectId = effect.id;
-
-        this.effects.push(effect);
+        this.state.effects.push(effect.getRef());
         if (effect.duration === Duration.Custom) {
             this.registerCustomDurationEvents(effect);
         }
@@ -180,21 +180,25 @@ export class OngoingEffectEngine {
         });
     }
 
+    private unapplyEffect(effect: OngoingEffect) {
+        effect.cancel();
+        if (effect.duration === Duration.Custom) {
+            this.unregisterCustomDurationEvents(effect);
+        }
+    }
+
     public unapplyAndRemove(match: (effect: OngoingEffect) => boolean) {
         let anyEffectRemoved = false;
         const remainingEffects: OngoingEffect[] = [];
         for (const effect of this.effects) {
             if (match(effect)) {
                 anyEffectRemoved = true;
-                effect.cancel();
-                if (effect.duration === Duration.Custom) {
-                    this.unregisterCustomDurationEvents(effect);
-                }
+                this.unapplyEffect(effect);
             } else {
                 remainingEffects.push(effect);
             }
         }
-        this.effects = remainingEffects;
+        this.state.effects = remainingEffects.map((x) => x.getRef());
         return anyEffectRemoved;
     }
 
@@ -245,12 +249,30 @@ export class OngoingEffectEngine {
             if (listener && listener(...args)) {
                 customDurationEffect.cancel();
                 this.unregisterCustomDurationEvents(customDurationEffect);
-                this.effects = this.effects.filter((effect) => effect !== customDurationEffect);
+                this.state.effects = this.effects.filter((effect) => effect !== customDurationEffect).map((x) => x.getRef());
             }
         };
     }
 
     public getDebugInfo() {
         return this.effects.map((effect) => effect.getDebugInfo());
+    }
+
+    public override afterSetAllState(prevState: IOngoingEffectState) {
+        for (const prevEffect of prevState.effects) {
+            if (!this.state.effects.some((x) => x.uuid === prevEffect.uuid)) {
+                this.unapplyEffect(this.game.gameObjectManager.get(prevEffect));
+            }
+        }
+
+        for (const currEffect of this.state.effects) {
+            if (!prevState.effects.some((x) => x.uuid === currEffect.uuid)) {
+                const effect = this.getObject(currEffect);
+                if (effect.duration === Duration.Custom) {
+                    // POTENTIAL ISSUE: Does this cause some kind of game changing event to trigger? this.game.on(eventName, handler) is a little suspicious
+                    this.registerCustomDurationEvents(effect);
+                }
+            }
+        }
     }
 }

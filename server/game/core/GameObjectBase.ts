@@ -89,10 +89,10 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         return ref as GameObjectRef<T>;
     }
 
-    /** Shortcut to get the Game Object from a Ref */
-    public getObject<T extends GameObjectBase>(ref: GameObjectRef<T>): T {
+    /** Shortcut to get the Game Object from a Ref. This is intentionally an arrow function to cause structured clone to break if called on this class. */
+    public getObject = <T extends GameObjectBase>(ref: GameObjectRef<T>): T => {
         return this.game.gameObjectManager.get(ref);
-    }
+    };
 
     public getObjectName(): string {
         return 'GameObject';

@@ -4,6 +4,7 @@ import type { Card } from '../card/Card';
 import type { ZoneFilter } from '../Constants';
 import { Duration, WildcardZoneName, EffectName } from '../Constants';
 import type Game from '../Game';
+import { GameObjectBase } from '../GameObjectBase';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
@@ -35,9 +36,8 @@ import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
  * impl                 - object with details of effect to be applied. Includes duration
  *                        and the numerical value of the effect, if any.
  */
-export abstract class OngoingEffect {
+export abstract class OngoingEffect extends GameObjectBase {
     public id: number;
-    public game: Game;
     public source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
     public matchTarget: (Player | Card) | ((target: Player | Card, context: AbilityContext) => boolean);
@@ -55,8 +55,8 @@ export abstract class OngoingEffect {
             properties.duration === Duration.WhileSourceInPlay && !source.canBeInPlay(),
             `${source.internalName} is not a legal target for an effect with duration '${Duration.WhileSourceInPlay}'`
         );
+        super(game);
 
-        this.game = game;
         this.source = source;
         this.matchTarget = properties.matchTarget || (() => true);
         this.duration = properties.duration;
