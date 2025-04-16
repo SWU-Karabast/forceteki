@@ -30,10 +30,15 @@ export class CardsEnteredPlayThisPhaseWatcher extends StateWatcher<EnteredCardEn
     }
 
     /** Filters the list of entered play cards in the state and returns the cards that match */
-    public getCardsPlayed(filter: (entry: EnteredCardEntry) => boolean): Card[] {
+    public getCardsEnteredPlay(filter: (entry: EnteredCardEntry) => boolean): Card[] {
         return this.getCurrentValue()
             .filter(filter)
             .map((entry) => entry.card);
+    }
+
+    /** Checks the state for cards that entered play and match the provided filter */
+    public someCardEnteredPlay(filter: (entry: EnteredCardEntry) => boolean): boolean {
+        return this.getCardsEnteredPlay(filter).length > 0;
     }
 
     protected override setupWatcher() {

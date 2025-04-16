@@ -38,7 +38,7 @@ export default class BobaFettDisintegrator extends NonLeaderUnitCard {
         if (!defender.exhausted) {
             return false;
         }
-        if (this.cardsEnteredPlayThisPhaseWatcher.getCardsPlayed((playedCardEntry) =>
+        if (this.cardsEnteredPlayThisPhaseWatcher.getCardsEnteredPlay((playedCardEntry) =>
             playedCardEntry.playedBy === defender.owner && defender === playedCardEntry.card).length > 0) {
             return false;
         }
