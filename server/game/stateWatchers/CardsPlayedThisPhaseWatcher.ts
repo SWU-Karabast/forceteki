@@ -6,21 +6,36 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
+import type { GameObjectBase, GameObjectRef } from '../core/GameObjectBase';
 
-export interface PlayedCardEntry {
-    card: IPlayableCard;
+type GameObjectOrRef<T extends GameObjectBase> = T | GameObjectRef<T>;
+
+interface IPlayedCardEntryBase {
+    card: GameObjectOrRef<IPlayableCard>;
     playEvent: any;
     inPlayId?: number;
-    playedBy: Player;
-    parentCard?: IInPlayCard;
+    playedBy: GameObjectOrRef<Player>;
+    parentCard?: GameObjectOrRef<IInPlayCard>;
     parentCardInPlayId?: number;
     hasWhenDefeatedAbilities?: boolean;
     playedAsType: CardType;
 }
 
-export type ICardsPlayedThisPhase = PlayedCardEntry[];
+interface IPlayedCardEntryInternal extends IPlayedCardEntryBase {
+    card: GameObjectRef<IPlayableCard>;
+    playedBy: GameObjectRef<Player>;
+    parentCard?: GameObjectRef<IInPlayCard>;
+}
 
-export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]> {
+export interface IPlayedCardEntryExternal extends IPlayedCardEntryBase {
+    card: IPlayableCard;
+    playedBy: Player;
+    parentCard?: IInPlayCard;
+}
+
+export type ICardsPlayedThisPhase = IPlayedCardEntryExternal[];
+
+export class CardsPlayedThisPhaseWatcher extends StateWatcher<IPlayedCardEntryInternal[], IPlayedCardEntryExternal[]> {
     public constructor(
         registrar: StateWatcherRegistrar,
         card: Card
@@ -29,7 +44,7 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
     }
 
     /**
-     * Returns an array of {@link PlayedCardEntry} objects representing every card played
+     * Returns an array of {@link IPlayedCardEntryExternal} objects representing every card played
      * in this phase so far and the player who played that card
      */
     public override getCurrentValue(): ICardsPlayedThisPhase {
@@ -37,15 +52,28 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
     }
 
     /** Filters the list of played cards in the state and returns the cards that match */
-    public getCardsPlayed(filter: (entry: PlayedCardEntry) => boolean): Card[] {
+    public getCardsPlayed(filter: (entry: IPlayedCardEntryExternal) => boolean): Card[] {
         return this.getCurrentValue()
             .filter(filter)
             .map((entry) => entry.card);
     }
 
     /** Check the list of played cards in the state if we found cards that match filters */
-    public someCardPlayed(filter: (entry: PlayedCardEntry) => boolean): boolean {
+    public someCardPlayed(filter: (entry: IPlayedCardEntryExternal) => boolean): boolean {
         return this.getCardsPlayed(filter).length > 0;
+    }
+
+    public override convertState(state: IPlayedCardEntryInternal[]): IPlayedCardEntryExternal[] {
+        return state.map((entry) => {
+            const { card, playedBy, parentCard, ...nonGameObjectProps } = entry;
+
+            return {
+                ...nonGameObjectProps,
+                card: this.refToGameObject(card),
+                playedBy: this.refToGameObject(playedBy),
+                parentCard: this.refToGameObject(parentCard)
+            };
+        });
     }
 
     protected override setupWatcher() {
@@ -54,7 +82,7 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
             when: {
                 onCardPlayed: () => true,
             },
-            update: (currentState: ICardsPlayedThisPhase, event: any) =>
+            update: (currentState: IPlayedCardEntryInternal[], event: any) =>
                 currentState.concat({
                     card: event.card,
                     playEvent: event,
@@ -68,7 +96,7 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
         });
     }
 
-    protected override getResetValue(): ICardsPlayedThisPhase {
+    protected override getResetValue(): IPlayedCardEntryInternal[] {
         return [];
     }
 }
