@@ -1353,7 +1353,7 @@ export class Player extends GameObject<IPlayerState> {
             state.base = this.base.captureCardState();
 
             // Initiative
-            state.hasInitiative = true;
+            state.hasInitiative = this.hasInitiative();
         } catch (error) {
             logger.error('Error capturing player state', {
                 error: { message: error.message, stack: error.stack },
