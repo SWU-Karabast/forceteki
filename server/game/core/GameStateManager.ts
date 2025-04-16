@@ -65,7 +65,7 @@ export class GameStateManager {
         }
 
         const ref = this.gameObjectMapping.get(gameObjectRef.uuid);
-        Contract.assertNotNullLike(ref, `Tried to get a Game Object but the UUID is not registered ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`);
+        Contract.assertNotNullLike(ref, `Tried to get a Game Object but the UUID is not registered: ${gameObjectRef.uuid}. This *VERY* bad and should not be possible w/o breaking the engine, stop everything and fix this now.`);
         return ref as T;
     }
 
@@ -231,17 +231,17 @@ export class GameStateManager {
             go.setState(updatedState);
         }
 
+        // Inform GOs that all states have been updated.
+        updates.forEach((update) => update.go.afterSetAllState(update.oldState));
+
         // Remove GOs that hadn't yet been created by this point.
-        // Because the above for loop is reversed we don't have to worry about deleted indexes causing a problem when the array shifts.
+        // Because the for loop to determine removals is done from end to beginning, we don't have to worry about deleted indexes causing a problem when the array shifts.
         for (const removed of removals) {
             this.allGameObjects.splice(removed.index, 1);
             this.gameObjectMapping.delete(removed.uuid);
         }
 
         this.lastId = snapshot.lastId;
-
-        // Inform GOs that all states have been updated.
-        updates.forEach((update) => update.go.afterSetAllState(update.oldState));
 
         // Throw out all snapshots after the rollback snapshot.
         this.snapshots.splice(snapshotIdx + 1);

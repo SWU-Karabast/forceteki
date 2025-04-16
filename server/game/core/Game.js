@@ -125,6 +125,8 @@ class Game extends EventEmitter {
         Contract.assertNotNullLike(options);
         validateGameOptions(options);
 
+        // GameStateManager must come before any other setup.
+        this.gameObjectManager = new GameStateManager(this);
         this.ongoingEffectEngine = new OngoingEffectEngine(this);
 
         /** @type { {[key: string]: Player | Spectator} } */
@@ -137,7 +139,6 @@ class Game extends EventEmitter {
         this.owner = details.owner;
         this.started = false;
         this.playStarted = false;
-        this.gameObjectManager = new GameStateManager(this);
         this.createdAt = new Date();
 
         /** @type { ActionWindow | null } */
