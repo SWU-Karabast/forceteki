@@ -1343,9 +1343,7 @@ export class Player extends GameObject<IPlayerState> {
 
             // Resources
             if (this.resourceZone.count > 0) {
-                state.resources = this.resourceZone.cards.map((card) => {
-                    return { card: card.internalName, exhausted: card.exhausted };
-                });
+                state.resources = this.resourceZone.cards.map((card) => card.internalName);
             }
 
             // Leader
