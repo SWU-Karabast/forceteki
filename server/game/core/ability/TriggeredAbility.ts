@@ -164,6 +164,8 @@ export default class TriggeredAbility extends CardAbility {
         // and it might have changed controller.
         if (context.event.card === context.source && context.event.lastKnownInformation) {
             controller = context.event.lastKnownInformation.controller;
+        } else if ('newController' in context.event) {
+            controller = context.event.newController;
         }
 
         switch (this.canBeTriggeredBy) {
