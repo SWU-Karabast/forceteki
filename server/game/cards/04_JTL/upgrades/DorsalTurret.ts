@@ -20,8 +20,8 @@ export default class DorsalTurret extends UpgradeCard {
                 onDamageDealt: (event, context) =>
                     event.type === DamageType.Combat &&
                     event.damageSource.attack.attacker === context.source &&
-                    event.damageSource.damageDealtBy === context.source &&
-                    event.damageSource.attack.target?.isUnit()
+                    event.damageSource.damageDealtBy.includes(context.source) &&
+                    event.damageSource.attack.targetIsUnit()
             },
             immediateEffect: AbilityHelper.immediateEffects.defeat((context) => ({ target: context.event.card }))
         });
