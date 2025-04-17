@@ -56,7 +56,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         }
 
         const inPlayTargets = [];
-        let overwhelmDamage = 0;
+        let directOverwhelmDamage = 0;
 
         // Handle any targets that left play
         for (const target of this.attack.getAllTargets()) {
@@ -65,7 +65,7 @@ export class AttackFlow extends BaseStepWithPipeline {
                 inPlayTargets.push(target);
             } else if (this.attack.hasOverwhelm()) {
                 // This target is no longer in play
-                overwhelmDamage += this.attack.getAttackerTotalPower();
+                directOverwhelmDamage += this.attack.getAttackerTotalPower();
             }
         }
 
@@ -74,10 +74,10 @@ export class AttackFlow extends BaseStepWithPipeline {
         // TSTODO: This will need to be updated to account for attacking units owned by different opponents
         const targetControllerBase = this.attack.getAllTargets()[0].controller.base;
 
-        if (overwhelmDamage > 0) {
+        if (directOverwhelmDamage > 0) {
             damageEvents.push(new DamageSystem({
                 type: DamageType.Overwhelm,
-                amount: overwhelmDamage,
+                amount: directOverwhelmDamage,
                 sourceAttack: this.attack,
                 target: targetControllerBase
             }).generateEvent(this.context));
@@ -103,7 +103,7 @@ export class AttackFlow extends BaseStepWithPipeline {
                 }
                 this.context.game.openEventWindow(damageEvents);
             }
-        } else if (overwhelmDamage > 0) {
+        } else if (directOverwhelmDamage > 0) {
             this.context.game.openEventWindow(damageEvents);
         }
     }
