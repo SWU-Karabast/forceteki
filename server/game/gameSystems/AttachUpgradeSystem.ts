@@ -99,6 +99,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
                         card,
                         upgradeCard: upgrade,
                         parentCard: upgrade.parentCard,
+                        newController: this.getFinalController(properties, context),
                     }
                 ));
             } else if (upgrade.isUnit() && upgrade.isInPlay()) {

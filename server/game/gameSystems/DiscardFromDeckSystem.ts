@@ -6,6 +6,7 @@ import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
 import * as Contract from '../core/utils/Contract';
+import type { GameEvent } from '../core/event/GameEvent';
 
 export interface IDiscardFromDeckProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -76,6 +77,14 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
             // Add a final event to convey overall event resolution status.
             events.push(this.generateEvent(context, additionalProperties));
         }
+    }
+
+    protected override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties: any = {}): void {
+        super.updateEvent(event, target, context, additionalProperties);
+
+        // all the work for this system happens in the queueGenerateEventGameSteps method and the generated discard events,
+        // so the top-level discard event should just auto-succeed
+        event.condition = () => true;
     }
 
     private generateEventsForCard(card: Card, context: TContext, events: any[], additionalProperties: Record<string, any>): void {

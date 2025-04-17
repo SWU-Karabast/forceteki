@@ -70,7 +70,7 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
         this.addConstantAbility({
             title: properties.title,
             condition: properties.condition || (() => true),
-            matchTarget: (card, context) => card === context.source.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
+            matchTarget: (card, context) => this.isInPlay() && card === context.source.parentCard && (!properties.matchTarget || properties.matchTarget(card, context)),
             targetController: WildcardRelativePlayer.Any,   // this means that the effect continues to work even if the other player gains control of the upgrade
             ongoingEffect: properties.ongoingEffect
         });
