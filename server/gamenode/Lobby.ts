@@ -66,6 +66,7 @@ export class Lobby {
     private matchingCountdownText?: string;
     private matchingCountdownTimeoutHandle?: NodeJS.Timeout;
     private usersLeftCount = 0;
+    private gameMessageErrorCount = 0;
 
     public constructor(
         lobbyName: string,
@@ -658,6 +659,8 @@ export class Lobby {
 
     private async onGameMessage(socket: Socket, command: string, ...args): Promise<void> {
         try {
+            this.gameMessageErrorCount = 0;
+
             if (!this.game) {
                 return;
             }
@@ -714,6 +717,15 @@ export class Lobby {
     public handleError(game: Game, error: Error, severeGameMessage = false) {
         logger.error('Game: handleError', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
 
+        let maxErrorCountExceeded = false;
+
+        this.gameMessageErrorCount++;
+        if (this.gameMessageErrorCount > 10) {
+            logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
+            severeGameMessage = true;
+            maxErrorCountExceeded = true;
+        }
+
         // const gameState = game.getState();
         // const debugData: any = {};
 
@@ -738,6 +750,14 @@ export class Lobby {
             game.addMessage(
                 `A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue. The error has been logged. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
             );
+        }
+
+        if (maxErrorCountExceeded) {
+            // send game state so that the message can be seen
+            this.sendGameState(this.game);
+
+            // this is ugly since we're probably within an exception handler currently, but if we get here it's already crisis
+            throw new Error('Maximum error count exceeded');
         }
     }
 
