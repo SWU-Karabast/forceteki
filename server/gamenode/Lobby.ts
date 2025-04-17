@@ -720,7 +720,7 @@ export class Lobby {
         let maxErrorCountExceeded = false;
 
         this.gameMessageErrorCount++;
-        if (this.gameMessageErrorCount > 10) {
+        if (this.gameMessageErrorCount > 100) {
             logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
             severeGameMessage = true;
             maxErrorCountExceeded = true;
