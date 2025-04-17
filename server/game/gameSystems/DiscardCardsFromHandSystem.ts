@@ -13,6 +13,7 @@ import { derive } from '../core/utils/Helpers';
 import * as Contract from '../core/utils/Contract';
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
+import type { GameEvent } from '../core/event/GameEvent';
 
 export interface IDiscardCardsFromHandProperties extends IPlayerTargetSystemProperties {
     amount: Derivable<number, Player>;
@@ -115,6 +116,14 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 }
             });
         }
+    }
+
+    protected override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties: any = {}): void {
+        super.updateEvent(event, target, context, additionalProperties);
+
+        // all the work for this system happens in the queueGenerateEventGameSteps method and the generated discard events,
+        // so the top-level discard event should just auto-succeed
+        event.condition = () => true;
     }
 
     private generateEventsForCards(cards: Card[], context: TContext, events: any[], additionalProperties: Record<string, any>): void {
