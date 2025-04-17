@@ -10,7 +10,7 @@ describe('Shoot Down', function () {
                         groundArena: ['battlefield-marine']
                     },
                     player2: {
-                        spaceArena: ['tieln-fighter', 'system-patrol-craft'],
+                        spaceArena: ['tieln-fighter', 'system-patrol-craft', { card: 'cartel-spacer', upgrades: ['shield'] }],
                         groundArena: ['atst'],
                     }
                 });
@@ -21,7 +21,7 @@ describe('Shoot Down', function () {
 
                 context.player1.clickCard(context.shootDown);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.tielnFighter, context.systemPatrolCraft]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.tielnFighter, context.systemPatrolCraft, context.cartelSpacer]);
                 context.player1.clickCard(context.tielnFighter);
 
                 expect(context.tielnFighter).toBeInZone('discard');
@@ -37,7 +37,7 @@ describe('Shoot Down', function () {
 
                 context.player1.clickCard(context.shootDown);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.tielnFighter, context.systemPatrolCraft]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.tielnFighter, context.systemPatrolCraft, context.cartelSpacer]);
                 context.player1.clickCard(context.tielnFighter);
 
                 expect(context.tielnFighter).toBeInZone('discard');
@@ -51,10 +51,20 @@ describe('Shoot Down', function () {
 
                 context.player1.clickCard(context.shootDown);
 
-                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.tielnFighter, context.systemPatrolCraft]);
+                expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.tielnFighter, context.systemPatrolCraft, context.cartelSpacer]);
                 context.player1.clickCard(context.systemPatrolCraft);
                 expect(context.systemPatrolCraft.damage).toBe(3);
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not deal damage to base if shield was defeat', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.shootDown);
+                context.player1.clickCard(context.cartelSpacer);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.p2Base.damage).toBe(0);
             });
         });
     });

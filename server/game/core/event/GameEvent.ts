@@ -193,4 +193,16 @@ export class GameEvent {
         }
         return undefined;
     }
+
+    public get resolvedEvents(): GameEvent[] {
+        if (!this.isResolvedOrReplacementResolved) {
+            return [];
+        }
+
+        if (this.isResolved) {
+            return [this];
+        }
+
+        return this.replacementEvents.flatMap((event) => event.resolvedEvents);
+    }
 }
