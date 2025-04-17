@@ -172,7 +172,7 @@ class BaseCardSelector {
         return 'Choose cards';
     }
 
-    automaticFireOnSelect(context) {
+    automaticFireOnSelect(context, choosingPlayer) {
         return false;
     }
 
@@ -182,7 +182,7 @@ class BaseCardSelector {
     }
 
 
-    hasReachedLimit(selectedCards, context) {
+    hasReachedLimit(selectedCards, context, choosingPlayer) {
         return false;
     }
 

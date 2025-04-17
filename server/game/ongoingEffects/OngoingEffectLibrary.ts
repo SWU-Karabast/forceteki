@@ -24,6 +24,7 @@ import type { StartingHandSizeModifier } from '../core/ongoingEffect/effectImpl/
 import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl/PlayFromDiscardProperties';
+import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 
 /* Types of effect
@@ -68,6 +69,7 @@ export = {
     //        unapply: () => true
     //    }),
 
+    canAttackMultipleUnitsSimultaneously: (effectImpl: CanAttackMultipleUnitsSimultaneously) => OngoingEffectBuilder.card.static(EffectName.CanAttackMultipleUnitsSimultaneously, effectImpl),
     canPlayFromDiscard: (properties: PlayFromDiscardProperties = {}) => OngoingEffectBuilder.card
         .static(EffectName.CanPlayFromDiscard, properties),
     // canBeSeenWhenFacedown: () => OngoingEffectBuilder.card.static(EffectName.CanBeSeenWhenFacedown),
