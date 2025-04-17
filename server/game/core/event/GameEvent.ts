@@ -194,6 +194,15 @@ export class GameEvent {
         return undefined;
     }
 
+    /**
+     * Returns the event or its replacement effect events that are resolved.
+     *
+     * If the event is not resolved, it returns an empty array.
+     * If the event is resolved, it returns only itself.
+     * If the event has been replaced, it returns all replacement effect events that are resolved.
+     *
+     * @returns {GameEvent[]} An array of resolved events.
+     */
     public get resolvedEvents(): GameEvent[] {
         if (!this.isResolvedOrReplacementResolved) {
             return [];
