@@ -45,5 +45,40 @@ describe('Drain Essence', function () {
             expect(context.consularSecurityForce.damage).toBe(2);
             expect(context.player1.hasTheForce).toBe(true);
         });
+
+        it('will still gain the force if there are no units to deal damage to', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['drain-essence']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.drainEssence);
+
+            expect(context.player1.hasTheForce).toBe(true);
+            expect(context.player2).toBeActivePlayer();
+        });
+
+        it('will deal damage to a friendly unit if there are no enemy units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['drain-essence'],
+                    groundArena: ['consular-security-force']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.drainEssence);
+            expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
+            context.player1.clickCard(context.consularSecurityForce);
+
+            expect(context.consularSecurityForce.damage).toBe(2);
+            expect(context.player1.hasTheForce).toBe(true);
+        });
     });
 });
