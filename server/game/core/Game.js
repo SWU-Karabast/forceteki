@@ -43,6 +43,7 @@ const { GameStateManager } = require('./GameStateManager.js');
 const { ActionWindow } = require('./gameSteps/ActionWindow.js');
 const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
+const { CostAdjuster } = require('./cost/CostAdjuster.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -1308,6 +1309,13 @@ class Game extends EventEmitter {
         player.disconnected = false;
 
         this.addMessage('{0} has reconnected', player);
+    }
+
+    /** @param {CostAdjuster} costAdjuster */
+    removeCostAdjusterFromAll(costAdjuster) {
+        for (const player of this.getPlayers()) {
+            player.removeCostAdjuster(costAdjuster);
+        }
     }
 
     /** Goes through the list of cards moved during event resolution and does a uniqueness rule check for each */
