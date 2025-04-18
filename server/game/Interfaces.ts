@@ -297,6 +297,7 @@ export interface IPlayerSerializedState {
     leader?: string | ISerializedCardState;
     deck?: number | string[];
     hasInitiative?: boolean;
+    hasForceToken?: boolean;
 }
 
 export interface ISerializedGameState {
