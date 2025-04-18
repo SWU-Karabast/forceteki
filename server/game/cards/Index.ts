@@ -10,7 +10,8 @@ function allJsFiles(path: string): string[] {
         }
 
         const filepath = join(path, file);
-        if (lstatSync(filepath).isDirectory()) {
+        // Directories named 'common' hold abstract classes and common implementations
+        if (lstatSync(filepath).isDirectory() && !filepath.endsWith(`${sep}common`)) {
             files.push(...allJsFiles(filepath));
         } else if (file.endsWith('.js') && !path.endsWith(`${sep}cards`)) {
             files.push(filepath);
