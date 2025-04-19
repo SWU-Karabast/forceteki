@@ -1,3 +1,4 @@
+import type { ExternalConverter } from '../core/stateWatcher/StateWatcher';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { CardType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
@@ -6,13 +7,14 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
+import type { GameObjectRef } from '../core/GameObjectBase';
 
 export interface PlayedCardEntry {
-    card: IPlayableCard;
+    card: GameObjectRef<IPlayableCard>;
     playEvent: any;
     inPlayId?: number;
-    playedBy: Player;
-    parentCard?: IInPlayCard;
+    playedBy: GameObjectRef<Player>;
+    parentCard?: GameObjectRef<IInPlayCard>;
     parentCardInPlayId?: number;
     hasWhenDefeatedAbilities?: boolean;
     playedAsType: CardType;
@@ -20,7 +22,7 @@ export interface PlayedCardEntry {
 
 export type ICardsPlayedThisPhase = PlayedCardEntry[];
 
-export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]> {
+export class CardsPlayedThisPhaseWatcher extends StateWatcher<ICardsPlayedThisPhase> {
     public constructor(
         registrar: StateWatcherRegistrar,
         card: Card
@@ -28,23 +30,15 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
         super(StateWatcherName.CardsPlayedThisPhase, registrar, card);
     }
 
-    /**
-     * Returns an array of {@link PlayedCardEntry} objects representing every card played
-     * in this phase so far and the player who played that card
-     */
-    public override getCurrentValue(): ICardsPlayedThisPhase {
-        return super.getCurrentValue();
-    }
-
     /** Filters the list of played cards in the state and returns the cards that match */
-    public getCardsPlayed(filter: (entry: PlayedCardEntry) => boolean): Card[] {
+    public getCardsPlayed(filter: (entry: ExternalConverter<PlayedCardEntry>) => boolean): Card[] {
         return this.getCurrentValue()
             .filter(filter)
             .map((entry) => entry.card);
     }
 
     /** Check the list of played cards in the state if we found cards that match filters */
-    public someCardPlayed(filter: (entry: PlayedCardEntry) => boolean): boolean {
+    public someCardPlayed(filter: (entry: ExternalConverter<PlayedCardEntry>) => boolean): boolean {
         return this.getCardsPlayed(filter).length > 0;
     }
 
@@ -56,12 +50,12 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<PlayedCardEntry[]>
             },
             update: (currentState: ICardsPlayedThisPhase, event: any) =>
                 currentState.concat({
-                    card: event.card,
+                    card: event.card.getRef(),
                     playEvent: event,
-                    parentCard: event.card.isUpgrade() && event.card.isAttached() ? event.card.parentCard : null,
+                    parentCard: event.card.isUpgrade() && event.card.isAttached() ? event.card.parentCard.getRef() : null,
                     parentCardInPlayId: event.card.isUpgrade() && event.card.parentCard?.canBeInPlay() ? event.card.parentCard.inPlayId : null,
                     inPlayId: event.card.inPlayId ?? null,
-                    playedBy: event.player,
+                    playedBy: event.player.getRef(),
                     hasWhenDefeatedAbilities: event.card.canBeInPlay() && event.card.getTriggeredAbilities().some((ability) => ability.isWhenDefeated),
                     playedAsType: event.card.type,
                 })

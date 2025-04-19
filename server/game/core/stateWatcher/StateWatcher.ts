@@ -1,9 +1,20 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { StateWatcherName } from '../Constants';
+import type { GameObjectRef } from '../GameObjectBase';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
+
+type FieldToGameObject<T> = T extends GameObjectRef<infer TK> ? TK : T;
+
+type ExternalConverterBase<T> = {
+    [K in keyof T]: FieldToGameObject<T[K]>
+};
+
+export type ExternalConverter<T> = T extends (infer Item)[]
+    ? ExternalConverterBase<Item>[]
+    : ExternalConverterBase<T>;
 
 /**
  * State watchers are used for cards that need to refer to events that happened in the past.
@@ -53,8 +64,8 @@ export abstract class StateWatcher<TState> {
     // Returns the value that the state will be initialized to at the beginning of the phase
     protected abstract getResetValue(): TState;
 
-    public getCurrentValue(): TState {
-        return this.registrar.getStateValue(this.registrationKey) as TState;
+    public getCurrentValue(): ExternalConverter<TState> {
+        return this.registrar.getStateValue(this.registrationKey) as ExternalConverter<TState>;
     }
 
     protected addUpdater(properties: IStateListenerProperties<TState>) {
