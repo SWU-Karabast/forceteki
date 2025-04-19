@@ -37,7 +37,7 @@ export abstract class Phase extends BaseStepWithPipeline {
             if (this.name !== PhaseName.Setup) {
                 this.game.addAlert('endofround', 'turn: {0} - {1} phase', this.game.roundNumber, this.name);
             }
-            this.game.gameObjectManager.clearSnapshots();
+            // this.game.gameObjectManager.clearSnapshots();
         });
     }
 
