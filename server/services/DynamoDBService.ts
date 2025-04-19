@@ -11,6 +11,8 @@ import {
 import { logger } from '../logger';
 import * as Contract from '../game/core/utils/Contract';
 import type { IDeckDataEntity, IDeckStatsEntity, IUserProfileDataEntity } from './DynamoDBInterfaces';
+import { z } from 'zod';
+import { iDeckDataEntitySchema, iDeckStatsEntitySchema } from './DynamoDBInterfaceSchemas';
 
 // global variable
 let dynamoDbService: DynamoDBService;
@@ -74,6 +76,19 @@ class DynamoDBService {
 
         const dbClient = new DynamoDBClient(dbClientConfig);
         this.client = DynamoDBDocumentClient.from(dbClient);
+    }
+
+    private validateItem<T>(schema: z.ZodType<T>, data: unknown, context: string): { valid: true; data: T } | { valid: false; errors: z.ZodError } {
+        try {
+            const validData = schema.parse(data);
+            return { valid: true, data: validData };
+        } catch (error) {
+            if (error instanceof z.ZodError) {
+                logger.error(`Validation error in ${context}:`, error.format());
+                return { valid: false, errors: error };
+            }
+            throw error;
+        }
     }
 
     /**
@@ -326,6 +341,10 @@ class DynamoDBService {
     // User Deck Methods
     public async saveDeckAsync(deckData: IDeckDataEntity) {
         return await this.executeDbOperationAsync(async () => {
+            const validation = this.validateItem(iDeckDataEntitySchema, deckData, 'Save deck');
+            if (!validation.valid) {
+                throw new Error(`Cannot save invalid deck data: ${deckData}`);
+            }
             const item = {
                 pk: `USER#${deckData.userId}`,
                 sk: `DECK#${deckData.id}`,
@@ -340,7 +359,16 @@ class DynamoDBService {
     public async getDeckAsync(userId: string, deckId: string) {
         return await this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync(`USER#${userId}`, `DECK#${deckId}`);
-            return result.Item as IDeckDataEntity | undefined;
+            try {
+                iDeckDataEntitySchema.parse(result.Item);
+                return result.Item as IDeckDataEntity;
+            } catch (error) {
+                if (error instanceof z.ZodError) {
+                    logger.error(`Retrieved deck ${deckId} has validation issues:`, error.format());
+                    await this.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`);
+                }
+                throw error;
+            }
         }, 'Error getting deck');
     }
 
@@ -361,16 +389,46 @@ class DynamoDBService {
             }
 
             // Find the deck with matching deckLink
-            return result.Items.find((item: any) =>
+            const foundDeck = result.Items.find((item: any) =>
                 item.deck && item.deck.deckLinkID === deckLinkID
             ) as IDeckDataEntity | undefined;
+            if (foundDeck) {
+                try {
+                    iDeckDataEntitySchema.parse(foundDeck);
+                    return foundDeck;
+                } catch (error) {
+                    if (error instanceof z.ZodError) {
+                        if (foundDeck) {
+                            logger.error(`Retrieved deck ${foundDeck.id} has validation issues:`, error.format());
+                            await this.deleteItemAsync(`USER#${userId}`, `DECK#${foundDeck.id}`);
+                        }
+                    }
+                    throw error;
+                }
+            }
+            return foundDeck;
         }, 'Error finding deck by link');
     }
 
     public async getUserDecksAsync(userId: string) {
         return await this.executeDbOperationAsync(async () => {
             const result = await this.queryItemsAsync(`USER#${userId}`, { beginsWith: 'DECK#' });
-            return result.Items as IDeckDataEntity[] | undefined;
+            // Loop through each deck and validate
+            const returnList = [];
+            for (const item of result.Items) {
+                try {
+                    // Validate each deck against the schema
+                    iDeckDataEntitySchema.parse(item);
+                    returnList.push(item);
+                } catch (error) {
+                    if (error instanceof z.ZodError) {
+                        logger.error(`Retrieved deck ${item.id} has validation issues:`, error.format());
+                        // we delete the deck if its in a corrupted state
+                        await this.deleteItemAsync(`USER#${userId}`, `DECK#${item.id}`);
+                    }
+                }
+            }
+            return returnList as IDeckDataEntity[] | undefined;
         }, 'Error getting user decks');
     }
 
@@ -394,12 +452,21 @@ class DynamoDBService {
      */
     public async updateDeckStatsAsync(userId: string, deckId: string, stats: IDeckStatsEntity) {
         return await this.executeDbOperationAsync(async () => {
-            return await this.updateItemAsync(
-                `USER#${userId}`,
-                `DECK#${deckId}`,
-                'SET stats = :stats',
-                { ':stats': stats }
-            );
+            try {
+                iDeckStatsEntitySchema.parse(stats);
+                return await this.updateItemAsync(
+                    `USER#${userId}`,
+                    `DECK#${deckId}`,
+                    'SET stats = :stats',
+                    { ':stats': stats }
+                );
+            } catch (error) {
+                if (error instanceof z.ZodError) {
+                    logger.error(`Invalid deck stats data for deck ${deckId}:`, error.format());
+                    throw new Error(`Cannot update deck stats with invalid data: ${error.message}`);
+                }
+                throw error;
+            }
         }, `Error updating deck stats for deck ${deckId}, user ${userId}`);
     }
 

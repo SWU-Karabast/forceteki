@@ -26,15 +26,8 @@ import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
 import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
+import { containsProfanity } from '../utils/ProfanityFilter';
 
-
-/**
- * Represents a user object
- */
-interface User {
-    id: string;
-    username: string;
-}
 
 /**
  * Represents additional Socket types we can leverage these later.
@@ -279,6 +272,15 @@ export class GameServer {
                     });
                 }
 
+                // Check for profanity
+                if (containsProfanity(newUsername)) {
+                    logger.warn(`GameServer (change-username): User ${user.getId()} attempted to use a username containing profanity: ${newUsername}`);
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Username contains inappropriate words'
+                    });
+                }
+
                 // Call the changeUsername method
                 const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername);
                 if (result) {
@@ -288,10 +290,9 @@ export class GameServer {
                         username: result
                     });
                 }
-                logger.error(`GameServer (change-username): User ${user.getId()} did not wait till 1h has passed from last username change`);
                 return res.status(403).json({
                     success: false,
-                    message: '1h did not past since your last username change'
+                    message: 'Username can only be changed once every 1h.'
                 });
             } catch (err) {
                 logger.error('GameServer (change-username) Server Error: ', err);

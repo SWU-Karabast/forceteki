@@ -78,12 +78,13 @@ export class UserFactory {
             if (userProfile.usernameLastUpdatedAt) {
                 const lastChange = new Date(userProfile.usernameLastUpdatedAt).getTime();
                 const now = Date.now();
-
+                const timeLimit = 1;
                 // floating point representation of an hour
                 const hoursSinceLastChange = (now - lastChange) / (1000 * 60 * 60);
 
                 // If changed within the last hour, don't allow another change
-                if (hoursSinceLastChange < 1) {
+                if (hoursSinceLastChange < timeLimit) {
+                    logger.error(`GameServer (change-username): User ${userId} did not wait till 1h has passed from last username change`);
                     return null;
                 }
             }

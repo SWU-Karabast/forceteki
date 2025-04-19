@@ -783,11 +783,12 @@ export class Lobby {
      * Private method to update a players stats
      */
     private async updatePlayerStatsAsync(playerUser: PlayerDetails, opponentPlayerUser: PlayerDetails, score: ScoreType) {
+        if (!playerUser.user.isAuthenticatedUser()) {
+            return;
+        }
         // Get the deck service
         const opponentPlayerLeaderId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.leaderID);
         const opponentPlayerBaseId = await this.cardDataGetter.getCardBySetCodeAsync(opponentPlayerUser.baseID);
-
-        Contract.assertTrue(playerUser.user.isAuthenticatedUser());
         await this.server.deckService.updateDeckStatsAsync(
             playerUser.user.getId(),
             playerUser.deckID,

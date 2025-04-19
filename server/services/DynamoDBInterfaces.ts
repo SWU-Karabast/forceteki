@@ -63,7 +63,7 @@ export interface IGameRecordEntity {
     id: string;
     player1: string;
     player2: string;
-    firstTurn: string;
+    firstInitiativePlayer: string;
     winner: string;
     winnerBaseHealthRemaining: number;
     player1LeaderId: string;
