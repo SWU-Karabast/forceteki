@@ -495,5 +495,205 @@ describe('Undo', function() {
                 });
             });
         });
+
+        describe('War Juggernaut\'s constant ability', function() {
+            it('should get +1/0 for each damaged unit', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'war-juggernaut', damage: 4 }, 'pyke-sentinel'],
+                        spaceArena: [{ card: 'inferno-four#unforgetting', damage: 2 }]
+                    },
+                    player2: {
+                        groundArena: ['first-legion-snowtrooper', { card: 'maul#shadow-collective-visionary', damage: 3 }],
+                        spaceArena: [{ card: 'imperial-interceptor', damage: 1 }, 'ruthless-raider']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                rollback(context, () => {
+                    // War Juggernaut should have 7 power (3 from card and 4 from damaged units)
+                    expect(context.warJuggernaut.getPower()).toBe(7);
+
+                    context.player1.clickCard(context.pykeSentinel);
+                    context.player1.clickCard(context.firstLegionSnowtrooper);
+
+                    // War Juggernaut should have 9 power (3 from card and 6 from damaged units)
+                    expect(context.warJuggernaut.getPower()).toBe(9);
+                });
+            });
+
+            it('should not get +1/0 because there are no damaged units', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['war-juggernaut', 'pyke-sentinel'],
+                        spaceArena: ['inferno-four#unforgetting']
+                    },
+                    player2: {
+                        groundArena: ['first-legion-snowtrooper', 'maul#shadow-collective-visionary'],
+                        spaceArena: ['imperial-interceptor', 'ruthless-raider']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                rollback(context, () => {
+                // War Juggernaut should have 3 power (3 from card and 0 from damaged units)
+                    expect(context.warJuggernaut.getPower()).toBe(3);
+
+                    context.player1.clickCard(context.pykeSentinel);
+                    context.player1.clickCard(context.firstLegionSnowtrooper);
+
+                    // War Juggernaut should have 5 power (3 from card and 2 from damaged units)
+                    expect(context.warJuggernaut.getPower()).toBe(5);
+                });
+            });
+        });
+
+
+        describe('Echo, Valiant Arc Trooper\'s constant Coordinate ability', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['echo#valiant-arc-trooper'],
+                        spaceArena: ['wing-leader'],
+                        hand: ['battlefield-marine']
+                    },
+                    player2: {
+                        groundArena: ['hylobon-enforcer'],
+                        spaceArena: ['cartel-spacer']
+                    }
+                });
+            });
+
+            it('should be able to rollback from active to inactive', function () {
+                const { context } = contextRef;
+
+                // Ro
+                rollback(context, () => {
+                    expect(context.echo.getPower()).toBe(2);
+                    expect(context.echo.getHp()).toBe(2);
+
+                    context.player1.clickCard(context.battlefieldMarine);
+                    expect(context.echo.getPower()).toBe(4);
+                    expect(context.echo.getHp()).toBe(4);
+                });
+            });
+
+            it('should be able to rollback from inactive to active', function () {
+                const { context } = contextRef;
+                expect(context.echo.getPower()).toBe(2);
+                expect(context.echo.getHp()).toBe(2);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Rollback from inactive to active.
+                rollback(context, () => {
+                    expect(context.echo.getPower()).toBe(4);
+                    expect(context.echo.getHp()).toBe(4);
+
+                    context.player2.clickCard(context.cartelSpacer);
+                    context.player2.clickCard(context.wingLeader);
+                    expect(context.echo.getPower()).toBe(2);
+                    expect(context.echo.getHp()).toBe(2);
+                });
+            });
+        });
+
+        describe('Punch It\'s ability', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['punch-it'],
+                        groundArena: ['liberated-slaves', 'escort-skiff'],
+                        spaceArena: ['millennium-falcon#piece-of-junk']
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine', 'guerilla-attack-pod'],
+                        spaceArena: ['green-squadron-awing']
+                    }
+                });
+            });
+
+            it('should attack with a space Vehicle unit giving it +2/0 for the attack', function () {
+                const { context } = contextRef;
+
+                rollback(context, () => {
+                    context.player1.clickCard(context.punchIt);
+
+                    expect(context.player1).toBeAbleToSelectExactly([context.escortSkiff, context.millenniumFalconPieceOfJunk]);
+
+                    context.player1.clickCard(context.millenniumFalconPieceOfJunk);
+
+                    expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.p2Base]);
+
+                    context.player1.clickCard(context.p2Base);
+
+                    // 3 damage from Millennium Falcon + 2 from Punch It
+                    expect(context.p2Base.damage).toBe(5);
+                    expect(context.player2).toBeActivePlayer();
+                });
+            });
+
+            it('should attack with a ground Vehicle unit giving it +2/0 for the attack', function () {
+                const { context } = contextRef;
+
+                rollback(context, () => {
+                    context.player1.clickCard(context.punchIt);
+
+                    expect(context.player1).toBeAbleToSelectExactly([context.escortSkiff, context.millenniumFalconPieceOfJunk]);
+
+                    context.player1.clickCard(context.escortSkiff);
+
+                    expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.guerillaAttackPod, context.p2Base]);
+
+                    context.player1.clickCard(context.p2Base);
+
+                    // 4 damage from Escort Skiff + 2 from Punch It
+                    expect(context.p2Base.damage).toBe(6);
+                    expect(context.player2).toBeActivePlayer();
+                });
+            });
+        });
+
+        describe('Tactical Advantage\'s ability', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['tactical-advantage'],
+                        groundArena: ['pyke-sentinel']
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+            });
+
+            it('can buff a unit', function () {
+                const { context } = contextRef;
+
+                rollback(context, () => {
+                    expect(context.pykeSentinel.getPower()).toBe(2);
+                    expect(context.pykeSentinel.getHp()).toBe(3);
+                    context.player1.clickCard(context.tacticalAdvantage);
+                    expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.wampa]);
+                    expect(context.player1).toHaveEnabledPromptButton('Cancel');
+
+                    context.player1.clickCard(context.pykeSentinel);
+                    expect(context.pykeSentinel.getPower()).toBe(4);
+                    expect(context.pykeSentinel.getHp()).toBe(5);
+
+                    context.player2.clickCard(context.wampa);
+                    context.player2.clickCard(context.pykeSentinel);
+                    expect(context.wampa.damage).toBe(4);
+                    expect(context.pykeSentinel.damage).toBe(4);
+                    expect(context.pykeSentinel).toBeInZone('groundArena');
+                });
+            });
+        });
     });
 });
