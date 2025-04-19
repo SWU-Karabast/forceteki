@@ -971,6 +971,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             if (oldState.zone?.uuid !== this.state.zone.uuid) {
                 const oldZone = this.game.gameObjectManager.get<Zone>(oldState.zone);
                 this.movedFromZone = oldZone?.name;
+                // This is a bad work around, if it does change zones, it always resets limits on abilities. We want to reset to the exact state, not call functions to mutate state.
                 this.resolveAbilitiesForNewZone();
             }
         }

@@ -6,11 +6,16 @@ import * as AbilityLimit from './AbilityLimit';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
 
-export abstract class CardAbility extends CardAbilityStep {
+export interface ICardAbilityState {
+    placeholder?: false;
+}
+
+export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityState> extends CardAbilityStep {
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;
     public readonly zoneFilter: ZoneFilter | ZoneFilter[];
     public readonly printedAbility: boolean;
+    private state: T;
 
     public constructor(game, card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
@@ -185,5 +190,9 @@ export abstract class CardAbility extends CardAbilityStep {
 
     public override isActivatedAbility() {
         return [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.type);
+    }
+
+    public getState() {
+        return structuredClone(this.state);
     }
 }
