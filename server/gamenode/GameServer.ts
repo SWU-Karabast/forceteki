@@ -23,6 +23,7 @@ import { QueueHandler } from './QueueHandler';
 import * as Helpers from '../game/core/utils/Helpers';
 import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 
+
 /**
  * Represents a user object
  */
@@ -97,7 +98,7 @@ export class GameServer {
     private readonly deckValidator: DeckValidator;
     private readonly testGameBuilder?: any;
     private readonly queue: QueueHandler = new QueueHandler();
-    public bugHandler = new BugReportHandler();
+    public readonly bugReportHandler: BugReportHandler;
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -157,7 +158,7 @@ export class GameServer {
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
-
+        this.bugReportHandler = new BugReportHandler();
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 1000);
     }

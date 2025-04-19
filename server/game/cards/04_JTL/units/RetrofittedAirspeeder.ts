@@ -19,7 +19,7 @@ export default class RetrofittedAirspeeder extends NonLeaderUnitCard {
 
         this.addConstantAbility({
             title: 'While attacking a space unit, this unit gets –1/–0',
-            condition: (context) => context.source.isAttacking() && context.source.activeAttack?.target.isUnit() && context.source.activeAttack?.target.zoneName === ZoneName.SpaceArena,
+            condition: (context) => context.source.isAttacking() && context.source.activeAttack?.targetIsUnit((card) => card.zoneName === ZoneName.SpaceArena),
             ongoingEffect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: 0 })
         });
     }

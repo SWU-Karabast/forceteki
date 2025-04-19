@@ -106,7 +106,7 @@ export class CostAdjuster {
     private readonly matchAbilityCosts: boolean;
 
     public constructor(
-        private game: Game,
+        protected game: Game,
         protected source: Card,
         properties: ICostAdjusterProperties
     ) {

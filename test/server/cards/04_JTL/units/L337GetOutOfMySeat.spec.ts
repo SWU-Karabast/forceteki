@@ -67,5 +67,30 @@ describe('L3-37, Get Out of my seat', function() {
                 expect(context.miningGuildTieFighter).toHaveExactUpgradeNames(['l337#get-out-of-my-seat']);
             });
         });
+
+        describe('L3-37\'s ability timing', function() {
+            it('cannot attach to a vehicle that is being defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: ['l337#get-out-of-my-seat'],
+                        spaceArena: ['green-squadron-awing']
+                    },
+                    player2: {
+                        hand: ['superlaser-blast'],
+                        hasInitiative: true,
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.superlaserBlast);
+
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                expect(context.player1).toBeActivePlayer();
+            });
+        });
     });
 });

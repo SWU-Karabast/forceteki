@@ -17,7 +17,7 @@ export default class VambraceGrappleshot extends UpgradeCard {
         this.addGainOnAttackAbilityTargetingAttached({
             title: 'Exhaust the defender on attack',
             immediateEffect: AbilityHelper.immediateEffects.exhaust((context) => {
-                return { target: context.source.activeAttack?.target };
+                return { target: context.source.activeAttack?.getAllTargets() };
             })
         });
     }

@@ -76,6 +76,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean;
     attachUpgrade(upgrade);
     getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
+    getMaxUnitAttackLimit(): number;
 }
 
 /**
@@ -131,7 +132,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         protected pilotingConstantAbilities: IConstantAbility[];
         protected pilotingTriggeredAbilities: TriggeredAbility[];
 
-        private readonly attackAction: InitiateAttackAction;
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         public get lastPlayerToModifyHp(): Player {
             Contract.assertTrue(this.isInPlay());
@@ -228,8 +228,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
                 this.validateCardAbilities(this.pilotingTriggeredAbilities, cardData.pilotText);
             }
-
-            this.attackAction = new InitiateAttackAction(this.game, this);
         }
 
         protected override setupDefaultState() {
@@ -330,7 +328,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 return this.pilotingActionAbilities;
             }
 
-            const actions = super.getActions().concat(this.attackAction);
+            const actions = super.getActions().concat(new InitiateAttackAction(this.game, this));
 
             // If this unit must attack and an attack action is available, return just that action.
             // This is used by cards such as Give In to Your Anger
@@ -933,6 +931,18 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             this.setCaptureZoneEnabled(false);
         }
 
+        public getMaxUnitAttackLimit(): number {
+            let attackLimit = 1;
+            if (this.hasOngoingEffect(EffectName.CanAttackMultipleUnitsSimultaneously)) {
+                for (const ongoingEffect of this.getOngoingEffectValues(EffectName.CanAttackMultipleUnitsSimultaneously)) {
+                    if (ongoingEffect.amount > attackLimit) {
+                        attackLimit = ongoingEffect.amount;
+                    }
+                }
+            }
+            return attackLimit;
+        }
+
         public override getSummary(activePlayer: Player) {
             if (this.isInPlay()) {
                 // Check for sentinel keyword and no blanking effects
@@ -955,6 +965,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 ...super.getSummary(activePlayer),
                 parentCardId: this.getCaptor()?.uuid,
             };
+        }
+
+        public override getCardState(): any {
+            if (this.isInPlay()) {
+                return {
+                    ...super.getCardState(),
+                    upgrades: this.upgrades,
+                    capturedUnits: this.capturedUnits
+                };
+            }
         }
 
         public override addOngoingEffect(ongoingEffect: IOngoingCardEffect): void {

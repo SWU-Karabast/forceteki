@@ -43,6 +43,39 @@ describe('Hondo Ohnaka, Superfluous Swindler', function() {
             expect(context.frontierAtrt).toHaveExactUpgradeNames(['shield']);
         });
 
-        // TODO ADD A TEST TO TRANSFER UPGRADE BETWEEN ZONE WHEN #776 (moving an upgrade between zone) IS FIXED
+        it('Hondo Ohnaka\'s ability can be used to move upgrades across zones', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['battlefield-marine'],
+                    spaceArena: ['cartel-spacer'],
+                    hand: ['traitorous'],
+                },
+                player2: {
+                    groundArena: ['superlaser-technician', 'wampa', 'hondo-ohnaka#superfluous-swindler'],
+                    leader: { card: 'luke-skywalker#faithful-friend', deployed: true },
+                }
+            });
+            const { context } = contextRef;
+
+            // Player 1 plays Traitorous to take control of the Superlaser Technician
+            context.player1.clickCard(context.traitorous);
+            expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.superlaserTechnician, context.cartelSpacer, context.wampa, context.lukeSkywalker, context.hondoOhnaka]);
+            context.player1.clickCard(context.superlaserTechnician);
+            expect(context.traitorous.controller).toBe(context.player1Object);
+
+            // Player 2 attacks with Hondo Ohnaka and moves Traitorous to the Cartel Spacer
+            // taking control of it and regaining control of the Superlaser Technician
+            context.player2.clickCard(context.hondoOhnaka);
+            context.player2.clickCard(context.p1Base);
+            context.player2.clickCard(context.traitorous);
+            context.player2.clickCard(context.cartelSpacer);
+            context.player2.clickPrompt('Take control of attached unit');
+
+            expect(context.traitorous.controller).toBe(context.player2Object);
+            expect(context.superlaserTechnician).toBeInZone('groundArena', context.player2);
+            expect(context.cartelSpacer).toHaveExactUpgradeNames(['traitorous']);
+            expect(context.cartelSpacer).toBeInZone('spaceArena', context.player2);
+        });
     });
 });

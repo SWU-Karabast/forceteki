@@ -6,6 +6,7 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
 import type { Player } from '../core/Player.js';
 import { DistributeIndirectDamageToCardsSystem } from './DistributeIndirectDamageToCardsSystem.js';
+import type { IndirectDamageModifier } from '../core/ongoingEffect/effectImpl/IndirectDamageModifier.js';
 
 export interface IIndirectDamageToPlayerProperties extends IPlayerTargetSystemProperties {
     amount: number;
@@ -26,7 +27,7 @@ export class IndirectDamageToPlayerSystem<TContext extends AbilityContext = Abil
         super.queueGenerateEventGameSteps(events, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const indirectDamageAmount = this.calculateIndirectDamageAmount(properties.amount, context);
+        const indirectDamageAmount = this.calculateIndirectDamageAmount(properties.amount, context, properties.target[0]);
 
         const choosingPlayer = EnumHelpers.asRelativePlayer(properties.target[0], context.player);
 
@@ -36,19 +37,17 @@ export class IndirectDamageToPlayerSystem<TContext extends AbilityContext = Abil
         }).queueGenerateEventGameSteps(events, context);
     }
 
-    private calculateIndirectDamageAmount(baseAmount: number, context: TContext): number {
-        let totalIndirectDamage = baseAmount;
-        if (context.player.hasOngoingEffect(EffectName.ModifyIndirectDamage)) {
-            context.player.getOngoingEffectValues(EffectName.ModifyIndirectDamage).forEach((value) => {
-                totalIndirectDamage += value.amount;
-            });
-        }
-        return totalIndirectDamage;
+    private calculateIndirectDamageAmount(baseAmount: number, context: TContext, targetPlayer: Player): number {
+        return context.player
+            .getOngoingEffectValues<IndirectDamageModifier>(EffectName.ModifyIndirectDamage)
+            .reduce((totalIndirectDamage, value) =>
+                totalIndirectDamage + (value.opponentsOnly && context.player === targetPlayer ? 0 : value.amount),
+            baseAmount);
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        const indirectDamageAmount = this.calculateIndirectDamageAmount(properties.amount, context);
+        const indirectDamageAmount = this.calculateIndirectDamageAmount(properties.amount, context, properties.target[0]);
 
         return ['deal {0} indirect damage to {1}', [indirectDamageAmount, properties.target]];
     }

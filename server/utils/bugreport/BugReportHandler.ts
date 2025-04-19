@@ -1,6 +1,11 @@
 import FormData from 'form-data';
 import { logger } from '../../logger';
+import type { User } from '../../Settings';
 import { httpPostFormData } from '../../Util';
+import type {
+    ISerializedGameState,
+    ISerializedReportState
+} from '../../game/Interfaces';
 
 export class BugReportHandler {
     private discordWebhookUrl: string;
@@ -18,10 +23,14 @@ export class BugReportHandler {
      * @param bugReport The bug report data
      * @returns Promise that resolves to true if successful, false otherwise
      */
-    public async sendBugReportToDiscord(bugReport: string): Promise<boolean> {
+    public async sendBugReportToDiscord(bugReport: ISerializedReportState): Promise<boolean> {
         try {
             // Always log the bug report
-            logger.info(`Bug report received ${bugReport}`, {
+            logger.info(`Bug report received from user ${bugReport.reporter.username}`, {
+                lobbyId: bugReport.lobbyId,
+                reporterId: bugReport.reporter.id,
+                description: bugReport.description,
+                gameStateJson: JSON.stringify(bugReport.gameState, null, 0)
             });
 
             // If no webhook URL is configured, just log it
@@ -43,8 +52,8 @@ export class BugReportHandler {
             }));
 
             // Add the game state as a file attachment
-            const gameStateJson = '{JUST ANOTHER FILE}';
-            const fileName = `bug-report-${bugReport}-${new Date().getTime()}.json`;
+            const gameStateJson = JSON.stringify(bugReport.gameState, null, 2);
+            const fileName = `bug-report-${bugReport.lobbyId}-${new Date().getTime()}.json`;
             formData.append('files[0]', Buffer.from(gameStateJson), {
                 filename: fileName,
                 contentType: 'application/json',
@@ -53,30 +62,49 @@ export class BugReportHandler {
             // Send to Discord webhook with file attachment using our custom function
             await httpPostFormData(this.discordWebhookUrl, formData);
 
-            logger.info('Bug report successfully sent to Discord');
+            logger.info(`Bug report successfully sent to Discord from user ${bugReport.reporter.username}`, {
+                lobbyId: bugReport.lobbyId
+            });
+
             return true;
         } catch (error) {
             logger.error('Failed to send bug report to Discord', {
                 error: { message: error.message, stack: error.stack },
-                lobbyId: bugReport
+                lobbyId: bugReport.lobbyId
             });
             throw error;
         }
     }
+
+    // Helper function to sanitize strings for JSON
+    private sanitizeForJson(str: string): string {
+        if (!str) {
+            return '';
+        }
+        return str
+            .replace(/\\/g, '\\\\')     // Backslashes
+            .replace(/"/g, '\\"')       // Double quotes
+            .replace(/\n/g, '\\n')      // New lines
+            .replace(/\r/g, '\\r')      // Carriage returns
+            .replace(/\t/g, '\\t')      // Tabs
+            .replace(/\f/g, '\\f')      // Form feeds
+            .replace(/[\u0000-\u001F\u007F-\u009F]/g, ''); // Control characters
+    }
+
 
     /**
      * Format the bug report as a Discord message
      * @param bugReport The bug report data
      * @returns Formatted Discord message object
      */
-    private formatDiscordMessage(bugReport: string): { content: string; embeds: any[] } {
+    private formatDiscordMessage(bugReport: ISerializedReportState): { content: string; embeds: any[] } {
         // Truncate description if it's too long for Discord embeds
-        const embedDescription = bugReport.length > 1024
-            ? bugReport.substring(0, 1021) + '...'
-            : bugReport;
+        const embedDescription = bugReport.description.length > 1024
+            ? bugReport.description.substring(0, 1021) + '...'
+            : bugReport.description;
 
         return {
-            content: 'New bug report from **TEST**!',
+            content: `New bug report from **${bugReport.reporter.username}**!`,
             embeds: [
                 {
                     title: 'Bug Report',
@@ -85,22 +113,22 @@ export class BugReportHandler {
                     fields: [
                         {
                             name: 'Reporter',
-                            value: 'test',
-                            inline: true
+                            value: `${bugReport.reporter.username} (player1)`,
+                            inline: true,
                         },
                         {
                             name: 'Lobby ID',
-                            value: 'test',
+                            value: bugReport.lobbyId,
                             inline: true
                         },
                         {
                             name: 'Game ID',
-                            value: 'N/A',
+                            value: bugReport.gameId || 'N/A',
                             inline: true
                         },
                         {
                             name: 'Timestamp',
-                            value: 'test',
+                            value: bugReport.timestamp,
                             inline: true
                         },
                         {
@@ -111,6 +139,36 @@ export class BugReportHandler {
                     timestamp: new Date().toISOString()
                 }
             ]
+        };
+    }
+
+    /**
+     * Create a bug report object from provided data
+     * @param description User description of the bug
+     * @param gameState Current game state snapshot
+     * @param user User reporting the bug
+     * @param lobbyId ID of the lobby where the bug occurred
+     * @param gameId Optional ID of the game where the bug occurred
+     * @returns Formatted bug report object
+     */
+    public createBugReport(
+        description: string,
+        gameState: ISerializedGameState,
+        user: User,
+        lobbyId: string,
+        gameId?: string
+    ): ISerializedReportState {
+        return {
+            description: this.sanitizeForJson(description),
+            gameState,
+            reporter: {
+                id: user.id,
+                username: user.username,
+                playerInGameState: 'player1'
+            },
+            lobbyId,
+            gameId,
+            timestamp: new Date().toISOString()
         };
     }
 }

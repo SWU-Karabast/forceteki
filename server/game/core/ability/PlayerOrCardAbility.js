@@ -120,6 +120,7 @@ class PlayerOrCardAbility {
             case TargetMode.MultiplePlayers:
                 return new PlayerTargetResolver(name, properties, this);
             case TargetMode.AutoSingle:
+            case TargetMode.BetweenVariable:
             case TargetMode.Exactly:
             case TargetMode.ExactlyVariable:
             case TargetMode.MaxStat:

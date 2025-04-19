@@ -41,11 +41,12 @@ import type {
 } from './zone/AllArenasZone';
 import type { IInPlayCard } from './card/baseClasses/InPlayCard';
 import type { ICardWithExhaustProperty, IPlayableCard } from './card/baseClasses/PlayableOrDeployableCard';
-import type { Zone } from '../Interfaces';
+import type { IPlayerSerializedState, Zone } from '../Interfaces';
 import type { IGetMatchingCostAdjusterProperties, IRunCostAdjustmentProperties } from './cost/CostInterfaces';
 import type { GameObjectRef } from './GameObjectBase';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
+import { logger } from '../../logger';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -1302,6 +1303,66 @@ export class Player extends GameObject<IPlayerState> {
         }
 
         return summary;
+    }
+
+    /**
+     * Captures a player's current state in readable format
+     * @param player The player string object
+     * @returns A simplified player state representation
+     */
+    public capturePlayerState(player: string): IPlayerSerializedState {
+        const state: IPlayerSerializedState = {};
+        try {
+            Contract.assertNotNullLike(this.game, `Game object in capturePlayerState is null for player ${this.id}`);
+            // Hand cards
+            if (this.handZone && this.handZone.cards && this.handZone.cards.length > 0) {
+                state.hand = this.handZone.cards.map((card) => card.internalName);
+            }
+
+            // Ground arena units
+            const groundArenaCards = this.game.groundArena.getCards({ controller: this });
+            if (groundArenaCards.length > 0) {
+                state.groundArena = groundArenaCards
+                    .filter((card) => !card.isLeaderUnit() && card.captureCardState() !== null)
+                    .map((card) => card.captureCardState());
+            }
+            // Space arena units
+            const spaceArenaCards = this.game.spaceArena.getCards({ controller: this });
+            if (spaceArenaCards.length > 0) {
+                state.spaceArena = spaceArenaCards
+                    .filter((card) => !card.isLeaderUnit() && card.captureCardState() !== null)
+                    .map((card) => card.captureCardState());
+            }
+            // Discard pile
+            if (this.discardZone.count > 0) {
+                state.discard = this.discardZone.cards.map((card) => card.internalName);
+            }
+
+            // Deck (top few cards only to avoid excessive data)
+            state.deck = this.deckZone.cards.slice(0, 5).map((card) => card.internalName);
+
+            // Resources
+            if (this.resourceZone.count > 0) {
+                state.resources = this.resourceZone.cards.map((card) => card.internalName);
+            }
+
+            // Leader
+            state.leader = this.leader.captureCardState();
+
+            // Base
+            state.base = this.base.captureCardState();
+
+            // Initiative
+            state.hasInitiative = this.hasInitiative();
+        } catch (error) {
+            logger.error('Error capturing player state', {
+                error: { message: error.message, stack: error.stack },
+                playerId: this.id
+            });
+            throw error;
+        }
+
+        return state;
     }
 
     public override getObjectName(): string {
