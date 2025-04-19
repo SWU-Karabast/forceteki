@@ -143,3 +143,11 @@ declare namespace jasmine {
  * @param timeout Custom timeout for an async spec.
  */
 declare function undoIt(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number): void;
+
+/**
+ * Takes a snapshot, runs the assertion code, then rolls back and repeats.
+ * @param context
+ * @param assertion Function that contains the code of your test that will be then be rolled back and repeated to ensure rolling back works.
+ * @param altAssertion If provided, will rollback after the assertions has been tested twice, to potentially test that changes have been properly undone.
+ */
+declare function rollback(context: SwuTestContext, assertion: jasmine.ImplementationCallback, altAssertion?: jasmine.ImplementationCallback): void;
