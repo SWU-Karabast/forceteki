@@ -44,6 +44,7 @@ const { ActionWindow } = require('./gameSteps/ActionWindow.js');
 const { User } = require('../../utils/user/User');
 const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
+const { CostAdjuster } = require('./cost/CostAdjuster.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -1312,6 +1313,13 @@ class Game extends EventEmitter {
         this.addMessage('{0} has reconnected', player);
     }
 
+    /** @param {CostAdjuster} costAdjuster */
+    removeCostAdjusterFromAll(costAdjuster) {
+        for (const player of this.getPlayers()) {
+            player.removeCostAdjuster(costAdjuster);
+        }
+    }
+
     /** Goes through the list of cards moved during event resolution and does a uniqueness rule check for each */
     checkUniqueRule() {
         const checkedCards = new Array();
@@ -1636,6 +1644,52 @@ class Game extends EventEmitter {
         } finally {
             this.#experimental.undo = false;
         }
+    }
+
+    /**
+     * Captures the current game state for a bug report
+     * @param reportingPlayer
+     * @returns A simplified game state representation
+     */
+    captureGameState(reportingPlayer) {
+        if (!this) {
+            return {
+                phase: 'unknown',
+                player1: {},
+                player2: {}
+            };
+        }
+        const players = this.getPlayers();
+        if (players.length !== 2) {
+            return {
+                phase: this.currentPhase,
+                player1: {},
+                player2: {}
+            };
+        }
+        let player1, player2;
+
+        switch (reportingPlayer) {
+            case players[0].id:
+                player1 = players[0];
+                player2 = players[1];
+                break;
+            case players[1].id:
+                player1 = players[1];
+                player2 = players[0];
+                break;
+            case 'testrun':
+                player1 = players[0];
+                player2 = players[1];
+                break;
+            default:
+                Contract.fail(`Reporting player ${reportingPlayer} is not a player in this game`);
+        }
+        return {
+            phase: this.currentPhase,
+            player1: player1.capturePlayerState('player1'),
+            player2: player2.capturePlayerState('player2'),
+        };
     }
 
     // return this.getSummary(notInactivePlayerName);

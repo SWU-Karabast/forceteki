@@ -25,7 +25,7 @@ export default class StayonTarget extends EventCard {
                             when: {
                                 onDamageDealt: (event, context) =>
                                     event.card.isBase() &&
-                                    (event.damageSource.damageDealtBy === context.source || (event.damageSource.type === DamageSourceType.Ability && event.damageSource.card === context.source))
+                                    (event.damageSource.damageDealtBy?.includes(context.source) || (event.damageSource.type === DamageSourceType.Ability && event.damageSource.card === context.source))
                             },
                             immediateEffect: AbilityHelper.immediateEffects.draw(),
                         })

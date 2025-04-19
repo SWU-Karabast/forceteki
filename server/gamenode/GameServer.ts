@@ -29,6 +29,14 @@ import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
 
 
 /**
+ * Represents a user object
+ */
+interface User {
+    id: string;
+    username: string;
+}
+
+/**
  * Represents additional Socket types we can leverage these later.
  */
 
@@ -96,7 +104,7 @@ export class GameServer {
     private readonly queue: QueueHandler = new QueueHandler();
     private readonly userFactory: UserFactory = new UserFactory();
     public readonly deckService: DeckService = new DeckService();
-    public bugHandler = new BugReportHandler();
+    public readonly bugReportHandler: BugReportHandler;
 
     private constructor(
         cardDataGetter: CardDataGetter,
@@ -182,16 +190,9 @@ export class GameServer {
         this.cardDataGetter = cardDataGetter;
         this.testGameBuilder = testGameBuilder;
         this.deckValidator = deckValidator;
-
+        this.bugReportHandler = new BugReportHandler();
         // set up queue heartbeat once a second
         setInterval(() => this.queue.sendHeartbeat(), 1000);
-
-        logger.info(`discord webhook url: ${process.env.DISCORD_BUG_REPORT_WEBHOOK_URL}`);
-        try {
-            this.bugHandler.sendBugReportToDiscord('THIS IS A TEST');
-        } catch (error) {
-            logger.error('An error occurred while sending a message to Discord', { error: { message: error.message, stack: error.stack } });
-        }
     }
 
     private setupAppRoutes(app: express.Application) {

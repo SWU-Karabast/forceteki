@@ -38,7 +38,7 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) =>
                     event.player === context.player &&
-                    event.card.isUnit(),
+                    event.cardTypeWhenInPlay === CardType.BasicUnit,
             },
             optional: true,
             targetResolver: {

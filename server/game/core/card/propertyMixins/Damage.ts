@@ -55,7 +55,7 @@ export function WithDamage<TBaseClass extends CardConstructor<TState>, TState ex
         }
 
         public isDefending(): boolean {
-            return (this as Card) === (this.activeAttack?.target as Card);
+            return (this.activeAttack?.getAllTargets().some((target) => (target as Card) === (this as Card))) ?? false;
         }
 
         public get activeAttack() {
@@ -129,6 +129,10 @@ export function WithDamage<TBaseClass extends CardConstructor<TState>, TState ex
 
         public override getSummary(activePlayer: Player) {
             return { ...super.getSummary(activePlayer), damage: this.state.damage };
+        }
+
+        public override getCardState(): any {
+            return { ...super.getCardState(), damage: this.state.damage };
         }
 
         protected setActiveAttackEnabled(enabledStatus: boolean) {

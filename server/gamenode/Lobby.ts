@@ -32,6 +32,7 @@ interface LobbyUser extends LobbySpectator {
     deck?: Deck;
     deckValidationErrors?: IDeckValidationFailures;
     importDeckValidationErrors?: IDeckValidationFailures;
+    reportedBugs: number;
 }
 
 interface PlayerDetails {
@@ -76,6 +77,7 @@ export class Lobby {
     private matchingCountdownTimeoutHandle?: NodeJS.Timeout;
     private usersLeftCount = 0;
     private playersDetails: PlayerDetails[] = [];
+    private gameMessageErrorCount = 0;
 
     public constructor(
         lobbyName: string,
@@ -125,6 +127,7 @@ export class Lobby {
                 state: u.state,
                 ready: u.ready,
                 deck: u.deck?.getDecklist(),
+                reportedBugs: u.reportedBugs,
                 deckErrors: u.deckValidationErrors,
                 importDeckErrors: u.importDeckValidationErrors,
                 unimplementedCards: this.deckValidator.getUnimplementedCardsInDeck(u.deck?.getDecklist()),
@@ -181,7 +184,8 @@ export class Lobby {
             ready: false,
             socket: null,
             deckValidationErrors: deck ? this.deckValidator.validateInternalDeck(deck.getDecklist(), this.gameFormat) : {},
-            deck
+            deck,
+            reportedBugs: 0
         }));
         logger.info(`Lobby: creating username: ${user.getUsername()}, id: ${user.getId()} and adding to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
         this.gameChat.addMessage(`${user.getUsername()} has created and joined the lobby`);
@@ -260,7 +264,8 @@ export class Lobby {
                 username: user.getUsername(),
                 state: 'connected',
                 ready: false,
-                socket
+                socket,
+                reportedBugs: 0
             });
             logger.info(`Lobby: adding username: ${user.getUsername()}, id: ${user.getId()} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
             this.gameChat.addMessage(`${user.getUsername()} has joined the lobby`);
@@ -671,6 +676,8 @@ export class Lobby {
 
     private async onGameMessage(socket: Socket, command: string, ...args): Promise<void> {
         try {
+            this.gameMessageErrorCount = 0;
+
             if (!this.game) {
                 return;
             }
@@ -727,6 +734,15 @@ export class Lobby {
     public handleError(game: Game, error: Error, severeGameMessage = false) {
         logger.error('Game: handleError', { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
 
+        let maxErrorCountExceeded = false;
+
+        this.gameMessageErrorCount++;
+        if (this.gameMessageErrorCount > 100) {
+            logger.error('Game: too many errors for request, halting', { lobbyId: this.id });
+            severeGameMessage = true;
+            maxErrorCountExceeded = true;
+        }
+
         // const gameState = game.getState();
         // const debugData: any = {};
 
@@ -751,6 +767,14 @@ export class Lobby {
             game.addMessage(
                 `A Server error has occured processing your game state, apologies.  Your game may now be in an inconsistent state, or you may be able to continue. The error has been logged. If this happens again, please take a screenshot and reach out in the Karabast discord (game id ${this.id})`,
             );
+        }
+
+        if (maxErrorCountExceeded) {
+            // send game state so that the message can be seen
+            this.sendGameState(this.game);
+
+            // this is ugly since we're probably within an exception handler currently, but if we get here it's already crisis
+            throw new Error('Maximum error count exceeded');
         }
     }
 
@@ -871,6 +895,57 @@ export class Lobby {
             if (user.state === 'connected' && user.socket) {
                 user.socket.send('lobbystate', this.getLobbyState());
             }
+        }
+    }
+
+    // Report bug method
+    private async reportBug(socket: Socket, description: string): Promise<void> {
+        try {
+            // Validate description
+            if (!description || description.trim().length === 0) {
+                throw new Error('description is invalid');
+            }
+
+            // Create game state snapshot
+            const gameState = this.game
+                ? this.game.captureGameState(socket.user.id)
+                : { phase: 'action', player1: {}, player2: {} };
+
+            // Create bug report
+            const bugReport = this.server.bugReportHandler.createBugReport(
+                description,
+                gameState,
+                socket.user,
+                this.id,
+                this.game?.id
+            );
+            // Send to Discord
+            const success = await this.server.bugReportHandler.sendBugReportToDiscord(bugReport);
+            if (!success) {
+                throw new Error('Bug report failed to send to discord. No webhook configured');
+            }
+            // we find the user
+            const existingUser = this.users.find((u) => u.id === socket.user.id);
+            existingUser.reportedBugs += success ? 1 : 0;
+            // Send success message to client
+            socket.send('bugReportResult', {
+                id: uuid(),
+                success: success,
+                message: 'Successfully sent bug report'
+            });
+            this.sendLobbyState();
+        } catch (error) {
+            logger.error('Error processing bug report', {
+                error: { message: error.message, stack: error.stack },
+                lobbyId: this.id,
+                userId: socket.user.id
+            });
+            // Send error message to client
+            socket.send('bugReportResult', {
+                id: uuid(),
+                success: false,
+                message: 'An error occurred while processing your bug report.'
+            });
         }
     }
 }
