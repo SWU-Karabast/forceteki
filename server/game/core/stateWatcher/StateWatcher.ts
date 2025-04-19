@@ -1,10 +1,20 @@
 import type { IStateListenerResetProperties, IStateListenerProperties } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { StateWatcherName } from '../Constants';
-import type { GameObjectBase, GameObjectRef } from '../GameObjectBase';
+import type { GameObjectRef } from '../GameObjectBase';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
+
+type FieldToGameObject<T> = T extends GameObjectRef<infer TK> ? TK : T;
+
+type ExternalConverterBase<T> = {
+    [K in keyof T]: FieldToGameObject<T[K]>
+};
+
+export type ExternalConverter<T> = T extends (infer Item)[]
+    ? ExternalConverterBase<Item>[]
+    : ExternalConverterBase<T>;
 
 /**
  * State watchers are used for cards that need to refer to events that happened in the past.
@@ -21,10 +31,10 @@ import type { StateWatcherRegistrar } from './StateWatcherRegistrar';
  * - a state reset method that provides an initial state to reset to
  * - a set of event triggers which will update the stored state to keep the history
  */
-export abstract class StateWatcher<TInternalState, TExternalState> {
+export abstract class StateWatcher<TState> {
     private readonly owner: Player;
     private readonly registrationKey: string;
-    private stateUpdaters: IStateListenerProperties<TInternalState>[] = [];
+    private stateUpdaters: IStateListenerProperties<TState>[] = [];
 
     // the state reset trigger is the end of the phase
     private stateResetTrigger: IStateListenerResetProperties = {
@@ -48,33 +58,27 @@ export abstract class StateWatcher<TInternalState, TExternalState> {
         this.registrar.register(this.registrationKey, this.getResetValue(), this.generateListenerRegistrations());
     }
 
-    protected abstract convertState(state: TInternalState): TExternalState;
-
     // Child classes override this method to perform their addUpdater() calls
     protected abstract setupWatcher(): void;
 
     // Returns the value that the state will be initialized to at the beginning of the phase
-    protected abstract getResetValue(): TInternalState;
+    protected abstract getResetValue(): TState;
 
-    public getCurrentValue(): TExternalState {
-        return this.convertState(this.registrar.getStateValue(this.registrationKey));
+    public getCurrentValue(): ExternalConverter<TState> {
+        return this.registrar.getStateValue(this.registrationKey) as ExternalConverter<TState>;
     }
 
-    protected addUpdater(properties: IStateListenerProperties<TInternalState>) {
+    protected addUpdater(properties: IStateListenerProperties<TState>) {
         this.stateUpdaters.push(properties);
     }
 
-    protected refToGameObject<T extends GameObjectBase>(ref: GameObjectRef<T>): T {
-        return this.registrar.game.gameObjectManager.get(ref);
-    }
-
     /** Generates a set of properties for registering the triggers of this watcher */
-    private generateListenerRegistrations(): IStateListenerProperties<TInternalState>[] {
+    private generateListenerRegistrations(): IStateListenerProperties<TState>[] {
         this.setupWatcher();
 
         Contract.assertTrue(this.stateUpdaters.length > 0, 'No state updaters registered');
 
-        const stateResetUpdater: IStateListenerProperties<TInternalState> =
+        const stateResetUpdater: IStateListenerProperties<TState> =
             Object.assign(this.stateResetTrigger, { update: () => this.getResetValue() });
 
         return this.stateUpdaters.concat(stateResetUpdater);

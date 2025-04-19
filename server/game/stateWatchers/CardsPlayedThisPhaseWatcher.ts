@@ -1,3 +1,4 @@
+import type { ExternalConverter } from '../core/stateWatcher/StateWatcher';
 import { StateWatcher } from '../core/stateWatcher/StateWatcher';
 import type { CardType } from '../core/Constants';
 import { StateWatcherName } from '../core/Constants';
@@ -6,36 +7,22 @@ import type { Player } from '../core/Player';
 import type { Card } from '../core/card/Card';
 import type { IInPlayCard } from '../core/card/baseClasses/InPlayCard';
 import type { IPlayableCard } from '../core/card/baseClasses/PlayableOrDeployableCard';
-import type { GameObjectBase, GameObjectRef } from '../core/GameObjectBase';
+import type { GameObjectRef } from '../core/GameObjectBase';
 
-type GameObjectOrRef<T extends GameObjectBase> = T | GameObjectRef<T>;
-
-interface IPlayedCardEntryBase {
-    card: GameObjectOrRef<IPlayableCard>;
+export interface PlayedCardEntry {
+    card: GameObjectRef<IPlayableCard>;
     playEvent: any;
     inPlayId?: number;
-    playedBy: GameObjectOrRef<Player>;
-    parentCard?: GameObjectOrRef<IInPlayCard>;
+    playedBy: GameObjectRef<Player>;
+    parentCard?: GameObjectRef<IInPlayCard>;
     parentCardInPlayId?: number;
     hasWhenDefeatedAbilities?: boolean;
     playedAsType: CardType;
 }
 
-interface IPlayedCardEntryInternal extends IPlayedCardEntryBase {
-    card: GameObjectRef<IPlayableCard>;
-    playedBy: GameObjectRef<Player>;
-    parentCard?: GameObjectRef<IInPlayCard>;
-}
+export type ICardsPlayedThisPhase = PlayedCardEntry[];
 
-export interface IPlayedCardEntryExternal extends IPlayedCardEntryBase {
-    card: IPlayableCard;
-    playedBy: Player;
-    parentCard?: IInPlayCard;
-}
-
-export type ICardsPlayedThisPhase = IPlayedCardEntryExternal[];
-
-export class CardsPlayedThisPhaseWatcher extends StateWatcher<IPlayedCardEntryInternal[], IPlayedCardEntryExternal[]> {
+export class CardsPlayedThisPhaseWatcher extends StateWatcher<ICardsPlayedThisPhase> {
     public constructor(
         registrar: StateWatcherRegistrar,
         card: Card
@@ -43,37 +30,16 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<IPlayedCardEntryIn
         super(StateWatcherName.CardsPlayedThisPhase, registrar, card);
     }
 
-    /**
-     * Returns an array of {@link IPlayedCardEntryExternal} objects representing every card played
-     * in this phase so far and the player who played that card
-     */
-    public override getCurrentValue(): ICardsPlayedThisPhase {
-        return super.getCurrentValue();
-    }
-
     /** Filters the list of played cards in the state and returns the cards that match */
-    public getCardsPlayed(filter: (entry: IPlayedCardEntryExternal) => boolean): Card[] {
+    public getCardsPlayed(filter: (entry: ExternalConverter<PlayedCardEntry>) => boolean): Card[] {
         return this.getCurrentValue()
             .filter(filter)
             .map((entry) => entry.card);
     }
 
     /** Check the list of played cards in the state if we found cards that match filters */
-    public someCardPlayed(filter: (entry: IPlayedCardEntryExternal) => boolean): boolean {
+    public someCardPlayed(filter: (entry: ExternalConverter<PlayedCardEntry>) => boolean): boolean {
         return this.getCardsPlayed(filter).length > 0;
-    }
-
-    public override convertState(state: IPlayedCardEntryInternal[]): IPlayedCardEntryExternal[] {
-        return state.map((entry) => {
-            const { card, playedBy, parentCard, ...nonGameObjectProps } = entry;
-
-            return {
-                ...nonGameObjectProps,
-                card: this.refToGameObject(card),
-                playedBy: this.refToGameObject(playedBy),
-                parentCard: this.refToGameObject(parentCard)
-            };
-        });
     }
 
     protected override setupWatcher() {
@@ -82,21 +48,21 @@ export class CardsPlayedThisPhaseWatcher extends StateWatcher<IPlayedCardEntryIn
             when: {
                 onCardPlayed: () => true,
             },
-            update: (currentState: IPlayedCardEntryInternal[], event: any) =>
+            update: (currentState: ICardsPlayedThisPhase, event: any) =>
                 currentState.concat({
-                    card: event.card,
+                    card: event.card.getRef(),
                     playEvent: event,
-                    parentCard: event.card.isUpgrade() && event.card.isAttached() ? event.card.parentCard : null,
+                    parentCard: event.card.isUpgrade() && event.card.isAttached() ? event.card.parentCard.getRef() : null,
                     parentCardInPlayId: event.card.isUpgrade() && event.card.parentCard?.canBeInPlay() ? event.card.parentCard.inPlayId : null,
                     inPlayId: event.card.inPlayId ?? null,
-                    playedBy: event.player,
+                    playedBy: event.player.getRef(),
                     hasWhenDefeatedAbilities: event.card.canBeInPlay() && event.card.getTriggeredAbilities().some((ability) => ability.isWhenDefeated),
                     playedAsType: event.card.type,
                 })
         });
     }
 
-    protected override getResetValue(): IPlayedCardEntryInternal[] {
+    protected override getResetValue(): ICardsPlayedThisPhase {
         return [];
     }
 }
