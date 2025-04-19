@@ -21,6 +21,11 @@ export interface IDeckStatsEntity {
     statsByMatchup?: IMatchupStatEntity[];
 }
 
+
+export interface UserPreferences {
+    cardback?: string;
+}
+
 // Define user interface
 export interface IUserProfileDataEntity extends IUserDataEntity {
     id: string;
@@ -28,7 +33,7 @@ export interface IUserProfileDataEntity extends IUserDataEntity {
     lastLogin: string;
     createdAt: string;
     usernameLastUpdatedAt?: string; // When username was set/changed
-    preferences?: Record<string, any>;
+    preferences?: UserPreferences;
 }
 
 export interface ILocalStorageDeckData {
