@@ -13,7 +13,7 @@ const parsedEnv = z
         AWS_ACCESS_KEY_ID: z.string().optional(),
         AWS_SECRET_ACCESS_KEY: z.string().optional(),
         NEXTAUTH_SECRET: z.string(),
-        SECRET: z.string(),
+        SECRET: z.string().optional(),
         DISCORD_BUG_REPORT_WEBHOOK_URL: z.string().optional(),
     })
     .safeParse(process.env);

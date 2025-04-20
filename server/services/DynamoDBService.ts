@@ -78,17 +78,32 @@ class DynamoDBService {
         this.client = DynamoDBDocumentClient.from(dbClient);
     }
 
-    private validateItem<T>(schema: z.ZodType<T>, data: unknown, context: string): { valid: true; data: T } | { valid: false; errors: z.ZodError } {
-        try {
-            const validData = schema.parse(data);
-            return { valid: true, data: validData };
-        } catch (error) {
-            if (error instanceof z.ZodError) {
-                logger.error(`Validation error in ${context}:`, error.format());
-                return { valid: false, errors: error };
-            }
-            throw error;
+    private async validateAndHandleAsync<T>(
+        schema: z.ZodType<T>,
+        data: unknown,
+        context: string,
+        deleteCorruptedData?: () => Promise<void>
+    ): Promise<T> {
+        const result = schema.safeParse(data);
+
+        if (result.success) {
+            return result.data;
         }
+
+        // Handle validation failure
+        logger.error(`Validation error in ${context}: attempting to delete corrupted data`, result.error.format());
+
+        // If a deletion function is provided, execute it
+        if (deleteCorruptedData) {
+            try {
+                await deleteCorruptedData();
+                logger.info(`Successfully deleted corrupted data in ${context}`);
+            } catch (deleteError) {
+                logger.error(`Failed to delete corrupted data in ${context}:`, deleteError);
+            }
+        }
+
+        throw new Error(`Data validation failed in ${context}: ${result.error.message}`);
     }
 
     /**
@@ -341,10 +356,11 @@ class DynamoDBService {
     // User Deck Methods
     public async saveDeckAsync(deckData: IDeckDataEntity) {
         return await this.executeDbOperationAsync(async () => {
-            const validation = this.validateItem(iDeckDataEntitySchema, deckData, 'Save deck');
-            if (!validation.valid) {
-                throw new Error(`Cannot save invalid deck data: ${deckData}`);
-            }
+            await this.validateAndHandleAsync(
+                iDeckDataEntitySchema,
+                deckData,
+                'Save deck'
+            );
             const item = {
                 pk: `USER#${deckData.userId}`,
                 sk: `DECK#${deckData.id}`,
@@ -359,16 +375,14 @@ class DynamoDBService {
     public async getDeckAsync(userId: string, deckId: string) {
         return await this.executeDbOperationAsync(async () => {
             const result = await this.getItemAsync(`USER#${userId}`, `DECK#${deckId}`);
-            try {
-                iDeckDataEntitySchema.parse(result.Item);
-                return result.Item as IDeckDataEntity;
-            } catch (error) {
-                if (error instanceof z.ZodError) {
-                    logger.error(`Retrieved deck ${deckId} has validation issues:`, error.format());
+            return await this.validateAndHandleAsync<IDeckDataEntity>(
+                iDeckDataEntitySchema,
+                result.Item,
+                `Get deck ${deckId}`,
+                async () => {
                     await this.deleteItemAsync(`USER#${userId}`, `DECK#${deckId}`);
                 }
-                throw error;
-            }
+            );
         }, 'Error getting deck');
     }
 
@@ -391,44 +405,51 @@ class DynamoDBService {
             // Find the deck with matching deckLink
             const foundDeck = result.Items.find((item: any) =>
                 item.deck && item.deck.deckLinkID === deckLinkID
-            ) as IDeckDataEntity | undefined;
-            if (foundDeck) {
-                try {
-                    iDeckDataEntitySchema.parse(foundDeck);
-                    return foundDeck;
-                } catch (error) {
-                    if (error instanceof z.ZodError) {
-                        if (foundDeck) {
-                            logger.error(`Retrieved deck ${foundDeck.id} has validation issues:`, error.format());
-                            await this.deleteItemAsync(`USER#${userId}`, `DECK#${foundDeck.id}`);
-                        }
-                    }
-                    throw error;
-                }
+            );
+
+            if (!foundDeck) {
+                return undefined;
             }
-            return foundDeck;
+
+            return await this.validateAndHandleAsync<IDeckDataEntity>(
+                iDeckDataEntitySchema,
+                foundDeck,
+                `Get deck by link ${deckLinkID}`,
+                async () => {
+                    await this.deleteItemAsync(`USER#${userId}`, `DECK#${foundDeck.id}`);
+                }
+            );
         }, 'Error finding deck by link');
     }
 
     public async getUserDecksAsync(userId: string) {
         return await this.executeDbOperationAsync(async () => {
             const result = await this.queryItemsAsync(`USER#${userId}`, { beginsWith: 'DECK#' });
+            if (!result.Items || result.Items.length === 0) {
+                return [];
+            }
+
             // Loop through each deck and validate
-            const returnList = [];
+            const validDecks: IDeckDataEntity[] = [];
+
             for (const item of result.Items) {
                 try {
-                    // Validate each deck against the schema
-                    iDeckDataEntitySchema.parse(item);
-                    returnList.push(item);
+                    const validDeck = await this.validateAndHandleAsync<IDeckDataEntity>(
+                        iDeckDataEntitySchema,
+                        item,
+                        `Validate deck ${item.id} in getUserDecks`,
+                        async () => {
+                            await this.deleteItemAsync(`USER#${userId}`, `DECK#${item.id}`);
+                        }
+                    );
+                    validDecks.push(validDeck);
                 } catch (error) {
-                    if (error instanceof z.ZodError) {
-                        logger.error(`Retrieved deck ${item.id} has validation issues:`, error.format());
-                        // we delete the deck if its in a corrupted state
-                        await this.deleteItemAsync(`USER#${userId}`, `DECK#${item.id}`);
-                    }
+                    logger.error('DynamoDBService: Error in getUserDecks ', error);
+                    continue; // @Veld Is this something we want to do here? Basically continue the operation if it fails?
                 }
             }
-            return returnList as IDeckDataEntity[] | undefined;
+
+            return validDecks;
         }, 'Error getting user decks');
     }
 
