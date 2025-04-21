@@ -99,7 +99,7 @@ export class DeckService {
      * @param user submitting user
      * @returns Promise that resolves to the saved deck ID
      */
-    public async saveDeckAsync(deckData: IDeckDataEntity, user: User): Promise<string> {
+    public async saveDeckAsync(deckData: IDeckDataEntity, user: User): Promise<IDeckDataEntity> {
         try {
             // Make sure the deck has the required fields
             if (!deckData.userId || !deckData.deck) {
@@ -110,29 +110,23 @@ export class DeckService {
             const deckLinkID = deckData.deck.deckLinkID;
             let updatedDeckData = null;
             const existingDeck = await dbService.getDeckByLinkAsync(user.getId(), deckLinkID);
-            let isUpdate = false;
             if (deckLinkID && existingDeck) {
-                // If the deck already exists, update it instead of creating a new one
-                logger.info(`DeckService: Deck with link ${deckLinkID} already exists for user ${user.getUsername()}, updating existing deck`);
-                // Use the existing deck's ID
-                isUpdate = true;
-                updatedDeckData = {
-                    ...deckData,
-                    id: existingDeck.id
-                };
-            } else {
-                // If no existing deck with the same link, or no link provided, create a new deck
-                const newDeckId = uuid();
-                deckData.deck.favourite = false;
-                updatedDeckData = {
-                    ...deckData,
-                    userId: user.getId(),
-                    id: newDeckId,
-                };
+                // If the deck already exists don't do anything with it.
+                logger.info(`DeckService: Deck with link ${deckLinkID} already exists for user ${user.getUsername()}.`);
+                return existingDeck;
             }
+            // If no existing deck with the same link, or no link provided, create a new deck
+            const newDeckId = uuid();
+            deckData.deck.favourite = false;
+            updatedDeckData = {
+                ...deckData,
+                userId: user.getId(),
+                id: newDeckId,
+            };
+
             // Save the new deck to the database
             await dbService.saveDeckAsync(updatedDeckData);
-            logger.info(`DeckService: ${isUpdate ? 'Updated deck' : 'Saved new deck'} ${updatedDeckData.id} for user ${deckData.userId}`);
+            logger.info(`DeckService: Saved new deck ${updatedDeckData.id} for user ${deckData.userId}`);
             return updatedDeckData;
         } catch (error) {
             logger.error(`Error saving deck for user ${user.getId()}:`, { error: { message: error.message, stack: error.stack } });
@@ -278,7 +272,7 @@ export class DeckService {
 
             this.updateScore(result, opponentStat);
             // Save updated stats
-            await dbService.updateDeckStatsAsync(userId, deckId, stats);
+            await dbService.updateDeckStatsAsync(userId, deck.id, stats);
             logger.info(`DeckService: Updated stats for deck ${deckId}, user ${userId}, result: ${result}, opponent leader: ${opponentLeaderId}, opponent base: ${opponentBaseId}, stats: ${JSON.stringify(stats)}`);
             return stats;
         } catch (error) {

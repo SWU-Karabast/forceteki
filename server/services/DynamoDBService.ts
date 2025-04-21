@@ -84,6 +84,9 @@ class DynamoDBService {
         context: string,
         deleteCorruptedData?: () => Promise<void>
     ): Promise<T> {
+        if (!data) {
+            return undefined;
+        }
         const result = schema.safeParse(data);
 
         if (result.success) {
@@ -417,7 +420,7 @@ class DynamoDBService {
                 foundDeck,
                 `Get deck by link ${deckLinkID}`,
                 async () => {
-                    await this.deleteItemAsync(`USER#${userId}`, `DECK#${foundDeck.id}`);
+                    await this.deleteItemAsync(foundDeck.pk, foundDeck.sk);
                 }
             );
         }, 'Error finding deck by link');
@@ -440,7 +443,7 @@ class DynamoDBService {
                         item,
                         `Validate deck ${item.id} in getUserDecks`,
                         async () => {
-                            await this.deleteItemAsync(`USER#${userId}`, `DECK#${item.id}`);
+                            await this.deleteItemAsync(item.pk, item.sk);
                         }
                     );
                     validDecks.push(validDeck);

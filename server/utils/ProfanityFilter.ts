@@ -1,4 +1,4 @@
-import { profanityList } from './profanity';
+import words from 'profane-words';
 
 /**
  * Checks if a string contains any profanity from our filter list
@@ -10,8 +10,6 @@ export function containsProfanity(text: string): boolean {
         return false;
     }
 
-    const lowercaseText = text.toLowerCase();
-    return profanityList.some((word) =>
-        lowercaseText.includes(word.toLowerCase().trim())
-    );
+    const lowercaseText = text.toLowerCase().trim();
+    return words.includes(lowercaseText);
 }
