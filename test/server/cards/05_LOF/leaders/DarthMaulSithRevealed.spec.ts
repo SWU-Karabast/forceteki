@@ -7,7 +7,7 @@ describe('Darth Maul, Sith Revealed', function() {
                     phase: 'action',
                     player1: {
                         leader: 'darth-maul#sith-revealed',
-                        base: 'shadowed-undercity',
+                        hasForceToken: true,
                         groundArena: [
                             'guardian-of-the-whills',
                         ]
@@ -19,14 +19,8 @@ describe('Darth Maul, Sith Revealed', function() {
 
                 const { context } = contextRef;
 
-                // Attack with the Guardian of the Whills to gain the Force
-                context.player1.clickCard(context.guardianOfTheWhills);
-                context.player1.clickCard(context.p2Base);
-
                 // Ensure we have the Force to pay for Darth Maul's ability
                 expect(context.player1.hasTheForce).toBe(true);
-
-                context.player2.passAction();
 
                 // Use Darth Maul's ability
                 context.player1.clickCard(context.darthMaul);
@@ -63,7 +57,7 @@ describe('Darth Maul, Sith Revealed', function() {
                     phase: 'action',
                     player1: {
                         leader: 'darth-maul#sith-revealed',
-                        base: 'shadowed-undercity',
+                        hasForceToken: true,
                         groundArena: [
                             'guardian-of-the-whills',
                         ]
@@ -75,13 +69,8 @@ describe('Darth Maul, Sith Revealed', function() {
 
                 const { context } = contextRef;
 
-                // Attack with the Guardian of the Whills to gain the Force
-                context.player1.clickCard(context.guardianOfTheWhills);
-                context.player1.clickCard(context.p2Base);
-
                 // Ensure we have the Force to pay for Darth Maul's ability
                 expect(context.player1.hasTheForce).toBe(true);
-                context.player2.passAction();
 
                 // Use Darth Maul's ability
                 context.player1.clickCard(context.darthMaul);
@@ -120,7 +109,7 @@ describe('Darth Maul, Sith Revealed', function() {
                     phase: 'action',
                     player1: {
                         leader: 'darth-maul#sith-revealed',
-                        base: 'shadowed-undercity',
+                        hasForceToken: true,
                         groundArena: [
                             'guardian-of-the-whills',
                         ]
@@ -129,13 +118,8 @@ describe('Darth Maul, Sith Revealed', function() {
 
                 const { context } = contextRef;
 
-                // Attack with the Guardian of the Whills to gain the Force
-                context.player1.clickCard(context.guardianOfTheWhills);
-                context.player1.clickCard(context.p2Base);
-
                 // Ensure we have the Force to pay for Darth Maul's ability
                 expect(context.player1.hasTheForce).toBe(true);
-                context.player2.passAction();
 
                 // Use Darth Maul's ability
                 context.player1.clickCard(context.darthMaul);
@@ -164,29 +148,14 @@ describe('Darth Maul, Sith Revealed', function() {
                     phase: 'action',
                     player1: {
                         leader: 'darth-maul#sith-revealed',
-                        base: 'shadowed-undercity',
-                        groundArena: [
-                            'guardian-of-the-whills',
-                        ]
-                    },
-                    player2: {
-                        hand: ['takedown']
+                        hasForceToken: true,
                     }
                 });
 
                 const { context } = contextRef;
 
-                // Attack with the Guardian of the Whills to gain the Force
-                context.player1.clickCard(context.guardianOfTheWhills);
-                context.player1.clickCard(context.p2Base);
-
                 // Ensure we have the Force to pay for Darth Maul's ability
                 expect(context.player1.hasTheForce).toBe(true);
-
-                // Player 2 defeats the Guardian of the Whills
-                context.player2.clickCard(context.takedown);
-                context.player2.clickCard(context.guardianOfTheWhills);
-                expect(context.guardianOfTheWhills).toBeInZone('discard');
 
                 // Use Darth Maul's ability
                 context.player1.clickCard(context.darthMaul);
