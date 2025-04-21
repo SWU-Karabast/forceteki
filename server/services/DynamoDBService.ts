@@ -164,9 +164,10 @@ class DynamoDBService {
             logger.info(`Created DynamoDB local table '${this.tableName}' with GSI`);
         } catch (error) {
             if (error.code === 'ECONNREFUSED') {
-                logger.warn('A gentle reminder that the docker container for the DynamoDB might not be turned on');
+                logger.warn('unable to form a connection to the local dynamodb container. A gentle reminder that the docker container for the DynamoDB might not be turned on');
+            } else {
+                logger.error('Error creating local DynamoDB table:', { error: { message: error.message, stack: error.stack } });
             }
-            logger.error('Error creating local DynamoDB table:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
