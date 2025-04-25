@@ -183,6 +183,81 @@ describe('For The Republic', function() {
 
                 expect(context.p1Base.damage).toBe(3);
             });
+
+            describe('when the attached unit changes controller', function () {
+                it('the Coordinate ability stays active', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: [{ card: 'clone-pilot', upgrades: ['for-the-republic'] }, 'battlefield-marine'],
+                            spaceArena: ['jedi-light-cruiser'],
+                            base: { card: 'dagobah-swamp', damage: 5 },
+                            leader: 'luke-skywalker#faithful-friend',
+                        },
+                        player2: {
+                            groundArena: ['isb-agent'],
+                            spaceArena: ['disabling-fang-fighter'],
+                            base: { card: 'mos-eisley', damage: 5 },
+                            hand: ['change-of-heart'],
+                            hasInitiative: true
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    expect(context.clonePilot.hasSomeKeyword('coordinate')).toBeTrue();
+                    expect(context.clonePilot.hasSomeKeyword('restore')).toBeTrue();
+
+                    context.player2.clickCard(context.changeOfHeart);
+                    context.player2.clickCard(context.clonePilot);
+
+                    expect(context.clonePilot.hasSomeKeyword('coordinate')).toBeTrue();
+                    expect(context.clonePilot.hasSomeKeyword('restore')).toBeTrue();
+
+                    context.player1.passAction();
+
+                    context.player2.clickCard(context.clonePilot);
+                    context.player2.clickCard(context.p1Base);
+
+                    expect(context.p2Base.damage).toBe(3);
+                });
+
+                it('the Coordinate ability becomes inactive', async function () {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            groundArena: [{ card: 'clone-pilot', upgrades: ['for-the-republic'] }, 'battlefield-marine'],
+                            spaceArena: ['jedi-light-cruiser'],
+                            base: { card: 'dagobah-swamp', damage: 5 },
+                            leader: 'luke-skywalker#faithful-friend',
+                        },
+                        player2: {
+                            groundArena: ['isb-agent'],
+                            base: { card: 'mos-eisley', damage: 5 },
+                            hand: ['change-of-heart'],
+                            hasInitiative: true
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    expect(context.clonePilot.hasSomeKeyword('coordinate')).toBeTrue();
+                    expect(context.clonePilot.hasSomeKeyword('restore')).toBeTrue();
+
+                    context.player2.clickCard(context.changeOfHeart);
+                    context.player2.clickCard(context.clonePilot);
+
+                    expect(context.clonePilot.hasSomeKeyword('coordinate')).toBeTrue();
+                    expect(context.clonePilot.hasSomeKeyword('restore')).toBeFalse();
+
+                    context.player1.passAction();
+
+                    context.player2.clickCard(context.clonePilot);
+                    context.player2.clickCard(context.p1Base);
+
+                    expect(context.p2Base.damage).toBe(5);
+                });
+            });
         });
     });
 });
