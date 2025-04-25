@@ -72,7 +72,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenDefeatedKeywords();
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
-    refreshKeywordAbilityEffects();
+    refreshWhileInPlayKeywordAbilityEffects();
     unattachUpgrade(upgrade, event);
     canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean;
     attachUpgrade(upgrade);
@@ -518,22 +518,22 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             // Unregister all effects when moving a card from an arena to a non-arena zone
             // or from a base to an arena
             if ((EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) || (from === ZoneName.Base && EnumHelpers.isArena(to))) {
-                this.unregisterKeywordAbilityEffects();
+                this.unregisterWhileInPlayKeywordAbilityEffects();
             }
 
             // Register all effects when moving a card to a base or from a non-arena zone to an arena,
             // this is to support leaders with the Coordinate keyword
             if ((!EnumHelpers.isArena(from) && EnumHelpers.isArena(to)) || to === ZoneName.Base) {
-                this.registerKeywordAbilityEffects();
+                this.registerWhileInPlayKeywordAbilityEffects();
             }
         }
 
-        public refreshKeywordAbilityEffects() {
-            this.unregisterKeywordAbilityEffects();
-            this.registerKeywordAbilityEffects();
+        public refreshWhileInPlayKeywordAbilityEffects() {
+            this.unregisterWhileInPlayKeywordAbilityEffects();
+            this.registerWhileInPlayKeywordAbilityEffects();
         }
 
-        private unregisterKeywordAbilityEffects() {
+        private unregisterWhileInPlayKeywordAbilityEffects() {
             Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
 
             for (const keywordAbility of this._whileInPlayKeywordAbilities) {
@@ -544,7 +544,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             this._whileInPlayKeywordAbilities = null;
         }
 
-        private registerKeywordAbilityEffects() {
+        private registerWhileInPlayKeywordAbilityEffects() {
             Contract.assertIsNullLike(
                 this._whileInPlayKeywordAbilities,
                 `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`

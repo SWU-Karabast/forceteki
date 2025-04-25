@@ -18,16 +18,16 @@ export class GainKeyword extends OngoingEffectValueWrapper<IKeywordProperties | 
     public override apply(target: Card): void {
         super.apply(target);
 
-        this.refreshKeywordAbilityEffects(target);
+        this.refreshWhileInPlayKeywordAbilityEffects(target);
     }
 
     public override unapply(target: Card): void {
         super.unapply(target);
 
-        this.refreshKeywordAbilityEffects(target);
+        this.refreshWhileInPlayKeywordAbilityEffects(target);
     }
 
-    private refreshKeywordAbilityEffects(target: Card): void {
+    private refreshWhileInPlayKeywordAbilityEffects(target: Card): void {
         if (!target.isUnit()) {
             return;
         }
@@ -35,7 +35,7 @@ export class GainKeyword extends OngoingEffectValueWrapper<IKeywordProperties | 
         const keywordInstances = Helpers.asArray(this.getValue()).map((keywordProps) => KeywordHelpers.keywordFromProperties(keywordProps, target));
 
         if (keywordInstances.some((keywordInstance) => keywordInstance.hasAbilityDefinition())) {
-            target.refreshKeywordAbilityEffects();
+            target.refreshWhileInPlayKeywordAbilityEffects();
         }
     }
 }
