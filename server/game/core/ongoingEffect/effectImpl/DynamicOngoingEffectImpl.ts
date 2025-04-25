@@ -67,6 +67,10 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
             (Array.isArray(oldValue) && Array.isArray(newValue)) ||
             (typeof oldValue === 'object' && typeof newValue === 'object')
         ) {
+            // Define a replacer function to handle complex objects that contain references to GameObjects.
+            // Because each GameObject has a reference to the game instance and the game instance has a reference
+            // to all GameObjects, we need to break the circular reference to be able to serialize the object and
+            // we do so by replacing the GameObject with its uuid.
             const replacer = (key: string, value: any) => {
                 if (value instanceof GameObject) {
                     return value.uuid;
