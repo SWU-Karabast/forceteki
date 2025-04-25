@@ -1,5 +1,5 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { AbilityType, Trait } from '../../../core/Constants';
+import { AbilityType, Trait, WildcardCardType } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
@@ -21,6 +21,7 @@ export default class SnapWexleyResistanceReconFlier extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     match: (card) => card.hasSomeTrait(Trait.Resistance),
+                    cardTypeFilter: WildcardCardType.Playable,
                     limit: AbilityLimit.perGame(1),
                     amount: 1
                 })
