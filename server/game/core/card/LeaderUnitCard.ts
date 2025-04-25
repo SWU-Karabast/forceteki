@@ -15,6 +15,7 @@ import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import { WithLeaderProperties } from './propertyMixins/LeaderProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import AbilityHelper from '../../AbilityHelper';
+import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
@@ -44,7 +45,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         return this.state.deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
-    public constructor(owner: Player, cardData: any) {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
 
         // add deploy leader action
