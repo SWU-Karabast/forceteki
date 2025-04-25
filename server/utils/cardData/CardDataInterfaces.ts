@@ -16,10 +16,13 @@ export interface ISetCode {
 
 export interface ICardDataJson {
     title: string;
+    backSideTitle?: string;
     subtitle?: string;
     cost?: number;
     hp?: number;
+    upgradeHp?: number;
     power?: number;
+    upgradePower?: number;
     text?: string;
     pilotText?: string;
     deployBox?: string;
@@ -28,6 +31,7 @@ export interface ICardDataJson {
     rules?: string;
     id: string;
     aspects: string[];
+    backSideAspects?: string[];
     traits: string[];
     arena?: string;
     keywords?: string[];

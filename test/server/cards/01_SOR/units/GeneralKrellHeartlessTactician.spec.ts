@@ -159,5 +159,28 @@ describe('General Krell, Heartless Tactician', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Krell\'s ability', function() {
+            it('should work with No Glory, Only Results', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['no-glory-only-results'],
+                        groundArena: ['battlefield-marine', 'general-krell#heartless-tactician'],
+                    },
+                    player2: {
+                        groundArena: ['wampa'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.noGloryOnlyResults);
+                context.player1.clickCard(context.wampa);
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1.handSize).toBe(1);
+            });
+        });
     });
 });

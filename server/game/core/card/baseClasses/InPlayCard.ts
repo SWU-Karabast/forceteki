@@ -1,3 +1,4 @@
+import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import type { IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
@@ -125,7 +126,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         return this.state.pendingDefeat;
     }
 
-    public constructor(owner: Player, cardData: any) {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
 
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
