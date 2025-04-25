@@ -42,7 +42,7 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
         Contract.assertNotNullLike(this.gainAbilitySource, 'gainAbility.apply() called before gainAbility.setContext()');
         Contract.assertDoesNotHaveKey(this.abilityUuidByTargetCard, target, `Attempting to apply gain ability effect '${this.abilityIdentifier}' to card ${target.internalName} twice`);
 
-        const properties = Object.assign(this.value, { gainAbilitySource: this.gainAbilitySource, abilityIdentifier: this.abilityIdentifier });
+        const properties = Object.assign(this.getValue(), { gainAbilitySource: this.gainAbilitySource, abilityIdentifier: this.abilityIdentifier });
 
         let gainedAbilityUuid: string;
         switch (properties.type) {

@@ -292,6 +292,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.hiddenForController = false;
         this.state.hiddenForOpponent = false;
         this.state.movedFromZone = null;
+        this.state.nextAbilityIdx = 0;
     }
 
     // ******************************************* ABILITY GETTERS *******************************************

@@ -72,6 +72,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenDefeatedKeywords();
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
+    refreshKeywordAbilityEffects();
     unattachUpgrade(upgrade, event);
     canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean;
     attachUpgrade(upgrade);
@@ -517,40 +518,53 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             // Unregister all effects when moving a card from an arena to a non-arena zone
             // or from a base to an arena
             if ((EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) || (from === ZoneName.Base && EnumHelpers.isArena(to))) {
-                Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
-
-                for (const keywordAbility of this._whileInPlayKeywordAbilities) {
-                    this.removeEffectFromEngine(keywordAbility.registeredEffects);
-                    keywordAbility.registeredEffects = [];
-                }
-
-                this._whileInPlayKeywordAbilities = null;
+                this.unregisterKeywordAbilityEffects();
             }
 
             // Register all effects when moving a card to a base or from a non-arena zone to an arena,
             // this is to support leaders with the Coordinate keyword
             if ((!EnumHelpers.isArena(from) && EnumHelpers.isArena(to)) || to === ZoneName.Base) {
-                Contract.assertIsNullLike(
-                    this._whileInPlayKeywordAbilities,
-                    `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
-                );
+                this.registerKeywordAbilityEffects();
+            }
+        }
 
-                this._whileInPlayKeywordAbilities = [];
+        public refreshKeywordAbilityEffects() {
+            this.unregisterKeywordAbilityEffects();
+            this.registerKeywordAbilityEffects();
+        }
 
-                for (const keywordInstance of this.getCoordinateAbilities()) {
-                    const gainedAbilityProps = keywordInstance.abilityProps;
+        private unregisterKeywordAbilityEffects() {
+            Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
 
-                    const coordinateKeywordAbilityProps: IConstantAbilityProps = {
-                        title: `Coordinate: ${gainedAbilityProps.title}`,
-                        condition: (context) => context.player.getArenaUnits().length >= 3 && !keywordInstance.isBlank,
-                        ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProps)
-                    };
+            for (const keywordAbility of this._whileInPlayKeywordAbilities) {
+                this.removeEffectFromEngine(keywordAbility.registeredEffects);
+                keywordAbility.registeredEffects = [];
+            }
 
-                    const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
-                    coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
+            this._whileInPlayKeywordAbilities = null;
+        }
 
-                    this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
-                }
+        private registerKeywordAbilityEffects() {
+            Contract.assertIsNullLike(
+                this._whileInPlayKeywordAbilities,
+                `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+            );
+
+            this._whileInPlayKeywordAbilities = [];
+
+            for (const keywordInstance of this.getCoordinateAbilities()) {
+                const gainedAbilityProps = keywordInstance.abilityProps;
+
+                const coordinateKeywordAbilityProps: IConstantAbilityProps = {
+                    title: `Coordinate: ${gainedAbilityProps.title}`,
+                    condition: (context) => context.player.getArenaUnits().length >= 3 && !keywordInstance.isBlank,
+                    ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProps)
+                };
+
+                const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
+                coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
+
+                this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
             }
         }
 
