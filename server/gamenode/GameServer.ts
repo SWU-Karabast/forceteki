@@ -283,16 +283,16 @@ export class GameServer {
 
                 // Call the changeUsername method
                 const result = await this.userFactory.changeUsernameAsync(user.getId(), newUsername);
-                if (result) {
+                if (result.success) {
                     return res.status(200).json({
                         succeess: true,
                         message: 'Username successfully changed',
-                        username: result
+                        username: result.username
                     });
                 }
                 return res.status(403).json({
-                    success: false,
-                    message: 'Username can only be changed once every 1h.'
+                    succeess: result.success,
+                    message: result.message,
                 });
             } catch (err) {
                 logger.error('GameServer (change-username) Server Error: ', err);

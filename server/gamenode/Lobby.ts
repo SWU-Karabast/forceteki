@@ -522,7 +522,7 @@ export class Lobby {
         logger.info(`Lobby: removing user ${user.username}, id: ${user.id}. User list size = ${this.users.length}`, { lobbyId: this.id, userName: user.username, userId: user.id });
 
         if (this.game) {
-            this.game.addMessage(`${user.username} has left the game`);
+            this.game.addMessage('{0} has left the game', this.game.getPlayerById(id));
             const winner = this.users.find((u) => u.id !== id);
             if (winner) {
                 this.game.endGame(this.game.getPlayerById(winner.id), `${user.username} has conceded`);

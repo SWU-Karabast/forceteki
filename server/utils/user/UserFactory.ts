@@ -62,30 +62,42 @@ export class UserFactory {
         return new AnonymousUser(uuid(), 'AnonymousPlayer');
     }
 
-    /**
-     * Change username with rate limiting (1 hour)
-     * @param userId The user ID
-     * @param newUsername The new username
-     * @returns Boolean indicating if the username change was successful
-     */
-    public async changeUsernameAsync(userId: string, newUsername: string): Promise<string | null> {
+    public async changeUsernameAsync(userId: string, newUsername: string): Promise<{
+        success: boolean;
+        username?: string;
+        message?: string;
+        nextChangeAllowedAt?: string; // ISO timestamp when they can change again
+        daysRemaining?: number;
+    }> {
         try {
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
 
-            // Check if username was changed recently (within the last hour)
-            if (userProfile.usernameLastUpdatedAt) {
-                const lastChange = new Date(userProfile.usernameLastUpdatedAt).getTime();
-                const now = Date.now();
-                const timeLimit = 1;
-                // floating point representation of an hour
-                const hoursSinceLastChange = (now - lastChange) / (1000 * 60 * 60);
+            const now = Date.now();
 
-                // If changed within the last hour, don't allow another change
-                if (hoursSinceLastChange < timeLimit) {
-                    logger.error(`GameServer (change-username): User ${userId} did not wait till 1h has passed from last username change`);
-                    return null;
+            // Check if this is the user's first username change timeframe
+            if (userProfile.usernameLastUpdatedAt) {
+                const createdAt = new Date(userProfile.createdAt).getTime();
+                const lastChange = new Date(userProfile.usernameLastUpdatedAt).getTime();
+
+                // Check if we're within the first hour of account creation
+                const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
+                const isWithinFirstHour = hoursSinceCreation <= 1;
+
+                if (!isWithinFirstHour) {
+                    // If outside first hour, apply the 4-month restriction
+                    const fourMonthsInMs = 4 * 30 * 24 * 60 * 60 * 1000; // 4 months in milliseconds
+                    const nextChangeAllowedAt = new Date(lastChange + fourMonthsInMs);
+                    const daysRemaining = Math.ceil((nextChangeAllowedAt.getTime() - now) / (1000 * 60 * 60 * 24));
+
+                    if (daysRemaining > 0) {
+                        logger.error(`GameServer (change-username): User ${userId} must wait ${daysRemaining} more days before changing username again`);
+                        return {
+                            success: false,
+                            message: `You can change your username again in ${daysRemaining} days ( on ${nextChangeAllowedAt.toISOString()})`,
+                        };
+                    }
                 }
             }
 
@@ -96,7 +108,12 @@ export class UserFactory {
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);
-            return newUsername;
+
+            return {
+                success: true,
+                username: newUsername,
+                message: 'Username successfully changed',
+            };
         } catch (error) {
             logger.error('Error changing username:', { error: { message: error.message, stack: error.stack } });
             throw error;
