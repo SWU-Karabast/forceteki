@@ -66,6 +66,7 @@ export class UserFactory {
         canChange: boolean;
         message?: string;
         nextChangeAllowedAt?: string; // ISO timestamp when they can change again
+        typeOfMessage: string;
     }> {
         try {
             const dbService = await this.dbServicePromise;
@@ -73,12 +74,12 @@ export class UserFactory {
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
 
             const now = Date.now();
-
             // If the user has never changed their username before
             if (!userProfile.usernameLastUpdatedAt) {
                 return {
                     canChange: true,
-                    message: 'You can change your username',
+                    message: 'You can change your username (First hour)',
+                    typeOfMessage: 'green'
                 };
             }
 
@@ -89,11 +90,11 @@ export class UserFactory {
             // Check if we're within the first hour of account creation
             const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
             const isWithinFirstHour = hoursSinceCreation <= 1;
-
             if (isWithinFirstHour) {
                 return {
                     canChange: true,
-                    message: 'You can change your username',
+                    message: 'You can change your username (First Hour)',
+                    typeOfMessage: 'green'
                 };
             }
 
@@ -107,13 +108,15 @@ export class UserFactory {
                     canChange: false,
                     message: `You can change your username again in ${daysRemaining} days`,
                     nextChangeAllowedAt: nextChangeAllowedAt.toISOString(),
+                    typeOfMessage: null
                 };
             }
 
             // Time restriction has passed, user can change username
             return {
                 canChange: true,
-                message: 'You can change your username',
+                message: 'You can change your username (available every 120 days)',
+                typeOfMessage: 'yellow'
             };
         } catch (error) {
             logger.error('Error checking username change eligibility:', { error: { message: error.message, stack: error.stack } });
@@ -132,9 +135,15 @@ export class UserFactory {
             const dbService = await this.dbServicePromise;
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
-
             const now = Date.now();
 
+            // Check if the new username is the same as the current one
+            if (userProfile.username === newUsername) {
+                return {
+                    success: false,
+                    message: 'The new username is the same as your current username.'
+                };
+            }
             // Check if this is the user's first username change timeframe
             if (userProfile.usernameLastUpdatedAt) {
                 const createdAt = new Date(userProfile.createdAt).getTime();
@@ -252,7 +261,7 @@ export class UserFactory {
                 username: username,
                 lastLogin: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
-                usernameSetAt: new Date().toISOString(),
+                usernameLastUpdatedAt: new Date().toISOString(),
                 preferences: { cardback: null },
             };
 

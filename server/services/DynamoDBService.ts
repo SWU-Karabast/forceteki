@@ -265,7 +265,6 @@ class DynamoDBService {
             pk: `USER#${userData.id}`,
             sk: 'PROFILE',
             ...userData,
-            usernameSetAt: userData.usernameLastUpdatedAt || new Date().toISOString(),
             preferences: userData.preferences || { cardback: null },
         };
         return await this.putItemAsync(item);
