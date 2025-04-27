@@ -836,7 +836,7 @@ export class Lobby {
 
             // set winner/loser state
             const player1Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Win : ScoreType.Lose;
-            const player2Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Win : ScoreType.Lose;
+            const player2Score = isDraw ? ScoreType.Draw : winner === player1 ? ScoreType.Lose : ScoreType.Win;
 
             // Get the user & deck information for each player
             const player1User = this.playersDetails.find((u) => u.user.getId() === player1.id);
