@@ -74,7 +74,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     checkDefeatedByOngoingEffect();
     refreshWhileInPlayKeywordAbilityEffects();
     unattachUpgrade(upgrade, event);
-    canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean;
+    canAttachPilot(pilot: IUnitCard): boolean;
     attachUpgrade(upgrade);
     getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
     getMaxUnitAttackLimit(): number;
@@ -866,9 +866,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
                     // This is needed for abilities that let you play Pilots from the opponent's discard
                     const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
-                    return targetCard.canAttachPilot(this, context.playType) && (targetCard.controller === controller || canPlayFromAnyZone);
+                    return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
                 } else if (this.hasSomeTrait(Trait.Pilot)) {
-                    return targetCard.canAttachPilot(this, context.playType);
+                    return targetCard.canAttachPilot(this);
                 }
             }
             // TODO: Handle Phantom II and Sidon Ithano
@@ -878,36 +878,27 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         /**
          * Checks if a pilot can be attached to this unit
          * @param {IUnitCard} pilot The pilot card that would be attached to this unit
-         * @param {PlayType=} playType The type of play that is being used to attach the pilot
          * @returns True if a Pilot can be attached to this unit; false otherwise
          */
-        public canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean {
+        public canAttachPilot(pilot: IUnitCard): boolean {
             if (!this.hasSomeTrait(Trait.Vehicle)) {
                 return false;
             }
 
-            // Check if the card is being played with Piloting since the pilot limit
-            // applies only in that case
-            if (playType === PlayType.Piloting) {
-                // Check if the card can be played with Piloting ignoring the pilot limit,
-                // for example "R2-D2, Artooooooooo"
-                if (pilot.hasOngoingEffect(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit)) {
-                    return true;
-                }
-
-                // Calculate the pilot limit of the card applying all the modifiers
-                const pilotCount = this.upgrades
-                    .reduce((count, upgrade) => (upgrade.hasSomeTrait(Trait.Pilot) ? count + 1 : count), 0);
-                const pilotLimit = this.getOngoingEffectValues<PilotLimitModifier>(EffectName.ModifyPilotLimit)
-                    .reduce((limit, modifier) => limit + modifier.amount, 1);
-
-                // Ensure that the card doesn't already have the maximum number of pilots
-                if (pilotCount >= pilotLimit) {
-                    return false;
-                }
+            // Check if the card can be played with Piloting ignoring the pilot limit,
+            // for example "R2-D2, Artooooooooo"
+            if (pilot.hasOngoingEffect(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit)) {
+                return true;
             }
 
-            return true;
+            // Calculate the pilot limit of the card applying all the modifiers
+            const pilotCount = this.upgrades
+                .reduce((count, upgrade) => (upgrade.hasSomeTrait(Trait.Pilot) ? count + 1 : count), 0);
+            const pilotLimit = this.getOngoingEffectValues<PilotLimitModifier>(EffectName.ModifyPilotLimit)
+                .reduce((limit, modifier) => limit + modifier.amount, 1);
+
+            // Ensure that the card doesn't already have the maximum number of pilots
+            return pilotCount < pilotLimit;
         }
 
         /**
