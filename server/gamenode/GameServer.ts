@@ -247,7 +247,27 @@ export class GameServer {
             }
         });
 
-        // Add this to the setupAppRoutes method in GameServer.ts
+        app.post('/api/get-change-username-info', authMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                // Check if user is authenticated (not an anonymous user)
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (change-username): Anonymous user ${user.getId()} is attempting to retrieve canchangeUsername info`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve canchangeUsername info'
+                    });
+                }
+                const result = await this.userFactory.canChangeUsernameAsync(user.getId());
+                return res.status(200).json({
+                    succeess: true,
+                    result: result,
+                });
+            } catch (err) {
+                logger.error('GameServer (get-change-username-info) Server Error: ', err);
+                next(err);
+            }
+        });
 
         app.post('/api/change-username', authMiddleware(), async (req, res, next) => {
             try {

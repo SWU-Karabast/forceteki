@@ -62,6 +62,65 @@ export class UserFactory {
         return new AnonymousUser(uuid(), 'AnonymousPlayer');
     }
 
+    public async canChangeUsernameAsync(userId: string): Promise<{
+        canChange: boolean;
+        message?: string;
+        nextChangeAllowedAt?: string; // ISO timestamp when they can change again
+    }> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+
+            const now = Date.now();
+
+            // If the user has never changed their username before
+            if (!userProfile.usernameLastUpdatedAt) {
+                return {
+                    canChange: true,
+                    message: 'You can change your username',
+                };
+            }
+
+            // User has changed username before
+            const createdAt = new Date(userProfile.createdAt).getTime();
+            const lastChange = new Date(userProfile.usernameLastUpdatedAt).getTime();
+
+            // Check if we're within the first hour of account creation
+            const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
+            const isWithinFirstHour = hoursSinceCreation <= 1;
+
+            if (isWithinFirstHour) {
+                return {
+                    canChange: true,
+                    message: 'You can change your username',
+                };
+            }
+
+            // If outside first hour, check the 4-month restriction
+            const fourMonthsInMs = 4 * 30 * 24 * 60 * 60 * 1000; // 4 months in milliseconds
+            const nextChangeAllowedAt = new Date(lastChange + fourMonthsInMs);
+            const daysRemaining = Math.ceil((nextChangeAllowedAt.getTime() - now) / (1000 * 60 * 60 * 24));
+
+            if (daysRemaining > 0) {
+                return {
+                    canChange: false,
+                    message: `You can change your username again in ${daysRemaining} days`,
+                    nextChangeAllowedAt: nextChangeAllowedAt.toISOString(),
+                };
+            }
+
+            // Time restriction has passed, user can change username
+            return {
+                canChange: true,
+                message: 'You can change your username',
+            };
+        } catch (error) {
+            logger.error('Error checking username change eligibility:', { error: { message: error.message, stack: error.stack } });
+            throw error;
+        }
+    }
+
     public async changeUsernameAsync(userId: string, newUsername: string): Promise<{
         success: boolean;
         username?: string;
