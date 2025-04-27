@@ -50,7 +50,8 @@ describe('The Ghost, Heart of the Family', () => {
                             'red-three#unstoppable',
                             'home-one#alliance-flagship',
                             'wedge-antilles#star-of-the-rebellion',
-                            'admiral-yularen#fleet-coordinator'
+                            'admiral-yularen#fleet-coordinator',
+                            'for-the-republic',
                         ],
                         spaceArena: [
                             'the-ghost#heart-of-the-family',
@@ -64,7 +65,8 @@ describe('The Ghost, Heart of the Family', () => {
                             'daring-raid',
                             'top-target',
                             'chopper#metal-menace',
-                            'specforce-soldier'
+                            'specforce-soldier',
+                            'vanquish'
                         ],
                         groundArena: ['cloud-city-wing-guard']
                     }
@@ -209,6 +211,50 @@ describe('The Ghost, Heart of the Family', () => {
                 expect(context.player2).toHavePrompt('Collect Bounty: Heal 4 damage from a unit or base. If the Bounty unit is unique, heal 6 damage instead.');
                 context.player2.clickCard(context.p2Base);
                 expect(context.p2Base.damage).toBe(0);
+            });
+
+            it('Coordinate, it shares that keyword with other friendly Spectre units', function() {
+                const { context } = contextRef;
+
+                context.setDamage(context.p1Base, 5);
+
+                // Play For the Republic to give The Ghost Coordinate - Restore 2
+                context.player1.clickCard(context.forTheRepublic);
+                context.player1.clickCard(context.theGhost);
+
+                expect(context.theGhost.hasSomeKeyword('coordinate')).toBeTrue();
+                expect(context.theGhost.hasSomeKeyword('restore')).toBeTrue();
+                expect(context.sabineWren.hasSomeKeyword('coordinate')).toBeTrue();
+                expect(context.sabineWren.hasSomeKeyword('restore')).toBeTrue();
+                expect(context.phantomIi.hasSomeKeyword('coordinate')).toBeTrue();
+                expect(context.phantomIi.hasSomeKeyword('restore')).toBeTrue();
+                expect(context.battlefieldMarine.hasSomeKeyword('coordinate')).toBeFalse();
+                expect(context.battlefieldMarine.hasSomeKeyword('restore')).toBeFalse();
+
+                // Play Takedown to defeat Sabine but coordinate is still active
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.sabineWren);
+
+                // Phantom II attacks and heals 4 damage from the base
+                // because it has Coordinate - Restore 2 and Restore 2 from The Ghost
+                context.player1.clickCard(context.phantomIi);
+                context.player1.clickPrompt('Attack');
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p1Base.damage).toBe(1);
+                expect(context.theGhost.hasSomeKeyword('coordinate')).toBeTrue();
+                expect(context.theGhost.hasSomeKeyword('restore')).toBeTrue();
+                expect(context.phantomIi.hasSomeKeyword('coordinate')).toBeTrue();
+                expect(context.phantomIi.hasSomeKeyword('restore')).toBeTrue();
+
+                // Play Vanquish to defeat Battlefield Marine and deactive Coordinate
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.theGhost.hasSomeKeyword('coordinate')).toBeTrue();
+                expect(context.theGhost.hasSomeKeyword('restore')).toBeFalse();
+                expect(context.phantomIi.hasSomeKeyword('coordinate')).toBeTrue();
+                expect(context.phantomIi.hasSomeKeyword('restore')).toBeFalse();
             });
 
             it('keywords, it does not share them with friendly non-Spectre units', function() {

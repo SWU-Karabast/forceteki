@@ -5,6 +5,7 @@ import type { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps
 import { WithLeaderProperties, type ILeaderCard } from './propertyMixins/LeaderProperties';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { WithAllAbilityTypes } from './propertyMixins/AllAbilityTypeRegistrations';
+import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
 const DoubleSidedLeaderCardParent = WithLeaderProperties(WithAllAbilityTypes(PlayableOrDeployableCard));
 
@@ -17,7 +18,7 @@ export interface IDoubleSidedLeaderCard extends ILeaderCard {
 export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implements IDoubleSidedLeaderCard {
     protected setupLeaderBackSide = false;
 
-    public constructor(owner: Player, cardData: any) {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
 
         this.setupLeaderBackSide = true;

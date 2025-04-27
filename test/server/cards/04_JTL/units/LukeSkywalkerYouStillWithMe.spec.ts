@@ -9,7 +9,7 @@ describe('Luke Skywalker, You Still With Me?', function() {
                     },
                     player2: {
                         groundArena: ['blizzard-assault-atat'],
-                        hand: ['confiscate', 'bamboozle', 'rivals-fall', 'superlaser-blast'],
+                        hand: ['confiscate', 'bamboozle', 'rivals-fall', 'superlaser-blast', 'no-glory-only-results', 'evidence-of-the-crime'],
                         hasInitiative: true
                     }
                 });
@@ -99,6 +99,39 @@ describe('Luke Skywalker, You Still With Me?', function() {
                 context.player2.clickCard(context.lukeSkywalker);
 
                 expect(context.lukeSkywalker).toBeInZone('discard');
+            });
+
+            it('should prevent him from being defeated after the attached unit is defeated after changing controller', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.snowspeeder);
+
+                expect(context.player1).toHavePassAbilityPrompt('Move Luke Skywalker to the ground arena instead of being defeated');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.lukeSkywalker).toBeInZone('groundArena', context.player1);
+                expect(context.lukeSkywalker.exhausted).toBeTrue();
+                expect(context.snowspeeder).toBeInZone('discard', context.player1);
+            });
+
+            it('should prevent him from being defeated after changing controller', function() {
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.evidenceOfTheCrime);
+                context.player2.clickCard(context.lukeSkywalker);
+                context.player2.clickCard(context.snowspeeder);
+
+                context.player1.clickCard(context.snowspeeder);
+                context.player1.clickCard(context.blizzardAssaultAtat);
+                context.player1.clickCard(context.blizzardAssaultAtat); // Snowspeeder ability
+
+                expect(context.player2).toHavePassAbilityPrompt('Move Luke Skywalker to the ground arena instead of being defeated');
+                context.player2.clickPrompt('Trigger');
+
+                expect(context.lukeSkywalker).toBeInZone('groundArena', context.player2);
+                expect(context.lukeSkywalker.exhausted).toBeTrue();
+                expect(context.snowspeeder).toBeInZone('discard', context.player1);
             });
         });
     });

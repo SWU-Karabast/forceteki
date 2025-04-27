@@ -615,6 +615,7 @@ export class GameServer {
         if (playerLeftMatchmakingTime) {
             const elapsedSeconds = Math.floor((Date.now() - playerLeftMatchmakingTime.getTime()) / 1000);
             if (elapsedSeconds < 20) {
+                logger.info(`GameServer: user ${userId} blocked from joining due to leaving a matchmaking game during coundown`);
                 return false;
             }
 
@@ -636,6 +637,7 @@ export class GameServer {
 
                     const elapsedSeconds = Math.floor((Date.now() - userLastActivity.getTime()) / 1000);
                     if (elapsedSeconds < 60) {
+                        logger.info(`GameServer: user ${userId} blocked from joining due to still being in lobby ${previousLobby.id}`);
                         return false;
                     }
                 }
@@ -1151,8 +1153,13 @@ export class GameServer {
                         this.userLobbyMap.delete(id);
 
                         if (isMatchmaking) {
-                            lobby.removeUser(id);
+                            logger.info(
+                                `GameServer: User ${id} disconnected from matchmaking during countdown for lobby ${lobby.id}, setting 20s restriction for joining new game`,
+                                { userId: id, lobbyId: lobby.id }
+                            );
                             this.playerMatchmakingDisconnectedTime.set(id, new Date());
+
+                            lobby.removeUser(id);
                             lobby.handleMatchmakingDisconnect();
                         } else {
                             this.removeUserMaybeCleanupLobby(lobby, id);

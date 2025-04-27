@@ -143,7 +143,7 @@ export class OngoingEffectEngine {
         let stateChanged = this.checkWhileSourceInPlayEffectExpirations();
 
         // Check each effect's condition and find new targets
-        stateChanged = this.effects.reduce((stateChanged, effect) => effect.resolveEffectTargets(stateChanged), stateChanged);
+        stateChanged = this.effects.reduce((stateChanged, effect) => effect.resolveEffectTargets() || stateChanged, stateChanged);
         if (loops === 10) {
             throw new Error('OngoingEffectEngine.resolveEffects looped 10 times');
         } else {
