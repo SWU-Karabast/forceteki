@@ -5,7 +5,7 @@ describe('Luke Skywalker, You Still With Me?', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'snowspeeder', upgrades: ['luke-skywalker#you-still-with-me'] }]
+                        groundArena: [{ card: 'snowspeeder', upgrades: ['luke-skywalker#you-still-with-me'] }, 'escort-skiff'],
                     },
                     player2: {
                         groundArena: ['blizzard-assault-atat'],
@@ -97,6 +97,7 @@ describe('Luke Skywalker, You Still With Me?', function() {
                 // SQUISH
                 context.player2.clickCard(context.blizzardAssaultAtat);
                 context.player2.clickCard(context.lukeSkywalker);
+                context.player2.clickPrompt('Pass');
 
                 expect(context.lukeSkywalker).toBeInZone('discard');
             });
@@ -120,18 +121,17 @@ describe('Luke Skywalker, You Still With Me?', function() {
 
                 context.player2.clickCard(context.evidenceOfTheCrime);
                 context.player2.clickCard(context.lukeSkywalker);
-                context.player2.clickCard(context.snowspeeder);
+                context.player2.clickCard(context.escortSkiff);
 
-                context.player1.clickCard(context.snowspeeder);
+                context.player1.clickCard(context.escortSkiff);
                 context.player1.clickCard(context.blizzardAssaultAtat);
-                context.player1.clickCard(context.blizzardAssaultAtat); // Snowspeeder ability
 
                 expect(context.player2).toHavePassAbilityPrompt('Move Luke Skywalker to the ground arena instead of being defeated');
                 context.player2.clickPrompt('Trigger');
 
                 expect(context.lukeSkywalker).toBeInZone('groundArena', context.player2);
                 expect(context.lukeSkywalker.exhausted).toBeTrue();
-                expect(context.snowspeeder).toBeInZone('discard', context.player1);
+                expect(context.escortSkiff).toBeInZone('discard', context.player1);
             });
         });
     });

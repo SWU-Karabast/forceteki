@@ -5,7 +5,7 @@ import type { IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStand
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
-import { CardType, RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardZoneName, ZoneName } from '../../Constants';
+import { CardType, RelativePlayer, StandardTriggeredAbilityType, TargetMode, Trait, WildcardZoneName, ZoneName } from '../../Constants';
 import type { GameObjectRef } from '../../GameObjectBase';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { Player } from '../../Player';
@@ -208,6 +208,12 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         }
 
         this.updateStateOnAttach();
+
+        if (this.isUnit() && this.hasSomeTrait(Trait.Pilot)) {
+            Contract.assertTrue(newParentCard.canAttachPilot(this));
+        } else if (this.attachCondition) {
+            Contract.assertTrue(this.attachCondition(newParentCard));
+        }
 
         newParentCard.attachUpgrade(this);
 

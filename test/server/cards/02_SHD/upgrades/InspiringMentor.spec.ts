@@ -139,7 +139,7 @@ describe('Inspiring Mentor', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: [{ card: 'atst', upgrades: ['inspiring-mentor'] }],
+                        groundArena: [{ card: 'isb-agent', upgrades: ['inspiring-mentor'] }],
                     },
                     player2: {
                         hand: ['no-glory-only-results'],
@@ -151,7 +151,7 @@ describe('Inspiring Mentor', function() {
                 const { context } = contextRef;
 
                 context.player2.clickCard(context.noGloryOnlyResults);
-                context.player2.clickCard(context.atst);
+                context.player2.clickCard(context.isbAgent);
                 context.player2.clickCard(context.battlefieldMarine);
 
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
