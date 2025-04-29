@@ -106,7 +106,11 @@ global.integration = function (definitions) {
                 return;
             }
 
-            if (context.game.currentPhase !== 'action' || context.allowTestToEndWithOpenPrompt) {
+            if (
+                context.game.currentPhase === 'action' && context.ignoreUnresolvedActionPhasePrompts ||
+                context.game.currentPhase === 'regroup' && !context.requireResolvedRegroupPhasePrompts ||
+                context.game.currentPhase === 'setup' // Unresolved setup phase prompts are always ignored
+            ) {
                 return;
             }
 
