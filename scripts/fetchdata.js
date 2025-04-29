@@ -88,8 +88,10 @@ function populateMissingData(attributes, id) {
                     }
                 }]
             };
+            break;
         case '0754286363': // The Mandalorian's Rifle
             attributes.unique = true;
+            break;
     }
 }
 
