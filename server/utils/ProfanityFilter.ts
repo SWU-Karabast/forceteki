@@ -11,5 +11,7 @@ export function containsProfanity(text: string): boolean {
     }
 
     const lowercaseText = text.toLowerCase().trim();
-    return words.includes(lowercaseText);
+
+    // Check if any word from the profanity list is contained in the text
+    return words.some((word) => lowercaseText.includes(word));
 }
