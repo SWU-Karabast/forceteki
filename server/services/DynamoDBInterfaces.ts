@@ -2,7 +2,7 @@ export interface IUserDataEntity {
     id: string;
     username: string;
     preferences?: UserPreferences;
-    welcomeMessage: boolean;
+    welcomeMessageSeen: boolean;
 }
 
 // Interface for matchups a win here means the OP wins not opponents wins.
@@ -25,7 +25,6 @@ export interface IDeckStatsEntity {
 
 export interface UserPreferences {
     cardback?: string;
-    isAdmin?: boolean;
 }
 
 // Define user interface

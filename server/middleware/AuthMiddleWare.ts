@@ -40,24 +40,3 @@ export const authMiddleware = () => {
         }
     };
 };
-
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user || !req.user.isAuthenticatedUser()) {
-        return res.status(401).json({
-            success: false,
-            message: 'Authentication required'
-        });
-    }
-    next();
-};
-
-// TODO this will be needed later on when we will have dedicated admin pages
-export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-    if (!req.user || !req.user.isAuthenticatedUser() || !req.user.isAdmin()) {
-        return res.status(403).json({
-            success: false,
-            message: 'Admin access required'
-        });
-    }
-    next();
-};

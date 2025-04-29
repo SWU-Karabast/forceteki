@@ -25,14 +25,9 @@ export abstract class User {
     public abstract getUsername(): string;
 
     /**
-     * Checks if the user has admin privileges
-     */
-    public abstract isAdmin(): boolean;
-
-    /**
      * Gets a users welcomeMessage status
      */
-    public abstract getWelcomeMessage(): boolean;
+    public abstract getWelcomeMessageSeen(): boolean;
 
     /**
      * Gets the user's preferences
@@ -68,16 +63,12 @@ export class AuthenticatedUser extends User {
         return this.userData.id;
     }
 
-    public getWelcomeMessage(): boolean {
-        return this.userData.welcomeMessage;
+    public getWelcomeMessageSeen(): boolean {
+        return this.userData.welcomeMessageSeen;
     }
 
     public getUsername(): string {
         return this.userData.username;
-    }
-
-    public isAdmin(): boolean {
-        return this.userData.preferences?.isAdmin === true;
     }
 
     public getPreferences(): UserPreferences {
@@ -87,7 +78,6 @@ export class AuthenticatedUser extends User {
     public toJSON(): Record<string, any> {
         return {
             id: this.getId(),
-            isAdmin: this.isAdmin(),
             username: this.getUsername(),
             isAuthenticated: this.isAuthenticatedUser(),
             isAnonymousUser: this.isAnonymousUser(),
@@ -125,22 +115,17 @@ export class AnonymousUser extends User {
         return this.username;
     }
 
-    public isAdmin(): boolean {
-        return false;
-    }
-
     public getPreferences(): UserPreferences {
         return null;
     }
 
-    public override getWelcomeMessage(): boolean {
+    public override getWelcomeMessageSeen(): boolean {
         return false;
     }
 
     public toJSON(): Record<string, any> {
         return {
             id: this.getId(),
-            isAdmin: this.isAdmin(),
             username: this.getUsername(),
             isAuthenticated: this.isAuthenticatedUser(),
             isAnonymousUser: this.isAnonymousUser(),

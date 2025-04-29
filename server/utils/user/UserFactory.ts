@@ -68,11 +68,11 @@ export class UserFactory {
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
             await dbService.updateUserProfileAsync(userId, {
-                welcomeMessage: false
+                welcomeMessageSeen: false
             });
             return true;
         } catch (error) {
-            logger.error('Error setting welcomeMessage status:', { error: { message: error.message, stack: error.stack } });
+            logger.error('Error setting welcomeMessageSeen status:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -93,7 +93,7 @@ export class UserFactory {
             if (!userProfile.usernameLastUpdatedAt) {
                 return {
                     canChange: true,
-                    message: 'You can change your username (First hour)',
+                    message: 'You can change your username freely within the first hour',
                     typeOfMessage: 'green'
                 };
             }
@@ -108,7 +108,7 @@ export class UserFactory {
             if (isWithinFirstHour) {
                 return {
                     canChange: true,
-                    message: 'You can change your username (First Hour)',
+                    message: 'You can change your username freely within the first hour',
                     typeOfMessage: 'green'
                 };
             }
@@ -188,7 +188,7 @@ export class UserFactory {
             await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString(),
-                welcomeMessage: false
+                welcomeMessageSeen: false
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);
@@ -278,8 +278,8 @@ export class UserFactory {
                 lastLogin: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
                 usernameLastUpdatedAt: new Date().toISOString(),
-                welcomeMessage: true,
-                preferences: { cardback: null, isAdmin: false },
+                welcomeMessageSeen: true,
+                preferences: { cardback: null },
             };
 
             // Create OAuth link

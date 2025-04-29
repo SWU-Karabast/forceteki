@@ -240,14 +240,14 @@ export class GameServer {
                         next(err);
                     }
                 }
-                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), welcomeMessage: user.getWelcomeMessage() } });
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), welcomeMessageSeen: user.getWelcomeMessageSeen() } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
                 next(err);
             }
         });
 
-        app.post('/api/toogle-welcome-message', authMiddleware(), async (req, res, next) => {
+        app.post('/api/toggle-welcome-message', authMiddleware(), async (req, res, next) => {
             try {
                 const user = req.user as User;
                 // Check if user is authenticated (not an anonymous user)
