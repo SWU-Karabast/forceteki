@@ -240,9 +240,30 @@ export class GameServer {
                         next(err);
                     }
                 }
-                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername() } });
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), welcomeMessage: user.getWelcomeMessage() } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
+                next(err);
+            }
+        });
+
+        app.post('/api/toogle-welcome-message', authMiddleware(), async (req, res, next) => {
+            try {
+                const user = req.user as User;
+                // Check if user is authenticated (not an anonymous user)
+                if (user.isAnonymousUser()) {
+                    logger.error(`GameServer (toogle-welcome-message): Anonymous user ${user.getId()} is attempting to retrieve toggle-welcome-message`);
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Authentication required to retrieve toggle-welcome-message info'
+                    });
+                }
+                const result = await this.userFactory.setWelcomeMessageStatus(user.getId());
+                return res.status(200).json({
+                    succeess: result,
+                });
+            } catch (err) {
+                logger.error('GameServer (get-change-username-info) Server Error: ', err);
                 next(err);
             }
         });

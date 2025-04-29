@@ -1,4 +1,4 @@
-import type { IUserDataEntity } from '../../services/DynamoDBInterfaces';
+import type { IUserDataEntity, UserPreferences } from '../../services/DynamoDBInterfaces';
 
 /**
  * Abstract base User class
@@ -30,9 +30,14 @@ export abstract class User {
     public abstract isAdmin(): boolean;
 
     /**
+     * Gets a users welcomeMessage status
+     */
+    public abstract getWelcomeMessage(): boolean;
+
+    /**
      * Gets the user's preferences
      */
-    public abstract getPreferences(): Record<string, any>;
+    public abstract getPreferences(): UserPreferences;
 
     /**
      * Gets the object representation of the user for sending to the client
@@ -63,6 +68,10 @@ export class AuthenticatedUser extends User {
         return this.userData.id;
     }
 
+    public getWelcomeMessage(): boolean {
+        return this.userData.welcomeMessage;
+    }
+
     public getUsername(): string {
         return this.userData.username;
     }
@@ -71,8 +80,8 @@ export class AuthenticatedUser extends User {
         return this.userData.preferences?.isAdmin === true;
     }
 
-    public getPreferences(): Record<string, any> {
-        return this.userData.preferences || {};
+    public getPreferences(): UserPreferences {
+        return this.userData.preferences;
     }
 
     public toJSON(): Record<string, any> {
@@ -120,8 +129,12 @@ export class AnonymousUser extends User {
         return false;
     }
 
-    public getPreferences(): Record<string, any> {
-        return { cardback: 'default' };
+    public getPreferences(): UserPreferences {
+        return null;
+    }
+
+    public override getWelcomeMessage(): boolean {
+        return false;
     }
 
     public toJSON(): Record<string, any> {

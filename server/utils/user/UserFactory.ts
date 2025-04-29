@@ -62,6 +62,21 @@ export class UserFactory {
         return new AnonymousUser(uuid(), 'AnonymousPlayer');
     }
 
+    public async setWelcomeMessageStatus(userId: string): Promise<boolean> {
+        try {
+            const dbService = await this.dbServicePromise;
+            const userProfile = await dbService.getUserProfileAsync(userId);
+            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
+            await dbService.updateUserProfileAsync(userId, {
+                welcomeMessage: false
+            });
+            return true;
+        } catch (error) {
+            logger.error('Error setting welcomeMessage status:', { error: { message: error.message, stack: error.stack } });
+            throw error;
+        }
+    }
+
     public async canChangeUsernameAsync(userId: string): Promise<{
         canChange: boolean;
         message?: string;
@@ -172,7 +187,8 @@ export class UserFactory {
             // Update username and set the timestamp
             await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
-                usernameLastUpdatedAt: new Date().toISOString()
+                usernameLastUpdatedAt: new Date().toISOString(),
+                welcomeMessage: false
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);
@@ -262,7 +278,8 @@ export class UserFactory {
                 lastLogin: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
                 usernameLastUpdatedAt: new Date().toISOString(),
-                preferences: { cardback: null },
+                welcomeMessage: true,
+                preferences: { cardback: null, isAdmin: false },
             };
 
             // Create OAuth link
