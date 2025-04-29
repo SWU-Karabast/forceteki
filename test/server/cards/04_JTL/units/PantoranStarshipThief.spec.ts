@@ -118,13 +118,13 @@ describe('Pantoran Starship Thief', function () {
 
                 context.player1.clickCard(context.survivorsGauntlet);
                 context.player1.clickCard(context.pantoranStarshipThief);
-                context.player1.clickCard(context.phoenixSquadronAwing);
+                context.player1.clickCard(context.omicronStrikeCraft);
 
                 expect(context.millenniumFalcon).toHaveExactUpgradeNames(['traitorous']);
                 expect(context.millenniumFalcon).toBeInZone('spaceArena', context.player1);
                 expect(context.millenniumFalcon.getPower()).toBe(3);
-                expect(context.phoenixSquadronAwing).toHaveExactUpgradeNames(['bb8#happy-beeps', 'pantoran-starship-thief']);
-                expect(context.phoenixSquadronAwing).toBeInZone('spaceArena', context.player2);
+                expect(context.omicronStrikeCraft).toHaveExactUpgradeNames(['pantoran-starship-thief']);
+                expect(context.omicronStrikeCraft).toBeInZone('spaceArena', context.player2);
             });
         });
     });

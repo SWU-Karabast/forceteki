@@ -26,5 +26,27 @@ describe('Droid Missile Platform', function () {
             expect(context.player2).toBeActivePlayer();
             expect(context.p1Base.damage).toBe(3);
         });
+
+        it('Droid Missile Platform\'s ability should deal 3 indirect damage when defeated after changing controller', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results'],
+                    groundArena: ['battlefield-marine']
+                },
+                player2: {
+                    spaceArena: ['droid-missile-platform']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickCard(context.droidMissilePlatform);
+            context.player1.clickPrompt('Opponent');
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.p2Base.damage).toBe(3);
+        });
     });
 });

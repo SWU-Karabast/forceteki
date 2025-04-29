@@ -14,6 +14,7 @@ import type { IPlayCardActionProperties } from '../ability/PlayCardAction';
 import { NoActionSystem } from '../../gameSystems/NoActionSystem';
 import type { ICardCanChangeControllers } from './CardInterfaces';
 import type { InitializeCardStateOption } from './Card';
+import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
 const EventCardParent = WithCost(WithStandardAbilitySetup(PlayableOrDeployableCard));
 
@@ -24,7 +25,7 @@ export interface IEventCard extends IPlayableOrDeployableCard, ICardCanChangeCon
 export class EventCard extends EventCardParent {
     private _eventAbility: EventAbility;
 
-    public constructor(owner: Player, cardData: any) {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Event);
 

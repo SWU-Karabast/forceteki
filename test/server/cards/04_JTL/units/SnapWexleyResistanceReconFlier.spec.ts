@@ -101,5 +101,38 @@ describe('Snap Wexley, Resistance Recon Flier', function() {
                 expect(context.player1.exhaustedResourceCount - resourceCount).toBe(1);
             });
         });
+
+        it('should allow BB-8 to be played for 0 when there are 0 ready resources', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: [
+                        'snap-wexley#resistance-recon-flier',
+                        'bb8#happy-beeps'
+                    ],
+                    groundArena: [],
+                    resources: 4,
+                    leader: 'admiral-holdo#were-not-alone',
+                    base: 'nadiri-dockyards'
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.snapWexley);
+
+            context.player2.passAction();
+
+            // Use Holdo's ability to exhaust the last resource
+            context.player1.clickCard(context.admiralHoldo);
+            context.player1.clickCard(context.snapWexley);
+
+            context.player2.passAction();
+
+            // BB-8 should be playable for 0 resources
+            expect(context.player1.readyResourceCount).toBe(0);
+            expect(context.bb8).toHaveAvailableActionWhenClickedBy(context.player1);
+            expect(context.bb8).toBeInZone('groundArena');
+        });
     });
 });

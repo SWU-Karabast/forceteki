@@ -261,13 +261,14 @@ describe('Piloting keyword', function() {
                 expect(context.idenVersio).toBeInZone('discard');
             });
 
-            it('can be moved to another vehicle with a Pilot ignoring the limit', async function () {
+            it('cannot be moved to another vehicle with a Pilot ignoring the limit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: [
                             { card: 'concord-dawn-interceptors', upgrades: ['iden-versio#adapt-or-die', 'shield'] },
                             { card: 'survivors-gauntlet', upgrades: ['bb8#happy-beeps'] },
+                            'cartel-spacer',
                         ],
                     },
                 });
@@ -282,10 +283,12 @@ describe('Piloting keyword', function() {
                 expect(context.survivorsGauntlet).toHaveExactUpgradeNames(['bb8#happy-beeps']);
 
                 context.player1.clickCard(context.idenVersio);
-                context.player1.clickCard(context.survivorsGauntlet);
+                expect(context.player1).toBeAbleToSelectExactly([context.cartelSpacer]);
+                context.player1.clickCardNonChecking(context.survivorsGauntlet);
+                context.player1.clickCard(context.cartelSpacer);
 
                 expect(context.concordDawnInterceptors).toHaveExactUpgradeNames(['shield']);
-                expect(context.survivorsGauntlet).toHaveExactUpgradeNames(['bb8#happy-beeps', 'iden-versio#adapt-or-die', 'shield']);
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['iden-versio#adapt-or-die', 'shield']);
             });
         });
 

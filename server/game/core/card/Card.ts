@@ -111,7 +111,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected readonly _aspects: Aspect[] = [];
-    protected readonly _backSideAspects?: Aspect[];
+    protected readonly _backSideAspects: Aspect[];
     protected readonly _backSideTitle?: string;
     protected readonly _internalName: string;
     protected readonly _subtitle?: string;
@@ -233,7 +233,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
         public readonly owner: Player,
-        private readonly cardData: any
+        private readonly cardData: ICardDataJson
     ) {
         super(owner.game, cardData.title);
 
@@ -248,7 +248,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.hasNonKeywordAbilityText = this.isLeader() || Card.checkHasNonKeywordAbilityText(cardData);
 
         this._aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
-        this._backSideAspects = cardData.backSideAspects;
+        this._backSideAspects = EnumHelpers.checkConvertToEnum(cardData.backSideAspects ?? [], Aspect);
         this._internalName = cardData.internalName;
         this._subtitle = cardData.subtitle;
         this._title = cardData.title;
@@ -292,6 +292,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.hiddenForController = false;
         this.state.hiddenForOpponent = false;
         this.state.movedFromZone = null;
+        this.state.nextAbilityIdx = 0;
     }
 
     // ******************************************* ABILITY GETTERS *******************************************
@@ -368,7 +369,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         }
     }
 
-    private validateCardData(cardData: any) {
+    private validateCardData(cardData: ICardDataJson) {
         Contract.assertNotNullLike(cardData);
         Contract.assertNotNullLike(cardData.id);
         Contract.assertNotNullLike(cardData.title);
@@ -382,7 +383,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     /**
      * If this is a subclass implementation of a specific card, validate that it matches the provided card data
      */
-    private validateImplementationId(implementationId: { internalName: string; id: string }, cardData: any): void {
+    private validateImplementationId(implementationId: { internalName: string; id: string }, cardData: ICardDataJson): void {
         if (cardData.id !== implementationId.id || cardData.internalName !== implementationId.internalName) {
             throw new Error(
                 `Provided card data { ${cardData.id}, ${cardData.internalName} } does not match the data from the card class: { ${implementationId.id}, ${implementationId.internalName} }. Confirm that you are matching the card data to the right card implementation class.`
@@ -398,10 +399,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return null;
     }
 
-    protected unpackConstructorArgs(...args: any[]): [Player, any] {
+    protected unpackConstructorArgs(...args: any[]): [Player, ICardDataJson] {
         Contract.assertArraySize(args, 2);
 
-        return [args[0] as Player, args[1]];
+        return [args[0] as Player, args[1] as ICardDataJson];
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function

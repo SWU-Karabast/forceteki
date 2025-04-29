@@ -12,7 +12,7 @@ import { addExploit, modifyCost } from './ModifyCost';
 import type { KeywordName } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
-import type { IAbilityPropsWithType, IKeywordProperties, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
+import type { IAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
 import { GainAbility } from '../core/ongoingEffect/effectImpl/GainAbility';
 import type { IForFreeCostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties, IModifyPayStageCostAdjusterProperties } from '../core/cost/CostAdjuster';
 import { CostAdjustType } from '../core/cost/CostAdjuster';
@@ -26,6 +26,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl/PlayFromDiscardProperties';
 import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
+import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -111,20 +112,17 @@ export = {
     gainAbility: (properties: IAbilityPropsWithType) =>
         OngoingEffectBuilder.card.static(EffectName.GainAbility, new GainAbility(properties)),
     // TODO BUG: if multiple cards gain keywords from the same effect and one of them is blanked, they will all be blanked
-    gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<IKeywordProperties>) => {
+    gainKeyword: (keywordOrKeywordProperties: KeywordNameOrProperties | CalculateOngoingEffect<KeywordNameOrProperties>) => {
         switch (typeof keywordOrKeywordProperties) {
-            case 'string':
-                return OngoingEffectBuilder.card.static(EffectName.GainKeyword,
-                    { keyword: keywordOrKeywordProperties });
             case 'function':
                 return OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword,
-                    (target, context) => keywordOrKeywordProperties(target, context));
+                    (target, context) => new GainKeyword(keywordOrKeywordProperties(target, context)));
             default:
-                return OngoingEffectBuilder.card.static(EffectName.GainKeyword, keywordOrKeywordProperties);
+                return OngoingEffectBuilder.card.static(EffectName.GainKeyword, new GainKeyword(keywordOrKeywordProperties));
         }
     },
-    gainKeywords: (calculate: (target: any, context: AbilityContext) => IKeywordProperties[]) =>
-        OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context) => calculate(target, context)),
+    gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
+        OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context) => new GainKeyword(calculate(target, context))),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
     // gainAllAbilities,

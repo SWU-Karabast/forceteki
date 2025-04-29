@@ -1,6 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
-import { Trait, WildcardCardType } from '../../../core/Constants';
-import type { Card } from '../../../core/card/Card';
+import { WildcardCardType } from '../../../core/Constants';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 
 export default class GrimValor extends UpgradeCard {
@@ -12,8 +11,6 @@ export default class GrimValor extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
-        this.setAttachCondition((card: Card) => card.hasSomeTrait(Trait.Vehicle));
-
         this.addGainWhenDefeatedAbilityTargetingAttached({
             title: 'Exhaust a unit',
             optional: true,

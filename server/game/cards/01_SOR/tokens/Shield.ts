@@ -1,3 +1,4 @@
+import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
 import AbilityHelper from '../../../AbilityHelper';
 import { TokenUpgradeCard } from '../../../core/card/TokenCards';
 import type { Player } from '../../../core/Player';
@@ -15,7 +16,7 @@ export default class Shield extends TokenUpgradeCard {
 
     public constructor(
         owner: Player,
-        cardData: any,
+        cardData: ICardDataJson,
         additionalProperties?: any
     ) {
         super(owner, cardData);

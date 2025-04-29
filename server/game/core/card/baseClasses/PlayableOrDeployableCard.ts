@@ -1,3 +1,4 @@
+import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
 import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../../Interfaces';
 import OngoingEffectLibrary from '../../../ongoingEffects/OngoingEffectLibrary';
 import type { AbilityContext } from '../../ability/AbilityContext';
@@ -74,7 +75,7 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
     }
 
     // see Card constructor for list of expected args
-    public constructor(owner: Player, cardData: any) {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
 
         // this class is for all card types other than Base

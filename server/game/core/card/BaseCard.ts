@@ -14,6 +14,7 @@ import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import type TriggeredAbility from '../ability/TriggeredAbility';
 import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
 import { WithActionAbilities } from './propertyMixins/ActionAbilityRegistration';
+import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
 const BaseCardParent = WithActionAbilities(WithConstantAbilities(WithTriggeredAbilities(WithDamage(WithStandardAbilitySetup(Card)))));
 
@@ -30,7 +31,7 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
         return this.epicActionSpentInternal();
     }
 
-    public constructor(owner: Player, cardData: any) {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
         Contract.assertEqual(this.printedType, CardType.Base);
     }

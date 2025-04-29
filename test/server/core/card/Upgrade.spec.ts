@@ -218,5 +218,29 @@ describe('Upgrade cards', function() {
             expect(context.player1).not.toBeAbleToSelect(context.academyTraining);
             expect(context.academyTraining).not.toHaveAvailableActionWhenClickedBy(context.player1);
         });
+
+        describe('When an upgrade is moved', function() {
+            it('respects the targeting restrictions', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['survivors-gauntlet'],
+                        groundArena: ['battlefield-marine', 'rugged-survivors', { card: 'wampa', upgrades: ['the-darksaber'] }],
+                        spaceArena: ['cartel-spacer'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.survivorsGauntlet);
+                context.player1.clickCard(context.theDarksaber);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.ruggedSurvivors]);
+
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['the-darksaber']);
+                expect(context.wampa).toHaveExactUpgradeNames([]);
+            });
+        });
     });
 });

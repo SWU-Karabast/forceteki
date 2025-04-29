@@ -133,5 +133,29 @@ describe('Inspiring Mentor', function() {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('when attached to a unit that changes controller', function() {
+            it('Inspiring Mentor ability should give the attached unit an on attack and when defeated ability to give an experience token to another friendly unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'isb-agent', upgrades: ['inspiring-mentor'] }],
+                    },
+                    player2: {
+                        hand: ['no-glory-only-results'],
+                        groundArena: ['wampa', 'battlefield-marine'],
+                        hasInitiative: true
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player2.clickCard(context.noGloryOnlyResults);
+                context.player2.clickCard(context.isbAgent);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
+            });
+        });
     });
 });

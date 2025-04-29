@@ -200,6 +200,7 @@ export type IEpicActionProps<TSource extends Card = Card> = Exclude<IAbilityProp
 export type IKeywordProperties =
   | IAmbushKeywordProperties
   | IBountyKeywordProperties
+  | ICoordinateKeywordProperties
   | IGritKeywordProperties
   | IOverwhelmKeywordProperties
   | IPilotingKeywordProperties
@@ -367,6 +368,11 @@ interface IAmbushKeywordProperties extends IKeywordPropertiesBase {
 interface IBountyKeywordProperties<TSource extends IUnitCard = IUnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
     keyword: KeywordName.Bounty;
     ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>;
+}
+
+interface ICoordinateKeywordProperties<TSource extends IUnitCard = IUnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
+    keyword: KeywordName.Coordinate;
+    ability: IAbilityPropsWithType<TSource>;
 }
 
 interface IGritKeywordProperties extends IKeywordPropertiesBase {

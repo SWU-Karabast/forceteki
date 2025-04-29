@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
 
 export class OngoingEffectValueWrapper<TValue> {
-    public value: TValue;
+    private value: TValue;
     public context?: AbilityContext;
 
     public constructor(value: TValue) {
@@ -15,10 +15,6 @@ export class OngoingEffectValueWrapper<TValue> {
 
     public getValue(): TValue {
         return this.value;
-    }
-
-    public recalculate(): boolean {
-        return false;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
