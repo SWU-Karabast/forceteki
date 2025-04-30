@@ -125,7 +125,7 @@ global.integration = function (definitions) {
                 let activePromptsText = playersWithUnresolvedPrompts.map((player) =>
                     `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`
                 ).join('');
-
+                console.log(`** Unresolved prompt in ${context.game.currentPhase} phase`);
                 throw new TestSetupError(`The test ended with an unresolved prompt for one or both players. Unresolved prompts:\n${activePromptsText}`);
             }
             try {

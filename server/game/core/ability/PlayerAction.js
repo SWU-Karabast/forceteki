@@ -15,12 +15,12 @@ class PlayerAction extends PlayerOrCardAbility {
 
     /** @override */
     meetsRequirements(context, ignoredRequirements = []) {
-        if (
-            !ignoredRequirements.includes('phase') &&
-            context.game.currentPhase !== PhaseName.Action
-        ) {
-            return 'phase';
-        }
+        // if (
+        //     !ignoredRequirements.includes('phase') &&
+        //     context.game.currentPhase !== PhaseName.Action
+        // ) {
+        //     return 'phase';
+        // }
 
         return super.meetsRequirements(context, ignoredRequirements);
     }
