@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { CardType } from '../../../core/Constants';
 
 export default class PoggleTheLesserArchdukeOfTheStalgasinHive extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,7 +15,7 @@ export default class PoggleTheLesserArchdukeOfTheStalgasinHive extends NonLeader
             title: 'Exhaust this unit',
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.isUnit() &&
+                    event.cardTypeWhenInPlay === CardType.BasicUnit &&
                     event.player === context.player &&
                     event.card !== context.source
             },
