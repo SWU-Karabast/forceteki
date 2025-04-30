@@ -640,6 +640,7 @@ export class Lobby {
             gameMode: GameMode.Premier,
             players,
             cardDataGetter: this.cardDataGetter,
+            useActionTimer: this.gameType === MatchType.Quick || this.gameType === MatchType.Custom,
         };
     }
 
@@ -670,7 +671,7 @@ export class Lobby {
                 return;
             }
 
-            this.game.stopNonChessClocks();
+            this.game.restartActionTimers();
             await this.game[command](socket.user.id, ...args);
 
             this.game.continue();

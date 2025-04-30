@@ -59,10 +59,8 @@ export abstract class UiPrompt extends BaseStep {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
-                player.startClock();
             } else {
                 player.setPrompt(this.waitingPrompt());
-                player.resetClock();
             }
         }
 

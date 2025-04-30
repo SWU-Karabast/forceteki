@@ -196,7 +196,7 @@ class Game extends EventEmitter {
                 player.id,
                 player,
                 this,
-                details.clock
+                details.useActionTimer ?? false
             );
         });
 
@@ -551,16 +551,13 @@ class Game extends EventEmitter {
     //     }
     // }
 
-    stopNonChessClocks() {
-        this.getPlayers().forEach((player) => player.stopNonChessClocks());
+    restartActionTimers() {
+        this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
     }
 
-    stopClocks() {
-        this.getPlayers().forEach((player) => player.stopClock());
-    }
-
-    resetClocks() {
-        this.getPlayers().forEach((player) => player.resetClock());
+    /** @param {Player} player */
+    onActionTimerExpired(player) {
+        this.addMessage('{0} has run out of time for their action. They automatically pass their action.', player);
     }
 
     // TODO: parameter contract checks for this flow

@@ -2,7 +2,6 @@ import type { GameMode } from '../../GameMode';
 import type { Lobby } from '../../gamenode/Lobby';
 import type { User } from '../../Settings';
 import type { CardDataGetter } from '../../utils/cardData/CardDataGetter';
-import type { ClockConfig } from './clocks/ClockSelector';
 import * as Contract from './utils/Contract';
 
 export interface GameConfiguration {
@@ -14,7 +13,7 @@ export interface GameConfiguration {
     allowSpectators: boolean;
     gameMode: GameMode;
     cardDataGetter: CardDataGetter;
-    clock?: ClockConfig;
+    useActionTimer?: boolean;
 }
 
 export function validateGameConfiguration(configuration: GameConfiguration): void {
