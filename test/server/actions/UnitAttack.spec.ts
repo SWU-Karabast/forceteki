@@ -120,7 +120,7 @@ describe('Basic attack', function() {
                 expect(context.player2).toHavePrompt('player1 has won the game!');
                 expect(context.player1).toBeActivePlayer();
 
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
         });
 
