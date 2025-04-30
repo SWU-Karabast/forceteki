@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait } from '../../../core/Constants';
+import { CardType, Trait } from '../../../core/Constants';
 
 export default class ToroCalicanAmbitiousUpstart extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,7 +17,7 @@ export default class ToroCalicanAmbitiousUpstart extends NonLeaderUnitCard {
                 onCardPlayed: (event, context) =>
                     event.card.hasSomeTrait(Trait.BountyHunter) &&
                     event.player === this.controller &&
-                    event.card.isUnit() &&
+                    event.cardTypeWhenInPlay === CardType.BasicUnit &&
                     event.card !== context.source
             },
             optional: true,
