@@ -23,8 +23,7 @@ export default class BountyHuntersQuarry extends UpgradeCard {
                     searchCount: (context) => (context.source.unique ? 10 : 5),
                     cardCondition: (card) => card.isUnit() && card.cost <= 3,
                     selectedCardsImmediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                        adjustCost: { costAdjustType: CostAdjustType.Free },
-                        ignoredRequirements: ['phase']
+                        adjustCost: { costAdjustType: CostAdjustType.Free }
                     }),
                 }),
             }
