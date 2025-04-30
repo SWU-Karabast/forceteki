@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class DrainEssence extends EventCard {
     protected override getImplementationId() {
@@ -16,8 +16,6 @@ export default class DrainEssence extends EventCard {
             immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                 AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Select a unit to deal 2 damage to',
-                    controller: WildcardRelativePlayer.Any,
-                    zoneFilter: WildcardZoneName.AnyArena,
                     cardTypeFilter: WildcardCardType.Unit,
                     innerSystem: AbilityHelper.immediateEffects.damage({ amount: 2 })
                 }),
