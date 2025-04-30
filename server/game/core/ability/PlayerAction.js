@@ -13,18 +13,6 @@ class PlayerAction extends PlayerOrCardAbility {
         this.cannotBeCancelled = true;
     }
 
-    /** @override */
-    meetsRequirements(context, ignoredRequirements = []) {
-        // if (
-        //     !ignoredRequirements.includes('phase') &&
-        //     context.game.currentPhase !== PhaseName.Action
-        // ) {
-        //     return 'phase';
-        // }
-
-        return super.meetsRequirements(context, ignoredRequirements);
-    }
-
     getAdjustedCost(context) {
         let resourceCost = this.getCosts(context).find((cost) => cost.getAdjustedCost);
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;

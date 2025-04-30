@@ -4,7 +4,7 @@ describe('Bounty Hunter\'s Quarry', function () {
         describe('Bounty Hunter\'s Quarry bounty ability', function () {
             const prompt = 'Collect Bounty: Search the top 5 cards of your deck, or 10 cards instead if this unit is unique, for a unit that costs 3 or less and play it for free.';
 
-            xit('should prompt to choose a unit with a cost of 3 or less from the top 5 cards or top 10 cards (if unit is unique) and play it for free', async function () {
+            it('should prompt to choose a unit with a cost of 3 or less from the top 5 cards or top 10 cards (if unit is unique) and play it for free', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -95,7 +95,8 @@ describe('Bounty Hunter\'s Quarry', function () {
                             'echo-base-defender',
                             'cloudrider',
                             'resupply',
-                            'superlaser-technician'
+                            'superlaser-technician',
+                            'takedown'
                         ],
                         resources: 3
                     },
@@ -106,9 +107,6 @@ describe('Bounty Hunter\'s Quarry', function () {
                                 damage: 2,
                                 upgrades: ['bounty-hunters-quarry']
                             }
-                        ],
-                        groundArena: [
-                            'liberated-slaves',
                         ]
                     }
                 });
@@ -139,23 +137,18 @@ describe('Bounty Hunter\'s Quarry', function () {
                     ]
                 });
 
-                // Play Cloud-Rider
-                context.player1.clickCardInDisplayCardPrompt(context.cloudrider);
-                expect(context.cloudrider).toBeInZone('groundArena');
+                // Play Echo Base Defender for free
+                context.player1.clickCardInDisplayCardPrompt(context.echoBaseDefender);
+                expect(context.echoBaseDefender).toBeInZone('groundArena');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
 
-                // Resolve ambush ability
-                expect(context.player1).toHavePrompt('Trigger the ability \'Ambush\' or pass');
-                context.player1.clickPrompt('Trigger');
-
-                // Choose attack target
-                context.player1.clickCard(context.liberatedSlaves);
-
-                // Check the result of the ambush attack
-                expect(context.liberatedSlaves.damage).toBe(3);
-                expect(context.cloudrider).toBeInZone('discard');
-
+                // Pass on resourcing
                 context.player1.clickPrompt('Done');
                 context.player2.clickPrompt('Done');
+
+                // Check that the last two cards in the deck before collecting the bounty are now in hand
+                expect(context.superlaserTechnician).toBeInZone('hand');
+                expect(context.takedown).toBeInZone('hand');
             });
         });
     });

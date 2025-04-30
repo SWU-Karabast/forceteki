@@ -252,5 +252,183 @@ describe('Regroup phase', function() {
 
             expect(context.player1.readyResourceCount).toBe(3);
         });
+
+        describe('chains of triggered abilities during the regroup phase', function() {
+            const bhqPrompt = 'Collect Bounty: Search the top 5 cards of your deck, or 10 cards instead if this unit is unique, for a unit that costs 3 or less and play it for free.';
+
+            beforeEach(async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: [
+                            'scout-bike-pursuer',
+                            'atst',
+                            'admiral-yularen#fleet-coordinator'
+                        ],
+                        groundArena: [
+                            'wedge-antilles#star-of-the-rebellion'
+                        ],
+                        deck: [
+                            'cloudrider',
+                            'battlefield-marine',
+                            'calculating-magnaguard',
+                            'dilapidated-ski-speeder',
+                            'inferno-four#unforgetting',
+                            'contracted-hunter',
+                            'echo-base-defender',
+                            'swoop-racer',
+                            'superlaser-technician',
+                            'fleet-lieutenant',
+                            'takedown',
+                            'fell-the-dragon'
+                        ]
+                    },
+                    player2: {
+                        hand: ['vanquish'],
+                        hasInitiative: true,
+                        spaceArena: [
+                            {
+                                card: 'fireball#an-explosion-with-wings',
+                                damage: 2,
+                                upgrades: [
+                                    'bounty-hunters-quarry'
+                                ]
+                            },
+                            'green-squadron-awing'
+                        ],
+                        groundArena: [
+                            'consular-security-force'
+                        ]
+                    }
+                });
+            });
+
+            it('can allow the player to play a card, then initiate an attack with ambush', function() {
+                const { context } = contextRef;
+                context.moveToRegroupPhase();
+
+                // Resolve BHQ ability to play Cloud-Rider
+                expect(context.player1).toHavePassAbilityPrompt(bhqPrompt);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCardInDisplayCardPrompt(context.cloudrider);
+
+                expect(context.cloudrider).toBeInZone('groundArena');
+
+                // Resolve Ambush attack
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // Consular Security Force takes damage, Cloud-Rider is defeated
+                expect(context.consularSecurityForce.damage).toBe(3);
+                expect(context.cloudrider).toBeInZone('discard');
+            });
+
+            it('can allow the player to play a card, then use a move cards ability', function() {
+                const { context } = contextRef;
+
+                // Vanquish Wedge to simplify prompts
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.wedgeAntilles);
+                context.moveToRegroupPhase();
+
+                // Resolve BHQ ability to play Inferno Four
+                expect(context.player1).toHavePassAbilityPrompt(bhqPrompt);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCardInDisplayCardPrompt(context.infernoFour);
+
+                expect(context.infernoFour).toBeInZone('spaceArena');
+
+                // Resolve Inverno Four's move cards ability
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.takedown, context.fellTheDragon]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Put on top', 'Put on bottom']);
+                context.player1.clickDisplayCardPromptButton(context.takedown.uuid, 'bottom');
+                context.player1.clickDisplayCardPromptButton(context.fellTheDragon.uuid, 'bottom');
+
+                expect(context.takedown).toBeInBottomOfDeck(context.player1, 2);
+                expect(context.fellTheDragon).toBeInBottomOfDeck(context.player1, 2);
+            });
+
+            it('can allow the player to play a card, then attack with a different unit from a trigger', function() {
+                const { context } = contextRef;
+                context.moveToRegroupPhase();
+
+                // Resolve BHQ ability to play Fleet Lieutenant
+                expect(context.player1).toHavePassAbilityPrompt(bhqPrompt);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCardInDisplayCardPrompt(context.fleetLieutenant);
+
+                expect(context.fleetLieutenant).toBeInZone('groundArena');
+
+                // Resolve Fleet Lieutenant's when-played ability
+                expect(context.player1).toHavePrompt('Attack with a unit');
+                context.player1.clickCard(context.wedgeAntilles);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(7);
+            });
+
+            it('can allow the player to play a card, then choose order of 3+ triggers', function() {
+                const { context } = contextRef;
+                context.player2.passAction();
+
+                // Play Admiral Yularen to give all vehicles Shielded
+                context.player1.clickCard(context.admiralYularen);
+                context.player1.clickPrompt('Shielded');
+                expect(context.consularSecurityForce.damage).toBe(0);
+
+                // Move to regroup phase
+                context.moveToRegroupPhase();
+
+                // Resolve BHQ ability to play Dilapidated Ski Speeder
+                expect(context.player1).toHavePassAbilityPrompt(bhqPrompt);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCardInDisplayCardPrompt(context.dilapidatedSkiSpeeder);
+                expect(context.consularSecurityForce.damage).toBe(0);
+                expect(context.dilapidatedSkiSpeeder).toBeInZone('groundArena');
+
+                // Choose which ability to resolve first
+                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHaveExactPromptButtons(['Shielded', 'Ambush', 'Deal 3 damage to this unit']);
+                context.player1.clickPrompt('Ambush');
+
+                // Ambush Consular Security Force
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.consularSecurityForce);
+                expect(context.consularSecurityForce.damage).toBe(4); // Speeder has +1/+1 from Wedge
+                expect(context.dilapidatedSkiSpeeder.damage).toBe(3);
+
+                // Deal damage from When Played
+                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                expect(context.player1).toHaveExactPromptButtons(['Shielded', 'Deal 3 damage to this unit']);
+                context.player1.clickPrompt('Deal 3 damage to this unit');
+                expect(context.dilapidatedSkiSpeeder.damage).toBe(6);
+
+                // Check that Shielded was resolved last
+                expect(context.dilapidatedSkiSpeeder.hasShield()).toBe(true);
+            });
+
+            it('can allow the player to play a card with a lasting effect for the phase, which expires at the end of the regroup phase', function() {
+                // Play calculating magnaguard off BHQ, and ensure it only has sentinel for the regroup phase
+                const { context } = contextRef;
+                context.requireResolvedRegroupPhasePrompts = true;
+                context.moveToRegroupPhase();
+
+                // Resolve BHQ ability to play Calculating Magnaguard
+                expect(context.player1).toHavePassAbilityPrompt(bhqPrompt);
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCardInDisplayCardPrompt(context.calculatingMagnaguard);
+
+                expect(context.calculatingMagnaguard).toBeInZone('groundArena');
+                expect(context.calculatingMagnaguard.hasSentinel()).toBe(true);
+
+                // Move to the action phase
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+
+                expect(context.calculatingMagnaguard.hasSentinel()).toBe(false);
+            });
+        });
     });
 });
