@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { PlayType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { CardType, RelativePlayer, WildcardCardType } from '../../../core/Constants';
 
 export default class BobaFettDaimyo extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class BobaFettDaimyo extends LeaderUnitCard {
             optional: true,
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.isUnit() && event.playType !== PlayType.Piloting && event.player === context.player && event.card.keywords.length > 0
+                    event.cardTypeWhenInPlay === CardType.BasicUnit && event.player === context.player && event.card.keywords.length > 0
             },
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: {
