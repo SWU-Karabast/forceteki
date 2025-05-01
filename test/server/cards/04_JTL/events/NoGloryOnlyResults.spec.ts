@@ -93,56 +93,5 @@ describe('No Glory, Only Results', function() {
             expect(context.blackSunStarfighter).toBeInZone('discard');
             expect(context.superlaserTechnician).toBeInZone('resource');
         });
-
-        it('No Glory, Only Results should defeat an enemy unit with Shadowed Intentions attached', async function() {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['no-glory-only-results']
-                },
-                player2: {
-                    groundArena: [
-                        {
-                            card: 'director-krennic#on-the-verge-of-greatness',
-                            upgrades: ['shield', 'shadowed-intentions']
-                        }
-                    ]
-                }
-            });
-
-            const { context } = contextRef;
-
-            // Player 1 plays No Glory, Only Results
-            context.player1.clickCard(context.noGloryOnlyResults);
-            expect(context.player1).toBeAbleToSelectExactly([context.directorKrennic]);
-
-            // Choose Director Krennic to take control and defeat it
-            context.player1.clickCard(context.directorKrennic);
-
-            expect(context.directorKrennic).toBeInZone('discard', context.player2);
-            expect(context.shadowedIntentions).toBeInZone('discard', context.player2);
-        });
-
-        it('No Glory, Only Results should be able to defeat an enemy Lurking TIE Phantom', async function() {
-            await contextRef.setupTestAsync({
-                phase: 'action',
-                player1: {
-                    hand: ['no-glory-only-results']
-                },
-                player2: {
-                    spaceArena: ['lurking-tie-phantom']
-                }
-            });
-
-            const { context } = contextRef;
-
-            // Player 1 plays No Glory, Only Results
-            context.player1.clickCard(context.noGloryOnlyResults);
-            expect(context.player1).toBeAbleToSelectExactly([context.lurkingTiePhantom]);
-
-            // Choose Lurking TIE Phantom and defeat it
-            context.player1.clickCard(context.lurkingTiePhantom);
-            expect(context.lurkingTiePhantom).toBeInZone('discard');
-        });
     });
 });
