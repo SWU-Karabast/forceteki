@@ -164,6 +164,7 @@ export const isToken = (cardType: CardTypeFilter) => {
         case WildcardCardType.Token:
         case CardType.TokenUpgrade:
         case CardType.TokenUnit:
+        case CardType.TokenCard:
             return true;
         default:
             return false;
@@ -216,7 +217,7 @@ export const cardTypeMatches = (cardType: CardType, cardTypeFilter: CardTypeFilt
 export const getCardTypesForFilter = (cardTypeFilter: CardTypeFilter): CardType[] => {
     switch (cardTypeFilter) {
         case WildcardCardType.Any:
-            return [CardType.Base, CardType.Event, CardType.Leader, CardType.BasicUnit, CardType.BasicUpgrade, CardType.TokenUnit, CardType.TokenUpgrade, CardType.LeaderUnit];
+            return [CardType.Base, CardType.Event, CardType.Leader, CardType.BasicUnit, CardType.BasicUpgrade, CardType.TokenUnit, CardType.TokenUpgrade, CardType.TokenCard, CardType.LeaderUnit];
         case WildcardCardType.NonLeaderUnit:
             return [CardType.BasicUnit, CardType.TokenUnit];
         case WildcardCardType.NonLeaderUpgrade:
@@ -228,7 +229,7 @@ export const getCardTypesForFilter = (cardTypeFilter: CardTypeFilter): CardType[
         case WildcardCardType.Upgrade:
             return [CardType.BasicUpgrade, CardType.LeaderUpgrade, CardType.TokenUpgrade, CardType.NonLeaderUnitUpgrade];
         case WildcardCardType.Token:
-            return [CardType.TokenUnit, CardType.TokenUpgrade];
+            return [CardType.TokenUnit, CardType.TokenUpgrade, CardType.TokenCard];
         case WildcardCardType.Playable:
             return [CardType.Event, CardType.BasicUnit, CardType.BasicUpgrade];
         default:

@@ -15,6 +15,7 @@ import {
     PlayType,
     RelativePlayer,
     Stage,
+    TokenCardName,
     WildcardCardType,
     WildcardRelativePlayer,
     ZoneName
@@ -242,6 +243,10 @@ export class Player extends GameObject<IPlayerState> {
 
     public hasSomeArenaUpgrade(filter: IAllArenasForPlayerSpecificTypeCardFilterProperties) {
         return this.game.allArenas.hasSomeCard({ ...filter, type: WildcardCardType.Upgrade, controller: this });
+    }
+
+    public get hasTheForce(): boolean {
+        return this.baseZone.hasForceToken();
     }
 
     /**
@@ -700,9 +705,10 @@ export class Player extends GameObject<IPlayerState> {
     /**
      * Called when the Game object starts the game. Creates all cards on this players decklist, shuffles the decks and initialises player parameters for the start of the game
      */
-    public initialiseAsync() {
+    public async initialiseAsync() {
         this.opponent = this.game.getOtherPlayer(this);
-        return this.prepareDecksAsync();
+        await this.prepareDecksAsync();
+        this.game.generateToken(this, TokenCardName.Force);
     }
 
     /**
@@ -1287,6 +1293,7 @@ export class Player extends GameObject<IPlayerState> {
             isActionPhaseActivePlayer,
             clock: undefined,
             aspects: this.getAspects(),
+            hasForceToken: this.hasTheForce
         };
 
         // if (this.showDeck) {

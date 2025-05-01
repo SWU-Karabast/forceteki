@@ -180,6 +180,15 @@ class GameStateBuilder {
         context.player1.setDeck(drawDeck1, ['outsideTheGame']);
         context.player2.setDeck(drawDeck2, ['outsideTheGame']);
 
+        // Force Token
+        if (options.player1.hasForceToken) {
+            context.player1.setHasTheForce(true);
+        }
+
+        if (options.player2.hasForceToken) {
+            context.player2.setHasTheForce(true);
+        }
+
         // add named cards to context for easy reference (allows us to do "context.<cardName>")
         // note that if cards map to the same property name (i.e., same title), then they won't be added
         const cardNamesAsProperties = this.convertNonDuplicateCardNamesToProperties(
@@ -232,7 +241,8 @@ class GameStateBuilder {
             'leader',
             'base',
             'deck',
-            'resource'
+            'resource',
+            'hasForceToken'
         ];
         // list of approved property names for setup phase
         const setupPhase = [
