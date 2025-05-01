@@ -155,9 +155,9 @@ export class Player extends GameObject<IPlayerState> {
         this.left = false;
 
         if (useTimer) {
-            this.actionTimer = new StandardActionTimer(15, this, () => this.game.onActionTimerExpired(this));
-            this.actionTimer.addSpecificTimeHandler(10, () => this.game.addMessage('{0} has 10 seconds remaining to take an action', this));
-            this.actionTimer.addSpecificTimeHandler(5, () => this.game.addMessage('{0} has 5 seconds remaining to take an action', this));
+            this.actionTimer = new StandardActionTimer(15, this, () => this.game.onActionTimerExpired(this), this.game);
+            this.actionTimer.addSpecificTimeHandler(10, () => this.game.addSystemMessage('{0} has 10 seconds remaining to take an action', this));
+            this.actionTimer.addSpecificTimeHandler(5, () => this.game.addAlert('danger', '{0} has 5 seconds remaining to take an action', this));
         } else {
             this.actionTimer = new NoopActionTimer();
         }

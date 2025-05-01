@@ -1,3 +1,4 @@
+import type Game from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { IActionTimer } from './IActionTimer';
@@ -8,6 +9,7 @@ interface SpecificTimeHandler {
 }
 
 export class StandardActionTimer implements IActionTimer {
+    private readonly game: Game;
     private readonly onTimeout: () => void;
     private readonly player: Player;
     private readonly timeLimitMs: number;
@@ -27,11 +29,12 @@ export class StandardActionTimer implements IActionTimer {
           Date.now() < this.endTime.getTime();
     }
 
-    public constructor(timeLimitSeconds: number, player: Player, onTimeout: () => void) {
+    public constructor(timeLimitSeconds: number, player: Player, onTimeout: () => void, game: Game) {
         Contract.assertPositiveNonZero(timeLimitSeconds);
 
         this.timeLimitMs = timeLimitSeconds * 1000;
         this.player = player;
+        this.game = game;
 
         this.onSpecificTimeHandlers = [{ fireOnRemainingTimeMs: 0, handler: onTimeout }];
     }
@@ -90,9 +93,11 @@ export class StandardActionTimer implements IActionTimer {
 
         for (const handler of this.onSpecificTimeHandlers) {
             if (timeRemainingMs > handler.fireOnRemainingTimeMs) {
-                const timer = setTimeout(() => {
-                    handler.handler();
-                }, timeRemainingMs - handler.fireOnRemainingTimeMs);
+                const timer = this.game.buildSafeTimeout(
+                    () => handler.handler(),
+                    timeRemainingMs - handler.fireOnRemainingTimeMs,
+                    `Error in action timer handler for player ${this.player.name}`
+                );
 
                 this.timers.push(timer);
             }

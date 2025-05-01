@@ -8,6 +8,12 @@ export class GameChat {
         message: MessageText | { alert: { type: string; message: string | string[] } };
     }[] = [];
 
+    private readonly pushUpdate: () => void;
+
+    public constructor(pushUpdate: () => void) {
+        this.pushUpdate = pushUpdate;
+    }
+
     public addChatMessage(player: any, message: any): void {
         const playerArg = {
             name: player.name || player.username,
@@ -26,6 +32,12 @@ export class GameChat {
     public addAlert(type: string, message: string, ...args: MsgArg[]): void {
         const formattedMessage = this.formatMessage(message, args);
         this.messages.push({ date: new Date(), message: { alert: { type: type, message: formattedMessage } } });
+        this.pushUpdate();
+    }
+
+    public addSystemMessage(message: string, ...args: MsgArg[]): void {
+        this.addMessage(message, ...args);
+        this.pushUpdate();
     }
 
     public formatMessage(format: string, args: MsgArg[]): string | string[] {

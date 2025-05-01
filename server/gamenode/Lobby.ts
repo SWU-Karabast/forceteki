@@ -94,7 +94,7 @@ export class Lobby {
         );
         this._id = uuid();
         this._lobbyName = lobbyName || `Game #${this._id.substring(0, 6)}`;
-        this.gameChat = new GameChat();
+        this.gameChat = new GameChat(() => this.sendLobbyState());
         this.connectionLink = lobbyGameType !== MatchType.Quick ? this.createLobbyLink() : null;
         this.isPrivate = lobbyGameType === MatchType.Private;
         this.gameType = lobbyGameType;
@@ -324,15 +324,8 @@ export class Lobby {
             return Promise.resolve();
         }
 
-        this.matchingCountdownTimeoutHandle = setTimeout(() => {
-            try {
-                return this.quickLobbyCountdownAsync(remainingSeconds - 1);
-            } catch (err) {
-                logger.error('Lobby: error during quick lobby countdown', { error: { message: err.message, stack: err.stack }, lobbyId: this.id });
-            }
-
-            return Promise.resolve();
-        }, 1000);
+        this.matchingCountdownTimeoutHandle =
+            this.buildSafeTimeout(() => this.quickLobbyCountdownAsync(remainingSeconds - 1), 1000, 'Lobby: error during quick lobby countdown');
 
         this.sendLobbyState();
         return Promise.resolve();
@@ -659,6 +652,9 @@ export class Lobby {
             players,
             cardDataGetter: this.cardDataGetter,
             useActionTimer: this.gameType === MatchType.Quick || this.gameType === MatchType.Custom,
+            pushUpdate: () => this.sendGameState(this.game),
+            buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
+                this.buildSafeTimeout(callback, delayMs, errorMessage),
         };
     }
 
@@ -719,7 +715,7 @@ export class Lobby {
         this.matchingCountdownText = 'Opponent has disconnected, re-entering queue';
         this.sendLobbyState();
 
-        setTimeout(() => {
+        this.buildSafeTimeout(() => {
             for (const user of this.users) {
                 logger.error(`Lobby: requeueing user ${user.id} after matched user disconnected`);
 
@@ -728,7 +724,19 @@ export class Lobby {
             }
 
             this.server.removeLobby(this);
-        }, 2000);
+        },
+        2000, 'Lobby: error requeueing user after disconnect');
+    }
+
+    private buildSafeTimeout(callback: () => void, delayMs: number, errorMessage: string): NodeJS.Timeout {
+        const timeout = setTimeout(() => {
+            try {
+                callback();
+            } catch (error) {
+                logger.error(errorMessage, { error: { message: error.message, stack: error.stack }, lobbyId: this.id });
+            }
+        }, delayMs);
+        return timeout;
     }
 
     // TODO: Review this to make sure we're getting the info we need for debugging

@@ -131,7 +131,7 @@ class Game extends EventEmitter {
 
         /** @type { {[key: string]: Player | Spectator} } */
         this.playersAndSpectators = {};
-        this.gameChat = new GameChat();
+        this.gameChat = new GameChat(details.pushUpdate);
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.name = details.name;
@@ -142,6 +142,8 @@ class Game extends EventEmitter {
         this.playStarted = false;
         this.gameObjectManager = new GameStateManager(this);
         this.createdAt = new Date();
+
+        this.buildSafeTimeoutHandler = details.buildSafeTimeout;
 
         /** @type { ActionWindow | null } */
         this.currentActionWindow = null;
@@ -237,6 +239,11 @@ class Game extends EventEmitter {
         this.gameChat.addMessage(...arguments);
     }
 
+    addSystemMessage() {
+        // @ts-expect-error
+        this.gameChat.addSystemMessage(...arguments);
+    }
+
     /**
      * Adds a message to in-game chat with a graphical icon
      * @param {String} one of: 'endofround', 'success', 'info', 'danger', 'warning'
@@ -246,6 +253,17 @@ class Game extends EventEmitter {
     addAlert() {
         // @ts-expect-error
         this.gameChat.addAlert(...arguments);
+    }
+
+    /**
+     * Build a timeout that will log an error on failure and not crash the server process
+     * @param {() => void} callback function to call when timeout hits
+     * @param {number} delayMs
+     * @param {string} errorMessage message to log on error (error details will be added automatically)
+     * @returns {NodeJS.Timeout} reference to timeout object
+     */
+    buildSafeTimeout(callback, delayMs, errorMessage) {
+        return this.buildSafeTimeoutHandler(callback, delayMs, errorMessage);
     }
 
     get messages() {
@@ -560,7 +578,7 @@ class Game extends EventEmitter {
 
     /** @param {Player} player */
     onActionTimerExpired(player) {
-        this.addMessage('{0} has run out of time for their action. They automatically pass their action.', player);
+        this.addSystemMessage('{0} has run out of time for their action. They automatically pass their action.', player);
     }
 
     // TODO: parameter contract checks for this flow
