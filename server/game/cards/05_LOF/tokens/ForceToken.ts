@@ -3,7 +3,7 @@ import { TokenCard } from '../../../core/card/TokenCards';
 export default class ForceToken extends TokenCard {
     protected override getImplementationId() {
         return {
-            id: 'temp-force-id',
+            id: '4571900905',
             internalName: 'force',
         };
     }
