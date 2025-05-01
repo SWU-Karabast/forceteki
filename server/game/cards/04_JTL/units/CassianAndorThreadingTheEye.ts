@@ -19,7 +19,7 @@ export default class CassianAndorThreadingTheEye extends NonLeaderUnitCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 1,
-                target: context.source.activeAttack.target.controller
+                target: context.source.activeAttack.getSingleTarget().controller
             })),
             ifYouDo: {
                 title: 'Draw a card',

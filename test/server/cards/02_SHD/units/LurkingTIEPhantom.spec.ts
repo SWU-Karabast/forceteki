@@ -176,5 +176,27 @@ describe('Lurking TIE Phantom', function() {
             expect(context.lurkingTiePhantom.damage).toBe(0);
             expect(context.player2).toBeActivePlayer();
         });
+
+        it('Lurking TIE Phantom can be defeated by an oppontent\'s No Glory, Only Results', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results']
+                },
+                player2: {
+                    spaceArena: ['lurking-tie-phantom']
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player 1 plays No Glory, Only Results
+            context.player1.clickCard(context.noGloryOnlyResults);
+            expect(context.player1).toBeAbleToSelectExactly([context.lurkingTiePhantom]);
+
+            // Choose Lurking TIE Phantom and defeat it
+            context.player1.clickCard(context.lurkingTiePhantom);
+            expect(context.lurkingTiePhantom).toBeInZone('discard', context.player2);
+        });
     });
 });

@@ -25,7 +25,7 @@ describe('Overall game mechanics', function() {
                 expect(context.player1).toHavePrompt('The game ended in a draw!');
                 expect(context.player2).toHavePrompt('The game ended in a draw!');
 
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
         });
 
@@ -53,7 +53,7 @@ describe('Overall game mechanics', function() {
                 expect(context.player2).toHavePrompt('player1 has won the game!');
                 expect(context.player1).toBeActivePlayer();
 
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
         });
     });

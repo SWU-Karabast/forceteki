@@ -1,6 +1,6 @@
 import type { Player } from '../Player';
 import type { ZoneFilter } from '../Constants';
-import { CardType, DeployType, PlayType, RelativePlayer, Trait, WildcardCardType } from '../Constants';
+import { CardType, DeployType, RelativePlayer, Trait, WildcardCardType } from '../Constants';
 import { AbilityType, ZoneName } from '../Constants';
 import type { IUnitCard } from './propertyMixins/UnitProperties';
 import { WithUnitProperties } from './propertyMixins/UnitProperties';
@@ -15,6 +15,7 @@ import type { ILeaderCard } from './propertyMixins/LeaderProperties';
 import { WithLeaderProperties } from './propertyMixins/LeaderProperties';
 import { InPlayCard } from './baseClasses/InPlayCard';
 import AbilityHelper from '../../AbilityHelper';
+import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
 
 const LeaderUnitCardParent = WithUnitProperties(WithLeaderProperties(InPlayCard));
 
@@ -44,7 +45,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         return this.state.deployed ? CardType.LeaderUnit : CardType.Leader;
     }
 
-    public constructor(owner: Player, cardData: any) {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
 
         // add deploy leader action
@@ -155,7 +156,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 controller: RelativePlayer.Self,
-                cardCondition: (card, context) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && card.canAttachPilot(context.source, PlayType.Piloting),
+                cardCondition: (card, context) => card.isUnit() && card.hasSomeTrait(Trait.Vehicle) && card.canAttachPilot(context.source),
                 immediateEffect: AbilityHelper.immediateEffects.deployAndAttachPilotLeader((context) => ({
                     leaderPilotCard: context.source
                 }))

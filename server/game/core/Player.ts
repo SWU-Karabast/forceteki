@@ -31,7 +31,7 @@ import type Game from './Game';
 import type { ZoneAbstract } from './zone/ZoneAbstract';
 import type { Card } from './card/Card';
 import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
-import type { User } from '../../Settings';
+import type { IUser } from '../../Settings';
 import type {
     IAllArenasForPlayerCardFilterProperties,
     IAllArenasForPlayerSpecificTypeCardFilterProperties
@@ -63,7 +63,7 @@ export interface IPlayerState extends IGameObjectState {
 }
 
 export class Player extends GameObject<IPlayerState> {
-    public user: User;
+    public user: IUser;
     public printedType: string;
     // TODO: INCOMPLETE
     public socket: any;
@@ -140,7 +140,7 @@ export class Player extends GameObject<IPlayerState> {
     private playableZones: PlayableZone[];
     private noTimer: boolean;
 
-    public constructor(id: string, user: User, game: Game, useTimer = false) {
+    public constructor(id: string, user: IUser, game: Game, useTimer = false) {
         super(game, user.username);
 
         Contract.assertNotNullLike(id);
@@ -1335,7 +1335,7 @@ export class Player extends GameObject<IPlayerState> {
             state.base = this.base.captureCardState();
 
             // Initiative
-            state.hasInitiative = true;
+            state.hasInitiative = this.hasInitiative();
         } catch (error) {
             logger.error('Error capturing player state', {
                 error: { message: error.message, stack: error.stack },

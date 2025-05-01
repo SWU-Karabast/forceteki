@@ -1,8 +1,8 @@
 describe('The Mandalorian, Sworn To The Creed', function () {
     integration(function (contextRef) {
         describe('The Mandalorian\'s leader undeployed ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('should exhaust a unit which cost 4 or less when playing upgrades', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['academy-training', 'waylay', 'devotion'],
@@ -19,9 +19,7 @@ describe('The Mandalorian, Sworn To The Creed', function () {
                     // IMPORTANT: this is here for backwards compatibility of older tests, don't use in new code
                     autoSingleTarget: true
                 });
-            });
 
-            it('should exhaust a unit which cost 4 or less when playing upgrades', function () {
                 const { context } = contextRef;
 
                 // play an event : nothing happen
@@ -64,6 +62,35 @@ describe('The Mandalorian, Sworn To The Creed', function () {
                 context.player1.clickCard(context.devotion);
                 context.player1.clickCard(context.wampa);
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should exhaust a unit which cost 4 or less when playing a Pilot upgrade', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'the-mandalorian#sworn-to-the-creed',
+                        hand: ['dagger-squadron-pilot'],
+                        spaceArena: ['cartel-spacer'],
+                    },
+                    player2: {
+                        hand: ['vambrace-flamethrower'],
+                        groundArena: ['academy-defense-walker', 'battlefield-marine', { card: 'consular-security-force', damage: 4 }],
+                        spaceArena: ['green-squadron-awing']
+                    }
+                });
+
+                const { context } = contextRef;
+                context.player1.clickCard(context.daggerSquadronPilot);
+                context.player1.clickPrompt('Play Dagger Squadron Pilot with Piloting');
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.daggerSquadronPilot).toBeAttachedTo(context.cartelSpacer);
+
+                expect(context.player1).toHaveExactPromptButtons(['Pass', 'Trigger']);
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.greenSquadronAwing, context.consularSecurityForce]);
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine.exhausted).toBeTrue();
             });
         });
 

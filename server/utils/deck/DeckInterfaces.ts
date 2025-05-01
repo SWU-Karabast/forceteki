@@ -8,6 +8,12 @@ export interface IInternalCardEntry extends ISwuDbCardEntry {
     cost?: number;
 }
 
+export enum ScoreType {
+    Draw = 'Draw',
+    Win = 'Win',
+    Lose = 'Lose'
+}
+
 export interface ISwuDbDecklist {
     metadata: {
         name: string;
@@ -18,6 +24,7 @@ export interface ISwuDbDecklist {
     base?: ISwuDbCardEntry;
     deck?: ISwuDbCardEntry[];
     sideboard?: ISwuDbCardEntry[];
+    deckID?: string;
 }
 
 export interface IDecklistInternal {
@@ -25,6 +32,7 @@ export interface IDecklistInternal {
     base: IInternalCardEntry;
     deck: IInternalCardEntry[];
     sideboard?: IInternalCardEntry[];
+    deckID?: string;
 }
 
 export interface ICardIdAndName {

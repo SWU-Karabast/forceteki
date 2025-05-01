@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../ability/AbilityContext';
-import type { GameStateChangeRequired } from '../Constants';
+import { GameStateChangeRequired } from '../Constants';
 import type { TriggerHandlingMode } from '../event/EventWindow';
 import type { GameEvent } from '../event/GameEvent';
 import type { GameObject } from '../GameObject';
@@ -26,7 +26,7 @@ export abstract class PlayerTargetSystem<TContext extends AbilityContext = Abili
     }
 
     public override checkEventCondition(event, additionalProperties): boolean {
-        return this.canAffect(event.player, event.context, additionalProperties);
+        return this.canAffect(event.player, event.context, additionalProperties, GameStateChangeRequired.MustFullyOrPartiallyResolve);
     }
 
     // override to force the argument type to be Player

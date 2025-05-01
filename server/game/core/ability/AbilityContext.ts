@@ -74,6 +74,11 @@ export class AbilityContext<TSource extends Card = Card> {
             : null;
     }
 
+    /** Returns the events or their replacement effect events that are resolved. */
+    public get resolvedEvents(): any[] {
+        return this.events.flatMap((event) => event.resolvedEvents);
+    }
+
     public isTriggered(): this is TriggeredAbilityContext<TSource> {
         return false;
     }

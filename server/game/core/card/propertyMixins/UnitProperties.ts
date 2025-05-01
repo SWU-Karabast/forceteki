@@ -72,10 +72,12 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unregisterWhenDefeatedKeywords();
     unregisterWhenCapturedKeywords();
     checkDefeatedByOngoingEffect();
+    refreshWhileInPlayKeywordAbilityEffects();
     unattachUpgrade(upgrade, event);
-    canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean;
+    canAttachPilot(pilot: IUnitCard): boolean;
     attachUpgrade(upgrade);
     getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
+    getMaxUnitAttackLimit(): number;
 }
 
 /**
@@ -131,7 +133,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         protected pilotingConstantAbilities: IConstantAbility[];
         protected pilotingTriggeredAbilities: TriggeredAbility[];
 
-        private readonly attackAction: InitiateAttackAction;
         private _attackKeywordAbilities?: (TriggeredAbility | IConstantAbility)[] = null;
         public get lastPlayerToModifyHp(): Player {
             Contract.assertTrue(this.isInPlay());
@@ -186,6 +187,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return this.upgrades.some((card) => card.isShield());
         }
 
+        public hasSentinel(): boolean {
+            return this.hasSomeKeyword(KeywordName.Sentinel);
+        }
+
         public override isLeader(): this is ILeaderCard {
             return this.isLeaderAttachedToThis();
         }
@@ -228,8 +233,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
                 this.validateCardAbilities(this.pilotingTriggeredAbilities, cardData.pilotText);
             }
-
-            this.attackAction = new InitiateAttackAction(this.game, this);
         }
 
         protected override setupDefaultState() {
@@ -330,7 +333,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 return this.pilotingActionAbilities;
             }
 
-            const actions = super.getActions().concat(this.attackAction);
+            const actions = super.getActions().concat(new InitiateAttackAction(this.game, this));
 
             // If this unit must attack and an attack action is available, return just that action.
             // This is used by cards such as Give In to Your Anger
@@ -519,40 +522,53 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             // Unregister all effects when moving a card from an arena to a non-arena zone
             // or from a base to an arena
             if ((EnumHelpers.isArena(from) && !EnumHelpers.isArena(to)) || (from === ZoneName.Base && EnumHelpers.isArena(to))) {
-                Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
-
-                for (const keywordAbility of this._whileInPlayKeywordAbilities) {
-                    this.removeEffectFromEngine(keywordAbility.registeredEffects);
-                    keywordAbility.registeredEffects = [];
-                }
-
-                this._whileInPlayKeywordAbilities = null;
+                this.unregisterWhileInPlayKeywordAbilityEffects();
             }
 
             // Register all effects when moving a card to a base or from a non-arena zone to an arena,
             // this is to support leaders with the Coordinate keyword
             if ((!EnumHelpers.isArena(from) && EnumHelpers.isArena(to)) || to === ZoneName.Base) {
-                Contract.assertIsNullLike(
-                    this._whileInPlayKeywordAbilities,
-                    `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
-                );
+                this.registerWhileInPlayKeywordAbilityEffects();
+            }
+        }
 
-                this._whileInPlayKeywordAbilities = [];
+        public refreshWhileInPlayKeywordAbilityEffects() {
+            this.unregisterWhileInPlayKeywordAbilityEffects();
+            this.registerWhileInPlayKeywordAbilityEffects();
+        }
 
-                for (const keywordInstance of this.getCoordinateAbilities()) {
-                    const gainedAbilityProps = keywordInstance.abilityProps;
+        private unregisterWhileInPlayKeywordAbilityEffects() {
+            Contract.assertTrue(Array.isArray(this._whileInPlayKeywordAbilities), 'Keyword ability while in play registration was skipped');
 
-                    const coordinateKeywordAbilityProps: IConstantAbilityProps = {
-                        title: `Coordinate: ${gainedAbilityProps.title}`,
-                        condition: (context) => context.player.getArenaUnits().length >= 3 && !keywordInstance.isBlank,
-                        ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProps)
-                    };
+            for (const keywordAbility of this._whileInPlayKeywordAbilities) {
+                this.removeEffectFromEngine(keywordAbility.registeredEffects);
+                keywordAbility.registeredEffects = [];
+            }
 
-                    const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
-                    coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
+            this._whileInPlayKeywordAbilities = null;
+        }
 
-                    this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
-                }
+        private registerWhileInPlayKeywordAbilityEffects() {
+            Contract.assertIsNullLike(
+                this._whileInPlayKeywordAbilities,
+                `Failed to unregister when played abilities from previous play: ${this._whileInPlayKeywordAbilities?.map((ability) => ability.title).join(', ')}`
+            );
+
+            this._whileInPlayKeywordAbilities = [];
+
+            for (const keywordInstance of this.getCoordinateAbilities()) {
+                const gainedAbilityProps = keywordInstance.abilityProps;
+
+                const coordinateKeywordAbilityProps: IConstantAbilityProps = {
+                    title: `Coordinate: ${gainedAbilityProps.title}`,
+                    condition: (context) => context.player.getArenaUnits().length >= 3 && !keywordInstance.isBlank,
+                    ongoingEffect: OngoingEffectLibrary.gainAbility(gainedAbilityProps)
+                };
+
+                const coordinateKeywordAbility = this.createConstantAbility(coordinateKeywordAbilityProps);
+                coordinateKeywordAbility.registeredEffects = this.addEffectToEngine(coordinateKeywordAbility);
+
+                this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
             }
         }
 
@@ -854,9 +870,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 if (context.playType === PlayType.Piloting && this.hasSomeKeyword(KeywordName.Piloting)) {
                     // This is needed for abilities that let you play Pilots from the opponent's discard
                     const canPlayFromAnyZone = (context.ability as PlayUpgradeAction).canPlayFromAnyZone;
-                    return targetCard.canAttachPilot(this, context.playType) && (targetCard.controller === controller || canPlayFromAnyZone);
+                    return targetCard.canAttachPilot(this) && (targetCard.controller === controller || canPlayFromAnyZone);
                 } else if (this.hasSomeTrait(Trait.Pilot)) {
-                    return targetCard.canAttachPilot(this, context.playType);
+                    return targetCard.canAttachPilot(this);
                 }
             }
             // TODO: Handle Phantom II and Sidon Ithano
@@ -866,36 +882,27 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         /**
          * Checks if a pilot can be attached to this unit
          * @param {IUnitCard} pilot The pilot card that would be attached to this unit
-         * @param {PlayType=} playType The type of play that is being used to attach the pilot
          * @returns True if a Pilot can be attached to this unit; false otherwise
          */
-        public canAttachPilot(pilot: IUnitCard, playType?: PlayType): boolean {
+        public canAttachPilot(pilot: IUnitCard): boolean {
             if (!this.hasSomeTrait(Trait.Vehicle)) {
                 return false;
             }
 
-            // Check if the card is being played with Piloting since the pilot limit
-            // applies only in that case
-            if (playType === PlayType.Piloting) {
-                // Check if the card can be played with Piloting ignoring the pilot limit,
-                // for example "R2-D2, Artooooooooo"
-                if (pilot.hasOngoingEffect(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit)) {
-                    return true;
-                }
-
-                // Calculate the pilot limit of the card applying all the modifiers
-                const pilotCount = this.upgrades
-                    .reduce((count, upgrade) => (upgrade.hasSomeTrait(Trait.Pilot) ? count + 1 : count), 0);
-                const pilotLimit = this.getOngoingEffectValues<PilotLimitModifier>(EffectName.ModifyPilotLimit)
-                    .reduce((limit, modifier) => limit + modifier.amount, 1);
-
-                // Ensure that the card doesn't already have the maximum number of pilots
-                if (pilotCount >= pilotLimit) {
-                    return false;
-                }
+            // Check if the card can be played with Piloting ignoring the pilot limit,
+            // for example "R2-D2, Artooooooooo"
+            if (pilot.hasOngoingEffect(EffectName.CanBePlayedWithPilotingIgnoringPilotLimit)) {
+                return true;
             }
 
-            return true;
+            // Calculate the pilot limit of the card applying all the modifiers
+            const pilotCount = this.upgrades
+                .reduce((count, upgrade) => (upgrade.hasSomeTrait(Trait.Pilot) ? count + 1 : count), 0);
+            const pilotLimit = this.getOngoingEffectValues<PilotLimitModifier>(EffectName.ModifyPilotLimit)
+                .reduce((limit, modifier) => limit + modifier.amount, 1);
+
+            // Ensure that the card doesn't already have the maximum number of pilots
+            return pilotCount < pilotLimit;
         }
 
         /**
@@ -931,6 +938,18 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             this.setExhaustEnabled(false);
             this.setUpgradesEnabled(false);
             this.setCaptureZoneEnabled(false);
+        }
+
+        public getMaxUnitAttackLimit(): number {
+            let attackLimit = 1;
+            if (this.hasOngoingEffect(EffectName.CanAttackMultipleUnitsSimultaneously)) {
+                for (const ongoingEffect of this.getOngoingEffectValues(EffectName.CanAttackMultipleUnitsSimultaneously)) {
+                    if (ongoingEffect.amount > attackLimit) {
+                        attackLimit = ongoingEffect.amount;
+                    }
+                }
+            }
+            return attackLimit;
         }
 
         public override getSummary(activePlayer: Player) {

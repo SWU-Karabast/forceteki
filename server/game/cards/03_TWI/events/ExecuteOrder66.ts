@@ -3,7 +3,6 @@ import { Trait, WildcardCardType } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 import type { AbilityContext } from '../../../core/ability/AbilityContext';
 import type { Card } from '../../../core/card/Card';
-import { forEach } from 'underscore';
 import type { Player } from '../../../core/Player';
 
 export default class ExecuteOrder66 extends EventCard {
@@ -23,7 +22,7 @@ export default class ExecuteOrder66 extends EventCard {
             })),
             then: (thenContext) => ({
                 title: 'For each unit defeated this way, its controller creates a Clone Trooper token.',
-                thenCondition: () => thenContext.events.length > 0,
+                thenCondition: () => thenContext.resolvedEvents.length > 0,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     this.createCloneTroopers(thenContext, thenContext.player),
                     this.createCloneTroopers(thenContext, thenContext.player.opponent)
@@ -39,12 +38,7 @@ export default class ExecuteOrder66 extends EventCard {
     }
 
     private createCloneTroopers(thenContext: AbilityContext<Card>, player: Player) {
-        let numberClones = 0;
-        forEach(thenContext.events, (e) => {
-            if (e.willDefeat && e.card.controller === player) {
-                numberClones++;
-            }
-        });
+        const numberClones = thenContext.resolvedEvents.reduce((total, e) => total + (e.willDefeat && e.card.controller === player ? 1 : 0), 0);
 
         return AbilityHelper.immediateEffects.createCloneTrooper({
             amount: numberClones,

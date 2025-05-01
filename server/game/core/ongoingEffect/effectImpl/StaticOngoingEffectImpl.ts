@@ -89,7 +89,7 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
     }
 
     public recalculate(target) {
-        return this.valueWrapper.recalculate();
+        return false;
     }
 
     public override setContext(context: AbilityContext) {

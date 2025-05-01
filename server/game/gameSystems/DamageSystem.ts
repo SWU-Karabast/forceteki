@@ -2,6 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
 import { AbilityRestriction, CardType, DamageType, EventName, GameStateChangeRequired, WildcardCardType } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
+import * as Helpers from '../core/utils/Helpers';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import type { Attack } from '../core/attack/Attack';
@@ -191,24 +192,22 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         Contract.assertTrue(context.source.isUnit());
         Contract.assertNotNullLike(card);
 
-        let damageDealtBy: IUnitCard;
+        let damageDealtBy: IUnitCard[];
 
         if (properties.source) {
-            Contract.assertTrue(properties.source.isUnit());
-            damageDealtBy = properties.source;
+            const sourceArray = Helpers.asArray(properties.source);
+            Contract.assertTrue(sourceArray.every((source) => source.isUnit()));
+            damageDealtBy = sourceArray;
         } else if (event.isOverwhelmDamage) {
-            damageDealtBy = properties.sourceAttack.attacker;
+            damageDealtBy = [properties.sourceAttack.attacker];
         } else {
-            switch (card) {
-                case properties.sourceAttack.attacker:
-                    Contract.assertTrue(properties.sourceAttack.target.isUnit());
-                    damageDealtBy = properties.sourceAttack.target;
-                    break;
-                case properties.sourceAttack.target:
-                    damageDealtBy = properties.sourceAttack.attacker;
-                    break;
-                default:
-                    Contract.fail(`Combat damage is being dealt to card ${card.internalName} but it is not involved in the attack`);
+            if (card === properties.sourceAttack.attacker) {
+                Contract.assertTrue(properties.sourceAttack.getAllTargets().some((target) => target.isUnit()));
+                damageDealtBy = properties.sourceAttack.getAllTargets().filter((target) => target.isUnit()) as IUnitCard[];
+            } else if (properties.sourceAttack.getAllTargets().some((target) => target === card)) {
+                damageDealtBy = [properties.sourceAttack.attacker];
+            } else {
+                Contract.fail(`Combat damage is being dealt to card ${card.internalName} but it is not involved in the attack`);
             }
         }
 
@@ -240,7 +239,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
             type: DamageSourceType.Attack,
             attack: properties.sourceAttack,
             player: context.player,
-            damageDealtBy: properties.sourceAttack.attacker,
+            damageDealtBy: [properties.sourceAttack.attacker],
             isOverwhelmDamage: true,
             event
         };

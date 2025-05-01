@@ -64,6 +64,9 @@ export function keywordFromProperties(properties: IKeywordProperties, card: Card
         case KeywordName.Smuggle:
             return new KeywordWithCostValues(properties.keyword, card, properties.cost, properties.aspects, false);
 
+        case KeywordName.Coordinate:
+            return new KeywordWithAbilityDefinition(properties.keyword, card, properties.ability);
+
         case KeywordName.Ambush:
         case KeywordName.Grit:
         case KeywordName.Overwhelm:

@@ -1,13 +1,13 @@
+import type { ICardDataJson } from '../../../../utils/cardData/CardDataInterfaces';
 import { FrameworkDefeatCardSystem } from '../../../gameSystems/FrameworkDefeatCardSystem';
 import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import type { IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
-import { CardType, RelativePlayer, StandardTriggeredAbilityType, TargetMode, WildcardZoneName, ZoneName } from '../../Constants';
+import { CardType, RelativePlayer, StandardTriggeredAbilityType, TargetMode, Trait, WildcardZoneName, ZoneName } from '../../Constants';
 import type { GameObjectRef } from '../../GameObjectBase';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
-import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
 import * as EnumHelpers from '../../utils/EnumHelpers';
@@ -126,7 +126,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         return this.state.pendingDefeat;
     }
 
-    public constructor(owner: Player, cardData: any) {
+    public constructor(owner: Player, cardData: ICardDataJson) {
         super(owner, cardData);
 
         // this class is for all card types other than Base and Event (Base is checked in the superclass constructor)
@@ -209,6 +209,12 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
 
         this.updateStateOnAttach();
 
+        if (this.isUnit() && this.hasSomeTrait(Trait.Pilot)) {
+            Contract.assertTrue(newParentCard.canAttachPilot(this));
+        } else if (this.attachCondition) {
+            Contract.assertTrue(this.attachCondition(newParentCard));
+        }
+
         newParentCard.attachUpgrade(this);
 
         this.parentCard = newParentCard;
@@ -261,15 +267,6 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
     }
 
     // ********************************************* ABILITY SETUP *********************************************
-    protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {
-        const ability = super.addConstantAbility(properties);
-        // This check is necessary to make sure on-play cost-reduction effects are registered
-        if (ability.sourceZoneFilter === WildcardZoneName.Any) {
-            ability.registeredEffects = this.addEffectToEngine(ability);
-        }
-        return ability;
-    }
-
     protected addWhenPlayedAbility(properties: ITriggeredAbilityBaseProps<this>): TriggeredAbility {
         const when: WhenTypeOrStandard = { [StandardTriggeredAbilityType.WhenPlayed]: true };
         return this.addTriggeredAbility({ ...properties, when });
