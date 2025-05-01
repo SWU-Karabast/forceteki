@@ -13,7 +13,6 @@ export default class WattoNoMoneyNoPartsNoDeal extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addOnAttackAbility({
             title: 'An opponent chooses if you give an experience token to a friendly or draw a card',
-            optional: false,
             targetResolver: {
                 mode: TargetMode.Select,
                 choosingPlayer: RelativePlayer.Opponent,
@@ -24,7 +23,7 @@ export default class WattoNoMoneyNoPartsNoDeal extends NonLeaderUnitCard {
                             controller: RelativePlayer.Self,
                             innerSystem: AbilityHelper.immediateEffects.giveExperience()
                         }),
-                    [`${context.player.name} draw a card`]:
+                    [`${context.player.name} draws a card`]:
                         AbilityHelper.immediateEffects.draw({ amount: 1 }),
                 })
             }

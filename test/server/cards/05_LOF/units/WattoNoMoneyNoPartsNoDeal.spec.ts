@@ -37,7 +37,6 @@ describe('Watto, No Money No Parts No Deal', function() {
                 player1: {
                     deck: ['battlefield-marine', 'wampa'],
                     groundArena: ['watto#no-money-no-parts-no-deal'],
-                    hand: []
                 },
             });
 
