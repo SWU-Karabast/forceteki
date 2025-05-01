@@ -5,7 +5,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class DrainEssence extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'temp-drain-essence-id',
+            id: '5083905745',
             internalName: 'drain-essence'
         };
     }

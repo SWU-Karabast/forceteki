@@ -5,7 +5,7 @@ import { Trait } from '../../../core/Constants';
 export default class DarthSidiousThePhantomMenace extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'temp-darth-sidious-id',
+            id: '6797297267',
             internalName: 'darth-sidious#the-phantom-menace'
         };
     }
