@@ -5,7 +5,7 @@ import { TargetMode, WildcardCardType, WildcardRelativePlayer, WildcardZoneName 
 export default class DarthMaulSithRevealed extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'tbd-darth-maul-id',
+            id: '0024560758',
             internalName: 'darth-maul#sith-revealed',
         };
     }

@@ -4,7 +4,7 @@ export default class ForceToken extends TokenCard {
     protected override getImplementationId() {
         return {
             id: '4571900905',
-            internalName: 'force',
+            internalName: 'the-force',
         };
     }
 

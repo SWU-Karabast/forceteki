@@ -4,7 +4,7 @@ import { LofCommonForceBase } from '../common/LofCommonForceBase';
 export default class ShadowedUndercity extends LofCommonForceBase {
     protected override getImplementationId() {
         return {
-            id: 'temp-shadowed-undercity-id',
+            id: '0119018087',
             internalName: 'shadowed-undercity',
         };
     }

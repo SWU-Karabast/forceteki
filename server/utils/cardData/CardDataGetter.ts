@@ -92,7 +92,7 @@ export abstract class CardDataGetter {
             [TokenUnitName.XWing]: getCard('xwing'),
             [TokenUpgradeName.Experience]: getCard('experience'),
             [TokenUpgradeName.Shield]: getCard('shield'),
-            [TokenCardName.Force]: getCard('force'),
+            [TokenCardName.Force]: getCard('the-force'),
         };
     }
 

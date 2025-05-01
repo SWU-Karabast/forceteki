@@ -19,8 +19,8 @@ describe('The Force token', function () {
             it('Is initialized for each player at the start of the game', function () {
                 const { context } = contextRef;
 
-                const p1ForceToken = context.player1.findCardByName('force');
-                const p2ForceToken = context.player2.findCardByName('force');
+                const p1ForceToken = context.player1.findCardByName('the-force');
+                const p2ForceToken = context.player2.findCardByName('the-force');
 
                 // Ensure that the force tokens are created and out of play for both players
                 expect(p1ForceToken).toBeInZone('outsideTheGame');
@@ -30,8 +30,8 @@ describe('The Force token', function () {
             it('Does not get destoryed at the end of a round with the standar token cleanup', function () {
                 const { context } = contextRef;
 
-                const p1ForceToken = context.player1.findCardByName('force');
-                const p2ForceToken = context.player2.findCardByName('force');
+                const p1ForceToken = context.player1.findCardByName('the-force');
+                const p2ForceToken = context.player2.findCardByName('the-force');
 
                 // Move to the next round
                 context.moveToNextActionPhase();
@@ -44,8 +44,8 @@ describe('The Force token', function () {
             it('Stays in its current zone across rounds', function () {
                 const { context } = contextRef;
 
-                const p1ForceToken = context.player1.findCardByName('force');
-                const p2ForceToken = context.player2.findCardByName('force');
+                const p1ForceToken = context.player1.findCardByName('the-force');
+                const p2ForceToken = context.player2.findCardByName('the-force');
 
                 // Attack with a Force unit to gain The Force
                 context.player1.clickCard(context.guardianOfTheWhills);

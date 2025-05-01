@@ -4,7 +4,7 @@ import { LofCommonForceBase } from '../common/LofCommonForceBase';
 export default class JediTemple extends LofCommonForceBase {
     protected override getImplementationId() {
         return {
-            id: 'temp-jedi-temple-id',
+            id: '0450346170',
             internalName: 'jedi-temple',
         };
     }
