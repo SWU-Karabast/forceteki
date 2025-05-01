@@ -172,6 +172,7 @@ export type IConstantAbilityPropsWithGainCondition<TSource extends IUpgradeCard,
 export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
 export type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
 export type IActionAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
+export type IReplacementEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IReplacementEffectAbilityProps<TTarget> & IGainCondition<TSource>;
 
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
