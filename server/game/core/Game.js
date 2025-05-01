@@ -41,6 +41,7 @@ const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 const { GameStateManager } = require('./GameStateManager.js');
 const { ActionWindow } = require('./gameSteps/ActionWindow.js');
+const { User } = require('../../utils/user/User');
 const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
 const { CostAdjuster } = require('./cost/CostAdjuster.js');
@@ -137,6 +138,7 @@ class Game extends EventEmitter {
         this.allowSpectators = details.allowSpectators;
         this.owner = details.owner;
         this.started = false;
+        this.statsUpdated = false;
         this.playStarted = false;
         this.gameObjectManager = new GameStateManager(this);
         this.createdAt = new Date();

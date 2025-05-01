@@ -16,7 +16,7 @@ describe('Subjugating Starfighter', function() {
                 const { context } = contextRef;
 
                 // Allow the test to end with an open prompt.
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
 
                 // Play the card.
                 context.player1.clickCard(context.subjugatingStarfighter);
@@ -69,7 +69,7 @@ describe('Subjugating Starfighter', function() {
                 const { context } = contextRef;
 
                 // Allow the test to end with an open prompt.
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
 
                 // Have player 2 claim initiative
                 context.player2.claimInitiative();

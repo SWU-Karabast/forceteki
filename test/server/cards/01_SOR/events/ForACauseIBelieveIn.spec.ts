@@ -184,7 +184,7 @@ describe('For A Cause I Believe In', function() {
 
             // The FACIBI reveal prompt is hiding under the Game Over prompt here
             // https://github.com/SWU-Karabast/forceteki/issues/586
-            context.allowTestToEndWithOpenPrompt = true;
+            context.ignoreUnresolvedActionPhasePrompts = true;
         });
 
         it('should end the game if it deals lethal damage to the opponent\'s base', async function() {

@@ -39,7 +39,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override readonly eventName = MetaEventName.PlayCard;
     protected override readonly targetTypeFilter = [CardType.BasicUnit, CardType.BasicUpgrade, CardType.Event];
     protected override readonly defaultProperties: IPlayCardProperties = {
-        ignoredRequirements: [],
+        ignoredRequirements: ['phase'],
         optional: false,
         entersReady: false,
         playType: PlayType.PlayFromHand,
@@ -67,7 +67,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     private resolvePlayCardAbility(ability: PlayCardAction, event: any) {
         const newContext = ability.createContext(event.player);
 
-        event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional, false));
+        event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional, false, null, event.ignoredRequirements));
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -82,6 +82,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
 
         event.playCardAbilities = this.generateLegalPlayCardAbilities(target, properties, context);
         event.optional = properties.optional ?? context.ability.optional;
+        event.ignoredRequirements = properties.ignoredRequirements ?? [];
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {

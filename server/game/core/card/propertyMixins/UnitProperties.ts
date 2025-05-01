@@ -187,6 +187,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return this.upgrades.some((card) => card.isShield());
         }
 
+        public hasSentinel(): boolean {
+            return this.hasSomeKeyword(KeywordName.Sentinel);
+        }
+
         public override isLeader(): this is ILeaderCard {
             return this.isLeaderAttachedToThis();
         }
