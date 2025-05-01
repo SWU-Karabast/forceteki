@@ -16,14 +16,14 @@ export default class WattoNoMoneyNoPartsNoDeal extends NonLeaderUnitCard {
             targetResolver: {
                 mode: TargetMode.Select,
                 choosingPlayer: RelativePlayer.Opponent,
-                choices: (context) => ({
-                    [`${context.player.name} give an Experience token to a friendly unit`]:
+                choices: () => ({
+                    ['Opponent give an Experience token to a friendly unit']:
                         AbilityHelper.immediateEffects.selectCard({
                             cardTypeFilter: WildcardCardType.Unit,
                             controller: RelativePlayer.Self,
                             innerSystem: AbilityHelper.immediateEffects.giveExperience()
                         }),
-                    [`${context.player.name} draws a card`]:
+                    ['Opponent draws a card']:
                         AbilityHelper.immediateEffects.draw({ amount: 1 }),
                 })
             }
