@@ -6,9 +6,11 @@ import type { IOngoingEffectGenerator, IOngoingCardEffectProps, IOngoingPlayerEf
 import { OngoingCardEffect } from './OngoingCardEffect';
 // import ConflictEffect from './ConflictEffect';
 import DetachedOngoingEffectImpl from './effectImpl/DetachedOngoingEffectImpl';
+import type { CalculateOngoingEffect } from './effectImpl/DynamicOngoingEffectImpl';
 import DynamicOngoingEffectImpl from './effectImpl/DynamicOngoingEffectImpl';
 import { OngoingPlayerEffect } from './OngoingPlayerEffect';
 import StaticOngoingEffectImpl from './effectImpl/StaticOngoingEffectImpl';
+import type { OngoingEffectValueWrapper } from './effectImpl/OngoingEffectValueWrapper';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -18,27 +20,27 @@ import StaticOngoingEffectImpl from './effectImpl/StaticOngoingEffectImpl';
 
 export const OngoingEffectBuilder = {
     card: {
-        static: (type: EffectName, value?): IOngoingEffectGenerator => (game: Game, source: Card, props: IOngoingCardEffectProps) =>
+        static: <TValue>(type: EffectName, value?: OngoingEffectValueWrapper<TValue> | TValue): IOngoingEffectGenerator => (game: Game, source: Card, props: IOngoingCardEffectProps) =>
             new OngoingCardEffect(game, source, props, new StaticOngoingEffectImpl(type, value)),
-        dynamic: (type: EffectName, value): IOngoingEffectGenerator => (game: Game, source: Card, props: IOngoingCardEffectProps) =>
+        dynamic: <TValue>(type: EffectName, value: CalculateOngoingEffect<TValue>): IOngoingEffectGenerator => (game: Game, source: Card, props: IOngoingCardEffectProps) =>
             new OngoingCardEffect(game, source, props, new DynamicOngoingEffectImpl(type, value)),
         detached: (type: EffectName, value): IOngoingEffectGenerator => (game: Game, source: Card, props: IOngoingCardEffectProps) =>
             new OngoingCardEffect(game, source, props, new DetachedOngoingEffectImpl(type, value.apply, value.unapply)),
-        flexible: (type: EffectName, value?: unknown): IOngoingEffectGenerator =>
+        flexible: <TValue>(type: EffectName, value?: CalculateOngoingEffect<TValue> | OngoingEffectValueWrapper<TValue> | TValue): IOngoingEffectGenerator =>
             (typeof value === 'function'
-                ? OngoingEffectBuilder.card.dynamic(type, value)
+                ? OngoingEffectBuilder.card.dynamic(type, value as CalculateOngoingEffect<TValue>)
                 : OngoingEffectBuilder.card.static(type, value))
     },
     player: {
-        static: (type: EffectName, value?): IOngoingEffectGenerator => (game: Game, source: Card, props: IOngoingPlayerEffectProps) =>
+        static: <TValue>(type: EffectName, value?: OngoingEffectValueWrapper<TValue> | TValue): IOngoingEffectGenerator => (game: Game, source: Card, props: IOngoingPlayerEffectProps) =>
             new OngoingPlayerEffect(game, source, props, new StaticOngoingEffectImpl(type, value)),
-        dynamic: (type: EffectName, value): IOngoingEffectGenerator => (game: Game, source: Card, props: IOngoingPlayerEffectProps) =>
+        dynamic: <TValue>(type: EffectName, value: CalculateOngoingEffect<TValue>): IOngoingEffectGenerator => (game: Game, source: Card, props: IOngoingPlayerEffectProps) =>
             new OngoingPlayerEffect(game, source, props, new DynamicOngoingEffectImpl(type, value)),
         detached: (type: EffectName, value): IOngoingEffectGenerator => (game: Game, source: Card, props: IOngoingPlayerEffectProps) =>
             new OngoingPlayerEffect(game, source, props, new DetachedOngoingEffectImpl(type, value.apply, value.unapply)),
-        flexible: (type: EffectName, value?): IOngoingEffectGenerator =>
+        flexible: <TValue>(type: EffectName, value?: CalculateOngoingEffect<TValue> | OngoingEffectValueWrapper<TValue> | TValue): IOngoingEffectGenerator =>
             (typeof value === 'function'
-                ? OngoingEffectBuilder.player.dynamic(type, value)
+                ? OngoingEffectBuilder.player.dynamic(type, value as CalculateOngoingEffect<TValue>)
                 : OngoingEffectBuilder.player.static(type, value))
     }
 };

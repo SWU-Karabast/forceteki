@@ -65,7 +65,7 @@ describe('Draw system', function() {
                 expect(context.player2.hand.length).toBe(1);
                 expect(context.player1).toBeActivePlayer();
 
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
         });
     });

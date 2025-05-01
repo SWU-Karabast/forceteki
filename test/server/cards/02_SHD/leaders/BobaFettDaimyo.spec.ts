@@ -5,8 +5,9 @@ describe('Boba Fett, Daimyo', function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['green-squadron-awing', 'cantina-braggart'],
+                        hand: ['green-squadron-awing', 'cantina-braggart', 'r2d2#artooooooooo'],
                         groundArena: ['wilderness-fighter', 'battlefield-marine'],
+                        spaceArena: ['cartel-turncoat'],
                         leader: 'boba-fett#daimyo',
                         resources: 4,
                     },
@@ -26,7 +27,7 @@ describe('Boba Fett, Daimyo', function () {
                 context.player1.clickCard(context.greenSquadronAwing);
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
                 context.player1.clickPrompt('Trigger');
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wildernessFighter, context.greenSquadronAwing]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wildernessFighter, context.greenSquadronAwing, context.cartelTurncoat]);
 
                 // give +1/+0 to battlefield marine, boba should be exhausted
                 context.player1.clickCard(context.battlefieldMarine);
@@ -59,7 +60,7 @@ describe('Boba Fett, Daimyo', function () {
                 context.player1.clickCard(context.cantinaBraggart);
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
                 context.player1.clickPrompt('Trigger');
-                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wildernessFighter, context.greenSquadronAwing, context.cantinaBraggart]);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.wildernessFighter, context.greenSquadronAwing, context.cantinaBraggart, context.cartelTurncoat]);
                 expect(context.player1).not.toHavePassAbilityButton();
 
                 // boost battlefield marine
@@ -67,6 +68,14 @@ describe('Boba Fett, Daimyo', function () {
                 expect(context.bobaFett.exhausted).toBeTrue();
                 expect(context.battlefieldMarine.getPower()).toBe(4);
                 expect(context.battlefieldMarine.getHp()).toBe(3);
+            });
+
+            it('should not give +1/+0 to a friendly unit when playing a unit with Piloting as an upgrade', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.r2d2);
+                context.player1.clickPrompt('Play R2-D2 with Piloting');
+                expect(context.player2).toBeActivePlayer();
             });
         });
 

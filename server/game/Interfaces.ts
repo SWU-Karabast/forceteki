@@ -172,6 +172,7 @@ export type IConstantAbilityPropsWithGainCondition<TSource extends IUpgradeCard,
 export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
 export type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
 export type IActionAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
+export type IReplacementEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IReplacementEffectAbilityProps<TTarget> & IGainCondition<TSource>;
 
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
@@ -200,6 +201,7 @@ export type IEpicActionProps<TSource extends Card = Card> = Exclude<IAbilityProp
 export type IKeywordProperties =
   | IAmbushKeywordProperties
   | IBountyKeywordProperties
+  | ICoordinateKeywordProperties
   | IGritKeywordProperties
   | IOverwhelmKeywordProperties
   | IPilotingKeywordProperties
@@ -368,6 +370,11 @@ interface IAmbushKeywordProperties extends IKeywordPropertiesBase {
 interface IBountyKeywordProperties<TSource extends IUnitCard = IUnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
     keyword: KeywordName.Bounty;
     ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>;
+}
+
+interface ICoordinateKeywordProperties<TSource extends IUnitCard = IUnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
+    keyword: KeywordName.Coordinate;
+    ability: IAbilityPropsWithType<TSource>;
 }
 
 interface IGritKeywordProperties extends IKeywordPropertiesBase {

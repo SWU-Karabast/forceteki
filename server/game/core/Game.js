@@ -41,8 +41,10 @@ const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 const { GameStateManager } = require('./GameStateManager.js');
 const { ActionWindow } = require('./gameSteps/ActionWindow.js');
+const { User } = require('../../utils/user/User');
 const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
+const { CostAdjuster } = require('./cost/CostAdjuster.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -136,6 +138,7 @@ class Game extends EventEmitter {
         this.allowSpectators = details.allowSpectators;
         this.owner = details.owner;
         this.started = false;
+        this.statsUpdated = false;
         this.playStarted = false;
         this.gameObjectManager = new GameStateManager(this);
         this.createdAt = new Date();
@@ -1308,6 +1311,13 @@ class Game extends EventEmitter {
         player.disconnected = false;
 
         this.addMessage('{0} has reconnected', player);
+    }
+
+    /** @param {CostAdjuster} costAdjuster */
+    removeCostAdjusterFromAll(costAdjuster) {
+        for (const player of this.getPlayers()) {
+            player.removeCostAdjuster(costAdjuster);
+        }
     }
 
     /** Goes through the list of cards moved during event resolution and does a uniqueness rule check for each */

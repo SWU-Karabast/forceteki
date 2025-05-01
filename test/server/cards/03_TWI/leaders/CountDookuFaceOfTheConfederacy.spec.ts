@@ -178,6 +178,49 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
+            it('should give the next Separatist unit played this phase Exploit 3 if it does not already have Exploit, and allow cancelling', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.countDooku);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.theInvisibleHand);
+                expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
+                context.player1.clickPrompt('Cancel');
+
+                expect(context.player1).toBeActivePlayer();
+                expect(context.theInvisibleHand).toBeInZone('hand');
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.player1).toBeAbleToSelect(context.theInvisibleHand);
+
+                context.player1.clickCard(context.theInvisibleHand);
+                expect(context.player1).toHaveExactPromptButtons(['Play without Exploit', 'Trigger Exploit', 'Cancel']);
+
+                context.player1.clickPrompt('Trigger Exploit');
+                expect(context.player1).toBeAbleToSelectExactly([context.battleDroid, context.atst, context.snowspeeder, context.cartelSpacer, context.countDooku]);
+                expect(context.player1).not.toHaveEnabledPromptButton('Done');
+
+                context.player1.clickCard(context.battleDroid);
+                context.player1.clickCard(context.atst);
+                context.player1.clickCard(context.snowspeeder);
+                context.player1.clickCardNonChecking(context.cartelSpacer);
+                context.player1.clickPrompt('Done');
+
+                // confirm Exploit results
+                expect(context.snowspeeder).toBeInZone('discard');
+                expect(context.cartelSpacer).toBeInZone('spaceArena');
+                expect(context.atst).toBeInZone('discard');
+                expect(context.battleDroid).toBeInZone('outsideTheGame');
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+
+                // next Separatist card played should not gain Exploit
+                context.player2.passAction();
+                context.player1.clickCard(context.dwarfSpiderDroid);
+                expect(context.player2).toBeActivePlayer();
+            });
+
             it('effect should expire at the end of the phase', function () {
                 const { context } = contextRef;
 
@@ -232,7 +275,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(0);
 
                 // bypass target selection for event
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
 
             it('does not affect Separatist units played by the opponent', function () {
