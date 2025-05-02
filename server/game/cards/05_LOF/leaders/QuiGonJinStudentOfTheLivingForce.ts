@@ -13,22 +13,20 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
-            title: 'Return a friendly unit to hand',
+            title: 'Return a friendly non-leader unit to its owner\'s hand',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
                 AbilityHelper.costs.useTheForce()
             ],
             targetResolver: {
-                activePromptTitle: 'Return a friendly non-leader unit to its owner\'s hand',
                 controller: RelativePlayer.Self,
                 zoneFilter: WildcardZoneName.AnyArena,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: 'Play a non-Villainy unit that costs x or less',
+                title: `Play a non-Villainy unit that costs ${ifYouDoContext.target.cost} or less`,
                 targetResolver: {
-                    activePromptTitle: 'Play a non-Villainy unit that costs x or less',
                     cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
@@ -44,21 +42,19 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Return a friendly unit to hand',
+            title: 'Return a friendly non-leader unit to its owner\'s hand',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
             },
             targetResolver: {
-                activePromptTitle: 'Return a friendly non-leader unit to its owner\'s hand',
                 controller: RelativePlayer.Self,
                 zoneFilter: WildcardZoneName.AnyArena,
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: 'Play a non-Villainy unit that costs x or less',
+                title: `Play a non-Villainy unit that costs ${ifYouDoContext.target.cost} or less`,
                 targetResolver: {
-                    activePromptTitle: 'Play a non-Villainy unit that costs x or less',
                     cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
