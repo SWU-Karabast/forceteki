@@ -67,6 +67,7 @@ describe('Third Sister, Seething With Ambition', function () {
 
                 context.player1.clickCard(context.thirdSister);
                 context.player1.clickCard(context.p2Base);
+                expect(context.getChatLogs(1)).toEqual(['player1 uses Third Sister to give Hidden to the next unit they will play this phase']);
 
                 context.player2.clickCard(context.wampa);
                 expect(context.wampa.hasSomeKeyword('hidden')).toBeFalse();
