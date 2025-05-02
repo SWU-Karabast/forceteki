@@ -23,6 +23,7 @@ export interface IDelayedEffectProperties extends IGameSystemProperties {
     limit?: IAbilityLimit;
     immediateEffect: GameSystem<TriggeredAbilityContext>;
     delayedEffectType: DelayedEffectType;
+    effectDescription?: string;
 }
 
 export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IDelayedEffectProperties> {
@@ -61,6 +62,12 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
             default:
                 Contract.fail(`Invalid Duration ${duration} for DelayedEffect`);
         }
+    }
+
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<IDelayedEffectProperties>): [string, any[]] {
+        const { effectDescription, target } = this.generatePropertiesFromContext(context, additionalProperties);
+
+        return [effectDescription ?? this.effectDescription, [target]];
     }
 
     public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<IDelayedEffectProperties>): void {
