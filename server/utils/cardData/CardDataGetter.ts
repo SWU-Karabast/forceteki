@@ -80,7 +80,7 @@ export abstract class CardDataGetter {
             [TokenUnitName.XWing]: await getCardAsync('xwing'),
             [TokenUpgradeName.Experience]: await getCardAsync('experience'),
             [TokenUpgradeName.Shield]: await getCardAsync('shield'),
-            [TokenCardName.Force]: await getCardAsync('force'),
+            [TokenCardName.Force]: await getCardAsync('the-force'),
         };
     }
 

@@ -227,7 +227,7 @@ export enum TokenUnitName {
 }
 
 export enum TokenCardName {
-    Force = 'force'
+    Force = 'the-force'
 }
 
 export type TokenName = TokenUpgradeName | TokenUnitName | TokenCardName;
