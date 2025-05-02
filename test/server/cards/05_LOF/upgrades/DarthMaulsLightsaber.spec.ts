@@ -33,20 +33,18 @@ describe('Darth Maul\'s Lightsaber', () => {
             it('leader, it allows him to attack, gain Overwhelm and prevents him from attacking bases', function () {
                 const { context } = contextRef;
 
-                const maulLeader = context.player1.findCardByName('darth-maul#sith-revealed');
-                const maulUnit = context.player1.findCardByName('darth-maul#revenge-at-last');
+                const darthMaulLeader = context.player1.findCardByName('darth-maul#sith-revealed');
+                const darthMaulUnit = context.player1.findCardByName('darth-maul#revenge-at-last');
 
                 // Play the lightsaber on Darth Maul leader
                 context.player1.clickCard(context.darthMaulsLightsaber);
                 expect(context.player1).toBeAbleToSelectExactly([
-                    maulLeader,
-                    maulUnit,
-                    context.cellBlockGuard,
-                    context.phaseiiiDarkTrooper
+                    darthMaulLeader,
+                    darthMaulUnit
                 ]);
 
-                context.player1.clickCard(maulLeader);
-                expect(maulLeader).toHaveExactUpgradeNames(['darth-mauls-lightsaber']);
+                context.player1.clickCard(darthMaulLeader);
+                expect(darthMaulLeader).toHaveExactUpgradeNames(['darth-mauls-lightsaber']);
 
                 // Trigger the ability to attack the Cell Block Guard
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
@@ -64,27 +62,25 @@ describe('Darth Maul\'s Lightsaber', () => {
 
                 // Check the result of the attack
                 expect(context.cellBlockGuard).toBeInZone('discard');
-                expect(maulLeader.damage).toBe(3);
+                expect(darthMaulLeader.damage).toBe(3);
                 expect(context.p2Base.damage).toBe(7);  // overwhelm 7 to base
             });
 
             it('unit, it allows him to attack, gain Overwhelm and prevents him from attacking bases', function () {
                 const { context } = contextRef;
 
-                const maulLeader = context.player1.findCardByName('darth-maul#sith-revealed');
-                const maulUnit = context.player1.findCardByName('darth-maul#revenge-at-last');
+                const darthMaulLeader = context.player1.findCardByName('darth-maul#sith-revealed');
+                const darthMaulUnit = context.player1.findCardByName('darth-maul#revenge-at-last');
 
                 // Play the lightsaber on Darth Maul unit
                 context.player1.clickCard(context.darthMaulsLightsaber);
                 expect(context.player1).toBeAbleToSelectExactly([
-                    maulLeader,
-                    maulUnit,
-                    context.cellBlockGuard,
-                    context.phaseiiiDarkTrooper
+                    darthMaulLeader,
+                    darthMaulUnit
                 ]);
 
-                context.player1.clickCard(maulUnit);
-                expect(maulUnit).toHaveExactUpgradeNames(['darth-mauls-lightsaber']);
+                context.player1.clickCard(darthMaulUnit);
+                expect(darthMaulUnit).toHaveExactUpgradeNames(['darth-mauls-lightsaber']);
 
                 // Trigger the ability to attack the Cell Block Guard
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
@@ -102,34 +98,32 @@ describe('Darth Maul\'s Lightsaber', () => {
                 // Check the result of the attack
                 expect(context.cellBlockGuard).toBeInZone('discard');
                 expect(context.phaseiiiDarkTrooper).toBeInZone('discard');
-                expect(maulUnit.damage).toBe(6);
+                expect(darthMaulUnit.damage).toBe(6);
                 expect(context.p2Base.damage).toBe(12);  // overwhelm 6 + 6 to base
             });
 
             it('allows the player to pass on the ability', function () {
                 const { context } = contextRef;
 
-                const maulLeader = context.player1.findCardByName('darth-maul#sith-revealed');
-                const maulUnit = context.player1.findCardByName('darth-maul#revenge-at-last');
+                const darthMaulLeader = context.player1.findCardByName('darth-maul#sith-revealed');
+                const darthMaulUnit = context.player1.findCardByName('darth-maul#revenge-at-last');
 
                 // Play the lightsaber on Darth Maul leader
                 context.player1.clickCard(context.darthMaulsLightsaber);
                 expect(context.player1).toBeAbleToSelectExactly([
-                    maulLeader,
-                    maulUnit,
-                    context.cellBlockGuard,
-                    context.phaseiiiDarkTrooper
+                    darthMaulLeader,
+                    darthMaulUnit
                 ]);
 
-                context.player1.clickCard(maulLeader);
-                expect(maulLeader).toHaveExactUpgradeNames(['darth-mauls-lightsaber']);
+                context.player1.clickCard(darthMaulLeader);
+                expect(darthMaulLeader).toHaveExactUpgradeNames(['darth-mauls-lightsaber']);
 
                 // Pass on the ability to attack
                 expect(context.player1).toHavePassAbilityPrompt(prompt);
                 context.player1.clickPrompt('Pass');
 
-                expect(maulLeader.exhausted).toBeFalse();
-                expect(maulLeader.damage).toBe(0);
+                expect(darthMaulLeader.exhausted).toBeFalse();
+                expect(darthMaulLeader.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(0);
             });
 
@@ -143,9 +137,7 @@ describe('Darth Maul\'s Lightsaber', () => {
                 context.player1.clickCard(context.darthMaulsLightsaber);
                 expect(context.player1).toBeAbleToSelectExactly([
                     maulLeader,
-                    maulUnit,
-                    context.cellBlockGuard,
-                    context.phaseiiiDarkTrooper
+                    maulUnit
                 ]);
 
                 context.player1.clickCard(maulLeader);
@@ -176,7 +168,7 @@ describe('Darth Maul\'s Lightsaber', () => {
             });
         });
 
-        describe('When Played on Maul (and other units)', () => {
+        describe('When Played on units not named Darth Maul', () => {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
@@ -189,7 +181,8 @@ describe('Darth Maul\'s Lightsaber', () => {
                             'darth-mauls-lightsaber',
                         ],
                         groundArena: [
-                            'maul#shadow-collective-visionary'
+                            'maul#shadow-collective-visionary',
+                            'fifth-brother#fear-hunter'
                         ],
                         spaceArena: [
                             'kylos-tie-silencer#ruthlessly-efficient'
@@ -204,19 +197,18 @@ describe('Darth Maul\'s Lightsaber', () => {
                 });
             });
 
-            it('leader, if does not allow the player to attack', function () {
+            it('it does not allow the player to attack with Maul leader', function () {
                 const { context } = contextRef;
 
                 const maulLeader = context.player1.findCardByName('maul#a-rival-in-darkness');
                 const maulUnit = context.player1.findCardByName('maul#shadow-collective-visionary');
 
-                // Play the lightsaber on Darth Maul leader
+                // Play the lightsaber on Maul leader
                 context.player1.clickCard(context.darthMaulsLightsaber);
                 expect(context.player1).toBeAbleToSelectExactly([
                     maulLeader,
                     maulUnit,
-                    context.cellBlockGuard,
-                    context.phaseiiiDarkTrooper
+                    context.fifthBrother
                 ]);
 
                 context.player1.clickCard(maulLeader);
@@ -227,23 +219,44 @@ describe('Darth Maul\'s Lightsaber', () => {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('unit, if does not allow the player to attack', function () {
+            it('it does not allow the player to attack with Maul unit', function () {
                 const { context } = contextRef;
 
                 const maulLeader = context.player1.findCardByName('maul#a-rival-in-darkness');
                 const maulUnit = context.player1.findCardByName('maul#shadow-collective-visionary');
 
-                // Play the lightsaber on Darth Maul unit
+                // Play the lightsaber on Maul unit
                 context.player1.clickCard(context.darthMaulsLightsaber);
                 expect(context.player1).toBeAbleToSelectExactly([
                     maulUnit,
                     maulLeader,
-                    context.cellBlockGuard,
-                    context.phaseiiiDarkTrooper
+                    context.fifthBrother
                 ]);
 
                 context.player1.clickCard(maulUnit);
                 expect(maulUnit).toHaveExactUpgradeNames(['darth-mauls-lightsaber']);
+
+                // No ability is triggered
+                expect(context.player1).not.toHavePassAbilityPrompt(prompt);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('it does not allow the player to attack with other units', function () {
+                const { context } = contextRef;
+
+                const maulLeader = context.player1.findCardByName('maul#a-rival-in-darkness');
+                const maulUnit = context.player1.findCardByName('maul#shadow-collective-visionary');
+
+                // Play the lightsaber on Fifth Brother
+                context.player1.clickCard(context.darthMaulsLightsaber);
+                expect(context.player1).toBeAbleToSelectExactly([
+                    maulUnit,
+                    maulLeader,
+                    context.fifthBrother
+                ]);
+
+                context.player1.clickCard(context.fifthBrother);
+                expect(context.fifthBrother).toHaveExactUpgradeNames(['darth-mauls-lightsaber']);
 
                 // No ability is triggered
                 expect(context.player1).not.toHavePassAbilityPrompt(prompt);
