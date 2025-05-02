@@ -21,6 +21,7 @@ export default class DarthMaulsLightsaber extends UpgradeCard {
                 onTrue: AbilityHelper.immediateEffects.attack((attackCtx) => ({
                     target: attackCtx.source.parentCard,
                     targetCondition: (target) => target.isUnit(),
+                    optional: false,
                     attackerLastingEffects: {
                         effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Overwhelm)
                     }
