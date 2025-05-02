@@ -28,13 +28,13 @@ export class GainKeyword extends OngoingEffectValueWrapper<IKeywordProperties | 
     }
 
     private refreshWhileInPlayKeywordAbilityEffects(target: Card): void {
-        if (!target.isUnit()) {
+        if (!target.isUnit() || !target.isInPlay()) {
             return;
         }
 
-        const keywordInstances = Helpers.asArray(this.getValue()).map((keywordProps) => KeywordHelpers.keywordFromProperties(keywordProps, target));
+        const keywordProps = Helpers.asArray(this.getValue());
 
-        if (keywordInstances.some((keywordInstance) => keywordInstance.hasAbilityDefinition())) {
+        if (keywordProps.some((props) => KeywordHelpers.hasWhileInPlayAbility[props.keyword])) {
             target.refreshWhileInPlayKeywordAbilityEffects();
         }
     }

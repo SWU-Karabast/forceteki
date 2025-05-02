@@ -16,11 +16,11 @@ describe('Scimitar, Sith Infiltrator', function() {
             expect(context.scimitar.getPower()).toBe(3);
             expect(context.scimitar.getHp()).toBe(4);
 
-            context.player1.clickCard(context.daring);
+            context.player1.clickCard(context.daringRaid);
             context.player1.clickCard(context.scimitar);
 
             expect(context.scimitar.getPower()).toBe(6);
-            expect(context.scimitar.getHp()).toBe(2);
+            expect(context.scimitar.remainingHp).toBe(2);
         });
     });
 });

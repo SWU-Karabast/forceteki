@@ -2,12 +2,8 @@ import { SwuGameFormat } from '../SwuGameFormat';
 import type { Deck } from '../utils/deck/Deck';
 import type Socket from '../socket';
 import { logger } from '../logger';
+import type { User } from '../utils/user/User';
 import * as Contract from '../game/core/utils/Contract';
-
-interface User {
-    id: string;
-    username: string;
-}
 
 export interface QueuedPlayerToAdd {
     deck: Deck;
@@ -46,27 +42,27 @@ export class QueueHandler {
         Contract.assertNotNullLike(player);
         Contract.assertNotNullLike(format);
 
-        const queueEntry = this.findPlayerInQueue(player.user.id);
+        const queueEntry = this.findPlayerInQueue(player.user.getId());
         if (queueEntry) {
-            logger.info(`User ${player.user.id} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${format}`);
-            this.removePlayer(player.user.id, 'Rejoining into queue');
+            logger.info(`User ${player.user.getId()} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${format}`);
+            this.removePlayer(player.user.getId(), 'Rejoining into queue');
         }
 
-        const notConnectedPlayerEntry = this.findNotConnectedPlayer(player.user.id);
+        const notConnectedPlayerEntry = this.findNotConnectedPlayer(player.user.getId());
         if (notConnectedPlayerEntry) {
-            logger.info(`User ${player.user.id} is already in waiting-to-queue list for ${notConnectedPlayerEntry.format}, rejoining into queue for format ${format}`);
-            this.removePlayer(player.user.id, 'Rejoining into queue');
+            logger.info(`User ${player.user.getId()} is already in waiting-to-queue list for ${notConnectedPlayerEntry.format}, rejoining into queue for format ${format}`);
+            this.removePlayer(player.user.getId(), 'Rejoining into queue');
         }
 
         this.playersWaitingToConnect.push({
             format,
             player: { ...player, state: QueuedPlayerState.WaitingForConnection }
         });
-        logger.info(`Added user ${player.user.id} to waiting list for format ${format} until they connect`);
+        logger.info(`Added user ${player.user.getId()} to waiting list for format ${format} until they connect`);
 
         // if the player has an active socket, immediately connect them
         if (player.socket) {
-            this.connectPlayer(player.user.id, player.socket);
+            this.connectPlayer(player.user.getId(), player.socket);
         }
     }
 
@@ -112,7 +108,7 @@ export class QueueHandler {
 
     public removePlayer(userId: string, reasonStr: string) {
         for (const [format, queue] of this.queues.entries()) {
-            const index = queue.findIndex((p) => p.user.id === userId);
+            const index = queue.findIndex((p) => p.user.getId() === userId);
             if (index !== -1) {
                 logger.info(`Removing player ${userId} from queue for format ${format}. Reason: ${reasonStr}`);
                 queue.splice(index, 1);
@@ -120,7 +116,7 @@ export class QueueHandler {
             }
         }
 
-        const index = this.playersWaitingToConnect.findIndex((p) => p.player.user.id === userId);
+        const index = this.playersWaitingToConnect.findIndex((p) => p.player.user.getId() === userId);
         if (index !== -1) {
             logger.info(`Removing player ${userId} from queue waiting list. Reason: ${reasonStr}`);
             this.playersWaitingToConnect.splice(index, 1);
@@ -141,7 +137,7 @@ export class QueueHandler {
 
     private findPlayerInQueue(userId: string): QueuedPlayerEntry | null {
         for (const [format, queue] of this.queues.entries()) {
-            const player = queue.find((p) => p.user.id === userId);
+            const player = queue.find((p) => p.user.getId() === userId);
             if (player) {
                 return { player, format };
             }
@@ -150,7 +146,7 @@ export class QueueHandler {
     }
 
     private findNotConnectedPlayer(userId: string): QueuedPlayerEntry | null {
-        return this.playersWaitingToConnect.find((p) => p.player.user.id === userId);
+        return this.playersWaitingToConnect.find((p) => p.player.user.getId() === userId);
     }
 
     public findPlayer(userId: string) {

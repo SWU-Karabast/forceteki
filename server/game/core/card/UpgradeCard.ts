@@ -6,7 +6,7 @@ import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { AbilityType, CardType, ZoneName, WildcardRelativePlayer, StandardTriggeredAbilityType } from '../Constants';
 import { PlayUpgradeAction } from '../../actions/PlayUpgradeAction';
-import type { IActionAbilityPropsWithGainCondition, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IKeywordPropertiesWithGainCondition, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard } from '../../Interfaces';
+import type { IActionAbilityPropsWithGainCondition, IConstantAbilityProps, IConstantAbilityPropsWithGainCondition, IKeywordPropertiesWithGainCondition, IReplacementEffectAbilityPropsWithGainCondition, ITriggeredAbilityBasePropsWithGainCondition, ITriggeredAbilityPropsWithGainCondition, WhenTypeOrStandard } from '../../Interfaces';
 import type { Card } from './Card';
 import OngoingEffectLibrary from '../../ongoingEffects/OngoingEffectLibrary';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
@@ -102,6 +102,16 @@ export class UpgradeCard extends UpgradeCardParent implements IUpgradeCard, IPla
             title: 'Give ability to the attached card',
             condition: this.addZoneCheckToGainCondition(gainCondition),
             ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.Triggered, ...gainedAbilityProperties })
+        });
+    }
+
+    protected addReplacementEffectAbilityTargetingAttached(properties: IReplacementEffectAbilityPropsWithGainCondition<this, IUnitCard>) {
+        const { gainCondition, ...gainedAbilityProperties } = properties;
+
+        this.addConstantAbilityTargetingAttached({
+            title: 'Give ability to the attached card',
+            condition: this.addZoneCheckToGainCondition(gainCondition),
+            ongoingEffect: OngoingEffectLibrary.gainAbility({ type: AbilityType.ReplacementEffect, ...gainedAbilityProperties })
         });
     }
 

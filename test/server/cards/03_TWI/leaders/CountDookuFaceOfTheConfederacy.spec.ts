@@ -275,7 +275,7 @@ describe('Count Dooku, Face of the Confederacy', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(0);
 
                 // bypass target selection for event
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
 
             it('does not affect Separatist units played by the opponent', function () {

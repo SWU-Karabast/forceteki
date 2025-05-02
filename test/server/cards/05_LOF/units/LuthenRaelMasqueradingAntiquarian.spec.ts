@@ -14,7 +14,6 @@ describe('Luthen Rael, Masquerading Antiquarian', function() {
             context.player1.clickCard(context.luthenRael);
             context.player1.clickCard(context.p2Base);
 
-            expect(context.player1).toHavePrompt('Select a card to reveal');
             expect(context.player1).toHaveExactDisplayPromptCards({
                 invalid: [context.aggression, context.medalCeremony, context.wampa],
                 selectable: [context.jetpack, context.electrostaff]

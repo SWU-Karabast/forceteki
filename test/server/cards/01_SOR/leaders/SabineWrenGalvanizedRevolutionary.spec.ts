@@ -57,7 +57,7 @@ describe('Sabine Wren, Galvanized Revolutionary', function() {
                 expect(context.rebelPathfinder.damage).toBe(0);
                 expect(context.player1).toBeActivePlayer();
 
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
         });
     });

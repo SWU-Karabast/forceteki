@@ -337,9 +337,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // **************************************** INITIALIZATION HELPERS ****************************************
     public static buildTypeFromPrinted(printedTypes: string[]): CardType {
-        if (printedTypes.length === 2) {
-            if (printedTypes[0] !== 'token') {
-                throw new Error(`Unexpected card types: ${printedTypes}`);
+        Contract.assertNonEmpty(printedTypes, 'No card types provided');
+
+        if (printedTypes[0] === 'token') {
+            if (printedTypes.length === 1) {
+                // TODO: This assumes the Force token JSON will contain "types": ["token"]
+                //       Check this assumption when real card data is released.
+                return CardType.TokenCard;
             }
 
             switch (printedTypes[1]) {
@@ -352,7 +356,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             }
         }
 
-        Contract.assertArraySize(printedTypes, 1, `Unexpected card types: ${printedTypes}`);
         switch (printedTypes[0]) {
             case 'event':
                 return CardType.Event;
@@ -492,6 +495,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public isToken(): this is ITokenCard {
+        return false;
+    }
+
+    public isForceToken(): this is ITokenCard {
         return false;
     }
 
@@ -696,8 +703,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     protected removeFromCurrentZone() {
         if (this.zone.name === ZoneName.Base) {
-            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${this.zone}`);
-            this.zone.removeLeader();
+            if (this.isLeader()) {
+                this.zone.removeLeader();
+            } else if (this.isForceToken()) {
+                this.zone.removeForceToken();
+            } else {
+                Contract.fail(`Attempting to move card ${this.internalName} from ${this.zone}`);
+            }
         } else {
             this.zone.removeCard(this);
         }
@@ -739,8 +751,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         switch (zoneName) {
             case ZoneName.Base:
                 this.zone = this.owner.baseZone;
-                Contract.assertTrue(this.isLeader());
-                this.zone.setLeader(this);
+
+                if (this.isLeader()) {
+                    this.zone.setLeader(this);
+                } else if (this.isForceToken()) {
+                    this.zone.setForceToken(this);
+                } else {
+                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader or force token`);
+                }
+
                 break;
 
             case DeckZoneDestination.DeckBottom:

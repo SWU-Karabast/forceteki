@@ -4,7 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class ScimitarSithInfiltrator extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'temp-scimitar-id',
+            id: '1540696516',
             internalName: 'scimitar#sith-infiltrator',
         };
     }

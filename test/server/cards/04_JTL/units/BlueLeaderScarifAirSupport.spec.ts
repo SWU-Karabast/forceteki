@@ -245,7 +245,7 @@ describe('Blue Leader, Scarif Air Support', function() {
                 // confirm that Blue Leader isn't targetable
                 context.player2.clickCard(context.shootDown);
                 expect(context.player2).toBeAbleToSelectExactly(context.supportingEta2);
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
 
             it('it should be explicitly targetable for \'choose a ground unit\' effects', function() {

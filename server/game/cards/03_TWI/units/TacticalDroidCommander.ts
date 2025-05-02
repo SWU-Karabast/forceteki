@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait } from '../../../core/Constants';
+import { CardType, Trait } from '../../../core/Constants';
 
 export default class TacticalDroidCommander extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -16,7 +16,7 @@ export default class TacticalDroidCommander extends NonLeaderUnitCard {
             optional: true,
             when: {
                 onCardPlayed: (event, context) =>
-                    event.card.isUnit() &&
+                    event.cardTypeWhenInPlay === CardType.BasicUnit &&
                     event.card !== context.source &&
                     event.player === context.player &&
                     event.card.hasSomeTrait(Trait.Separatist)

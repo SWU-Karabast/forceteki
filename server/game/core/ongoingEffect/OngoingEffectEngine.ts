@@ -60,7 +60,7 @@ export class OngoingEffectEngine {
         }
         const effectTriggers = effectsToTrigger.map((effect) => {
             const properties = effect.impl.getValue();
-            const context = effect.context;
+            const context = effect.context.createCopy({ events });
             const targets = effect.targets;
             return {
                 title: context.source.title + '\'s effect' + (targets.length === 1 ? ' on ' + targets[0].name : ''),
@@ -82,6 +82,13 @@ export class OngoingEffectEngine {
                 }
             };
         });
+        if (effectTriggers.length > 0) {
+            // TODO Implement the correct trigger window. We may need a subclass of TriggeredAbilityWindow for multiple simultaneous effects
+            effectTriggers.forEach((trigger) => {
+                trigger.handler();
+            });
+        }
+
         for (const effect of this.effects.filter(
             (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
         )) {
@@ -94,12 +101,7 @@ export class OngoingEffectEngine {
                 }
             }
         }
-        if (effectTriggers.length > 0) {
-            // TODO Implement the correct trigger window. We may need a subclass of TriggeredAbilityWindow for multiple simultaneous effects
-            effectTriggers.forEach((trigger) => {
-                trigger.handler();
-            });
-        }
+
         if (effectsToRemove.length > 0) {
             this.unapplyAndRemove((effect) => effectsToRemove.includes(effect));
         }

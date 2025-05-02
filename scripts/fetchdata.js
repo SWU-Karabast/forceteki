@@ -37,6 +37,16 @@ function populateMissingData(attributes, id) {
             attributes.upgradeHp = 0;
             attributes.upgradePower = 0;
             break;
+        case '4571900905': // The Force
+            attributes.cost = 0;
+            attributes.type = {
+                data: {
+                    attributes: {
+                        name: 'token'
+                    }
+                }
+            };
+            break;
         case '8777351722': // Anakin Skywalker - What It Takes To Win
             attributes.keywords = {
                 data: [{

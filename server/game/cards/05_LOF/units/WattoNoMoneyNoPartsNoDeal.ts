@@ -5,7 +5,7 @@ import { RelativePlayer, TargetMode, WildcardCardType } from '../../../core/Cons
 export default class WattoNoMoneyNoPartsNoDeal extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'temp-watto-id',
+            id: '8426772148',
             internalName: 'watto#no-money-no-parts-no-deal',
         };
     }
@@ -13,18 +13,17 @@ export default class WattoNoMoneyNoPartsNoDeal extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addOnAttackAbility({
             title: 'An opponent chooses if you give an experience token to a friendly or draw a card',
-            optional: false,
             targetResolver: {
                 mode: TargetMode.Select,
                 choosingPlayer: RelativePlayer.Opponent,
-                choices: (context) => ({
-                    [`${context.player.name} give an Experience token to a friendly unit`]:
+                choices: () => ({
+                    ['Opponent give an Experience token to a friendly unit']:
                         AbilityHelper.immediateEffects.selectCard({
                             cardTypeFilter: WildcardCardType.Unit,
                             controller: RelativePlayer.Self,
                             innerSystem: AbilityHelper.immediateEffects.giveExperience()
                         }),
-                    [`${context.player.name} draw a card`]:
+                    ['Opponent draws a card']:
                         AbilityHelper.immediateEffects.draw({ amount: 1 }),
                 })
             }

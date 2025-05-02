@@ -1,6 +1,6 @@
 import FormData from 'form-data';
 import { logger } from '../../logger';
-import type { User } from '../../Settings';
+import type { User } from '../user/User';
 import { httpPostFormData } from '../../Util';
 import type {
     ISerializedGameState,
@@ -162,8 +162,8 @@ export class BugReportHandler {
             description: this.sanitizeForJson(description),
             gameState,
             reporter: {
-                id: user.id,
-                username: user.username,
+                id: user.getId(),
+                username: user.getUsername(),
                 playerInGameState: 'player1'
             },
             lobbyId,

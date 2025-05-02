@@ -13,6 +13,7 @@ import { SelectCardSystem, type ISelectCardProperties } from '../gameSystems/Sel
 import { ExhaustSystem } from '../gameSystems/ExhaustSystem';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import { AbilityResourceCost } from './AbilityResourceCost';
+import { UseTheForceSystem } from '../gameSystems/UseTheForceSystem';
 // import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
 
 type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISelectCardProperties<TContext>, 'innerSystem'>;
@@ -73,6 +74,10 @@ export function defeatSpecific<TContext extends AbilityContext = AbilityContext>
  */
 export function defeatSelf<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
     return new GameSystemCost<TContext>(new DefeatCardSystem<TContext>({ isCost: true }));
+}
+
+export function useTheForce<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
+    return new GameSystemCost<TContext>(new UseTheForceSystem<TContext>({ isCost: true }));
 }
 
 /**

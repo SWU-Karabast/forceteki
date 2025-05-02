@@ -68,5 +68,34 @@ describe('Shadowed Intentions', function() {
             expect(context.battlefieldMarine).toBeInZone('discard');
             expect(context.shadowedIntentions).toBeInZone('discard');
         });
+
+        it('Shadowed Intentions\' ability does not prevent defeat from an opponent\'s No Glory, Only Results', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results']
+                },
+                player2: {
+                    groundArena: [
+                        {
+                            card: 'director-krennic#on-the-verge-of-greatness',
+                            upgrades: ['shield', 'shadowed-intentions']
+                        }
+                    ]
+                }
+            });
+
+            const { context } = contextRef;
+
+            // Player 1 plays No Glory, Only Results
+            context.player1.clickCard(context.noGloryOnlyResults);
+            expect(context.player1).toBeAbleToSelectExactly([context.directorKrennic]);
+
+            // Choose Director Krennic to take control and defeat it
+            context.player1.clickCard(context.directorKrennic);
+
+            expect(context.directorKrennic).toBeInZone('discard', context.player2);
+            expect(context.shadowedIntentions).toBeInZone('discard', context.player2);
+        });
     });
 });

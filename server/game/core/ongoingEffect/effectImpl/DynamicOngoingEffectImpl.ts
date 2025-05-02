@@ -19,9 +19,9 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
     }
 
     public override apply(target) {
-        // TODO: these two calls were in the reverse order in l5r, not sure if that was required for some reason
-        this.recalculate(target);
         super.apply(target);
+
+        this.recalculate(target);
     }
 
     public override recalculate(target) {

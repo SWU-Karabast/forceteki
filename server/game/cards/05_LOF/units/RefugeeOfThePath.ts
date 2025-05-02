@@ -5,7 +5,7 @@ import { KeywordName, WildcardCardType } from '../../../core/Constants';
 export default class RefugeeOfThePath extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'temp-refugee-id',
+            id: '0102737248',
             internalName: 'refugee-of-the-path',
         };
     }

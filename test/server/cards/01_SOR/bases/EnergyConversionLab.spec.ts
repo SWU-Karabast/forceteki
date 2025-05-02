@@ -77,7 +77,7 @@ describe('Energy Conversion Lab', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
                 expect(context.poeDameron).not.toHaveAvailableActionWhenClickedBy(context.player1);
 
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
         });
     });

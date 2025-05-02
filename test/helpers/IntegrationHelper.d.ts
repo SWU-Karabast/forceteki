@@ -39,7 +39,8 @@ interface SwuTestContext {
     p2Leader: ILeaderCard;
     snapshotId?: number;
 
-    allowTestToEndWithOpenPrompt: boolean;
+    ignoreUnresolvedActionPhasePrompts: boolean;
+    requireResolvedRegroupPhasePrompts: boolean;
 
     advancePhases(endphase);
     allPlayersInInitiativeOrder(): PlayerInteractionWrapper[];

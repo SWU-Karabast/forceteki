@@ -172,6 +172,7 @@ export type IConstantAbilityPropsWithGainCondition<TSource extends IUpgradeCard,
 export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
 export type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
 export type IActionAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
+export type IReplacementEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IReplacementEffectAbilityProps<TTarget> & IGainCondition<TSource>;
 
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
@@ -202,6 +203,7 @@ export type IKeywordProperties =
   | IBountyKeywordProperties
   | ICoordinateKeywordProperties
   | IGritKeywordProperties
+  | IHiddenKeywordProperties
   | IOverwhelmKeywordProperties
   | IPilotingKeywordProperties
   | IRaidKeywordProperties
@@ -298,6 +300,7 @@ export interface IPlayerSerializedState {
     leader?: string | ISerializedCardState;
     deck?: number | string[];
     hasInitiative?: boolean;
+    hasForceToken?: boolean;
 }
 
 export interface ISerializedGameState {
@@ -379,6 +382,10 @@ interface IGritKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Grit;
 }
 
+interface IHiddenKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Hidden;
+}
+
 interface IOverwhelmKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Overwhelm;
 }
@@ -411,9 +418,11 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Shielded;
 }
 
+/** List of keywords that don't have any additional parameters */
 type NonParameterKeywordName =
   | KeywordName.Ambush
   | KeywordName.Grit
+  | KeywordName.Hidden
   | KeywordName.Overwhelm
   | KeywordName.Saboteur
   | KeywordName.Sentinel

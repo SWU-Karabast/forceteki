@@ -1,4 +1,4 @@
-import type { User } from './Settings';
+import type { IUser } from './Settings';
 
 export class Spectator {
     public readonly buttons = [];
@@ -7,7 +7,7 @@ export class Spectator {
 
     public constructor(
         public id: string,
-        public user: User
+        public user: IUser
     ) {
         this.name = this.user.username;
     }
