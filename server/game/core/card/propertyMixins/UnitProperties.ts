@@ -39,6 +39,10 @@ import type { PilotLimitModifier } from '../../ongoingEffect/effectImpl/PilotLim
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
 import type { GameObjectRef } from '../../GameObjectBase';
+import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/LeadersDeployedThisPhaseWatcher';
+import type { StateWatcherRegistrar } from '../../stateWatcher/StateWatcherRegistrar';
+import AbilityHelper from '../../../AbilityHelper';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -148,6 +152,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         private _whenPlayedKeywordAbilities?: TriggeredAbility[] = null;
         private _whileInPlayKeywordAbilities?: IConstantAbility[] = null;
 
+        private _cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
+        private _leadersDeployedThisPhaseWatcher: LeadersDeployedThisPhaseWatcher;
+
         public get capturedUnits() {
             this.assertPropertyEnabledForZone(this.state.captureZone, 'capturedUnits');
             return this.captureZone.cards;
@@ -245,6 +252,13 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             this.pilotingActionAbilities = [];
             this.pilotingConstantAbilities = [];
             this.pilotingTriggeredAbilities = [];
+        }
+
+        protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
+            super.setupStateWatchers(registrar);
+
+            this._cardsPlayedThisWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
+            this._leadersDeployedThisPhaseWatcher = AbilityHelper.stateWatchers.leadersDeployedThisPhase(registrar, this);
         }
 
         // ****************************************** PROPERTY HELPERS ******************************************
@@ -570,6 +584,24 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
                 this._whileInPlayKeywordAbilities.push(coordinateKeywordAbility);
             }
+
+            if (this.hasSomeKeyword(KeywordName.Hidden)) {
+                const hiddenKeywordAbilityProps: IConstantAbilityProps<this> = {
+                    title: 'Hidden',
+                    condition: (context) => context.source.isInPlay() && this.wasPlayedThisPhase(context.source),
+                    ongoingEffect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.BeAttacked)
+                };
+
+                const hiddenKeywordAbility = this.createConstantAbility(hiddenKeywordAbilityProps);
+                hiddenKeywordAbility.registeredEffects = this.addEffectToEngine(hiddenKeywordAbility);
+
+                this._whileInPlayKeywordAbilities.push(hiddenKeywordAbility);
+            }
+        }
+
+        private wasPlayedThisPhase(card: this = this): boolean {
+            return this._cardsPlayedThisWatcher.someCardPlayed((entry) => entry.card === card && entry.inPlayId === card.inPlayId) ||
+              this._leadersDeployedThisPhaseWatcher.someLeaderDeployed((entry) => entry.card === card);
         }
 
         // *************************************** KEYWORD HELPERS ***************************************
@@ -954,20 +986,15 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         public override getSummary(activePlayer: Player) {
             if (this.isInPlay()) {
-                // Check for sentinel keyword and no blanking effects
-                const keywords = this.keywords;
-                const sentinelKeyword = keywords.find(
-                    (keyword) => keyword.name === 'sentinel' && !keyword.isBlank
-                );
-
-                // If sentinelKeyword is found and has no blanking effects, sentinel is true
-                const hasSentinel = !!sentinelKeyword;
+                const hasSentinel = this.hasSomeKeyword(KeywordName.Sentinel);
+                const isHidden = !hasSentinel && this.hasSomeKeyword(KeywordName.Hidden) && this.wasPlayedThisPhase();
 
                 return {
                     ...super.getSummary(activePlayer),
                     power: this.getPower(),
                     hp: this.getHp(),
-                    sentinel: hasSentinel
+                    sentinel: hasSentinel,
+                    hidden: isHidden,
                 };
             }
             return {

@@ -345,6 +345,7 @@ export enum KeywordName {
     Coordinate = 'coordinate',
     Exploit = 'exploit',
     Grit = 'grit',
+    Hidden = 'hidden',
     Overwhelm = 'overwhelm',
     Raid = 'raid',
     Restore = 'restore',
@@ -354,15 +355,6 @@ export enum KeywordName {
     Shielded = 'shielded',
     Smuggle = 'smuggle',
 }
-
-/** List of keywords that don't have any additional parameters */
-export type NonParameterKeywordName =
-  | KeywordName.Ambush
-  | KeywordName.Grit
-  | KeywordName.Overwhelm
-  | KeywordName.Saboteur
-  | KeywordName.Sentinel
-  | KeywordName.Shielded;
 
 export enum Trait {
     Armor = 'armor',
@@ -469,6 +461,7 @@ export enum StateWatcherName {
     CardsDrawnThisPhase = 'cardsDrawnThisPhase',
     CardsLeftPlayThisPhase = 'cardsLeftPlayThisPhase',
     CardsPlayedThisPhase = 'cardsPlayedThisPhase',
+    LeadersDeployedThisPhase = 'leadersDeployedThisPhase',
     UnitsDefeatedThisPhase = 'unitsDefeatedThisPhase',
     CardsEnteredPlayThisPhase = 'cardsEnteredPlayThisPhase',
     DamageDealtThisPhase = 'damageDealtThisPhase',

@@ -203,6 +203,7 @@ export type IKeywordProperties =
   | IBountyKeywordProperties
   | ICoordinateKeywordProperties
   | IGritKeywordProperties
+  | IHiddenKeywordProperties
   | IOverwhelmKeywordProperties
   | IPilotingKeywordProperties
   | IRaidKeywordProperties
@@ -381,6 +382,10 @@ interface IGritKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Grit;
 }
 
+interface IHiddenKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Hidden;
+}
+
 interface IOverwhelmKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Overwhelm;
 }
@@ -413,9 +418,11 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Shielded;
 }
 
+/** List of keywords that don't have any additional parameters */
 type NonParameterKeywordName =
   | KeywordName.Ambush
   | KeywordName.Grit
+  | KeywordName.Hidden
   | KeywordName.Overwhelm
   | KeywordName.Saboteur
   | KeywordName.Sentinel
