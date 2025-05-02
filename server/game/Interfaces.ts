@@ -51,9 +51,9 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
 
 export interface IOngoingEffectProps {
     targetZoneFilter?: ZoneFilter;
-    sourceZoneFilter?: ZoneFilter;
+    sourceZoneFilter?: ZoneFilter | ZoneFilter[];
     targetCardTypeFilter?: any;
-    matchTarget?: () => boolean;
+    matchTarget?: (Player | Card) | ((target: Player | Card, context: AbilityContext) => boolean);
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
     duration?: Duration;
@@ -64,6 +64,7 @@ export interface IOngoingEffectProps {
     cannotBeCancelled?: boolean;
     optional?: boolean;
     delayedEffectType?: DelayedEffectType;
+    isLastingEffect?: boolean;
 }
 
 export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
@@ -254,6 +255,10 @@ export type WhenTypeOrStandard<TSource extends Card = Card> = WhenType<TSource> 
 };
 
 export type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
+
+export type IOngoingEffectFactory = IOngoingEffectProps & {
+    ongoingEffect: any; // IOngoingEffectGenerator | IOngoingEffectGenerator[]
+};
 
 export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     thenCondition?: (context?: TContext) => boolean;

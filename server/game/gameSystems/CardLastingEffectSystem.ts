@@ -6,6 +6,7 @@ import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
 import * as Contract from '../core/utils/Contract';
 import type { DistributiveOmit } from '../core/utils/Helpers';
+import type { IOngoingEffectProps } from '../Interfaces';
 
 export type ICardLastingEffectProperties = DistributiveOmit<ILastingEffectPropertiesBase, 'target'> & Pick<ICardTargetSystemProperties, 'target'>;
 
@@ -104,7 +105,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     private getEffectFactoriesAndProperties(card: Card, context: TContext, additionalProperties: Partial<ICardLastingEffectProperties> = {}) {
         const { effect, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const effectProperties = { matchTarget: card, zoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties };
+        const effectProperties: IOngoingEffectProps = { matchTarget: card, sourceZoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties };
 
         return { effectFactories: effect, effectProperties };
     }
