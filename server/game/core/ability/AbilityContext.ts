@@ -42,7 +42,7 @@ export class AbilityContext<TSource extends Card = Card> {
     public costAspects: Aspect[];
     public targets: any;
     public selects: any;
-    public events: any[] = [];
+    public events: any[];
     public stage: Stage;
     public targetAbility: any;
     public target: any;
@@ -67,6 +67,7 @@ export class AbilityContext<TSource extends Card = Card> {
         this.stage = properties.stage || Stage.Effect;
         this.targetAbility = properties.targetAbility;
         this.selectedPromptCards = properties.selectedPromptCards || [];
+        this.events = properties.events || [];
         // const zone = this.player && this.player.playableZones.find(zone => zone.contains(this.source));
 
         this.playType = this.ability?.isPlayCardAbility()
