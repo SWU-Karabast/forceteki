@@ -444,7 +444,11 @@ export class Lobby {
         const redBase = ['SOR_025', 'SOR_026', 'SOR_027', 'SHD_023', 'SHD_024', 'TWI_025', 'TWI_026', 'TWI_027', 'JTL_025', 'JTL_026', 'JTL_027'];
         const yellowBase = ['SOR_028', 'SOR_029', 'SOR_030', 'SHD_025', 'SHD_026', 'TWI_028', 'TWI_029', 'TWI_030', 'JTL_028', 'JTL_029', 'JTL_030'];
 
-        if (redBase.includes(baseId)) {
+        if (blueBase.includes(baseId)) {
+            userDeck.base.id = 'LOF_021';
+        } else if (greenBase.includes(baseId)) {
+            userDeck.base.id = 'LOF_023';
+        } else if (redBase.includes(baseId)) {
             userDeck.base.id = 'LOF_025';
         } else if (yellowBase.includes(baseId)) {
             userDeck.base.id = 'LOF_027';
