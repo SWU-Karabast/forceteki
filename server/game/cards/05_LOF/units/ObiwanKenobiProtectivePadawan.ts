@@ -16,7 +16,7 @@ export default class ObiwanKenobiProtectivePadawan extends NonLeaderUnitCard {
             when: {
                 onCardPlayed: (event, context) => event.card.isUnit() &&
                   event.card.hasSomeTrait(Trait.Force) &&
-                  event.card.controller === context.player,
+                  event.player === context.player,
             },
             immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect((context) => ({
                 effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel)
