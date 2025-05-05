@@ -6,7 +6,7 @@ import { CardType, Duration, EventName, KeywordName, RelativePlayer, WildcardCar
 export default class ThirdSisterSeethingWithAmbition extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'lof-preview-third-sister-seething-with-ambition',
+            id: '3357344238',
             internalName: 'third-sister#seething-with-ambition',
         };
     }
