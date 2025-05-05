@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { TargetMode, TokenUpgradeName, WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
+import { TargetMode, WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
 
 export default class ObiWanKenobiCourageMakesHeroes extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -24,7 +24,7 @@ export default class ObiWanKenobiCourageMakesHeroes extends LeaderUnitCard {
                 zoneFilter: WildcardZoneName.AnyArena,
                 controller: WildcardRelativePlayer.Any,
                 cardCondition: (card) => card.isUnit() &&
-                  card.upgrades.some((upgrade) => upgrade.title === TokenUpgradeName.Experience),
+                  !card.upgrades.some((upgrade) => upgrade.title === 'Experience'),
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             }
         });
@@ -41,7 +41,7 @@ export default class ObiWanKenobiCourageMakesHeroes extends LeaderUnitCard {
                 zoneFilter: WildcardZoneName.AnyArena,
                 controller: WildcardRelativePlayer.Any,
                 cardCondition: (card, context) => card.isUnit() && card !== context.source &&
-                  card.upgrades.some((upgrade) => upgrade.title === TokenUpgradeName.Experience),
+                  !card.upgrades.some((upgrade) => upgrade.title === 'Experience'),
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             }
         });
