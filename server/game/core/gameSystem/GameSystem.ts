@@ -319,7 +319,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param context Context of ability being executed
      * @returns List of default targets extracted from {@link context} (`[]` by default)
      */
-    protected defaultTargets(context: TContext): any[] {
+    public defaultTargets(context: TContext): any[] {
         return [];
     }
 
