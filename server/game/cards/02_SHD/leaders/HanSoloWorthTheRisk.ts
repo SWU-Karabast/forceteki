@@ -24,10 +24,9 @@ export default class HanSoloWorthTheRisk extends LeaderUnitCard {
                         adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
                         playAsType: WildcardCardType.Unit
                     }),
-                    AbilityHelper.immediateEffects.damage((context) => ({
-                        amount: 2,
-                        target: context.target
-                    }))
+                    AbilityHelper.immediateEffects.damage({
+                        amount: 2
+                    })
                 ])
             }
         });

@@ -179,7 +179,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         event.card = card;
     }
 
-    protected override defaultTargets(context: TContext): Card[] {
+    public override defaultTargets(context: TContext): Card[] {
         return [context.source];
     }
 

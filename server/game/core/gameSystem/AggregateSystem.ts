@@ -23,9 +23,11 @@ export abstract class AggregateSystem<TContext extends AbilityContext = AbilityC
 
         // TODO: this seems to cause issues with player target system defaults when the list includes both a card target and player target system
         // if we have an assigned target, overwrite the default target on all inner systems
-        if (properties.target !== null && (!Array.isArray(properties.target) || properties.target.length !== 0)) {
-            for (const gameSystem of this.getInnerSystems(properties)) {
+        for (const gameSystem of this.getInnerSystems(properties)) {
+            if (properties.target !== null && (!Array.isArray(properties.target) || properties.target.length !== 0)) {
                 gameSystem.setDefaultTargetFn(() => properties.target);
+            } else {
+                gameSystem.setDefaultTargetFn(() => gameSystem.defaultTargets(context));
             }
         }
 
