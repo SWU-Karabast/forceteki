@@ -178,5 +178,207 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Darth Revan\'s deployed ability', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-revan#scourge-of-the-old-republic', deployed: true },
+                        hand: ['vanquish'],
+                        groundArena: ['battlefield-marine', 'snowspeeder'],
+                        spaceArena: ['avenger#hunting-star-destroyer']
+                    },
+                    player2: {
+                        groundArena: [
+                            'warzone-lieutenant',
+                            'independent-smuggler',
+                            'freelance-assassin',
+                            'consular-security-force',
+                            'wampa'
+                        ],
+                    },
+                });
+            });
+
+            it('should give an experience to a friendly unit that attacks and defeats an enemy unit', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.warzoneLieutenant);
+
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacking unit');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
+                expect(context.snowspeeder.isUpgraded()).toBe(false);
+            });
+
+            it('should give an experience to himself when he attacks and defeats an enemy unit', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthRevan);
+                context.player1.clickCard(context.warzoneLieutenant);
+
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacking unit');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.darthRevan).toHaveExactUpgradeNames(['experience']);
+                expect(context.snowspeeder.isUpgraded()).toBe(false);
+            });
+
+            it('should give an experience to a friendly unit that attacks and defeats an enemy unit multiple times in the same phase', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.warzoneLieutenant);
+
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacking unit');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
+                expect(context.snowspeeder.isUpgraded()).toBe(false);
+
+                context.player2.passAction();
+                context.readyCard(context.battlefieldMarine);
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.independentSmuggler);
+
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacking unit');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience', 'experience']);
+                expect(context.snowspeeder.isUpgraded()).toBe(false);
+            });
+
+            it('should not trigger if a friendly unit trades with an enemy unit', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.freelanceAssassin);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not trigger if a friendly unit attacks an enemy unit and does not defeat it', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not trigger if a friendly unit attacks an enemy unit and is defeated', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickCard(context.wampa);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not trigger if an enemy unit attacks and defeats a friendly unit', function () {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.wampa);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should not trigger if an enemy unit attacks and is defeated by a friendly unit', function () {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.warzoneLieutenant);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should not trigger if an enemy unit is defeated by an event card effect', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.vanquish);
+                context.player1.clickCard(context.warzoneLieutenant);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should not trigger if an enemy unit which is not the defender is defeated by a friendly unit\'s on-attack ability', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.avenger);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.clickCard(context.wampa);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('Darth Revan\'s deployed ability', function () {
+            it('should give an experience to a stolen unit that attacks and defeats an enemy unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-revan#scourge-of-the-old-republic', deployed: true },
+                        hand: ['change-of-heart']
+                    },
+                    player2: {
+                        groundArena: [
+                            'battlefield-marine',
+                            'wampa'
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.wampa);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacking unit');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.wampa).toHaveExactUpgradeNames(['experience']);
+            });
+
+            it('should not throw an exception when triggering for a friendly unit which is now in play as an upgrade', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-revan#scourge-of-the-old-republic', deployed: true },
+                        groundArena: ['l337#get-out-of-my-seat', 'atst']
+                    },
+                    player2: {
+                        groundArena: ['freelance-assassin']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.l337);
+                context.player1.clickCard(context.freelanceAssassin);
+
+                // trigger L3 ability and attach her to the AT-ST as a pilot
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+                context.player1.clickCard(context.atst);
+
+                // Revan ability doesn't trigger since there would be no effect
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
