@@ -16,7 +16,7 @@ export interface ISelectPlayerProperties<TContext extends AbilityContext = Abili
     name?: string;
 }
 
-export class SelectPlayerSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ISelectPlayerProperties> {
+export class SelectPlayerSystem<TContext extends AbilityContext = AbilityContext> extends PlayerTargetSystem<TContext, ISelectPlayerProperties<TContext>> {
     public override readonly name: string = 'selectPlayer';
     public override readonly effectDescription: string = 'choose a player';
     protected override readonly eventName: MetaEventName.SelectPlayer;
@@ -28,14 +28,14 @@ export class SelectPlayerSystem<TContext extends AbilityContext = AbilityContext
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public eventHandler(event): void {}
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ISelectPlayerProperties> = {}) {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ISelectPlayerProperties<TContext>> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         properties.innerSystem.setDefaultTargetFn(() => properties.target);
 
         return properties;
     }
 
-    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: Partial<ISelectPlayerProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
+    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: Partial<ISelectPlayerProperties<TContext>>, mustChangeGameState?: GameStateChangeRequired): boolean {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         return properties.innerSystem.canAffect(target, context, additionalProperties, mustChangeGameState);
     }
