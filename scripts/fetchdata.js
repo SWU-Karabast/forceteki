@@ -114,13 +114,13 @@ function getAttributeNames(attributeList) {
 function filterValues(card) {
     try {
         // just filter out variants for now
-    // TODO: add some map for variants
+        // TODO: add some map for variants
         if (card.attributes.variantOf.data !== null) {
             return null;
         }
 
-        // filtering out C24 for now since we do not handle variants
-        if (card.attributes.expansion.data.attributes.code === 'C24') {
+        // filtering out convention exclusives - e.g., 'C24', 'P25'
+        if ((/^[a-zA-Z]\d\d$/g).test(card.attributes.expansion.data.attributes.code)) {
             return null;
         }
 
