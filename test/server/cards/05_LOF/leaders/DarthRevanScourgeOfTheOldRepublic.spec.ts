@@ -114,5 +114,69 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Darth Revan\'s undeployed ability', function () {
+            it('should give an experience to a stolen unit that attacks and defeats an enemy unit', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-revan#scourge-of-the-old-republic',
+                        hand: ['change-of-heart']
+                    },
+                    player2: {
+                        groundArena: [
+                            'battlefield-marine',
+                            'wampa'
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickCard(context.wampa);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.wampa).toHaveExactUpgradeNames(['experience']);
+                expect(context.darthRevan.exhausted).toBe(true);
+            });
+
+            it('should not throw an exception when triggering for a friendly unit which is now in play as an upgrade', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-revan#scourge-of-the-old-republic',
+                        groundArena: ['l337#get-out-of-my-seat', 'atst']
+                    },
+                    player2: {
+                        groundArena: ['freelance-assassin']
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.l337);
+                context.player1.clickCard(context.freelanceAssassin);
+
+                // trigger L3 ability and attach her to the AT-ST as a pilot
+                context.player1.clickPrompt('Trigger');
+                expect(context.player1).toBeAbleToSelectExactly([context.atst]);
+                context.player1.clickCard(context.atst);
+
+                // trigger the Revan ability, no game effect and no exception (doesn't try to target L3)
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.darthRevan.exhausted).toBe(true);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
