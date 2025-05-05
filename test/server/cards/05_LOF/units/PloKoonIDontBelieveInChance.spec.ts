@@ -23,5 +23,30 @@ describe('Plo Koon, I Don\'t Believe in Chance', function() {
             expect(context.ploKoon.hasSomeKeyword('grit')).toBeTrue();
             expect(context.p2Base.damage).toBe(7);
         });
+
+        it('Plo Koon\'s ability should work correctly when he changes controller', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    base: 'shadowed-undercity',
+                    groundArena: [{ card: 'plo-koon#i-dont-believe-in-chance', damage: 1 }],
+                },
+                player2: {
+                    base: 'jedi-temple',
+                    hasForceToken: true,
+                    hand: ['change-of-heart'],
+                    hasInitiative: true,
+                }
+            });
+
+            const { context } = contextRef;
+
+            expect(context.ploKoon.hasSomeKeyword('grit')).toBeFalse();
+
+            context.player2.clickCard(context.changeOfHeart);
+            context.player2.clickCard(context.ploKoon);
+
+            expect(context.ploKoon.hasSomeKeyword('grit')).toBeTrue();
+        });
     });
 });
