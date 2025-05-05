@@ -207,6 +207,28 @@ describe('Qui-Gon Jinn, Student of the Living Force', function() {
                 expect(context.battlefieldMarine).toBeInZone('hand');
             });
 
+            it('should be able to pass the ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'quigon-jinn#student-of-the-living-force', deployed: true },
+                        hand: ['wampa'],
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.quigonJinn);
+                context.player1.clickCard(context.p2Base);
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
+                expect(context.player1).toHavePassAbilityButton();
+                context.player1.clickPrompt('Pass');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.battlefieldMarine).toBeInZone('groundArena');
+            });
+
             it('should not be able to play a Villainy unit that costs less than the returned unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
