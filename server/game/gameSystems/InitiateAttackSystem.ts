@@ -44,7 +44,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         return ['initiate attack with {0}', [properties.target]];
     }
 
-    protected override addPropertiesToEvent(event, attacker, context: TContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, attacker, context: TContext, additionalProperties: Partial<IInitiateAttackProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         Contract.assertTrue(attacker.isUnit());
 
@@ -54,7 +54,7 @@ export class InitiateAttackSystem<TContext extends AbilityContext = AbilityConte
         event.optional = properties.optional ?? context.ability.optional;
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IInitiateAttackProperties<TContext>> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (
             !card.isUnit() ||

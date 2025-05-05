@@ -10,24 +10,24 @@ import type { Player } from '../Player';
 
 export class MetaActionCost<TContext extends AbilityContext = AbilityContext> extends GameSystemCost<TContext> implements ICost<TContext> {
     public constructor(
-        gameSystem: GameSystem<TContext>,
+        public override gameSystem: GameSystem<TContext, ISelectCardProperties>,
         public activePromptTitle: string
     ) {
         super(gameSystem);
     }
 
     public override getActionName(context: TContext): string {
-        const { innerSystem: gameSystem } = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
+        const { innerSystem: gameSystem } = this.gameSystem.generatePropertiesFromContext(context);
         return gameSystem.name;
     }
 
     public override canPay(context: TContext): boolean {
-        const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
+        const properties = this.gameSystem.generatePropertiesFromContext(context);
         return this.gameSystem.hasLegalTarget(context);
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, result: ICostResult): void {
-        const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
+        const properties = this.gameSystem.generatePropertiesFromContext(context);
         if (properties.checkTarget && context.choosingPlayerOverride) {
             context.costs[properties.innerSystem.name] = randomItem(
                 properties.selector.getAllLegalTargets(context, context.player),
@@ -61,7 +61,7 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override getCostMessage(context: TContext): [string, any[]] {
-        const properties = this.gameSystem.generatePropertiesFromContext(context) as ISelectCardProperties;
+        const properties = this.gameSystem.generatePropertiesFromContext(context);
         return properties.innerSystem.getCostMessage(context);
     }
 }

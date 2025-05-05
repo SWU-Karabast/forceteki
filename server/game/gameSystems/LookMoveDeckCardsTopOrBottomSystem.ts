@@ -58,7 +58,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         return [context.player];
     }
 
-    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
+    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: Partial<ILookMoveDeckCardsTopOrBottomProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
         let nonAraTarget: Player;
 
         if (Array.isArray(target)) {

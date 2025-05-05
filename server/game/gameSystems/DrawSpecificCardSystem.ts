@@ -26,7 +26,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         changePlayer: false,
     };
 
-    public eventHandler(event: any, additionalProperties = {}): void {
+    public eventHandler(event: any, additionalProperties: Partial<IDrawSpecificCardProperties> = {}): void {
         const context = event.context;
         const card = event.card;
         // TODO: remove this completely if determined we don't need card snapshots
@@ -56,7 +56,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         ];
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IDrawSpecificCardProperties> = {}): boolean {
         const { changePlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IDrawSpecificCardProperties;
         return (
             (!changePlayer ||
@@ -68,7 +68,7 @@ export class DrawSpecificCardSystem<TContext extends AbilityContext = AbilityCon
         );
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: any = {}): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<IDrawSpecificCardProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context) as IDrawSpecificCardProperties;
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         // add amount and player to have same properties than drawn event from DrawSystem

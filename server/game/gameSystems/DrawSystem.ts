@@ -26,7 +26,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
         return ['draw ' + properties.amount + (properties.amount > 1 ? ' cards' : ' card'), []];
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IDrawProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.amount !== 0 && super.canAffectInternal(player, context);
     }
@@ -35,14 +35,14 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IDrawProperties>): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.cards = event.player.drawDeck.slice(0, amount);
         event.amount = amount;
     }
 
-    protected override updateEvent(event, player: Player, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<IDrawProperties>): void {
         super.updateEvent(event, player, context, additionalProperties);
 
         // TODO: convert damage on draw to be a real replacement effect once we have partial replacement working

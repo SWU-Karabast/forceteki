@@ -28,19 +28,19 @@ export class SelectPlayerSystem<TContext extends AbilityContext = AbilityContext
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public eventHandler(event): void {}
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ISelectPlayerProperties> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         properties.innerSystem.setDefaultTargetFn(() => properties.target);
 
         return properties;
     }
 
-    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
+    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: Partial<ISelectPlayerProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         return properties.innerSystem.canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISelectPlayerProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const player = context.player;

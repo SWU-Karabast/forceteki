@@ -18,7 +18,7 @@ export abstract class AggregateSystem<TContext extends AbilityContext = AbilityC
 
     public abstract getInnerSystems(properties: TProperties): GameSystem<TContext>[];
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<TProperties> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
         // TODO: this seems to cause issues with player target system defaults when the list includes both a card target and player target system
@@ -32,7 +32,7 @@ export abstract class AggregateSystem<TContext extends AbilityContext = AbilityC
         return properties;
     }
 
-    public abstract override hasLegalTarget(context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean;
+    public abstract override hasLegalTarget(context: TContext, additionalProperties?: Partial<TProperties>, mustChangeGameState?: GameStateChangeRequired): boolean;
 
     // TODO: refactor GameSystem so this class doesn't need to override this method (it isn't called since we override hasLegalTarget)
     protected override isTargetTypeValid(target: GameObject): boolean {

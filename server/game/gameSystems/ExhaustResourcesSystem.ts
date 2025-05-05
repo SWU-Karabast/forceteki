@@ -36,7 +36,7 @@ export class ExhaustResourcesSystem<TContext extends AbilityContext = AbilityCon
         return ['spending {1} resources', [properties.amount]];
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IExhaustResourcesProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.amount > 0 &&
           player.readyResourceCount > 0 &&
@@ -44,7 +44,7 @@ export class ExhaustResourcesSystem<TContext extends AbilityContext = AbilityCon
             player.readyResourceCount >= properties.amount;
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IExhaustResourcesProperties>): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = amount;

@@ -22,7 +22,7 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
 
     // event handler doesn't do anything since the tokens were generated in updateEvent
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(event, additionalProperties = {}): void { }
+    public override eventHandler(event): void { }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
@@ -36,7 +36,7 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
 
     protected abstract getTokenType(): TokenUnitName;
 
-    protected override updateEvent(event, player: Player, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ICreateTokenUnitProperties>): void {
         super.updateEvent(event, player, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -74,7 +74,7 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         return [context.player];
     }
 
-    public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<ICreateTokenUnitProperties>): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);

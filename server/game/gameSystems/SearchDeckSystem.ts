@@ -68,7 +68,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(event): void { }
 
-    public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (this.computeSearchCount(properties.searchCount, context) === 0) {
             return false;
@@ -77,7 +77,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         return this.getDeck(player).length > 0 && super.canAffectInternal(player, context);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<TProperties> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
         properties.cardCondition = properties.cardCondition || (() => true);
@@ -98,14 +98,14 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties: any): void {
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties: Partial<TProperties>): void {
         const { searchCount } = this.generatePropertiesFromContext(context, additionalProperties);
         const searchCountAmount = this.computeSearchCount(searchCount, context);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = searchCountAmount;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player = properties.player || context.player;
         const event = this.generateRetargetedEvent(player, context, additionalProperties) as any;
@@ -132,7 +132,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         return player.drawDeck;
     }
 
-    private promptSelectCards(event: any, additionalProperties: any, cards: Card[], selectedCards: Set<Card>): void {
+    private promptSelectCards(event: any, additionalProperties: Partial<TProperties>, cards: Card[], selectedCards: Set<Card>): void {
         const context: TContext = event.context;
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         let selectAmount: number;
@@ -184,7 +184,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         title: string,
         selectAmount: number,
         event: any,
-        additionalProperties: any
+        additionalProperties: Partial<TProperties>
     ): IDisplayCardsSelectProperties {
         return {
             activePromptTitle: title,

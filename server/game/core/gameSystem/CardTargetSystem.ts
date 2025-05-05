@@ -43,7 +43,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return Helpers.asArray(target).length > 0;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         let { target } = this.generatePropertiesFromContext(context, additionalProperties);
         target = this.processTargets(target, context);
         for (const card of Helpers.asArray(target)) {
@@ -136,7 +136,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
     }
 
     // override the base class behavior with a version that forces properties.target to be a scalar value
-    public override generateEvent(context: TContext, additionalProperties: any = {}, addLastKnownInformation: boolean = false): GameEvent {
+    public override generateEvent(context: TContext, additionalProperties: Partial<TProperties> = {}, addLastKnownInformation: boolean = false): GameEvent {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
 
         Contract.assertNotNullLike(target, 'Attempting to generate card target event with no provided target');
@@ -159,12 +159,12 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return event;
     }
 
-    public override checkEventCondition(event: any, additionalProperties = {}): boolean {
+    public override checkEventCondition(event: any, additionalProperties: Partial<TProperties> = {}): boolean {
         // TODO Migrate game state check to somewhere more universal
         return this.canAffect(event.card, event.context, additionalProperties, GameStateChangeRequired.MustFullyResolve);
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         // if a unit is pending defeat (damage >= hp but defeat not yet resolved), always return canAffect() = false unless
         // we're the system that is enacting the defeat
         if (card.isUnit() && card.isInPlay() && card.pendingDefeat) {
@@ -174,7 +174,7 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         return super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: any = {}): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = card;
     }

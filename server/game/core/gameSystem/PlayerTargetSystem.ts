@@ -25,12 +25,12 @@ export abstract class PlayerTargetSystem<TContext extends AbilityContext = Abili
         return context.player ? [context.player.opponent] : [];
     }
 
-    public override checkEventCondition(event, additionalProperties): boolean {
+    public override checkEventCondition(event, additionalProperties: Partial<TProperties>): boolean {
         return this.canAffect(event.player, event.context, additionalProperties, GameStateChangeRequired.MustFullyOrPartiallyResolve);
     }
 
     // override to force the argument type to be Player
-    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
+    public override canAffectInternal(target: Player | Player[], context: TContext, additionalProperties?: Partial<TProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
         return super.canAffectInternal(target, context, additionalProperties, mustChangeGameState);
     }
 
@@ -40,16 +40,16 @@ export abstract class PlayerTargetSystem<TContext extends AbilityContext = Abili
     }
 
     // override to force the argument type to be Player
-    protected override updateEvent(event: GameEvent, player: Player, context: TContext, additionalProperties?: any): void {
+    protected override updateEvent(event: GameEvent, player: Player, context: TContext, additionalProperties?: Partial<TProperties>): void {
         super.updateEvent(event, player, context, additionalProperties);
     }
 
     // override to force the argument type to be Player
-    protected override createEvent(player: Player, context: TContext, additionalProperties: any) {
+    protected override createEvent(player: Player, context: TContext, additionalProperties: Partial<TProperties>) {
         return super.createEvent(player, context, additionalProperties);
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.player = player;
     }

@@ -22,7 +22,7 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
         event.card.deploy({ type: DeployType.LeaderUnit });
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
+    public override getEffectMessage(context: TContext, additionalProperties: Partial<IDeployLeaderProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         return ['deploy {0}', [properties.target]];
     }
@@ -34,7 +34,7 @@ export class DeployLeaderSystem<TContext extends AbilityContext = AbilityContext
         return super.canAffectInternal(card, context);
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IDeployLeaderProperties> = {}) {
         super.updateEvent(event, card, context, additionalProperties);
         event.setContingentEventsGenerator(() => {
             const entersPlayEvent = new GameEvent(EventName.OnUnitEntersPlay, context, {
