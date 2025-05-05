@@ -17,7 +17,6 @@ export default class ObiWanKenobiCourageMakesHeroes extends LeaderUnitCard {
                 AbilityHelper.costs.useTheForce()
             ],
             targetResolver: {
-                activePromptTitle: 'Choose unit to give an Experience token to',
                 cardCondition: (card) => card.isUnit() && !card.hasExperience(),
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience()
             }
@@ -29,7 +28,6 @@ export default class ObiWanKenobiCourageMakesHeroes extends LeaderUnitCard {
             title: 'Give an Experience token to another unit without an Experience token on it',
             optional: true,
             targetResolver: {
-                activePromptTitle: 'Choose unit to give an Experience token to',
                 cardCondition: (card, context) => card.isUnit() &&
                   card !== context.source &&
                   !card.hasExperience(),
