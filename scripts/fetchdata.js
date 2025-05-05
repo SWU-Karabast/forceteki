@@ -119,8 +119,8 @@ function filterValues(card) {
             return null;
         }
 
-        // filtering out C24 for now since we do not handle variants
-        if (card.attributes.expansion.data.attributes.code === 'C24') {
+        // filtering out convention exclusives for now since we do not handle variants
+        if (card.attributes.expansion.data.attributes.code.startsWith('C2')) {
             return null;
         }
 
