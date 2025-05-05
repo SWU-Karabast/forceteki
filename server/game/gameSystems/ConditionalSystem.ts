@@ -32,19 +32,19 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
         return this.getGameAction(context).getEffectMessage(context);
     }
 
-    public override canAffectInternal(target: any, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(target: any, context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         return this.getGameAction(context, additionalProperties).canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}): boolean {
         return this.getGameAction(context, additionalProperties).hasLegalTarget(context, additionalProperties);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}): void {
         this.getGameAction(context, additionalProperties).queueGenerateEventGameSteps(events, context, additionalProperties);
     }
 
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties = {}): boolean {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}): boolean {
         return this.getGameAction(context, additionalProperties).hasTargetsChosenByPlayer(
             context,
             player,
@@ -52,7 +52,7 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
         );
     }
 
-    private getGameAction(context: TContext, additionalProperties = {}) {
+    private getGameAction(context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}) {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         let condition = properties.condition;
         if (typeof condition === 'function') {
@@ -61,7 +61,7 @@ export class ConditionalSystem<TContext extends AbilityContext = AbilityContext>
         return condition ? properties.onTrue : properties.onFalse;
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IConditionalSystemProperties<TContext>> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
         Contract.assertFalse(properties.onTrue instanceof NoActionSystem && properties.onFalse instanceof NoActionSystem, 'You must provide onTrue or onFalse for ConditionalSystem');

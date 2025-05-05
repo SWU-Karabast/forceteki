@@ -25,7 +25,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         readyResource: false
     };
 
-    public eventHandler(event: any, additionalProperties = {}): void {
+    public eventHandler(event: any): void {
         // TODO: remove this completely if determined we don't need card snapshots
         // event.cardStateWhenMoved = card.createSnapshot();
 
@@ -40,8 +40,8 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         }
     }
 
-    public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: any): void {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
+    public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: Partial<IResourceCardProperties>): void {
+        const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const card = Array.isArray(properties.target) ? properties.target[0] as Card : properties.target as Card;
 
         if (properties.readyResource) {
@@ -68,14 +68,14 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         ];
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IResourceCardProperties>): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
         event.resourceControllingPlayer = this.getResourceControllingPlayer(properties, context);
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IResourceCardProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { targetPlayer } = this.generatePropertiesFromContext(context, additionalProperties) as IResourceCardProperties;
 
         const resourceControllingPlayer = this.getResourceControllingPlayer({ targetPlayer }, context);

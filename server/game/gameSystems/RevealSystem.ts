@@ -38,7 +38,7 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
         return false;
     }
 
-    public override getMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {
+    public override getMessageArgs(event: any, context: TContext, additionalProperties: Partial<IRevealProperties>): any[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
             properties.player || event.context.player,

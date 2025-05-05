@@ -29,7 +29,7 @@ export class FlipAndAttachPilotLeaderSystem<TContext extends AbilityContext = Ab
         });
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
+    public override getEffectMessage(context: TContext, additionalProperties: Partial<IFlipAndAttachLeaderPilotProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return ['flip {0} and attach it to {1}', [properties.leaderPilotCard, properties.target]];
     }
@@ -48,7 +48,7 @@ export class FlipAndAttachPilotLeaderSystem<TContext extends AbilityContext = Ab
         return super.canAffectInternal(card, context);
     }
 
-    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IFlipAndAttachLeaderPilotProperties>): void {
         const properties = this.generatePropertiesFromContext(context);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = properties.leaderPilotCard;
@@ -56,11 +56,11 @@ export class FlipAndAttachPilotLeaderSystem<TContext extends AbilityContext = Ab
         event.type = DeployType.LeaderUpgrade;
     }
 
-    public override checkEventCondition(event: any, additionalProperties = {}): boolean {
+    public override checkEventCondition(event: any, additionalProperties: Partial<IFlipAndAttachLeaderPilotProperties> = {}): boolean {
         return true;
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IFlipAndAttachLeaderPilotProperties> = {}) {
         super.updateEvent(event, card, context, additionalProperties);
         event.setContingentEventsGenerator(() => {
             const properties = this.generatePropertiesFromContext(context, additionalProperties);

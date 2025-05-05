@@ -24,7 +24,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
     protected override readonly eventName = EventName.OnCardMoved;
     public override targetTypeFilter = [WildcardCardType.Unit];
 
-    public eventHandler(event: any, additionalProperties = {}): void {
+    public eventHandler(event: any): void {
         (event.card as Card).moveTo(event.destination, InitializeCardStateOption.DoNotInitialize);
     }
 
@@ -37,7 +37,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
         return ['move {0} ' + moveTypeString, [target]];
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IMoveUnitBetweenArenasProperties>): void {
         super.updateEvent(event, card, context, additionalProperties);
 
         Contract.assertTrue(card.isUnit());
@@ -66,7 +66,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
         });
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IMoveUnitBetweenArenasProperties>): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
@@ -74,7 +74,7 @@ export class MoveUnitBetweenArenasSystem<TContext extends AbilityContext = Abili
         event.destination = this.getDestination(properties);
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IMoveUnitBetweenArenasProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { moveType } = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (

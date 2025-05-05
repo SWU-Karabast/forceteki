@@ -65,12 +65,12 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         }
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
+    public override getEffectMessage(context: TContext, additionalProperties: Partial<TProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return ['defeat {0}', [properties.target]];
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (card.zoneName !== ZoneName.Resource && (!card.canBeInPlay() || !card.isInPlay())) {
             return false;
         }
@@ -81,7 +81,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         return super.canAffectInternal(card, context);
     }
 
-    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<TProperties>): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         this.addDefeatSourceToEvent(event, card, context);
     }
@@ -125,7 +125,7 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         };
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties>): void {
         super.updateEvent(event, card, context, additionalProperties);
 
         if (card.zoneName !== ZoneName.Resource) {

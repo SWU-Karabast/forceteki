@@ -20,7 +20,7 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
         event.card.takeControl(event.newController);
     }
 
-    public override canAffectInternal(card: Card, context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, _additionalProperties: Partial<ITakeControlOfUnitProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!card.canBeInPlay() || !card.isInPlay()) {
             return false;
         }
@@ -38,7 +38,7 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
         return ['{0} takes control of {1}', [newController, target]];
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<ITakeControlOfUnitProperties>): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.newController = this.generatePropertiesFromContext(context).newController;
     }

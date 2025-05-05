@@ -24,7 +24,7 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
         return ['discard ' + (properties.amount + (properties.amount > 1 ? ' cards' : ' card') + ' from deck'), []];
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IDiscardFromDeckProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const players = Array.isArray(player) ? player : [player];
@@ -53,13 +53,13 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
         return true;
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IDiscardFromDeckProperties>): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = amount;
     }
 
-    public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Record<string, any> = {}): void {
+    public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Partial<IDiscardFromDeckProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         for (const player of properties.target as Player[]) {
             const availableDeck = player.drawDeck;
@@ -79,7 +79,7 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
         }
     }
 
-    protected override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties: any = {}): void {
+    protected override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties: Partial<IDiscardFromDeckProperties> = {}): void {
         super.updateEvent(event, target, context, additionalProperties);
 
         // all the work for this system happens in the queueGenerateEventGameSteps method and the generated discard events,
@@ -87,7 +87,7 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
         event.condition = () => true;
     }
 
-    private generateEventsForCard(card: Card, context: TContext, events: any[], additionalProperties: Record<string, any>): void {
+    private generateEventsForCard(card: Card, context: TContext, events: any[], additionalProperties: Partial<IDiscardFromDeckProperties>): void {
         const specificDiscardEvent = new DiscardSpecificCardSystem({ target: card }).generateEvent(context);
         events.push(specificDiscardEvent);
         // TODO: Update this to include partial resolution once added for discards that could not be done to fullest extent.

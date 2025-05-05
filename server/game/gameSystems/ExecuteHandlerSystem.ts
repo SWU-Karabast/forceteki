@@ -22,7 +22,7 @@ export class ExecuteHandlerSystem<TContext extends AbilityContext = AbilityConte
         hasTargetsChosenByInitiatingPlayer: false
     };
 
-    public eventHandler(event, additionalProperties = {}): void {
+    public eventHandler(event, additionalProperties: Partial<IExecuteHandlerSystemProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties) as IExecuteHandlerSystemProperties;
         properties.handler(event.context);
     }
@@ -35,11 +35,11 @@ export class ExecuteHandlerSystem<TContext extends AbilityContext = AbilityConte
         return true;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IExecuteHandlerSystemProperties> = {}): void {
         events.push(this.generateEvent(context, additionalProperties));
     }
 
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties = {}) {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<IExecuteHandlerSystemProperties> = {}) {
         const { hasTargetsChosenByInitiatingPlayer } = this.generatePropertiesFromContext(
             context,
             additionalProperties

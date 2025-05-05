@@ -40,7 +40,7 @@ export class DistributeIndirectDamageToCardsSystem<TContext extends AbilityConte
         return event.damageDealt;
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties: any = {}): IDistributeAmongTargetsSystemProperties<AbilityContext<Card>> {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IDistributeIndirectDamageToCardsSystemProperties<TContext>> = {}): IDistributeAmongTargetsSystemProperties<AbilityContext<Card>> {
         const properties = super.generatePropertiesFromContext(context, {
             ...additionalProperties,
             player: RelativePlayer.Opponent,

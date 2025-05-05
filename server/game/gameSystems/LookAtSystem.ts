@@ -17,7 +17,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         useDisplayPrompt: null
     };
 
-    public override getEffectMessage(context: TContext, additionalProperties?: any): [string, any[]] {
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<ILookAtProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         let effectArg = 'a card';
@@ -28,7 +28,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         return ['look at {0}', [effectArg]];
     }
 
-    public override getMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {
+    public override getMessageArgs(event: any, context: TContext, additionalProperties: Partial<ILookAtProperties>): any[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const messageArgs = properties.messageArgs ? properties.messageArgs(event.cards) : [
             this.getPromptedPlayer(properties, context), event.cards
@@ -36,7 +36,7 @@ export class LookAtSystem<TContext extends AbilityContext = AbilityContext> exte
         return messageArgs;
     }
 
-    protected override getChatMessage(useDisplayPrompt: boolean, context: TContext, additionalProperties: any): string {
+    protected override getChatMessage(useDisplayPrompt: boolean, context: TContext, additionalProperties: Partial<ILookAtProperties>): string {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (useDisplayPrompt) {

@@ -18,8 +18,8 @@ export interface IPlayMultipleCardsFromDeckProperties<TContext extends AbilityCo
 }
 
 export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = AbilityContext> extends SearchDeckSystem<TContext, IPlayMultipleCardsFromDeckProperties<TContext>> {
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): IPlayMultipleCardsFromDeckProperties<TContext> {
-        const properties = super.generatePropertiesFromContext(context, additionalProperties) as IPlayMultipleCardsFromDeckProperties<TContext>;
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IPlayMultipleCardsFromDeckProperties<TContext>> = {}): IPlayMultipleCardsFromDeckProperties<TContext> {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
         const selectedCardsImmediateEffect = new PlayCardSystem({
             playType: PlayType.PlayFromOutOfPlay,
@@ -42,7 +42,7 @@ export class PlayMultipleCardsFromDeckSystem<TContext extends AbilityContext = A
         title: string,
         selectAmount: number,
         event: any,
-        additionalProperties: any
+        additionalProperties: Partial<IPlayMultipleCardsFromDeckProperties<TContext>>
     ): IDisplayCardsSelectProperties {
         return {
             ...super.buildPromptProperties(cards, properties, context, title, selectAmount, event, additionalProperties),

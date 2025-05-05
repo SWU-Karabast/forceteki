@@ -18,7 +18,7 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
     public override readonly eventName: EventName = EventName.OnEffectApplied;
     public override readonly effectDescription: string = 'apply a lasting effect targeting a player';
 
-    public eventHandler(event: any, additionalProperties: any): void {
+    public eventHandler(event: any, additionalProperties: Partial<IPlayerLastingEffectProperties>): void {
         const properties = this.generatePropertiesFromContext(event.context, additionalProperties);
         if (!properties.ability) {
             properties.ability = event.context.ability;
@@ -32,7 +32,7 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
         event.context.source[effectType](() => renamedProperties);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IPlayerLastingEffectProperties> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         if (!Array.isArray(properties.effect)) {
             properties.effect = [properties.effect];
@@ -40,12 +40,12 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
         return properties;
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IPlayerLastingEffectProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.effect.length > 0;
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: any): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IPlayerLastingEffectProperties>): void {
         if (this.hasLegalTarget(context, additionalProperties)) {
             events.push(this.generateEvent(context, additionalProperties));
         }
@@ -56,7 +56,7 @@ export class PlayerLastingEffectSystem<TContext extends AbilityContext = Ability
         return false;
     }
 
-    protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<IPlayerLastingEffectProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         return this.isTargetTypeValid(target);
     }
 }

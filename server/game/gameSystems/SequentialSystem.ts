@@ -38,12 +38,12 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler() {}
 
-    private allGameSystemsAreLegal(context: TContext, additionalProperties = {}): boolean {
+    private allGameSystemsAreLegal(context: TContext, additionalProperties: Partial<ISequentialSystemProperties<TContext>> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.gameSystems.every((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISequentialSystemProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (this.everyGameSystemMustBeLegal && !this.allGameSystemsAreLegal(context, additionalProperties)) {
             return;
@@ -76,17 +76,17 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
         return properties.gameSystems[0].getEffectMessage(context);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<ISequentialSystemProperties<TContext>> = {}): boolean {
         const { gameSystems } = this.generatePropertiesFromContext(context, additionalProperties);
         return gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context));
     }
 
-    public override canAffectInternal(target: GameObject, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<ISequentialSystemProperties<TContext>> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.gameSystems.some((gameSystem) => gameSystem.canAffect(target, context));
     }
 
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties = {}) {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<ISequentialSystemProperties<TContext>> = {}) {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         return properties.gameSystems.some((gameSystem) =>
             gameSystem.hasTargetsChosenByPlayer(context, player, additionalProperties)

@@ -33,7 +33,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
         }
     }
 
-    public override canAffectInternal(player: Player | Player[], context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(player: Player | Player[], context: TContext, _additionalProperties: Partial<ITakeControlOfResourceProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const takingResourcePlayer = this.playerFromArray(player);
 
         if (mustChangeGameState !== GameStateChangeRequired.None && takingResourcePlayer.opponent.resources.length === 0) {
@@ -51,7 +51,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
         return ['{0} takes control of a resource from {1}', [takingResourcePlayer, takingResourcePlayer.opponent]];
     }
 
-    public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<ITakeControlOfResourceProperties>): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
 
         event.newController = player;

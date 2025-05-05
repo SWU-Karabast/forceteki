@@ -19,7 +19,7 @@ export class PayCardPrintedCostSystem<TContext extends AbilityContext = AbilityC
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler(): void {}
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties?: any, mustChangeGameState?: GameStateChangeRequired): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties?: Partial<IPayCardPrintedCostProperties>, mustChangeGameState?: GameStateChangeRequired): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (!card.hasCost()) {
@@ -33,7 +33,7 @@ export class PayCardPrintedCostSystem<TContext extends AbilityContext = AbilityC
         return canPayCost && super.canAffectInternal(card, context, additionalProperties, mustChangeGameState);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties?: any): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties?: Partial<IPayCardPrintedCostProperties>): void {
         super.queueGenerateEventGameSteps(events, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);

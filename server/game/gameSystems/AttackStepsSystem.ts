@@ -67,7 +67,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         targetCondition: () => true
     };
 
-    public eventHandler(event, additionalProperties): void {
+    public eventHandler(event): void {
         const context = event.context;
         const target = event.target;
         const attacker = event.attacker;
@@ -98,7 +98,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         context.game.queueStep(new AttackFlow(context, attack));
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<IAttackProperties<TContext>> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         if (!properties.attacker) {
             properties.attacker = context.source;
@@ -115,7 +115,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     /** This method is checking whether cards are a valid target for an attack. */
-    public override canAffectInternal(targetCard: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(targetCard: Card, context: TContext, additionalProperties: Partial<IAttackProperties<TContext>> = {}): boolean {
         if (!targetCard.isUnit() && !targetCard.isBase()) {
             return false;
         }
@@ -180,12 +180,12 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         return true;
     }
 
-    public attackCosts(prompt, context: TContext, additionalProperties = {}): void {
+    public attackCosts(prompt, context: TContext, additionalProperties: Partial<IAttackProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         properties.costHandler(context, prompt);
     }
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IAttackProperties<TContext>> = {}): void {
         const { attacker, target } = this.generatePropertiesFromContext(
             context,
             additionalProperties
@@ -202,7 +202,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         events.push(event);
     }
 
-    protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties: Partial<IAttackProperties<TContext>>): void {
         super.addPropertiesToEvent(event, target, context, additionalProperties);
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
@@ -237,7 +237,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         event.defenderLastingEffects = properties.defenderLastingEffects;
     }
 
-    public override checkEventCondition(event, additionalProperties): boolean {
+    public override checkEventCondition(event, additionalProperties: Partial<IAttackProperties<TContext>>): boolean {
         for (const target of Helpers.asArray(event.target)) {
             if (!this.canAffect(target, event.context, additionalProperties)) {
                 return false;
@@ -286,7 +286,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         return true;
     }
 
-    private attackerGainsSaboteur(attackTarget: IAttackableCard, context: TContext, additionalProperties?: any) {
+    private attackerGainsSaboteur(attackTarget: IAttackableCard, context: TContext, additionalProperties?: Partial<IAttackProperties<TContext>>) {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         // If the attacker is blanked or has lost Saboteur, it cannot gain Saboteur
@@ -307,12 +307,12 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         });
     }
 
-    private attackerGainsEffect(attackTarget: IAttackableCard, context: TContext, effect: EffectName, additionalProperties?: any) {
+    private attackerGainsEffect(attackTarget: IAttackableCard, context: TContext, effect: EffectName, additionalProperties?: Partial<IAttackProperties<TContext>>) {
         return this.attackerGains(attackTarget, context, additionalProperties, (e) => e.impl.type === effect);
     }
 
     /** Checks if there are any lasting effects that would give the attacker Saboteur, for the purposes of targeting */
-    private attackerGains(attackTarget: IAttackableCard, context: TContext, additionalProperties?: any, predicate = (e) => false): boolean {
+    private attackerGains(attackTarget: IAttackableCard, context: TContext, additionalProperties?: Partial<IAttackProperties<TContext>>, predicate = (e) => false): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const attackerLastingEffects = Helpers.asArray(properties.attackerLastingEffects);

@@ -64,7 +64,7 @@ export abstract class DistributeAmongTargetsSystem<
         return '{0} uses {1} to distribute {2} {3} among {4}s';
     }
 
-    protected getChatMessageArgs(event: any, context: TContext, additionalProperties: any): any[] {
+    protected getChatMessageArgs(event: any, context: TContext, additionalProperties: Partial<TProperties>): any[] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const controlDescriptor = properties.controller === RelativePlayer.Self ? 'friendly ' : properties.controller === RelativePlayer.Opponent ? 'enemy ' : '';
         const targetTypeDescriptor = properties.cardTypeFilter || 'card';
@@ -74,7 +74,7 @@ export abstract class DistributeAmongTargetsSystem<
 
     protected abstract getDistributionType(): string;
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (properties.player === RelativePlayer.Opponent && !context.player.opponent) {
             return;
@@ -122,7 +122,7 @@ export abstract class DistributeAmongTargetsSystem<
         context.game.promptDistributeAmongTargets(player, promptProperties);
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}) {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<TProperties> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
 
         Contract.assertFalse(properties.canDistributeLess && !properties.canChooseNoTargets, 'Must set properties.canDistributeLess to true if properties.canChooseNoTargets is true');
@@ -136,7 +136,7 @@ export abstract class DistributeAmongTargetsSystem<
         return properties;
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player =
             (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
@@ -144,7 +144,7 @@ export abstract class DistributeAmongTargetsSystem<
         return properties.selector.canTarget(card, context, player);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties = {}): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const player =
             (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
