@@ -82,6 +82,88 @@ describe('Hidden keyword', function() {
             });
         });
 
+        describe('When a leader with the Hidden keyword is deployed', function() {
+            it('cannot be attacked for this phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'third-sister#seething-with-ambition',
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.thirdSister);
+                context.player1.clickPrompt('Deploy Third Sister');
+                expect(context.thirdSister).toBeInZone('groundArena');
+                expect(context.thirdSister.hasSomeKeyword('hidden')).toBeTrue();
+
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.p1Base]);
+
+                context.player2.clickCardNonChecking(context.thirdSister);
+                context.player2.clickCard(context.p1Base);
+                expect(context.p1Base.damage).toBe(3);
+            });
+
+            it('can be attacked on the next phase', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'third-sister#seething-with-ambition',
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.thirdSister);
+                context.player1.clickPrompt('Deploy Third Sister');
+                expect(context.thirdSister).toBeInZone('groundArena');
+
+                context.player2.claimInitiative();
+                context.moveToNextActionPhase();
+
+                context.player2.clickCard(context.battlefieldMarine);
+                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.thirdSister, context.p1Base]);
+
+                context.player2.clickCard(context.thirdSister);
+                expect(context.thirdSister.damage).toBe(3);
+            });
+
+            it('can be targeted by events', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'third-sister#seething-with-ambition',
+                        groundArena: ['wampa'],
+                    },
+                    player2: {
+                        hand: ['daring-raid'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.thirdSister);
+                context.player1.clickPrompt('Deploy Third Sister');
+                expect(context.thirdSister).toBeInZone('groundArena');
+
+                context.player2.clickCard(context.daringRaid);
+                expect(context.player2).toBeAbleToSelectExactly([context.wampa, context.thirdSister, context.p1Base, context.p2Base]);
+
+                context.player2.clickCard(context.thirdSister);
+                expect(context.thirdSister.damage).toBe(2);
+            });
+        });
+
         describe('When a unit with the Hidden keyword gains Sentinel', function() {
             it('can be attacked', async function () {
                 await contextRef.setupTestAsync({

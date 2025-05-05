@@ -5,7 +5,7 @@ import { Duration, EventName, GameStateChangeRequired } from '../core/Constants'
 import type { GameEvent } from '../core/event/GameEvent';
 import type { IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { GameSystem } from '../core/gameSystem/GameSystem';
-import type { WhenType } from '../Interfaces';
+import type { IOngoingEffectFactory, WhenType } from '../Interfaces';
 import * as Contract from '../core/utils/Contract';
 import OngoingEffectLibrary from '../ongoingEffects/OngoingEffectLibrary';
 import type { GameObject } from '../core/GameObject';
@@ -23,6 +23,7 @@ export interface IDelayedEffectProperties extends IGameSystemProperties {
     limit?: IAbilityLimit;
     immediateEffect: GameSystem<TriggeredAbilityContext>;
     delayedEffectType: DelayedEffectType;
+    effectDescription?: string;
 }
 
 export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContext> extends GameSystem<TContext, IDelayedEffectProperties> {
@@ -63,6 +64,12 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
         }
     }
 
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<IDelayedEffectProperties>): [string, any[]] {
+        const { effectDescription, target } = this.generatePropertiesFromContext(context, additionalProperties);
+
+        return [effectDescription ?? this.effectDescription, [target]];
+    }
+
     public override addPropertiesToEvent(event: any, target: any, context: TContext, additionalProperties?: Partial<IDelayedEffectProperties>): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
@@ -73,7 +80,7 @@ export class DelayedEffectSystem<TContext extends AbilityContext = AbilityContex
 
         const { title, when, limit, immediateEffect, ...otherProperties } = properties;
 
-        const effectProperties = {
+        const effectProperties: IOngoingEffectFactory = {
             ...otherProperties,
             matchTarget: properties.delayedEffectType === DelayedEffectType.Card ? event.sourceCard : null,
             ongoingEffect: OngoingEffectLibrary.delayedEffect({
