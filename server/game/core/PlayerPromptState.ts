@@ -16,6 +16,7 @@ export interface IPlayerPromptStateProperties {
     dropdownListOptions?: string[];
     displayCards?: IDisplayCard[];
     perCardButtons?: IButton[];
+    isOpponentEffect?: boolean;
 }
 
 export class PlayerPromptState {
@@ -30,6 +31,7 @@ export class PlayerPromptState {
     public dropdownListOptions: string[] = [];
     public displayCards: IDisplayCard[] = [];
     public perCardButtons: IButton[] = [];
+    public isOpponentEffect = null;
 
     private _selectableCards: Card[] = [];
     private _selectedCards?: Card[] = [];
@@ -72,6 +74,7 @@ export class PlayerPromptState {
         this.buttons = prompt.buttons ?? [];
         this.displayCards = prompt.displayCards ?? [];
         this.perCardButtons = prompt.perCardButtons ?? [];
+        this.isOpponentEffect = prompt.isOpponentEffect;
     }
 
     public cancelPrompt() {
@@ -110,7 +113,8 @@ export class PlayerPromptState {
             promptUuid: this.promptUuid,
             promptType: this.promptType,
             displayCards: this.displayCards,
-            perCardButtons: this.perCardButtons
+            perCardButtons: this.perCardButtons,
+            isOpponentEffect: this.isOpponentEffect
         };
     }
 }

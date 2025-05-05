@@ -91,6 +91,7 @@ export interface IDistributeAmongTargetsPromptMapResults {
 
 export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     source: string | OngoingEffectSource;
+    isOpponentEffect: boolean;
 
     availableCards?: Card[];
     buttons?: IButton[];
