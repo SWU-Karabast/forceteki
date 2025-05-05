@@ -7,4 +7,8 @@ export default class Experience extends TokenUpgradeCard {
             internalName: 'experience',
         };
     }
+
+    public override isExperience(): this is Experience {
+        return true;
+    }
 }

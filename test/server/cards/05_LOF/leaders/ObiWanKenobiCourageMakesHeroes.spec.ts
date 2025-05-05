@@ -1,7 +1,7 @@
 
 describe('Obi-Wan Kenobi, Courage Makes Heroes', () => {
     integration(function (contextRef) {
-        const leaderPrompt = 'Give an Experience token to a unit without an Experience token on it';
+        const prompt = 'Choose unit to give an Experience token to';
 
         describe('Obi-Wan\'s Leader side ability', function () {
             it('exhausts itself and uses the Force to give an Experience token to a unit without an experience token on it', async function () {
@@ -10,6 +10,7 @@ describe('Obi-Wan Kenobi, Courage Makes Heroes', () => {
                     player1: {
                         leader: 'obiwan-kenobi#courage-makes-heroes',
                         hasForceToken: true,
+                        resources: 4,
                         groundArena: [
                             'battlefield-marine',
                         ]
@@ -19,13 +20,7 @@ describe('Obi-Wan Kenobi, Courage Makes Heroes', () => {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.obiwanKenobi);
-                expect(context.player1).toHaveExactPromptButtons([
-                    leaderPrompt,
-                    'Deploy Obi-Wan Kenobi',
-                    'Cancel'
-                ]);
-
-                context.player1.clickPrompt(leaderPrompt);
+                expect(context.player1).toHavePrompt(prompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
                 context.player1.clickCard(context.battlefieldMarine);
 
@@ -40,6 +35,7 @@ describe('Obi-Wan Kenobi, Courage Makes Heroes', () => {
                     player1: {
                         leader: 'obiwan-kenobi#courage-makes-heroes',
                         hasForceToken: true,
+                        resources: 4,
                         groundArena: [
                             { card: 'battlefield-marine', upgrades: ['experience'] }
                         ]
@@ -49,13 +45,6 @@ describe('Obi-Wan Kenobi, Courage Makes Heroes', () => {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.obiwanKenobi);
-                expect(context.player1).toHaveExactPromptButtons([
-                    leaderPrompt,
-                    'Deploy Obi-Wan Kenobi',
-                    'Cancel'
-                ]);
-
-                context.player1.clickPrompt(leaderPrompt);
 
                 // Ability was used
                 expect(context.obiwanKenobi.exhausted).toBeTrue();
@@ -72,6 +61,7 @@ describe('Obi-Wan Kenobi, Courage Makes Heroes', () => {
                     player1: {
                         leader: 'obiwan-kenobi#courage-makes-heroes',
                         hasForceToken: true,
+                        resources: 4,
                         groundArena: [
                             'battlefield-marine'
                         ]
@@ -86,13 +76,7 @@ describe('Obi-Wan Kenobi, Courage Makes Heroes', () => {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.obiwanKenobi);
-                expect(context.player1).toHaveExactPromptButtons([
-                    leaderPrompt,
-                    'Deploy Obi-Wan Kenobi',
-                    'Cancel'
-                ]);
-
-                context.player1.clickPrompt(leaderPrompt);
+                expect(context.player1).toHavePrompt(prompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.consularSecurityForce]);
                 context.player1.clickCard(context.consularSecurityForce);
 
@@ -127,7 +111,7 @@ describe('Obi-Wan Kenobi, Courage Makes Heroes', () => {
                 context.player1.clickCard(context.p2Base);
 
                 // Resolve ability
-                expect(context.player1).toHavePrompt('Choose unit to give Experience token to');
+                expect(context.player1).toHavePrompt(prompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender, context.consularSecurityForce]);
                 expect(context.player1).toHaveEnabledPromptButtons(['Pass']);
 
@@ -156,7 +140,7 @@ describe('Obi-Wan Kenobi, Courage Makes Heroes', () => {
                 context.player1.clickCard(context.p2Base);
 
                 // Resolve ability
-                expect(context.player1).toHavePrompt('Choose unit to give Experience token to');
+                expect(context.player1).toHavePrompt(prompt);
                 expect(context.player1).toBeAbleToSelectExactly([context.consularSecurityForce]);
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
 
