@@ -43,6 +43,7 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
     protected override setupLeaderUnitSideAbilities() {
         this.addTriggeredAbility({
             title: 'Return a friendly non-leader unit to its owner\'s hand',
+            optional: true,
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
             },
