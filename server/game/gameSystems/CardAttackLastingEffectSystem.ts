@@ -29,7 +29,7 @@ export class CardAttackLastingEffectSystem<TContext extends AbilityContext = Abi
         super(propertyWithDurationType);
     }
 
-    public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: any): void {
+    public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: Partial<ICardAttackLastingEffectProperties>): void {
         Contract.assertNotNullLike(target.activeAttack, `Attempting to apply an attack lasting effect to ${target.internalName} but it is not actively attacking`);
 
         return super.updateEvent(event, target, context, additionalProperties);

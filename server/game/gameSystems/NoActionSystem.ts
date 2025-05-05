@@ -19,7 +19,7 @@ export class NoActionSystem<TContext extends AbilityContext = AbilityContext> ex
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public eventHandler(event, additionalProperties = {}): void {}
+    public eventHandler(event): void {}
 
     public override hasLegalTarget(context): boolean {
         const { hasLegalTarget: allowTargetSelection } = this.generatePropertiesFromContext(context);

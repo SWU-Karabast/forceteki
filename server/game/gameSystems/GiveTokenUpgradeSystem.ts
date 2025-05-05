@@ -21,7 +21,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
 
     // event handler doesn't do anything since the tokens were generated in updateEvent
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler(event, additionalProperties = {}): void { }
+    public override eventHandler(event): void { }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
@@ -32,7 +32,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         return ['attach {0} {1}s to {2}', [properties.amount, this.getTokenType(), properties.target]];
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
         Contract.assertNotNullLike(context);
@@ -56,7 +56,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         return context.game.generateToken(context.player, this.getTokenType());
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties>): void {
         super.updateEvent(event, card, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -87,7 +87,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
         });
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IGiveTokenUpgradeProperties>): void {
         Contract.assertTrue(card.isUnit());
         Contract.assertTrue(card.isInPlay());
 

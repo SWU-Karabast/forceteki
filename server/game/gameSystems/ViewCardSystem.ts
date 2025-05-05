@@ -61,7 +61,7 @@ export interface IViewCardWithPerCardButtonsProperties extends IViewCardProperti
 export type IViewCardProperties = IViewCardOnlyProperties | IViewAndSelectCardsProperties | IViewCardWithPerCardButtonsProperties;
 
 export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityContext, TProperties extends IViewCardProperties = IViewCardProperties> extends CardTargetSystem<TContext, TProperties> {
-    public override eventHandler(event, _additionalProperties = {}): void {
+    public override eventHandler(event): void {
         const context = event.context;
         context.game.addMessage(this.getMessage(event.message, context), ...event.messageArgs);
 
@@ -70,10 +70,10 @@ export abstract class ViewCardSystem<TContext extends AbilityContext = AbilityCo
         }
     }
 
-    protected abstract getChatMessage(useDisplayPrompt: boolean, context: TContext, additionalProperties: any): string;
+    protected abstract getChatMessage(useDisplayPrompt: boolean, context: TContext, additionalProperties: Partial<TProperties>): string;
     protected abstract getPromptedPlayer(properties: IViewCardProperties, context: TContext): Player;
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
         const { target } = this.generatePropertiesFromContext(context, additionalProperties);
         const cards = Helpers.asArray(target).filter((card) => this.canAffect(card, context));
         if (cards.length === 0) {

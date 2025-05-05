@@ -19,7 +19,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
     public override readonly eventName = EventName.OnUpgradeAttached;
     protected override readonly targetTypeFilter: CardTypeFilter[] = [WildcardCardType.Unit];
 
-    public override eventHandler(event, additionalProperties = {}): void {
+    public override eventHandler(event): void {
         const upgradeCard = (event.upgradeCard as InPlayCard);
         const parentCard = (event.parentCard as Card);
 
@@ -40,7 +40,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         return ['attach {1} to {0}', [properties.target, properties.upgrade]];
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IAttachUpgradeProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         const contextCopy = context.copy({ source: card });
 
@@ -70,11 +70,11 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         return super.canAffectInternal(card, context);
     }
 
-    public override checkEventCondition(event, additionalProperties): boolean {
+    public override checkEventCondition(event, additionalProperties: Partial<IAttachUpgradeProperties>): boolean {
         return this.canAffect(event.parentCard, event.context, additionalProperties);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<IAttachUpgradeProperties>): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -85,7 +85,7 @@ export class AttachUpgradeSystem<TContext extends AbilityContext = AbilityContex
         event.newController = this.getFinalController(properties, context);
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IAttachUpgradeProperties>): void {
         super.updateEvent(event, card, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);

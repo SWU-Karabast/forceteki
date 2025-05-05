@@ -20,7 +20,7 @@ export class FlipDoubleSidedLeaderSystem<TContext extends AbilityContext = Abili
         event.card.flipLeader();
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
+    public override getEffectMessage(context: TContext, additionalProperties: Partial<IFlipDoubleSidedLeaderProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         return ['deploy {0}', [properties.target]];
     }

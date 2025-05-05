@@ -23,7 +23,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         ongoingEffectDescription: null
     };
 
-    public eventHandler(event, additionalProperties?): void {
+    public eventHandler(event): void {
         let effects = event.effectFactories.map((factory) =>
             factory(event.context.game, event.context.source, event.effectProperties)
         );
@@ -46,7 +46,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         return this.filterApplicableEffects(card, effects);
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties?: any): [string, any[]] {
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const description = properties.ongoingEffectDescription ?? 'apply a lasting effect to';
@@ -75,7 +75,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         return [`${description} {0}${durationStr}`, [properties.ongoingEffectTargetDescription ?? properties.target]];
     }
 
-    public override generatePropertiesFromContext(context: TContext, additionalProperties = {}): ICardLastingEffectProperties {
+    public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ICardLastingEffectProperties> = {}): ICardLastingEffectProperties {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
         if (!Array.isArray(properties.effect)) {
             properties.effect = [properties.effect];
@@ -84,7 +84,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         return properties;
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
         const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context, additionalProperties);
@@ -93,7 +93,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         event.effectProperties = effectProperties;
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<ICardLastingEffectProperties> = {}): boolean {
         const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context, additionalProperties);
 
         const effects = effectFactories.map((factory) => factory(context.game, context.source, effectProperties));
@@ -101,7 +101,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         return super.canAffectInternal(card, context) && this.filterApplicableEffects(card, effects).length > 0;
     }
 
-    private getEffectFactoriesAndProperties(card: Card, context: TContext, additionalProperties = {}) {
+    private getEffectFactoriesAndProperties(card: Card, context: TContext, additionalProperties: Partial<ICardLastingEffectProperties> = {}) {
         const { effect, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
 
         const effectProperties = { matchTarget: card, zoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties };

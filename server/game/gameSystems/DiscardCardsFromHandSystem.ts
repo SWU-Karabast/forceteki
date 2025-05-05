@@ -49,7 +49,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         return ['make {0} {1}discard {2} cards from {3}', [context.player, properties.random ? 'randomly ' : '', properties.amount, properties.target]];
     }
 
-    public override canAffectInternal(playerOrPlayers: Player | Player[], context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(playerOrPlayers: Player | Player[], context: TContext, additionalProperties: Partial<IDiscardCardsFromHandProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         for (const player of Helpers.asArray(playerOrPlayers)) {
             const properties = this.generatePropertiesFromContext(context, additionalProperties);
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context) && EnumHelpers.cardTypeMatches(card.type, properties.cardTypeFilter));
@@ -69,7 +69,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         return true;
     }
 
-    public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Record<string, any> = {}): void {
+    public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Partial<IDiscardCardsFromHandProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         for (const player of properties.target as Player[]) {
             const availableHand = player.hand.filter((card) => properties.cardCondition(card, context));
@@ -118,7 +118,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         }
     }
 
-    protected override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties: any = {}): void {
+    protected override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties: Partial<IDiscardCardsFromHandProperties> = {}): void {
         super.updateEvent(event, target, context, additionalProperties);
 
         // all the work for this system happens in the queueGenerateEventGameSteps method and the generated discard events,
@@ -126,7 +126,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
         event.condition = () => true;
     }
 
-    private generateEventsForCards(cards: Card[], context: TContext, events: any[], additionalProperties: Record<string, any>): void {
+    private generateEventsForCards(cards: Card[], context: TContext, events: any[], additionalProperties: Partial<IDiscardCardsFromHandProperties>): void {
         cards.forEach((card) => {
             const specificDiscardEvent = new DiscardSpecificCardSystem({ target: card }).generateEvent(context);
             events.push(specificDiscardEvent);

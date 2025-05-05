@@ -27,7 +27,7 @@ export class LoseGameSystem<TContext extends AbilityContext = AbilityContext> ex
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<ILoseGameProperties> = {}): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.endGameReason = context.source.title;
     }
