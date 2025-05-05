@@ -995,8 +995,11 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     hp: this.getHp(),
                     sentinel: hasSentinel,
                     hidden: isHidden,
+                    isAttacker: this.isAttacking(),
+                    isDefender: this.isDefending(),
                 };
             }
+
             return {
                 ...super.getSummary(activePlayer),
                 parentCardId: this.getCaptor()?.uuid,
