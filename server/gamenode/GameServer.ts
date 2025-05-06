@@ -191,7 +191,7 @@ export class GameServer {
     private setupAppRoutes(app: express.Application) {
         app.get('/api/get-unimplemented', (req, res, next) => {
             try {
-                return res.json(this.deckValidator.getUnimplementedCards());
+                return res.json(this.deckValidator.getCardsForDisplay());
             } catch (err) {
                 logger.error('GameServer (get-unimplemented) Server error: ', err);
                 next(err);

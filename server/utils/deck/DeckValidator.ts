@@ -89,13 +89,17 @@ export class DeckValidator {
         }
     }
 
-    public getUnimplementedCards(): { id: string; setId: ISetCode; types: string; titleAndSubtitle: string }[] {
-        const unimplementedCards: { id: string; setId: ISetCode; types: string; titleAndSubtitle: string }[] = [];
+    public getCardsForDisplay(): { id: string; setId: ISetCode; types: string; titleAndSubtitle: string }[] {
+        const unimplementedCards: { id: string; setId: ISetCode; types: string; titleAndSubtitle: string; implemented: boolean }[] = [];
 
         for (const [cardId, cardData] of this.cardData) {
-            if (!cardData.implemented) {
-                unimplementedCards.push({ id: cardId, setId: cardData.setId, types: cardData.type, titleAndSubtitle: cardData.titleAndSubtitle });
-            }
+            unimplementedCards.push({
+                id: cardId,
+                setId: cardData.setId,
+                types: cardData.type,
+                titleAndSubtitle: cardData.titleAndSubtitle,
+                implemented: cardData.implemented
+            });
         }
 
         unimplementedCards.sort((a, b) => a.setId.set.localeCompare(b.setId.set) || a.titleAndSubtitle.localeCompare(b.titleAndSubtitle));
