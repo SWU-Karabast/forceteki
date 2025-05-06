@@ -13,6 +13,7 @@ export default class TimelyIntervention extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Play a unit from your hand. Give it ambush for this phase',
+            cannotTargetFirst: true,
             targetResolver: {
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
@@ -22,7 +23,7 @@ export default class TimelyIntervention extends EventCard {
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
                     }),
-                ])
+                ], false, true)
             }
         });
     }
