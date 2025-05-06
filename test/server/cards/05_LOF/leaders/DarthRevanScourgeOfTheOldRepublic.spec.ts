@@ -179,6 +179,56 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
             });
         });
 
+        describe('Darth Revan\'s undeployed ability', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-revan#scourge-of-the-old-republic',
+                        hand: ['vanquish'],
+                        groundArena: ['darth-maul#revenge-at-last']
+                    },
+                    player2: {
+                        groundArena: [
+                            'warzone-lieutenant',
+                            'battlefield-marine',
+                            'consular-security-force'
+                        ],
+                    },
+                });
+            });
+
+            it('should give an experience token to TWI Darth Maul when he attacks two units and defeats only one', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthMaul);
+                context.player1.clickCard(context.warzoneLieutenant);
+                context.player1.clickCard(context.consularSecurityForce);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.darthMaul).toHaveExactUpgradeNames(['experience']);
+                expect(context.darthRevan.exhausted).toBe(true);
+            });
+
+            it('should only trigger once to give an experience to TWI Darth Maul when he attacks two units and defeats both', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthMaul);
+                context.player1.clickCard(context.warzoneLieutenant);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.darthMaul).toHaveExactUpgradeNames(['experience']);
+                expect(context.darthRevan.exhausted).toBe(true);
+            });
+        });
+
         describe('Darth Revan\'s deployed ability', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
@@ -378,6 +428,66 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
 
                 // Revan ability doesn't trigger since there would be no effect
                 expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('Darth Revan\'s deployed ability', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-revan#scourge-of-the-old-republic', deployed: true },
+                        hand: ['vanquish'],
+                        groundArena: ['darth-maul#revenge-at-last']
+                    },
+                    player2: {
+                        groundArena: [
+                            'warzone-lieutenant',
+                            'battlefield-marine',
+                            'consular-security-force'
+                        ],
+                    },
+                });
+            });
+
+            it('should give an experience token to TWI Darth Maul when he attacks two units and defeats only one', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthMaul);
+                context.player1.clickCard(context.warzoneLieutenant);
+                context.player1.clickCard(context.consularSecurityForce);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacking unit');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.darthMaul).toHaveExactUpgradeNames(['experience']);
+            });
+
+            it('should give two experience tokens to TWI Darth Maul when he attacks two units and defeats both', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.darthMaul);
+                context.player1.clickCard(context.warzoneLieutenant);
+                context.player1.clickCard(context.battlefieldMarine);
+                context.player1.clickPrompt('Done');
+
+                // Choose resolution order
+                expect(context.player1).toHavePrompt('Choose an ability to resolve:');
+                // TODO: these names are unintuitive, since it names the attack target and not Maul. Need to find a way to improve this
+                expect(context.player1).toHaveExactPromptButtons([
+                    'Give an Experience token to the attacking unit: Warzone Lieutenant',
+                    'Give an Experience token to the attacking unit: Battlefield Marine'
+                ]);
+                context.player1.clickPrompt('Give an Experience token to the attacking unit: Warzone Lieutenant');
+
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacking unit: Warzone Lieutenant');
+                context.player1.clickPrompt('Trigger');
+                expect(context.darthMaul).toHaveExactUpgradeNames(['experience']);
+
+                expect(context.player1).toHavePassAbilityPrompt('Give an Experience token to the attacking unit: Battlefield Marine');
+                context.player1.clickPrompt('Trigger');
+                expect(context.darthMaul).toHaveExactUpgradeNames(['experience', 'experience']);
             });
         });
     });

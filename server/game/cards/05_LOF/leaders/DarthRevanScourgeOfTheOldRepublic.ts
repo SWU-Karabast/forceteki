@@ -19,6 +19,9 @@ export default class DarthRevanScourgeOfTheOldRepublic extends LeaderUnitCard {
                     event.defeatSource.attack.attacker.controller === context.player
             },
             optional: true,
+            // currently the only way to have multiple simultaneous triggers for this is with TWI Darth Maul,
+            // in which case we don't need to trigger for both defeats since they're both giving an experience token to the same unit
+            collectiveTrigger: true,
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Give an Experience token to the attacking unit',
