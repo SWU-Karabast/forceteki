@@ -30,7 +30,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         entersReady: false
     };
 
-    public eventHandler(event, additionalProperties = {}): void {
+    public eventHandler(event): void {
         if (event.newController && event.newController !== event.card.controller) {
             event.card.takeControl(event.newController, event.card.defaultArena);
         } else {
@@ -69,7 +69,7 @@ export class PutIntoPlaySystem<TContext extends AbilityContext = AbilityContext>
         return true;
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<IPutIntoPlayProperties>): void {
         // TODO:rename this class and all related classes / methods as PutUnitIntoPlay
         const { controller, overrideZone, entersReady } = this.generatePropertiesFromContext(
             context,

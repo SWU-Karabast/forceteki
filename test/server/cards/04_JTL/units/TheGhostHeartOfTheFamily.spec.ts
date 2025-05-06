@@ -326,5 +326,53 @@ describe('The Ghost, Heart of the Family', () => {
                 context.player2.clickCard(context.p1Base);
             });
         });
+
+        describe('When The Ghost gains', function() {
+            it('Hidden, it shares that keyword with other friendly Spectre units', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'dagobah-swamp',
+                        leader: 'third-sister#seething-with-ambition',
+                        hand: ['phantom-ii#modified-to-dock', 'chopper#metal-menace', 'the-ghost#heart-of-the-family'],
+                        groundArena: ['battlefield-marine'],
+                    },
+                    player2: {
+                        groundArena: ['wampa']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.chopper);
+                expect(context.chopper.hasSomeKeyword('hidden')).toBeFalse();
+
+                context.player2.clickCard(context.wampa);
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.chopper, context.battlefieldMarine]);
+                context.player2.clickPrompt('Cancel');
+                context.player2.passAction();
+
+                context.player1.clickCard(context.thirdSister);
+                context.player1.clickPrompt('Play a unit from your hand. It gains Hidden for this phase');
+                context.player1.clickCard(context.theGhost);
+                expect(context.theGhost.hasSomeKeyword('hidden')).toBeTrue();
+                expect(context.chopper.hasSomeKeyword('hidden')).toBeTrue();
+                expect(context.battlefieldMarine.hasSomeKeyword('hidden')).toBeFalse();
+
+                context.player2.clickCard(context.wampa);
+                expect(context.player2).toBeAbleToSelectExactly([context.p1Base, context.battlefieldMarine]);
+                context.player2.clickCardNonChecking(context.chopper);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.player1.clickCard(context.phantomIi);
+                expect(context.phantomIi.hasSomeKeyword('hidden')).toBeTrue();
+
+                context.moveToNextActionPhase();
+
+                expect(context.theGhost.hasSomeKeyword('hidden')).toBeFalse();
+                expect(context.chopper.hasSomeKeyword('hidden')).toBeFalse();
+                expect(context.phantomIi.hasSomeKeyword('hidden')).toBeFalse();
+            });
+        });
     });
 });

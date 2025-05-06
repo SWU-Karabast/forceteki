@@ -45,7 +45,7 @@ export abstract class OngoingEffect {
     public condition: (context?: AbilityContext) => boolean;
     public sourceZoneFilter: ZoneFilter | ZoneFilter[];
     public impl: OngoingEffectImpl<any>;
-    public ongoingEffect?: IOngoingEffectProps;
+    public ongoingEffect: IOngoingEffectProps;
     public targets: (Player | Card)[];
     public context: AbilityContext;
 
@@ -116,7 +116,7 @@ export abstract class OngoingEffect {
     }
 
     public isEffectActive() {
-        if (this.duration !== Duration.Persistent || this.impl.type === EffectName.DelayedEffect) {
+        if (this.duration !== Duration.Persistent || this.impl.type === EffectName.DelayedEffect || this.ongoingEffect.isLastingEffect) {
             return true;
         }
 

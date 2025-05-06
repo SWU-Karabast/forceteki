@@ -19,7 +19,7 @@ export class RescueSystem<TContext extends AbilityContext = AbilityContext, TPro
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public eventHandler(event): void {}
 
-    public override canAffectInternal(card: Card, context: TContext, _additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, _additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!card.isUnit() || !card.isCaptured()) {
             return false;
         }

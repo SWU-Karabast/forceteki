@@ -23,7 +23,7 @@ export class IndirectDamageToPlayerSystem<TContext extends AbilityContext = Abil
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public eventHandler(): void {}
 
-    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties?: any): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties?: Partial<IIndirectDamageToPlayerProperties>): void {
         super.queueGenerateEventGameSteps(events, context, additionalProperties);
 
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
@@ -52,7 +52,7 @@ export class IndirectDamageToPlayerSystem<TContext extends AbilityContext = Abil
         return ['deal {0} indirect damage to {1}', [indirectDamageAmount, properties.target]];
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IIndirectDamageToPlayerProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.amount <= 0) {
@@ -66,7 +66,7 @@ export class IndirectDamageToPlayerSystem<TContext extends AbilityContext = Abil
         return [context.player.opponent];
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<IIndirectDamageToPlayerProperties>): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
 
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);

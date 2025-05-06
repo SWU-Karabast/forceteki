@@ -12,7 +12,7 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
     public override name = 'createForceToken';
     protected override eventName = EventName.OnTokensCreated;
 
-    public override eventHandler(event, additionalProperties = {}): void {
+    public override eventHandler(event, additionalProperties: Partial<ICreateForceTokenProperties> = {}): void {
         const context = event.context;
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
@@ -34,13 +34,13 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties: Partial<ICreateForceTokenProperties>): void {
         super.addPropertiesToEvent(event, player, context, additionalProperties);
 
         event.tokenType = TokenCardName.Force;
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<ICreateForceTokenProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
         if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && context.player.hasTheForce) {

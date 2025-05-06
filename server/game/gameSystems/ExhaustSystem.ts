@@ -18,7 +18,7 @@ export class ExhaustSystem<TContext extends AbilityContext = AbilityContext> ext
         event.card.exhaust();
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IExhaustSystemProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!super.canAffectInternal(card, context, additionalProperties, mustChangeGameState)) {
             return false;
         }

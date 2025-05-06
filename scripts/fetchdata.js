@@ -114,13 +114,13 @@ function getAttributeNames(attributeList) {
 function filterValues(card) {
     try {
         // just filter out variants for now
-    // TODO: add some map for variants
+        // TODO: add some map for variants
         if (card.attributes.variantOf.data !== null) {
             return null;
         }
 
-        // filtering out C24 for now since we do not handle variants
-        if (card.attributes.expansion.data.attributes.code === 'C24') {
+        // filtering out convention exclusives - e.g., 'C24', 'P25'
+        if ((/^[a-zA-Z]\d\d$/g).test(card.attributes.expansion.data.attributes.code)) {
             return null;
         }
 
@@ -290,6 +290,7 @@ async function main() {
         .map((pageNumber) => getCardData(pageNumber + 1, downloadProgressBar))))
         .flat()
         .filter((n) => n); // remove nulls
+    cards = cards.concat([cunningForceBase, aggressionForceBase]);
 
     downloadProgressBar.stop();
 
@@ -320,5 +321,70 @@ async function main() {
 
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }
+
+// TODO: These force bases are temporary and should be removed when the real Aggression and Cunning bases are revealed
+const aggressionForceBase = {
+    title: 'Aggression Force Base',
+    subtitle: '',
+    cost: null,
+    hp: 28,
+    power: null,
+    text: 'When a friendly Force unit attacks: The Force is with you (create your Force token).',
+    deployBox: null,
+    epicAction: '',
+    unique: false,
+    rules: null,
+    reprints: {
+        data: []
+    },
+    upgradePower: null,
+    upgradeHp: null,
+    id: 'aggression-force-base-id',
+    aspects: [
+        'aggression'
+    ],
+    traits: [],
+    keywords: [],
+    types: [
+        'base'
+    ],
+    setId: {
+        set: 'LOF',
+        number: 25
+    },
+    internalName: 'aggression-force-base'
+};
+
+const cunningForceBase = {
+    title: 'Cunning Force Base',
+    subtitle: '',
+    cost: null,
+    hp: 28,
+    power: null,
+    text: 'When a friendly Force unit attacks: The Force is with you (create your Force token).',
+    deployBox: null,
+    epicAction: '',
+    unique: false,
+    rules: null,
+    reprints: {
+        data: []
+    },
+    upgradePower: null,
+    upgradeHp: null,
+    id: 'cunning-force-base-id',
+    aspects: [
+        'cunning'
+    ],
+    traits: [],
+    keywords: [],
+    types: [
+        'base'
+    ],
+    setId: {
+        set: 'LOF',
+        number: 27
+    },
+    internalName: 'cunning-force-base'
+};
 
 main();

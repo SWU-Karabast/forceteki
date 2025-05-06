@@ -30,7 +30,7 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
         });
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
+    public override getEffectMessage(context: TContext, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         return ['deploy {0} and attach it to {1}', [properties.leaderPilotCard, properties.target]];
     }
@@ -45,7 +45,7 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
         return super.canAffectInternal(card, context);
     }
 
-    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IDeployAndAttachLeaderPilotProperties>): void {
         const properties = this.generatePropertiesFromContext(context);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = properties.leaderPilotCard;
@@ -53,11 +53,11 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
         event.type = DeployType.LeaderUpgrade;
     }
 
-    public override checkEventCondition(event: any, additionalProperties = {}): boolean {
+    public override checkEventCondition(event: any, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}): boolean {
         return true;
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}) {
         super.updateEvent(event, card, context, additionalProperties);
         event.setContingentEventsGenerator(() => {
             const properties = this.generatePropertiesFromContext(context);

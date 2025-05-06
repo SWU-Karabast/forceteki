@@ -47,7 +47,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         canPlayFromAnyZone: false,
     };
 
-    public eventHandler(event, additionalProperties): void {
+    public eventHandler(event): void {
         const availablePlayCardAbilities = event.playCardAbilities as PlayCardAction[];
 
         if (availablePlayCardAbilities.length === 1) {
@@ -75,7 +75,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return ['play {0}', [properties.target]];
     }
 
-    protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         super.addPropertiesToEvent(event, target, context, additionalProperties);
@@ -85,7 +85,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         event.ignoredRequirements = properties.ignoredRequirements ?? [];
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): boolean {
         if (!card.isPlayable()) {
             return false;
         }

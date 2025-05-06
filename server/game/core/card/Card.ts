@@ -45,6 +45,7 @@ import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityReg
 import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
 import type { GameObjectRef } from '../GameObjectBase';
 import { logger } from '../../../logger';
+import type Experience from '../../cards/01_SOR/tokens/Experience';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -515,6 +516,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public canChangeController(): this is ICardCanChangeControllers {
+        return false;
+    }
+
+    public isExperience(): this is Experience {
         return false;
     }
 

@@ -22,7 +22,7 @@ export class ReadySystem<TContext extends AbilityContext = AbilityContext> exten
         event.card.ready();
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IReadySystemProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!super.canAffectInternal(card, context)) {
             return false;
         }

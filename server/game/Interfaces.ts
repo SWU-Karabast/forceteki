@@ -51,9 +51,9 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
 
 export interface IOngoingEffectProps {
     targetZoneFilter?: ZoneFilter;
-    sourceZoneFilter?: ZoneFilter;
+    sourceZoneFilter?: ZoneFilter | ZoneFilter[];
     targetCardTypeFilter?: any;
-    matchTarget?: () => boolean;
+    matchTarget?: (Player | Card) | ((target: Player | Card, context: AbilityContext) => boolean);
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
     duration?: Duration;
@@ -64,6 +64,7 @@ export interface IOngoingEffectProps {
     cannotBeCancelled?: boolean;
     optional?: boolean;
     delayedEffectType?: DelayedEffectType;
+    isLastingEffect?: boolean;
 }
 
 export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
@@ -203,6 +204,7 @@ export type IKeywordProperties =
   | IBountyKeywordProperties
   | ICoordinateKeywordProperties
   | IGritKeywordProperties
+  | IHiddenKeywordProperties
   | IOverwhelmKeywordProperties
   | IPilotingKeywordProperties
   | IRaidKeywordProperties
@@ -253,6 +255,10 @@ export type WhenTypeOrStandard<TSource extends Card = Card> = WhenType<TSource> 
 };
 
 export type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
+
+export type IOngoingEffectFactory = IOngoingEffectProps & {
+    ongoingEffect: any; // IOngoingEffectGenerator | IOngoingEffectGenerator[]
+};
 
 export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     thenCondition?: (context?: TContext) => boolean;
@@ -381,6 +387,10 @@ interface IGritKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Grit;
 }
 
+interface IHiddenKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Hidden;
+}
+
 interface IOverwhelmKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Overwhelm;
 }
@@ -413,9 +423,11 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Shielded;
 }
 
+/** List of keywords that don't have any additional parameters */
 type NonParameterKeywordName =
   | KeywordName.Ambush
   | KeywordName.Grit
+  | KeywordName.Hidden
   | KeywordName.Overwhelm
   | KeywordName.Saboteur
   | KeywordName.Sentinel

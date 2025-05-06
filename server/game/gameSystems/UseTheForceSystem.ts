@@ -17,7 +17,7 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
         forceToken.moveTo(ZoneName.OutsideTheGame);
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
         if ((properties.isCost || mustChangeGameState !== GameStateChangeRequired.None) && !context.player.hasTheForce) {

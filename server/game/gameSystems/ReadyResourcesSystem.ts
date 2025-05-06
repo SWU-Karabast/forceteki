@@ -22,7 +22,7 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
         return amount === 1 ? ['ready a resource', []] : ['ready {0} resources', [amount]];
     }
 
-    public override canAffectInternal(player: Player, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const { isCost, amount } = this.generatePropertiesFromContext(context);
 
         // if this is a cost or an "if you do" condition, must ready all required resources
@@ -42,7 +42,7 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
         return [context.player];
     }
 
-    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties): void {
+    protected override addPropertiesToEvent(event, player: Player, context: TContext, additionalProperties: Partial<TProperties>): void {
         const { amount } = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, player, context, additionalProperties);
         event.amount = amount;

@@ -45,7 +45,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         shuffle: false,
     };
 
-    public eventHandler(event: any, additionalProperties = {}): void {
+    public eventHandler(event: any): void {
         const card = event.card as Card;
         Contract.assertTrue(card.canBeExhausted());
 
@@ -70,7 +70,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return this.getEffectMessage(context);
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
+    public override getEffectMessage(context: TContext, additionalProperties: Partial<IMoveCardProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         if (properties.destination === ZoneName.Hand) {
             if (Helpers.asArray(properties.target).some((card) => card.zoneName === ZoneName.Resource)) {
@@ -94,7 +94,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         ];
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IMoveCardProperties>): void {
         super.updateEvent(event, card, context, additionalProperties);
         const { attachedUpgradeOverrideHandler } = this.generatePropertiesFromContext(context, additionalProperties);
 
@@ -104,7 +104,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         }
     }
 
-    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IMoveCardProperties>): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
@@ -112,7 +112,7 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         event.shuffle = properties.shuffle;
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IMoveCardProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         const { destination } = properties;
 
