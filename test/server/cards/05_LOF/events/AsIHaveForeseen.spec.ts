@@ -78,6 +78,7 @@ describe('As I Have Foreseen', function () {
                     expect(context.zuckuss).toBeInZone('deck', context.player1);
                 });
 
+
                 it('it allows the player to play a unit with Piloting as an upgrade', function () {
                     const { context } = contextRef;
 
@@ -140,6 +141,37 @@ describe('As I Have Foreseen', function () {
                     expect(context.player1.hasTheForce).toBeTrue();
                     expect(context.player2).toBeActivePlayer();
                 });
+            });
+        });
+
+        describe('When the player does not have enough resources', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'doctor-aphra#rapacious-archaeologist',
+                        hasForceToken: true,
+                        resources: 1,
+                        hand: ['as-i-have-foreseen'],
+                        deck: ['zuckuss#bounty-hunter-for-hire']
+                    }
+                });
+            });
+
+            it('itdoes not allow the player to play the card', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.asIHaveForeseen);
+
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.zuckuss]);
+                expect(context.player1).toHaveExactDisabledDisplayPromptPerCardButtons(['Use the Force and play for 4 less']);
+                expect(context.player1).toHaveExactEnabledDisplayPromptPerCardButtons(['Leave on top']);
+                expect(context.getChatLogs(1)[0]).not.toContain(context.zuckuss.title);
+
+                context.player1.clickDisplayCardPromptButton(context.zuckuss.uuid, 'leave');
+
+                expect(context.player1.hasTheForce).toBeTrue();
+                expect(context.zuckuss).toBeInZone('deck', context.player1);
             });
         });
     });
