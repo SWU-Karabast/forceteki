@@ -20,7 +20,7 @@ export default class SatineKryzeCommittedToPeace extends NonLeaderUnitCard {
                 title: 'Discard cards from an opponent\'s deck equal to half this unit\'s remaining HP, rounded up',
                 cost: AbilityHelper.costs.exhaustSelf,
                 immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => {
-                    const remainingHp = context.source.isUnit() ? context.source.getHp() : 0;
+                    const remainingHp = context.source.isUnit() ? context.source.remainingHp : 0;
                     return { amount: Math.ceil(remainingHp / 2) };
                 })
             })

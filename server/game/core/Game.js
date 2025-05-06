@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -41,6 +41,7 @@ const { WildcardCardType } = require('./Constants');
 const { validateGameConfiguration, validateGameOptions } = require('./GameInterfaces.js');
 const { GameStateManager } = require('./GameStateManager.js');
 const { ActionWindow } = require('./gameSteps/ActionWindow.js');
+const { User } = require('../../utils/user/User');
 const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
 const { CostAdjuster } = require('./cost/CostAdjuster.js');
@@ -139,6 +140,7 @@ class Game extends EventEmitter {
         this.allowSpectators = details.allowSpectators;
         this.owner = details.owner;
         this.started = false;
+        this.statsUpdated = false;
         this.playStarted = false;
         this.createdAt = new Date();
 
@@ -1009,9 +1011,9 @@ class Game extends EventEmitter {
     roundEnded() {
         this.createEventAndOpenWindow(EventName.OnRoundEnded, null, {}, TriggerHandlingMode.ResolvesTriggers);
 
-        // at end of round, any tokens in outsideTheGameZone are removed completely
+        // at end of round, any tokens (except the Force tokens) in outsideTheGameZone are removed completely
         for (const player of this.getPlayers()) {
-            for (const token of player.outsideTheGameZone.cards.filter((card) => card.isToken())) {
+            for (const token of player.outsideTheGameZone.cards.filter((card) => card.isToken() && !card.isForceToken())) {
                 this.removeTokenFromPlay(token);
             }
         }
@@ -1375,6 +1377,7 @@ class Game extends EventEmitter {
     initialiseTokens(tokenCardsData) {
         this.checkTokenDataProvided(TokenUpgradeName, tokenCardsData);
         this.checkTokenDataProvided(TokenUnitName, tokenCardsData);
+        this.checkTokenDataProvided(TokenCardName, tokenCardsData);
 
         this.tokenFactories = {};
 

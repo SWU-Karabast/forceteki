@@ -116,7 +116,7 @@ describe('Command', function() {
             ]);
 
             // since we only clicked one option
-            context.allowTestToEndWithOpenPrompt = true;
+            context.ignoreUnresolvedActionPhasePrompts = true;
         });
 
         it('Command\'s damage ability should fizzle if there is no legal friendly unit', async function() {
@@ -149,7 +149,7 @@ describe('Command', function() {
             ]);
 
             // since we only clicked one option
-            context.allowTestToEndWithOpenPrompt = true;
+            context.ignoreUnresolvedActionPhasePrompts = true;
         });
     });
 });

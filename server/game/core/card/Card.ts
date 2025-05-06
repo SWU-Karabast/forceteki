@@ -45,6 +45,7 @@ import type { ICardWithActionAbilities } from './propertyMixins/ActionAbilityReg
 import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
 import type { GameObjectRef } from '../GameObjectBase';
 import { logger } from '../../../logger';
+import type Experience from '../../cards/01_SOR/tokens/Experience';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -111,7 +112,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected readonly _aspects: Aspect[] = [];
-    protected readonly _backSideAspects?: Aspect[];
+    protected readonly _backSideAspects: Aspect[];
     protected readonly _backSideTitle?: string;
     protected readonly _internalName: string;
     protected readonly _subtitle?: string;
@@ -233,7 +234,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
         public readonly owner: Player,
-        private readonly cardData: any
+        private readonly cardData: ICardDataJson
     ) {
         super(owner.game, cardData.title);
 
@@ -248,7 +249,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.hasNonKeywordAbilityText = this.isLeader() || Card.checkHasNonKeywordAbilityText(cardData);
 
         this._aspects = EnumHelpers.checkConvertToEnum(cardData.aspects, Aspect);
-        this._backSideAspects = cardData.backSideAspects;
+        this._backSideAspects = EnumHelpers.checkConvertToEnum(cardData.backSideAspects ?? [], Aspect);
         this._internalName = cardData.internalName;
         this._subtitle = cardData.subtitle;
         this._title = cardData.title;
@@ -292,6 +293,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.hiddenForController = false;
         this.state.hiddenForOpponent = false;
         this.state.movedFromZone = null;
+        this.state.nextAbilityIdx = 0;
     }
 
     // ******************************************* ABILITY GETTERS *******************************************
@@ -336,9 +338,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // **************************************** INITIALIZATION HELPERS ****************************************
     public static buildTypeFromPrinted(printedTypes: string[]): CardType {
-        if (printedTypes.length === 2) {
-            if (printedTypes[0] !== 'token') {
-                throw new Error(`Unexpected card types: ${printedTypes}`);
+        Contract.assertNonEmpty(printedTypes, 'No card types provided');
+
+        if (printedTypes[0] === 'token') {
+            if (printedTypes.length === 1) {
+                // TODO: This assumes the Force token JSON will contain "types": ["token"]
+                //       Check this assumption when real card data is released.
+                return CardType.TokenCard;
             }
 
             switch (printedTypes[1]) {
@@ -351,7 +357,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             }
         }
 
-        Contract.assertArraySize(printedTypes, 1, `Unexpected card types: ${printedTypes}`);
         switch (printedTypes[0]) {
             case 'event':
                 return CardType.Event;
@@ -368,7 +373,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         }
     }
 
-    private validateCardData(cardData: any) {
+    private validateCardData(cardData: ICardDataJson) {
         Contract.assertNotNullLike(cardData);
         Contract.assertNotNullLike(cardData.id);
         Contract.assertNotNullLike(cardData.title);
@@ -382,7 +387,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     /**
      * If this is a subclass implementation of a specific card, validate that it matches the provided card data
      */
-    private validateImplementationId(implementationId: { internalName: string; id: string }, cardData: any): void {
+    private validateImplementationId(implementationId: { internalName: string; id: string }, cardData: ICardDataJson): void {
         if (cardData.id !== implementationId.id || cardData.internalName !== implementationId.internalName) {
             throw new Error(
                 `Provided card data { ${cardData.id}, ${cardData.internalName} } does not match the data from the card class: { ${implementationId.id}, ${implementationId.internalName} }. Confirm that you are matching the card data to the right card implementation class.`
@@ -398,10 +403,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return null;
     }
 
-    protected unpackConstructorArgs(...args: any[]): [Player, any] {
+    protected unpackConstructorArgs(...args: any[]): [Player, ICardDataJson] {
         Contract.assertArraySize(args, 2);
 
-        return [args[0] as Player, args[1]];
+        return [args[0] as Player, args[1] as ICardDataJson];
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -494,6 +499,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return false;
     }
 
+    public isForceToken(): this is ITokenCard {
+        return false;
+    }
+
     public isTokenUnit(): this is ITokenUnitCard {
         return false;
     }
@@ -507,6 +516,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     public canChangeController(): this is ICardCanChangeControllers {
+        return false;
+    }
+
+    public isExperience(): this is Experience {
         return false;
     }
 
@@ -695,8 +708,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     protected removeFromCurrentZone() {
         if (this.zone.name === ZoneName.Base) {
-            Contract.assertTrue(this.isLeader(), `Attempting to move card ${this.internalName} from ${this.zone}`);
-            this.zone.removeLeader();
+            if (this.isLeader()) {
+                this.zone.removeLeader();
+            } else if (this.isForceToken()) {
+                this.zone.removeForceToken();
+            } else {
+                Contract.fail(`Attempting to move card ${this.internalName} from ${this.zone}`);
+            }
         } else {
             this.zone.removeCard(this);
         }
@@ -738,8 +756,15 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         switch (zoneName) {
             case ZoneName.Base:
                 this.zone = this.owner.baseZone;
-                Contract.assertTrue(this.isLeader());
-                this.zone.setLeader(this);
+
+                if (this.isLeader()) {
+                    this.zone.setLeader(this);
+                } else if (this.isForceToken()) {
+                    this.zone.setForceToken(this);
+                } else {
+                    Contract.fail(`Attempting to add card ${this.internalName} to base zone but it is not a leader or force token`);
+                }
+
                 break;
 
             case DeckZoneDestination.DeckBottom:

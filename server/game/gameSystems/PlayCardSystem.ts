@@ -39,7 +39,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override readonly eventName = MetaEventName.PlayCard;
     protected override readonly targetTypeFilter = [CardType.BasicUnit, CardType.BasicUpgrade, CardType.Event];
     protected override readonly defaultProperties: IPlayCardProperties = {
-        ignoredRequirements: [],
+        ignoredRequirements: ['phase'],
         optional: false,
         entersReady: false,
         playType: PlayType.PlayFromHand,
@@ -47,7 +47,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         canPlayFromAnyZone: false,
     };
 
-    public eventHandler(event, additionalProperties): void {
+    public eventHandler(event): void {
         const availablePlayCardAbilities = event.playCardAbilities as PlayCardAction[];
 
         if (availablePlayCardAbilities.length === 1) {
@@ -67,7 +67,7 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
     private resolvePlayCardAbility(ability: PlayCardAction, event: any) {
         const newContext = ability.createContext(event.player);
 
-        event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional, false));
+        event.context.game.queueStep(new AbilityResolver(event.context.game, newContext, event.optional, false, null, event.ignoredRequirements));
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
@@ -75,16 +75,17 @@ export class PlayCardSystem<TContext extends AbilityContext = AbilityContext> ex
         return ['play {0}', [properties.target]];
     }
 
-    protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties = {}): void {
+    protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         super.addPropertiesToEvent(event, target, context, additionalProperties);
 
         event.playCardAbilities = this.generateLegalPlayCardAbilities(target, properties, context);
         event.optional = properties.optional ?? context.ability.optional;
+        event.ignoredRequirements = properties.ignoredRequirements ?? [];
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IPlayCardProperties> = {}): boolean {
         if (!card.isPlayable()) {
             return false;
         }

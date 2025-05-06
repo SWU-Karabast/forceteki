@@ -51,6 +51,29 @@ describe('Han Solo, Worth the Risk', function () {
                 expect(context.hanSolo.exhausted).toBeTrue();
             });
 
+            it('can choose nothing', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['cantina-braggart', 'vanguard-infantry', 'green-squadron-awing', 'devotion'],
+                        groundArena: ['colonel-yularen#isb-director'],
+                        leader: 'han-solo#worth-the-risk',
+                        base: { card: 'echo-base', damage: 5 },
+                        resources: 4,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                expect(context.player1.handSize).toBe(4);
+                context.player1.clickCard(context.hanSolo);
+                expect(context.player1).toBeAbleToSelectExactly([context.cantinaBraggart, context.vanguardInfantry, context.greenSquadronAwing]);
+                context.player1.clickPrompt('Choose nothing');
+
+                expect(context.cantinaBraggart).toBeInZone('hand');
+                expect(context.player1.handSize).toBe(4);
+            });
+
             it('should not be able to play a unit as a Pilot for a discount', async function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',

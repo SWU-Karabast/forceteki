@@ -158,7 +158,7 @@ describe('The Starhawk, Prototype Battleship', function() {
                 context.player2.clickPrompt('Deploy Admiral Trench');
                 expect(context.player2.exhaustedResourceCount).toBe(3);
 
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
 
             it('should not affect opponent\'s unit ability costs', function() {

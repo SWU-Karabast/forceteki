@@ -43,6 +43,28 @@ describe('Mace Windu, Vaapad Form Master', function () {
                 expect(context.maceWindu.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(2);
             });
+
+            it('should not deal an additional damage if the unit is defeated', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'mace-windu#vaapad-form-master',
+                        resources: 3,
+                    },
+                    player2: {
+                        groundArena: ['atst', { card: 'wampa', damage: 4 }],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.maceWindu);
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
+
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
 
         describe('Mace Windu\'s leader deployed ability', function () {

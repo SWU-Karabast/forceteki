@@ -1,6 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { DeployType, EventName, PlayType, WildcardCardType } from '../core/Constants';
+import { DeployType, EventName, WildcardCardType } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
 import { GameEvent } from '../core/event/GameEvent';
@@ -21,7 +21,7 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
         Contract.assertNotNullLike(event.leaderAttachTarget);
         Contract.assertEqual(DeployType.LeaderUpgrade, event.type);
         Contract.assertTrue(event.leaderAttachTarget.isUnit());
-        Contract.assertTrue(event.leaderAttachTarget.canAttachPilot(event.card, PlayType.Piloting));
+        Contract.assertTrue(event.leaderAttachTarget.canAttachPilot(event.card));
         Contract.assertTrue(event.card.isDeployableLeader());
 
         event.card.deploy({
@@ -30,7 +30,7 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
         });
     }
 
-    public override getEffectMessage(context: TContext, additionalProperties: any = {}): [string, any[]] {
+    public override getEffectMessage(context: TContext, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
         return ['deploy {0} and attach it to {1}', [properties.leaderPilotCard, properties.target]];
     }
@@ -38,14 +38,14 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
     public override canAffectInternal(card: Card, context: TContext): boolean {
         const properties = this.generatePropertiesFromContext(context);
 
-        if (!card.isUnit() || !card.canAttachPilot(properties.leaderPilotCard, PlayType.Piloting)) {
+        if (!card.isUnit() || !card.canAttachPilot(properties.leaderPilotCard)) {
             return false;
         }
 
         return super.canAffectInternal(card, context);
     }
 
-    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: any): void {
+    protected override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IDeployAndAttachLeaderPilotProperties>): void {
         const properties = this.generatePropertiesFromContext(context);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
         event.card = properties.leaderPilotCard;
@@ -53,11 +53,11 @@ export class DeployAndAttachPilotLeaderSystem<TContext extends AbilityContext = 
         event.type = DeployType.LeaderUpgrade;
     }
 
-    public override checkEventCondition(event: any, additionalProperties = {}): boolean {
+    public override checkEventCondition(event: any, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}): boolean {
         return true;
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: any = {}) {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IDeployAndAttachLeaderPilotProperties> = {}) {
         super.updateEvent(event, card, context, additionalProperties);
         event.setContingentEventsGenerator(() => {
             const properties = this.generatePropertiesFromContext(context);

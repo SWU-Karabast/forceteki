@@ -64,8 +64,12 @@ export function keywordFromProperties(properties: IKeywordProperties, card: Card
         case KeywordName.Smuggle:
             return new KeywordWithCostValues(properties.keyword, card, properties.cost, properties.aspects, false);
 
+        case KeywordName.Coordinate:
+            return new KeywordWithAbilityDefinition(properties.keyword, card, properties.ability);
+
         case KeywordName.Ambush:
         case KeywordName.Grit:
+        case KeywordName.Hidden:
         case KeywordName.Overwhelm:
         case KeywordName.Saboteur:
         case KeywordName.Sentinel:
@@ -83,10 +87,28 @@ export const isNumericType: Record<KeywordName, boolean> = {
     [KeywordName.Coordinate]: false,
     [KeywordName.Exploit]: true,
     [KeywordName.Grit]: false,
+    [KeywordName.Hidden]: false,
     [KeywordName.Overwhelm]: false,
     [KeywordName.Piloting]: false,
     [KeywordName.Raid]: true,
     [KeywordName.Restore]: true,
+    [KeywordName.Saboteur]: false,
+    [KeywordName.Sentinel]: false,
+    [KeywordName.Shielded]: false,
+    [KeywordName.Smuggle]: false
+};
+
+export const hasWhileInPlayAbility: Record<KeywordName, boolean> = {
+    [KeywordName.Ambush]: false,
+    [KeywordName.Bounty]: false,
+    [KeywordName.Coordinate]: true,
+    [KeywordName.Exploit]: false,
+    [KeywordName.Grit]: false,
+    [KeywordName.Hidden]: true,
+    [KeywordName.Overwhelm]: false,
+    [KeywordName.Piloting]: false,
+    [KeywordName.Raid]: false,
+    [KeywordName.Restore]: false,
     [KeywordName.Saboteur]: false,
     [KeywordName.Sentinel]: false,
     [KeywordName.Shielded]: false,
@@ -193,6 +215,8 @@ function getRegexForKeyword(keyword: KeywordName) {
             return /(?:^|(?:\n))Exploit ([\d]+)/g;
         case KeywordName.Grit:
             return /(?:^|(?:\n))Grit/g;
+        case KeywordName.Hidden:
+            return /(?:^|(?:\n))Hidden/g;
         case KeywordName.Overwhelm:
             return /(?:^|(?:\n))Overwhelm/g;
         case KeywordName.Piloting:

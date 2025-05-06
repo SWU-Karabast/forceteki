@@ -59,7 +59,7 @@ describe('Anakin Skywalker, What It Takes To Win', function () {
                 context.player1.clickCard(context.moistureFarmer);
                 expect(context.player1).toHavePrompt('player2 has won the game!');
                 expect(context.player2).toHavePrompt('player2 has won the game!');
-                context.allowTestToEndWithOpenPrompt = true;
+                context.ignoreUnresolvedActionPhasePrompts = true;
             });
 
             it('should buff attack against both targets if attacker can attack multiple targets', async function () {

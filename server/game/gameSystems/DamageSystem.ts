@@ -112,7 +112,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         return event.sourceEventForExcessDamage.availableExcessDamage;
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context);
         if (
             properties.type === DamageType.Overwhelm && 'contingentSourceEvent' in properties &&
@@ -156,7 +156,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         return super.canAffectInternal(card, context);
     }
 
-    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties) {
+    protected override addPropertiesToEvent(event, card: Card, context: TContext, additionalProperties: Partial<TProperties>) {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         super.addPropertiesToEvent(event, card, context, additionalProperties);
 
@@ -290,7 +290,7 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
     }
 
     // TODO: might need to refactor getEffectMessage generally so that it has access to the event, doesn't really work for some of the damage scenarios currently
-    public override getEffectMessage(context: TContext, additionalProperties?: any): [string, any[]] {
+    public override getEffectMessage(context: TContext, additionalProperties?: Partial<TProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         let amountStr = '';

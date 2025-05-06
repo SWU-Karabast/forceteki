@@ -6,11 +6,15 @@ describe('In Debt To Crimson Dawn', function() {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
+                        leader: 'emperor-palpatine#galactic-ruler',
                         hand: ['in-debt-to-crimson-dawn'],
                         spaceArena: ['green-squadron-awing'],
                     },
                     player2: {
-                        groundArena: ['frontier-atrt', 'consular-security-force'],
+                        groundArena: [
+                            { card: 'frontier-atrt', damage: 1 },
+                            'consular-security-force'
+                        ],
                         hand: ['bravado']
                     }
                 });
@@ -34,7 +38,6 @@ describe('In Debt To Crimson Dawn', function() {
                 context.player1.clickPrompt('Done');
                 context.player2.clickPrompt('Done');
 
-
                 expect(context.player2).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Frontier AT-RT']);
                 context.player2.clickPrompt('Exhaust Frontier AT-RT');
 
@@ -55,7 +58,6 @@ describe('In Debt To Crimson Dawn', function() {
 
                 context.player1.clickPrompt('Done');
                 context.player2.clickPrompt('Done');
-
 
                 expect(context.player2).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Frontier AT-RT']);
                 context.player2.clickPrompt('Pay 2 resources');
@@ -82,6 +84,39 @@ describe('In Debt To Crimson Dawn', function() {
 
                 expect(context.frontierAtrt.exhausted).toBeFalse();
                 expect(context.player2.readyResourceCount).toBe(0);
+            });
+
+            it('makes the controller pay 2 resources, even if the unit has changed controller', function () {
+                const { context } = contextRef;
+                context.player2.passAction();
+
+                // Deploy Emperor Palpatine and take control of the Frontier AT-RT
+                context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
+                context.player1.clickCard(context.frontierAtrt);
+
+                context.player2.passAction();
+
+                // Attack with the Frontier AT-RT to exhaust it
+                context.player1.clickCard(context.frontierAtrt);
+                context.player1.clickCard(context.p2Base);
+                expect(context.frontierAtrt.exhausted).toBeTrue();
+
+                // Move to the regroup phase
+                context.player2.passAction();
+                context.player1.claimInitiative();
+
+                // Click through resourcing step
+                context.player1.clickPrompt('Done');
+                context.player2.clickPrompt('Done');
+
+                // Player 1 should be prompted for In Debt To Crimson Dawn's ability
+                expect(context.player1).toHaveEnabledPromptButtons(['Pay 2 resources', 'Exhaust Frontier AT-RT']);
+                context.player1.clickPrompt('Pay 2 resources');
+
+                // Player 1 should be the one paying the resources
+                expect(context.frontierAtrt.exhausted).toBeFalse();
+                expect(context.player1.exhaustedResourceCount).toBe(2);
             });
         });
 

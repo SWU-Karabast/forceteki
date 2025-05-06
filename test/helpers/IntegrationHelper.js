@@ -106,7 +106,11 @@ global.integration = function (definitions) {
                 return;
             }
 
-            if (context.game.currentPhase !== 'action' || context.allowTestToEndWithOpenPrompt) {
+            if (
+                context.game.currentPhase === 'action' && context.ignoreUnresolvedActionPhasePrompts ||
+                context.game.currentPhase === 'regroup' && !context.requireResolvedRegroupPhasePrompts ||
+                context.game.currentPhase === 'setup' // Unresolved setup phase prompts are always ignored
+            ) {
                 return;
             }
 
@@ -121,8 +125,7 @@ global.integration = function (definitions) {
                 let activePromptsText = playersWithUnresolvedPrompts.map((player) =>
                     `\n******* ${player.name.toUpperCase()} PROMPT *******\n${formatPrompt(player.currentPrompt(), player.currentActionTargets)}\n`
                 ).join('');
-
-                throw new TestSetupError(`The test ended with an unresolved prompt for one or both players. Unresolved prompts:\n${activePromptsText}`);
+                throw new TestSetupError(`The test ended with an unresolved prompt in ${context.game.currentPhase} phase for one or both players. Unresolved prompts:\n${activePromptsText}`);
             }
             try {
                 context.game.captureGameState('testrun');

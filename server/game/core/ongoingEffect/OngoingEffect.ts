@@ -46,7 +46,7 @@ export abstract class OngoingEffect extends GameObjectBase {
     public condition: (context?: AbilityContext) => boolean;
     public sourceZoneFilter: ZoneFilter | ZoneFilter[];
     public impl: OngoingEffectImpl<any>;
-    public ongoingEffect?: IOngoingEffectProps;
+    public ongoingEffect: IOngoingEffectProps;
     public targets: (Player | Card)[];
     public context: AbilityContext;
 
@@ -117,7 +117,7 @@ export abstract class OngoingEffect extends GameObjectBase {
     }
 
     public isEffectActive() {
-        if (this.duration !== Duration.Persistent || this.impl.type === EffectName.DelayedEffect) {
+        if (this.duration !== Duration.Persistent || this.impl.type === EffectName.DelayedEffect || this.ongoingEffect.isLastingEffect) {
             return true;
         }
 
@@ -133,9 +133,9 @@ export abstract class OngoingEffect extends GameObjectBase {
         return true;
     }
 
-    public resolveEffectTargets(stateChanged) {
+    public resolveEffectTargets() {
         if (!this.isEffectActive() || !this.condition(this.context)) {
-            stateChanged = this.targets.length > 0 || stateChanged;
+            const stateChanged = this.targets.length > 0;
             this.cancel();
             return stateChanged;
         } else if (typeof this.matchTarget === 'function') {
@@ -143,7 +143,7 @@ export abstract class OngoingEffect extends GameObjectBase {
             const invalidTargets = this.targets.filter((target) => !this.isValidTarget(target));
             // Remove invalid targets
             this.removeTargets(invalidTargets);
-            stateChanged = stateChanged || invalidTargets.length > 0;
+            let stateChanged = invalidTargets.length > 0;
             // Recalculate the effect for valid targets
             this.targets.forEach((target) => stateChanged = this.impl.recalculate(target) || stateChanged);
             // Check for new targets
@@ -156,12 +156,12 @@ export abstract class OngoingEffect extends GameObjectBase {
                 this.cancel();
                 return true;
             }
-            return this.impl.recalculate(this.matchTarget) || stateChanged;
+            return this.impl.recalculate(this.matchTarget);
         } else if (!this.targets.includes(this.matchTarget) && this.isValidTarget(this.matchTarget)) {
             this.addTarget(this.matchTarget);
             return true;
         }
-        return stateChanged;
+        return false;
     }
 
     public getDebugInfo() {

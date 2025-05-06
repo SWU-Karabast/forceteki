@@ -56,6 +56,28 @@ describe('Colonel Yularen, ISB Director', function() {
 
                 expect(context.p1Base.damage).toBe(2);
             });
+
+            it('should not heal 1 from friendly base when a friendly Command Pilot is played', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['luke-skywalker#you-still-with-me'],
+                        groundArena: ['colonel-yularen#isb-director'],
+                        spaceArena: ['cartel-spacer'],
+                        base: { card: 'nevarro-city', damage: 3 }
+                    },
+                    player2: {
+                        hand: ['vanguard-infantry']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.lukeSkywalker);
+                context.player1.clickPrompt('Play Luke Skywalker with Piloting');
+                context.player1.clickCard(context.cartelSpacer);
+                expect(context.p1Base.damage).toBe(3);
+            });
         });
     });
 });

@@ -19,7 +19,7 @@ export class DetachPilotSystem<TContext extends AbilityContext = AbilityContext>
     protected override readonly eventName = EventName.OnCardMoved;
     public override targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.UnitUpgrade];
 
-    public eventHandler(event: any, additionalProperties = {}): void {
+    public eventHandler(event: any): void {
         event.card.unattach(event);
         event.card.moveTo(ZoneName.GroundArena, InitializeCardStateOption.ForceInitialize);
     }
@@ -30,7 +30,7 @@ export class DetachPilotSystem<TContext extends AbilityContext = AbilityContext>
         return ['detaches {0} and moves it to the ground arena', [target]];
     }
 
-    protected override updateEvent(event, card: Card, context: TContext, additionalProperties): void {
+    protected override updateEvent(event, card: Card, context: TContext, additionalProperties: Partial<IDetachPilotProperties>): void {
         super.updateEvent(event, card, context, additionalProperties);
 
         Contract.assertTrue(card.isUpgrade());
@@ -48,7 +48,7 @@ export class DetachPilotSystem<TContext extends AbilityContext = AbilityContext>
         ]);
     }
 
-    public override canAffectInternal(card: Card, context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IDetachPilotProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         if (!EnumHelpers.isUnitUpgrade(card.type)) {
             return false;
         }

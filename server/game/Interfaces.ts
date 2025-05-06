@@ -51,9 +51,9 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
 
 export interface IOngoingEffectProps {
     targetZoneFilter?: ZoneFilter;
-    sourceZoneFilter?: ZoneFilter;
+    sourceZoneFilter?: ZoneFilter | ZoneFilter[];
     targetCardTypeFilter?: any;
-    matchTarget?: () => boolean;
+    matchTarget?: (Player | Card) | ((target: Player | Card, context: AbilityContext) => boolean);
     canChangeZoneOnce?: boolean;
     canChangeZoneNTimes?: number;
     duration?: Duration;
@@ -64,6 +64,7 @@ export interface IOngoingEffectProps {
     cannotBeCancelled?: boolean;
     optional?: boolean;
     delayedEffectType?: DelayedEffectType;
+    isLastingEffect?: boolean;
 }
 
 export interface IOngoingPlayerEffectProps extends IOngoingEffectProps {
@@ -172,6 +173,7 @@ export type IConstantAbilityPropsWithGainCondition<TSource extends IUpgradeCard,
 export type ITriggeredAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityProps<TTarget> & IGainCondition<TSource>;
 export type ITriggeredAbilityBasePropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = ITriggeredAbilityBaseProps<TTarget> & IGainCondition<TSource>;
 export type IActionAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IActionAbilityProps<TTarget> & IGainCondition<TSource>;
+export type IReplacementEffectAbilityPropsWithGainCondition<TSource extends IUpgradeCard, TTarget extends Card> = IReplacementEffectAbilityProps<TTarget> & IGainCondition<TSource>;
 
 export type IAbilityPropsWithType<TSource extends Card = Card> =
   ITriggeredAbilityPropsWithType<TSource> |
@@ -200,7 +202,9 @@ export type IEpicActionProps<TSource extends Card = Card> = Exclude<IAbilityProp
 export type IKeywordProperties =
   | IAmbushKeywordProperties
   | IBountyKeywordProperties
+  | ICoordinateKeywordProperties
   | IGritKeywordProperties
+  | IHiddenKeywordProperties
   | IOverwhelmKeywordProperties
   | IPilotingKeywordProperties
   | IRaidKeywordProperties
@@ -252,6 +256,10 @@ export type WhenTypeOrStandard<TSource extends Card = Card> = WhenType<TSource> 
 
 export type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
 
+export type IOngoingEffectFactory = IOngoingEffectProps & {
+    ongoingEffect: any; // IOngoingEffectGenerator | IOngoingEffectGenerator[]
+};
+
 export type IThenAbilityPropsWithSystems<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     thenCondition?: (context?: TContext) => boolean;
 };
@@ -297,6 +305,7 @@ export interface IPlayerSerializedState {
     leader?: string | ISerializedCardState;
     deck?: number | string[];
     hasInitiative?: boolean;
+    hasForceToken?: boolean;
 }
 
 export interface ISerializedGameState {
@@ -369,8 +378,17 @@ interface IBountyKeywordProperties<TSource extends IUnitCard = IUnitCard> extend
     ability: Omit<ITriggeredAbilityBaseProps<TSource>, 'canBeTriggeredBy'>;
 }
 
+interface ICoordinateKeywordProperties<TSource extends IUnitCard = IUnitCard> extends IKeywordWithAbilityDefinitionProperties<TSource> {
+    keyword: KeywordName.Coordinate;
+    ability: IAbilityPropsWithType<TSource>;
+}
+
 interface IGritKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Grit;
+}
+
+interface IHiddenKeywordProperties extends IKeywordPropertiesBase {
+    keyword: KeywordName.Hidden;
 }
 
 interface IOverwhelmKeywordProperties extends IKeywordPropertiesBase {
@@ -405,9 +423,11 @@ interface IShieldedKeywordProperties extends IKeywordPropertiesBase {
     keyword: KeywordName.Shielded;
 }
 
+/** List of keywords that don't have any additional parameters */
 type NonParameterKeywordName =
   | KeywordName.Ambush
   | KeywordName.Grit
+  | KeywordName.Hidden
   | KeywordName.Overwhelm
   | KeywordName.Saboteur
   | KeywordName.Sentinel
