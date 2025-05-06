@@ -16,7 +16,7 @@ describe('Darth Malak, Covetous Apprentice', function() {
 
             // Play Darth Malak
             context.player1.clickCard(context.darthMalak);
-            expect(context.player1).toHavePassAbilityPrompt('If you control a Sith leader unit, you may ready this unit.');
+            expect(context.player1).toHavePassAbilityPrompt('Ready Darth Malak');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeActivePlayer();
@@ -31,7 +31,8 @@ describe('Darth Malak, Covetous Apprentice', function() {
                     groundArena: ['sith-legionnaire'] // Not a leader unit
                 },
                 player2: {
-                    groundArena: ['wampa']
+                    groundArena: ['wampa'],
+                    leader: { card: 'darth-vader#dark-lord-of-the-sith', deployed: true }
                 },
             });
 

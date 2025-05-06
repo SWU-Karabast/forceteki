@@ -12,7 +12,7 @@ export default class JediSentinel extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addConstantAbility({
-            title: 'Deal 2 damage to an enemy ground unit.',
+            title: 'While the Force is with you, this unit gains Sentinel.',
             condition: (context) => context.player.hasTheForce,
             ongoingEffect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel),
         });

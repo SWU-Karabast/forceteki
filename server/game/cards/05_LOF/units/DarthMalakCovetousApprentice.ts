@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { Trait } from '../../../core/Constants';
+import { CardType, Trait } from '../../../core/Constants';
 
 export default class DarthMalakCovetousApprentice extends NonLeaderUnitCard {
     protected override getImplementationId () {
@@ -12,10 +12,13 @@ export default class DarthMalakCovetousApprentice extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
-            title: 'If you control a Sith leader unit, you may ready this unit.',
+            title: 'Ready Darth Malak',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
-                condition: (context) => context.player.hasSomeArenaUnit({ trait: Trait.Sith, condition: (card) => card.isLeaderUnit() }),
+                condition: (context) => context.player.hasSomeArenaCard({
+                    trait: Trait.Sith,
+                    type: CardType.LeaderUnit
+                }),
                 onTrue: AbilityHelper.immediateEffects.ready()
             })
         });
