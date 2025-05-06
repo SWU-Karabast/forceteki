@@ -1,4 +1,4 @@
-describe('GuerillaI nsurgency', function() {
+describe('Guerilla Insurgency', function() {
     integration(function(contextRef) {
         describe('Guerilla Insurgency\'s ability -', function() {
             it('should defeat a friendly and enemy resource, make players to discard 2 cards and deal damage 4 to each ground unit', async function() {
@@ -39,7 +39,7 @@ describe('GuerillaI nsurgency', function() {
                 context.player2.clickCard(context.confiscate);
 
                 // Each player discards 2 cards
-                expect(context.player1).toHavePrompt('Choose 2 cards to discard');
+                expect(context.player1).toHavePrompt('Choose 2 cards to discard for Guerilla Insurgency\'s effect');
                 expect(context.player1).toBeAbleToSelectExactly(['grim-resolve', 'in-pursuit', 'droid-deployment']);
                 context.player1.clickCard('grim-resolve');
                 expect(context.player1).not.toHavePrompt('Done');
@@ -47,7 +47,7 @@ describe('GuerillaI nsurgency', function() {
                 context.player1.clickCardNonChecking('droid-deployment');
                 context.player1.clickPrompt('Done');
 
-                expect(context.player2).toHavePrompt('Choose 2 cards to discard');
+                expect(context.player2).toHavePrompt('Choose 2 cards to discard for Guerilla Insurgency\'s effect');
                 expect(context.player2).toBeAbleToSelectExactly(['force-choke', 'pillage']);
                 context.player2.clickCard('force-choke');
                 context.player2.clickCard('pillage');
