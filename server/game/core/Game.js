@@ -578,7 +578,7 @@ class Game extends EventEmitter {
 
     /** @param {Player} player */
     onActionTimerExpired(player) {
-        this.addSystemMessage('{0} has run out of time for their action. They automatically pass their action.', player);
+        this.addAlert('danger', '{0} has run out of time for their action. They automatically pass their action.', player);
     }
 
     // TODO: parameter contract checks for this flow

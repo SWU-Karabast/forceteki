@@ -81,6 +81,8 @@ export class StandardActionTimer implements IActionTimer {
         }
 
         this.timers = [];
+        this.endTime = null;
+        this.pauseTime = null;
     }
 
     private initializeTimersForTimeRemaining(timeRemainingMs: number) {
