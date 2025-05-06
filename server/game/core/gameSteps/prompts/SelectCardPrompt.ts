@@ -173,7 +173,8 @@ export class SelectCardPrompt extends UiPrompt {
             buttons: buttons,
             promptTitle: this.promptTitle,
             promptUuid: this.uuid,
-            isOpponentEffect: this.properties.isOpponentEffect
+            isOpponentEffect: this.properties.isOpponentEffect,
+            attackTargetingHighlightAttacker: this.properties.attackTargetingHighlightAttacker,
         };
     }
 

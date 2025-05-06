@@ -106,6 +106,7 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     selectCardMode: SelectCardMode;
     selectOrder?: boolean;
     selector?: BaseCardSelector;
+    attackTargetingHighlightAttacker?: Card;
 }
 
 export interface IDisplayCardPromptPropertiesBase extends IPromptPropertiesBase {

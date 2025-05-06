@@ -995,7 +995,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     hp: this.getHp(),
                     sentinel: hasSentinel,
                     hidden: isHidden,
-                    isAttacker: this.isAttacking(),
+                    isAttacker: this.isAttacking() || this.controller.getAttackerHighlightingState(this),
                     isDefender: this.isDefending(),
                 };
             }
