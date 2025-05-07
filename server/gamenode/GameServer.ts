@@ -227,7 +227,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/get-user', authMiddleware(), async (req, res, next) => {
+        app.post('/api/get-user', authMiddleware('get-user'), async (req, res, next) => {
             try {
                 const { decks } = req.body;
                 const user = req.user as User;
@@ -342,7 +342,7 @@ export class GameServer {
         });
 
         // user DECKS
-        app.post('/api/get-decks', authMiddleware(), async (req, res, next) => {
+        app.post('/api/get-decks', authMiddleware('get-decks'), async (req, res, next) => {
             try {
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {

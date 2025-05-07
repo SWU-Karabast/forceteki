@@ -18,7 +18,7 @@ declare global {
     }
 }
 
-export const authMiddleware = () => {
+export const authMiddleware = (routeName = null) => {
     const userFactory = new UserFactory();
 
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -27,12 +27,30 @@ export const authMiddleware = () => {
             const cookies = parse(req.headers.cookie || '');
             const token = cookies['__Secure-next-auth.session-token'] || cookies['next-auth.session-token'];
             if (!token) {
+                if (routeName) {
+                    logger.info(`Auth ${routeName}: no token found in cookies. Proceeding with anonymous user`);
+                }
+
                 // No token found, so no user info. We let the request proceed with an attached anon user.
                 req.user = userFactory.createAnonymousUserFromQuery(req.body);
+
+                if (routeName) {
+                    logger.info(`Auth ${routeName}: anonymous user created for id ${req.user.id}`);
+                }
+
                 return next();
             }
 
+            if (routeName) {
+                logger.info(`Auth ${routeName}: token found in cookies. Authenticating user.`);
+            }
+
             req.user = await userFactory.createUserFromTokenAsync(token);
+
+            if (routeName) {
+                logger.info(`Auth ${routeName}: finished authenticating user`);
+            }
+
             return next();
         } catch (error) {
             logger.error('Error with authentication: ', { error: { message: error.message, stack: error.stack } });
