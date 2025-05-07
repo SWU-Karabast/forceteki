@@ -9,7 +9,7 @@ describe('Jedi Consular', function() {
                         groundArena: ['jedi-consular'],
                         base: 'echo-base',
                         leader: 'han-solo#audacious-smuggler',
-                        hand: ['waylay', 'consortium-starviper', 'jawa-scavenger', 'swoop-racer']
+                        hand: ['waylay', 'consortium-starviper', 'jawa-scavenger', 'swoop-racer', 'atst']
                     },
                 });
             });
@@ -21,7 +21,7 @@ describe('Jedi Consular', function() {
                 expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play a unit from your hand. It costs 2 less']);
 
                 context.player1.clickPrompt('Play a unit from your hand. It costs 2 less');
-                expect(context.player1).toBeAbleToSelectExactly([context.consortiumStarviper, context.jawaScavenger, context.swoopRacer]);
+                expect(context.player1).toBeAbleToSelectExactly([context.consortiumStarviper, context.jawaScavenger, context.swoopRacer, context.atst]);
 
                 context.player1.clickCard(context.swoopRacer);
                 expect(context.jediConsular.exhausted).toBeTrue();
@@ -47,6 +47,7 @@ describe('Jedi Consular', function() {
                 expect(context.player1).toBeAbleToSelectExactly([context.consortiumStarviper]);
                 expect(context.player1).toHaveChooseNothingButton();
 
+                context.player1.clickCardNonChecking(context.atst);
                 context.player1.clickCard(context.consortiumStarviper);
                 expect(context.consortiumStarviper).toBeInZone('spaceArena');
                 expect(context.player1.exhaustedResourceCount).toBe(1);
