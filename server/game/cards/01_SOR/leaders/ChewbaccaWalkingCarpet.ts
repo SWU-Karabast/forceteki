@@ -21,7 +21,7 @@ export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                     AbilityHelper.immediateEffects.playCardFromHand(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel) })
-                ])
+                ], false, true),
             }
         });
     }

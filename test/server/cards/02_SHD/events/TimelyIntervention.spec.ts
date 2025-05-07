@@ -116,5 +116,30 @@ describe('Timely Intervention', function () {
 
             context.ignoreUnresolvedActionPhasePrompts = true;
         });
+
+        it('should do nothing when choosing nothing', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['poe-dameron#quick-to-improvise', 'wampa', 'timely-intervention'],
+                    leader: 'han-solo#worth-the-risk',
+                    base: 'command-center',
+                    resources: 5
+                },
+                player2: {
+                    groundArena: ['rugged-survivors']
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.timelyIntervention);
+            context.player1.clickPrompt('Choose nothing');
+
+            expect(context.poeDameron).toBeInZone('hand');
+            expect(context.poeDameron.hasSomeKeyword('ambush')).toBeFalse();
+            expect(context.wampa).toBeInZone('hand');
+            expect(context.wampa.hasSomeKeyword('ambush')).toBeFalse();
+        });
     });
 });

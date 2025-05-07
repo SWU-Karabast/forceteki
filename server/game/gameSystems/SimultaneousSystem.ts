@@ -1,6 +1,7 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { MetaEventName } from '../core/Constants';
 import * as Contract from '../core/utils/Contract';
+import * as Helpers from '../core/utils/Helpers';
 import { GameStateChangeRequired } from '../core/Constants';
 import type { GameObject } from '../core/GameObject';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
@@ -66,11 +67,6 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
     }
 
-    private allGameSystemsAreLegal(context: TContext, additionalProperties = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        return properties.gameSystems.every((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
-    }
-
     public override canAffectInternal(target: GameObject, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
@@ -83,6 +79,9 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
 
     public override allTargetsLegal(context: TContext, additionalProperties = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
+        if (this.enforceTargeting) {
+            return properties.gameSystems.every((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
+        }
         return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
     }
 
@@ -98,9 +97,13 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
             };
             generateStepName = (gameSystem: GameSystem<TContext>) => `queue generate event game steps for ${gameSystem.name}`;
         } else {
+            // Exit early if we are enforcing targeting and there are no targets (e.g. when the user picks "Choose nothing")
+            if (this.enforceTargeting && !this.allTargetsLegal(context, additionalProperties) && Helpers.asArray(properties.target).length === 0) {
+                return;
+            }
             Contract.assertFalse(
-                this.enforceTargeting && !this.allGameSystemsAreLegal(context, additionalProperties),
-                `Attempting to trigger simultaneous system with everyGameSystemMustBeLegal set to true, but not all game systems are legal. Systems: ${properties.gameSystems.map((gameSystem) => gameSystem.name).join(', ')}`
+                this.enforceTargeting && !this.allTargetsLegal(context, additionalProperties),
+                `Attempting to trigger simultaneous system with enforceTargeting set to true, but not all game systems are legal. Systems: ${properties.gameSystems.map((gameSystem) => gameSystem.name).join(', ')}`
             );
             queueGenerateEventGameStepsFn = (gameSystem: GameSystem<TContext>) => () => {
                 if (gameSystem.hasLegalTarget(context, additionalProperties)) {

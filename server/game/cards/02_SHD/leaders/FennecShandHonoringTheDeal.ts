@@ -14,6 +14,7 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
         this.addActionAbility({
             title: 'Play a unit that costs 4 or less from your hand. Give it ambush for this phase',
             cost: [AbilityHelper.costs.abilityActivationResourceCost(1), AbilityHelper.costs.exhaustSelf()],
+            cannotTargetFirst: true,
             targetResolver: {
                 cardCondition: (card) => card.isUnit() && card.cost <= 4,
                 cardTypeFilter: CardType.BasicUnit,
@@ -24,7 +25,7 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
                     }),
-                ])
+                ], false, true),
             }
         });
     }
@@ -42,7 +43,7 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                         effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
                     }),
-                ])
+                ], false, true),
             }
         });
     }
