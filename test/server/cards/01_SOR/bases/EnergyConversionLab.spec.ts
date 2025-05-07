@@ -52,8 +52,9 @@ describe('Energy Conversion Lab', function() {
 
                 const { context } = contextRef;
 
-                expect(context.energyConversionLab).not.toHaveAvailableActionWhenClickedBy(context.player1);
-                expect(context.energyConversionLab.epicActionSpent).toBeFalse();
+                context.player1.clickCard(context.energyConversionLab);
+
+                expect(context.player2).toBeActivePlayer();
             });
 
             // Cf issue: https://github.com/SWU-Karabast/forceteki/issues/1005:
@@ -100,6 +101,27 @@ describe('Energy Conversion Lab', function() {
 
                 expect(context.poeDameron).toBeInZone('hand');
                 expect(context.poeDameron.hasSomeKeyword('ambush')).toBeFalse();
+            });
+
+            it('can be used to soft pass if there are no legal targets in hand', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['vanquish'],
+                        base: 'energy-conversion-lab',
+                        leader: 'han-solo#worth-the-risk',
+                    },
+                    player2: {
+                        groundArena: ['rugged-survivors']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.energyConversionLab);
+
+                expect(context.energyConversionLab.epicActionSpent).toBeTrue();
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

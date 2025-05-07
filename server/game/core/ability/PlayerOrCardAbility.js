@@ -358,6 +358,11 @@ class PlayerOrCardAbility {
         return false;
     }
 
+    /** @returns {this is import('../../abilities/EpicActionAbility.js').EpicActionAbility} */
+    isEpicAction() {
+        return false;
+    }
+
     /** Return the controller of ability, can be different from card's controller (with bounty for exemple)
      * @returns {import('../Player.js').Player} */
     get controller() {
