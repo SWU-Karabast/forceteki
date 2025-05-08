@@ -2,28 +2,15 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { MetaEventName } from '../core/Constants';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
-import { GameStateChangeRequired } from '../core/Constants';
-import type { GameObject } from '../core/GameObject';
-import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
-import { AggregateSystemTargetingEnforcement } from '../core/gameSystem/AggregateSystem';
-import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
-import type { Player } from '../core/Player';
+import type { GameSystem } from '../core/gameSystem/GameSystem';
+import type { ISimultaneousOrSequentialSystemProperties } from './SimultaneousOrSequentialSystem';
+import { SimultaneousOrSequentialSystem, TargetingEnforcement } from './SimultaneousOrSequentialSystem';
+import type { GameEvent } from '../core/event/GameEvent';
 
-export interface ISimultaneousSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
-    gameSystems: GameSystem<TContext>[];
+export type ISimultaneousSystemProperties<TContext extends AbilityContext = AbilityContext> = ISimultaneousOrSequentialSystemProperties<TContext>;
 
-    targetingEnforcement?: AggregateSystemTargetingEnforcement;
-}
-
-export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISimultaneousSystemProperties<TContext>> {
+export class SimultaneousSystem<TContext extends AbilityContext = AbilityContext> extends SimultaneousOrSequentialSystem<ISimultaneousSystemProperties<TContext>, TContext> {
     protected override readonly eventName: MetaEventName.Simultaneous;
-    protected override readonly defaultProperties: ISimultaneousSystemProperties<TContext> = {
-        gameSystems: [],
-        targetingEnforcement: AggregateSystemTargetingEnforcement.Default,
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public override eventHandler() {}
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { gameSystems } = this.generatePropertiesFromContext(context);
@@ -36,61 +23,24 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         return [message, legalSystems.map((system) => system.getEffectMessage(context))];
     }
 
-    public override getInnerSystems(properties: ISimultaneousSystemProperties<TContext>) {
-        return properties.gameSystems;
-    }
-
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
-        if (properties.targetingEnforcement === AggregateSystemTargetingEnforcement.EnforceAll) {
-            for (const candidateTarget of this.targets(context, additionalProperties)) {
-                if (this.canAffect(candidateTarget, context, additionalProperties, mustChangeGameState)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
-    }
-
-    public override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-
-        if (properties.targetingEnforcement === AggregateSystemTargetingEnforcement.EnforceAll) {
-            return properties.gameSystems.every((gameSystem) => gameSystem.canAffect(target, context, additionalProperties, mustChangeGameState));
-        }
-
-        return properties.gameSystems.some((gameSystem) => gameSystem.canAffect(target, context, additionalProperties, mustChangeGameState));
-    }
-
-    public override allTargetsLegal(context: TContext, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}): boolean {
-        const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (properties.targetingEnforcement === AggregateSystemTargetingEnforcement.EnforceAll) {
-            return properties.gameSystems.every((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
-        }
-        return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
-    }
-
-    public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}): void {
+    public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         let queueGenerateEventGameStepsFn: (gameSystem: GameSystem<TContext>) => () => void;
         let generateStepName: (gameSystem: GameSystem<TContext>) => string;
 
-        if (properties.targetingEnforcement === AggregateSystemTargetingEnforcement.IgnoreAll) {
+        if (properties.targetingEnforcement === TargetingEnforcement.IgnoreAll) {
             queueGenerateEventGameStepsFn = (gameSystem: GameSystem<TContext>) => () => {
                 gameSystem.queueGenerateEventGameSteps(events, context, additionalProperties);
             };
             generateStepName = (gameSystem: GameSystem<TContext>) => `queue generate event game steps for ${gameSystem.name}`;
         } else {
             // Exit early if we are enforcing targeting and there are no targets (e.g. when the user picks "Choose nothing")
-            if (properties.targetingEnforcement === AggregateSystemTargetingEnforcement.EnforceAll && !this.allTargetsLegal(context, additionalProperties) && Helpers.asArray(properties.target).length === 0) {
+            if (properties.targetingEnforcement === TargetingEnforcement.EnforceAll && !this.allTargetsLegal(context, additionalProperties) && Helpers.asArray(properties.target).length === 0) {
                 return;
             }
             Contract.assertFalse(
-                properties.targetingEnforcement === AggregateSystemTargetingEnforcement.EnforceAll && !this.allTargetsLegal(context, additionalProperties),
+                properties.targetingEnforcement === TargetingEnforcement.EnforceAll && !this.allTargetsLegal(context, additionalProperties),
                 `Attempting to trigger simultaneous system with enforceTargeting set to true, but not all game systems are legal. Systems: ${properties.gameSystems.map((gameSystem) => gameSystem.name).join(', ')}`
             );
             queueGenerateEventGameStepsFn = (gameSystem: GameSystem<TContext>) => () => {
@@ -113,12 +63,5 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
                 context.game.queueSimpleStep(queueGenerateEventGameStepsFn(gameSystem), generateStepName(gameSystem));
             }
         }
-    }
-
-    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}) {
-        const properties = this.generatePropertiesFromContext(context);
-        return properties.gameSystems.some((gameSystem) =>
-            gameSystem.hasTargetsChosenByPlayer(context, player, additionalProperties)
-        );
     }
 }

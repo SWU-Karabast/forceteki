@@ -113,7 +113,7 @@ import { SequentialSystem } from './SequentialSystem';
 import type { IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem';
 import type { ISimultaneousSystemProperties } from './SimultaneousSystem';
-import { SimultaneousGameSystem } from './SimultaneousSystem';
+import { SimultaneousSystem } from './SimultaneousSystem';
 import type { ITakeControlOfResourceProperties } from './TakeControlOfResourceSystem';
 import { TakeControlOfResourceSystem } from './TakeControlOfResourceSystem';
 import type { ITakeControlOfUnitProperties } from './TakeControlOfUnitSystem';
@@ -666,7 +666,7 @@ export function sequential<TContext extends AbilityContext = AbilityContext>(pro
     });
 }
 export function simultaneous<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISimultaneousSystemProperties<TContext> | GameSystem<TContext>[], TContext>) {
-    return new SimultaneousGameSystem<TContext>((context: TContext) => {
+    return new SimultaneousSystem<TContext>((context: TContext) => {
         const props = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
         return !Array.isArray(props) ? props : {
             gameSystems: props,

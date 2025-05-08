@@ -7,15 +7,6 @@ import { GameSystem } from './GameSystem';
 // helper type useful for some extensions of this class
 export type ISystemArrayOrFactory<TContext extends AbilityContext> = (GameSystem<TContext>)[] | ((context: TContext) => (GameSystem<TContext>)[]);
 
-export enum AggregateSystemTargetingEnforcement {
-    Default = 'default',
-    // Assume all systems have a legal target.
-    // Needed for situations where there currently isn't a target but an earlier system in the chain will create one.
-    IgnoreAll = 'ignoreAll',
-    // Enforce all systems to have a legal target.
-    EnforceAll = 'enforceAll',
-}
-
 /**
  * Meta-system used for executing a set of other systems together.
  *

@@ -1,7 +1,7 @@
 import { BaseCard } from '../../../core/card/BaseCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { KeywordName, CardType, ZoneName, RelativePlayer } from '../../../core/Constants';
-import { AggregateSystemTargetingEnforcement } from '../../../core/gameSystem/AggregateSystem';
+import { TargetingEnforcement } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class EnergyConversionLab extends BaseCard {
     protected override getImplementationId () {
@@ -24,7 +24,7 @@ export default class EnergyConversionLab extends BaseCard {
                         AbilityHelper.immediateEffects.playCardFromHand(),
                         AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush) }),
                     ],
-                    targetingEnforcement: AggregateSystemTargetingEnforcement.EnforceAll
+                    targetingEnforcement: TargetingEnforcement.EnforceAll
                 })
             }
         });

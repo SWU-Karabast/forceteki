@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
-import { AggregateSystemTargetingEnforcement } from '../../../core/gameSystem/AggregateSystem';
+import { TargetingEnforcement } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -24,7 +24,7 @@ export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
                         AbilityHelper.immediateEffects.playCardFromHand(),
                         AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel) })
                     ],
-                    targetingEnforcement: AggregateSystemTargetingEnforcement.EnforceAll,
+                    targetingEnforcement: TargetingEnforcement.EnforceAll,
                 }),
             }
         });
