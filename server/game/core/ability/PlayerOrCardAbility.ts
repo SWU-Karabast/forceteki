@@ -11,6 +11,9 @@ import * as Helpers from '../utils/Helpers.js';
 import { AbilityContext } from './AbilityContext.js';
 import type Game from '../Game.js';
 import type { Player } from '../Player.js';
+import type { PlayCardAction } from './PlayCardAction.js';
+import type { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';
+import type CardAbilityStep from './CardAbilityStep.js';
 
 // TODO: convert to TS and make this abstract
 /**
@@ -26,23 +29,23 @@ import type { Player } from '../Player.js';
 export class PlayerOrCardAbility {
     public title: any;
     public limit: any;
-    public keyword: any;
-    public type: any;
-    public optional: boolean;
-    public immediateEffect: any;
-    public uuid: any;
+    public readonly keyword: any;
+    public readonly type: any;
+    public readonly optional: boolean;
+    public readonly immediateEffect: any;
+    public readonly uuid: any;
     public canResolveWithoutLegalTargets: boolean;
-    public canBeTriggeredBy: any;
-    public playerChoosingOptional: any;
-    public optionalButtonTextOverride: any;
-    public game: Game;
-    public card: any;
-    public properties: any;
-    public triggerHandlingMode: any;
-    public cost: any;
-    public nonDependentTargets: any;
+    public readonly canBeTriggeredBy: any;
+    public readonly playerChoosingOptional: any;
+    public readonly optionalButtonTextOverride: any;
+    public readonly game: Game;
+    public readonly card: any;
+    public readonly properties: any;
+    public readonly triggerHandlingMode: any;
+    public readonly cost: any;
+    public readonly nonDependentTargets: any;
     public targetResolvers: any;
-    public toStringName: string;
+    public readonly toStringName: string;
 
     /** Return the controller of ability, can be different from card's controller (with bounty for example) */
     public get controller(): Player {
@@ -268,7 +271,7 @@ export class PlayerOrCardAbility {
         return targetResults;
     }
 
-    public getDefaultTargetResults(context, canCancel) {
+    public getDefaultTargetResults(context, canCancel = undefined) {
         return {
             canIgnoreAllCosts:
                 context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,
@@ -351,14 +354,13 @@ export class PlayerOrCardAbility {
     // TODO: refactor the other methods to also be type predicates
     /**
      * Indicates whether a card is played as part of the resolution this ability.
-     * @returns true if this is a PlayCardAction.
      */
-    public isPlayCardAbility() {
+    public isPlayCardAbility(): this is PlayCardAction {
         return false;
     }
 
     /** Indicates whether this ability is an ability from card text as opposed to other types of actions like playing a card */
-    public isCardAbility() {
+    public isCardAbility(): this is CardAbilityStep {
         return false;
     }
 
@@ -371,8 +373,7 @@ export class PlayerOrCardAbility {
         return false;
     }
 
-    /** @returns true when this is a InitiateAttackAction */
-    public isAttackAction() {
+    public isAttackAction(): this is InitiateAttackAction {
         return false;
     }
 }

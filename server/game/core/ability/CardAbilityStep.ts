@@ -216,7 +216,7 @@ export class CardAbilityStep extends PlayerOrCardAbility {
     }
 
     /** @override */
-    public override isCardAbility() {
+    public override isCardAbility(): this is CardAbilityStep {
         return true;
     }
 }
