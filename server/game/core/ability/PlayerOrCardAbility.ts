@@ -10,6 +10,7 @@ import { TriggerHandlingMode } from '../event/EventWindow.js';
 import * as Helpers from '../utils/Helpers.js';
 import { AbilityContext } from './AbilityContext.js';
 import type Game from '../Game.js';
+import type { Player } from '../Player.js';
 
 // TODO: convert to TS and make this abstract
 /**
@@ -43,9 +44,8 @@ export class PlayerOrCardAbility {
     public targetResolvers: any;
     public toStringName: string;
 
-    /** Return the controller of ability, can be different from card's controller (with bounty for exemple)
-     * @returns {import('../Player.js').Player} */
-    public get controller() {
+    /** Return the controller of ability, can be different from card's controller (with bounty for example) */
+    public get controller(): Player {
         return this.canBeTriggeredBy === RelativePlayer.Self ? this.card.controller : this.card.controller.opponent;
     }
 
@@ -160,10 +160,6 @@ export class PlayerOrCardAbility {
         }
     }
 
-    /**
-     * @param {*} context
-     * @returns {String}
-     */
     public meetsRequirements(context = this.createContext(), ignoredRequirements: string[] = [], thisStepOnly = false): string {
         // check legal targets exist
         // check costs can be paid
@@ -202,10 +198,8 @@ export class PlayerOrCardAbility {
 
     /**
      * Return whether all costs are capable of being paid for the ability.
-     *
-     * @returns {Boolean}
      */
-    public canPayCosts(context) {
+    public canPayCosts(context): boolean {
         const contextCopy = context.copy({ stage: Stage.Cost });
         return this.getCosts(context).every((cost) => cost.canPay(contextCopy));
     }
@@ -250,10 +244,8 @@ export class PlayerOrCardAbility {
 
     /**
      * Returns whether there are eligible cards available to fulfill targets.
-     *
-     * @returns {Boolean}
      */
-    public canResolveSomeTarget(context) {
+    public canResolveSomeTarget(context): boolean {
         return this.nonDependentTargets.some((target) => target.canResolve(context));
     }
 
@@ -358,8 +350,8 @@ export class PlayerOrCardAbility {
 
     // TODO: refactor the other methods to also be type predicates
     /**
-     * Indicates whether a card is played as part of the resolution this ability
-     * @returns {this is import('./PlayCardAction.js').PlayCardAction}
+     * Indicates whether a card is played as part of the resolution this ability.
+     * @returns true if this is a PlayCardAction.
      */
     public isPlayCardAbility() {
         return false;
@@ -379,7 +371,7 @@ export class PlayerOrCardAbility {
         return false;
     }
 
-    /** @returns {this is import('../../actions/InitiateAttackAction.js').InitiateAttackAction} */
+    /** @returns true when this is a InitiateAttackAction */
     public isAttackAction() {
         return false;
     }
