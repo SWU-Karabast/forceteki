@@ -1,6 +1,7 @@
 import { BaseCard } from '../../../core/card/BaseCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { KeywordName, CardType, ZoneName, RelativePlayer } from '../../../core/Constants';
+import { AggregateSystemTargetingEnforcement } from '../../../core/gameSystem/AggregateSystem';
 
 export default class EnergyConversionLab extends BaseCard {
     protected override getImplementationId () {
@@ -18,14 +19,13 @@ export default class EnergyConversionLab extends BaseCard {
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous(
-                    [
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous({
+                    gameSystems: [
                         AbilityHelper.immediateEffects.playCardFromHand(),
                         AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush) }),
                     ],
-                    false, // We do not ignore targeting requirements
-                    true // All effect must have a legal target
-                )
+                    targetingEnforcement: AggregateSystemTargetingEnforcement.EnforceAll
+                })
             }
         });
     }

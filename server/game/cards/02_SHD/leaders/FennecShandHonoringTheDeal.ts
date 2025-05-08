@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { CardType, KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { AggregateSystemTargetingEnforcement } from '../../../core/gameSystem/AggregateSystem';
 
 export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -20,12 +21,15 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.playCardFromHand(),
-                    AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
-                    }),
-                ], false, true),
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous({
+                    gameSystems: [
+                        AbilityHelper.immediateEffects.playCardFromHand(),
+                        AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                            effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
+                        }),
+                    ],
+                    targetingEnforcement: AggregateSystemTargetingEnforcement.EnforceAll,
+                }),
             }
         });
     }
@@ -38,12 +42,15 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.playCardFromHand(),
-                    AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
-                    }),
-                ], false, true),
+                immediateEffect: AbilityHelper.immediateEffects.simultaneous({
+                    gameSystems: [
+                        AbilityHelper.immediateEffects.playCardFromHand(),
+                        AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                            effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
+                        }),
+                    ],
+                    targetingEnforcement: AggregateSystemTargetingEnforcement.EnforceAll,
+                }),
             }
         });
     }
