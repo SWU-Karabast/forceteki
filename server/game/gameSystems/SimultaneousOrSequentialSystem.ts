@@ -61,9 +61,9 @@ export abstract class SimultaneousOrSequentialSystem<TProps extends ISimultaneou
     public override allTargetsLegal(context: TContext, additionalProperties: Partial<TProps> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (properties.targetingEnforcement === TargetingEnforcement.EnforceAll) {
-            return properties.gameSystems.every((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
+            return properties.gameSystems.every((gameSystem) => gameSystem.allTargetsLegal(context, additionalProperties));
         }
-        return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
+        return properties.gameSystems.some((gameSystem) => gameSystem.allTargetsLegal(context, additionalProperties));
     }
 
     public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<TProps> = {}) {
