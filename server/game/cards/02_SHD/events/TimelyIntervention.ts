@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { CardType, KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
 import { EventCard } from '../../../core/card/EventCard';
-import { TargetingEnforcement } from '../../../gameSystems/SimultaneousOrSequentialSystem';
+import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class TimelyIntervention extends EventCard {
     protected override getImplementationId() {
@@ -26,7 +26,7 @@ export default class TimelyIntervention extends EventCard {
                             effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
                         }),
                     ],
-                    targetingEnforcement: TargetingEnforcement.EnforceAll,
+                    resolutionMode: ResolutionMode.AllGameSystemsMustBeLegal,
                 })
             }
         });

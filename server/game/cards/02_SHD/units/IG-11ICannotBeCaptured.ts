@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { ZoneName } from '../../../core/Constants';
-import { TargetingEnforcement } from '../../../gameSystems/SimultaneousOrSequentialSystem';
+import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -29,7 +29,7 @@ export default class IG11ICannotBeCaptured extends NonLeaderUnitCard {
                             };
                         })
                     ],
-                    targetingEnforcement: TargetingEnforcement.IgnoreAll,
+                    resolutionMode: ResolutionMode.AlwaysResolve,
                 })
             },
             effect: 'defeat him and deal 3 damage to each enemy ground unit instead',

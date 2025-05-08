@@ -5,7 +5,7 @@ import type { GameSystem } from '../core/gameSystem/GameSystem';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
 import type { ISimultaneousOrSequentialSystemProperties } from './SimultaneousOrSequentialSystem';
-import { SimultaneousOrSequentialSystem, TargetingEnforcement } from './SimultaneousOrSequentialSystem';
+import { ResolutionMode, SimultaneousOrSequentialSystem } from './SimultaneousOrSequentialSystem';
 
 export type ISequentialSystemProperties<TContext extends AbilityContext = AbilityContext> = ISimultaneousOrSequentialSystemProperties<TContext>;
 
@@ -32,7 +32,7 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
         let queueGenerateEventGameStepsFn: (gameSystem: GameSystem<TContext>, events: GameEvent[]) => () => boolean;
         let generateStepName: (gameSystem: GameSystem<TContext>) => string;
 
-        if (properties.targetingEnforcement === TargetingEnforcement.IgnoreAll) {
+        if (properties.resolutionMode === ResolutionMode.AlwaysResolve) {
             queueGenerateEventGameStepsFn = (gameSystem: GameSystem<TContext>, eventsForThisAction: GameEvent[]) => () => {
                 gameSystem.queueGenerateEventGameSteps(eventsForThisAction, context, additionalProperties);
                 return true;
@@ -40,11 +40,11 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
             generateStepName = (gameSystem: GameSystem<TContext>) => `add events for sequential system  ${gameSystem.name}`;
         } else {
             // Exit early if we are enforcing targeting and there are no targets (e.g. when the user picks "Choose nothing")
-            if (properties.targetingEnforcement === TargetingEnforcement.EnforceAll && !this.allTargetsLegal(context, additionalProperties) && Helpers.asArray(properties.target).length === 0) {
+            if (properties.resolutionMode === ResolutionMode.AllGameSystemsMustBeLegal && !this.allTargetsLegal(context, additionalProperties) && Helpers.asArray(properties.target).length === 0) {
                 return;
             }
             Contract.assertFalse(
-                properties.targetingEnforcement === TargetingEnforcement.EnforceAll && !this.allTargetsLegal(context, additionalProperties),
+                properties.resolutionMode === ResolutionMode.AllGameSystemsMustBeLegal && !this.allTargetsLegal(context, additionalProperties),
                 `Attempting to trigger sequential system with enforceTargeting set to true, but not all game systems are legal. Systems: ${properties.gameSystems.map((gameSystem) => gameSystem.name).join(', ')}`
             );
             queueGenerateEventGameStepsFn = (gameSystem: GameSystem<TContext>, eventsForThisAction: GameEvent[]) => () => {

@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 import { CardType, KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
-import { TargetingEnforcement } from '../../../gameSystems/SimultaneousOrSequentialSystem';
+import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -28,7 +28,7 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
                             effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
                         }),
                     ],
-                    targetingEnforcement: TargetingEnforcement.EnforceAll,
+                    resolutionMode: ResolutionMode.AllGameSystemsMustBeLegal,
                 }),
             }
         });
@@ -49,7 +49,7 @@ export default class FennecShandHonoringTheDeal extends LeaderUnitCard {
                             effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Ambush)
                         }),
                     ],
-                    targetingEnforcement: TargetingEnforcement.EnforceAll,
+                    resolutionMode: ResolutionMode.AllGameSystemsMustBeLegal,
                 }),
             }
         });

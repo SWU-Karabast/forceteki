@@ -8,22 +8,22 @@ import type { Player } from '../core/Player';
 export interface ISimultaneousOrSequentialSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     gameSystems: GameSystem<TContext>[];
 
-    targetingEnforcement?: TargetingEnforcement;
+    resolutionMode?: ResolutionMode;
 }
 
-export enum TargetingEnforcement {
-    Default = 'default',
+export enum ResolutionMode {
+    SomeGameSystemsMustBeLegal = 'someGameSystemsMustBeLegal',
+    // Enforce all systems to have a legal target.
+    AllGameSystemsMustBeLegal = 'allGameSystemsMustBeLegal',
     // Assume all systems have a legal target.
     // Needed for situations where there currently isn't a target but an earlier system in the chain will create one.
-    IgnoreAll = 'ignoreAll',
-    // Enforce all systems to have a legal target.
-    EnforceAll = 'enforceAll',
+    AlwaysResolve = 'alwaysResolve',
 }
 
 export abstract class SimultaneousOrSequentialSystem<TProps extends ISimultaneousOrSequentialSystemProperties<TContext>, TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, TProps> {
     protected override readonly defaultProperties: ISimultaneousOrSequentialSystemProperties<TContext> = {
         gameSystems: [],
-        targetingEnforcement: TargetingEnforcement.Default,
+        resolutionMode: ResolutionMode.SomeGameSystemsMustBeLegal,
     };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -36,7 +36,9 @@ export abstract class SimultaneousOrSequentialSystem<TProps extends ISimultaneou
     public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProps> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        if (properties.targetingEnforcement === TargetingEnforcement.EnforceAll) {
+        if (properties.resolutionMode === ResolutionMode.AlwaysResolve) {
+            return true;
+        } else if (properties.resolutionMode === ResolutionMode.AllGameSystemsMustBeLegal) {
             for (const candidateTarget of this.targets(context, additionalProperties)) {
                 if (this.canAffect(candidateTarget, context, additionalProperties, mustChangeGameState)) {
                     return true;
@@ -48,10 +50,10 @@ export abstract class SimultaneousOrSequentialSystem<TProps extends ISimultaneou
         return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
     }
 
-    public override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<TProps> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    protected override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<TProps> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        if (properties.targetingEnforcement === TargetingEnforcement.EnforceAll) {
+        if (properties.resolutionMode === ResolutionMode.AllGameSystemsMustBeLegal) {
             return properties.gameSystems.every((gameSystem) => gameSystem.canAffect(target, context, additionalProperties, mustChangeGameState));
         }
 
@@ -60,7 +62,7 @@ export abstract class SimultaneousOrSequentialSystem<TProps extends ISimultaneou
 
     public override allTargetsLegal(context: TContext, additionalProperties: Partial<TProps> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (properties.targetingEnforcement === TargetingEnforcement.EnforceAll) {
+        if (properties.resolutionMode === ResolutionMode.AllGameSystemsMustBeLegal) {
             return properties.gameSystems.every((gameSystem) => gameSystem.allTargetsLegal(context, additionalProperties));
         }
         return properties.gameSystems.some((gameSystem) => gameSystem.allTargetsLegal(context, additionalProperties));

@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import { TargetingEnforcement } from '../../../gameSystems/SimultaneousOrSequentialSystem';
+import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class AsIHaveForeseen extends EventCard {
     protected override getImplementationId() {
@@ -32,7 +32,7 @@ export default class AsIHaveForeseen extends EventCard {
                                             adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 4 }
                                         })
                                     ],
-                                    targetingEnforcement: TargetingEnforcement.IgnoreAll,
+                                    resolutionMode: ResolutionMode.AlwaysResolve,
                                 }),
                             },
                             {
