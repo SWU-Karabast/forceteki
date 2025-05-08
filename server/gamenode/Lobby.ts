@@ -163,6 +163,10 @@ export class Lobby {
     private updateUserLastActivity(id: string): void {
         const now = new Date();
         this.userLastActivity.set(id, now);
+
+        if (this.game) {
+            this.game.restartActionTimer(id);
+        }
     }
 
     public hasPlayer(id: string) {
@@ -686,6 +690,8 @@ export class Lobby {
                 throw new Error(`Incorrect command or command format expected function but got: ${command}`);
             }
 
+            this.updateUserLastActivity(socket.user.getId());
+
             await this[command](socket, ...args);
             this.sendLobbyState();
         } catch (error) {
@@ -701,6 +707,8 @@ export class Lobby {
                 return;
             }
 
+            this.updateUserLastActivity(socket.user.getId());
+
             // if (command === 'leavegame') {
             //     return this.onLeaveGame(socket);
             // }
@@ -709,7 +717,6 @@ export class Lobby {
                 return;
             }
 
-            this.game.restartActionTimers();
             await this.game[command](socket.user.getId(), ...args);
 
             this.game.continue();

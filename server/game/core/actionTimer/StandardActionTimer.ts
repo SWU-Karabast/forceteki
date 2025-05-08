@@ -10,7 +10,6 @@ interface SpecificTimeHandler {
 
 export class StandardActionTimer implements IActionTimer {
     private readonly game: Game;
-    private readonly onTimeout: () => void;
     private readonly player: Player;
     private readonly timeLimitMs: number;
 
@@ -50,13 +49,18 @@ export class StandardActionTimer implements IActionTimer {
     }
 
     public start() {
-        this.stop();
+        this.game.addAlert('warning', 'Started timer for {0}', this.player);
+
+        this.stop(true);
         this.initializeTimersForTimeRemaining(this.timeLimitMs);
     }
 
     public restartIfRunning() {
         if (this.isRunning) {
+            this.game.addAlert('warning', 'Restarted timer for {0}', this.player);
             this.start();
+        } else {
+            this.game.addAlert('warning', 'Attempted to restart timer for {0} but it is not running', this.player);
         }
     }
 
@@ -75,7 +79,11 @@ export class StandardActionTimer implements IActionTimer {
         this.initializeTimersForTimeRemaining(timeRemainingMs);
     }
 
-    public stop() {
+    public stop(isInternal = false) {
+        if (!isInternal) {
+            this.game.addAlert('warning', 'Stopped timer for {0}', this.player);
+        }
+
         for (const timer of this.timers) {
             clearTimeout(timer);
         }

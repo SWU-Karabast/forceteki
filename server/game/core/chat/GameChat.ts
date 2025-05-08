@@ -35,11 +35,6 @@ export class GameChat {
         this.pushUpdate();
     }
 
-    public addSystemMessage(message: string, ...args: MsgArg[]): void {
-        this.addMessage(message, ...args);
-        this.pushUpdate();
-    }
-
     public formatMessage(format: string, args: MsgArg[]): string | string[] {
         if (!format) {
             return '';

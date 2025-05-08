@@ -572,8 +572,12 @@ class Game extends EventEmitter {
     //     }
     // }
 
-    restartActionTimers() {
+    restartAllActionTimers() {
         this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
+    }
+
+    restartActionTimer(playerId) {
+        this.getPlayerById(playerId).actionTimer.restartIfRunning();
     }
 
     /** @param {Player} player */

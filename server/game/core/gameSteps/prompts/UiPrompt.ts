@@ -8,9 +8,11 @@ import type { IButton } from '../PromptInterfaces';
 import type Game from '../../Game';
 
 export abstract class UiPrompt extends BaseStep {
-    public completed = false;
-    public uuid = uuid();
-    private previousPrompt?: UiPrompt;
+    public readonly uuid = uuid();
+
+    private readonly previousPrompt?: UiPrompt;
+    private completed = false;
+    private firstContinue = true;
 
     public constructor(game: Game) {
         super(game);
@@ -59,10 +61,20 @@ export abstract class UiPrompt extends BaseStep {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
+
+                if (this.firstContinue) {
+                    player.actionTimer.start();
+                }
             } else {
                 player.setPrompt(this.waitingPrompt());
+
+                if (this.firstContinue) {
+                    player.actionTimer.stop();
+                }
             }
         }
+
+        this.firstContinue = false;
 
         this.highlightSelectableCards();
     }
