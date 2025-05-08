@@ -1025,6 +1025,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             super.addOngoingEffect(ongoingEffect);
         }
 
+        // STATE TODO: We need to reall dig into what is being updated by resolveAbilitiesForNewZone. We desperately want to remove this onAfter method.
         public override afterSetAllState(oldState) {
             super.afterSetAllState(oldState);
 

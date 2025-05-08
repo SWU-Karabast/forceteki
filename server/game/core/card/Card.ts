@@ -850,6 +850,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbility[], from: ZoneName, to: ZoneName) {
+        // STATE TODO: Gonna be a little hard to track, but also not a big blocker.
         if (!EnumHelpers.isArena(from) || !EnumHelpers.isArena(to)) {
             for (const triggeredAbility of triggeredAbilities) {
                 if (triggeredAbility.limit) {
@@ -858,6 +859,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             }
         }
 
+        // STATE TODO: Can we move these registrations into state themselves? Another instane of game.on()...
         for (const triggeredAbility of triggeredAbilities) {
             if (EnumHelpers.cardZoneMatches(to, triggeredAbility.zoneFilter) && !EnumHelpers.cardZoneMatches(from, triggeredAbility.zoneFilter)) {
                 triggeredAbility.registerEvents();

@@ -1034,8 +1034,9 @@ class Game extends EventEmitter {
 
     /**
      * Adds a step to the pipeline queue
-     * @param {import('./gameSteps/IStep.js').IStep} step
-     * @returns {import('./gameSteps/IStep.js').IStep}
+     * @template {import('./gameSteps/IStep.js').IStep} T
+     * @param {T} step
+     * @returns {T}
      */
     queueStep(step) {
         this.pipeline.queueStep(step);
@@ -1095,7 +1096,6 @@ class Game extends EventEmitter {
      * ability which can respond any passed events, and execute their handlers.
      * @param events
      * @param {TriggerHandlingMode} triggerHandlingMode
-     * @returns {import('./gameSteps/IStep.js').IStep}
      */
     openEventWindow(events, triggerHandlingMode = TriggerHandlingMode.PassesTriggersToParentWindow) {
         if (!Array.isArray(events)) {
