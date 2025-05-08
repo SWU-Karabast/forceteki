@@ -88,7 +88,8 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
     public override getSummary(activePlayer: Player) {
         return {
             ...super.getSummary(activePlayer),
-            epicActionSpent: this.epicActionSpentInternal()
+            epicActionSpent: this.epicActionSpentInternal(),
+            isDefender: this.isDefending(),
         };
     }
 }
