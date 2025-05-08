@@ -658,20 +658,12 @@ export function selectPlayer<TContext extends AbilityContext = AbilityContext>(p
 //     return new SelectTokenAction(propertyFactory);
 // }
 export function sequential<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISequentialSystemProperties<TContext> | GameSystem<TContext>[], TContext>) {
-    return new SequentialSystem<TContext>((context: TContext) => {
-        const props = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
-        return !Array.isArray(props) ? props : {
-            gameSystems: props,
-        };
-    });
+    const makeProps = (props: ISequentialSystemProperties<TContext> | GameSystem<TContext>[]) => (!Array.isArray(props) ? props : { gameSystems: props });
+    return new SequentialSystem<TContext>(typeof propertyFactory !== 'function' ? makeProps(propertyFactory) : (context: TContext) => makeProps(propertyFactory(context)));
 }
 export function simultaneous<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISimultaneousSystemProperties<TContext> | GameSystem<TContext>[], TContext>) {
-    return new SimultaneousSystem<TContext>((context: TContext) => {
-        const props = typeof propertyFactory === 'function' ? propertyFactory(context) : propertyFactory;
-        return !Array.isArray(props) ? props : {
-            gameSystems: props,
-        };
-    });
+    const makeProps = (props: ISimultaneousSystemProperties<TContext> | GameSystem<TContext>[]) => (!Array.isArray(props) ? props : { gameSystems: props });
+    return new SimultaneousSystem<TContext>(typeof propertyFactory !== 'function' ? makeProps(propertyFactory) : (context: TContext) => makeProps(propertyFactory(context)));
 }
 
 export function shuffleDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IShuffleDeckProperties, TContext> = {}) {
