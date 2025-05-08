@@ -7,6 +7,7 @@ import type { GameObject } from '../core/GameObject';
 import type { GameSystem, IGameSystemProperties } from '../core/gameSystem/GameSystem';
 import { AggregateSystemTargetingEnforcement } from '../core/gameSystem/AggregateSystem';
 import { AggregateSystem } from '../core/gameSystem/AggregateSystem';
+import type { Player } from '../core/Player';
 
 export interface ISimultaneousSystemProperties<TContext extends AbilityContext = AbilityContext> extends IGameSystemProperties {
     gameSystems: GameSystem<TContext>[];
@@ -16,6 +17,10 @@ export interface ISimultaneousSystemProperties<TContext extends AbilityContext =
 
 export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityContext> extends AggregateSystem<TContext, ISimultaneousSystemProperties<TContext>> {
     protected override readonly eventName: MetaEventName.Simultaneous;
+    protected override readonly defaultProperties: ISimultaneousSystemProperties<TContext> = {
+        gameSystems: [],
+        targetingEnforcement: AggregateSystemTargetingEnforcement.Default,
+    };
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     public override eventHandler() {}
@@ -35,7 +40,7 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         return properties.gameSystems;
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.targetingEnforcement === AggregateSystemTargetingEnforcement.EnforceAll) {
@@ -50,7 +55,7 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
     }
 
-    public override canAffectInternal(target: GameObject, context: TContext, additionalProperties: any = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
+    public override canAffectInternal(target: GameObject, context: TContext, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         if (properties.targetingEnforcement === AggregateSystemTargetingEnforcement.EnforceAll) {
@@ -60,7 +65,7 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         return properties.gameSystems.some((gameSystem) => gameSystem.canAffect(target, context, additionalProperties, mustChangeGameState));
     }
 
-    public override allTargetsLegal(context: TContext, additionalProperties = {}): boolean {
+    public override allTargetsLegal(context: TContext, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
         if (properties.targetingEnforcement === AggregateSystemTargetingEnforcement.EnforceAll) {
             return properties.gameSystems.every((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
@@ -68,7 +73,7 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         return properties.gameSystems.some((gameSystem) => gameSystem.hasLegalTarget(context, additionalProperties));
     }
 
-    public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties = {}): void {
+    public override queueGenerateEventGameSteps(events: any[], context: TContext, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         let queueGenerateEventGameStepsFn: (gameSystem: GameSystem<TContext>) => () => void;
@@ -110,8 +115,10 @@ export class SimultaneousGameSystem<TContext extends AbilityContext = AbilityCon
         }
     }
 
-    public override hasTargetsChosenByPlayer(context) {
+    public override hasTargetsChosenByPlayer(context: TContext, player: Player = context.player, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}) {
         const properties = this.generatePropertiesFromContext(context);
-        return properties.gameSystems.some((gameSystem) => gameSystem.hasTargetsChosenByPlayer(context));
+        return properties.gameSystems.some((gameSystem) =>
+            gameSystem.hasTargetsChosenByPlayer(context, player, additionalProperties)
+        );
     }
 }
