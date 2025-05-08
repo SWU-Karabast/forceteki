@@ -158,9 +158,14 @@ export class Player extends GameObject<IPlayerState> {
         // TODO THIS PR: update to prod timeout values
 
         if (useTimer) {
-            this.actionTimer = new StandardActionTimer(60, this, () => this.game.onActionTimerExpired(this), this.game);
-            this.actionTimer.addSpecificTimeHandler(10, () => this.game.addAlert('warning', '{0} has 10 seconds remaining to take an action', this));
-            this.actionTimer.addSpecificTimeHandler(5, () => this.game.addAlert('danger', '{0} has 5 seconds remaining to take an action', this));
+            this.actionTimer = new StandardActionTimer(
+                15,
+                this,
+                this.game,
+                () => this.game.onActionTimerExpired(this),
+            );
+            this.actionTimer.addSpecificTimeHandler(10, () => this.game.addAlert('warning', '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this));
+            this.actionTimer.addSpecificTimeHandler(5, () => this.game.addAlert('danger', '{0} has 5 seconds remaining to take an action before being kicked for inactivity', this));
         } else {
             this.actionTimer = new NoopActionTimer();
         }

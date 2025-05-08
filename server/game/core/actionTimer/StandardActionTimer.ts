@@ -3,7 +3,7 @@ import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { IActionTimer } from './IActionTimer';
 
-interface SpecificTimeHandler {
+interface ISpecificTimeHandler {
     fireOnRemainingTimeMs: number;
     handler: () => void;
 }
@@ -13,10 +13,14 @@ export class StandardActionTimer implements IActionTimer {
     private readonly player: Player;
     private readonly timeLimitMs: number;
 
+    private checkLiveStatus: (promptId: string, playerActionId: number) => boolean;
     private endTime: Date | null = null;
-    private onSpecificTimeHandlers: SpecificTimeHandler[];
+    private onSpecificTimeHandlers: ISpecificTimeHandler[];
     private pauseTime: Date | null = null;
     private timers: NodeJS.Timeout[] = [];
+
+    private lastPlayerActionId: number | null = null;
+    private timingPromptId: string | null = null;
 
     public get isPaused(): boolean {
         return this.endTime !== null && this.pauseTime !== null;
@@ -28,12 +32,19 @@ export class StandardActionTimer implements IActionTimer {
           Date.now() < this.endTime.getTime();
     }
 
-    public constructor(timeLimitSeconds: number, player: Player, onTimeout: () => void, game: Game) {
+    public constructor(
+        timeLimitSeconds: number,
+        player: Player,
+        game: Game,
+        onTimeout: () => void,
+        checkLiveStatus: (promptId: string, playerActionId: number) => boolean
+    ) {
         Contract.assertPositiveNonZero(timeLimitSeconds);
 
         this.timeLimitMs = timeLimitSeconds * 1000;
         this.player = player;
         this.game = game;
+        this.checkLiveStatus = checkLiveStatus;
 
         this.onSpecificTimeHandlers = [{ fireOnRemainingTimeMs: 0, handler: onTimeout }];
     }
@@ -101,10 +112,21 @@ export class StandardActionTimer implements IActionTimer {
         this.endTime = new Date(Date.now() + this.timeLimitMs);
         this.pauseTime = null;
 
+        const safeCallHandler = (handler: () => void) => {
+            // safety check to ensure that the player being timed is still active for the prompt and hasn't issued any new game messages.
+            // this prevents us from accidentally booting a player because their turn timer didn't get cleared for some reason
+            if (!this.checkLiveStatus(this.timingPromptId, this.lastPlayerActionId)) {
+                this.stop();
+                return;
+            }
+
+            handler();
+        };
+
         for (const handler of this.onSpecificTimeHandlers) {
             if (timeRemainingMs > handler.fireOnRemainingTimeMs) {
                 const timer = this.game.buildSafeTimeout(
-                    () => handler.handler(),
+                    () => safeCallHandler(handler.handler),
                     timeRemainingMs - handler.fireOnRemainingTimeMs,
                     `Error in action timer handler for player ${this.player.name}`
                 );
