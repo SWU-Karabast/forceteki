@@ -46,13 +46,7 @@ export const authMiddleware = (routeName = null) => {
                 logger.info(`Auth ${routeName}: token found in cookies. Authenticating user.`);
             }
             if (req.body.user?.authenticated) {
-                const userEntity = {
-                    username: req.body.user.username,
-                    id: req.body.user.id,
-                    preferences: req.body.user.preferences,
-                    welcomeMessageSeen: req.body.user.welcomeMessageSeen
-                };
-                req.user = new AuthenticatedUser(userEntity);
+                req.user = new AuthenticatedUser(req.body.user);
             } else {
                 req.user = await userFactory.createUserFromTokenAsync(token);
             }
