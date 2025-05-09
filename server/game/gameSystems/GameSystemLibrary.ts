@@ -145,6 +145,7 @@ import type { ICreateForceTokenProperties } from './CreateForceTokenSystem';
 import { CreateForceTokenSystem } from './CreateForceTokenSystem';
 import { UseTheForceSystem } from './UseTheForceSystem';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { UseWhenPlayedSystem } from './UseWhenPlayedSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -671,4 +672,7 @@ export function shuffleDeck<TContext extends AbilityContext = AbilityContext>(pr
 }
 export function useWhenDefeatedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenDefeatedProperties, TContext> = {}) {
     return new UseWhenDefeatedSystem<TContext>(propertyFactory);
+}
+export function useWhenPlayedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenDefeatedProperties, TContext> = {}) {
+    return new UseWhenPlayedSystem<TContext>(propertyFactory);
 }

@@ -293,6 +293,7 @@ export enum EventName {
     OnUpgradeAttached = 'onUpgradeAttached',
     OnUpgradeUnattached = 'onUpgradeUnattached',
     OnUseWhenDefeated = 'onUseWhenDefeated',
+    OnUseWhenPlayed = 'onUseWhenPlayed',
 }
 
 /**
