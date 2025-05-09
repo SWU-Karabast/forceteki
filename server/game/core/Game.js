@@ -576,13 +576,16 @@ class Game extends EventEmitter {
         this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
     }
 
-    restartActionTimer(playerId) {
-        this.getPlayerById(playerId).actionTimer.restartIfRunning();
+    onPlayerAction(playerId) {
+        const player = this.getPlayerById(playerId);
+
+        player.incrementActionId();
+        player.actionTimer.restartIfRunning();
     }
 
     /** @param {Player} player */
     onActionTimerExpired(player) {
-        this.addAlert('danger', '{0} has run out of time for their action. They automatically pass their action.', player);
+        this.addAlert('danger', '{0} has been removed due to inactivity.', player);
     }
 
     // TODO: parameter contract checks for this flow

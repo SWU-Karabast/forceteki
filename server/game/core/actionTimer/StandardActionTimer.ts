@@ -13,14 +13,14 @@ export class StandardActionTimer implements IActionTimer {
     private readonly player: Player;
     private readonly timeLimitMs: number;
 
-    private checkLiveStatus: (promptId: string, playerActionId: number) => boolean;
+    private checkLiveStatus: (promptUuid: string, playerActionId: number) => boolean;
     private endTime: Date | null = null;
     private onSpecificTimeHandlers: ISpecificTimeHandler[];
     private pauseTime: Date | null = null;
     private timers: NodeJS.Timeout[] = [];
 
     private lastPlayerActionId: number | null = null;
-    private timingPromptId: string | null = null;
+    private activeUiPromptId: string | null = null;
 
     public get isPaused(): boolean {
         return this.endTime !== null && this.pauseTime !== null;
@@ -37,7 +37,7 @@ export class StandardActionTimer implements IActionTimer {
         player: Player,
         game: Game,
         onTimeout: () => void,
-        checkLiveStatus: (promptId: string, playerActionId: number) => boolean
+        checkLiveStatus: (promptUuid: string, playerActionId: number) => boolean
     ) {
         Contract.assertPositiveNonZero(timeLimitSeconds);
 
@@ -64,12 +64,19 @@ export class StandardActionTimer implements IActionTimer {
 
         this.stop(true);
         this.initializeTimersForTimeRemaining(this.timeLimitMs);
+
+        this.activeUiPromptId = this.game.currentOpenPrompt?.uuid ?? null;
+        Contract.assertNotNullLike(this.activeUiPromptId, `Attempting to start action timer for player ${this.player.id} when there is no active prompt`);
+
+        this.lastPlayerActionId = this.player.lastActionId;
     }
 
     public restartIfRunning() {
         if (this.isRunning) {
             this.game.addAlert('warning', 'Restarted timer for {0}', this.player);
             this.start();
+
+            this.lastPlayerActionId = this.player.lastActionId;
         } else {
             this.game.addAlert('warning', 'Attempted to restart timer for {0} but it is not running', this.player);
         }
@@ -102,6 +109,8 @@ export class StandardActionTimer implements IActionTimer {
         this.timers = [];
         this.endTime = null;
         this.pauseTime = null;
+        this.lastPlayerActionId = null;
+        this.activeUiPromptId = null;
     }
 
     private initializeTimersForTimeRemaining(timeRemainingMs: number) {
@@ -115,7 +124,7 @@ export class StandardActionTimer implements IActionTimer {
         const safeCallHandler = (handler: () => void) => {
             // safety check to ensure that the player being timed is still active for the prompt and hasn't issued any new game messages.
             // this prevents us from accidentally booting a player because their turn timer didn't get cleared for some reason
-            if (!this.checkLiveStatus(this.timingPromptId, this.lastPlayerActionId)) {
+            if (!this.checkLiveStatus(this.activeUiPromptId, this.lastPlayerActionId)) {
                 this.stop();
                 return;
             }

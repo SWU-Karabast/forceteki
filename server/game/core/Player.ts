@@ -124,6 +124,14 @@ export class Player extends GameObject<IPlayerState> {
         return this.state.decklist.tokens.map(this.game.getCard);
     }
 
+    public get autoSingleTarget() {
+        return this.optionSettings.autoSingleTarget;
+    }
+
+    public get lastActionId() {
+        return this._lastActionId;
+    }
+
     private canTakeActionsThisPhase: null;
     // STATE TODO: Does Deck need to be a GameObject?
     private decklistNames: Deck | null;
@@ -140,6 +148,7 @@ export class Player extends GameObject<IPlayerState> {
     public opponent: Player;
     private playableZones: PlayableZone[];
     private noTimer: boolean;
+    private _lastActionId = 0;
 
     public constructor(id: string, user: IUser, game: Game, useTimer = false) {
         super(game, user.username);
@@ -163,13 +172,13 @@ export class Player extends GameObject<IPlayerState> {
                 this,
                 this.game,
                 () => this.game.onActionTimerExpired(this),
+                (promptUuid: string, playerActionId: number) => this.checkPromptAndActionMatchLatest(promptUuid, playerActionId)
             );
             this.actionTimer.addSpecificTimeHandler(10, () => this.game.addAlert('warning', '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this));
             this.actionTimer.addSpecificTimeHandler(5, () => this.game.addAlert('danger', '{0} has 5 seconds remaining to take an action before being kicked for inactivity', this));
         } else {
             this.actionTimer = new NoopActionTimer();
         }
-
 
         this.canTakeActionsThisPhase = null;
         this.state.handZone = new HandZone(game, this).getRef();
@@ -207,8 +216,25 @@ export class Player extends GameObject<IPlayerState> {
         return true;
     }
 
-    public get autoSingleTarget() {
-        return this.optionSettings.autoSingleTarget;
+    public incrementActionId() {
+        this._lastActionId++;
+    }
+
+    private checkPromptAndActionMatchLatest(promptUuid: string, playerActionId: number) {
+        // return this.game.currentOpenPrompt.uuid === promptUuid &&
+        //   playerActionId === this._lastActionId;
+
+        if (this.game.currentOpenPrompt.uuid !== promptUuid) {
+            this.game.addAlert('warning', 'Timer for {0} has become inactive due to prompt id. {1} !== {2}', this, this.game.currentOpenPrompt.uuid, promptUuid);
+            return false;
+        }
+
+        if (playerActionId !== this._lastActionId) {
+            this.game.addAlert('warning', 'Timer for {0} has become inactive due to action id. {1} !== {2}', this, this._lastActionId, playerActionId);
+            return false;
+        }
+
+        return true;
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {

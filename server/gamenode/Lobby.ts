@@ -165,7 +165,7 @@ export class Lobby {
         this.userLastActivity.set(id, now);
 
         if (this.game) {
-            this.game.restartActionTimer(id);
+            this.game.onPlayerAction(id);
         }
     }
 
