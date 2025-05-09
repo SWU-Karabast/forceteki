@@ -84,8 +84,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
 
     public override hasLegalTarget(context: AbilityContext) {
         const player = this.getChoosingPlayer(context);
-        return this.selector.hasEnoughTargets(context, player) ||
-          (context.ability?.isEpicAction() && this.isChoosingFromHidden(this.selector.getAllLegalTargets(context, player), context));
+        return this.selector.hasEnoughTargets(context, player);
     }
 
     public getAllLegalTargets(context: AbilityContext): Card[] {

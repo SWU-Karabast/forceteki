@@ -137,7 +137,9 @@ class PlayerOrCardAbility {
     }
 
     /**
-     * @param {*} context
+     * @param {AbilityContext} context
+     * @param {String[]} ignoredRequirements
+     * @param {Boolean} thisStepOnly
      * @returns {String}
      */
     meetsRequirements(context, ignoredRequirements = [], thisStepOnly = false) {
