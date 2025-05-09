@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { WildcardCardType } from '../../../core/Constants';
+import { WildcardCardType, WildcardRelativePlayer } from '../../../core/Constants';
 
 export default class GroguMysteriousChild extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,18 +14,19 @@ export default class GroguMysteriousChild extends NonLeaderUnitCard {
         this.addActionAbility({
             title: 'Heal up to 2 damage from a unit',
             cost: AbilityHelper.costs.exhaustSelf(),
-            targetResolver: {
-                cardCondition: (card) => card.isUnit(),
-                immediateEffect: AbilityHelper.immediateEffects.heal({
-                    amount: 2,
-                }),
-            },
+            immediateEffect: AbilityHelper.immediateEffects.distributeHealingAmong({
+                amountToDistribute: 2,
+                controller: WildcardRelativePlayer.Any,
+                canChooseNoTargets: true,
+                cardTypeFilter: WildcardCardType.Unit,
+                maxTargets: 1
+            }),
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Deal that much damage to a unit',
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.Unit,
                     immediateEffect: AbilityHelper.immediateEffects.damage({
-                        amount: ifYouDoContext.events[0].damageHealed,
+                        amount: ifYouDoContext.events[0].totalDistributed,
                     }),
                 },
             })

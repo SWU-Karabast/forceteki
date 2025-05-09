@@ -19,10 +19,12 @@ describe('Grogu, Mysterious Child', function() {
                 context.player1.clickCard(context.groguMysteriousChild);
                 context.player1.clickPrompt('Heal up to 2 damage from a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.grogu]);
-                context.player1.clickCard(context.wampa);
-
+                context.player1.setDistributeHealingPromptState(new Map([
+                    [context.wampa, 2],
+                ]));
 
                 expect(context.player1).toHavePrompt('Deal that much damage to a unit');
+                expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.grogu]);
                 context.player1.clickCard(context.atst);
 
                 expect(context.wampa.damage).toBe(1);
@@ -36,8 +38,9 @@ describe('Grogu, Mysterious Child', function() {
                 context.player1.clickCard(context.groguMysteriousChild);
                 context.player1.clickPrompt('Heal up to 2 damage from a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.grogu]);
-                context.player1.clickCard(context.atst);
-
+                context.player1.setDistributeHealingPromptState(new Map([
+                    [context.atst, 1],
+                ]));
 
                 expect(context.player1).toHavePrompt('Deal that much damage to a unit');
                 context.player1.clickCard(context.wampa);
@@ -53,7 +56,9 @@ describe('Grogu, Mysterious Child', function() {
                 context.player1.clickCard(context.groguMysteriousChild);
                 context.player1.clickPrompt('Heal up to 2 damage from a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.grogu]);
-                context.player1.clickCard(context.grogu);
+                context.player1.setDistributeHealingPromptState(new Map([
+                    [context.grogu, 2],
+                ]));
 
                 expect(context.groguMysteriousChild.exhausted).toBe(true);
             });
