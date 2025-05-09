@@ -83,7 +83,8 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     public override hasLegalTarget(context: AbilityContext) {
-        return this.selector.hasEnoughTargets(context, this.getChoosingPlayer(context));
+        const player = this.getChoosingPlayer(context);
+        return this.selector.hasEnoughTargets(context, player);
     }
 
     public getAllLegalTargets(context: AbilityContext): Card[] {
@@ -104,14 +105,11 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         // A player can always choose not to pick a card from a zone that is hidden from their opponents
         // if doing so would reveal hidden information(i.e. that there are one or more valid cards in that zone) (SWU Comp Rules 2.0 1.17.4)
         // TODO: test if picking a card from an opponent's usually hidden zone(e.g. opponent's hand) works as expected(the if block here should be skipped)
-        let choosingFromHidden = false;
-        const choosingPlayer = typeof this.properties.choosingPlayer === 'function' ? this.properties.choosingPlayer(context) : this.properties.choosingPlayer;
-        const zones = new Set<ZoneName>(legalTargets.map((card) => card.zoneName));
-        if (!(this.properties.ignoreHiddenZoneRule ?? false) && (!!this.properties.cardTypeFilter || !!this.properties.cardCondition) && CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)) {
+        const choosingFromHidden = this.isChoosingFromHidden(legalTargets, context);
+        if (choosingFromHidden) {
             this.properties.optional = true;
             this.selector.optional = true;
             this.selector.appendToDefaultTitle = CardTargetResolver.choosingFromHiddenPrompt;
-            choosingFromHidden = true;
         }
 
         // if there are legal targets but this wouldn't have a gamestate-changing effect on any of them, we can just shortcut and skip selection
@@ -285,5 +283,16 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         }
 
         Contract.fail(`Target zone filters '${properties.zoneFilter}' for ability has no overlap with legal zones for target card types '${properties.cardTypeFilter}', so target resolution is guaranteed to find no legal targets`);
+    }
+
+    private isChoosingFromHidden(legalTargets: Card[], context: AbilityContext): boolean {
+        const choosingPlayer = typeof this.properties.choosingPlayer === 'function' ? this.properties.choosingPlayer(context) : this.properties.choosingPlayer;
+        const zones = new Set<ZoneName>(legalTargets.map((card) => card.zoneName));
+        return !(this.properties.ignoreHiddenZoneRule ?? false) &&
+          (!!this.properties.cardTypeFilter || !!this.properties.cardCondition) &&
+          (
+              (zones.size === 0 && !!this.properties.zoneFilter && CardTargetResolver.allZonesAreHidden(this.properties.zoneFilter, choosingPlayer)) ||
+              CardTargetResolver.allZonesAreHidden([...zones], choosingPlayer)
+          );
     }
 }
