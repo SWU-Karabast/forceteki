@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
+import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class AsIHaveForeseen extends EventCard {
     protected override getImplementationId() {
@@ -23,13 +24,16 @@ export default class AsIHaveForeseen extends EventCard {
                             {
                                 text: 'Use the Force and play for 4 less',
                                 arg: 'play-discount',
-                                immediateEffect: AbilityHelper.immediateEffects.sequential([
-                                    AbilityHelper.immediateEffects.useTheForce({ target: context.player }),
-                                    AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                                        target: topCardOfDeck,
-                                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 4 }
-                                    })
-                                ], true),
+                                immediateEffect: AbilityHelper.immediateEffects.sequential({
+                                    gameSystems: [
+                                        AbilityHelper.immediateEffects.useTheForce({ target: context.player }),
+                                        AbilityHelper.immediateEffects.playCardFromOutOfPlay({
+                                            target: topCardOfDeck,
+                                            adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 4 }
+                                        })
+                                    ],
+                                    resolutionMode: ResolutionMode.AlwaysResolve,
+                                }),
                             },
                             {
                                 text: 'Leave on top',
