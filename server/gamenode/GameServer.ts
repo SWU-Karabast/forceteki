@@ -110,7 +110,7 @@ export class GameServer {
         const server = http.createServer(app);
 
         const corsOptions = {
-            origin: ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'],
+            origin: env.corsOrigins,
             methods: ['GET', 'POST', 'PUT', 'DELETE'],
             credentials: true, // Allow cookies or authorization headers
         };
@@ -137,7 +137,7 @@ export class GameServer {
             perMessageDeflate: false,
             path: '/ws',
             cors: {
-                origin: ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'],
+                origin: env.corsOrigins,
                 methods: ['GET', 'POST']
             }
         });
@@ -982,7 +982,7 @@ export class GameServer {
                 this.userLobbyMap.set(newUser.id, { lobbyId: lobby.id, role: UserRole.Player });
                 this.registerDisconnect(socket, user.id);
                 return Promise.resolve();
-            }*/
+           }*/
 
             await lobby.addLobbyUserAsync(user, socket);
             this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
