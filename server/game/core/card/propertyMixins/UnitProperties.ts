@@ -64,6 +64,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     isAttacking(): boolean;
     isCaptured(): boolean;
     isUpgraded(): boolean;
+    hasExperience(): boolean;
     hasShield(): boolean;
     effectsPreventAttack(target: Card);
     moveToCaptureZone(targetZone: CaptureZone);
@@ -188,6 +189,10 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         public isUpgraded(): boolean {
             return this.state.upgrades.length > 0;
+        }
+
+        public hasExperience(): boolean {
+            return this.upgrades.some((card) => card.isExperience());
         }
 
         public hasShield(): boolean {

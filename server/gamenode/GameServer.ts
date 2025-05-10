@@ -11,6 +11,7 @@ import { logger } from '../logger';
 import { Lobby, MatchType } from './Lobby';
 import Socket from '../socket';
 import type { User } from '../utils/user/User';
+import { AuthenticatedUser } from '../utils/user/User';
 import * as env from '../env';
 import type { Deck } from '../utils/deck/Deck';
 import type { CardDataGetter } from '../utils/cardData/CardDataGetter';
@@ -146,11 +147,33 @@ export class GameServer {
             try {
                 // Get token from handshake auth
                 const token = socket.handshake.auth.token;
+                let user;
 
-                const user = token
-                    ? await this.userFactory.createUserFromTokenAsync(token)
-                    : this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
+                // Case 1: Token is present - attempt authenticated user flow
+                if (token) {
+                    const queryUser = socket.handshake.query.user;
+                    if (queryUser) {
+                        // Parse user data from query parameter
+                        const userData = typeof queryUser === 'string'
+                            ? JSON.parse(queryUser)
+                            : queryUser;
 
+                        // If client sent pre-authenticated user data, use it directly
+                        if (userData.authenticated) {
+                            user = new AuthenticatedUser(userData);
+                        } else {
+                            // User data exists but not marked as authenticated
+                            // Verify with token instead
+                            user = await this.userFactory.createUserFromTokenAsync(token);
+                        }
+                    } else {
+                        // No user data in query, authenticate using token only
+                        user = await this.userFactory.createUserFromTokenAsync(token);
+                    }
+                // Case 2: No token - create anonymous user
+                } else {
+                    user = this.userFactory.createAnonymousUserFromQuery(socket.handshake.query);
+                }
                 // we check if we have an actual user
                 if (user.isAnonymousUser() || user.isAuthenticatedUser()) {
                     socket.data.user = user;
@@ -227,7 +250,7 @@ export class GameServer {
             }
         });
 
-        app.post('/api/get-user', authMiddleware(), async (req, res, next) => {
+        app.post('/api/get-user', authMiddleware('get-user'), async (req, res, next) => {
             try {
                 const { decks } = req.body;
                 const user = req.user as User;
@@ -240,7 +263,7 @@ export class GameServer {
                         next(err);
                     }
                 }
-                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), welcomeMessageSeen: user.getWelcomeMessageSeen() } });
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), welcomeMessageSeen: user.getWelcomeMessageSeen(), preferences: user.getPreferences() } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
                 next(err);
@@ -342,7 +365,7 @@ export class GameServer {
         });
 
         // user DECKS
-        app.post('/api/get-decks', authMiddleware(), async (req, res, next) => {
+        app.post('/api/get-decks', authMiddleware('get-decks'), async (req, res, next) => {
             try {
                 const user = req.user as User;
                 if (user.isAnonymousUser()) {
@@ -367,7 +390,7 @@ export class GameServer {
         });
 
         // Add this to the setupAppRoutes method in GameServer.ts
-        app.get('/api/get-deck/:deckId', authMiddleware(), async (req, res, next) => {
+        app.post('/api/get-deck/:deckId', authMiddleware(), async (req, res, next) => {
             try {
                 const { deckId } = req.params;
                 const user = req.user;

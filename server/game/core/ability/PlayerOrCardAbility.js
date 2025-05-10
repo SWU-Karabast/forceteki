@@ -137,7 +137,9 @@ class PlayerOrCardAbility {
     }
 
     /**
-     * @param {*} context
+     * @param {AbilityContext} context
+     * @param {String[]} ignoredRequirements
+     * @param {Boolean} thisStepOnly
      * @returns {String}
      */
     meetsRequirements(context, ignoredRequirements = [], thisStepOnly = false) {
@@ -355,6 +357,11 @@ class PlayerOrCardAbility {
 
     /** @returns {this is import('../../actions/InitiateAttackAction.js').InitiateAttackAction} */
     isAttackAction() {
+        return false;
+    }
+
+    /** @returns {this is import('../../abilities/EpicActionAbility.js').EpicActionAbility} */
+    isEpicAction() {
         return false;
     }
 
