@@ -30,12 +30,14 @@ import type { EpicActionAbility } from '../../abilities/EpicActionAbility.js';
 export class PlayerOrCardAbility {
     public title: any;
     public limit: any;
+    public canResolveWithoutLegalTargets: boolean;
+    public targetResolvers: any;
+
     public readonly keyword: any;
     public readonly type: any;
     public readonly optional: boolean;
     public readonly immediateEffect: any;
     public readonly uuid: any;
-    public canResolveWithoutLegalTargets: boolean;
     public readonly canBeTriggeredBy: any;
     public readonly playerChoosingOptional: any;
     public readonly optionalButtonTextOverride: any;
@@ -45,7 +47,6 @@ export class PlayerOrCardAbility {
     public readonly triggerHandlingMode: any;
     public readonly cost: any;
     public readonly nonDependentTargets: any;
-    public targetResolvers: any;
     public readonly toStringName: string;
 
     /** Return the controller of ability, can be different from card's controller (with bounty for example) */
