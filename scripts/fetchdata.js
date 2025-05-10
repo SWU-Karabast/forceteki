@@ -6,6 +6,7 @@ const fs = require('fs/promises');
 const mkdirp = require('mkdirp');
 const path = require('path');
 const cliProgress = require('cli-progress');
+const { addMockCards } = require('./mockdata');
 
 // ############################################################################
 // #################                 IMPORTANT              ###################
@@ -290,7 +291,8 @@ async function main() {
         .map((pageNumber) => getCardData(pageNumber + 1, downloadProgressBar))))
         .flat()
         .filter((n) => n); // remove nulls
-    cards = cards.concat([cunningForceBase, aggressionForceBase]);
+    // cards = cards.concat([cunningForceBase, aggressionForceBase]);
+    addMockCards(cards);
 
     downloadProgressBar.stop();
 
@@ -322,69 +324,5 @@ async function main() {
     console.log(`\n${uniqueCards.length} card definition files downloaded to ${pathToJSON}`);
 }
 
-// TODO: These force bases are temporary and should be removed when the real Aggression and Cunning bases are revealed
-const aggressionForceBase = {
-    title: 'Aggression Force Base',
-    subtitle: '',
-    cost: null,
-    hp: 28,
-    power: null,
-    text: 'When a friendly Force unit attacks: The Force is with you (create your Force token).',
-    deployBox: null,
-    epicAction: '',
-    unique: false,
-    rules: null,
-    reprints: {
-        data: []
-    },
-    upgradePower: null,
-    upgradeHp: null,
-    id: 'aggression-force-base-id',
-    aspects: [
-        'aggression'
-    ],
-    traits: [],
-    keywords: [],
-    types: [
-        'base'
-    ],
-    setId: {
-        set: 'LOF',
-        number: 25
-    },
-    internalName: 'aggression-force-base'
-};
-
-const cunningForceBase = {
-    title: 'Cunning Force Base',
-    subtitle: '',
-    cost: null,
-    hp: 28,
-    power: null,
-    text: 'When a friendly Force unit attacks: The Force is with you (create your Force token).',
-    deployBox: null,
-    epicAction: '',
-    unique: false,
-    rules: null,
-    reprints: {
-        data: []
-    },
-    upgradePower: null,
-    upgradeHp: null,
-    id: 'cunning-force-base-id',
-    aspects: [
-        'cunning'
-    ],
-    traits: [],
-    keywords: [],
-    types: [
-        'base'
-    ],
-    setId: {
-        set: 'LOF',
-        number: 27
-    },
-    internalName: 'cunning-force-base'
-};
 
 main();
