@@ -38,7 +38,7 @@ describe('Smoke and Cinders', function() {
                 // Scenario 2: Both players have more than 2 cards in hand
                 context.player1.clickCard(context.smokeAndCinders);
 
-                expect(context.player1).toHavePrompt('Choose 2 cards to discard');
+                expect(context.player1).toHavePrompt('Choose 2 cards to discard for Smoke and Cinders\'s effect');
                 expect(context.player1).toBeAbleToSelectExactly(context.player1.hand);
                 context.player1.hand
                     .filter((card) => card.name === 'Underworld Thug')
@@ -46,7 +46,7 @@ describe('Smoke and Cinders', function() {
                 context.player1.clickCardNonChecking(context.yoda);
                 context.player1.clickPrompt('Done');
 
-                expect(context.player2).toHavePrompt('Choose a card to discard');
+                expect(context.player2).toHavePrompt('Choose a card to discard for Smoke and Cinders\'s effect');
                 expect(context.player2).toBeAbleToSelectExactly(context.player2.hand);
                 context.player2.clickCard(context.player2.hand.find((card) => card.name === 'Underworld Thug'));
 
@@ -64,7 +64,7 @@ describe('Smoke and Cinders', function() {
 
                 context.player1.clickCard(context.smokeAndCinders);
 
-                expect(context.player2).toHavePrompt('Choose 2 cards to discard');
+                expect(context.player2).toHavePrompt('Choose 2 cards to discard for Smoke and Cinders\'s effect');
                 expect(context.player2).toBeAbleToSelectExactly(context.player2.hand);
                 context.player2.hand
                     .filter((card) => card.name === 'Underworld Thug')
