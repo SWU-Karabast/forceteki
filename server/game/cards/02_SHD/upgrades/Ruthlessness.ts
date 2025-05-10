@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import * as EventHelpers from '../../../core/event/EventHelpers';
+import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
 export default class Ruthlessness extends UpgradeCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class Ruthlessness extends UpgradeCard {
             title: 'Deal 2 damage to the defending player’s base',
             when: {
                 onCardDefeated: (event, context) =>
-                    event.isDefeatedByAttackerDamage && EventHelpers.defeatSourceCard(event) === context.source
+                    event.isDefeatedByAttacker && DefeatCardSystem.defeatSourceCard(event) === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.damage((context) => ({
                 amount: 2,

@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import * as EventHelpers from '../../../core/event/EventHelpers';
+import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
 export default class MaceWinduPartyCrasher extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class MaceWinduPartyCrasher extends NonLeaderUnitCard {
             title: 'Ready Mace Windu',
             when: {
                 onCardDefeated: (event, context) =>
-                    event.isDefeatedByAttackerDamage && EventHelpers.defeatSourceCard(event) === context.source
+                    event.isDefeatedByAttacker && DefeatCardSystem.defeatSourceCard(event) === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.ready((context) => ({ target: context.source })),
         });

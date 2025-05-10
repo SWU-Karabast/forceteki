@@ -178,7 +178,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            it('should give an experience to a friendly unit that attacks and defeats an enemy unit using an ability', async function () {
+            it('should give an experience to a friendly unit that attacks and defeats an enemy unit using damage from an ability', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -207,6 +207,32 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.sabineWren).toHaveExactUpgradeNames(['experience']);
+                expect(context.darthRevan.exhausted).toBe(true);
+            });
+
+            it('should give an experience to a friendly unit that attacks and defeats an enemy unit using an ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-revan#scourge-of-the-old-republic',
+                        spaceArena: ['avenger#hunting-star-destroyer'],
+                    },
+                    player2: {
+                        spaceArena: ['cartel-spacer'],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.avenger);
+                context.player1.clickCard(context.cartelSpacer);
+
+                context.player2.clickCard(context.cartelSpacer);
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.avenger).toHaveExactUpgradeNames(['experience']);
                 expect(context.darthRevan.exhausted).toBe(true);
             });
 

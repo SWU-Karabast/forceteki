@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import * as EventHelpers from '../../../core/event/EventHelpers';
+import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
 export default class DarthRevanScourgeOfTheOldRepublic extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +15,7 @@ export default class DarthRevanScourgeOfTheOldRepublic extends LeaderUnitCard {
             title: 'Exhaust this leader',
             when: {
                 onCardDefeated: (event, context) =>
-                    event.isDefeatedByAttackerDamage && EventHelpers.defeatSourceCard(event)?.controller === context.player
+                    event.isDefeatedByAttacker && DefeatCardSystem.defeatSourceCard(event)?.controller === context.player
             },
             optional: true,
             // currently the only way to have multiple simultaneous triggers for this is with TWI Darth Maul,
@@ -25,7 +25,7 @@ export default class DarthRevanScourgeOfTheOldRepublic extends LeaderUnitCard {
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Give an Experience token to the attacking unit',
                 immediateEffect: AbilityHelper.immediateEffects.giveExperience({
-                    target: EventHelpers.defeatSourceCard(ifYouDoContext.events[0]?.context?.event)
+                    target: DefeatCardSystem.defeatSourceCard(ifYouDoContext.events[0]?.context?.event)
                 })
             })
         });
@@ -36,11 +36,11 @@ export default class DarthRevanScourgeOfTheOldRepublic extends LeaderUnitCard {
             title: 'Give an Experience token to the attacking unit',
             when: {
                 onCardDefeated: (event, context) =>
-                    event.isDefeatedByAttackerDamage && EventHelpers.defeatSourceCard(event)?.controller === context.player
+                    event.isDefeatedByAttacker && DefeatCardSystem.defeatSourceCard(event)?.controller === context.player
             },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({
-                target: EventHelpers.defeatSourceCard(context.event)
+                target: DefeatCardSystem.defeatSourceCard(context.event)
             }))
         });
     }

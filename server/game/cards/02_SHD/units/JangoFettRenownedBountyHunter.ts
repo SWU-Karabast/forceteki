@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
-import * as EventHelpers from '../../../core/event/EventHelpers';
+import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
 export default class JangoFettRenownedBountyHunter extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -22,7 +22,7 @@ export default class JangoFettRenownedBountyHunter extends NonLeaderUnitCard {
             title: 'Draw a card',
             when: {
                 onCardDefeated: (event, context) =>
-                    event.isDefeatedByAttackerDamage && EventHelpers.defeatSourceCard(event) === context.source
+                    event.isDefeatedByAttacker && DefeatCardSystem.defeatSourceCard(event) === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.draw(),
         });
