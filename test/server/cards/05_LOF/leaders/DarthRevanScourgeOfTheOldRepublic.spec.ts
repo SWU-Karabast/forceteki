@@ -177,6 +177,72 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 expect(context.darthRevan.exhausted).toBe(true);
                 expect(context.player2).toBeActivePlayer();
             });
+
+            it('should give an experience to a friendly unit that attacks and defeats an enemy unit using an ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-revan#scourge-of-the-old-republic',
+                        groundArena: ['sabine-wren#explosives-artist']
+                    },
+                    player2: {
+                        groundArena: [
+                            'battlefield-marine',
+                            { card: 'wampa', damage: 4 },
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sabineWren);
+
+                // Choose target for attack
+                context.player1.clickCard(context.wampa);
+
+                // Choose target for ability
+                context.player1.clickCard(context.wampa);
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.sabineWren).toHaveExactUpgradeNames(['experience']);
+                expect(context.darthRevan.exhausted).toBe(true);
+            });
+
+            it('should not give an experience to a friendly unit that attacks and defeats another enemy unit using an ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-revan#scourge-of-the-old-republic',
+                        groundArena: ['sabine-wren#you-can-count-on-me'],
+                        deck: ['underworld-thug'],
+                    },
+                    player2: {
+                        groundArena: [
+                            { card: 'battlefield-marine', damage: 1 },
+                            'wampa',
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sabineWren);
+
+                // Choose target for attack
+                context.player1.clickCard(context.p2Base);
+
+                // Choose target for ability
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.sabineWren).toHaveExactUpgradeNames([]);
+                expect(context.battlefieldMarine).toBeInZone('discard');
+                expect(context.darthRevan.exhausted).toBeFalse();
+            });
         });
 
         describe('Darth Revan\'s undeployed ability', function () {
@@ -428,6 +494,42 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
 
                 // Revan ability doesn't trigger since there would be no effect
                 expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should give an experience to a friendly unit that attacks and defeats an enemy unit using an ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'darth-revan#scourge-of-the-old-republic', deployed: true },
+                        groundArena: ['sabine-wren#you-can-count-on-me'],
+                        deck: ['underworld-thug'],
+                    },
+                    player2: {
+                        groundArena: [
+                            { card: 'battlefield-marine', damage: 1 },
+                            'wampa',
+                        ],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.sabineWren);
+
+                // Choose target for attack
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Choose target for ability
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.battlefieldMarine);
+
+                // Trigger Darth Revan ability
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.sabineWren.damage).toBe(0);
+                expect(context.sabineWren).toHaveExactUpgradeNames(['experience']);
+                expect(context.battlefieldMarine).toBeInZone('discard');
             });
         });
 

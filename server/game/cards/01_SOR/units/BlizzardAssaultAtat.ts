@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { DamageType, ZoneName, RelativePlayer, WildcardCardType } from '../../../core/Constants';
-
+import * as EventHelpers from '../../../core/event/EventHelpers';
 
 export default class BlizzardAssaultAtat extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -17,8 +17,7 @@ export default class BlizzardAssaultAtat extends NonLeaderUnitCard {
             optional: true,
             when: {
                 onCardDefeated: (event, context) =>
-                    event.isDefeatedByAttackerDamage &&
-                    event.defeatSource.attack.attacker === context.source
+                    event.isDefeatedByAttackerDamage && EventHelpers.defeatSourceCard(event) === context.source
             },
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

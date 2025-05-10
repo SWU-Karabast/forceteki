@@ -97,9 +97,13 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         if (typeof defeatSource === 'object') {
             eventDefeatSource = { ...defeatSource };
 
-            event.isDefeatedByAttackerDamage =
-                eventDefeatSource.type === DefeatSourceType.Attack &&
-                eventDefeatSource.damageDealtBy.includes(eventDefeatSource.attack.attacker);
+            if (eventDefeatSource.type === DefeatSourceType.Attack) {
+                event.isDefeatedByAttackerDamage = eventDefeatSource.damageDealtBy.includes(eventDefeatSource.attack.attacker);
+            } else if (eventDefeatSource.type === DefeatSourceType.Ability && eventDefeatSource.card.isUnit()) {
+                event.isDefeatedByAttackerDamage = eventDefeatSource.card.isInPlay() &&
+                  eventDefeatSource.card.isAttacking() &&
+                  eventDefeatSource.card.activeAttack.targetIsUnit((unit) => unit === card, true);
+            }
 
             if (eventDefeatSource?.type === DefeatSourceType.Attack) {
                 eventDefeatSource.player = eventDefeatSource.damageDealtBy[0].controller; // TODO: See if we can do this without [0]

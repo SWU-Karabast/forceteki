@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import * as EventHelpers from '../../../core/event/EventHelpers';
 
 export default class ArquitensAssaultCruiser extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -14,10 +15,9 @@ export default class ArquitensAssaultCruiser extends NonLeaderUnitCard {
             title: 'Put the defeated unit into play as a resource under your control',
             when: {
                 onCardDefeated: (event, context) =>
-                    // TODO: update trigger condition so that defender being defeated by attacker at the 'on attack' stage will also work
                     event.isDefeatedByAttackerDamage &&
                     event.card.isNonLeaderUnit() &&
-                    event.defeatSource.attack.attacker === context.source
+                    EventHelpers.defeatSourceCard(event) === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.event.card }))
         });
