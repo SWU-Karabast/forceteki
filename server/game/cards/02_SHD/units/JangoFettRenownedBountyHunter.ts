@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { KeywordName } from '../../../core/Constants';
+import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 
 export default class JangoFettRenownedBountyHunter extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -21,9 +22,7 @@ export default class JangoFettRenownedBountyHunter extends NonLeaderUnitCard {
             title: 'Draw a card',
             when: {
                 onCardDefeated: (event, context) =>
-                    // TODO: update trigger condition so that defender being defeated by attacker at the 'on attack' stage will also work
-                    event.isDefeatedByAttackerDamage &&
-                    event.defeatSource.attack.attacker === context.source
+                    event.isDefeatedByAttacker && DefeatCardSystem.defeatSourceCard(event) === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.draw(),
         });

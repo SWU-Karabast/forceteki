@@ -93,13 +93,9 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
 
         let eventDefeatSource: IDefeatSource;
 
-        event.isDefeatedByAttackerDamage = false;
+        event.isDefeatedByAttacker = false;
         if (typeof defeatSource === 'object') {
             eventDefeatSource = { ...defeatSource };
-
-            event.isDefeatedByAttackerDamage =
-                eventDefeatSource.type === DefeatSourceType.Attack &&
-                eventDefeatSource.damageDealtBy.includes(eventDefeatSource.attack.attacker);
 
             if (eventDefeatSource?.type === DefeatSourceType.Attack) {
                 eventDefeatSource.player = eventDefeatSource.damageDealtBy[0].controller; // TODO: See if we can do this without [0]
@@ -109,8 +105,15 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         } else {
             eventDefeatSource = this.buildDefeatSourceForType(defeatSource, event, context);
         }
-
         event.defeatSource = eventDefeatSource;
+
+        if (eventDefeatSource.type === DefeatSourceType.Attack) {
+            event.isDefeatedByAttacker = eventDefeatSource.damageDealtBy.includes(eventDefeatSource.attack.attacker);
+        } else if ((eventDefeatSource.type === DefeatSourceType.Ability || eventDefeatSource.type === DefeatSourceType.NonCombatDamage) && eventDefeatSource.card.isUnit()) {
+            event.isDefeatedByAttacker = eventDefeatSource.card.isInPlay() &&
+              eventDefeatSource.card.isAttacking() &&
+              eventDefeatSource.card.activeAttack.targetIsUnit((unit) => unit === card, true);
+        }
     }
 
     protected buildDefeatSourceForType(defeatSourceType: DefeatSourceType, event: any, context: TContext): IDefeatSource | null {
@@ -133,5 +136,22 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         }
 
         this.addLastKnownInformationToEvent(event, card);
+    }
+
+    public static defeatSourceCard(event): Card | undefined {
+        if (!event) {
+            return undefined;
+        }
+
+        Contract.assertTrue(event.name === EventName.OnCardDefeated);
+
+        const defeatSource: IDefeatSource = event.defeatSource;
+        if (defeatSource.type === DefeatSourceType.Attack) {
+            return defeatSource.attack.attacker;
+        } else if (defeatSource.type === DefeatSourceType.NonCombatDamage || defeatSource.type === DefeatSourceType.Ability) {
+            return defeatSource.card;
+        }
+
+        return undefined;
     }
 }

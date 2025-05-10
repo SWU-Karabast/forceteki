@@ -93,32 +93,30 @@ describe('Ruthlessness', function () {
             });
         });
 
-        // TODO: update trigger condition so that defender being defeated by attacker at the 'on attack' stage will also work
+        describe('Ruthlessness\'s ability', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        groundArena: [{ card: 'guardian-of-the-whills', upgrades: ['ruthlessness', 'fallen-lightsaber'] }],
+                    },
+                    player2: {
+                        groundArena: ['jawa-scavenger']
+                    }
+                });
+            });
 
-        // describe('Ruthlessness\'s ability', function () {
-        //     beforeEach(function () {
-        //         await contextRef.setupTestAsync({
-        //             phase: 'action',
-        //             player1: {
-        //                 groundArena: [{ card: 'guardian-of-the-whills', upgrades: ['ruthlessness', 'fallen-lightsaber'] }],
-        //             },
-        //             player2: {
-        //                 groundArena: ['jawa-scavenger']
-        //             }
-        //         });
-        //     });
-        //
-        //     it('should deal 2 damage to base when defeating a enemy unit with on attack ability', function () {
-        //         const { context } = contextRef;
-        //
-        //         context.player1.clickCard(context.guardianOfTheWhills);
-        //         context.player1.clickCard(context.jawaScavenger);
-        //
-        //         expect(context.jawaScavenger).toBeInZone('discard');
-        //         expect(context.guardianOfTheWhills.damage).toBe(0);
-        //         expect(context.p2Base.damage).toBe(2);
-        //         expect(context.player2).toBeActivePlayer();
-        //     });
-        // });
+            it('should deal 2 damage to base when defeating a enemy unit with on attack ability', function () {
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.guardianOfTheWhills);
+                context.player1.clickCard(context.jawaScavenger);
+
+                expect(context.jawaScavenger).toBeInZone('discard');
+                expect(context.guardianOfTheWhills.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
