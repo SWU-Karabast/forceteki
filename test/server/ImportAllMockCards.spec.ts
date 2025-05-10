@@ -24,8 +24,6 @@ describe('Importing all cards', function() {
 
                 // the test here is just to confirm that cards can be created without an exception happening
                 const card = new cardCtor(context.player1Object, cardData);
-
-                console.log(`Card ${cardId} imported successfully`);
             }
         });
     });
