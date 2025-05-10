@@ -1,4 +1,4 @@
-var mockId = -1;
+const { color } = require('console-log-colors');
 
 const mockCards = [
     buildMockCard({
@@ -57,15 +57,23 @@ function buildMockCard(cardData) {
     };
 }
 
+function buildSetStr(card) {
+    return `${card.setId.set}_${card.setId.number}`;
+}
+
 function addMockCards(cards) {
     const setIds = new Set();
 
     for (const card of cards) {
-        setIds.add(`${card.setId.set}_${card.setId.number}`);
+        setIds.add(buildSetStr(card));
     }
 
     for (const card of mockCards) {
-        if (!setIds.has(`${card.setId.set}_${card.setId.number}`)) {
+        const setStr = buildSetStr(card);
+
+        if (setIds.has(setStr)) {
+            console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed.\n`, 'yellow'));
+        } else {
             cards.push(card);
         }
     }
