@@ -236,6 +236,33 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 expect(context.darthRevan.exhausted).toBe(true);
             });
 
+            it('should give an experience to a friendly unit that attacks and defeats an enemy unit using a gained ability', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-revan#scourge-of-the-old-republic',
+                        spaceArena: [{ card: 'cartel-spacer', upgrades: ['twin-laser-turret'], damage: 4 }],
+                    },
+                    player2: {
+                        spaceArena: [{ card: 'imperial-interceptor', damage: 1 }],
+                    },
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.cartelSpacer);
+                context.player1.clickCard(context.imperialInterceptor);
+
+                context.player1.clickCard(context.imperialInterceptor);
+                context.player1.clickPrompt('Done');
+
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.cartelSpacer).toHaveExactUpgradeNames(['experience', 'twin-laser-turret']);
+                expect(context.darthRevan.exhausted).toBe(true);
+            });
+
             it('should not give an experience to a friendly unit that attacks and defeats another enemy unit using an ability', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',

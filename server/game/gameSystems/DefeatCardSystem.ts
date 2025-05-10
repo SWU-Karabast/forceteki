@@ -45,6 +45,23 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         defeatSource: DefeatSourceType.Ability
     };
 
+    public static defeatSourceCard(event): Card | undefined {
+        if (!event) {
+            return undefined;
+        }
+
+        Contract.assertTrue(event.name === EventName.OnCardDefeated);
+
+        const defeatSource: IDefeatSource = event.defeatSource;
+        if (defeatSource.type === DefeatSourceType.Attack) {
+            return defeatSource.attack.attacker;
+        } else if (defeatSource.type === DefeatSourceType.NonCombatDamage || defeatSource.type === DefeatSourceType.Ability) {
+            return defeatSource.card;
+        }
+
+        return undefined;
+    }
+
     public eventHandler(event): void {
         const card: Card = event.card;
         Contract.assertTrue(card.canBeExhausted());
@@ -136,22 +153,5 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         }
 
         this.addLastKnownInformationToEvent(event, card);
-    }
-
-    public static defeatSourceCard(event): Card | undefined {
-        if (!event) {
-            return undefined;
-        }
-
-        Contract.assertTrue(event.name === EventName.OnCardDefeated);
-
-        const defeatSource: IDefeatSource = event.defeatSource;
-        if (defeatSource.type === DefeatSourceType.Attack) {
-            return defeatSource.attack.attacker;
-        } else if (defeatSource.type === DefeatSourceType.NonCombatDamage || defeatSource.type === DefeatSourceType.Ability) {
-            return defeatSource.card;
-        }
-
-        return undefined;
     }
 }
