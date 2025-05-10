@@ -52,7 +52,7 @@ const defaultOrigins = ['http://localhost:3000', 'https://karabast.net', 'https:
 export const corsOrigins = parsedEnv.data.ADDITIONAL_CORS_ORIGINS
     ? [
         ...defaultOrigins,
-        ...parsedEnv.data.ADDITIONAL_CORS_ORIGINS.split(',').filter(origin => origin.trim() !== '')
+        ...parsedEnv.data.ADDITIONAL_CORS_ORIGINS.split(',').filter((origin) => origin.trim() !== '')
     ]
     : defaultOrigins;
 
