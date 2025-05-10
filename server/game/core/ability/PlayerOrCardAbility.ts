@@ -14,6 +14,7 @@ import type { Player } from '../Player.js';
 import type { PlayCardAction } from './PlayCardAction.js';
 import type { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';
 import type CardAbilityStep from './CardAbilityStep.js';
+import type { EpicActionAbility } from '../../abilities/EpicActionAbility.js';
 
 // TODO: convert to TS and make this abstract
 /**
@@ -374,6 +375,10 @@ export class PlayerOrCardAbility {
     }
 
     public isAttackAction(): this is InitiateAttackAction {
+        return false;
+    }
+
+    public isEpicAction(): this is EpicActionAbility {
         return false;
     }
 }

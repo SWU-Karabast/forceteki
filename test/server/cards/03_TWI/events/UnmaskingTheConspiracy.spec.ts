@@ -20,7 +20,7 @@ describe('Unmasking the Conspiracy', function() {
 
             // Player discards a card and looks at the opponent's hand
             context.player1.clickCard(context.unmaskingTheConspiracy);
-            expect(context.player1).toHavePrompt('Choose a card to discard');
+            expect(context.player1).toHavePrompt('Choose a card to discard for Unmasking the Conspiracy\'s effect');
             expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine]);
 
             context.player1.clickCard(context.battlefieldMarine);

@@ -1204,6 +1204,10 @@ export class Player extends GameObject<IPlayerState> {
         return this.promptState.getCardSelectionState(card);
     }
 
+    public getAttackerHighlightingState(card: Card) {
+        return this.promptState.attackTargetingHighlightAttacker === card;
+    }
+
     public currentPrompt() {
         return this.promptState.getState();
     }

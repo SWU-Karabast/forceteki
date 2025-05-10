@@ -35,6 +35,7 @@ export class InitiateAttackAction extends PlayerAction {
             multiSelectCardCondition: (card, selectedCards) => (card.isBase() ? selectedCards.length === 0 : !selectedCards.some((card) => card.isBase())),
             immediateEffect: new AttackStepsSystem(Object.assign({}, attackProperties, { attacker: card })),
             zoneFilter: WildcardZoneName.AnyAttackable,
+            attackTargetingHighlightAttacker: card,
             activePromptTitle: 'Choose a target for attack'
         });
     }
