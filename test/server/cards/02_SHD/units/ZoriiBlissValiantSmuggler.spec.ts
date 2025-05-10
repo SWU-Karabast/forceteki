@@ -30,7 +30,7 @@ describe('Zorii Bliss', function() {
                 context.moveToRegroupPhase();
 
                 // Player 1 should now discard a card
-                expect(context.player1).toHavePrompt('Choose a card to discard');
+                expect(context.player1).toHavePrompt('Choose a card to discard for Zorii Bliss\'s effect');
                 expect(context.player1).toBeAbleToSelectExactly([context.volunteerSoldier, context.battlefieldMarine]);
                 context.player1.clickCard(context.volunteerSoldier);
                 expect(context.volunteerSoldier).toBeInZone('discard', context.player1);

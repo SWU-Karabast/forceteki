@@ -49,7 +49,7 @@ describe('Cripple Authority', function() {
 
                 context.player1.clickCard(context.crippleAuthority);
 
-                expect(context.player2).toHavePrompt('Choose a card to discard');
+                expect(context.player2).toHavePrompt('Choose a card to discard for Cripple Authority\'s effect');
                 expect(context.player2).toBeAbleToSelectExactly([context.atst, context.wampa]);
                 context.player2.clickCard(context.atst);
 

@@ -105,10 +105,11 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
             });
 
             context.game.promptForSelect(choosingPlayer, {
-                activePromptTitle: 'Choose ' + (amount === 1 ? 'a card' : amount + ' cards') + ' to discard',
+                activePromptTitle: `Choose ${amount === 1 ? 'a card' : amount + ' cards'} to discard for ${context.source.title}'s effect`,
                 source: context.source,
-                selector: selector,
-                context: context,
+                selector,
+                context,
+                isOpponentEffect: choosingPlayer !== context.player,
                 selectCardMode: amount === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
                 onSelect: (cards) => {
                     this.generateEventsForCards(cards, context, events, additionalProperties);
