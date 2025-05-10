@@ -1,6 +1,11 @@
 const { color } = require('console-log-colors');
 
 const mockCards = [
+    /**
+     * IMPORTANT
+     *
+     * When adding / removing cards below, also upadte ImportAllMockCards.spec.ts to validate them
+     */
     buildMockCard({
         title: 'Aggression Force Base',
         hp: 28,
@@ -63,6 +68,7 @@ function buildSetStr(card) {
 
 function addMockCards(cards) {
     const setIds = new Set();
+    const mockCardNames = [];
 
     for (const card of cards) {
         setIds.add(buildSetStr(card));
@@ -72,11 +78,14 @@ function addMockCards(cards) {
         const setStr = buildSetStr(card);
 
         if (setIds.has(setStr)) {
-            console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed.\n`, 'yellow'));
+            console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js and ImportAllMockCards.spec.ts\n`, 'yellow'));
         } else {
             cards.push(card);
+            mockCardNames.push(card.internalName);
         }
     }
+
+    return mockCardNames;
 }
 
 module.exports = { addMockCards };
