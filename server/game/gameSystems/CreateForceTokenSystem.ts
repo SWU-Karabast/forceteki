@@ -27,7 +27,7 @@ export class CreateForceTokenSystem<TContext extends AbilityContext = AbilityCon
     }
 
     public override getEffectMessage(context: TContext): [string, any[]] {
-        return ['have the Force', []];
+        return ['gain the Force', []];
     }
 
     public override defaultTargets(context: TContext): Player[] {
