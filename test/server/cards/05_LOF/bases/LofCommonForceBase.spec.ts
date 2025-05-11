@@ -40,6 +40,9 @@ describe('Common bases in Legens of the Force', function() {
                 // Only Player 1 should have The Force token
                 expect(context.player1.hasTheForce).toBe(true);
                 expect(context.player2.hasTheForce).toBe(false);
+                expect(context.getChatLogs(1)).toEqual([
+                    'player1 uses Shadowed Undercity to have the Force',
+                ]);
             });
 
             it('works correctly if multiple friendly Force units attack', function () {

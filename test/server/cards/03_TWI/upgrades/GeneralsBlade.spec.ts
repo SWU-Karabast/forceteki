@@ -11,6 +11,9 @@ describe('General\'s Blade', function () {
                     resources: ['atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'collections-starhopper'],
                     discard: ['krayt-dragon']
                 },
+                player2: {
+                    hand: ['corporate-defense-shuttle'],
+                }
             });
 
             const { context } = contextRef;
@@ -18,7 +21,8 @@ describe('General\'s Blade', function () {
             // trigger general's blade ability
             context.player1.clickCard(context.obiwanKenobi);
             context.player1.clickCard(context.p2Base);
-            context.player2.passAction();
+            context.player2.clickCard(context.corporateDefenseShuttle);
+            expect(context.getChatLogs(2)).toContain('player1 uses Obi-Wan Kenobi\'s gained ability from General\'s Blade to discount the next unit played by them for this phase');
 
             // play an event with normal cost
             context.player1.clickCard(context.smugglersAid);
