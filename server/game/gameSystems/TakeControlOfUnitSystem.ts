@@ -35,7 +35,10 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { newController, target } = this.generatePropertiesFromContext(context);
-        return ['{0} takes control of {1}', [newController, target]];
+        if (newController === context.player) {
+            return ['take control of {0}', [target]];
+        }
+        return ['give control of {0} to {1}', [target, newController]];
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<ITakeControlOfUnitProperties>): void {

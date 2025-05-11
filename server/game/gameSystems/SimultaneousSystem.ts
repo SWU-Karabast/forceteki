@@ -17,10 +17,13 @@ export class SimultaneousSystem<TContext extends AbilityContext = AbilityContext
         const legalSystems = gameSystems.filter((system) => system.hasLegalTarget(context));
         let message = '{0}';
         for (let i = 1; i < legalSystems.length; i++) {
-            message += i === legalSystems.length - 1 ? ' and ' : ', ';
+            message += i === legalSystems.length - 1 ? ' and to ' : ', to ';
             message += '{' + i + '}';
         }
-        return [message, legalSystems.map((system) => system.getEffectMessage(context))];
+        return [message, legalSystems.map((system) => {
+            const [format, args] = system.getEffectMessage(context);
+            return [format, ...args];
+        })];
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISimultaneousSystemProperties<TContext>> = {}): void {
