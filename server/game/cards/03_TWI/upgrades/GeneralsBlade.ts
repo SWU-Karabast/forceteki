@@ -19,6 +19,8 @@ export default class GeneralsBlade extends UpgradeCard {
             title: 'The next unit you play this phase costs 2 resources less',
             gainCondition: (context) => context.source.parentCard.hasSomeTrait(Trait.Jedi),
             immediateEffect: AbilityHelper.immediateEffects.forThisPhasePlayerEffect({
+                ongoingEffectDescription: 'discount the next unit played by',
+                ongoingEffectTargetDescription: 'them',
                 effect: AbilityHelper.ongoingEffects.decreaseCost({
                     cardTypeFilter: WildcardCardType.Unit,
                     limit: AbilityLimit.perGame(1),
