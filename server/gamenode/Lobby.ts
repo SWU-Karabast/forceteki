@@ -928,27 +928,25 @@ export class Lobby {
             let parsedDescription = '';
             let screenResolution = null;
             let viewport = null;
-        
             if (bugReportMessage && typeof bugReportMessage === 'object') {
                 parsedDescription = bugReportMessage.description || '';
                 screenResolution = bugReportMessage.screenResolution || null;
                 viewport = bugReportMessage.viewport || null;
-            }
-            else {
+            } else {
                 // Take this as a string (backward compatibility)
                 parsedDescription = bugReportMessage;
-            }          
+            }
 
             if (!parsedDescription || parsedDescription.trim().length === 0) {
                 throw new Error('description is invalid');
             }
-            
+
             // Create game state snapshot
             const gameState = this.game
                 ? this.game.captureGameState(socket.user.id)
                 : { phase: 'action', player1: {}, player2: {} };
 
-            // Create bug report 
+            // Create bug report
             const bugReport = this.server.bugReportHandler.createBugReport(
                 parsedDescription,
                 gameState,
@@ -958,17 +956,17 @@ export class Lobby {
                 screenResolution,
                 viewport
             );
-            
+
             // Send to Discord
             const success = await this.server.bugReportHandler.sendBugReportToDiscord(bugReport);
             if (!success) {
                 throw new Error('Bug report failed to send to discord. No webhook configured');
             }
-            
+
             // we find the user
             const existingUser = this.users.find((u) => u.id === socket.user.id);
             existingUser.reportedBugs += success ? 1 : 0;
-            
+
             // Send success message to client
             socket.send('bugReportResult', {
                 id: uuid(),

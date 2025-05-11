@@ -32,16 +32,16 @@ export class BugReportHandler {
                 description: bugReport.description,
                 gameStateJson: JSON.stringify(bugReport.gameState, null, 0)
             };
-            
+
             // Only add screen resolution and viewport to log if they exist
             if (bugReport.screenResolution) {
                 Object.assign(logData, { screenResolution: bugReport.screenResolution });
             }
-            
+
             if (bugReport.viewport) {
                 Object.assign(logData, { viewport: bugReport.viewport });
             }
-            
+
             logger.info(`Bug report received from user ${bugReport.reporter.username}`, logData);
 
             // If no webhook URL is configured, just log it
@@ -146,7 +146,7 @@ export class BugReportHandler {
                 inline: true
             });
         }
-        
+
         // Add viewport information if available
         if (bugReport.viewport) {
             fields.push({
