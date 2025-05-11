@@ -1108,13 +1108,6 @@ export class GameServer {
 
         logger.info(`GameServer: Matched players ${p1.user.getUsername()} and ${p2.user.getUsername()} in lobby ${lobby.id}.`);
 
-        setTimeout(() => {
-            console.log('Closing socket after 10 seconds of inactivity');
-
-            // close the low-level connection and trigger a reconnection
-            this.io.engine.close();
-        }, 15000);
-
         return Promise.resolve();
     }
 
