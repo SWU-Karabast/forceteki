@@ -997,6 +997,9 @@ export class GameServer {
 
             const socket = new Socket(ioSocket);
 
+            if (queuedPlayer.socket && queuedPlayer.socket.id !== socket.id) {
+                queuedPlayer.socket.disconnect();
+            }
             queuedPlayer.socket = socket;
 
             // handle queue-specific events and add lobby disconnect
@@ -1105,6 +1108,13 @@ export class GameServer {
 
         logger.info(`GameServer: Matched players ${p1.user.getUsername()} and ${p2.user.getUsername()} in lobby ${lobby.id}.`);
 
+        setTimeout(() => {
+            console.log('Closing socket after 10 seconds of inactivity');
+
+            // close the low-level connection and trigger a reconnection
+            this.io.engine.close();
+        }, 15000);
+
         return Promise.resolve();
     }
 
@@ -1201,19 +1211,21 @@ export class GameServer {
                 return;
             }
 
-            lobby?.setUserDisconnected(id);
-            this.queue.disconnectPlayer(id);
+            lobby?.setUserDisconnected(id, socket.id);
+            this.queue.disconnectPlayer(id, socket.id);
 
             const timeoutValue = timeoutSeconds * 1000;
 
             setTimeout(() => {
                 try {
                     if (isMatchmaking && !this.queue.isConnected(id)) {
-                        this.queue.removePlayer(id, 'Timeout disconnect');
+                        this.queue.removePlayer(id, `Timeout disconnect on socket id ${socket.id}`);
                     }
 
                     // Check if the user is still disconnected after the timer
                     if (lobby?.getUserState(id) === 'disconnected') {
+                        logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than 20s, removing from lobby`, { userId: id, lobbyId: lobby.id });
+
                         this.userLobbyMap.delete(id);
 
                         if (isMatchmaking) {
