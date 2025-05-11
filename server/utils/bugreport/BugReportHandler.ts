@@ -185,6 +185,7 @@ export class BugReportHandler {
      * @param lobbyId ID of the lobby where the bug occurred
      * @param gameId Optional ID of the game where the bug occurred
      * @param screenResolution Optional screen resolution information
+     * @param viewport Optional viewport information
      * @returns Formatted bug report object
      */
     public createBugReport(
