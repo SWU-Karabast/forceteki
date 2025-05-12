@@ -64,6 +64,10 @@ const binaryCardEffects = [
 export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<TValue> {
     public readonly valueWrapper: OngoingEffectValueWrapper<TValue>;
 
+    public override get effectDescription() {
+        return this.valueWrapper.effectDescription;
+    }
+
     public constructor(type: EffectName, value: OngoingEffectValueWrapper<TValue> | TValue) {
         super(type);
 

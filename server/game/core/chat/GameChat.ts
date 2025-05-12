@@ -1,4 +1,8 @@
-type MsgArg = string | string[] | { name: string } | { getShortSummary: () => string };
+type MsgArg = string | string[] | FormatMessage | { name: string } | { getShortSummary: () => string };
+export interface FormatMessage {
+    format: string;
+    args: MsgArg[];
+}
 
 type MessageText = string | (string | number)[];
 
@@ -8,7 +12,7 @@ export class GameChat {
         message: MessageText | { alert: { type: string; message: string | string[] } };
     }[] = [];
 
-    public addChatMessage(player: any, message: any): void {
+    public addChatMessage(player, message: string): void {
         const playerArg = {
             name: player.name || player.username,
             id: player.id,
@@ -48,6 +52,8 @@ export class GameChat {
                         return output.concat(this.formatArray(arg));
                     } else if (arg.getShortSummary) {
                         return output.concat(arg.getShortSummary());
+                    } else if (typeof arg === 'object' && 'format' in arg && 'args' in arg) {
+                        return output.concat(this.formatMessage(arg.format, arg.args));
                     }
                     return output.concat(arg);
                 }
