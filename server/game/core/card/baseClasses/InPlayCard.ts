@@ -382,6 +382,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
             activePromptTitle: `Choose which ${numUniqueDuplicatesInPlay > 1 ? 'copies' : 'copy'} of ${unitDisplayName} to defeat`,
             waitingPromptTitle: `Waiting for opponent to choose which ${numUniqueDuplicatesInPlay > 1 ? 'copies' : 'copy'} of ${unitDisplayName} to defeat`,
             source: 'Unique rule',
+            isOpponentEffect: false,
             selectCardMode: numUniqueDuplicatesInPlay > 1 ? SelectCardMode.Multiple : SelectCardMode.Single,
             selector: selector,
             onSelect: (cardOrCards) => {

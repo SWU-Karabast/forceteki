@@ -110,7 +110,7 @@ export class GameServer {
         const server = http.createServer(app);
 
         const corsOptions = {
-            origin: ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'],
+            origin: env.corsOrigins,
             methods: ['GET', 'POST', 'PUT', 'DELETE'],
             credentials: true, // Allow cookies or authorization headers
         };
@@ -137,7 +137,7 @@ export class GameServer {
             perMessageDeflate: false,
             path: '/ws',
             cors: {
-                origin: ['http://localhost:3000', 'https://karabast.net', 'https://www.karabast.net'],
+                origin: env.corsOrigins,
                 methods: ['GET', 'POST']
             }
         });
@@ -982,7 +982,7 @@ export class GameServer {
                 this.userLobbyMap.set(newUser.id, { lobbyId: lobby.id, role: UserRole.Player });
                 this.registerDisconnect(socket, user.id);
                 return Promise.resolve();
-            }*/
+           }*/
 
             await lobby.addLobbyUserAsync(user, socket);
             this.userLobbyMap.set(user.getId(), { lobbyId: lobby.id, role: UserRole.Player });
@@ -997,6 +997,11 @@ export class GameServer {
 
             const socket = new Socket(ioSocket);
 
+            // if there is an older socket, clean it up first
+            if (queuedPlayer.socket && queuedPlayer.socket.id !== socket.id) {
+                queuedPlayer.socket.removeEventsListeners(['disconnect']);
+                queuedPlayer.socket.disconnect();
+            }
             queuedPlayer.socket = socket;
 
             // handle queue-specific events and add lobby disconnect
@@ -1201,19 +1206,21 @@ export class GameServer {
                 return;
             }
 
-            lobby?.setUserDisconnected(id);
-            this.queue.disconnectPlayer(id);
+            lobby?.setUserDisconnected(id, socket.id);
+            this.queue.disconnectPlayer(id, socket.id);
 
             const timeoutValue = timeoutSeconds * 1000;
 
             setTimeout(() => {
                 try {
-                    if (isMatchmaking && !this.queue.isConnected(id)) {
-                        this.queue.removePlayer(id, 'Timeout disconnect');
+                    if (isMatchmaking && !this.queue.isConnected(id, socket.id)) {
+                        this.queue.removePlayer(id, `Timeout disconnect on socket id ${socket.id}`);
                     }
 
                     // Check if the user is still disconnected after the timer
-                    if (lobby?.getUserState(id) === 'disconnected') {
+                    if (lobby?.isDisconnected(id, socket.id)) {
+                        logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than 20s, removing from lobby`, { userId: id, lobbyId: lobby.id });
+
                         this.userLobbyMap.delete(id);
 
                         if (isMatchmaking) {

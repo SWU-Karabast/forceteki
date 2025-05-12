@@ -21,7 +21,7 @@ describe('Profundity, We Fight!', function() {
             context.player1.clickPrompt('Opponent');
 
             // Player 2 discards a card
-            expect(context.player2).toHavePrompt('Choose a card to discard');
+            expect(context.player2).toHavePrompt('Choose a card to discard for Profundity\'s effect');
             expect(context.player2).toBeAbleToSelectExactly([
                 context.vanquish,
                 context.battlefieldMarine,
@@ -33,7 +33,7 @@ describe('Profundity, We Fight!', function() {
             expect(context.battlefieldMarine).toBeInZone('discard');
 
             // Then, they have to discard a second card
-            expect(context.player2).toHavePrompt('Choose a card to discard');
+            expect(context.player2).toHavePrompt('Choose a card to discard for Profundity\'s effect');
             expect(context.player2).toBeAbleToSelectExactly([
                 context.vanquish,
                 context.wampa,
@@ -84,7 +84,7 @@ describe('Profundity, We Fight!', function() {
             context.player1.clickPrompt('You');
 
             // Player 1 discards a card
-            expect(context.player1).toHavePrompt('Choose a card to discard');
+            expect(context.player1).toHavePrompt('Choose a card to discard for Profundity\'s effect');
             expect(context.player1).toBeAbleToSelectExactly([
                 context.battlefieldMarine,
                 context.wampa,

@@ -128,9 +128,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        if (properties.player === RelativePlayer.Opponent && !context.player.opponent) {
-            return;
-        }
+
         let player = properties.player === RelativePlayer.Opponent ? context.player.opponent : context.player;
         let mustSelect = [];
         if (properties.checkTarget) {
@@ -202,7 +200,8 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
         }
 
         const finalProperties = Object.assign(defaultProperties, properties, {
-            activePromptTitle: typeof properties.activePromptTitle === 'function' ? properties.activePromptTitle(context) : properties.activePromptTitle
+            activePromptTitle: typeof properties.activePromptTitle === 'function' ? properties.activePromptTitle(context) : properties.activePromptTitle,
+            isOpponentEffect: player === context.player.opponent,
         });
         if (player.autoSingleTarget) {
             if (legalTargets.length === 1) {

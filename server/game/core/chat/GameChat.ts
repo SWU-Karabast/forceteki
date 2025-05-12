@@ -1,4 +1,4 @@
-type MsgArg = string | { name: string } | { getShortSummary: () => string };
+type MsgArg = string | string[] | { name: string } | { getShortSummary: () => string };
 
 type MessageText = string | (string | number)[];
 
@@ -72,6 +72,8 @@ export class GameChat {
     }
 
     private formatArray(array: MsgArg[]): string | string[] {
+        array = array.filter((arg) => !Array.isArray(arg) || arg.length > 0);
+
         if (array.length === 0) {
             return [];
         }

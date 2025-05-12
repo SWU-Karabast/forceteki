@@ -182,6 +182,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
             selector: this.selector,
             buttons: buttons,
             mustSelect: mustSelect,
+            isOpponentEffect: player === context.player.opponent,
             selectCardMode: this.properties.mode === TargetMode.Single ? SelectCardMode.Single : SelectCardMode.Multiple,
             onSelect: (card) => {
                 this.setTargetResult(context, card);

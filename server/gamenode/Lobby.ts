@@ -215,7 +215,7 @@ export class Lobby {
             });
         } else {
             existingSpectator.state = 'connected';
-            existingSpectator.socket = socket;
+            this.checkUpdateSocket(existingSpectator, socket);
         }
         // If game is ongoing, send the current state to the spectator
         if (this.game) {
@@ -224,6 +224,15 @@ export class Lobby {
             this.sendLobbyStateToSpectator(socket);
         }
         logger.info(`Lobby: adding spectator: ${user.getUsername()}, id: ${user.getId()} (${this.spectators.length} spectator(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
+    }
+
+    private checkUpdateSocket(user: LobbyUser | LobbySpectator, socket: Socket): void {
+        // clean up disconnect handlers on the old socket before removing it
+        if (user.socket && user.socket.id !== socket.id) {
+            user.socket.removeEventsListeners(['disconnect']);
+            user.socket.disconnect();
+        }
+        user.socket = socket;
     }
 
     public removeSpectator(id: string): void {
@@ -260,8 +269,8 @@ export class Lobby {
 
         if (existingUser) {
             existingUser.state = 'connected';
-            existingUser.socket = socket;
-            logger.info(`Lobby: setting state to connected for existing user: ${user.getUsername()}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
+            this.checkUpdateSocket(existingUser, socket);
+            logger.info(`Lobby: setting state to connected for existing user ${user.getUsername()} with socket id ${socket.id}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
         } else {
             this.users.push({
                 id: user.getId(),
@@ -271,7 +280,7 @@ export class Lobby {
                 socket,
                 reportedBugs: 0
             });
-            logger.info(`Lobby: adding username: ${user.getUsername()}, id: ${user.getId()} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
+            logger.info(`Lobby: adding username: ${user.getUsername()}, id: ${user.getId()}, socket id: ${socket.id} to users list (${this.users.length} user(s))`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
             this.gameChat.addMessage(`${user.getUsername()} has joined the lobby`);
         }
 
@@ -460,17 +469,25 @@ export class Lobby {
         return user;
     }
 
-    public setUserDisconnected(id: string): void {
+    public setUserDisconnected(id: string, socketId: string): void {
         const user = this.users.find((u) => u.id === id);
         if (user) {
+            if (user.socket.id !== socketId) {
+                return;
+            }
+
             user.state = 'disconnected';
-            logger.info(`Lobby: setting user ${user.username} to disconnected`, { lobbyId: this.id, userName: user.username, userId: user.id });
+            logger.info(`Lobby: setting user ${user.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
 
         const spectator = this.spectators.find((u) => u.id === id);
         if (spectator) {
+            if (spectator.socket.id !== socketId) {
+                return;
+            }
+
             spectator.state = 'disconnected';
-            logger.info(`Lobby: setting spectator ${spectator.username} to disconnected`, { lobbyId: this.id, userName: spectator.username, userId: spectator.id });
+            logger.info(`Lobby: setting spectator ${spectator.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: spectator.username, userId: spectator.id });
         }
     }
 
@@ -508,13 +525,13 @@ export class Lobby {
         }
     }
 
-    public getUserState(id: string): string {
+    public isDisconnected(id: string, socketId: string): boolean {
         const user = this.users.find((u) => u.id === id);
         if (user) {
-            return user.state;
+            return user.socket?.id === socketId && user.state === 'disconnected';
         }
         const spectator = this.spectators.find((u) => u.id === id);
-        return spectator?.state;
+        return spectator.socket?.id === socketId && spectator?.state === 'disconnected';
     }
 
     public isFilled(): boolean {
@@ -938,10 +955,22 @@ export class Lobby {
     }
 
     // Report bug method
-    private async reportBug(socket: Socket, description: string): Promise<void> {
+    private async reportBug(socket: Socket, bugReportMessage: any): Promise<void> {
         try {
-            // Validate description
-            if (!description || description.trim().length === 0) {
+            // Parse description as JSON if it's in JSON format
+            let parsedDescription = '';
+            let screenResolution = null;
+            let viewport = null;
+            if (bugReportMessage && typeof bugReportMessage === 'object') {
+                parsedDescription = bugReportMessage.description || '';
+                screenResolution = bugReportMessage.screenResolution || null;
+                viewport = bugReportMessage.viewport || null;
+            } else {
+                // Take this as a string (backward compatibility)
+                parsedDescription = bugReportMessage;
+            }
+
+            if (!parsedDescription || parsedDescription.trim().length === 0) {
                 throw new Error('description is invalid');
             }
 
@@ -952,20 +981,25 @@ export class Lobby {
 
             // Create bug report
             const bugReport = this.server.bugReportHandler.createBugReport(
-                description,
+                parsedDescription,
                 gameState,
                 socket.user,
                 this.id,
-                this.game?.id
+                this.game?.id,
+                screenResolution,
+                viewport
             );
+
             // Send to Discord
             const success = await this.server.bugReportHandler.sendBugReportToDiscord(bugReport);
             if (!success) {
                 throw new Error('Bug report failed to send to discord. No webhook configured');
             }
+
             // we find the user
             const existingUser = this.users.find((u) => u.id === socket.user.id);
             existingUser.reportedBugs += success ? 1 : 0;
+
             // Send success message to client
             socket.send('bugReportResult', {
                 id: uuid(),
