@@ -998,6 +998,8 @@ export class GameServer {
             const socket = new Socket(ioSocket);
 
             if (queuedPlayer.socket && queuedPlayer.socket.id !== socket.id) {
+                // clean up disconnect handlers on the old socket before removing it
+                queuedPlayer.socket.removeEventsListeners(['disconnect']);
                 queuedPlayer.socket.disconnect();
             }
             queuedPlayer.socket = socket;
@@ -1211,12 +1213,12 @@ export class GameServer {
 
             setTimeout(() => {
                 try {
-                    if (isMatchmaking && !this.queue.isConnected(id)) {
+                    if (isMatchmaking && !this.queue.isConnected(id, socket.id)) {
                         this.queue.removePlayer(id, `Timeout disconnect on socket id ${socket.id}`);
                     }
 
                     // Check if the user is still disconnected after the timer
-                    if (lobby?.getUserState(id) === 'disconnected') {
+                    if (lobby?.isDisconnected(id, socket.id)) {
                         logger.info(`GameServer: User ${id} on socket id ${socket.id} is disconnected from lobby ${lobby.id} for more than 20s, removing from lobby`, { userId: id, lobbyId: lobby.id });
 
                         this.userLobbyMap.delete(id);

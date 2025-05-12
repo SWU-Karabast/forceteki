@@ -224,6 +224,8 @@ export class Lobby {
 
     private checkUpdateSocket(user: LobbyUser | LobbySpectator, socket: Socket): void {
         if (user.socket && user.socket.id !== socket.id) {
+            // clean up disconnect handlers on the old socket before removing it
+            user.socket.removeEventsListeners(['disconnect']);
             user.socket.disconnect();
         }
         user.socket = socket;
@@ -473,12 +475,20 @@ export class Lobby {
     public setUserDisconnected(id: string, socketId: string): void {
         const user = this.users.find((u) => u.id === id);
         if (user) {
+            if (user.socket.id !== socketId) {
+                return;
+            }
+
             user.state = 'disconnected';
             logger.info(`Lobby: setting user ${user.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: user.username, userId: user.id });
         }
 
         const spectator = this.spectators.find((u) => u.id === id);
         if (spectator) {
+            if (spectator.socket.id !== socketId) {
+                return;
+            }
+
             spectator.state = 'disconnected';
             logger.info(`Lobby: setting spectator ${spectator.username} to disconnected on socket id ${socketId}`, { lobbyId: this.id, userName: spectator.username, userId: spectator.id });
         }
@@ -518,13 +528,13 @@ export class Lobby {
         }
     }
 
-    public getUserState(id: string): string {
+    public isDisconnected(id: string, socketId: string): boolean {
         const user = this.users.find((u) => u.id === id);
         if (user) {
-            return user.state;
+            return user.socket?.id === socketId && user.state === 'disconnected';
         }
         const spectator = this.spectators.find((u) => u.id === id);
-        return spectator?.state;
+        return spectator.socket?.id === socketId && spectator?.state === 'disconnected';
     }
 
     public isFilled(): boolean {

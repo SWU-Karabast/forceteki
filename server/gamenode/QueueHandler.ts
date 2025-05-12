@@ -96,14 +96,15 @@ export class QueueHandler {
     /** If the user exists in the queue and is connected, temporarily move them into a disconnected state while waiting for reconnection */
     public disconnectPlayer(userId: string, socketId: string) {
         const queueEntry = this.findPlayerInQueue(userId);
-        if (queueEntry) {
+        if (queueEntry && queueEntry.player?.socket?.id === socketId) {
             this.removePlayer(userId, `Temporarily disconnected on socket id ${socketId}`);
             this.addPlayer(queueEntry.format, { user: queueEntry.player.user, deck: queueEntry.player.deck });
         }
     }
 
-    public isConnected(userId: string): boolean {
-        return !!this.findPlayerInQueue(userId);
+    public isConnected(userId: string, socketId: string): boolean {
+        const player = this.findPlayerInQueue(userId);
+        return player && player.player.socket?.id === socketId;
     }
 
     public removePlayer(userId: string, reasonStr: string) {
