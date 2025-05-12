@@ -26,12 +26,23 @@ export class BugReportHandler {
     public async sendBugReportToDiscord(bugReport: ISerializedReportState): Promise<boolean> {
         try {
             // Always log the bug report
-            logger.info(`Bug report received from user ${bugReport.reporter.username}`, {
+            const logData = {
                 lobbyId: bugReport.lobbyId,
                 reporterId: bugReport.reporter.id,
                 description: bugReport.description,
                 gameStateJson: JSON.stringify(bugReport.gameState, null, 0)
-            });
+            };
+
+            // Only add screen resolution and viewport to log if they exist
+            if (bugReport.screenResolution) {
+                Object.assign(logData, { screenResolution: bugReport.screenResolution });
+            }
+
+            if (bugReport.viewport) {
+                Object.assign(logData, { viewport: bugReport.viewport });
+            }
+
+            logger.info(`Bug report received from user ${bugReport.reporter.username}`, logData);
 
             // If no webhook URL is configured, just log it
             if (!this.discordWebhookUrl) {
@@ -103,6 +114,55 @@ export class BugReportHandler {
             ? bugReport.description.substring(0, 1021) + '...'
             : bugReport.description;
 
+        // Prepare fields for embed
+        const fields = [
+            {
+                name: 'Reporter',
+                value: `${bugReport.reporter.username} (player1)`,
+                inline: true,
+            },
+            {
+                name: 'Lobby ID',
+                value: bugReport.lobbyId,
+                inline: true
+            },
+            {
+                name: 'Game ID',
+                value: bugReport.gameId || 'N/A',
+                inline: true
+            },
+            {
+                name: 'Timestamp',
+                value: bugReport.timestamp,
+                inline: true
+            }
+        ];
+
+        // Add screen resolution if available
+        if (bugReport.screenResolution) {
+            fields.push({
+                name: 'Screen Resolution',
+                value: `${bugReport.screenResolution.width}x${bugReport.screenResolution.height}`,
+                inline: true
+            });
+        }
+
+        // Add viewport information if available
+        if (bugReport.viewport) {
+            fields.push({
+                name: 'Viewport',
+                value: `${bugReport.viewport.width}x${bugReport.viewport.height}`,
+                inline: true
+            });
+        }
+
+        // Add game state field
+        fields.push({
+            name: 'Game State',
+            value: 'See attached JSON file for complete game state',
+            inline: false
+        });
+
         return {
             content: `New bug report from **${bugReport.reporter.username}**!`,
             embeds: [
@@ -110,32 +170,7 @@ export class BugReportHandler {
                     title: 'Bug Report',
                     color: 0xFF0000, // Red color
                     description: embedDescription,
-                    fields: [
-                        {
-                            name: 'Reporter',
-                            value: `${bugReport.reporter.username} (player1)`,
-                            inline: true,
-                        },
-                        {
-                            name: 'Lobby ID',
-                            value: bugReport.lobbyId,
-                            inline: true
-                        },
-                        {
-                            name: 'Game ID',
-                            value: bugReport.gameId || 'N/A',
-                            inline: true
-                        },
-                        {
-                            name: 'Timestamp',
-                            value: bugReport.timestamp,
-                            inline: true
-                        },
-                        {
-                            name: 'Game State',
-                            value: 'See attached JSON file for complete game state'
-                        }
-                    ],
+                    fields,
                     timestamp: new Date().toISOString()
                 }
             ]
@@ -149,6 +184,8 @@ export class BugReportHandler {
      * @param user User reporting the bug
      * @param lobbyId ID of the lobby where the bug occurred
      * @param gameId Optional ID of the game where the bug occurred
+     * @param screenResolution Optional screen resolution information
+     * @param viewport Optional viewport information
      * @returns Formatted bug report object
      */
     public createBugReport(
@@ -156,7 +193,9 @@ export class BugReportHandler {
         gameState: ISerializedGameState,
         user: User,
         lobbyId: string,
-        gameId?: string
+        gameId?: string,
+        screenResolution?: { width: number; height: number } | null,
+        viewport?: { width: number; height: number } | null
     ): ISerializedReportState {
         return {
             description: this.sanitizeForJson(description),
@@ -168,7 +207,9 @@ export class BugReportHandler {
             },
             lobbyId,
             gameId,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            screenResolution: screenResolution,
+            viewport: viewport
         };
     }
 }

@@ -327,6 +327,8 @@ export interface ISerializedReportState {
     lobbyId: string;
     timestamp: string;
     gameId?: string;
+    screenResolution?: { width: number; height: number } | null;
+    viewport?: { width: number; height: number } | null;
 }
 
 // ********************************************** INTERNAL TYPES **********************************************
