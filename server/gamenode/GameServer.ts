@@ -997,8 +997,8 @@ export class GameServer {
 
             const socket = new Socket(ioSocket);
 
+            // if there is an older socket, clean it up first
             if (queuedPlayer.socket && queuedPlayer.socket.id !== socket.id) {
-                // clean up disconnect handlers on the old socket before removing it
                 queuedPlayer.socket.removeEventsListeners(['disconnect']);
                 queuedPlayer.socket.disconnect();
             }

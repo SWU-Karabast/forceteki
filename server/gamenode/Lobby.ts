@@ -223,8 +223,8 @@ export class Lobby {
     }
 
     private checkUpdateSocket(user: LobbyUser | LobbySpectator, socket: Socket): void {
+        // clean up disconnect handlers on the old socket before removing it
         if (user.socket && user.socket.id !== socket.id) {
-            // clean up disconnect handlers on the old socket before removing it
             user.socket.removeEventsListeners(['disconnect']);
             user.socket.disconnect();
         }
