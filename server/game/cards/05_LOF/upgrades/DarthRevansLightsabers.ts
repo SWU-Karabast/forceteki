@@ -13,7 +13,7 @@ export default class DarthRevanLightsabers extends UpgradeCard {
         this.setAttachCondition((card) => card.isUnit() && !card.hasSomeTrait(Trait.Vehicle));
 
         this.addGainKeywordTargetingAttached({
-            gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Force),
+            gainCondition: (context) => context.source.parentCard?.hasSomeTrait(Trait.Sith),
             keyword: KeywordName.Grit,
         });
     }
