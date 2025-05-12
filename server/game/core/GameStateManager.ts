@@ -78,7 +78,7 @@ export class GameStateManager {
             );
 
             const nextId = this.lastId + 1;
-            go.uuid = go.getObjectName() + '_' + nextId;
+            go.uuid = go.getGameObjectName() + '_' + nextId;
             this.lastId = nextId;
             this.allGameObjects.push(go);
             this.gameObjectMapping.set(go.uuid, go);

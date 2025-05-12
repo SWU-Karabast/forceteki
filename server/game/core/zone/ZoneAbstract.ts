@@ -88,7 +88,7 @@ export abstract class ZoneAbstract<TCard extends Card = Card, TState extends IGa
         Contract.assertTrue(!zone || zone === this.name, `Attempting to move ${card.internalName} to ${this} with incorrect zone parameter: ${zone}`);
     }
 
-    public override getObjectName(): string {
+    public override getGameObjectName(): string {
         return 'Zone';
     }
 

@@ -1,0 +1,85 @@
+import type { AbilityContext } from './AbilityContext.js';
+import { CardAbility } from './CardAbility';
+import type { CardTypeFilter, RelativePlayerFilter, ZoneFilter } from '../Constants.js';
+import { Duration, WildcardZoneName } from '../Constants.js';
+import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../Interfaces.js';
+import type { Card, ICardState } from '../card/Card.js';
+import type Game from '../Game.js';
+import type { IConstantAbility } from '../ongoingEffect/IConstantAbility.js';
+import type { OngoingEffect } from '../ongoingEffect/OngoingEffect.js';
+
+/**
+ * Represents an action ability provided by card text.
+ *
+ * Properties:
+ * title        - string that is used within the card menu associated with this
+ *                action.
+ * condition    - optional function that should return true when the action is
+ *                allowed, false otherwise. It should generally be used to check
+ *                if the action can modify game state (step #1 in ability
+ *                resolution in the rules).
+ * cost         - object or array of objects representing the cost required to
+ *                be paid before the action will activate. See Costs.
+ * phase        - string representing which phases the action may be executed.
+ *                Defaults to 'any' which allows the action to be executed in
+ *                any phase.
+ * zone     - string indicating the zone the card should be in in order
+ *                to activate the action. Defaults to 'play area'.
+ * limit        - optional AbilityLimit object that represents the max number of
+ *                uses for the action as well as when it resets.
+ * clickToActivate - boolean that indicates the action should be activated when
+ *                   the card is clicked.
+ */
+export class ConstantAbility extends CardAbility implements IConstantAbility {
+    public readonly duration: Duration;
+    public readonly sourceZoneFilter?: ZoneFilter | ZoneFilter[];
+
+    public readonly condition?: (context?: AbilityContext) => boolean;
+    public readonly matchTarget?: (card: Card, context?: AbilityContext<Card<ICardState>>) => boolean;
+    public readonly targetController?: RelativePlayerFilter;
+    public readonly targetZoneFilter?: ZoneFilter;
+    public readonly targetCardTypeFilter?: CardTypeFilter | CardTypeFilter[];
+    public readonly cardName?: string;
+    public readonly ongoingEffect: IOngoingEffectGenerator | IOngoingEffectGenerator[];
+    public readonly createCopies?: boolean;
+
+    public registeredEffects?: OngoingEffect[];
+
+    public constructor(game: Game, card: Card, properties: IConstantAbilityProps) {
+        super(game, card, properties);
+
+        // this.phase = properties.phase ?? PhaseName.Action;
+        this.duration = Duration.Persistent;
+        this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
+        this.condition = properties.condition;
+        this.matchTarget = properties.matchTarget;
+        this.targetController = properties.targetController;
+        this.targetZoneFilter = properties.targetZoneFilter;
+        this.targetCardTypeFilter = properties.targetCardTypeFilter;
+        this.cardName = properties.cardName;
+        this.ongoingEffect = properties.ongoingEffect;
+        this.createCopies = properties.createCopies;
+
+        // this.doesNotTarget = (properties as any).doesNotTarget;
+
+        if (!card.canRegisterConstantAbilities()) {
+            throw Error(`Card '${card.internalName}' cannot have constant abilities`);
+        }
+    }
+
+    // public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = [], thisStepOnly = false) {
+    //     if (!ignoredRequirements.includes('zone') && !this.isInValidZone(context)) {
+    //         return 'zone';
+    //     }
+
+    //     if (!ignoredRequirements.includes('phase') && this.phase !== 'any' && this.phase !== this.game.currentPhase) {
+    //         return 'phase';
+    //     }
+
+    //     if (!ignoredRequirements.includes('condition') && this.condition && !this.condition(context)) {
+    //         return 'condition';
+    //     }
+
+    //     return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
+    // }
+}

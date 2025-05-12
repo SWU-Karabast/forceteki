@@ -14,7 +14,7 @@ import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { MoveZoneDestination } from '../Constants';
 import { KeywordName } from '../Constants';
-import { AbilityRestriction, Aspect, CardType, Duration, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
+import { AbilityRestriction, Aspect, CardType, EffectName, EventName, ZoneName, DeckZoneDestination, RelativePlayer, Trait, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { CardAbility } from '../ability/CardAbility';
@@ -22,7 +22,6 @@ import type Shield from '../../cards/01_SOR/tokens/Shield';
 import type { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
-import { v4 as uuidv4 } from 'uuid';
 import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import TriggeredAbility from '../ability/TriggeredAbility';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
@@ -46,6 +45,7 @@ import type { ICardWithConstantAbilities } from './propertyMixins/ConstantAbilit
 import type { GameObjectRef } from '../GameObjectBase';
 import { logger } from '../../../logger';
 import type Experience from '../../cards/01_SOR/tokens/Experience';
+import { ConstantAbility } from '../ability/ConstantAbility';
 
 // required for mixins to be based on this class
 export type CardConstructor<T extends ICardState = ICardState> = new (...args: any[]) => Card<T>;
@@ -128,7 +128,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly printedType: CardType;
 
     protected actionAbilities: ActionAbility[] = [];
-    protected constantAbilities: IConstantAbility[] = [];
+    protected constantAbilities: ConstantAbility[] = [];
     protected disableWhenDefeatedCheck = false;
     protected disableOnAttackCheck = false;
     protected disableWhenPlayedCheck = false;
@@ -426,16 +426,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return new ActionAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('action'), properties));
     }
 
-    public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): IConstantAbility {
-        const sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
-
-        return {
-            duration: Duration.Persistent,
-            sourceZoneFilter,
-            ...properties,
-            ...this.buildGeneralAbilityProps('constant'),
-            uuid: uuidv4()
-        };
+    public createConstantAbility<TSource extends Card = this>(properties: IConstantAbilityProps<TSource>): ConstantAbility {
+        return new ConstantAbility(this.game, this, Object.assign(this.buildGeneralAbilityProps('constant'), properties));
     }
 
     protected createTriggeredAbility<TSource extends Card = this>(properties: ITriggeredAbilityProps<TSource>): TriggeredAbility {
@@ -1169,7 +1161,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         }
     }
 
-    public override getObjectName(): string {
+    public override getGameObjectName(): string {
         return 'Card';
     }
 

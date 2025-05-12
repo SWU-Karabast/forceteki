@@ -117,11 +117,11 @@ export class Player extends GameObject<IPlayerState> {
     }
 
     public get allCards() {
-        return this.state.decklist.allCards.map(this.game.getCard);
+        return this.state.decklist.allCards.map(this.game.getFromRef);
     }
 
     public get tokens() {
-        return this.state.decklist.tokens.map(this.game.getCard);
+        return this.state.decklist.tokens.map(this.game.getFromRef);
     }
 
     private canTakeActionsThisPhase: null;
@@ -682,7 +682,7 @@ export class Player extends GameObject<IPlayerState> {
         this.state.base = preparedDecklist.base;
         this.state.leader = preparedDecklist.leader;
 
-        this.deckZone.initialize(preparedDecklist.deckCards.map((x) => this.game.getCard(x)));
+        this.deckZone.initialize(preparedDecklist.deckCards.map((x) => this.game.getFromRef(x)));
 
         // set up playable zones now that all relevant zones are created
         // STATE: This _is_ OK for now, as the gameObject references are still kept, but ideally these would also be changed to Refs in the future.
@@ -1376,7 +1376,7 @@ export class Player extends GameObject<IPlayerState> {
         return state;
     }
 
-    public override getObjectName(): string {
+    public override getGameObjectName(): string {
         return 'Player';
     }
 

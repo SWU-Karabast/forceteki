@@ -73,11 +73,12 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     protected afterSetState(oldState: T) { }
 
+    /** Creates a Ref to this GO that can be used to do a lookup to the object. This should be the *only* way a Ref is ever created. */
     public getRef<T extends GameObjectBase = this>(): GameObjectRef<T> {
         const ref = { isRef: true, uuid: this.state.uuid };
 
         if (Helpers.isDevelopment()) {
-            // This property is for debugging purposes only and should never be referenced within the code.
+            // This property is for debugging purposes only and should never be referenced within the code. It will be wiped in a rollback, but for non-Undo debugging this works.
             Object.defineProperty(ref, 'gameObject', {
                 value: this,
                 writable: false,
@@ -94,7 +95,7 @@ export abstract class GameObjectBase<T extends IGameObjectBaseState = IGameObjec
         return this.game.gameObjectManager.get(ref);
     };
 
-    public getObjectName(): string {
+    public getGameObjectName(): string {
         return 'GameObject';
     }
 }

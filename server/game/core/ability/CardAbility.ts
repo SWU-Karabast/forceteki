@@ -5,17 +5,17 @@ import { CardAbilityStep } from './CardAbilityStep';
 import * as AbilityLimit from './AbilityLimit';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
+import type { IPlayerOrCardAbilityState } from './PlayerOrCardAbility';
 
-export interface ICardAbilityState {
+export interface ICardAbilityState extends IPlayerOrCardAbilityState {
     placeholder?: false;
 }
 
-export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityState> extends CardAbilityStep {
+export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityState> extends CardAbilityStep<T> {
     public readonly abilityIdentifier: string;
     public readonly gainAbilitySource: Card;
     public readonly zoneFilter: ZoneFilter | ZoneFilter[];
     public readonly printedAbility: boolean;
-    private state: T;
 
     public constructor(game, card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
@@ -24,7 +24,6 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
         this.limit.registerEvents(game);
         this.limit.ability = this;
 
-        this.title = properties.title;
         this.printedAbility = properties.printedAbility ?? true;
         this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
@@ -190,9 +189,5 @@ export abstract class CardAbility<T extends ICardAbilityState = ICardAbilityStat
 
     public override isActivatedAbility() {
         return [AbilityType.Action, AbilityType.Event, AbilityType.Triggered].includes(this.type);
-    }
-
-    public getState() {
-        return structuredClone(this.state);
     }
 }

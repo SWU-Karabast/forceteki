@@ -1,3 +1,4 @@
+import type { ICardAbilityState } from './CardAbility';
 import { CardAbility } from './CardAbility';
 import { TriggeredAbilityContext } from './TriggeredAbilityContext';
 import { EventName, PlayType, StandardTriggeredAbilityType } from '../Constants';
@@ -14,6 +15,10 @@ import type { ICardWithTriggeredAbilities } from '../card/propertyMixins/Trigger
 interface IEventRegistration {
     name: string;
     handler: (event: GameEvent, window: TriggeredAbilityWindow) => void;
+}
+
+export interface ITriggeredAbillityState extends ICardAbilityState {
+    isRegistered: boolean;
 }
 
 /**
@@ -43,7 +48,7 @@ interface IEventRegistration {
  *            be in order to activate the reaction. Defaults to 'play area'.
  */
 
-export default class TriggeredAbility extends CardAbility {
+export default class TriggeredAbility extends CardAbility<ITriggeredAbillityState> {
     public readonly when?: WhenType;
     public readonly aggregateWhen?: (events: GameEvent[], context: TriggeredAbilityContext) => boolean;
     public readonly anyPlayer: boolean;
@@ -100,6 +105,10 @@ export default class TriggeredAbility extends CardAbility {
         this.mustChangeGameState = !!this.properties.ifYouDo || !!this.properties.ifYouDoNot
             ? GameStateChangeRequired.MustFullyResolve
             : GameStateChangeRequired.MustFullyOrPartiallyResolve;
+    }
+
+    protected override setupDefaultState(): void {
+        this.state.isRegistered = false;
     }
 
     public eventHandler(event, window) {
@@ -199,36 +208,46 @@ export default class TriggeredAbility extends CardAbility {
     public registerEvents() {
         if (this.eventRegistrations) {
             return;
-        } else if (this.aggregateWhen) {
+        }
+
+        // STATE TODO: aggregateWhen is readonly, which means we can reliably recreate the eventRegistrations array in this case.
+        this.eventRegistrations = this.buildWhenEvents();
+
+        this.eventRegistrations.forEach((event) => {
+            this.game.on(event.name, event.handler);
+        });
+        this.state.isRegistered = true;
+    }
+
+    public unregisterEvents() {
+        if (!this.eventRegistrations) {
+            return;
+        }
+
+        // There is nothing unique about the event registration, as long as it's recorded as registered and supposed to be registered, we can keep it in place.
+        this.eventRegistrations.forEach((event) => {
+            this.game.removeListener(event.name, event.handler);
+        });
+        this.eventRegistrations = null;
+        this.state.isRegistered = false;
+    }
+
+    private buildWhenEvents() {
+        if (this.aggregateWhen) {
             const event = {
                 name: 'aggregateEvent:' + this.type,
                 handler: (events, window) => this.checkAggregateWhen(events, window)
             };
-            this.eventRegistrations = [event];
-            this.game.on(event.name, event.handler);
-            return;
+            return [event];
         }
 
         const eventNames = Object.keys(this.when);
-
-        this.eventRegistrations = [];
-        eventNames.forEach((eventName) => {
-            const event = {
+        return eventNames.map((eventName) => {
+            return {
                 name: eventName + ':' + this.type,
                 handler: (event, window) => this.eventHandler(event, window)
             };
-            this.game.on(event.name, event.handler);
-            this.eventRegistrations.push(event);
         });
-    }
-
-    public unregisterEvents() {
-        if (this.eventRegistrations) {
-            this.eventRegistrations.forEach((event) => {
-                this.game.removeListener(event.name, event.handler);
-            });
-            this.eventRegistrations = null;
-        }
     }
 
     private isTriggeredByEvent(event, context) {
@@ -237,6 +256,7 @@ export default class TriggeredAbility extends CardAbility {
         return listener && listener(event, context);
     }
 
+    // STATE TODO: When does this trigger get removed? Do we need to handle it here?
     private checkAggregateWhen(events, window) {
         for (const player of this.game.getPlayers()) {
             const context = this.createContext(player, events);
@@ -246,6 +266,16 @@ export default class TriggeredAbility extends CardAbility {
                 this.meetsRequirements(context) === ''
             ) {
                 window.addTriggeredAbilityToWindow(context);
+            }
+        }
+    }
+
+    protected override afterSetState(oldState: ITriggeredAbillityState): void {
+        if (this.state.isRegistered !== oldState.isRegistered) {
+            if (this.state.isRegistered) {
+                this.registerEvents();
+            } else {
+                this.unregisterEvents();
             }
         }
     }

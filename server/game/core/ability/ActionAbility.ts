@@ -28,9 +28,9 @@ import type Game from '../Game.js';
  *                   the card is clicked.
  */
 export class ActionAbility extends CardAbility {
-    protected anyPlayer: boolean;
-    protected doesNotTarget: boolean;
-    protected phase: string;
+    protected readonly anyPlayer: boolean;
+    protected readonly doesNotTarget: boolean;
+    protected readonly phase: string;
 
     public readonly condition?: (context?: AbilityContext) => boolean;
 

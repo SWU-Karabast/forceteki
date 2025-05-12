@@ -63,7 +63,7 @@ class Game extends EventEmitter {
     }
 
     get allCards() {
-        return this.state.allCards.map((x) => this.getCard(x));
+        return this.state.allCards.map((x) => this.getFromRef(x));
     }
 
     /** @returns { Player | null } */
@@ -1544,7 +1544,7 @@ class Game extends EventEmitter {
      * @param {import('./GameObjectBase.js').GameObjectRef<T>} gameRef
      * @returns {T | null}
      */
-    getCard(gameRef) {
+    getFromRef(gameRef) {
         return this.gameObjectManager.get(gameRef);
     }
 

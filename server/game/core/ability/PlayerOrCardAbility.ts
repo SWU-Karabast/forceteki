@@ -3,7 +3,6 @@ import { SelectTargetResolver } from './abilityTargets/SelectTargetResolver.js';
 import { Stage, TargetMode, AbilityType, RelativePlayer, SubStepCheck } from '../Constants.js';
 import { GameEvent } from '../event/GameEvent.js';
 import * as Contract from '../utils/Contract.js';
-import { v4 as uuidv4 } from 'uuid';
 import { PlayerTargetResolver } from './abilityTargets/PlayerTargetResolver.js';
 import { DropdownListTargetResolver } from './abilityTargets/DropdownListTargetResolver.js';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
@@ -15,8 +14,14 @@ import type { PlayCardAction } from './PlayCardAction.js';
 import type { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';
 import type CardAbilityStep from './CardAbilityStep.js';
 import type { EpicActionAbility } from '../../abilities/EpicActionAbility.js';
+import type { IGameObjectBaseState } from '../GameObjectBase.js';
+import { GameObjectBase } from '../GameObjectBase.js';
 
-// TODO: convert to TS and make this abstract
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface IPlayerOrCardAbilityState extends IGameObjectBaseState {
+
+}
+
 /**
  * Base class representing an ability that can be done by the player
  * or triggered by card text. This includes card actions, reactions,
@@ -27,8 +32,9 @@ import type { EpicActionAbility } from '../../abilities/EpicActionAbility.js';
  * `player` that is executing the action, and the `source` card object that the
  * ability is generated from.
  */
-export class PlayerOrCardAbility {
+export abstract class PlayerOrCardAbility<T extends IPlayerOrCardAbilityState = IPlayerOrCardAbilityState> extends GameObjectBase<T> {
     public title: any;
+    // STATE TODO: Limit is typically a class if it's not null. Go see if there's a simple way to serialize them.
     public limit: any;
     public canResolveWithoutLegalTargets: boolean;
     public targetResolvers: any;
@@ -37,11 +43,9 @@ export class PlayerOrCardAbility {
     public readonly type: any;
     public readonly optional: boolean;
     public readonly immediateEffect: any;
-    public readonly uuid: any;
     public readonly canBeTriggeredBy: any;
     public readonly playerChoosingOptional: any;
     public readonly optionalButtonTextOverride: any;
-    public readonly game: Game;
     public readonly card: any;
     public readonly properties: any;
     public readonly triggerHandlingMode: any;
@@ -55,6 +59,7 @@ export class PlayerOrCardAbility {
     }
 
     public constructor(game: Game, card, properties, type = AbilityType.Action) {
+        super(game);
         Contract.assertStringValue(properties.title);
 
         const hasImmediateEffect = properties.immediateEffect != null;
@@ -73,7 +78,6 @@ export class PlayerOrCardAbility {
         this.type = type;
         this.optional = !!properties.optional;
         this.immediateEffect = properties.immediateEffect;
-        this.uuid = uuidv4();
         this.canResolveWithoutLegalTargets = false;
         this.canBeTriggeredBy = properties.canBeTriggeredBy ?? RelativePlayer.Self;
 
@@ -84,7 +88,6 @@ export class PlayerOrCardAbility {
         this.playerChoosingOptional = properties.playerChoosingOptional ?? RelativePlayer.Self;
         this.optionalButtonTextOverride = properties.optionalButtonTextOverride;
 
-        this.game = game;
         this.card = card;
         this.properties = properties;
 
@@ -116,7 +119,11 @@ export class PlayerOrCardAbility {
             : `'Ability: ${this.title}'`;
     }
 
-    public toString() {
+    public override getGameObjectName() {
+        return 'PlayerOrCardAbility';
+    }
+
+    public override toString() {
         return this.toStringName;
     }
 

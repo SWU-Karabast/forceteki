@@ -3,6 +3,7 @@ import { WildcardZoneName } from '../../Constants';
 import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import type { CardConstructor, ICardState } from '../Card';
 import * as Contract from '../../utils/Contract';
+import type { ConstantAbility } from '../../ability/ConstantAbility';
 
 export interface ICardWithConstantAbilities {
     addGainedConstantAbility(properties: IConstantAbilityProps): string;
@@ -42,8 +43,8 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
 
         /** Removes a dynamically gained constant ability and unregisters its effects */
         public removeGainedConstantAbility(removeAbilityUuid: string): void {
-            let abilityToRemove: IConstantAbility = null;
-            const remainingAbilities: IConstantAbility[] = [];
+            let abilityToRemove: ConstantAbility = null;
+            const remainingAbilities: ConstantAbility[] = [];
 
             for (const constantAbility of this.constantAbilities) {
                 if (constantAbility.uuid === removeAbilityUuid) {
