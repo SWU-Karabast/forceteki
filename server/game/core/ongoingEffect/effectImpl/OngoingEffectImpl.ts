@@ -1,4 +1,5 @@
 import type { AbilityContext } from '../../ability/AbilityContext';
+import type { FormatMessage } from '../../chat/GameChat';
 import type { Duration, EffectName } from '../../Constants';
 
 export abstract class OngoingEffectImpl<TValue> {
@@ -7,6 +8,10 @@ export abstract class OngoingEffectImpl<TValue> {
     protected context?: AbilityContext = null;
 
     public constructor(public readonly type: EffectName) {
+    }
+
+    public get effectDescription(): FormatMessage | undefined {
+        return undefined;
     }
 
     // TODO: add type union in constants.ts for ability targets (player or card, anything else?)

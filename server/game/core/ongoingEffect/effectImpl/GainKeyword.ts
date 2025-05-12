@@ -3,15 +3,23 @@ import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
 import * as Helpers from '../../utils/Helpers';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import type { Card } from '../../card/Card';
+import type { FormatMessage } from '../../chat/GameChat';
 
 export class GainKeyword extends OngoingEffectValueWrapper<IKeywordProperties | IKeywordProperties[]> {
     public constructor(keywordProps: KeywordNameOrProperties | KeywordNameOrProperties[]) {
+        const effectDescription: FormatMessage = {
+            format: 'give {0}',
+            args: Helpers.asArray(keywordProps).map((keyword) => {
+                return KeywordHelpers.keywordDescription(keyword);
+            })
+        };
+
         if (Array.isArray(keywordProps)) {
-            super(keywordProps.map((keyword) => (typeof keyword === 'string' ? { keyword } : keyword)));
+            super(keywordProps.map((keyword) => (typeof keyword === 'string' ? { keyword } : keyword)), effectDescription);
         } else if (typeof keywordProps === 'string') {
-            super({ keyword: keywordProps });
+            super({ keyword: keywordProps }, effectDescription);
         } else {
-            super(keywordProps);
+            super(keywordProps, effectDescription);
         }
     }
 

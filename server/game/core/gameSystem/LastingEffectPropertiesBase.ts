@@ -1,4 +1,4 @@
-import type { WhenType } from '../../Interfaces';
+import type { IOngoingEffectGenerator, WhenType } from '../../Interfaces';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
 import type { Duration } from '../Constants';
@@ -8,7 +8,7 @@ interface ILastingEffectPropertiesAnyDuration extends IGameSystemProperties {
     duration: Duration;
     ability?: PlayerOrCardAbility;
     condition?: (context: AbilityContext) => boolean;
-    effect?: any;
+    effect?: IOngoingEffectGenerator | IOngoingEffectGenerator[];
     ongoingEffectDescription?: string;
     ongoingEffectTargetDescription?: string;
 }
