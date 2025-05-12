@@ -16,6 +16,7 @@ export interface GameConfiguration {
     useActionTimer?: boolean;
     pushUpdate: () => void;
     buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) => NodeJS.Timeout;
+    userTimeoutDisconnect: (userId: string) => void;
 }
 
 export function validateGameConfiguration(configuration: GameConfiguration): void {
@@ -27,6 +28,7 @@ export function validateGameConfiguration(configuration: GameConfiguration): voi
     Contract.assertNotNullLike(configuration.cardDataGetter);
     Contract.assertNotNullLike(configuration.pushUpdate);
     Contract.assertNotNullLike(configuration.buildSafeTimeout);
+    Contract.assertNotNullLike(configuration.userTimeoutDisconnect);
 }
 
 export interface GameOptions {

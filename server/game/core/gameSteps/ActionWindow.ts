@@ -73,10 +73,6 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override continue() {
-        if (!this.activePlayer.actionTimer.isRunning) {
-            this.activePlayer.actionTimer.start();
-        }
-
         // TODO: do we need promptedActionWindows?
         if (!this.activePlayer.promptedActionWindows[this.windowName]) {
             this.pass();

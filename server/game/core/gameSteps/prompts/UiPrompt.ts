@@ -10,7 +10,7 @@ import type Game from '../../Game';
 export abstract class UiPrompt extends BaseStep {
     public readonly uuid = uuid();
 
-    private readonly previousPrompt?: UiPrompt;
+    private previousPrompt?: UiPrompt;
     private completed = false;
     private firstContinue = true;
 
@@ -18,9 +18,6 @@ export abstract class UiPrompt extends BaseStep {
         super(game);
 
         this.clearPrompts();
-
-        this.previousPrompt = game.currentOpenPrompt;
-        game.currentOpenPrompt = this;
     }
 
     public abstract activePrompt(player: Player): IPlayerPromptStateProperties;
@@ -28,6 +25,11 @@ export abstract class UiPrompt extends BaseStep {
     public abstract menuCommand(player: Player, arg: string, uuid: string): boolean;
 
     public override continue(): boolean {
+        if (this.firstContinue) {
+            this.previousPrompt = this.game.currentOpenPrompt;
+            this.game.currentOpenPrompt = this;
+        }
+
         const completed = this.isComplete();
 
         if (completed) {
@@ -35,6 +37,8 @@ export abstract class UiPrompt extends BaseStep {
         } else {
             this.setPrompt();
         }
+
+        this.firstContinue = false;
 
         return completed;
     }
@@ -67,14 +71,9 @@ export abstract class UiPrompt extends BaseStep {
                 }
             } else {
                 player.setPrompt(this.waitingPrompt());
-
-                if (this.firstContinue) {
-                    player.actionTimer.stop();
-                }
+                player.actionTimer.stop();
             }
         }
-
-        this.firstContinue = false;
 
         this.highlightSelectableCards();
     }

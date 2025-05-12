@@ -698,7 +698,18 @@ export class Lobby {
             pushUpdate: () => this.sendGameState(this.game),
             buildSafeTimeout: (callback: () => void, delayMs: number, errorMessage: string) =>
                 this.buildSafeTimeout(callback, delayMs, errorMessage),
+            userTimeoutDisconnect: (userId: string) => this.userTimeoutDisconnect(userId),
         };
+    }
+
+    private userTimeoutDisconnect(userId: string) {
+        const socket = this.users.find((u) => u.id === userId)?.socket;
+
+        Contract.assertNotNullLike(socket, `Unable to find socket for user ${userId} in lobby ${this.id} while attempting to disconnect`);
+
+        socket.socket.data.forceDisconnect = true;
+        socket.send('inactiveDisconnect');
+        socket.disconnect();
     }
 
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {

@@ -164,18 +164,16 @@ export class Player extends GameObject<IPlayerState> {
         this.disconnected = false;
         this.left = false;
 
-        // TODO THIS PR: update to prod timeout values
-
         if (useTimer) {
             this.actionTimer = new StandardActionTimer(
-                15,
+                60,
                 this,
                 this.game,
                 () => this.game.onActionTimerExpired(this),
                 (promptUuid: string, playerActionId: number) => this.checkPromptAndActionMatchLatest(promptUuid, playerActionId)
             );
-            this.actionTimer.addSpecificTimeHandler(10, () => this.game.addAlert('warning', '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this));
-            this.actionTimer.addSpecificTimeHandler(5, () => this.game.addAlert('danger', '{0} has 5 seconds remaining to take an action before being kicked for inactivity', this));
+            this.actionTimer.addSpecificTimeHandler(20, () => this.game.addAlert('warning', '{0} has 20 seconds remaining to take an action before being kicked for inactivity', this));
+            this.actionTimer.addSpecificTimeHandler(10, () => this.game.addAlert('danger', '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this));
         } else {
             this.actionTimer = new NoopActionTimer();
         }

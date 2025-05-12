@@ -60,26 +60,22 @@ export class StandardActionTimer implements IActionTimer {
     }
 
     public start() {
-        this.game.addAlert('warning', 'Started timer for {0}', this.player);
-
-        this.stop(true);
+        this.stop();
         this.initializeTimersForTimeRemaining(this.timeLimitMs);
 
-        this.activeUiPromptId = this.game.currentOpenPrompt?.uuid ?? null;
+        this.activeUiPromptId = this.game.currentOpenPrompt?.uuid;
         Contract.assertNotNullLike(this.activeUiPromptId, `Attempting to start action timer for player ${this.player.id} when there is no active prompt`);
 
         this.lastPlayerActionId = this.player.lastActionId;
     }
 
     public restartIfRunning() {
-        if (this.isRunning) {
-            this.game.addAlert('warning', 'Restarted timer for {0}', this.player);
-            this.start();
-
-            this.lastPlayerActionId = this.player.lastActionId;
-        } else {
-            this.game.addAlert('warning', 'Attempted to restart timer for {0} but it is not running', this.player);
+        if (!this.isRunning) {
+            return;
         }
+
+        this.start();
+        this.lastPlayerActionId = this.player.lastActionId;
     }
 
     public pause() {
@@ -97,11 +93,7 @@ export class StandardActionTimer implements IActionTimer {
         this.initializeTimersForTimeRemaining(timeRemainingMs);
     }
 
-    public stop(isInternal = false) {
-        if (!isInternal) {
-            this.game.addAlert('warning', 'Stopped timer for {0}', this.player);
-        }
-
+    public stop() {
         for (const timer of this.timers) {
             clearTimeout(timer);
         }

@@ -144,6 +144,7 @@ class Game extends EventEmitter {
         this.createdAt = new Date();
 
         this.buildSafeTimeoutHandler = details.buildSafeTimeout;
+        this.userTimeoutDisconnect = details.userTimeoutDisconnect;
 
         /** @type { ActionWindow | null } */
         this.currentActionWindow = null;
@@ -585,6 +586,9 @@ class Game extends EventEmitter {
 
     /** @param {Player} player */
     onActionTimerExpired(player) {
+        player.opponent.actionTimer.stop();
+
+        this.userTimeoutDisconnect(player.id);
         this.addAlert('danger', '{0} has been removed due to inactivity.', player);
     }
 
