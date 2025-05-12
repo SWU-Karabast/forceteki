@@ -21,7 +21,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
          * “When Defeated,” and “On Attack” abilities
          */
         public getTriggeredAbilities(): TriggeredAbility[] {
-            return this.triggeredAbilities;
+            return this.triggeredAbilities as TriggeredAbility[];
         }
 
         public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
@@ -30,7 +30,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
 
         protected addTriggeredAbility(properties: ITriggeredAbilityProps<this>): TriggeredAbility {
             const ability = this.createTriggeredAbility(properties);
-            this.triggeredAbilities.push(ability);
+            this.state.triggeredAbilities.push(ability.getRef());
             return ability;
         }
 
@@ -38,7 +38,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
             const ability = this.createReplacementEffectAbility(properties);
 
             // for initialization and tracking purposes, a ReplacementEffect is basically a Triggered ability
-            this.triggeredAbilities.push(ability);
+            this.state.triggeredAbilities.push(ability.getRef());
 
             return ability;
         }
@@ -55,7 +55,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
              */
         public addGainedTriggeredAbility(properties: ITriggeredAbilityProps): string {
             const addedAbility = this.createTriggeredAbility(properties);
-            this.triggeredAbilities.push(addedAbility);
+            this.state.triggeredAbilities.push(addedAbility.getRef());
             addedAbility.registerEvents();
 
             return addedAbility.uuid;
@@ -68,7 +68,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
              */
         public addGainedReplacementEffectAbility(properties: IReplacementEffectAbilityProps): string {
             const addedAbility = this.createReplacementEffectAbility(properties);
-            this.triggeredAbilities.push(addedAbility);
+            this.state.triggeredAbilities.push(addedAbility.getRef());
             addedAbility.registerEvents();
 
             return addedAbility.uuid;
@@ -95,7 +95,7 @@ export function WithTriggeredAbilities<TBaseClass extends CardConstructor<TState
                 Contract.fail(`Did not find any instance of target gained ability to remove on card ${this.internalName}`);
             }
 
-            this.triggeredAbilities = remainingAbilities;
+            this.state.triggeredAbilities = remainingAbilities.map((x) => x.getRef());
             abilityToRemove.unregisterEvents();
         }
 

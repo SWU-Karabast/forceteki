@@ -152,17 +152,17 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     // STATE TODO: These can be modified after creation, and need to be converted to state.
-    protected get actionAbilities(): ActionAbility[] {
+    protected get actionAbilities(): readonly ActionAbility[] {
         return this.state.actionAbilities.map(this.game.getFromRef);
     }
 
     // STATE TODO: These can be modified after creation, and need to be converted to state.
-    protected get constantAbilities(): ConstantAbility[] {
+    protected get constantAbilities(): readonly ConstantAbility[] {
         return this.state.constantAbilities.map(this.game.getFromRef);
     }
 
     // STATE TODO: These can be modified after creation, and need to be converted to state.
-    protected get triggeredAbilities(): TriggeredAbility[] {
+    protected get triggeredAbilities(): readonly TriggeredAbility[] {
         return this.state.triggeredAbilities.map(this.game.getFromRef);
     }
 
@@ -437,7 +437,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-    protected validateCardAbilities(abilities: TriggeredAbility[], cardText?: string) {
+    protected validateCardAbilities(abilities: readonly TriggeredAbility[], cardText?: string) {
     }
 
     // ******************************************* ABILITY HELPERS *******************************************

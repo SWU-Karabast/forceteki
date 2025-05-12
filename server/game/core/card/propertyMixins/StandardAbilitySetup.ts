@@ -1,3 +1,4 @@
+import type TriggeredAbility from '../../ability/TriggeredAbility';
 import * as Contract from '../../utils/Contract';
 import type { CardConstructor, ICardState } from '../Card';
 
@@ -11,7 +12,7 @@ export function WithStandardAbilitySetup<TBaseClass extends CardConstructor<TSta
             const [Player, cardData] = this.unpackConstructorArgs(...args);
 
             this.setupCardAbilities(this);
-            this.validateCardAbilities(this.triggeredAbilities, cardData.text);
+            this.validateCardAbilities(this.triggeredAbilities as TriggeredAbility[], cardData.text);
 
             // if an implementation file is provided, enforce that all keywords requiring explicit setup have been set up
             if (this.hasImplementationFile) {

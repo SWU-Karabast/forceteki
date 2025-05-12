@@ -155,7 +155,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             this.state.lastPlayerToModifyHp = value?.getRef();
         }
 
-        private get attackKeywordAbilities(): ((TriggeredAbility | ConstantAbility)[] | null) {
+        private get attackKeywordAbilities(): (readonly (TriggeredAbility | ConstantAbility)[] | null) {
             return this.state.attackKeywordAbilities?.map(this.game.getFromRef);
         }
 
