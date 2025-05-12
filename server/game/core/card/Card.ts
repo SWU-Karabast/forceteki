@@ -22,7 +22,6 @@ import type Shield from '../../cards/01_SOR/tokens/Shield';
 import type { KeywordInstance, KeywordWithCostValues } from '../ability/KeywordInstance';
 import * as KeywordHelpers from '../ability/KeywordHelpers';
 import type { StateWatcherRegistrar } from '../stateWatcher/StateWatcherRegistrar';
-import type { IConstantAbility } from '../ongoingEffect/IConstantAbility';
 import TriggeredAbility from '../ability/TriggeredAbility';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import type { IEventCard } from './EventCard';
@@ -61,6 +60,10 @@ export interface ICardState extends IOngoingEffectSourceState {
     zone: GameObjectRef<Zone> | null;
     movedFromZone: ZoneName | null;
     nextAbilityIdx: number;
+
+    actionAbilities: GameObjectRef<ActionAbility>[];
+    constantAbilities: GameObjectRef<ConstantAbility>[];
+    triggeredAbilities: GameObjectRef<TriggeredAbility>[];
 }
 
 export enum InitializeCardStateOption {
@@ -127,13 +130,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly printedTraits: Set<Trait>;
     protected readonly printedType: CardType;
 
-    protected actionAbilities: ActionAbility[] = [];
-    protected constantAbilities: ConstantAbility[] = [];
     protected disableWhenDefeatedCheck = false;
     protected disableOnAttackCheck = false;
     protected disableWhenPlayedCheck = false;
     protected disableWhenPlayedUsingSmuggleCheck = false;
-    protected triggeredAbilities: TriggeredAbility[] = [];
 
     protected get hiddenForController() {
         return this.state.hiddenForController;
@@ -149,6 +149,21 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     protected set movedFromZone(value: ZoneName | null) {
         this.state.movedFromZone = value;
+    }
+
+    // STATE TODO: These can be modified after creation, and need to be converted to state.
+    protected get actionAbilities(): ActionAbility[] {
+        return this.state.actionAbilities.map(this.game.getFromRef);
+    }
+
+    // STATE TODO: These can be modified after creation, and need to be converted to state.
+    protected get constantAbilities(): ConstantAbility[] {
+        return this.state.constantAbilities.map(this.game.getFromRef);
+    }
+
+    // STATE TODO: These can be modified after creation, and need to be converted to state.
+    protected get triggeredAbilities(): TriggeredAbility[] {
+        return this.state.triggeredAbilities.map(this.game.getFromRef);
     }
 
 
@@ -294,6 +309,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.hiddenForOpponent = false;
         this.state.movedFromZone = null;
         this.state.nextAbilityIdx = 0;
+
+        this.state.actionAbilities = [];
+        this.state.constantAbilities = [];
+        this.state.triggeredAbilities = [];
     }
 
     // ******************************************* ABILITY GETTERS *******************************************
@@ -323,8 +342,8 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
      * `SWU 7.3.1`: A constant ability is always in effect while the card it is on is in play. Constant abilities
      * don’t have any special text styling
      */
-    public getConstantAbilities(): IConstantAbility[] {
-        return this.constantAbilities;
+    public getConstantAbilities(): ConstantAbility[] {
+        return this.constantAbilities as ConstantAbility[];
     }
 
     /**
@@ -448,7 +467,6 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.state.nextAbilityIdx++;
         return this.state.nextAbilityIdx - 1;
     }
-
 
     // ******************************************* CARD TYPE HELPERS *******************************************
     public isEvent(): this is IEventCard {
@@ -824,7 +842,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected updateActionAbilitiesForZone(from: ZoneName, to: ZoneName) {
-        this.updateActionAbilitiesForZoneInternal(this.actionAbilities, from, to);
+        this.updateActionAbilitiesForZoneInternal(this.actionAbilities as ActionAbility[], from, to);
     }
 
     protected updateActionAbilitiesForZoneInternal(actionAbilities: ActionAbility[], from: ZoneName, to: ZoneName) {
@@ -838,7 +856,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected updateTriggeredAbilitiesForZone(from: ZoneName, to: ZoneName) {
-        this.updateTriggeredAbilityEventsInternal(this.triggeredAbilities, from, to);
+        this.updateTriggeredAbilityEventsInternal(this.triggeredAbilities as TriggeredAbility[], from, to);
     }
 
     protected updateTriggeredAbilityEventsInternal(triggeredAbilities: TriggeredAbility[], from: ZoneName, to: ZoneName) {
@@ -862,10 +880,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     protected updateConstantAbilityEffects(from: ZoneName, to: ZoneName) {
-        this.updateConstantAbilityEffectsInternal(this.constantAbilities, from, to);
+        this.updateConstantAbilityEffectsInternal(this.constantAbilities as ConstantAbility[], from, to);
     }
 
-    protected updateConstantAbilityEffectsInternal(constantAbilities: IConstantAbility[], from: ZoneName, to: ZoneName, allowIdempotentUnregistration = false) {
+    protected updateConstantAbilityEffectsInternal(constantAbilities: ConstantAbility[], from: ZoneName, to: ZoneName, allowIdempotentUnregistration = false) {
         if (!EnumHelpers.isArena(to) || from === ZoneName.Discard || from === ZoneName.Capture) {
             this.removeLastingEffects();
         }

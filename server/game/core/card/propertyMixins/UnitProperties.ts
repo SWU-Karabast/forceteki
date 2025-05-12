@@ -17,7 +17,6 @@ import type { IAbilityPropsWithType, IConstantAbilityProps, IGainCondition, IKey
 import { BountyKeywordInstance } from '../../ability/KeywordInstance';
 import { KeywordWithAbilityDefinition } from '../../ability/KeywordInstance';
 import TriggeredAbility from '../../ability/TriggeredAbility';
-import type { IConstantAbility } from '../../ongoingEffect/IConstantAbility';
 import { RestoreAbility } from '../../../abilities/keyword/RestoreAbility';
 import { ShieldedAbility } from '../../../abilities/keyword/ShieldedAbility';
 import { SaboteurDefeatShieldsAbility } from '../../../abilities/keyword/SaboteurDefeatShieldsAbility';
@@ -539,7 +538,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             return triggeredAbilities as TriggeredAbility[];
         }
 
-        public override getConstantAbilities(): IConstantAbility[] {
+        public override getConstantAbilities(): ConstantAbility[] {
             if (this.isBlank()) {
                 return [];
             }
@@ -554,7 +553,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             if (this.state.attackKeywordAbilities !== null) {
                 constantAbilities = constantAbilities.concat(
                     this.attackKeywordAbilities.filter((ability) => !(ability instanceof TriggeredAbility))
-                        .map((ability) => ability as IConstantAbility)
+                        .map((ability) => ability as ConstantAbility)
                 );
             }
 

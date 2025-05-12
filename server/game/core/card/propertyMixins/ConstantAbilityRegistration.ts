@@ -19,7 +19,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
             if (ability.sourceZoneFilter === WildcardZoneName.Any) {
                 ability.registeredEffects = this.addEffectToEngine(ability);
             }
-            this.constantAbilities.push(ability);
+            this.state.constantAbilities.push(ability.getRef());
             return ability;
         }
 
@@ -35,7 +35,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
              */
         public addGainedConstantAbility(properties: IConstantAbilityProps): string {
             const addedAbility = this.createConstantAbility(properties);
-            this.constantAbilities.push(addedAbility);
+            this.state.constantAbilities.push(addedAbility.getRef());
             addedAbility.registeredEffects = this.addEffectToEngine(addedAbility);
 
             return addedAbility.uuid;
@@ -62,7 +62,7 @@ export function WithConstantAbilities<TBaseClass extends CardConstructor<TState>
                 Contract.fail(`Did not find any instance of target gained ability to remove on card ${this.internalName}`);
             }
 
-            this.constantAbilities = remainingAbilities;
+            this.state.constantAbilities = remainingAbilities.map((x) => x.getRef());
 
             this.removeEffectFromEngine(abilityToRemove.registeredEffects);
             abilityToRemove.registeredEffects = [];
