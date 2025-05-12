@@ -1,3 +1,4 @@
+import { logger } from '../../../logger';
 import type Game from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
@@ -13,6 +14,7 @@ export class StandardActionTimer implements IActionTimer {
     private readonly player: Player;
     private readonly timeLimitMs: number;
 
+    /** safety check method to ensure that game state still matches when the timer was created to avoid accidentally kicking a player */
     private checkLiveStatus: (promptUuid: string, playerActionId: number) => boolean;
     private endTime: Date | null = null;
     private onSpecificTimeHandlers: ISpecificTimeHandler[];
@@ -64,7 +66,11 @@ export class StandardActionTimer implements IActionTimer {
         this.initializeTimersForTimeRemaining(this.timeLimitMs);
 
         this.activeUiPromptId = this.game.currentOpenPrompt?.uuid;
-        Contract.assertNotNullLike(this.activeUiPromptId, `Attempting to start action timer for player ${this.player.id} when there is no active prompt`);
+
+        // just log an error to avoid breaking the game
+        if (!this.activeUiPromptId) {
+            logger.error(`Attempting to start action timer for player ${this.player.id} when there is no active prompt`);
+        }
 
         this.lastPlayerActionId = this.player.lastActionId;
     }
@@ -78,6 +84,7 @@ export class StandardActionTimer implements IActionTimer {
         this.lastPlayerActionId = this.player.lastActionId;
     }
 
+    /** @deprecated this is not tested yet */
     public pause() {
         Contract.assertNotNullLike(this.endTime, `Attempting to pause timer for player ${this.player.name} when it is not running`);
 
@@ -85,6 +92,7 @@ export class StandardActionTimer implements IActionTimer {
         this.stop();
     }
 
+    /** @deprecated this is not tested yet */
     public resume() {
         Contract.assertNotNullLike(this.endTime, `Attempting to resume timer for player ${this.player.name} when it is not started`);
         Contract.assertNotNullLike(this.pauseTime, `Attempting to resume timer for player ${this.player.name} when it is not paused`);

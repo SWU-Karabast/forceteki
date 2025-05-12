@@ -219,20 +219,8 @@ export class Player extends GameObject<IPlayerState> {
     }
 
     private checkPromptAndActionMatchLatest(promptUuid: string, playerActionId: number) {
-        // return this.game.currentOpenPrompt.uuid === promptUuid &&
-        //   playerActionId === this._lastActionId;
-
-        if (this.game.currentOpenPrompt.uuid !== promptUuid) {
-            this.game.addAlert('warning', 'Timer for {0} has become inactive due to prompt id. {1} !== {2}', this, this.game.currentOpenPrompt.uuid, promptUuid);
-            return false;
-        }
-
-        if (playerActionId !== this._lastActionId) {
-            this.game.addAlert('warning', 'Timer for {0} has become inactive due to action id. {1} !== {2}', this, this._lastActionId, playerActionId);
-            return false;
-        }
-
-        return true;
+        return this.game.currentOpenPrompt.uuid === promptUuid &&
+          playerActionId === this._lastActionId;
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
