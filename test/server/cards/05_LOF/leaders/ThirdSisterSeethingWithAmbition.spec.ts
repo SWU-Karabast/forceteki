@@ -158,6 +158,27 @@ describe('Third Sister, Seething With Ambition', function () {
                 context.player2.clickCard(context.wampa);
                 expect(context.wampa.hasSomeKeyword('hidden')).toBeFalse();
             });
+
+            it('should work with units that have other state watchers registered', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'dagobah-swamp',
+                        leader: { card: 'third-sister#seething-with-ambition', deployed: true },
+                        hand: ['kylos-tie-silencer#ruthlessly-efficient'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.thirdSister);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.kylosTieSilencer);
+                expect(context.kylosTieSilencer.hasSomeKeyword('hidden')).toBeTrue();
+            });
         });
     });
 });

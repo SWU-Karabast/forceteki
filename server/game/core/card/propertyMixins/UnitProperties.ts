@@ -40,7 +40,6 @@ import type { PlayUpgradeAction } from '../../../actions/PlayUpgradeAction';
 import type { GameObjectRef } from '../../GameObjectBase';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/LeadersDeployedThisPhaseWatcher';
-import type { StateWatcherRegistrar } from '../../stateWatcher/StateWatcherRegistrar';
 import AbilityHelper from '../../../AbilityHelper';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
 
@@ -279,6 +278,9 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
                 this.validateCardAbilities(this.pilotingTriggeredAbilities as TriggeredAbility[], cardData.pilotText);
             }
+
+            this._cardsPlayedThisWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(this.owner.game.stateWatcherRegistrar, this);
+            this._leadersDeployedThisPhaseWatcher = AbilityHelper.stateWatchers.leadersDeployedThisPhase(this.owner.game.stateWatcherRegistrar, this);
         }
 
         protected override setupDefaultState() {
@@ -294,13 +296,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
 
         protected override initializeStateForAbilitySetup() {
             super.initializeStateForAbilitySetup();
-        }
-
-        protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
-            super.setupStateWatchers(registrar);
-
-            this._cardsPlayedThisWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
-            this._leadersDeployedThisPhaseWatcher = AbilityHelper.stateWatchers.leadersDeployedThisPhase(registrar, this);
         }
 
         // ****************************************** PROPERTY HELPERS ******************************************
@@ -642,8 +637,12 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         private wasPlayedThisPhase(card: this = this): boolean {
-            return this._cardsPlayedThisWatcher.someCardPlayed((entry) => entry.card === card && entry.inPlayId === card.inPlayId) ||
-              this._leadersDeployedThisPhaseWatcher.someLeaderDeployed((entry) => entry.card === card);
+            try {
+                return this._cardsPlayedThisWatcher.someCardPlayed((entry) => entry.card === card && entry.inPlayId === card.inPlayId) ||
+                  this._leadersDeployedThisPhaseWatcher.someLeaderDeployed((entry) => entry.card === card);
+            } catch (err) {
+                return false;
+            }
         }
 
         // *************************************** KEYWORD HELPERS ***************************************

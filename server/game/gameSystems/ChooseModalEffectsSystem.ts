@@ -66,7 +66,7 @@ export class ChooseModalEffectsSystem<TContext extends AbilityContext = AbilityC
         context.game.queueSimpleStep(() => {
             const eventsForThisAction = [];
             selectedSystem.queueGenerateEventGameSteps(eventsForThisAction, context);
-            context.game.addMessage(`${context.source.owner.name} chooses "${selectedPrompt}"`);
+            context.game.addMessage('{0} chooses "{1}"', context.source.owner, selectedPrompt);
             context.game.queueSimpleStep(() => {
                 for (const event of eventsForThisAction) {
                     events.push(event);

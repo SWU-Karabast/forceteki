@@ -88,6 +88,7 @@ describe('Choose Sides', function() {
                     expect(context.player2).toBeActivePlayer();
                     expect(context.p1Echo.controller).toBe(context.player2Object);
                     expect(context.p2Echo.controller).toBe(context.player1Object);
+                    expect(context.getChatLogs(1)).toEqual(['player1 plays Choose Sides to give control of Echo to player2 and to take control of Echo']);
                 });
             });
         });

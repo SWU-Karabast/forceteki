@@ -22,6 +22,9 @@ describe('No Glory, Only Results', function() {
 
             // Choose Superlaser Technician and defeat it
             context.player1.clickCard(context.superlaserTechnician);
+            expect(context.getChatLogs(1)).toEqual([
+                'player1 plays No Glory, Only Results to take control of Superlaser Technician',
+            ]);
             context.player1.clickPrompt('Trigger');
             expect(context.superlaserTechnician).toBeInZone('resource', context.player1);
 

@@ -84,7 +84,7 @@ global.integration = function (definitions) {
 
             // used only for the "import all cards" test
             contextRef.buildImportAllCardsTools = () => ({
-                deckBuilder: new DeckBuilder(),
+                deckBuilder: new DeckBuilder(gameStateBuilder.cardDataGetter),
                 implementedCardsCtors: cards,
                 unimplementedCardCtor: CardHelpers.createUnimplementedCard
             });
@@ -109,7 +109,8 @@ global.integration = function (definitions) {
             if (
                 context.game.currentPhase === 'action' && context.ignoreUnresolvedActionPhasePrompts ||
                 context.game.currentPhase === 'regroup' && !context.requireResolvedRegroupPhasePrompts ||
-                context.game.currentPhase === 'setup' // Unresolved setup phase prompts are always ignored
+                context.game.currentPhase === 'setup' || // Unresolved setup phase prompts are always ignored
+                context.game.currentPhase === null
             ) {
                 return;
             }

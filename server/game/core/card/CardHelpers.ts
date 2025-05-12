@@ -16,7 +16,7 @@ import type { ICardDataJson } from '../../../utils/cardData/CardDataInterfaces';
  * derived class constructor based on the card type
  */
 export function createUnimplementedCard(owner: Player, cardData: ICardDataJson): Card {
-    Contract.assertNotNullLike(cardData.types);
+    Contract.assertNotNullLike(cardData?.types);
     const cardType = Card.buildTypeFromPrinted(cardData.types);
 
     switch (cardType) {
