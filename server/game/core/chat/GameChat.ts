@@ -1,4 +1,8 @@
-type MsgArg = string | string[] | { name: string } | { getShortSummary: () => string };
+type MsgArg = string | string[] | FormatMessage | { name: string } | { getShortSummary: () => string };
+export interface FormatMessage {
+    format: string;
+    args: MsgArg[];
+}
 
 type MessageText = string | (string | number)[];
 
@@ -55,6 +59,8 @@ export class GameChat {
                         return output.concat(this.formatArray(arg));
                     } else if (arg.getShortSummary) {
                         return output.concat(arg.getShortSummary());
+                    } else if (typeof arg === 'object' && 'format' in arg && 'args' in arg) {
+                        return output.concat(this.formatMessage(arg.format, arg.args));
                     }
                     return output.concat(arg);
                 }

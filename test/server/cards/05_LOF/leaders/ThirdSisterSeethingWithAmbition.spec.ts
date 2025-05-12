@@ -25,6 +25,7 @@ describe('Third Sister, Seething With Ambition', function () {
                 expect(context.idenVersio).toBeInZone('groundArena');
                 expect(context.idenVersio.hasSomeKeyword('hidden')).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(4);
+                expect(context.getChatLogs(4)).toContain('player1 uses Third Sister, exhausting Third Sister to play Iden Versio and to give Hidden to Iden Versio for this phase');
 
                 context.player2.clickCard(context.wampa);
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base]);

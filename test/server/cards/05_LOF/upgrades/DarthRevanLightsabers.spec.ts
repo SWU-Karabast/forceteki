@@ -4,7 +4,7 @@ describe('Darth Revan\'s Lightsabers', function() {
             return contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
-                    groundArena: ['atst', 'battlefield-marine', 'knight-of-the-republic'],
+                    groundArena: ['atst', 'sith-legionnaire', 'knight-of-the-republic'],
                     hand: ['darth-revans-lightsabers'],
                 },
                 player2: {
@@ -13,28 +13,28 @@ describe('Darth Revan\'s Lightsabers', function() {
             });
         });
 
-        it('gives Grit to attached unit if it is a Force unit', function() {
+        it('gives Grit to attached unit if it is a Sith unit', function() {
+            const { context } = contextRef;
+
+            expect(context.sithLegionnaire.hasSomeKeyword('grit')).toBeFalse();
+
+            context.player1.clickCard(context.darthRevansLightsabers);
+            expect(context.player1).toBeAbleToSelectExactly([context.knightOfTheRepublic, context.sithLegionnaire, context.specforceSoldier]);
+
+            context.player1.clickCard(context.sithLegionnaire);
+            expect(context.sithLegionnaire.hasSomeKeyword('grit')).toBeTrue();
+        });
+
+        it('does nothing if not attached to a Sith unit', function() {
             const { context } = contextRef;
 
             expect(context.knightOfTheRepublic.hasSomeKeyword('grit')).toBeFalse();
 
             context.player1.clickCard(context.darthRevansLightsabers);
-            expect(context.player1).toBeAbleToSelectExactly([context.knightOfTheRepublic, context.battlefieldMarine, context.specforceSoldier]);
+            expect(context.player1).toBeAbleToSelectExactly([context.knightOfTheRepublic, context.sithLegionnaire, context.specforceSoldier]);
 
             context.player1.clickCard(context.knightOfTheRepublic);
-            expect(context.knightOfTheRepublic.hasSomeKeyword('grit')).toBeTrue();
-        });
-
-        it('does nothing if not attached to a Force unit', function() {
-            const { context } = contextRef;
-
-            expect(context.battlefieldMarine.hasSomeKeyword('grit')).toBeFalse();
-
-            context.player1.clickCard(context.darthRevansLightsabers);
-            expect(context.player1).toBeAbleToSelectExactly([context.knightOfTheRepublic, context.battlefieldMarine, context.specforceSoldier]);
-
-            context.player1.clickCard(context.battlefieldMarine);
-            expect(context.battlefieldMarine.hasSomeKeyword('grit')).toBeFalse();
+            expect(context.knightOfTheRepublic.hasSomeKeyword('grit')).toBeFalse();
         });
     });
 });

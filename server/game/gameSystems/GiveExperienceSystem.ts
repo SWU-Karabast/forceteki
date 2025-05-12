@@ -11,4 +11,13 @@ export class GiveExperienceSystem<TContext extends AbilityContext = AbilityConte
     protected override getTokenType() {
         return TokenUpgradeName.Experience;
     }
+
+    public override getEffectMessage(context: TContext): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context);
+
+        if (properties.amount === 1) {
+            return ['give an Experience token to {0}', [properties.target]];
+        }
+        return ['give {0} Experience tokens to {1}', [properties.amount, properties.target]];
+    }
 }

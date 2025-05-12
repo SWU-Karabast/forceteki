@@ -285,3 +285,7 @@ export function equalArrays<T>(first: T[], second: T[]): boolean {
 export function upperCaseFirstLetter(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
+
+export function capitalize(value: string): string {
+    return value.charAt(0).toUpperCase() + value.slice(1);
+}
