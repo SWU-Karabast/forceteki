@@ -1,8 +1,8 @@
 import type { Card } from '../../card/Card';
 import type { CardType } from '../../Constants';
-import type { IOngoingCardEffect } from '../IOngoingCardEffect';
 import type { StatsModifier } from './StatsModifier';
 import * as Contract from '../../utils/Contract';
+import type { OngoingCardEffect } from '../OngoingCardEffect';
 
 /**
  * A wrapper around a {@link StatsModifier} that has helper methods for creation as well
@@ -42,7 +42,7 @@ export default class StatsModifierWrapper {
         return;
     }
 
-    public static fromEffect(effect: IOngoingCardEffect, card: Card, overrides = false, name = `${this.getEffectName(effect)}`) {
+    public static fromEffect(effect: OngoingCardEffect, card: Card, overrides = false, name = `${this.getEffectName(effect)}`) {
         const modifier = effect.getValue(card) as StatsModifier;
 
         return new this(

@@ -1,12 +1,12 @@
 import type { AbilityContext } from './AbilityContext.js';
-import { CardAbility } from './CardAbility';
 import type { CardTypeFilter, RelativePlayerFilter, ZoneFilter } from '../Constants.js';
 import { Duration, WildcardZoneName } from '../Constants.js';
 import type { IConstantAbilityProps, IOngoingEffectGenerator } from '../../Interfaces.js';
 import type { Card, ICardState } from '../card/Card.js';
 import type Game from '../Game.js';
-import type { IConstantAbility } from '../ongoingEffect/IConstantAbility.js';
 import type { OngoingEffect } from '../ongoingEffect/OngoingEffect.js';
+import { GameObjectBase } from '../GameObjectBase.js';
+import type { IConstantAbility } from '../ongoingEffect/IConstantAbility.js';
 
 /**
  * Represents an action ability provided by card text.
@@ -30,7 +30,10 @@ import type { OngoingEffect } from '../ongoingEffect/OngoingEffect.js';
  * clickToActivate - boolean that indicates the action should be activated when
  *                   the card is clicked.
  */
-export class ConstantAbility extends CardAbility implements IConstantAbility {
+export class ConstantAbility extends GameObjectBase implements IConstantAbility {
+    public readonly title: string;
+    public readonly abilityIdentifier?: string;
+
     public readonly duration: Duration;
     public readonly sourceZoneFilter?: ZoneFilter | ZoneFilter[];
 
@@ -46,9 +49,11 @@ export class ConstantAbility extends CardAbility implements IConstantAbility {
     public registeredEffects?: OngoingEffect[];
 
     public constructor(game: Game, card: Card, properties: IConstantAbilityProps) {
-        super(game, card, properties);
+        super(game);
 
         // this.phase = properties.phase ?? PhaseName.Action;
+        this.title = properties.title;
+        this.abilityIdentifier = properties.abilityIdentifier;
         this.duration = Duration.Persistent;
         this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
         this.condition = properties.condition;
@@ -62,9 +67,10 @@ export class ConstantAbility extends CardAbility implements IConstantAbility {
 
         // this.doesNotTarget = (properties as any).doesNotTarget;
 
-        if (!card.canRegisterConstantAbilities()) {
-            throw Error(`Card '${card.internalName}' cannot have constant abilities`);
-        }
+        // Uh, so this wasn't part of the original Constant Ability creation, and I assumed it would work; but apparently EventCards have constants but don't have the override.
+        // if (!card.canRegisterConstantAbilities()) {
+        //     throw Error(`Card '${card.internalName}' cannot have constant abilities`);
+        // }
     }
 
     // public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = [], thisStepOnly = false) {

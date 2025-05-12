@@ -108,6 +108,7 @@ export default class TriggeredAbility extends CardAbility<ITriggeredAbillityStat
     }
 
     protected override setupDefaultState(): void {
+        super.setupDefaultState();
         this.state.isRegistered = false;
     }
 

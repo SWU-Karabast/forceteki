@@ -68,6 +68,7 @@ export class BaseZone extends ZoneAbstract<IBaseZoneCard, IBaseZoneState> {
     }
 
     protected override setupDefaultState() {
+        super.setupDefaultState();
         this.state.leader = null;
     }
 

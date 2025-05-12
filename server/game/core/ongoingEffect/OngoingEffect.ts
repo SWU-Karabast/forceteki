@@ -4,10 +4,16 @@ import type { Card } from '../card/Card';
 import type { ZoneFilter } from '../Constants';
 import { Duration, WildcardZoneName, EffectName } from '../Constants';
 import type Game from '../Game';
+import type { GameObject } from '../GameObject';
+import type { GameObjectRef, IGameObjectBaseState } from '../GameObjectBase';
 import { GameObjectBase } from '../GameObjectBase';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
+
+export interface IOngoingEffectState extends IGameObjectBaseState {
+    targets: GameObjectRef<(Player | Card)>[];
+}
 
 /**
  * Represents a card based effect applied to one or more targets.
@@ -36,19 +42,26 @@ import type { OngoingEffectImpl } from './effectImpl/OngoingEffectImpl';
  * impl                 - object with details of effect to be applied. Includes duration
  *                        and the numerical value of the effect, if any.
  */
-export abstract class OngoingEffect extends GameObjectBase {
-    public id: number;
-    public source: Card;
+export abstract class OngoingEffect<T extends IOngoingEffectState = IOngoingEffectState> extends GameObjectBase<T> {
+    public readonly id: number;
+    public readonly source: Card;
     // TODO: Can we make GameObject more specific? Can we add generics to the class for AbilityContext?
-    public matchTarget: (Player | Card) | ((target: Player | Card, context: AbilityContext) => boolean);
-    public duration?: Duration;
-    public until: WhenType;
-    public condition: (context?: AbilityContext) => boolean;
-    public sourceZoneFilter: ZoneFilter | ZoneFilter[];
-    public impl: OngoingEffectImpl<any>;
-    public ongoingEffect: IOngoingEffectProps;
-    public targets: (Player | Card)[];
+    public readonly matchTarget: (Player | Card) | ((target: Player | Card, context: AbilityContext) => boolean);
+    public readonly duration?: Duration;
+    public readonly until: WhenType;
+    public readonly condition: (context?: AbilityContext) => boolean;
+    public readonly sourceZoneFilter: ZoneFilter | ZoneFilter[];
+    public readonly impl: OngoingEffectImpl<any>;
+    public readonly ongoingEffect: IOngoingEffectProps;
     public context: AbilityContext;
+
+    public get type() {
+        return this.impl.type;
+    }
+
+    public get targets() {
+        return this.state.targets.map((x) => this.game.getFromRef(x));
+    }
 
     public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effectImpl: OngoingEffectImpl<any>) {
         Contract.assertFalse(
@@ -65,11 +78,18 @@ export abstract class OngoingEffect extends GameObjectBase {
         this.sourceZoneFilter = properties.sourceZoneFilter || WildcardZoneName.AnyArena;
         this.impl = effectImpl;
         this.ongoingEffect = properties;
-        this.targets = [];
         this.refreshContext();
 
         this.impl.duration = this.duration;
         this.impl.isConditional = !!properties.condition;
+    }
+
+    protected override setupDefaultState() {
+        this.state.targets = [];
+    }
+
+    public getValue(card: GameObject) {
+        return this.impl.getValue(card);
     }
 
     public refreshContext() {
@@ -104,7 +124,7 @@ export abstract class OngoingEffect extends GameObjectBase {
 
     public removeTargets(targets) {
         targets.forEach((target) => this.impl.unapply(target));
-        this.targets = this.targets.filter((target) => !targets.includes(target));
+        this.state.targets = this.targets.filter((target) => !targets.includes(target)).map((x) => x.getRef());
     }
 
     public hasTarget(target) {
@@ -113,7 +133,7 @@ export abstract class OngoingEffect extends GameObjectBase {
 
     public cancel() {
         this.targets.forEach((target) => this.impl.unapply(target));
-        this.targets = [];
+        this.state.targets = [];
     }
 
     public isEffectActive() {

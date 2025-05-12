@@ -153,17 +153,17 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     // STATE TODO: These can be modified after creation, and need to be converted to state.
     protected get actionAbilities(): readonly ActionAbility[] {
-        return this.state.actionAbilities.map(this.game.getFromRef);
+        return this.state.actionAbilities.map((x) => this.game.getFromRef(x));
     }
 
     // STATE TODO: These can be modified after creation, and need to be converted to state.
     protected get constantAbilities(): readonly ConstantAbility[] {
-        return this.state.constantAbilities.map(this.game.getFromRef);
+        return this.state.constantAbilities.map((x) => this.game.getFromRef(x));
     }
 
     // STATE TODO: These can be modified after creation, and need to be converted to state.
     protected get triggeredAbilities(): readonly TriggeredAbility[] {
-        return this.state.triggeredAbilities.map(this.game.getFromRef);
+        return this.state.triggeredAbilities.map((x) => this.game.getFromRef(x));
     }
 
 

@@ -40,6 +40,7 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
     }
 
     protected override setupDefaultState() {
+        super.setupDefaultState();
         this.state.effects = [];
     }
 
@@ -261,11 +262,11 @@ export class OngoingEffectEngine extends GameObjectBase<IOngoingEffectState> {
     }
 
     public override afterSetAllState(prevState: IOngoingEffectState) {
-        for (const prevEffect of prevState.effects) {
-            if (!this.state.effects.some((x) => x.uuid === prevEffect.uuid)) {
-                this.unapplyEffect(this.game.gameObjectManager.get(prevEffect));
-            }
-        }
+        // for (const prevEffect of prevState.effects) {
+        //     if (!this.state.effects.some((x) => x.uuid === prevEffect.uuid)) {
+        //         this.unapplyEffect(this.game.gameObjectManager.get(prevEffect));
+        //     }
+        // }
 
         for (const currEffect of this.state.effects) {
             if (!prevState.effects.some((x) => x.uuid === currEffect.uuid)) {

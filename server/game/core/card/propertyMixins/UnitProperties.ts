@@ -2,7 +2,6 @@ import { InitiateAttackAction } from '../../../actions/InitiateAttackAction';
 import type { Arena, MoveZoneDestination } from '../../Constants';
 import { AbilityRestriction, AbilityType, CardType, EffectName, EventName, KeywordName, PlayType, StandardTriggeredAbilityType, StatType, Trait, WildcardRelativePlayer, ZoneName } from '../../Constants';
 import StatsModifierWrapper from '../../ongoingEffect/effectImpl/StatsModifierWrapper';
-import type { IOngoingCardEffect } from '../../ongoingEffect/IOngoingCardEffect';
 import * as Contract from '../../utils/Contract';
 import type { IInPlayCard, IInPlayCardState, InPlayCardConstructor } from '../baseClasses/InPlayCard';
 import { InPlayCard } from '../baseClasses/InPlayCard';
@@ -42,6 +41,7 @@ import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPl
 import type { LeadersDeployedThisPhaseWatcher } from '../../../stateWatchers/LeadersDeployedThisPhaseWatcher';
 import AbilityHelper from '../../../AbilityHelper';
 import type { ConstantAbility } from '../../ability/ConstantAbility';
+import type { OngoingCardEffect } from '../../ongoingEffect/OngoingCardEffect';
 
 export const UnitPropertiesCard = WithUnitProperties(InPlayCard);
 export interface IUnitPropertiesCardState extends IInPlayCardState {
@@ -155,35 +155,35 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         private get attackKeywordAbilities(): (readonly (TriggeredAbility | ConstantAbility)[] | null) {
-            return this.state.attackKeywordAbilities?.map(this.game.getFromRef);
+            return this.state.attackKeywordAbilities?.map((x) => this.game.getFromRef(x));
         }
 
         private get whenCapturedKeywordAbilities(): (readonly TriggeredAbility[]) | null {
-            return this.state.whenCapturedKeywordAbilities?.map(this.game.getFromRef);
+            return this.state.whenCapturedKeywordAbilities?.map((x) => this.game.getFromRef(x));
         }
 
         private get whenDefeatedKeywordAbilities(): (readonly TriggeredAbility[]) | null {
-            return this.state.whenDefeatedKeywordAbilities?.map(this.game.getFromRef);
+            return this.state.whenDefeatedKeywordAbilities?.map((x) => this.game.getFromRef(x));
         }
 
         private get whenPlayedKeywordAbilities(): (readonly TriggeredAbility[]) | null {
-            return this.state.whenPlayedKeywordAbilities?.map(this.game.getFromRef);
+            return this.state.whenPlayedKeywordAbilities?.map((x) => this.game.getFromRef(x));
         }
 
         private get whileInPlayKeywordAbilities(): (readonly ConstantAbility[]) | null {
-            return this.state.whileInPlayKeywordAbilities?.map(this.game.getFromRef);
+            return this.state.whileInPlayKeywordAbilities?.map((x) => this.game.getFromRef(x));
         }
 
         protected get pilotingActionAbilities(): readonly ActionAbility[] {
-            return this.state.pilotingActionAbilities.map(this.game.getFromRef);
+            return this.state.pilotingActionAbilities.map((x) => this.game.getFromRef(x));
         }
 
         protected get pilotingTriggeredAbilities(): readonly TriggeredAbility[] {
-            return this.state.pilotingTriggeredAbilities.map(this.game.getFromRef);
+            return this.state.pilotingTriggeredAbilities.map((x) => this.game.getFromRef(x));
         }
 
         private get pilotingConstantAbilities(): readonly ConstantAbility[] {
-            return this.state.pilotingConstantAbilities.map(this.game.getFromRef);
+            return this.state.pilotingConstantAbilities.map((x) => this.game.getFromRef(x));
         }
 
         private _cardsPlayedThisWatcher: CardsPlayedThisPhaseWatcher;
@@ -517,16 +517,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             let triggeredAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingTriggeredAbilities : super.getTriggeredAbilities();
 
             // add any temporarily registered attack abilities from keywords
-            if (this.state.attackKeywordAbilities !== null) {
+            if (this.state.attackKeywordAbilities != null) {
                 triggeredAbilities = triggeredAbilities.concat(this.attackKeywordAbilities.filter((ability) => ability instanceof TriggeredAbility));
             }
-            if (this.state.whenCapturedKeywordAbilities !== null) {
+            if (this.state.whenCapturedKeywordAbilities != null) {
                 triggeredAbilities = triggeredAbilities.concat(this.whenCapturedKeywordAbilities);
             }
-            if (this.state.whenDefeatedKeywordAbilities !== null) {
+            if (this.state.whenDefeatedKeywordAbilities != null) {
                 triggeredAbilities = triggeredAbilities.concat(this.whenDefeatedKeywordAbilities);
             }
-            if (this.state.whenPlayedKeywordAbilities !== null) {
+            if (this.state.whenPlayedKeywordAbilities != null) {
                 triggeredAbilities = triggeredAbilities.concat(this.whenPlayedKeywordAbilities);
             }
 
@@ -545,7 +545,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             let constantAbilities = EnumHelpers.isUnitUpgrade(this.getType()) ? this.pilotingConstantAbilities : super.getConstantAbilities();
 
             // add any temporarily registered attack abilities from keywords
-            if (this.state.attackKeywordAbilities !== null) {
+            if (this.state.attackKeywordAbilities != null) {
                 constantAbilities = constantAbilities.concat(
                     this.attackKeywordAbilities.filter((ability) => !(ability instanceof TriggeredAbility))
                         .map((ability) => ability as ConstantAbility)
@@ -553,7 +553,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
 
             // add any registered abilities from keywords effective while in play
-            if (this.state.whileInPlayKeywordAbilities !== null) {
+            if (this.state.whileInPlayKeywordAbilities != null) {
                 constantAbilities = constantAbilities.concat(this.whileInPlayKeywordAbilities);
             }
 
@@ -903,7 +903,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                 rawEffects = this.getOngoingEffects().filter((effect) => !exclusions.includes(effect.type));
             }
 
-            const modifierEffects: IOngoingCardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
+            const modifierEffects: OngoingCardEffect[] = rawEffects.filter((effect) => effect.type === EffectName.ModifyStats);
             const wrappedStatsModifiers = modifierEffects.map((modifierEffect) => StatsModifierWrapper.fromEffect(modifierEffect, this));
 
             if (!this.isAttached()) {
@@ -1057,7 +1057,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
         }
 
-        public override addOngoingEffect(ongoingEffect: IOngoingCardEffect): void {
+        public override addOngoingEffect(ongoingEffect: OngoingCardEffect): void {
             if (ongoingEffect.type === EffectName.ModifyStats && ongoingEffect?.getValue(this)?.hp !== 0) {
                 this.lastPlayerToModifyHp = ongoingEffect.context.source.controller;
             }

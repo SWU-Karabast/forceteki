@@ -156,8 +156,7 @@ export = {
     modifyIndirectDamage: (modifier: IndirectDamageModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyIndirectDamage, modifier),
     modifyPilotingLimit: (modifier: PilotLimitModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyPilotLimit, modifier),
     modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyStartingHandSize, modifier),
-    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) =>
-        OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
+    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) => OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
     noMulligan: () => OngoingEffectBuilder.card.static(EffectName.NoMulligan),
     mustAttack: (properties: MustAttackProperties = {}) => OngoingEffectBuilder.card.static(EffectName.MustAttack, properties),
     // modifyMilitarySkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),
