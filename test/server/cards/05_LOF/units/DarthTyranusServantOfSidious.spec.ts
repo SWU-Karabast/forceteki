@@ -8,12 +8,16 @@ describe('Darth Tyranus, Servant of Sidious', function() {
                     hand: ['darth-tyranus#servant-of-sidious'],
                 },
                 player2: {
-                    hand: ['sundari-peacekeeper'],
+                    groundArena: ['sundari-peacekeeper'],
                 },
             });
             const { context } = contextRef;
 
             context.player1.clickCard('darth-tyranus#servant-of-sidious');
+
+            expect(context.player1).toHavePassAbilityPrompt('Ambush');
+            context.player1.clickPrompt('Trigger');
+
             expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper]);
             context.player1.clickCard(context.sundariPeacekeeper);
             expect(context.player2).toBeActivePlayer();
@@ -28,7 +32,7 @@ describe('Darth Tyranus, Servant of Sidious', function() {
                     hand: ['darth-tyranus#servant-of-sidious'],
                 },
                 player2: {
-                    hand: ['sundari-peacekeeper'],
+                    groundArena: ['sundari-peacekeeper'],
                 },
             });
 

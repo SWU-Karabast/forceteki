@@ -5,7 +5,7 @@ import { KeywordName } from '../../../core/Constants';
 export default class DarthTyranusServantOfSidious extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'temp-darth-tyranus-id',
+            id: 'darth-tyranus#servant-of-sidious-id',
             internalName: 'darth-tyranus#servant-of-sidious'
         };
     }

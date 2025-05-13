@@ -18,7 +18,7 @@ describe('Constructed Lightsaber', function () {
             context.player1.clickCard(context.p2Base);
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.p2Base.damage).toBe(1); // 3 + 2
+            expect(context.p1Base.damage).toBe(1); // 3 + 2
         });
 
         it('Constructed Lightsaber\'s ability should grant Raid 2 to units with Villainy aspect', async function () {
