@@ -23,9 +23,10 @@ export default class QuiGonJinnsAetherspriteGuidedByTheForce extends NonLeaderUn
                         event.context.event.name === EventName.OnCardPlayed)
                 },
                 immediateEffect: AbilityHelper.immediateEffects.useWhenPlayedAbility((context) => {
+                    const event = context.events.find((event) => event.name === EventName.OnCardAbilityInitiated);
                     return {
-                        target: context.event.card,
-                        resolvedAbilityEvent: context.event
+                        target: event.card,
+                        resolvedAbilityEvent: event,
                     };
                 })
             })
