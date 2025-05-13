@@ -57,7 +57,7 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
             return;
         }
 
-        const player = context.choosingPlayerOverride || this.getChoosingPlayer(context);
+        const player = this.getChoosingPlayer(context);
         if (player === context.player.opponent && context.stage === Stage.PreTarget) {
             targetResults.delayTargeting = this;
             return;
@@ -100,7 +100,11 @@ export abstract class TargetResolver<TProps extends ITargetResolverBase<AbilityC
         return this.hasTargetsChosenByPlayerInternal(context, player);
     }
 
-    public getChoosingPlayer(context) {
+    public getChoosingPlayer(context: AbilityContext) {
+        if (context.choosingPlayerOverride) {
+            return context.choosingPlayerOverride;
+        }
+
         let playerProp = this.properties.choosingPlayer;
         if (typeof playerProp === 'function') {
             playerProp = playerProp(context);

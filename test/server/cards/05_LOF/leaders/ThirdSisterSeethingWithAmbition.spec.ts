@@ -25,6 +25,7 @@ describe('Third Sister, Seething With Ambition', function () {
                 expect(context.idenVersio).toBeInZone('groundArena');
                 expect(context.idenVersio.hasSomeKeyword('hidden')).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(4);
+                expect(context.getChatLogs(4)).toContain('player1 uses Third Sister, exhausting Third Sister to play Iden Versio and to give Hidden to Iden Versio for this phase');
 
                 context.player2.clickCard(context.wampa);
                 expect(context.player2).toBeAbleToSelectExactly([context.p1Base]);
@@ -157,6 +158,27 @@ describe('Third Sister, Seething With Ambition', function () {
 
                 context.player2.clickCard(context.wampa);
                 expect(context.wampa.hasSomeKeyword('hidden')).toBeFalse();
+            });
+
+            it('should work with units that have other state watchers registered', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        base: 'dagobah-swamp',
+                        leader: { card: 'third-sister#seething-with-ambition', deployed: true },
+                        hand: ['kylos-tie-silencer#ruthlessly-efficient'],
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.thirdSister);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                context.player1.clickCard(context.kylosTieSilencer);
+                expect(context.kylosTieSilencer.hasSomeKeyword('hidden')).toBeTrue();
             });
         });
     });

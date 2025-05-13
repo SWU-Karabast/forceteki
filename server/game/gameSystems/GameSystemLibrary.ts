@@ -3,7 +3,6 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer, DamageType } from '../core/Constants';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
 
-import type { ISystemArrayOrFactory } from '../core/gameSystem/AggregateSystem';
 import type { IAttachUpgradeProperties } from './AttachUpgradeSystem';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
 import type { ICaptureProperties } from './CaptureSystem';
@@ -109,10 +108,12 @@ import type { ISearchDeckProperties } from './SearchDeckSystem';
 import { SearchDeckSystem } from './SearchDeckSystem';
 import type { ISelectCardProperties } from './SelectCardSystem';
 import { SelectCardSystem } from './SelectCardSystem';
+import type { ISequentialSystemProperties } from './SequentialSystem';
 import { SequentialSystem } from './SequentialSystem';
 import type { IShuffleDeckProperties } from './ShuffleDeckSystem';
 import { ShuffleDeckSystem } from './ShuffleDeckSystem';
-import { SimultaneousGameSystem } from './SimultaneousSystem';
+import type { ISimultaneousSystemProperties } from './SimultaneousSystem';
+import { SimultaneousSystem } from './SimultaneousSystem';
 import type { ITakeControlOfResourceProperties } from './TakeControlOfResourceSystem';
 import { TakeControlOfResourceSystem } from './TakeControlOfResourceSystem';
 import type { ITakeControlOfUnitProperties } from './TakeControlOfUnitSystem';
@@ -656,11 +657,13 @@ export function selectPlayer<TContext extends AbilityContext = AbilityContext>(p
 // export function selectToken(propertyFactory: PropsFactory<SelectTokenProperties>) {
 //     return new SelectTokenAction(propertyFactory);
 // }
-export function sequential<TContext extends AbilityContext = AbilityContext>(gameSystems: ISystemArrayOrFactory<TContext>, everyGameSystemMustBeLegal: boolean = false) {
-    return new SequentialSystem<TContext>(gameSystems, everyGameSystemMustBeLegal);
-} // takes an array of gameActions, not a propertyFactory
-export function simultaneous<TContext extends AbilityContext = AbilityContext>(gameSystems: ISystemArrayOrFactory<TContext>, ignoreTargetingRequirements = null, everyGameSystemMustBeLegal: boolean = false) {
-    return new SimultaneousGameSystem<TContext>(gameSystems, ignoreTargetingRequirements, everyGameSystemMustBeLegal);
+export function sequential<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISequentialSystemProperties<TContext> | GameSystem<TContext>[], TContext>) {
+    const makeProps = (props: ISequentialSystemProperties<TContext> | GameSystem<TContext>[]) => (!Array.isArray(props) ? props : { gameSystems: props });
+    return new SequentialSystem<TContext>(typeof propertyFactory !== 'function' ? makeProps(propertyFactory) : (context: TContext) => makeProps(propertyFactory(context)));
+}
+export function simultaneous<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<ISimultaneousSystemProperties<TContext> | GameSystem<TContext>[], TContext>) {
+    const makeProps = (props: ISimultaneousSystemProperties<TContext> | GameSystem<TContext>[]) => (!Array.isArray(props) ? props : { gameSystems: props });
+    return new SimultaneousSystem<TContext>(typeof propertyFactory !== 'function' ? makeProps(propertyFactory) : (context: TContext) => makeProps(propertyFactory(context)));
 }
 
 export function shuffleDeck<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IShuffleDeckProperties, TContext> = {}) {

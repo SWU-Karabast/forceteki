@@ -1,4 +1,5 @@
 import AbilityHelper from '../../../AbilityHelper';
+import * as KeywordHelpers from '../../../core/ability/KeywordHelpers';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { AbilityType, KeywordName, RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 import type { KeywordNameOrProperties } from '../../../Interfaces';
@@ -18,18 +19,18 @@ export default class AdmiralYularenFleetCoordinator extends NonLeaderUnitCard {
                 mode: TargetMode.Select,
                 activePromptTitle: 'Choose Grit, Restore 1, Sentinel, or Shielded',
                 choices: {
-                    ['Grit']: this.buildYularenEffect(KeywordName.Grit, 'Grit'),
-                    ['Restore 1']: this.buildYularenEffect({ keyword: KeywordName.Restore, amount: 1 }, 'Restore 1'),
-                    ['Sentinel']: this.buildYularenEffect(KeywordName.Sentinel, 'Sentinel'),
-                    ['Shielded']: this.buildYularenEffect(KeywordName.Shielded, 'Shielded')
+                    ['Grit']: this.buildYularenEffect(KeywordName.Grit),
+                    ['Restore 1']: this.buildYularenEffect({ keyword: KeywordName.Restore, amount: 1 }),
+                    ['Sentinel']: this.buildYularenEffect(KeywordName.Sentinel),
+                    ['Shielded']: this.buildYularenEffect(KeywordName.Shielded)
                 }
             }
         });
     }
 
-    private buildYularenEffect(choice: KeywordNameOrProperties, keywordDescription: string) {
+    private buildYularenEffect(choice: KeywordNameOrProperties) {
         return AbilityHelper.immediateEffects.whileSourceInPlayCardEffect({
-            ongoingEffectDescription: `give ${keywordDescription} to`,
+            ongoingEffectDescription: `give ${KeywordHelpers.keywordDescription(choice)} to`,
             ongoingEffectTargetDescription: 'each friendly Vehicle unit',
             effect: AbilityHelper.ongoingEffects.gainAbility({
                 type: AbilityType.Constant,

@@ -64,7 +64,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
         const destinationController = properties.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
         return [
             'move a card to {0}\'s resources',
-            [destinationController.name]
+            [destinationController]
         ];
     }
 

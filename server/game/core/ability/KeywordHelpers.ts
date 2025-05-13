@@ -1,8 +1,9 @@
-import type { IKeywordProperties } from '../../Interfaces';
+import type { IKeywordProperties, KeywordNameOrProperties } from '../../Interfaces';
 import type { Card } from '../card/Card';
 import type { PlayType } from '../Constants';
 import { Aspect, KeywordName } from '../Constants';
 import * as Contract from '../utils/Contract';
+import * as Helpers from '../utils/Helpers';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import { BountyKeywordInstance, KeywordInstance, KeywordWithAbilityDefinition, KeywordWithCostValues, KeywordWithNumericValue } from './KeywordInstance';
 import type { PlayCardAction } from './PlayCardAction';
@@ -261,4 +262,16 @@ export function getCheapestPlayAction<TAbility extends PlayCardAction>(playType:
     }
 
     return cheapestAction;
+}
+
+export function keywordDescription(keyword: KeywordNameOrProperties): string {
+    if (typeof keyword === 'string') {
+        return Helpers.capitalize(keyword);
+    }
+
+    if ('amount' in keyword) {
+        return `${Helpers.capitalize(keyword.keyword)} ${keyword.amount}`;
+    }
+
+    return Helpers.capitalize(keyword.keyword);
 }

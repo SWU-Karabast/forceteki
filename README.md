@@ -74,3 +74,12 @@ Once you have vscode set up, use the `Debug All Jasmine Tests` profile or open a
 - You can use the `debugger;` command in node to create a breakpoint in code that will be respected by the vscode debugger
 - VSCode has advanced breakpoint features such as conditional breakpoints that are extremely useful for debugging complex situations, we highly recommend reading the "Advanced breakpoint topics" section of this guide if you haven't used it before: https://code.visualstudio.com/docs/editor/debugging#_advanced-breakpoint-topics
 - See our [Debugging Guide](https://github.com/SWU-Karabast/forceteki/wiki/Debugging-Guide) for detailed guides on debugging cards
+
+### Mobile Testing and Custom Environment
+
+For testing on mobile devices connected to your local network:
+
+1. Edit `.env` and add ADDITIONAL_CORS_ORIGINS="http://your-local-ip:3000"
+2. Restart the development server for the Back-End
+3. Update the Front-End with its instructions to allow mobile local connections
+4. Connect to your-local-ip:3000 on the web browser of your mobile device

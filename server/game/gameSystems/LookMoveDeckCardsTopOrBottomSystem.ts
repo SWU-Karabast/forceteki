@@ -103,7 +103,7 @@ export class LookMoveDeckCardsTopOrBottomSystem<TContext extends AbilityContext 
         });
         const moveCardEvent = moveGameSystem.generateEvent(context);
         const [effectMessage, effectArgs] = moveGameSystem.getEffectMessage(context);
-        context.game.addMessage(`${context.player.name} chooses to ${effectMessage}`, ...effectArgs);
+        context.game.addMessage('{0} chooses to {1}', context.player, [effectMessage, ...effectArgs]);
         events.push(moveCardEvent);
     }
 
