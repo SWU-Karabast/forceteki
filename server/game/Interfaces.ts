@@ -254,7 +254,9 @@ export type WhenTypeOrStandard<TSource extends Card = Card> = WhenType<TSource> 
     [StandardTriggeredAbilityTypeValue in StandardTriggeredAbilityType]?: true;
 };
 
-export type IOngoingEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => (OngoingCardEffect | OngoingPlayerEffect);
+export type IOngoingCardEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => OngoingCardEffect;
+export type IOngoingPlayerEffectGenerator = (game: Game, source: Card, props: IOngoingEffectProps) => OngoingPlayerEffect;
+export type IOngoingEffectGenerator = IOngoingCardEffectGenerator | IOngoingPlayerEffectGenerator;
 
 export type IOngoingEffectFactory = IOngoingEffectProps & {
     ongoingEffect: any; // IOngoingEffectGenerator | IOngoingEffectGenerator[]
@@ -327,6 +329,8 @@ export interface ISerializedReportState {
     lobbyId: string;
     timestamp: string;
     gameId?: string;
+    screenResolution?: { width: number; height: number } | null;
+    viewport?: { width: number; height: number } | null;
 }
 
 // ********************************************** INTERNAL TYPES **********************************************

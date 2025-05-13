@@ -1,10 +1,14 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
+import type { FormatMessage } from '../core/chat/GameChat';
 import { Duration, EffectName, EventName, WildcardZoneName } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ILastingEffectPropertiesBase } from '../core/gameSystem/LastingEffectPropertiesBase';
+import type { OngoingCardEffect } from '../core/ongoingEffect/OngoingCardEffect';
+import type { OngoingPlayerEffect } from '../core/ongoingEffect/OngoingPlayerEffect';
 import * as Contract from '../core/utils/Contract';
+import * as Helpers from '../core/utils/Helpers';
 import type { DistributiveOmit } from '../core/utils/Helpers';
 import type { IOngoingEffectProps } from '../Interfaces';
 
@@ -50,7 +54,20 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const description = properties.ongoingEffectDescription ?? 'apply a lasting effect to';
+        let description: string | FormatMessage = 'apply a lasting effect to';
+        if (properties.ongoingEffectDescription) {
+            description = properties.ongoingEffectDescription;
+        } else if (properties.target && Array.isArray(properties.target) && properties.target.length === 1) {
+            const effectDescriptions = this.getApplicableEffects(properties.target[0], context)
+                .map((effect) => effect.impl.effectDescription);
+            if (effectDescriptions.length > 0 && effectDescriptions.every((description) => description !== undefined)) {
+                description = {
+                    format: '{0} to',
+                    args: [effectDescriptions],
+                };
+            }
+        }
+
         let durationStr: string;
         switch (properties.duration) {
             case Duration.UntilEndOfAttack:
@@ -73,7 +90,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
                 Contract.fail(`Unknown duration: ${(properties as any).duration}`);
         }
 
-        return [`${description} {0}${durationStr}`, [properties.ongoingEffectTargetDescription ?? properties.target]];
+        return [`{0} {1}${durationStr}`, [description, properties.ongoingEffectTargetDescription ?? properties.target]];
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ICardLastingEffectProperties> = {}): ICardLastingEffectProperties {
@@ -107,10 +124,10 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
 
         const effectProperties: IOngoingEffectProps = { matchTarget: card, sourceZoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties };
 
-        return { effectFactories: effect, effectProperties };
+        return { effectFactories: Helpers.asArray(effect), effectProperties };
     }
 
-    protected filterApplicableEffects(card: Card, effects: any[]) {
+    protected filterApplicableEffects(card: Card, effects: (OngoingCardEffect | OngoingPlayerEffect)[]) {
         const lastingEffectRestrictions = card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
         return effects.filter(
             (props) =>

@@ -281,3 +281,7 @@ export function equalArrays<T>(first: T[], second: T[]): boolean {
 
     return true;
 }
+
+export function capitalize(value: string): string {
+    return value.charAt(0).toUpperCase() + value.slice(1);
+}

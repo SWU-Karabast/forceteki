@@ -74,14 +74,14 @@ export class QueueHandler {
         if (queueEntry) {
             playerEntry = queueEntry;
 
-            logger.info(`User ${userId} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${playerEntry.format}`);
+            logger.info(`User ${userId} with socket id ${socket.id} is already in queue for format ${queueEntry.format}, rejoining into queue for format ${playerEntry.format}`);
             this.removePlayer(userId, 'Rejoining into queue');
         } else {
             const notConnectedPlayer = this.findNotConnectedPlayer(userId);
             Contract.assertNotNullLike(notConnectedPlayer, `Player ${userId} is not in the queue`);
 
             playerEntry = notConnectedPlayer;
-            this.removePlayer(userId, 'Player connected');
+            this.removePlayer(userId, `Player connected with socket id ${socket.id}`);
         }
 
         Contract.assertNotNullLike(playerEntry.format);
@@ -90,20 +90,21 @@ export class QueueHandler {
         playerEntry.player.socket = socket;
 
         this.queues.get(playerEntry.format)?.push(playerEntry.player);
-        logger.info(`User ${userId} connected, added to queue for format ${playerEntry.format}`);
+        logger.info(`User ${userId} connected with socket id ${socket.id}, added to queue for format ${playerEntry.format}`);
     }
 
     /** If the user exists in the queue and is connected, temporarily move them into a disconnected state while waiting for reconnection */
-    public disconnectPlayer(userId: string) {
+    public disconnectPlayer(userId: string, socketId: string) {
         const queueEntry = this.findPlayerInQueue(userId);
-        if (queueEntry) {
-            this.removePlayer(userId, 'Temporarily disconnected');
+        if (queueEntry && queueEntry.player?.socket?.id === socketId) {
+            this.removePlayer(userId, `Temporarily disconnected on socket id ${socketId}`);
             this.addPlayer(queueEntry.format, { user: queueEntry.player.user, deck: queueEntry.player.deck });
         }
     }
 
-    public isConnected(userId: string): boolean {
-        return !!this.findPlayerInQueue(userId);
+    public isConnected(userId: string, socketId: string): boolean {
+        const player = this.findPlayerInQueue(userId);
+        return player && player.player.socket?.id === socketId;
     }
 
     public removePlayer(userId: string, reasonStr: string) {

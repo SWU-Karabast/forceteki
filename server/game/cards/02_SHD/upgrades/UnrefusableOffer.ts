@@ -1,7 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import { KeywordName, PhaseName, PlayType, ZoneName } from '../../../core/Constants';
-import type { Card } from '../../../core/card/Card';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class UnrefusableOffer extends UpgradeCard {
@@ -12,11 +11,9 @@ export default class UnrefusableOffer extends UpgradeCard {
         };
     }
 
-    public override canAttach(targetCard: Card): boolean {
-        return !targetCard.isLeaderUnit();
-    }
-
     public override setupCardAbilities() {
+        this.setAttachCondition((card) => !card.isLeaderUnit());
+
         this.addGainKeywordTargetingAttached({
             keyword: KeywordName.Bounty,
             ability: {
