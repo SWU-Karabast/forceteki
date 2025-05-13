@@ -16,7 +16,7 @@ export default class CuriousFlock extends NonLeaderUnitCard {
             targetResolver: {
                 mode: TargetMode.DropdownList,
                 options: (context) => Array.from({ length: Math.min(6, context.player.readyResourceCount) + 1 }, (_x, i) => `${i}`),
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                immediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.payResourceCost((context) => ({
                         amount: parseInt(context.select),
                         target: context.player,
