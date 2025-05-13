@@ -11,6 +11,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                     player2: {
                         hand: ['vanquish', 'no-glory-only-results'],
                         groundArena: ['sith-trooper'],
+                        spaceArena: ['republic-arc170'],
                         deck: ['clone-pilot', 'tech#source-of-insight', 'bunker-defender', 'rivals-fall', 'twin-laser-turret', 'repair', 'aggression', 'republic-tactical-officer', 'echo#restored']
                     }
                 });
@@ -146,13 +147,16 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                 context.player1.passAction();
                 context.player2.clickCard(context.republicTacticalOfficer);
                 expect(context.republicTacticalOfficer).toBeInZone('groundArena');
+                context.player2.clickPrompt('Pass'); // Pass Republic Tactical Officer ability
 
-                // Pass the action to allow the player to play the second card
+                // Pass the action to allow the player to play Clone Pilot as a pilot
                 context.player1.passAction();
                 context.player2.clickCard(context.clonePilot);
-                expect(context.clonePilot).toBeInZone('groundArena');
+                context.player2.clickPrompt('Play Clone Pilot with Piloting');
+                context.player2.clickCard(context.republicArc170);
 
                 // Check players resources
+                expect(context.republicArc170).toHaveExactUpgradeNames(['clone-pilot']);
                 expect(context.player1.readyResourceCount).toBe(playerResources);
             });
 

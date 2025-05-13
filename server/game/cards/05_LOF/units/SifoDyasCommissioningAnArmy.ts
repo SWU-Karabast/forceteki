@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
+import { TargetMode, Trait } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import * as Contract from '../../../core/utils/Contract';
@@ -28,7 +28,6 @@ export default class SifoDyasCommissioningAnArmy extends NonLeaderUnitCard {
                 targetMode: TargetMode.Unlimited,
                 cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Clone),
                 multiSelectCondition: (card, currentlySelectedCards) => this.costSum(currentlySelectedCards.concat(card)) <= 4,
-                playAsType: WildcardCardType.Unit,
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.discardSpecificCard(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect((deckSearchContext) => ({

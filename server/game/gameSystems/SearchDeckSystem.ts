@@ -3,7 +3,6 @@
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
-import type { CardType, WildcardCardType } from '../core/Constants.js';
 import { EventName, DeckZoneDestination, TargetMode, ZoneName } from '../core/Constants.js';
 import type { GameEvent } from '../core/event/GameEvent.js';
 import type { GameSystem } from '../core/gameSystem/GameSystem.js';
@@ -49,7 +48,6 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     cardCondition?: (card: Card, context: TContext) => boolean;
     chooseNothingImmediateEffect?: GameSystem<TContext>;
     multiSelectCondition?: (card: Card, currentlySelectedCards: Card[], context: TContext) => boolean;
-    playAsType?: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
 }
 
 export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ISearchDeckProperties<TContext> = ISearchDeckProperties<TContext>> extends PlayerTargetSystem<TContext, TProperties> {
