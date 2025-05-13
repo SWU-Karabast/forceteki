@@ -81,57 +81,6 @@ const mockCards = [
         internalName: 'constructed-lightsaber'
     }),
     buildMockCard({
-        title: 'Karis, We Don\'t Like Strangers',
-        power: 2,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        types: ['unit'],
-        traits: ['force', 'night'],
-        setId: {
-            set: 'LOF',
-            number: 31
-        },
-        cost: 2,
-        unique: true,
-        arena: 'ground',
-        internalName: 'karis#we-dont-like-strangers'
-    }),
-    buildMockCard({
-        title: 'Talzin\'s Assassin',
-        power: 4,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        types: ['unit'],
-        traits: ['force', 'night'],
-        setId: {
-            set: 'LOF',
-            number: 35
-        },
-        cost: 4,
-        unique: false,
-        arena: 'ground',
-        internalName: 'talzins-assassin'
-    }),
-    buildMockCard({
-        title: 'Old Daka, Oldest and Wisest',
-        power: 6,
-        hp: 6,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        types: ['unit'],
-        traits: ['force', 'night'],
-        setId: {
-            set: 'LOF',
-            number: 36
-        },
-        cost: 5,
-        unique: true,
-        arena: 'ground',
-        internalName: 'old-daka#oldest-and-wisest'
-    }),
-    buildMockCard({
         title: 'Dume, Redeem the Future',
         power: 2,
         hp: 7,
@@ -166,20 +115,6 @@ const mockCards = [
         internalName: 'nightsister-warrior'
     }),
     buildMockCard({
-        title: 'Soresu Stance',
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance'],
-        types: ['event'],
-        traits: ['learned'],
-        setId: {
-            set: 'LOF',
-            number: 76
-        },
-        cost: 1,
-        unique: false,
-        internalName: 'soresu-stance'
-    }),
-    buildMockCard({
         title: 'Malakili, Loving Rancor Keeper',
         power: 1,
         hp: 4,
@@ -195,20 +130,6 @@ const mockCards = [
         unique: true,
         arena: 'ground',
         internalName: 'malakili#loving-rancor-keeper'
-    }),
-    buildMockCard({
-        title: 'Ataru Onslaught',
-        hasNonKeywordAbility: true,
-        aspects: ['aggression'],
-        types: ['event'],
-        traits: ['learned'],
-        setId: {
-            set: 'LOF',
-            number: 174
-        },
-        cost: 2,
-        unique: false,
-        internalName: 'ataru-onslaught'
     }),
     buildMockCard({
         title: 'Mind Trick',
@@ -240,31 +161,15 @@ const mockCards = [
         unique: false,
         arena: 'ground',
         internalName: 'curious-flock'
-    }),
-    buildMockCard({
-        title: 'Mother Talzin, Power through Magick',
-        power: 3,
-        hp: 7,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        types: ['leader'],
-        traits: ['force', 'night'],
-        setId: {
-            set: 'LOF',
-            number: 2
-        },
-        cost: 5,
-        unique: true,
-        arena: 'ground',
-        internalName: 'mother-talzin#power-through-magick'
-    }),
+    })
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
 function buildMockCard(cardData) {
     let textElements = [];
     if (cardData.keywords) {
-        textElements.push(...cardData.keywords);
+        const capitalizedKeywords = cardData.keywords?.map((keyword) => keyword.charAt(0).toUpperCase() + keyword.slice(1));
+        textElements.push(...capitalizedKeywords);
     }
     if (cardData.hasNonKeywordAbility) {
         textElements.push('mock ability text');
