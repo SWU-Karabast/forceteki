@@ -21,25 +21,22 @@ export default class StatsModifierWrapper {
         this.type = type;
     }
 
-    public static getEffectName(effect) {
+    public static getEffectName(effect: IOngoingCardEffect) {
         if (effect && effect.context && effect.context.source) {
-            return effect.context.source.name;
+            return effect.context.source.title;
         }
         return 'Unknown';
     }
 
-    public static getEffectType(effect) {
+    public static getEffectType(effect: IOngoingCardEffect): CardType | undefined {
         if (effect && effect.context && effect.context.source) {
-            return effect.context.source.type;
+            return this.getCardType(effect.context.source);
         }
-        return;
+        return undefined;
     }
 
-    public static getCardType(card) {
-        if (card) {
-            return card.type;
-        }
-        return;
+    public static getCardType(card: Card) {
+        return card.type;
     }
 
     public static fromEffect(effect: IOngoingCardEffect, card: Card, overrides = false, name = `${this.getEffectName(effect)}`) {
@@ -49,7 +46,7 @@ export default class StatsModifierWrapper {
             modifier,
             name,
             overrides,
-            this.getEffectType(effect)
+            this.getEffectType(effect) ?? this.getCardType(card)
         );
     }
 
@@ -85,5 +82,13 @@ export default class StatsModifierWrapper {
             overrides,
             this.getCardType(card)
         );
+    }
+
+    public static statsModifierDescription(modifier: StatsModifier): string {
+        const locale: Intl.LocalesArgument = 'en';
+        const options: Intl.NumberFormatOptions = {
+            signDisplay: 'always',
+        };
+        return (modifier.power || 0).toLocaleString(locale, options) + '/' + (modifier.hp || 0).toLocaleString(locale, options);
     }
 }

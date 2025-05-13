@@ -843,7 +843,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
         }
 
-        private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers = []) {
+        private getModifiedStatValue(statType: StatType, floor = true, excludeModifiers: string[] = []) {
             const wrappedModifiers = this.getStatModifiers(excludeModifiers);
 
             const baseStatValue = StatsModifierWrapper.fromPrintedValues(this);
@@ -854,12 +854,8 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
         }
 
         // TODO: add a summary method that logs these modifiers (i.e., the names, amounts, etc.)
-        private getStatModifiers(exclusions): StatsModifierWrapper[] {
-            if (!exclusions) {
-                exclusions = [];
-            }
-
-            let rawEffects;
+        private getStatModifiers(exclusions: (string[] | ((effect: IOngoingCardEffect) => boolean)) = []): StatsModifierWrapper[] {
+            let rawEffects: IOngoingCardEffect[];
             if (typeof exclusions === 'function') {
                 rawEffects = this.getOngoingEffects().filter((effect) => !exclusions(effect));
             } else {
