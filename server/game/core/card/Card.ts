@@ -374,14 +374,14 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     }
 
     private validateCardData(cardData: ICardDataJson) {
-        Contract.assertNotNullLike(cardData);
-        Contract.assertNotNullLike(cardData.id);
-        Contract.assertNotNullLike(cardData.title);
-        Contract.assertNotNullLike(cardData.types);
-        Contract.assertNotNullLike(cardData.traits);
-        Contract.assertNotNullLike(cardData.aspects);
-        Contract.assertNotNullLike(cardData.keywords);
-        Contract.assertNotNullLike(cardData.unique);
+        Contract.assertNotNullLike(cardData, 'Card data is null');
+        Contract.assertNotNullLike(cardData.id, 'Card data id is null');
+        Contract.assertNotNullLike(cardData.title, `Card ${cardData.id} is missing property 'title'`);
+        Contract.assertNotNullLike(cardData.types, `Card ${cardData.title} is missing property 'types'`);
+        Contract.assertNotNullLike(cardData.traits, `Card ${cardData.title} is missing property 'traits'`);
+        Contract.assertNotNullLike(cardData.aspects, `Card ${cardData.title} is missing property 'aspects'`);
+        Contract.assertNotNullLike(cardData.keywords, `Card ${cardData.title} is missing property 'keywords'`);
+        Contract.assertNotNullLike(cardData.unique, `Card ${cardData.title} is missing property 'unique'`);
     }
 
     /**
