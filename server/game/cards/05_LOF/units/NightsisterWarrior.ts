@@ -12,7 +12,6 @@ export default class NightsisterWarrior extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addWhenDefeatedAbility({
             title: 'Draw a card',
-            optional: true,
             immediateEffect: AbilityHelper.immediateEffects.draw()
         });
     }

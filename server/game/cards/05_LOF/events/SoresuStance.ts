@@ -5,7 +5,7 @@ import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core
 export default class SoresuStance extends EventCard {
     protected override getImplementationId() {
         return {
-            id: '8032269906',
+            id: 'soresu-stance-id',
             internalName: 'soresu-stance',
         };
     }
