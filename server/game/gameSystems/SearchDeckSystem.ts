@@ -65,7 +65,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         shuffleWhenDone: false,
         revealSelected: true,
         cardCondition: () => true,
-        multiSelectCondition: () => false,
+        multiSelectCondition: () => true,
         remainingCardsHandler: this.remainingCardsDefaultHandler
     };
 
