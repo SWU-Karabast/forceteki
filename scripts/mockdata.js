@@ -176,6 +176,7 @@ const mockCards = [
             number: 76
         },
         cost: 1,
+        unique: false,
         internalName: 'soresu-stance'
     }),
     buildMockCard({
@@ -206,6 +207,7 @@ const mockCards = [
             number: 174
         },
         cost: 2,
+        unique: false,
         internalName: 'ataru-onslaught'
     }),
     buildMockCard({
@@ -219,6 +221,7 @@ const mockCards = [
             number: 202
         },
         cost: 2,
+        unique: false,
         internalName: 'mind-trick'
     }),
     buildMockCard({
