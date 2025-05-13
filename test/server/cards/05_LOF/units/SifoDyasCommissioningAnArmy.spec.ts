@@ -10,6 +10,7 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                     },
                     player2: {
                         hand: ['vanquish', 'no-glory-only-results'],
+                        groundArena: ['sith-trooper'],
                         deck: ['clone-pilot', 'tech#source-of-insight', 'bunker-defender', 'rivals-fall', 'twin-laser-turret', 'repair', 'aggression', 'republic-tactical-officer', 'echo#restored']
                     }
                 });
@@ -88,6 +89,12 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                     invalid: [context.pykeSentinel, context.atst, context.wrecker, context.fives]
                 });
                 context.player1.clickCardInDisplayCardPrompt(context.coruscantGuard);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.cloneHeavyGunner],
+                    selected: [context.coruscantGuard],
+                    unselectable: [context.batchBrothers, context.crosshair],
+                    invalid: [context.pykeSentinel, context.atst, context.wrecker, context.fives]
+                });
                 context.player1.clickCardInDisplayCardPrompt(context.cloneHeavyGunner);
                 context.player1.clickPrompt('Done');
 
@@ -167,6 +174,62 @@ describe('Sifo Dyas, Commissioning an Army', () => {
                 context.player1.clickPrompt('Take nothing');
 
                 expect(context.player1).toBeActivePlayer();
+            });
+
+            it('may allow the player to search their deck for a Clone unit with cost 4 or less and play it from the discard pile for free but is defeated and cannot be played again', () => {
+                const { context } = contextRef;
+
+                // Defeat Sifo Dyas
+                context.player1.passAction();
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.sifodyas);
+
+                // Check prompt for optional ability
+                expect(context.player1).toHavePrompt('Select all cards to reveal');
+
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.crosshair, context.batchBrothers, context.coruscantGuard, context.cloneHeavyGunner],
+                    invalid: [context.pykeSentinel, context.atst, context.wrecker, context.fives]
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.batchBrothers);
+                context.player1.clickPrompt('Done');
+
+                // Player plays Batch Brothers for free
+                expect(context.player1).toBeAbleToSelect(context.batchBrothers);
+                context.player1.clickCard(context.batchBrothers);
+                expect(context.batchBrothers).toBeInZone('groundArena');
+
+                // Defeat Batch Brothers opponent should not be able to play it again
+                context.player2.clickCard(context.sithTrooper);
+                context.player2.clickCard(context.batchBrothers);
+                expect(context.batchBrothers).toBeInZone('discard');
+                expect(context.player1).toBeActivePlayer();
+                expect(context.player1).not.toBeAbleToSelect(context.batchBrothers);
+            });
+
+            it('may allow the player to search their deck for a Clone unit with cost 4 or less and play it from the discard pile for free, opponent cannot played discarded card', () => {
+                const { context } = contextRef;
+
+                // Defeat Sifo Dyas
+                context.player1.passAction();
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.sifodyas);
+
+                // Check prompt for optional ability
+                expect(context.player1).toHavePrompt('Select all cards to reveal');
+
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.crosshair, context.batchBrothers, context.coruscantGuard, context.cloneHeavyGunner],
+                    invalid: [context.pykeSentinel, context.atst, context.wrecker, context.fives]
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.batchBrothers);
+                context.player1.clickPrompt('Done');
+
+                // Opponent cannot play Batch Brothers for free
+                expect(context.player1).toBeAbleToSelect(context.batchBrothers);
+                context.player1.passAction();
+                expect(context.player2).not.toBeAbleToSelect(context.batchBrothers);
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });

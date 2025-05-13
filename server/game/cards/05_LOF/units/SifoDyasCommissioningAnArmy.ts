@@ -1,8 +1,10 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { TargetMode, Trait } from '../../../core/Constants';
+import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
+import * as Contract from '../../../core/utils/Contract';
 
 export default class SifoDyasCommissioningAnArmy extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
@@ -24,7 +26,9 @@ export default class SifoDyasCommissioningAnArmy extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 8,
                 targetMode: TargetMode.Unlimited,
-                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Clone) && card.cost <= 4,
+                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Clone),
+                multiSelectCondition: (card, currentlySelectedCards) => this.costSum(currentlySelectedCards.concat(card)) <= 4,
+                playAsType: WildcardCardType.Unit,
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.sequential([
                     AbilityHelper.immediateEffects.discardSpecificCard(),
                     AbilityHelper.immediateEffects.forThisPhaseCardEffect((deckSearchContext) => ({
@@ -39,5 +43,14 @@ export default class SifoDyasCommissioningAnArmy extends NonLeaderUnitCard {
                 ]),
             })
         });
+    }
+
+    private costSum(cards: Card[]): number {
+        let costSum = 0;
+        for (const card of cards) {
+            Contract.assertTrue(card.isUnit());
+            costSum += card.cost;
+        }
+        return costSum;
     }
 }

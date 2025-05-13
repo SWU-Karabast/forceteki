@@ -3,6 +3,7 @@
 
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
 import type { Card } from '../core/card/Card.js';
+import type { CardType, WildcardCardType } from '../core/Constants.js';
 import { EventName, DeckZoneDestination, TargetMode, ZoneName } from '../core/Constants.js';
 import type { GameEvent } from '../core/event/GameEvent.js';
 import type { GameSystem } from '../core/gameSystem/GameSystem.js';
@@ -47,6 +48,8 @@ export interface ISearchDeckProperties<TContext extends AbilityContext = Ability
     /** Used for filtering selection based on things like trait, type, etc. */
     cardCondition?: (card: Card, context: TContext) => boolean;
     chooseNothingImmediateEffect?: GameSystem<TContext>;
+    multiSelectCondition?: (card: Card, currentlySelectedCards: Card[], context: TContext) => boolean;
+    playAsType?: WildcardCardType.Upgrade | WildcardCardType.Unit | CardType.Event;
 }
 
 export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, TProperties extends ISearchDeckProperties<TContext> = ISearchDeckProperties<TContext>> extends PlayerTargetSystem<TContext, TProperties> {
@@ -62,6 +65,7 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         shuffleWhenDone: false,
         revealSelected: true,
         cardCondition: () => true,
+        multiSelectCondition: () => false,
         remainingCardsHandler: this.remainingCardsDefaultHandler
     };
 
@@ -196,7 +200,9 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
                 properties.cardCondition(card, context) &&
                 (!properties.selectedCardsImmediateEffect || properties.selectedCardsImmediateEffect.canAffect(card, context, additionalProperties)),
             selectedCardsHandler: (selectedCards: Card[]) =>
-                this.onSearchComplete(properties, context, event, selectedCards, cards)
+                this.onSearchComplete(properties, context, event, selectedCards, cards),
+            multiSelectCondition: (card: Card, currentlySelectedCards: Card[]) =>
+                properties.multiSelectCondition(card, currentlySelectedCards, context)
         };
     }
 
