@@ -64,6 +64,8 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Constructed Lightsaber',
+        hp: 3,
+        power: 2,
         upgradeHp: 3,
         upgradePower: 2,
         text: '',
