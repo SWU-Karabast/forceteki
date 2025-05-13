@@ -27,6 +27,8 @@ import type { PlayFromDiscardProperties } from '../core/ongoingEffect/effectImpl
 import type { CanAttackMultipleUnitsSimultaneously } from '../core/ongoingEffect/effectImpl/CanAttackMultipleUnitsSimultaneously';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
 import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
+import StatsModifierWrapper from '../core/ongoingEffect/effectImpl/StatsModifierWrapper';
+import { OngoingEffectValueWrapper } from '../core/ongoingEffect/effectImpl/OngoingEffectValueWrapper';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -156,8 +158,17 @@ export = {
     modifyIndirectDamage: (modifier: IndirectDamageModifier) => OngoingEffectBuilder.player.static(EffectName.ModifyIndirectDamage, modifier),
     modifyPilotingLimit: (modifier: PilotLimitModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyPilotLimit, modifier),
     modifyStartingHandSize: (modifier: StartingHandSizeModifier) => OngoingEffectBuilder.card.static(EffectName.ModifyStartingHandSize, modifier),
-    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) =>
-        OngoingEffectBuilder.card.flexible(EffectName.ModifyStats, modifier),
+    modifyStats: (modifier: StatsModifier | CalculateOngoingEffect<StatsModifier>) => {
+        switch (typeof modifier) {
+            case 'function':
+                return OngoingEffectBuilder.card.dynamic(EffectName.ModifyStats, modifier);
+            default:
+                return OngoingEffectBuilder.card.static(
+                    EffectName.ModifyStats,
+                    new OngoingEffectValueWrapper(modifier, { format: 'give {0}', args: [StatsModifierWrapper.statsModifierDescription(modifier)] })
+                );
+        }
+    },
     noMulligan: () => OngoingEffectBuilder.card.static(EffectName.NoMulligan),
     mustAttack: (properties: MustAttackProperties = {}) => OngoingEffectBuilder.card.static(EffectName.MustAttack, properties),
     // modifyMilitarySkill: (value) => OngoingEffectBuilder.card.flexible(EffectName.ModifyMilitarySkill, value),

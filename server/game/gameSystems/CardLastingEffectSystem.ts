@@ -63,7 +63,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
             if (effectDescriptions.length > 0 && effectDescriptions.every((description) => description !== undefined)) {
                 description = {
                     format: '{0} to',
-                    args: effectDescriptions
+                    args: [effectDescriptions],
                 };
             }
         }

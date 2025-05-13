@@ -1,11 +1,6 @@
 const { color } = require('console-log-colors');
 
 const mockCards = [
-    /**
-     * IMPORTANT
-     *
-     * When adding / removing cards below, also upadte ImportAllMockCards.spec.ts to validate them
-     */
     buildMockCard({
         title: 'Aggression Force Base',
         hp: 28,
@@ -31,10 +26,63 @@ const mockCards = [
         },
         unique: false,
         internalName: 'cunning-force-base'
+    }),
+    buildMockCard({
+        title: 'Anakin Skywalker, Champion of Mortis',
+        hp: 7,
+        power: 5,
+        text: '',
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 70
+        },
+        cost: 6,
+        arena: 'ground',
+        unique: true,
+        internalName: 'anakin-skywalker#champion-of-mortis'
+    }),
+    buildMockCard({
+        title: 'Darth Tyranus, Servant of Sidious',
+        hp: 3,
+        power: 4,
+        text: '',
+        aspects: ['villainy'],
+        types: ['unit'],
+        traits: ['force', 'separatist', 'sith'],
+        setId: {
+            set: 'LOF',
+            number: 231
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        keywords: ['shielded'],
+        internalName: 'darth-tyranus#servant-of-sidious'
+    }),
+    buildMockCard({
+        title: 'Constructed Lightsaber',
+        hp: 3,
+        power: 2,
+        upgradeHp: 3,
+        upgradePower: 2,
+        text: '',
+        aspects: [],
+        types: ['upgrade'],
+        traits: ['item', 'weapon', 'lightsaber'],
+        setId: {
+            set: 'LOF',
+            number: 261
+        },
+        cost: 3,
+        unique: false,
+        internalName: 'constructed-lightsaber'
     })
 ];
 
-/** @param {{ title: string, subtitle: string?, cost: number?, hp: number?, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
+/** @param {{ title: string, subtitle: string?, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
 function buildMockCard(cardData) {
     return {
         title: cardData.title,
@@ -58,7 +106,8 @@ function buildMockCard(cardData) {
         keywords: cardData.keywords || [],
         types: cardData.types,
         setId: cardData.setId,
-        internalName: cardData.internalName
+        internalName: cardData.internalName,
+        arena: cardData.arena || null,
     };
 }
 
@@ -78,7 +127,7 @@ function addMockCards(cards) {
         const setStr = buildSetStr(card);
 
         if (setIds.has(setStr)) {
-            console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js and ImportAllMockCards.spec.ts\n`, 'yellow'));
+            console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js\n`, 'yellow'));
         } else {
             cards.push(card);
             mockCardNames.push(card.internalName);
