@@ -39,8 +39,6 @@ describe('Darth Tyranus, Servant of Sidious', function() {
 
             const { context } = contextRef;
 
-            context.player1.clickPrompt('Shielded');
-
             context.player1.clickCard('darth-tyranus#servant-of-sidious');
             expect(context.player2).toBeActivePlayer();
         });
