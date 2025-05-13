@@ -20,10 +20,6 @@ describe('Nightsister Warrior', function() {
             context.player2.clickCard(context.vanquish);
             context.player2.clickCard(context.nightsisterWarrior);
 
-            expect(context.player1).toHavePassAbilityPrompt('Draw a card');
-
-            context.player1.clickPrompt('Trigger');
-
             expect(context.player1.hand.length).toBe(startingHandSize + 1);
             expect(context.player1.deck.length).toBe(startingDeckSize - 1);
             expect(context.player1).toBeActivePlayer();
@@ -48,10 +44,6 @@ describe('Nightsister Warrior', function() {
             context.player1.passAction();
             context.player2.clickCard(context.noGloryOnlyResults);
             context.player2.clickCard(context.nightsisterWarrior);
-
-            expect(context.player2).toHavePassAbilityPrompt('Draw a card');
-
-            context.player2.clickPrompt('Trigger');
 
             expect(context.player2.hand.length).toBe(startingHandSize + 1);
             expect(context.player2.deck.length).toBe(startingDeckSize - 1);
