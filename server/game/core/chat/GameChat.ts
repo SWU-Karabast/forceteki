@@ -1,4 +1,4 @@
-type MsgArg = string | string[] | FormatMessage | { name: string } | { getShortSummary: () => string };
+type MsgArg = string | string[] | FormatMessage | FormatMessage[] | { name: string } | { getShortSummary: () => string };
 export interface FormatMessage {
     format: string;
     args: MsgArg[];

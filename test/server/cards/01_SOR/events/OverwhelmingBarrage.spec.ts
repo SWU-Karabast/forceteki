@@ -41,7 +41,8 @@ describe('Overwhelming Barrage', function() {
                 expect(context.tielnFighter).toBeInZone('discard');
                 expect(context.hanSolo.damage).toBe(1);
 
-                expect(context.getChatLogs(1)[0]).toContain('player1 uses Overwhelming Barrage to distribute 6 damage among units');
+                expect(context.getChatLogs(2)).toContain('player1 plays Overwhelming Barrage to give +2/+2 to Wampa for this phase');
+                expect(context.getChatLogs(2)).toContain('player1 uses Overwhelming Barrage to distribute 6 damage among units');
 
                 // attack into wampa to confirm stats buff
                 context.setDamage(context.atst, 0);
