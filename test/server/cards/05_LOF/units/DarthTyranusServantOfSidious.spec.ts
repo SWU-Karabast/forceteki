@@ -15,7 +15,8 @@ describe('Darth Tyranus, Servant of Sidious', function() {
 
             context.player1.clickCard('darth-tyranus#servant-of-sidious');
 
-            expect(context.player1).toHavePassAbilityPrompt('Ambush');
+            // resolve Shielded, then Ambush
+            context.player1.clickPrompt('Shielded');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeAbleToSelectExactly([context.sundariPeacekeeper]);
@@ -37,6 +38,8 @@ describe('Darth Tyranus, Servant of Sidious', function() {
             });
 
             const { context } = contextRef;
+
+            context.player1.clickPrompt('Shielded');
 
             context.player1.clickCard('darth-tyranus#servant-of-sidious');
             expect(context.player2).toBeActivePlayer();
