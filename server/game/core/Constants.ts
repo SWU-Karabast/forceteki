@@ -508,3 +508,9 @@ export enum SubStepCheck {
     ThenIfYouDo = 'thenIfYouDo',
     All = 'all'
 }
+
+export enum AlertType {
+    Notification = 'notification',
+    Warning = 'warning',
+    Danger = 'danger',
+}

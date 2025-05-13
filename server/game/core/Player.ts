@@ -9,6 +9,7 @@ import { PlayerPromptState } from './PlayerPromptState.js';
 import * as Contract from './utils/Contract';
 import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
 import {
+    AlertType,
     EffectName,
     PlayType,
     RelativePlayer,
@@ -172,8 +173,8 @@ export class Player extends GameObject<IPlayerState> {
                 () => this.game.onActionTimerExpired(this),
                 (promptUuid: string, playerActionId: number) => this.checkPromptAndActionMatchLatest(promptUuid, playerActionId)
             );
-            this.actionTimer.addSpecificTimeHandler(20, () => this.game.addAlert('warning', '{0} has 20 seconds remaining to take an action before being kicked for inactivity', this));
-            this.actionTimer.addSpecificTimeHandler(10, () => this.game.addAlert('danger', '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this));
+            this.actionTimer.addSpecificTimeHandler(20, () => this.game.addAlert(AlertType.Warning, '{0} has 20 seconds remaining to take an action before being kicked for inactivity', this));
+            this.actionTimer.addSpecificTimeHandler(10, () => this.game.addAlert(AlertType.Danger, '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this));
         } else {
             this.actionTimer = new NoopActionTimer();
         }

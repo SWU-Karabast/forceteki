@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -240,20 +240,14 @@ class Game extends EventEmitter {
         this.gameChat.addMessage(...arguments);
     }
 
-    addSystemMessage() {
-        // @ts-expect-error
-        this.gameChat.addSystemMessage(...arguments);
-    }
-
     /**
      * Adds a message to in-game chat with a graphical icon
-     * @param {String} one of: 'endofround', 'success', 'info', 'danger', 'warning'
+     * @param {AlertType} type
      * @param {String} message to display (can include {i} references to args)
      * @param {Array} args to match the references in @string
      */
-    addAlert() {
-        // @ts-expect-error
-        this.gameChat.addAlert(...arguments);
+    addAlert(type, message, ...args) {
+        this.gameChat.addAlert(type, message, ...args);
     }
 
     /**
@@ -589,7 +583,7 @@ class Game extends EventEmitter {
         player.opponent.actionTimer.stop();
 
         this.userTimeoutDisconnect(player.id);
-        this.addAlert('danger', '{0} has been removed due to inactivity.', player);
+        this.addAlert(AlertType.Danger, '{0} has been removed due to inactivity.', player);
     }
 
     // TODO: parameter contract checks for this flow

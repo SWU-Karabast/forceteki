@@ -1,4 +1,4 @@
-import { PhaseName } from '../../Constants';
+import { AlertType, PhaseName } from '../../Constants';
 import { EventName } from '../../Constants';
 import type Game from '../../Game';
 import { BaseStepWithPipeline } from '../BaseStepWithPipeline';
@@ -36,7 +36,7 @@ export abstract class Phase extends BaseStepWithPipeline {
         this.game.createEventAndOpenWindow(EventName.OnPhaseStarted, null, { phase: this.name }, TriggerHandlingMode.ResolvesTriggers, () => {
             this.game.currentPhase = this.name;
             if (this.name !== PhaseName.Setup) {
-                this.game.addAlert('notification', 'Turn: {0} - {1} Phase', this.game.roundNumber, Helpers.upperCaseFirstLetter(this.name));
+                this.game.addAlert(AlertType.Notification, 'Turn: {0} - {1} Phase', this.game.roundNumber, Helpers.upperCaseFirstLetter(this.name));
             }
             this.game.gameObjectManager.clearSnapshots();
         });

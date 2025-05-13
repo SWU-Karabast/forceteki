@@ -18,6 +18,7 @@ import { ScoreType } from '../utils/deck/DeckInterfaces';
 import type { GameConfiguration } from '../game/core/GameInterfaces';
 import { GameMode } from '../GameMode';
 import type { GameServer } from './GameServer';
+import { AlertType } from '../game/core/Constants';
 
 interface LobbySpectator {
     id: string;
@@ -1017,6 +1018,9 @@ export class Lobby {
                 success: success,
                 message: 'Successfully sent bug report'
             });
+
+            this.game.addAlert(AlertType.Notification, '{0} has submitted a bug report', existingUser.username);
+
             this.sendLobbyState();
         } catch (error) {
             logger.error('Error processing bug report', {
