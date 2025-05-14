@@ -42,7 +42,7 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
     public override updateEvent(event: GameEvent, target: any, context: TContext, additionalProperties?: Partial<IResourceCardProperties>): void {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const card = Array.isArray(properties.target) ? properties.target[0] as Card : properties.target as Card;
+        const card = Array.isArray(properties.target) ? properties.target[0] : properties.target;
 
         if (properties.readyResource) {
             event.setContingentEventsGenerator((event) => {
@@ -59,13 +59,19 @@ export class ResourceCardSystem<TContext extends AbilityContext = AbilityContext
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context) as IResourceCardProperties;
-        const card = Array.isArray(properties.target) ? properties.target[0] as Card : properties.target as Card;
+        const card = Array.isArray(properties.target) ? properties.target[0] : properties.target;
 
-        const destinationController = properties.targetPlayer === RelativePlayer.Opponent ? card.controller.opponent : card.controller;
-        return [
-            'move a card to {0}\'s resources',
-            [destinationController]
-        ];
+        if (properties.targetPlayer === RelativePlayer.Self) {
+            if (card === context.source) {
+                return ['move {0} to their resources', [card]];
+            }
+            return ['move a card to their resources', []];
+        }
+
+        if (card === context.source) {
+            return ['move {0} to {1}\'s resources', [card, card.controller.opponent]];
+        }
+        return ['move a card to {0}\'s resources', [card.controller.opponent]];
     }
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<IResourceCardProperties>): void {

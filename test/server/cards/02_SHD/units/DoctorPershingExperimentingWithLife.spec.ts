@@ -35,6 +35,10 @@ describe('Doctor Pershing, Experimenting With Life', function() {
                 expect(context.tielnFighter).toBeInZone('discard');
                 expect(context.player1.hand.length).toBe(1);
                 expect(context.player2.hand.length).toBe(0);
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Doctor Pershing to deal 1 damage to TIE/ln Fighter',
+                    'player1 uses Doctor Pershing, exhausting Doctor Pershing to draw 1 card',
+                ]);
 
                 // Trigger the ability again
                 reset();

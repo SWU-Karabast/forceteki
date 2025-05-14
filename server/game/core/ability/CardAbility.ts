@@ -143,7 +143,11 @@ export abstract class CardAbility extends CardAbilityStep {
                     }
                     let [format, args] = ['ERROR - MISSING COST MESSAGE', [' ', ' ']];
                     [format, args] = cost.getCostMessage(context);
-                    return { message: this.game.gameChat.formatMessage(format, [card].concat(args)) };
+                    const message = this.game.gameChat.formatMessage(format, [card].concat(args));
+                    if (Helpers.asArray(message).every((msg) => msg.length === 0)) {
+                        return null;
+                    }
+                    return { message: message };
                 }
                 return null;
             })
