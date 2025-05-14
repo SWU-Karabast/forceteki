@@ -34,8 +34,7 @@ export default class NabatVillage extends BaseCard {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 numCards: 3,
-                effect: '{0} moves 3 cards to the bottom of their deck',
-                effectArgs: (context) => [context.player.name],
+                effect: 'choose 3 cards to move to the bottom of their deck',
                 innerSystem: AbilityHelper.immediateEffects.moveToBottomOfDeck()
             })
         });

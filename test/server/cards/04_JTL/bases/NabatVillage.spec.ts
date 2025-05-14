@@ -80,6 +80,10 @@ describe('Nabat Village', function() {
 
                 expect([context.wampa, context.concordDawnInterceptors, context.restock]).toAllBeInBottomOfDeck(context.player1, 3);
                 expect(context.player1).toBeActivePlayer();
+                expect(context.getChatLogs(2)).toEqual([
+                    'player1 uses Nabat Village to choose 3 cards to move to the bottom of their deck',
+                    'player1 uses Nabat Village to move 3 cards to the bottom of their deck',
+                ]);
             });
 
             it('should not make its owner put 3 cards on the bottom of their deck at the start of the second action phase', function () {
