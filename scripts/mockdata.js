@@ -258,6 +258,23 @@ const mockCards = [
         arena: 'ground',
         internalName: 'mother-talzin#power-through-magick'
     }),
+    buildMockCard({
+        title: 'Eeth Koth, Spiritual Warrior',
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 97
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'eeth-koth#spiritual-warrior'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
