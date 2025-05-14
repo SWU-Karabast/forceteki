@@ -1,6 +1,7 @@
 import type { IAbilityPropsWithType } from '../../../Interfaces';
 import type { InPlayCard } from '../../card/baseClasses/InPlayCard';
 import type { Card } from '../../card/Card';
+import type { FormatMessage } from '../../chat/GameChat';
 import { AbilityType } from '../../Constants';
 import * as Contract from '../../utils/Contract';
 import { OngoingEffectValueWrapper } from './OngoingEffectValueWrapper';
@@ -14,8 +15,40 @@ export class GainAbility extends OngoingEffectValueWrapper<IAbilityPropsWithType
     private gainAbilitySource: Card;
     private source: Card;
 
+    private static abilityDescription?(props: IAbilityPropsWithType): string {
+        if (props.type === AbilityType.Triggered && 'when' in props) {
+            const triggers: string[] = [];
+            if (props.when.whenPlayed) {
+                triggers.push('When Played');
+            }
+            if (props.when.whenPlayedUsingSmuggle) {
+                triggers.push('When Played using Smuggle');
+            }
+            if (props.when.onAttack) {
+                triggers.push('On Attack');
+            }
+            if (props.when.whenDefeated) {
+                triggers.push('When Defeated');
+            }
+            if (triggers.length === 0) {
+                return undefined;
+            }
+            return `“${triggers.join('/')}: ${props.title}”`;
+        }
+        return undefined;
+    }
+
     public constructor(gainedAbilityProps: IAbilityPropsWithType) {
-        super(Object.assign(gainedAbilityProps, { printedAbility: false }));
+        const abilityDescription = GainAbility.abilityDescription(gainedAbilityProps);
+        let effectDescription: FormatMessage | undefined;
+        if (abilityDescription) {
+            effectDescription = {
+                format: 'give {0}',
+                args: [abilityDescription]
+            };
+        }
+
+        super(Object.assign(gainedAbilityProps, { printedAbility: false }), effectDescription);
 
         this.abilityType = gainedAbilityProps.type;
     }
