@@ -125,6 +125,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     protected readonly overrideNotImplemented: boolean = false;
     protected readonly printedKeywords: KeywordInstance[];
     protected readonly printedTraits: Set<Trait>;
+    protected readonly backsidePrintedTraits: Set<Trait>;
     protected readonly printedType: CardType;
 
     protected actionAbilities: ActionAbility[] = [];
@@ -260,6 +261,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         this.id = cardData.id;
         this.canBeUpgrade = cardData.upgradeHp != null && cardData.upgradePower != null;
         this.printedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.traits, Trait));
+        this.backsidePrintedTraits = new Set(EnumHelpers.checkConvertToEnum(cardData.backSideTraits, Trait));
         this.printedType = Card.buildTypeFromPrinted(cardData.types);
 
         // TODO: add validation that if the card has the Piloting trait, the right cardData properties are set
@@ -617,9 +619,13 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
 
     // ******************************************* TRAIT HELPERS *******************************************
+    protected getPrintedTraits(): Set<Trait> {
+        return new Set(this.printedTraits);
+    }
+
     /** Helper method for {@link Card.traits} */
     private getTraits() {
-        const traits = new Set(this.printedTraits);
+        const traits = this.getPrintedTraits();
 
         for (const gainedTrait of this.getOngoingEffectValues(EffectName.AddTrait)) {
             traits.add(gainedTrait);
