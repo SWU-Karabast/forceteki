@@ -5,8 +5,6 @@ import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatc
 import type { CardsPlayedThisPhaseWatcher } from '../../../stateWatchers/CardsPlayedThisPhaseWatcher';
 import * as AbilityLimit from '../../../core/ability/AbilityLimit';
 
-// The first Creature unit you play each phase costs 1 resource less. If a friendly Creature unit would deal damage to a friendly unit, prevent that damage
-
 export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
     private cardsPlayedThisPhaseWatcher: CardsPlayedThisPhaseWatcher;
 
@@ -17,14 +15,13 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
         };
     }
 
-
     protected override setupStateWatchers(registrar: StateWatcherRegistrar): void {
         this.cardsPlayedThisPhaseWatcher = AbilityHelper.stateWatchers.cardsPlayedThisPhase(registrar, this);
     }
 
     public override setupCardAbilities() {
         this.addConstantAbility({
-            title: 'Ignore the aspect penalty on the first Clone unit you play each round',
+            title: 'The first Creature unit you play each phase costs 1 resource less',
             targetController: RelativePlayer.Self,
             targetCardTypeFilter: WildcardCardType.Unit,
             targetZoneFilter: WildcardZoneName.AnyArena,
