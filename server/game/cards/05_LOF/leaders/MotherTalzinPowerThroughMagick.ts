@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { TargetMode, WildcardCardType, WildcardRelativePlayer, WildcardZoneName } from '../../../core/Constants';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class MotherTalzinPowerThroughMagick extends LeaderUnitCard {
     protected override getImplementationId() {
@@ -18,7 +18,6 @@ export default class MotherTalzinPowerThroughMagick extends LeaderUnitCard {
                 AbilityHelper.costs.useTheForce()
             ],
             targetResolver: {
-                activePromptTitle: 'Choose a unit to give -1/-1',
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 }),
@@ -32,11 +31,7 @@ export default class MotherTalzinPowerThroughMagick extends LeaderUnitCard {
             title: 'Give a unit -1/-1 for this phase',
             optional: true,
             targetResolver: {
-                activePromptTitle: 'Choose a unit to give -1/-1',
-                mode: TargetMode.Single,
                 cardTypeFilter: WildcardCardType.Unit,
-                zoneFilter: WildcardZoneName.AnyArena,
-                controller: WildcardRelativePlayer.Any,
                 immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
                     effect: AbilityHelper.ongoingEffects.modifyStats({ power: -1, hp: -1 }),
                 })

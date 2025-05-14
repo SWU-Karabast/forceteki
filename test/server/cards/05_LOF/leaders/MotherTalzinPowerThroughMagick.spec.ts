@@ -13,6 +13,7 @@ describe('Mother Talzin, Power Through Magick', function() {
 
                 const { context } = contextRef;
 
+                expect(context.player1).not.toBeAbleToSelect(context.motherTalzin);
                 expect(context.motherTalzin).not.toHaveAvailableActionWhenClickedBy(context.player1);
                 expect(context.motherTalzin.exhausted).toBe(false);
                 expect(context.player1).toBeActivePlayer();
