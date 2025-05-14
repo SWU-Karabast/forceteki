@@ -36,6 +36,7 @@ import { containsProfanity } from '../utils/ProfanityFilter';
 
 interface SocketData {
     manualDisconnect?: boolean;
+    forceDisconnect?: boolean;
     user?: User;
 }
 
@@ -1199,8 +1200,9 @@ export class GameServer {
             }
 
             const wasManualDisconnect = !!socket?.data?.manualDisconnect;
-            if (wasManualDisconnect) {
-                this.queue.removePlayer(id, 'Manual disconnect');
+            const wasForceDisconnect = !!socket?.data?.forceDisconnect;
+            if (wasManualDisconnect || wasForceDisconnect) {
+                this.queue.removePlayer(id, wasManualDisconnect ? 'Player disconnect' : 'Force disconnect');
                 this.userLobbyMap.delete(id);
                 this.removeUserMaybeCleanupLobby(lobby, id);
                 return;

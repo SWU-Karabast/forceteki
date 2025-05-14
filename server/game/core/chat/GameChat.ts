@@ -12,7 +12,13 @@ export class GameChat {
         message: MessageText | { alert: { type: string; message: string | string[] } };
     }[] = [];
 
-    public addChatMessage(player, message: string): void {
+    private readonly pushUpdate: () => void;
+
+    public constructor(pushUpdate: () => void) {
+        this.pushUpdate = pushUpdate;
+    }
+
+    public addChatMessage(player: any, message: any): void {
         const playerArg = {
             name: player.name || player.username,
             id: player.id,
@@ -30,6 +36,7 @@ export class GameChat {
     public addAlert(type: string, message: string, ...args: MsgArg[]): void {
         const formattedMessage = this.formatMessage(message, args);
         this.messages.push({ date: new Date(), message: { alert: { type: type, message: formattedMessage } } });
+        this.pushUpdate();
     }
 
     public formatMessage(format: string, args: MsgArg[]): string | string[] {
@@ -77,15 +84,22 @@ export class GameChat {
             return [];
         }
 
-        const format =
-            array.length === 1
-                ? '{0}'
-                : array.length === 2
-                    ? '{0} and {1}'
-                    : Array.from({ length: array.length - 1 })
-                        .map((_, idx) => `{${idx}}`)
-                        .join(', ') + `, and {${array.length - 1}}`;
+        const format = GameChat.formatWithLength(array.length);
 
         return this.formatMessage(format, array);
+    }
+
+    public static formatWithLength(length: number, prefix: string = ''): string {
+        if (length === 0) {
+            return '';
+        }
+        let message = '{0}';
+        for (let i = 1; i < length; i++) {
+            message += i < length - 1 ? `, ${prefix}`
+                : length === 2 ? ` and ${prefix}`
+                    : `, and ${prefix}`;
+            message += '{' + i + '}';
+        }
+        return message;
     }
 }

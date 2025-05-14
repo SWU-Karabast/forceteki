@@ -18,6 +18,8 @@ export class ActionWindow extends UiPrompt {
 
         this.activePlayer = activePlayer ?? this.game.actionPhaseActivePlayer;
 
+        this.activePlayer.actionTimer.stop();
+
         Contract.assertNotNullLike(this.activePlayer);
     }
 
@@ -26,6 +28,8 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override onCardClicked(player: Player, card: Card) {
+        this.stopActionTimer();
+
         if (player !== this.activePlayer) {
             return false;
         }
@@ -65,14 +69,9 @@ export class ActionWindow extends UiPrompt {
     private postResolutionUpdate(resolver: AbilityResolver) {
         this.setPassStatus(false);
 
-        // if (this.activePlayerConsecutiveActions > 1) {
-        //     this.markBonusActionsTaken();
-        // }
-
         this.complete();
     }
 
-    // TODO: confirm that this works correctly
     public override continue() {
         // TODO: do we need promptedActionWindows?
         if (!this.activePlayer.promptedActionWindows[this.windowName]) {
@@ -88,6 +87,10 @@ export class ActionWindow extends UiPrompt {
             this.game.currentActionWindow = null;
         }
         return completed;
+    }
+
+    private stopActionTimer() {
+        this.activePlayer.actionTimer.stop();
     }
 
     public override activePrompt(player: Player): IPlayerPromptStateProperties {
@@ -116,6 +119,8 @@ export class ActionWindow extends UiPrompt {
     }
 
     public override menuCommand(player: Player, choice: string, uuid: string) {
+        this.stopActionTimer();
+
         switch (choice) {
             // case 'manual':
             //     this.game.promptForSelect(this.activePlayer, {

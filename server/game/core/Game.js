@@ -22,7 +22,7 @@ const { AbilityContext } = require('./ability/AbilityContext.js');
 const Contract = require('./utils/Contract.js');
 const { cards } = require('../cards/Index.js');
 
-const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName } = require('./Constants.js');
+const { EventName, ZoneName, Trait, WildcardZoneName, TokenUpgradeName, TokenUnitName, PhaseName, TokenCardName, AlertType } = require('./Constants.js');
 const { StateWatcherRegistrar } = require('./stateWatcher/StateWatcherRegistrar.js');
 const { DistributeAmongTargetsPrompt } = require('./gameSteps/prompts/DistributeAmongTargetsPrompt.js');
 const HandlerMenuMultipleSelectionPrompt = require('./gameSteps/prompts/HandlerMenuMultipleSelectionPrompt.js');
@@ -131,7 +131,7 @@ class Game extends EventEmitter {
 
         /** @type { {[key: string]: Player | Spectator} } */
         this.playersAndSpectators = {};
-        this.gameChat = new GameChat();
+        this.gameChat = new GameChat(details.pushUpdate);
         this.pipeline = new GamePipeline();
         this.id = details.id;
         this.name = details.name;
@@ -142,6 +142,9 @@ class Game extends EventEmitter {
         this.playStarted = false;
         this.gameObjectManager = new GameStateManager(this);
         this.createdAt = new Date();
+
+        this.buildSafeTimeoutHandler = details.buildSafeTimeout;
+        this.userTimeoutDisconnect = details.userTimeoutDisconnect;
 
         /** @type { ActionWindow | null } */
         this.currentActionWindow = null;
@@ -199,7 +202,7 @@ class Game extends EventEmitter {
                 player.id,
                 player,
                 this,
-                details.clock
+                details.useActionTimer ?? false
             );
         });
 
@@ -239,13 +242,23 @@ class Game extends EventEmitter {
 
     /**
      * Adds a message to in-game chat with a graphical icon
-     * @param {String} one of: 'endofround', 'success', 'info', 'danger', 'warning'
+     * @param {AlertType} type
      * @param {String} message to display (can include {i} references to args)
      * @param {Array} args to match the references in @string
      */
-    addAlert() {
-        // @ts-expect-error
-        this.gameChat.addAlert(...arguments);
+    addAlert(type, message, ...args) {
+        this.gameChat.addAlert(type, message, ...args);
+    }
+
+    /**
+     * Build a timeout that will log an error on failure and not crash the server process
+     * @param {() => void} callback function to call when timeout hits
+     * @param {number} delayMs
+     * @param {string} errorMessage message to log on error (error details will be added automatically)
+     * @returns {NodeJS.Timeout} reference to timeout object
+     */
+    buildSafeTimeout(callback, delayMs, errorMessage) {
+        return this.buildSafeTimeoutHandler(callback, delayMs, errorMessage);
     }
 
     get messages() {
@@ -554,16 +567,23 @@ class Game extends EventEmitter {
     //     }
     // }
 
-    stopNonChessClocks() {
-        this.getPlayers().forEach((player) => player.stopNonChessClocks());
+    restartAllActionTimers() {
+        this.getPlayers().forEach((player) => player.actionTimer.restartIfRunning());
     }
 
-    stopClocks() {
-        this.getPlayers().forEach((player) => player.stopClock());
+    onPlayerAction(playerId) {
+        const player = this.getPlayerById(playerId);
+
+        player.incrementActionId();
+        player.actionTimer.restartIfRunning();
     }
 
-    resetClocks() {
-        this.getPlayers().forEach((player) => player.resetClock());
+    /** @param {Player} player */
+    onActionTimerExpired(player) {
+        player.opponent.actionTimer.stop();
+
+        this.userTimeoutDisconnect(player.id);
+        this.addAlert(AlertType.Danger, '{0} has been removed due to inactivity.', player);
     }
 
     // TODO: parameter contract checks for this flow
