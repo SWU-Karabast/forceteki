@@ -1,5 +1,5 @@
 import type { Player } from '../Player';
-import type { Aspect } from '../Constants';
+import type { Aspect, Trait } from '../Constants';
 import { ZoneName } from '../Constants';
 import type { IActionAbilityProps, IConstantAbilityProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithLeaderProperties, type ILeaderCard } from './propertyMixins/LeaderProperties';
@@ -44,6 +44,11 @@ export class DoubleSidedLeaderCard extends DoubleSidedLeaderCardParent implement
 
     public override isDoubleSidedLeader(): this is IDoubleSidedLeaderCard {
         return true;
+    }
+
+    protected override getPrintedTraits(): Set<Trait> {
+        const traits = this.onStartingSide ? new Set(this.printedTraits) : new Set(this.backsidePrintedTraits);
+        return traits;
     }
 
     /**
