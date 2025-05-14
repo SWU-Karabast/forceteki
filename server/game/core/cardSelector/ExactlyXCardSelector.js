@@ -17,7 +17,7 @@ class ExactlyXCardSelector extends BaseCardSelector {
 
     /** @override */
     hasEnoughSelected(selectedCards) {
-        return selectedCards.length === this.numCards;
+        return this.optional || selectedCards.length === this.numCards;
     }
 
     /** @override */
