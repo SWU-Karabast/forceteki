@@ -1,0 +1,30 @@
+import AbilityHelper from '../../../AbilityHelper';
+import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+
+export default class KyloRenIKnowYourStory extends NonLeaderUnitCard {
+    protected override getImplementationId() {
+        return {
+            id: '4145147486',
+            internalName: 'kylo-ren#i-know-your-story',
+        };
+    }
+
+    public override setupCardAbilities() {
+        this.addTriggeredAbility({
+            title: 'Use the Force',
+            when: {
+                onCardPlayed: (event, context) => {
+                    return event.player === context.player &&
+                      event.card.isUpgrade() &&
+                      event.attachTarget === context.source;
+                },
+            },
+            optional: true,
+            immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
+            ifYouDo: {
+                title: 'Draw a card',
+                immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 1 })
+            }
+        });
+    }
+}
