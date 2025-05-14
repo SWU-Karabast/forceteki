@@ -10,7 +10,7 @@ import type { OngoingPlayerEffect } from '../core/ongoingEffect/OngoingPlayerEff
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
 import type { DistributiveOmit } from '../core/utils/Helpers';
-import type { IOngoingEffectProps } from '../Interfaces';
+import type { IOngoingEffectGenerator, IOngoingEffectProps } from '../Interfaces';
 
 export type ICardLastingEffectProperties = DistributiveOmit<ILastingEffectPropertiesBase, 'target'> & Pick<ICardTargetSystemProperties, 'target'>;
 
@@ -41,8 +41,8 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     }
 
     /** Returns the effects that would be applied to {@link card} by this system's configured lasting effects */
-    public getApplicableEffects(card: Card, context: TContext) {
-        const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context);
+    public getApplicableEffects(card: Card, context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>) {
+        const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(card, context, additionalProperties);
 
         const effects = effectFactories.map((factory) =>
             factory(context.game, context.source, effectProperties)
@@ -57,10 +57,19 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         let description: string | FormatMessage = 'apply a lasting effect to';
         if (properties.ongoingEffectDescription) {
             description = properties.ongoingEffectDescription;
-        } else if (properties.target && Array.isArray(properties.target) && properties.target.length === 1) {
-            const effectDescriptions = this.getApplicableEffects(properties.target[0], context)
-                .map((effect) => effect.impl.effectDescription);
-            if (effectDescriptions.length > 0 && effectDescriptions.every((description) => description !== undefined)) {
+        } else if (properties.target && Array.isArray(properties.target)) {
+            const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(properties.target, context, additionalProperties);
+            const effectDescriptions = effectFactories.map((factory) => {
+                for (const [i, props] of effectProperties.entries()) {
+                    const effect = factory(context.game, context.source, props);
+                    if (effect.impl.effectDescription && this.filterApplicableEffects(properties.target[i], [effect]).length > 0) {
+                        return effect.impl.effectDescription;
+                    }
+                }
+                return null;
+            }).filter((description) => description !== null);
+
+            if (effectDescriptions.length > 0) {
                 description = {
                     format: '{0} to',
                     args: [effectDescriptions],
@@ -119,12 +128,18 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
         return super.canAffectInternal(card, context) && this.filterApplicableEffects(card, effects).length > 0;
     }
 
-    private getEffectFactoriesAndProperties(card: Card, context: TContext, additionalProperties: Partial<ICardLastingEffectProperties> = {}) {
+    private getEffectFactoriesAndProperties(target: Card, context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): { effectFactories: IOngoingEffectGenerator[]; effectProperties: IOngoingEffectProps };
+    private getEffectFactoriesAndProperties(target: Card[], context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): { effectFactories: IOngoingEffectGenerator[]; effectProperties: IOngoingEffectProps[] };
+    private getEffectFactoriesAndProperties(target: Card | Card[], context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): { effectFactories: IOngoingEffectGenerator[]; effectProperties: IOngoingEffectProps | IOngoingEffectProps[] } {
         const { effect, ...otherProperties } = this.generatePropertiesFromContext(context, additionalProperties);
 
-        const effectProperties: IOngoingEffectProps = { matchTarget: card, sourceZoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties };
+        const effectProperties: (card: Card) => IOngoingEffectProps = (card) => ({ matchTarget: card, sourceZoneFilter: WildcardZoneName.Any, isLastingEffect: true, ability: context.ability, ...otherProperties });
 
-        return { effectFactories: Helpers.asArray(effect), effectProperties };
+        if (Array.isArray(target)) {
+            return { effectFactories: Helpers.asArray(effect), effectProperties: target.map((card) => effectProperties(card)) };
+        }
+
+        return { effectFactories: Helpers.asArray(effect), effectProperties: effectProperties(target) };
     }
 
     protected filterApplicableEffects(card: Card, effects: (OngoingCardEffect | OngoingPlayerEffect)[]) {
