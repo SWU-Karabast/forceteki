@@ -3,8 +3,13 @@ import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelati
 import * as Contract from '../utils/Contract';
 import CardAbilityStep from './CardAbilityStep';
 import * as AbilityLimit from './AbilityLimit';
+import * as Helpers from '../utils/Helpers';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
+import type Game from '../Game';
+import type { FormatMessage } from '../chat/GameChat';
+import { GameChat } from '../chat/GameChat';
+import type { GameSystem } from '../gameSystem/GameSystem';
 
 export abstract class CardAbility extends CardAbilityStep {
     public readonly abilityIdentifier: string;
@@ -12,7 +17,7 @@ export abstract class CardAbility extends CardAbilityStep {
     public readonly zoneFilter: ZoneFilter | ZoneFilter[];
     public readonly printedAbility: boolean;
 
-    public constructor(game, card, properties, type = AbilityType.Action) {
+    public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         super(game, card, properties, type);
 
         this.limit = properties.limit || AbilityLimit.unlimited();
@@ -157,13 +162,18 @@ export abstract class CardAbility extends CardAbilityStep {
         let effectArgs = [];
         let extraArgs = null;
         if (!effectMessage) {
-            const gameActions = this.getGameSystems(context).filter((gameSystem) => gameSystem.hasLegalTarget(context));
-            if (gameActions.length > 0) {
-                // effects with multiple game actions really need their own effect message
+            const gameActions: GameSystem[] = this.getGameSystems(context).filter((gameSystem: GameSystem) => gameSystem.hasLegalTarget(context));
+            if (gameActions.length === 1) {
                 [effectMessage, extraArgs] = gameActions[0].getEffectMessage(context);
+            } else if (gameActions.length > 1) {
+                effectMessage = GameChat.formatWithLength(gameActions.length, 'to ');
+                extraArgs = gameActions.map((gameAction): FormatMessage => {
+                    const [message, args] = gameAction.getEffectMessage(context);
+                    return { format: message, args: Helpers.asArray(args) };
+                });
             }
         } else {
-            effectArgs.push(context.target || context.ring || context.source);
+            effectArgs.push(context.target || context.source);
             extraArgs = this.properties.effectArgs;
         }
 

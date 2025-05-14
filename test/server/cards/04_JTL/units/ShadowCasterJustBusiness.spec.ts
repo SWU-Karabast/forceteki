@@ -95,7 +95,7 @@ describe('Shadow Caster, Just Business', function() {
                 context.player2.clickCard(context.rivalsFall);
                 context.player2.clickCard(context.atteVanguard);
 
-                expect(context.player1).toHaveExactPromptButtons(['Create 2 Clone Trooper tokens', 'Create a Clone Trooper token.']);
+                expect(context.player1).toHaveExactPromptButtons(['Create 2 Clone Trooper tokens', 'Create a Clone Trooper token']);
                 context.player1.clickPrompt('Create 2 Clone Trooper tokens');
                 expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
 

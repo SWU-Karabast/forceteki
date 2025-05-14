@@ -4,7 +4,7 @@ const mockCards = [
     buildMockCard({
         title: 'Aggression Force Base',
         hp: 28,
-        text: 'When a friendly Force unit attacks: The Force is with you (create your Force token).',
+        hasNonKeywordAbility: true,
         aspects: ['aggression'],
         types: ['base'],
         setId: {
@@ -17,7 +17,7 @@ const mockCards = [
     buildMockCard({
         title: 'Cunning Force Base',
         hp: 28,
-        text: 'When a friendly Force unit attacks: The Force is with you (create your Force token).',
+        hasNonKeywordAbility: true,
         aspects: ['cunning'],
         types: ['base'],
         setId: {
@@ -31,7 +31,7 @@ const mockCards = [
         title: 'Anakin Skywalker, Champion of Mortis',
         hp: 7,
         power: 5,
-        text: '',
+        hasNonKeywordAbility: true,
         aspects: ['vigilance'],
         types: ['unit'],
         traits: ['force', 'jedi', 'republic'],
@@ -48,7 +48,7 @@ const mockCards = [
         title: 'Darth Tyranus, Servant of Sidious',
         hp: 3,
         power: 4,
-        text: '',
+        hasNonKeywordAbility: true,
         aspects: ['villainy'],
         types: ['unit'],
         traits: ['force', 'separatist', 'sith'],
@@ -68,7 +68,7 @@ const mockCards = [
         power: 2,
         upgradeHp: 3,
         upgradePower: 2,
-        text: '',
+        hasNonKeywordAbility: true,
         aspects: [],
         types: ['upgrade'],
         traits: ['item', 'weapon', 'lightsaber'],
@@ -79,18 +79,205 @@ const mockCards = [
         cost: 3,
         unique: false,
         internalName: 'constructed-lightsaber'
-    })
+    }),
+    buildMockCard({
+        title: 'Karis, We Don\'t Like Strangers',
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['force', 'night'],
+        setId: {
+            set: 'LOF',
+            number: 31
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'karis#we-dont-like-strangers'
+    }),
+    buildMockCard({
+        title: 'Talzin\'s Assassin',
+        power: 4,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['force', 'night'],
+        setId: {
+            set: 'LOF',
+            number: 35
+        },
+        cost: 4,
+        unique: false,
+        arena: 'ground',
+        internalName: 'talzins-assassin'
+    }),
+    buildMockCard({
+        title: 'Old Daka, Oldest and Wisest',
+        power: 6,
+        hp: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        traits: ['force', 'night'],
+        setId: {
+            set: 'LOF',
+            number: 36
+        },
+        cost: 5,
+        unique: true,
+        arena: 'ground',
+        internalName: 'old-daka#oldest-and-wisest'
+    }),
+    buildMockCard({
+        title: 'Dume, Redeem the Future',
+        power: 2,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'vigilance'],
+        types: ['unit'],
+        traits: ['force', 'creature'],
+        setId: {
+            set: 'LOF',
+            number: 55
+        },
+        cost: 4,
+        unique: true,
+        arena: 'ground',
+        internalName: 'dume#redeem-the-future'
+    }),
+    buildMockCard({
+        title: 'Nightsister Warrior',
+        power: 2,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['force', 'night'],
+        setId: {
+            set: 'LOF',
+            number: 59
+        },
+        cost: 2,
+        unique: false,
+        arena: 'ground',
+        internalName: 'nightsister-warrior'
+    }),
+    buildMockCard({
+        title: 'Soresu Stance',
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'LOF',
+            number: 76
+        },
+        cost: 1,
+        unique: false,
+        internalName: 'soresu-stance'
+    }),
+    buildMockCard({
+        title: 'Malakili, Loving Rancor Keeper',
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['underworld'],
+        setId: {
+            set: 'LOF',
+            number: 108
+        },
+        cost: 2,
+        unique: true,
+        arena: 'ground',
+        internalName: 'malakili#loving-rancor-keeper'
+    }),
+    buildMockCard({
+        title: 'Ataru Onslaught',
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'LOF',
+            number: 174
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'ataru-onslaught'
+    }),
+    buildMockCard({
+        title: 'Mind Trick',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['event'],
+        traits: ['force', 'trick'],
+        setId: {
+            set: 'LOF',
+            number: 202
+        },
+        cost: 2,
+        unique: false,
+        internalName: 'mind-trick'
+    }),
+    buildMockCard({
+        title: 'Curious Flock',
+        power: 1,
+        hp: 1,
+        hasNonKeywordAbility: true,
+        aspects: [],
+        types: ['unit'],
+        traits: ['creature'],
+        setId: {
+            set: 'LOF',
+            number: 255
+        },
+        cost: 1,
+        unique: false,
+        arena: 'ground',
+        internalName: 'curious-flock'
+    }),
+    buildMockCard({
+        title: 'Mother Talzin, Power through Magick',
+        power: 3,
+        hp: 7,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['leader'],
+        traits: ['force', 'night'],
+        setId: {
+            set: 'LOF',
+            number: 2
+        },
+        cost: 5,
+        unique: true,
+        arena: 'ground',
+        internalName: 'mother-talzin#power-through-magick'
+    }),
 ];
 
-/** @param {{ title: string, subtitle: string?, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
+/** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
 function buildMockCard(cardData) {
+    let textElements = [];
+    if (cardData.keywords) {
+        const capitalizedKeywords = cardData.keywords?.map((keyword) => keyword.charAt(0).toUpperCase() + keyword.slice(1));
+        textElements.push(...capitalizedKeywords);
+    }
+    if (cardData.hasNonKeywordAbility) {
+        textElements.push('mock ability text');
+    }
+
     return {
         title: cardData.title,
         subtitle: cardData.subtitle || '',
         cost: cardData.cost || null,
         hp: cardData.hp || null,
         power: cardData.power || null,
-        text: cardData.keywords?.join('\n') || '',
+        text: textElements.join('\n'),
         deployBox: null,
         epicAction: '',
         unique: cardData.unique,
@@ -116,18 +303,19 @@ function buildSetStr(card) {
 }
 
 function addMockCards(cards) {
-    const setIds = new Set();
+    const cardsById = new Map();
     const mockCardNames = [];
 
     for (const card of cards) {
-        setIds.add(buildSetStr(card));
+        cardsById.set(buildSetStr(card), card);
     }
 
     for (const card of mockCards) {
         const setStr = buildSetStr(card);
 
-        if (setIds.has(setStr)) {
-            console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js\n`, 'yellow'));
+        if (cardsById.has(setStr)) {
+            // console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js\n`, 'yellow'));
+            cardsById.get(setStr).id = card.id;
         } else {
             cards.push(card);
             mockCardNames.push(card.internalName);

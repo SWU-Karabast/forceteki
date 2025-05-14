@@ -34,6 +34,9 @@ describe('Heroes on Both Sides', function () {
             expect(context.cloneDiveTrooper.getHp()).toBe(3);
             expect(context.superBattleDroid.getPower()).toBe(6);
             expect(context.superBattleDroid.getHp()).toBe(5);
+            expect(context.getChatLogs(1)).toContain(
+                'player1 plays Heroes on Both Sides to give +2/+2 and give Saboteur to Clone Dive Trooper for this phase and to give +2/+2 and give Saboteur to Super Battle Droid for this phase'
+            );
 
             // P2: Pass action
             context.player2.passAction();
@@ -80,6 +83,50 @@ describe('Heroes on Both Sides', function () {
 
             context.player1.clickCard(context.patrollingAat);
             expect(context.patrollingAat.damage).toBe(4);
+        });
+
+        it('Heroes on Both Sides\'s ability can choose no cards', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['heroes-on-both-sides'],
+                    groundArena: ['super-battle-droid', 'clone-dive-trooper']
+                },
+                player2: {
+                    groundArena: ['patrolling-aat'],
+                    spaceArena: ['headhunter-squadron'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.heroesOnBothSides);
+            context.player1.clickPrompt('Choose nothing');
+            context.player1.clickPrompt('Choose nothing');
+            expect(context.getChatLogs(1)).toContain('player1 plays Heroes on Both Sides');
+        });
+
+        it('Heroes on Both Sides\'s ability can choose only of the two targets', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['heroes-on-both-sides'],
+                    groundArena: ['super-battle-droid', 'clone-dive-trooper']
+                },
+                player2: {
+                    groundArena: ['patrolling-aat'],
+                    spaceArena: ['headhunter-squadron'],
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.heroesOnBothSides);
+            context.player1.clickPrompt('Choose nothing');
+            context.player1.clickCard(context.superBattleDroid);
+            expect(context.getChatLogs(1)).toContain(
+                'player1 plays Heroes on Both Sides to give +2/+2 and give Saboteur to Super Battle Droid for this phase'
+            );
         });
     });
 });

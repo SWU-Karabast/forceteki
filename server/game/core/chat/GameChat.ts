@@ -84,15 +84,22 @@ export class GameChat {
             return [];
         }
 
-        const format =
-            array.length === 1
-                ? '{0}'
-                : array.length === 2
-                    ? '{0} and {1}'
-                    : Array.from({ length: array.length - 1 })
-                        .map((_, idx) => `{${idx}}`)
-                        .join(', ') + `, and {${array.length - 1}}`;
+        const format = GameChat.formatWithLength(array.length);
 
         return this.formatMessage(format, array);
+    }
+
+    public static formatWithLength(length: number, prefix: string = ''): string {
+        if (length === 0) {
+            return '';
+        }
+        let message = '{0}';
+        for (let i = 1; i < length; i++) {
+            message += i < length - 1 ? `, ${prefix}`
+                : length === 2 ? ` and ${prefix}`
+                    : `, and ${prefix}`;
+            message += '{' + i + '}';
+        }
+        return message;
     }
 }
