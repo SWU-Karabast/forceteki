@@ -2,8 +2,6 @@ import type { IGameObjectState } from './GameObject';
 import { GameObject } from './GameObject';
 import type { Deck, IDeckList as IDeckList } from '../../utils/deck/Deck.js';
 import UpgradePrompt from './gameSteps/prompts/UpgradePrompt.js';
-import type { ClockConfig } from './clocks/ClockSelector.js';
-import { clockFor } from './clocks/ClockSelector.js';
 import type { CostAdjuster, ICanAdjustProperties } from './cost/CostAdjuster';
 import { CostAdjustType } from './cost/CostAdjuster';
 import { PlayableZone } from './PlayableZone';
@@ -11,6 +9,7 @@ import { PlayerPromptState } from './PlayerPromptState.js';
 import * as Contract from './utils/Contract';
 import type { Aspect, CardType, KeywordName, MoveZoneDestination, Trait } from './Constants';
 import {
+    AlertType,
     EffectName,
     PlayType,
     RelativePlayer,
@@ -35,7 +34,6 @@ import type { ZoneAbstract } from './zone/ZoneAbstract';
 import type { Card } from './card/Card';
 import { MergedExploitCostAdjuster } from '../abilities/keyword/exploit/MergedExploitCostAdjuster';
 import type { IUser } from '../../Settings';
-import type { IClock } from './clocks/IClock';
 import type {
     IAllArenasForPlayerCardFilterProperties,
     IAllArenasForPlayerSpecificTypeCardFilterProperties
@@ -48,6 +46,9 @@ import type { GameObjectRef } from './GameObjectBase';
 import type { ILeaderCard } from './card/propertyMixins/LeaderProperties';
 import type { IBaseCard } from './card/BaseCard';
 import { logger } from '../../logger';
+import { StandardActionTimer } from './actionTimer/StandardActionTimer';
+import { NoopActionTimer } from './actionTimer/NoopActionTimer';
+import type { IActionTimer } from './actionTimer/IActionTimer';
 
 export interface IPlayerState extends IGameObjectState {
     handZone: GameObjectRef<HandZone>;
@@ -124,10 +125,18 @@ export class Player extends GameObject<IPlayerState> {
         return this.state.decklist.tokens.map(this.game.getCard);
     }
 
+    public get autoSingleTarget() {
+        return this.optionSettings.autoSingleTarget;
+    }
+
+    public get lastActionId() {
+        return this._lastActionId;
+    }
+
     private canTakeActionsThisPhase: null;
     // STATE TODO: Does Deck need to be a GameObject?
     private decklistNames: Deck | null;
-    public clock: IClock;
+    public readonly actionTimer: IActionTimer;
     private limitedPlayed: number;
 
     private costAdjusters: any[];
@@ -140,13 +149,14 @@ export class Player extends GameObject<IPlayerState> {
     public opponent: Player;
     private playableZones: PlayableZone[];
     private noTimer: boolean;
-    public constructor(id: string, user: IUser, game: Game, clockDetails?: ClockConfig) {
+    private _lastActionId = 0;
+
+    public constructor(id: string, user: IUser, game: Game, useTimer = false) {
         super(game, user.username);
 
         Contract.assertNotNullLike(id);
         Contract.assertNotNullLike(user);
         Contract.assertNotNullLike(game);
-        // clockDetails is optional
 
         this.user = user;
         this.state.id = id;
@@ -154,6 +164,20 @@ export class Player extends GameObject<IPlayerState> {
         this.socket = null;
         this.disconnected = false;
         this.left = false;
+
+        if (useTimer) {
+            this.actionTimer = new StandardActionTimer(
+                60,
+                this,
+                this.game,
+                () => this.game.onActionTimerExpired(this),
+                (promptUuid: string, playerActionId: number) => this.checkPromptAndActionMatchLatest(promptUuid, playerActionId)
+            );
+            this.actionTimer.addSpecificTimeHandler(20, () => this.game.addAlert(AlertType.Warning, '{0} has 20 seconds remaining to take an action before being kicked for inactivity', this));
+            this.actionTimer.addSpecificTimeHandler(10, () => this.game.addAlert(AlertType.Danger, '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this));
+        } else {
+            this.actionTimer = new NoopActionTimer();
+        }
 
         this.canTakeActionsThisPhase = null;
         this.state.handZone = new HandZone(game, this).getRef();
@@ -163,8 +187,6 @@ export class Player extends GameObject<IPlayerState> {
         this.state.outsideTheGameZone = new OutsideTheGameZone(game, this).getRef();
         this.state.baseZone = null;
         this.state.deckZone = new DeckZone(game, this).getRef();
-
-        this.clock = clockFor(this, clockDetails);
 
         this.limitedPlayed = 0;
 
@@ -193,29 +215,13 @@ export class Player extends GameObject<IPlayerState> {
         return true;
     }
 
-    public get autoSingleTarget() {
-        return this.optionSettings.autoSingleTarget;
+    public incrementActionId() {
+        this._lastActionId++;
     }
 
-    public startClock() {
-        this.clock.start();
-        if (this.opponent) {
-            this.opponent.clock.opponentStart();
-        }
-    }
-
-    public stopNonChessClocks() {
-        if (this.clock.name !== 'Chess Clock') {
-            this.stopClock();
-        }
-    }
-
-    public stopClock() {
-        this.clock.stop();
-    }
-
-    public resetClock() {
-        this.clock.reset();
+    private checkPromptAndActionMatchLatest(promptUuid: string, playerActionId: number) {
+        return this.game.currentOpenPrompt.uuid === promptUuid &&
+          playerActionId === this._lastActionId;
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {
@@ -1308,10 +1314,6 @@ export class Player extends GameObject<IPlayerState> {
         // if (this.role) {
         //     state.role = this.role.getSummary(activePlayer);
         // }
-
-        if (this.clock) {
-            summary.clock = this.clock.getState();
-        }
 
         return summary;
     }

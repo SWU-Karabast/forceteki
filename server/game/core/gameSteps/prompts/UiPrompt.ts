@@ -8,17 +8,16 @@ import type { IButton } from '../PromptInterfaces';
 import type Game from '../../Game';
 
 export abstract class UiPrompt extends BaseStep {
-    public completed = false;
-    public uuid = uuid();
+    public readonly uuid = uuid();
+
     private previousPrompt?: UiPrompt;
+    private completed = false;
+    private firstContinue = true;
 
     public constructor(game: Game) {
         super(game);
 
         this.clearPrompts();
-
-        this.previousPrompt = game.currentOpenPrompt;
-        game.currentOpenPrompt = this;
     }
 
     public abstract activePrompt(player: Player): IPlayerPromptStateProperties;
@@ -26,6 +25,11 @@ export abstract class UiPrompt extends BaseStep {
     public abstract menuCommand(player: Player, arg: string, uuid: string): boolean;
 
     public override continue(): boolean {
+        if (this.firstContinue) {
+            this.previousPrompt = this.game.currentOpenPrompt;
+            this.game.currentOpenPrompt = this;
+        }
+
         const completed = this.isComplete();
 
         if (completed) {
@@ -33,6 +37,8 @@ export abstract class UiPrompt extends BaseStep {
         } else {
             this.setPrompt();
         }
+
+        this.firstContinue = false;
 
         return completed;
     }
@@ -59,10 +65,13 @@ export abstract class UiPrompt extends BaseStep {
         for (const player of this.game.getPlayers()) {
             if (this.activeCondition(player)) {
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
-                player.startClock();
+
+                if (this.firstContinue) {
+                    player.actionTimer.start();
+                }
             } else {
                 player.setPrompt(this.waitingPrompt());
-                player.resetClock();
+                player.actionTimer.stop();
             }
         }
 

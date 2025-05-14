@@ -26,7 +26,10 @@ class GameFlowWrapper {
                 Settings.getUserWithDefaultsSet(player1Info),
                 Settings.getUserWithDefaultsSet(player2Info),
             ],
-            cardDataGetter
+            cardDataGetter,
+            pushUpdate: () => true,
+            buildSafeTimeout: () => undefined,
+            userTimeoutDisconnect: () => undefined,
         };
 
         this.game = new Game(details, { router });
