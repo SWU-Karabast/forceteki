@@ -28,6 +28,58 @@ const mockCards = [
         internalName: 'crystal-caves'
     }),
     buildMockCard({
+        title: 'Vergence Temple',
+        hp: 25,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['base'],
+        setId: {
+            set: 'LOF',
+            number: 19
+        },
+        unique: false,
+        internalName: 'vergence-temple'
+    }),
+    buildMockCard({
+        title: 'Mystic Monastery',
+        hp: 25,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['base'],
+        setId: {
+            set: 'LOF',
+            number: 22
+        },
+        unique: false,
+        internalName: 'mystic-monastery'
+    }),
+    buildMockCard({
+        title: 'Temple of Destruction',
+        hp: 25,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['base'],
+        setId: {
+            set: 'LOF',
+            number: 25
+        },
+        unique: false,
+        internalName: 'temple-of-destruction'
+    }),
+    buildMockCard({
+        title: 'Tomb of Eilram',
+        hp: 25,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['base'],
+        setId: {
+            set: 'LOF',
+            number: 28
+        },
+        unique: false,
+        internalName: 'tomb-of-eilram'
+    }),
+    buildMockCard({
         title: 'Anakin Skywalker, Champion of Mortis',
         hp: 7,
         power: 5,
