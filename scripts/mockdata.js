@@ -264,7 +264,8 @@ const mockCards = [
 function buildMockCard(cardData) {
     let textElements = [];
     if (cardData.keywords) {
-        textElements.push(...cardData.keywords);
+        const capitalizedKeywords = cardData.keywords?.map((keyword) => keyword.charAt(0).toUpperCase() + keyword.slice(1));
+        textElements.push(...capitalizedKeywords);
     }
     if (cardData.hasNonKeywordAbility) {
         textElements.push('mock ability text');
@@ -302,18 +303,19 @@ function buildSetStr(card) {
 }
 
 function addMockCards(cards) {
-    const setIds = new Set();
+    const cardsById = new Map();
     const mockCardNames = [];
 
     for (const card of cards) {
-        setIds.add(buildSetStr(card));
+        cardsById.set(buildSetStr(card), card);
     }
 
     for (const card of mockCards) {
         const setStr = buildSetStr(card);
 
-        if (setIds.has(setStr)) {
-            console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js\n`, 'yellow'));
+        if (cardsById.has(setStr)) {
+            // console.log(color(`\nCard '${setStr}' found in official data. The mock can now be safely removed from mockdata.js\n`, 'yellow'));
+            cardsById.get(setStr).id = card.id;
         } else {
             cards.push(card);
             mockCardNames.push(card.internalName);
