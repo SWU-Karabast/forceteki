@@ -134,5 +134,7 @@ describe('Old Daka, Oldest and Wisest', function() {
 
             expect(context.player2).toBeActivePlayer();
         });
+
+        // TODO: test with Clone
     });
 });
