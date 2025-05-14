@@ -33,6 +33,7 @@ export interface ICardDataJson {
     aspects: string[];
     backSideAspects?: string[];
     traits: string[];
+    backSideTraits?: string[];
     arena?: string;
     keywords?: string[];
     types: string[];
