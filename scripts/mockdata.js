@@ -2,30 +2,30 @@ const { color } = require('console-log-colors');
 
 const mockCards = [
     buildMockCard({
-        title: 'Aggression Force Base',
+        title: 'Fortress Vader',
         hp: 28,
         hasNonKeywordAbility: true,
         aspects: ['aggression'],
         types: ['base'],
         setId: {
             set: 'LOF',
-            number: 25
+            number: 26
         },
         unique: false,
-        internalName: 'aggression-force-base'
+        internalName: 'fortress-vader'
     }),
     buildMockCard({
-        title: 'Cunning Force Base',
+        title: 'Crystal Caves',
         hp: 28,
         hasNonKeywordAbility: true,
         aspects: ['cunning'],
         types: ['base'],
         setId: {
             set: 'LOF',
-            number: 27
+            number: 29
         },
         unique: false,
-        internalName: 'cunning-force-base'
+        internalName: 'crystal-caves'
     }),
     buildMockCard({
         title: 'Anakin Skywalker, Champion of Mortis',
