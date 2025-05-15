@@ -53,6 +53,7 @@ describe('Vergence Temple\'s ability', function() {
             expect(context.player1.hasTheForce).toBe(true);
         });
 
+        // TODO: Uncomment once we can order delayed effects
         // it('should give the Force if you control a stolen unit with 4 or more health at the start of the Regroup phase', async function () {
         //     await contextRef.setupTestAsync({
         //         phase: 'action',
