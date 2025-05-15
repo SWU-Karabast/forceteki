@@ -171,7 +171,7 @@ export class Player extends GameObject<IPlayerState> {
                 this,
                 this.game,
                 () => this.game.onActionTimerExpired(this),
-                (promptUuid: string, playerActionId: number) => this.checkPromptAndActionMatchLatest(promptUuid, playerActionId)
+                (promptUuid: string, playerActionId: number) => this.checkPlayerTimeoutConditions(promptUuid, playerActionId)
             );
             this.actionTimer.addSpecificTimeHandler(20, () => this.game.addAlert(AlertType.Warning, '{0} has 20 seconds remaining to take an action before being kicked for inactivity', this));
             this.actionTimer.addSpecificTimeHandler(10, () => this.game.addAlert(AlertType.Danger, '{0} has 10 seconds remaining to take an action before being kicked for inactivity', this));
@@ -219,9 +219,10 @@ export class Player extends GameObject<IPlayerState> {
         this._lastActionId++;
     }
 
-    private checkPromptAndActionMatchLatest(promptUuid: string, playerActionId: number) {
+    private checkPlayerTimeoutConditions(promptUuid: string, playerActionId: number) {
         return this.game.currentOpenPrompt.uuid === promptUuid &&
-          playerActionId === this._lastActionId;
+          playerActionId === this._lastActionId &&
+          this.game.winner == null;
     }
 
     public getArenaCards(filter: IAllArenasForPlayerCardFilterProperties = {}) {

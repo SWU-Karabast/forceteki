@@ -48,7 +48,7 @@ export class TakeControlOfResourceSystem<TContext extends AbilityContext = Abili
 
         const takingResourcePlayer = this.playerFromArray(target);
 
-        return ['{0} takes control of a resource from {1}', [takingResourcePlayer, takingResourcePlayer.opponent]];
+        return ['take control of a resource from {0}', [takingResourcePlayer.opponent]];
     }
 
     public override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<ITakeControlOfResourceProperties>): void {

@@ -5,7 +5,7 @@ import * as Contract from '../utils/Contract';
 import type { ICardWithDamageProperty } from './propertyMixins/Damage';
 import { WithDamage } from './propertyMixins/Damage';
 import type { ActionAbility } from '../ability/ActionAbility';
-import type { IConstantAbilityProps, IEpicActionProps, ITriggeredAbilityProps } from '../../Interfaces';
+import type { IActionAbilityProps, IConstantAbilityProps, IEpicActionProps, ITriggeredAbilityProps } from '../../Interfaces';
 import { WithStandardAbilitySetup } from './propertyMixins/StandardAbilitySetup';
 import { WithTriggeredAbilities, type ICardWithTriggeredAbilities } from './propertyMixins/TriggeredAbilityRegistration';
 import { WithConstantAbilities } from './propertyMixins/ConstantAbilityRegistration';
@@ -57,6 +57,10 @@ export class BaseCard extends BaseCardParent implements IBaseCard {
 
     public override canRegisterTriggeredAbilities(): this is ICardWithTriggeredAbilities {
         return true;
+    }
+
+    protected override addActionAbility(properties: IActionAbilityProps<this>) {
+        return super.addActionAbility(properties);
     }
 
     protected override addConstantAbility(properties: IConstantAbilityProps<this>): IConstantAbility {

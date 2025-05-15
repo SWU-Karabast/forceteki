@@ -2,8 +2,60 @@ const { color } = require('console-log-colors');
 
 const mockCards = [
     buildMockCard({
-        title: 'Aggression Force Base',
+        title: 'Fortress Vader',
         hp: 28,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['base'],
+        setId: {
+            set: 'LOF',
+            number: 26
+        },
+        unique: false,
+        internalName: 'fortress-vader'
+    }),
+    buildMockCard({
+        title: 'Crystal Caves',
+        hp: 28,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['base'],
+        setId: {
+            set: 'LOF',
+            number: 29
+        },
+        unique: false,
+        internalName: 'crystal-caves'
+    }),
+    buildMockCard({
+        title: 'Vergence Temple',
+        hp: 25,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['base'],
+        setId: {
+            set: 'LOF',
+            number: 19
+        },
+        unique: false,
+        internalName: 'vergence-temple'
+    }),
+    buildMockCard({
+        title: 'Mystic Monastery',
+        hp: 25,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['base'],
+        setId: {
+            set: 'LOF',
+            number: 22
+        },
+        unique: false,
+        internalName: 'mystic-monastery'
+    }),
+    buildMockCard({
+        title: 'Temple of Destruction',
+        hp: 25,
         hasNonKeywordAbility: true,
         aspects: ['aggression'],
         types: ['base'],
@@ -12,20 +64,20 @@ const mockCards = [
             number: 25
         },
         unique: false,
-        internalName: 'aggression-force-base'
+        internalName: 'temple-of-destruction'
     }),
     buildMockCard({
-        title: 'Cunning Force Base',
-        hp: 28,
+        title: 'Tomb of Eilram',
+        hp: 25,
         hasNonKeywordAbility: true,
         aspects: ['cunning'],
         types: ['base'],
         setId: {
             set: 'LOF',
-            number: 27
+            number: 28
         },
         unique: false,
-        internalName: 'cunning-force-base'
+        internalName: 'tomb-of-eilram'
     }),
     buildMockCard({
         title: 'Anakin Skywalker, Champion of Mortis',
