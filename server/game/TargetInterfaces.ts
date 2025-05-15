@@ -130,6 +130,7 @@ interface ICardMaxStatTargetResolver<TContext extends AbilityContext> extends IC
 interface CardSingleUnlimitedTargetResolver<TContext extends AbilityContext> extends ICardTargetResolverBase<TContext> {
     mode?: TargetMode.Single | TargetMode.Unlimited;
     canChooseNoCards?: boolean;
+    multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 
 
