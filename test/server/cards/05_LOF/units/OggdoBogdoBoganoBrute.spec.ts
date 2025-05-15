@@ -6,18 +6,24 @@ describe('Oggdo Bogdo, Bogano Brute', function () {
                 player1: {
                     groundArena: ['oggdo-bogdo#bogano-brute'],
                 },
+                player2: {
+                    hand: ['daring-raid']
+                }
             });
 
             const { context } = contextRef;
-            expect(context.oggdoBogdo).not.toHaveAvailableActionWhenClickedBy(context.player1);
 
-            context.setDamage(context.oggdoBogdo, 3);
+            expect(context.oggdoBogdo).not.toHaveAvailableActionWhenClickedBy(context.player1);
+            context.player1.passAction();
+
+            context.player2.clickCard(context.daringRaid);
+            context.player2.clickCard(context.oggdoBogdo);
 
             context.player1.clickCard(context.oggdoBogdo);
             context.player1.clickCard(context.p2Base);
 
             expect(context.player2).toBeActivePlayer();
-            expect(context.oggdoBogdo.damage).toBe(3);
+            expect(context.oggdoBogdo.damage).toBe(2);
         });
 
         it('Oggdo Bogdo should heal himself if he attacks and kill a unit', async function () {
