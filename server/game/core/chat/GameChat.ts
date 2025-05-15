@@ -1,3 +1,5 @@
+import * as ChatHelpers from './ChatHelpers';
+
 type MsgArg = string | string[] | FormatMessage | FormatMessage[] | { name: string } | { getShortSummary: () => string };
 export interface FormatMessage {
     format: string;
@@ -84,22 +86,8 @@ export class GameChat {
             return [];
         }
 
-        const format = GameChat.formatWithLength(array.length);
+        const format = ChatHelpers.formatWithLength(array.length);
 
         return this.formatMessage(format, array);
-    }
-
-    public static formatWithLength(length: number, prefix: string = ''): string {
-        if (length === 0) {
-            return '';
-        }
-        let message = '{0}';
-        for (let i = 1; i < length; i++) {
-            message += i < length - 1 ? `, ${prefix}`
-                : length === 2 ? ` and ${prefix}`
-                    : `, and ${prefix}`;
-            message += '{' + i + '}';
-        }
-        return message;
     }
 }

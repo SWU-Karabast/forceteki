@@ -6,6 +6,7 @@ import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { DiscardSpecificCardSystem } from './DiscardSpecificCardSystem';
 import * as Contract from '../core/utils/Contract';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { GameEvent } from '../core/event/GameEvent';
 
 export interface IDiscardFromDeckProperties extends IPlayerTargetSystemProperties {
@@ -21,7 +22,7 @@ export class DiscardFromDeckSystem<TContext extends AbilityContext = AbilityCont
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['discard ' + (properties.amount + (properties.amount > 1 ? ' cards' : ' card') + ' from deck'), []];
+        return ['discard {0} from deck', [ChatHelpers.pluralize(properties.amount, 'a card', 'cards')]];
     }
 
     public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IDiscardFromDeckProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
