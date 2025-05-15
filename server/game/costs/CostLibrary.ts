@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { DamageType, RelativePlayer, ZoneName } from '../core/Constants';
+import { DamageType, RelativePlayer, WildcardCardType, ZoneName } from '../core/Constants';
 import type { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { ICost } from '../core/cost/ICost';
 import { GameSystemCost } from '../core/cost/GameSystemCost';
@@ -41,10 +41,17 @@ export function abilityActivationResourceCost<TContext extends AbilityContext = 
 }
 
 /**
- * Cost that will bow the card that initiated the ability.
+ * Cost that will exhaust the card that initiated the ability.
  */
 export function exhaustSelf<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
     return new GameSystemCost<TContext>(new ExhaustSystem<TContext>({ isCost: true }));
+}
+
+/**
+ * Cost that will exhaust a unit
+ */
+export function exhaustFriendlyUnit<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
+    return getSelectCost(new ExhaustSystem<TContext>({ isCost: true }), { controller: RelativePlayer.Self, cardTypeFilter: WildcardCardType.Unit }, 'Select a unit to exhaust');
 }
 
 // /**

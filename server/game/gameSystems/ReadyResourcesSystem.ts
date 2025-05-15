@@ -3,7 +3,7 @@ import { EventName, GameStateChangeRequired } from '../core/Constants';
 import type { Player } from '../core/Player.js';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem.js';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem.js';
-
+import * as ChatHelpers from '../core/chat/ChatHelpers.js';
 
 export interface IReadyResourcesSystemProperties extends IPlayerTargetSystemProperties {
     amount: number;
@@ -19,7 +19,7 @@ export class ReadyResourcesSystem<TContext extends AbilityContext = AbilityConte
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { amount } = this.generatePropertiesFromContext(context);
-        return amount === 1 ? ['ready a resource', []] : ['ready {0} resources', [amount]];
+        return ['ready {0}', [ChatHelpers.pluralize(amount, 'a resource', 'resources')]];
     }
 
     public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<TProperties> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {

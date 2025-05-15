@@ -5,6 +5,7 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import * as Helpers from '../core/utils/Helpers';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import { PutIntoPlaySystem } from './PutIntoPlaySystem';
 
 export interface ICreateTokenUnitProperties extends IPlayerTargetSystemProperties {
@@ -28,10 +29,7 @@ export abstract class CreateTokenUnitSystem<TContext extends AbilityContext = Ab
         const properties = this.generatePropertiesFromContext(context);
 
         const tokenTitle = context.game.cardDataGetter.tokenData[this.getTokenType()]?.title ?? this.getTokenType();
-        if (properties.amount === 1) {
-            return ['create a {0}', [tokenTitle]];
-        }
-        return ['create {0} {1}s', [properties.amount, tokenTitle]];
+        return ['create {0}', [ChatHelpers.pluralize(properties.amount, `a ${tokenTitle}`, `${tokenTitle}s`)]];
     }
 
     protected abstract getTokenType(): TokenUnitName;
