@@ -45,6 +45,7 @@ const { User } = require('../../utils/user/User');
 const { GameObjectBase } = require('./GameObjectBase.js');
 const Helpers = require('./utils/Helpers.js');
 const { CostAdjuster } = require('./cost/CostAdjuster.js');
+const { logger } = require('../../logger.js');
 
 class Game extends EventEmitter {
     #debug;
@@ -694,6 +695,10 @@ class Game extends EventEmitter {
         if (this.winner) {
             // A winner has already been determined. This means the players have chosen to continue playing after game end. Do not trigger the game end again.
             return;
+        }
+
+        for (const player of this.getPlayers()) {
+            player.actionTimer.stop();
         }
 
         /**
