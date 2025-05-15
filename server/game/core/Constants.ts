@@ -366,6 +366,7 @@ export enum Trait {
     Creature = 'creature',
     Disaster = 'disaster',
     Droid = 'droid',
+    Ewok = 'ewok',
     Fighter = 'fighter',
     FirstOrder = 'first order',
     Force = 'force',
