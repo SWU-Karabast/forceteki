@@ -25,6 +25,7 @@ export default class QuiGonJinnsLightsaber extends UpgradeCard {
             targetResolver: {
                 activePromptTitle: 'Exhaust any number of units with combined cost 6 or less',
                 mode: TargetMode.Unlimited,
+                canChooseNoCards: true,
                 multiSelectCardCondition: (card, selectedCards) => card.isUnit() && this.costSum(selectedCards.concat(card)) <= 6 && card.exhausted === false,
                 immediateEffect: AbilityHelper.immediateEffects.exhaust()
             }

@@ -53,9 +53,13 @@ describe('Qui-Gon Jinn\'s Lightsaber', () => {
                     context.cellBlockGuard,
                     context.kylosTieSilencer,
                 ]);
+                expect(context.player1).toHaveChooseNothingButton();
+
+                // Selects multiple units with combined cost ≤ 6
                 context.player1.clickCard(context.phaseiiiDarkTrooper);
                 context.player1.clickCard(context.cellBlockGuard);
                 context.player1.clickPrompt('Done');
+
                 expect(context.cellBlockGuard.exhausted).toBe(true);
                 expect(context.phaseiiiDarkTrooper.exhausted).toBe(true);
             });
@@ -84,13 +88,19 @@ describe('Qui-Gon Jinn\'s Lightsaber', () => {
                     context.cellBlockGuard,
                     context.kylosTieSilencer,
                 ]);
+                expect(context.player1).toHaveChooseNothingButton();
+
+                // Selects Qui Gon Jinn leader
                 context.player1.clickCard(quigonJinnLeader);
+
+                // Verify only units that keep combined cost ≤ 6 can be selected
                 expect(context.player1).not.toBeAbleToSelectExactly([
                     context.phaseiiiDarkTrooper,
                     context.cellBlockGuard,
                     context.kylosTieSilencer,
                 ]);
                 context.player1.clickPrompt('Done');
+
                 expect(quigonJinnLeader.exhausted).toBe(true);
             });
 
@@ -118,10 +128,14 @@ describe('Qui-Gon Jinn\'s Lightsaber', () => {
                     context.cellBlockGuard,
                     context.kylosTieSilencer,
                 ]);
+                expect(context.player1).toHaveChooseNothingButton();
+
+                // Selects multiple units with combined cost ≤ 6 and test non checking
                 context.player1.clickCard(context.phaseiiiDarkTrooper);
                 context.player1.clickCard(context.kylosTieSilencer);
                 context.player1.clickCardNonChecking(context.cellBlockGuard);
                 context.player1.clickPrompt('Done');
+
                 expect(context.phaseiiiDarkTrooper.exhausted).toBe(true);
                 expect(context.kylosTieSilencer.exhausted).toBe(true);
                 expect(context.cellBlockGuard.exhausted).toBe(false);
