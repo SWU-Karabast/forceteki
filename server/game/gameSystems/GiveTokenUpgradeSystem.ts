@@ -5,6 +5,7 @@ import { EventName, WildcardCardType } from '../core/Constants';
 import type { ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
 
 export interface IGiveTokenUpgradeProperties extends ICardTargetSystemProperties {
@@ -26,10 +27,7 @@ export abstract class GiveTokenUpgradeSystem<TContext extends AbilityContext = A
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
 
-        if (properties.amount === 1) {
-            return ['attach a {0} to {1}', [this.getTokenType(), properties.target]];
-        }
-        return ['attach {0} {1}s to {2}', [properties.amount, this.getTokenType(), properties.target]];
+        return ['attach {0} to {1}', [ChatHelpers.pluralize(properties.amount, `a ${this.getTokenType()}`, `${this.getTokenType()}s`), properties.target]];
     }
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<IGiveTokenUpgradeProperties> = {}): boolean {

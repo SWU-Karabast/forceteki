@@ -8,8 +8,8 @@ import * as EnumHelpers from '../utils/EnumHelpers';
 import type { Card } from '../card/Card';
 import type Game from '../Game';
 import type { FormatMessage } from '../chat/GameChat';
-import { GameChat } from '../chat/GameChat';
 import type { GameSystem } from '../gameSystem/GameSystem';
+import * as ChatHelpers from '../chat/ChatHelpers';
 
 export abstract class CardAbility extends CardAbilityStep {
     public readonly abilityIdentifier: string;
@@ -170,7 +170,7 @@ export abstract class CardAbility extends CardAbilityStep {
             if (gameActions.length === 1) {
                 [effectMessage, extraArgs] = gameActions[0].getEffectMessage(context);
             } else if (gameActions.length > 1) {
-                effectMessage = GameChat.formatWithLength(gameActions.length, 'to ');
+                effectMessage = ChatHelpers.formatWithLength(gameActions.length, 'to ');
                 extraArgs = gameActions.map((gameAction): FormatMessage => {
                     const [message, args] = gameAction.getEffectMessage(context);
                     return { format: message, args: Helpers.asArray(args) };

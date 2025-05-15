@@ -2,11 +2,11 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { MetaEventName } from '../core/Constants';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import type { ISimultaneousOrSequentialSystemProperties } from './SimultaneousOrSequentialSystem';
 import { ResolutionMode, SimultaneousOrSequentialSystem } from './SimultaneousOrSequentialSystem';
 import type { GameEvent } from '../core/event/GameEvent';
-import { GameChat } from '../core/chat/GameChat';
 
 export type ISimultaneousSystemProperties<TContext extends AbilityContext = AbilityContext> = ISimultaneousOrSequentialSystemProperties<TContext>;
 
@@ -16,7 +16,7 @@ export class SimultaneousSystem<TContext extends AbilityContext = AbilityContext
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { gameSystems } = this.generatePropertiesFromContext(context);
         const legalSystems = gameSystems.filter((system) => system.hasLegalTarget(context));
-        const message = GameChat.formatWithLength(legalSystems.length, 'to ');
+        const message = ChatHelpers.formatWithLength(legalSystems.length, 'to ');
         return [message, legalSystems.map((system) => {
             const [format, args] = system.getEffectMessage(context);
             return [format, ...args];

@@ -69,6 +69,10 @@ describe('Guerilla Insurgency', function() {
                 expect(context.wampa.damage).toBe(4);
                 expect(context.seventhSister.damage).toBe(4);
                 expect(context.corellianFreighter.damage).toBe(0); // Space unit should not be affected
+
+                expect(context.getChatLogs(7)).toContain(
+                    'player1 plays Guerilla Insurgency to make player1 defeat a resource, to make player2 defeat a resource, to make player1 and player2 discard 2 cards, and to deal 4 damage to Wampa and Seventh Sister'
+                );
             });
         });
     });

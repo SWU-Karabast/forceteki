@@ -37,7 +37,7 @@ describe('Doctor Pershing, Experimenting With Life', function() {
                 expect(context.player2.hand.length).toBe(0);
                 expect(context.getChatLogs(2)).toEqual([
                     'player1 uses Doctor Pershing to deal 1 damage to TIE/ln Fighter',
-                    'player1 uses Doctor Pershing, exhausting Doctor Pershing to draw 1 card',
+                    'player1 uses Doctor Pershing, exhausting Doctor Pershing to draw a card',
                 ]);
 
                 // Trigger the ability again
