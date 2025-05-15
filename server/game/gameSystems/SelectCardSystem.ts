@@ -86,11 +86,11 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition, optional: this.selectionIsOptional(properties, context) }));
         }
 
-        if (properties.mode === TargetMode.UpTo || properties.mode === TargetMode.UpToVariable) {
+        if (properties.mode === TargetMode.UpTo || properties.mode === TargetMode.UpToVariable || properties.mode === TargetMode.Unlimited) {
             properties.canChooseNoCards = properties.canChooseNoCards ?? true;
         } else {
             if (properties.canChooseNoCards != null) {
-                Contract.fail('Cannot use canChooseNoCards if mode is not UpTo or UpToVariable');
+                Contract.fail('Cannot use canChooseNoCards if mode is not UpTo, UpToVariable or Unlimited');
             }
         }
 
