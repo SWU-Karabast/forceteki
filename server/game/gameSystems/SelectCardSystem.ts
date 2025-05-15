@@ -65,7 +65,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const { target, effect, effectArgs } = this.generatePropertiesFromContext(context);
         if (effect) {
-            return [effect, effectArgs(context) || []];
+            return [effect, effectArgs ? effectArgs(context) : []];
         }
         return ['choose a target for {0}', [target]];
     }
