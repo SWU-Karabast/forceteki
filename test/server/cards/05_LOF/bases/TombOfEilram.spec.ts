@@ -51,7 +51,7 @@ describe('Tomb of Eilram\'s ability', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('should gain the Force when used', async function () {
+        it('should be able to gain the force multiple times', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {

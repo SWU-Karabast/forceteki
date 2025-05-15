@@ -12,7 +12,7 @@ export default class VergenceTemple extends BaseCard {
 
     public override setupCardAbilities () {
         this.addTriggeredAbility({
-            title: 'If you control a unit with 4 or more remaining HP, the Force is with you',
+            title: 'The Force is with you',
             when: {
                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup
             },
