@@ -12,7 +12,7 @@ export default class JTypeNubianStarship extends NonLeaderUnitCard {
     protected override setupCardAbilities() {
         this.addWhenPlayedAbility({
             title: 'Draw a card',
-            immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 1 })
+            immediateEffect: AbilityHelper.immediateEffects.draw()
         });
 
         this.addWhenDefeatedAbility({

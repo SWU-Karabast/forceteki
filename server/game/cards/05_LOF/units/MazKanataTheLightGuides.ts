@@ -12,7 +12,7 @@ export default class MazKanataTheLightGuides extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Attack with a unit',
+            title: 'Attack with a Force unit. It gets +2/+0 for this attack.',
             optional: true,
             initiateAttack: {
                 attackerCondition: (card) => card.hasSomeTrait(Trait.Force),
