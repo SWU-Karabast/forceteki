@@ -20,7 +20,7 @@ describe('Mystic Monastery\'s ability', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('shouldbe able to be used three times per game', async function () {
+        it('should be able to be used three times per game', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
