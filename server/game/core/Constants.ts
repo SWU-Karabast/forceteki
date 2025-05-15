@@ -388,6 +388,7 @@ export enum Trait {
     Naboo = 'naboo',
     NewRepublic = 'new republic',
     Night = 'night',
+    Nihil = 'nihil',
     Official = 'official',
     Pilot = 'pilot',
     Plan = 'plan',
