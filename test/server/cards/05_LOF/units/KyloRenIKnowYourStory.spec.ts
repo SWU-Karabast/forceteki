@@ -39,6 +39,12 @@ describe('Kylo Ren, I Know Your Story', function() {
 
             expect(context.player2).toBeActivePlayer();
             expect(context.wampa).toBeInZone('hand', context.player1);
+
+            // play another card, kylo should not trigger
+            context.player2.passAction();
+            context.player1.clickCard(context.wampa);
+
+            expect(context.player2).toBeActivePlayer();
         });
 
         it('Kylo Ren\'s ability should trigger when I play an upgrade on him (without the force)', async function () {

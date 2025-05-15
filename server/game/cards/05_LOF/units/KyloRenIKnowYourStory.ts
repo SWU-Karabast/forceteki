@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { CardType, WildcardCardType } from '../../../core/Constants';
 
 export default class KyloRenIKnowYourStory extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -13,17 +14,16 @@ export default class KyloRenIKnowYourStory extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Use the Force',
             when: {
-                onCardPlayed: (event, context) => {
-                    return event.player === context.player &&
-                      event.card.isUpgrade() &&
-                      event.attachTarget === context.source;
-                },
+                onCardPlayed: (event, context) =>
+                    event.player === context.player &&
+                    (event.cardTypeWhenInPlay === CardType.BasicUpgrade || event.playAsType === WildcardCardType.Upgrade) &&
+                    event.attachTarget === context.source,
             },
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {
                 title: 'Draw a card',
-                immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 1 })
+                immediateEffect: AbilityHelper.immediateEffects.draw()
             }
         });
     }

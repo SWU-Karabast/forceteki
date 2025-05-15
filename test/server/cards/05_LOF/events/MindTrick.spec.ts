@@ -18,7 +18,7 @@ describe('Mind Trick', function () {
             context.player1.clickCard(context.mindTrick);
 
             // Verify player is prompted to select units and can select units with combined power ≤ 4
-            expect(context.player1).toHavePrompt('Exhaust any number of units with a combined power of 4 or less');
+            expect(context.player1).toHavePrompt('Exhaust any number of units with a combined power of 4 or less. If you control a Force unit, those units lose all abilities and can\'t gain abilities for this phase');
             expect(context.player1).toHaveChooseNothingButton();
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.redThree, context.greenSquadronAwing, context.cantinaBraggart, context.captainTarkin]);
 

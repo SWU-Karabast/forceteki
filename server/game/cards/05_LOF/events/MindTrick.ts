@@ -3,8 +3,6 @@ import { EventCard } from '../../../core/card/EventCard';
 import { TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
 import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties';
 
-// Exhaust any number of units with a combined power of 4 or less. If you control a Force unit, those units lose all abilities and can't gain abilities for this phase
-
 export default class MindTrick extends EventCard {
     protected override getImplementationId() {
         return {
@@ -17,7 +15,6 @@ export default class MindTrick extends EventCard {
         this.setEventAbility({
             title: 'Exhaust any number of units with a combined power of 4 or less. If you control a Force unit, those units lose all abilities and can\'t gain abilities for this phase',
             targetResolver: {
-                activePromptTitle: 'Exhaust any number of units with a combined power of 4 or less',
                 mode: TargetMode.Unlimited,
                 canChooseNoCards: true,
                 cardTypeFilter: WildcardCardType.Unit,
