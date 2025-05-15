@@ -44,7 +44,7 @@ describe('Private Manufacturing', function () {
                 expect(context.player1.hand.length).toBe(2);
                 expect([context.republicTacticalOfficer, context.advancedReconCommando]).toAllBeInBottomOfDeck(context.player1, 2);
                 expect(context.getChatLogs(2)).toEqual([
-                    'player1 plays Private Manufacturing to draw 2 cards',
+                    'player1 plays Private Manufacturing to draw 2 cards and then to choose 2 cards to move to the bottom of their deck',
                     'player1 uses Private Manufacturing to move 2 cards to the bottom of their deck',
                 ]);
             });

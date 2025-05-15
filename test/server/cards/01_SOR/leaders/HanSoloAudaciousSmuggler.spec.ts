@@ -142,7 +142,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 context.player1.clickCard(context.p2Base);
                 expect(context.player1.readyResourceCount).toBe(7);
                 expect(context.wampa).toBeInZone('resource', context.player1);
-                expect(context.getChatLogs(2)).toContain('player1 uses Han Solo to move a card to player1\'s resources and to apply a delayed effect');
+                expect(context.getChatLogs(2)).toContain('player1 uses Han Solo to move a card to their resources and to apply a delayed effect');
 
                 context.player2.claimInitiative();
                 context.player1.passAction();

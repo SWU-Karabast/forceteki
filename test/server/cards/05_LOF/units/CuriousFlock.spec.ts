@@ -18,6 +18,11 @@ describe('Curious Flock', function () {
             expect(context.player2).toBeActivePlayer();
             expect(context.player1.exhaustedResourceCount).toBe(4);
             expect(context.curiousFlock).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
+            expect(context.getChatLogs(3)).toEqual([
+                'player1 plays Curious Flock',
+                'player1 names 3 using Curious Flock',
+                'player1 uses Curious Flock to pay 3 resources and then to give 3 Experience tokens to Curious Flock',
+            ]);
         });
 
         it('Curious Flock\'s ability should allow paying up to 6 resources and gain experience', async function () {

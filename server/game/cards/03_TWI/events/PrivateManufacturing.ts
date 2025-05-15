@@ -23,6 +23,7 @@ export default class PrivateManufacturing extends EventCard {
                         controller: RelativePlayer.Self,
                         zoneFilter: ZoneName.Hand,
                         numCards: 2,
+                        effect: 'choose 2 cards to move to the bottom of their deck',
                         innerSystem: AbilityHelper.immediateEffects.moveToBottomOfDeck()
                     })
                 })
