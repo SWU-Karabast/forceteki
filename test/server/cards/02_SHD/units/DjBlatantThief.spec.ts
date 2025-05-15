@@ -32,6 +32,9 @@ describe('DJ, Blatant Thief', function() {
                 expect(context.player1.exhaustedResourceCount).toBe(7);
                 expect(context.player2.readyResourceCount).toBe(9);
                 expect(context.player2.exhaustedResourceCount).toBe(0);
+                expect(context.getChatLogs(2)).toContain(
+                    'player1 uses DJ to take control of a resource from player2 and then to apply a delayed effect'
+                );
 
                 // check that stolen resource maintained its ready state
                 const stolenResourceList = context.player1.resources.filter((resource) => resource.owner === context.player2Object);
