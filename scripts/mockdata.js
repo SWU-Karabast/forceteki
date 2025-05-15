@@ -9,7 +9,7 @@ const mockCards = [
         types: ['base'],
         setId: {
             set: 'LOF',
-            number: 25
+            number: 26
         },
         unique: false,
         internalName: 'aggression-force-base'
