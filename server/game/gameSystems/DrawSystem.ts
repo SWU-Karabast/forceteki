@@ -4,6 +4,7 @@ import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTar
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
 import { DamageSystem } from './DamageSystem';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 
 export interface IDrawProperties extends IPlayerTargetSystemProperties {
     amount?: number;
@@ -23,7 +24,7 @@ export class DrawSystem<TContext extends AbilityContext = AbilityContext> extend
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['draw ' + properties.amount + (properties.amount > 1 ? ' cards' : ' card'), []];
+        return ['draw {0}', [ChatHelpers.pluralize(properties.amount, 'a card', 'cards')]];
     }
 
     public override canAffectInternal(player: Player, context: TContext, additionalProperties: Partial<IDrawProperties> = {}): boolean {

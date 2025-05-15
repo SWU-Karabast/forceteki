@@ -56,6 +56,9 @@ describe('Salacious Crumb, Obnoxious Pet', function() {
                 context.player1.clickCard(context.frontierAtrt);
                 expect(context.frontierAtrt.damage).toBe(1);
                 expect(context.salaciousCrumb).toBeInZone('hand');
+                expect(context.getChatLogs(1)).toContain(
+                    'player1 uses Salacious Crumb, exhausting Salacious Crumb and returning Salacious Crumb to their hand to deal 1 damage to Frontier AT-RT'
+                );
             });
 
             it('should not be available if Crumb is exhausted', async function () {

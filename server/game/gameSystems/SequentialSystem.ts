@@ -1,10 +1,10 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
-import { GameChat } from '../core/chat/GameChat';
 import { type MetaEventName } from '../core/Constants';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { GameSystem } from '../core/gameSystem/GameSystem';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { ISimultaneousOrSequentialSystemProperties } from './SimultaneousOrSequentialSystem';
 import { ResolutionMode, SimultaneousOrSequentialSystem } from './SimultaneousOrSequentialSystem';
 
@@ -25,7 +25,7 @@ export class SequentialSystem<TContext extends AbilityContext = AbilityContext> 
     public override getEffectMessage(context: TContext): [string, any] {
         const { gameSystems } = super.generatePropertiesFromContext(context);
         const legalSystems = gameSystems.filter((system) => system.hasLegalTarget(context));
-        const message = GameChat.formatWithLength(legalSystems.length, 'then to ');
+        const message = ChatHelpers.formatWithLength(legalSystems.length, 'then to ');
         return [message, legalSystems.map((system) => {
             const [format, args] = system.getEffectMessage(context);
             return [format, ...args];

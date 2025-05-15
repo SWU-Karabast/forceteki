@@ -5,6 +5,8 @@ import { EventName, ZoneName } from '../core/Constants';
 import type { Player } from '../core/Player';
 import type { IViewCardProperties } from './ViewCardSystem';
 import { ViewCardInteractMode, ViewCardSystem } from './ViewCardSystem';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
+import * as Helpers from '../core/utils/Helpers';
 
 export type IRevealProperties = IViewCardProperties & {
     promptedPlayer?: RelativePlayer;
@@ -69,15 +71,6 @@ export class RevealSystem<TContext extends AbilityContext = AbilityContext> exte
 
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        if (Array.isArray(properties.target) && properties.target.length > 1) {
-            return [
-                'reveal {0} cards',
-                [properties.target.length]
-            ];
-        }
-        return [
-            'reveal a card',
-            []
-        ];
+        return ['reveal {0}', [ChatHelpers.pluralize(Helpers.asArray(properties.target).length, 'a card', 'cards')]];
     }
 }

@@ -2,6 +2,7 @@ import type { AbilityContext } from '../core/ability/AbilityContext';
 import { TokenUpgradeName } from '../core/Constants';
 import type { IGiveTokenUpgradeProperties } from './GiveTokenUpgradeSystem';
 import { GiveTokenUpgradeSystem } from './GiveTokenUpgradeSystem';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 
 export type IGiveExperienceProperties = Omit<IGiveTokenUpgradeProperties, 'tokenType'>;
 
@@ -15,9 +16,6 @@ export class GiveExperienceSystem<TContext extends AbilityContext = AbilityConte
     public override getEffectMessage(context: TContext): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
 
-        if (properties.amount === 1) {
-            return ['give an Experience token to {0}', [properties.target]];
-        }
-        return ['give {0} Experience tokens to {1}', [properties.amount, properties.target]];
+        return ['give {0} to {1}', [ChatHelpers.pluralize(properties.amount, 'an Experience token', 'Experience tokens'), properties.target]];
     }
 }

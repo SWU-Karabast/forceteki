@@ -25,7 +25,7 @@ describe('Ahsoka Tano, Chasing Whispers', function() {
             expect(context.atst.exhausted).toBe(true);
 
             expect(context.getChatLogs(2)).toEqual([
-                'player1 uses Ahsoka Tano to make player2 discard 1 cards',
+                'player1 uses Ahsoka Tano to make player2 discard a card',
                 'player2 discards Restored ARC-170',
             ]);
         });

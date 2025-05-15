@@ -12,9 +12,11 @@ import {
 } from '../core/Constants';
 import * as EnumHelpers from '../core/utils/EnumHelpers';
 import * as Helpers from '../core/utils/Helpers.js';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { AttachedUpgradeOverrideHandler } from '../core/gameSystem/CardTargetSystem';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import * as Contract from '../core/utils/Contract';
+import type { FormatMessage } from '../core/chat/GameChat';
 
 /**
  * Properties for moving a card within the game.
@@ -73,23 +75,25 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
     public override getEffectMessage(context: TContext, additionalProperties: Partial<IMoveCardProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties) as IMoveCardProperties;
         if (properties.destination === ZoneName.Hand) {
+            let target: Card | Card[] | string | FormatMessage = properties.target;
             if (Helpers.asArray(properties.target).some((card) => card.zoneName === ZoneName.Resource)) {
                 const targets = Helpers.asArray(properties.target);
-                return ['return {0} to their hand', [targets.length > 1 ? `${targets.length} resources` : 'a resource']];
+                target = ChatHelpers.pluralize(targets.length, 'a resource', 'resources');
             }
-            return ['return {0} to their hand', [properties.target]];
+            return [`${ChatHelpers.verb(properties, 'return', 'returning')} {0} to their hand`, [target]];
         } else if (EnumHelpers.isDeckMoveZone(properties.destination)) {
             if (properties.shuffle) {
-                return ['shuffle {0} into their deck', [properties.target]];
+                return [`${ChatHelpers.verb(properties, 'shuffle', 'shuffling')} {0} into their deck`, [properties.target]];
             }
             const targets = Helpers.asArray(properties.target);
+            let target: Card | Card[] | string | FormatMessage = properties.target;
             if (targets.some((target) => EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self))) {
-                return ['move {0} to the {1} of their deck', [targets.length > 1 ? `${targets.length} cards` : 'a card', properties.destination === DeckZoneDestination.DeckBottom ? 'bottom' : 'top']];
+                target = ChatHelpers.pluralize(targets.length, 'a card', 'cards');
             }
-            return ['move {0} to the {1} of their deck', [properties.target, properties.destination === DeckZoneDestination.DeckBottom ? 'bottom' : 'top']];
+            return [`${ChatHelpers.verb(properties, 'move', 'moving')} {0} to the {1} of their deck`, [target, properties.destination === DeckZoneDestination.DeckBottom ? 'bottom' : 'top']];
         }
         return [
-            'move {0} to ' + (properties.destination === DeckZoneDestination.DeckBottom ? 'the bottom of ' : '') + 'their {1}',
+            `${ChatHelpers.verb(properties, 'move', 'moving')} {0} to ${properties.destination === DeckZoneDestination.DeckBottom ? 'the bottom of ' : ''}their {1}`,
             [properties.target, properties.destination]
         ];
     }
