@@ -711,6 +711,8 @@ export class Lobby {
         socket.socket.data.forceDisconnect = true;
         socket.send('inactiveDisconnect');
         socket.disconnect();
+
+        logger.info(`Lobby: user ${userId} was disconnected due to inactivity`, { lobbyId: this.id, userId });
     }
 
     private async onLobbyMessage(socket: Socket, command: string, ...args): Promise<void> {
