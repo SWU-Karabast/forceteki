@@ -1,0 +1,31 @@
+import AbilityHelper from '../../../AbilityHelper';
+import { EventCard } from '../../../core/card/EventCard';
+import { CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+
+export default class DirectedByTheForce extends EventCard {
+    protected override getImplementationId() {
+        return {
+            id: 'directed-by-the-force-id',
+            internalName: 'directed-by-the-force',
+        };
+    }
+
+    public override setupCardAbilities() {
+        this.setEventAbility({
+            title: 'Gain the Force and you may play a unit from your hand',
+            immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                AbilityHelper.immediateEffects.theForceIsWithYou(),
+                AbilityHelper.immediateEffects.selectCard({
+                    cardTypeFilter: CardType.BasicUnit,
+                    controller: RelativePlayer.Self,
+                    zoneFilter: ZoneName.Hand,
+                    optional: true,
+                    effect: 'choose a unit to play',
+                    innerSystem: AbilityHelper.immediateEffects.playCardFromHand({
+                        playAsType: WildcardCardType.Unit
+                    }),
+                }),
+            ]),
+        });
+    }
+}

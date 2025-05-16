@@ -21,6 +21,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     controller?: RelativePlayerFilter;
     zoneFilter?: ZoneFilter | ZoneFilter[];
     cardCondition?: (card: Card, context: TContext) => boolean;
+    multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
     checkTarget?: boolean;
     message?: string;
     manuallyRaiseEvent?: boolean;
