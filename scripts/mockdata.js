@@ -409,6 +409,56 @@ const mockCards = [
         arena: 'ground',
         internalName: 'village-tender'
     }),
+    buildMockCard({
+        title: 'Adi Gallia, Stern and Focused',
+        cost: 2,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: [],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 142
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'adi-gallia#stern-and-focused'
+    }),
+    buildMockCard({
+        title: 'Niman Strike',
+        hasNonKeywordAbility: true,
+        cost: 1,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'LOF',
+            number: 124
+        },
+        unique: false,
+        internalName: 'niman-strike',
+    }),
+    buildMockCard({
+        title: 'Yaddle, A Chance to Make Things Right',
+        cost: 2,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 45
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'yaddle#a-chance-to-make-things-right'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
