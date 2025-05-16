@@ -11,7 +11,7 @@ export default class SithHolocron extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
-        this.setAttachCondition((card) => card.isUnit() && card.hasSomeTrait(Trait.Force));
+        this.setAttachCondition((card) => card.hasSomeTrait(Trait.Force));
 
         this.addGainOnAttackAbilityTargetingAttached({
             title: 'Deal 2 damage to a friendly unit',

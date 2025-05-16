@@ -44,6 +44,7 @@ describe('Sith Holocron', function () {
             context.player1.clickCard(context.greenSquadronAwing);
 
             expect(context.player2).toBeActivePlayer();
+            expect(context.greenSquadronAwing.damage).toBe(2); // 2
             // Verify damage calculation: 2 (Karis) + 1 (Sith Holocron) + 2 (Sith Holocron ability)
             expect(context.p2Base.damage).toBe(5); // 2+1+2
 
