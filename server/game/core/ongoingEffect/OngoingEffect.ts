@@ -48,6 +48,7 @@ export abstract class OngoingEffect {
     public ongoingEffect: IOngoingEffectProps;
     public targets: (Player | Card)[];
     public context: AbilityContext;
+    public optional?: boolean;
 
     public constructor(game: Game, source: Card, properties: IOngoingEffectProps, effectImpl: OngoingEffectImpl<any>) {
         Contract.assertFalse(
@@ -65,6 +66,7 @@ export abstract class OngoingEffect {
         this.impl = effectImpl;
         this.ongoingEffect = properties;
         this.targets = [];
+        this.optional = properties.optional;
         this.refreshContext();
 
         this.impl.duration = this.duration;

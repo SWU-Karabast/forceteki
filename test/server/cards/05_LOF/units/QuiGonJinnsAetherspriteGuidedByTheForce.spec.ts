@@ -1,5 +1,7 @@
 describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
     integration(function (contextRef) {
+        const prompt = 'You may use that "When Played" ability again';
+
         describe('On Attack ability', () => {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
@@ -38,11 +40,16 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
                 context.player1.clickPrompt('Ready a resource');
 
+                expect(context.player1).toHavePrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
                 // Ability is triggered again (but this should be optional)
                 expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
                 context.player1.clickPrompt('Ready a resource');
 
                 expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.player1).not.toHavePrompt(prompt);
             });
         });
     });

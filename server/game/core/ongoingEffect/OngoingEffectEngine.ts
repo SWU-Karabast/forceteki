@@ -20,6 +20,8 @@ export class OngoingEffectEngine {
     public customDurationEvents: ICustomDurationEvent[] = [];
     public effectsChangedSinceLastCheck = false;
 
+    private static count = 0;
+
     public constructor(private game: Game) {
         this.events = new EventRegistrar(game, this);
         this.events.register([
@@ -39,8 +41,10 @@ export class OngoingEffectEngine {
     }
 
     public checkDelayedEffects(events: GameEvent[]) {
+        console.log(`*** ${OngoingEffectEngine.count} Enter: checkDelayedEffects ***`);
         const effectsToTrigger: OngoingEffect[] = [];
         const effectsToRemove: OngoingEffect[] = [];
+
         for (const effect of this.effects.filter(
             (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
         )) {
@@ -53,35 +57,66 @@ export class OngoingEffectEngine {
                 const triggeringEvents = events.filter((event) => properties.when[event.name]);
                 if (triggeringEvents.length > 0) {
                     if (triggeringEvents.some((event) => properties.when[event.name](event, effect.context))) {
+                        const properties = effect.impl.getValue();
+                        console.log(`*** ${OngoingEffectEngine.count} Effect triggered: `, properties.title);
+                        console.log(`*** ${OngoingEffectEngine.count} Triggering event: `, triggeringEvents[0].name);
                         effectsToTrigger.push(effect);
                     }
                 }
             }
         }
+
         const effectTriggers = effectsToTrigger.map((effect) => {
             const properties = effect.impl.getValue();
             const context = effect.context.createCopy({ events });
             const targets = effect.targets;
+            const count = OngoingEffectEngine.count;
             return {
                 title: context.source.title + '\'s effect' + (targets.length === 1 ? ' on ' + targets[0].name : ''),
                 handler: () => {
-                    // TODO Ensure the below line doesn't break anything for a CardTargetSystem delayed effect
-                    properties.immediateEffect.setDefaultTargetFn(() => targets);
-                    if (properties.message && properties.immediateEffect.hasLegalTarget(context)) {
-                        let messageArgs = properties.messageArgs || [];
-                        if (typeof messageArgs === 'function') {
-                            messageArgs = messageArgs(context, targets);
+                    console.log(`*** ${count} Enter: trigger handler ***`);
+                    const trigger = () => {
+                        // TODO Ensure the below line doesn't break anything for a CardTargetSystem delayed effect
+                        properties.immediateEffect.setDefaultTargetFn(() => targets);
+                        if (properties.message && properties.immediateEffect.hasLegalTarget(context)) {
+                            let messageArgs = properties.messageArgs || [];
+                            if (typeof messageArgs === 'function') {
+                                messageArgs = messageArgs(context, targets);
+                            }
+                            this.game.addMessage(properties.message, ...messageArgs);
                         }
-                        this.game.addMessage(properties.message, ...messageArgs);
+                        const actionEvents = [];
+                        properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
+                        properties.limit.increment(context.source.owner);
+                        this.game.queueSimpleStep(() => this.game.openEventWindow(actionEvents), 'openDelayedActionsWindow');
+                        this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
+                    };
+
+                    if (effect.optional) {
+                        console.log(`*** ${count} Prompting for optional effect ***`);
+                        this.game.promptWithHandlerMenu(context.player, {
+                            activePromptTitle: properties.title,
+                            source: context.source,
+                            choices: ['Trigger', 'Pass'],
+                            handlers: [
+                                () => {
+                                    console.log(`*** ${count} Prompt Button pressed: Trigger ***`);
+                                    trigger();
+                                },
+                                () => {
+                                    properties.limit.increment(context.source.owner);
+                                    this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
+                                }
+                            ]
+                        });
+                    } else {
+                        trigger();
                     }
-                    const actionEvents = [];
-                    properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
-                    properties.limit.increment(context.source.owner);
-                    this.game.queueSimpleStep(() => this.game.openEventWindow(actionEvents), 'openDelayedActionsWindow');
-                    this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
+                    console.log(`*** ${count} Exit: trigger handler ***`);
                 }
             };
         });
+
         if (effectTriggers.length > 0) {
             // TODO Implement the correct trigger window. We may need a subclass of TriggeredAbilityWindow for multiple simultaneous effects
             effectTriggers.forEach((trigger) => {
@@ -105,6 +140,9 @@ export class OngoingEffectEngine {
         if (effectsToRemove.length > 0) {
             this.unapplyAndRemove((effect) => effectsToRemove.includes(effect));
         }
+
+        console.log(`*** ${OngoingEffectEngine.count} Exit: checkDelayedEffects ***`);
+        OngoingEffectEngine.count += 1;
     }
 
     public removeLastingEffects(card: OngoingEffectSource) {
