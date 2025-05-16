@@ -21,6 +21,7 @@ export interface ISelectCardProperties<TContext extends AbilityContext = Ability
     controller?: RelativePlayerFilter;
     zoneFilter?: ZoneFilter | ZoneFilter[];
     cardCondition?: (card: Card, context: TContext) => boolean;
+    multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
     checkTarget?: boolean;
     message?: string;
     manuallyRaiseEvent?: boolean;
@@ -86,7 +87,7 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
             properties.selector = CardSelectorFactory.create(Object.assign({}, properties, { cardCondition, optional: this.selectionIsOptional(properties, context) }));
         }
 
-        if (properties.mode === TargetMode.UpTo || properties.mode === TargetMode.UpToVariable) {
+        if (properties.mode === TargetMode.UpTo || properties.mode === TargetMode.UpToVariable || properties.mode === TargetMode.Unlimited) {
             properties.canChooseNoCards = properties.canChooseNoCards ?? true;
         } else {
             if (properties.canChooseNoCards != null) {
