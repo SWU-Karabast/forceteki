@@ -118,7 +118,13 @@ export abstract class OngoingEffect {
     }
 
     public isEffectActive() {
-        if (this.duration !== Duration.Persistent || this.impl.type === EffectName.DelayedEffect || this.ongoingEffect.isLastingEffect) {
+        if (this.impl.type === EffectName.DelayedEffect) {
+            const limit = this.impl.getValue().limit;
+
+            return !limit?.isAtMax(this.context.player);
+        }
+
+        if (this.duration !== Duration.Persistent || this.ongoingEffect.isLastingEffect) {
             return true;
         }
 
