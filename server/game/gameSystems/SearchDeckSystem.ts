@@ -92,9 +92,9 @@ export class SearchDeckSystem<TContext extends AbilityContext = AbilityContext, 
         const searchCountAmount = this.computeSearchCount(properties.searchCount, context);
         const message =
         searchCountAmount > 0
-            ? `look at the top ${ChatHelpers.pluralize(searchCountAmount, 'card', 'cards')} of their deck`
+            ? 'look at the top {0} of their deck'
             : 'search their deck';
-        return [message, []];
+        return [message, [ChatHelpers.pluralize(searchCountAmount, 'card', 'cards')]];
     }
 
     public override defaultTargets(context: TContext): Player[] {
