@@ -5,6 +5,7 @@ import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/game
 import TriggeredAbility from '../core/ability/TriggeredAbility';
 import { DefeatCardSystem } from './DefeatCardSystem';
 import type { GameEvent } from '../core/event/GameEvent';
+import type { ITriggeredAbilityProps } from '../Interfaces';
 
 export interface IUseWhenPlayedProperties extends ICardTargetSystemProperties {
     triggerAll?: boolean;
@@ -57,7 +58,7 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
     }
 
     private useWhenPlayedAbility(whenPlayedAbility: TriggeredAbility, whenPlayedSource: Card, event, onCardPlayedEvent = null) {
-        const whenPlayedProps = { ...whenPlayedAbility.properties, optional: false, target: whenPlayedSource };
+        const whenPlayedProps = { ...(whenPlayedAbility.properties as ITriggeredAbilityProps), optional: false, target: whenPlayedSource };
         const ability = new TriggeredAbility(event.context.game, whenPlayedSource, whenPlayedProps);
 
         event.context.game.resolveAbility(ability.createContext(event.context.player, onCardPlayedEvent));
