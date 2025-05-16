@@ -29,6 +29,7 @@ describe('Wolffe, Suspicious Veteran', function () {
                 // play wolffe, bases can't be healed for the phase
                 context.player1.clickCard(context.wolffe);
                 expect(context.player2).toBeActivePlayer();
+                expect(context.getChatLogs(1)).toContain('player1 uses Wolffe to prevent healing to Echo Base and Capital City for this phase');
 
                 // nothing happen from this event
                 context.player2.clickCard(context.smugglersAid);

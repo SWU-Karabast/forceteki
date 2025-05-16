@@ -20,6 +20,7 @@ describe('On Top of Things', function() {
                 // add on top of things to wampa
                 context.player1.clickCard(context.onTopOfThings);
                 context.player1.clickCard(context.wampa);
+                expect(context.getChatLogs(1)).toContain('player1 uses On Top of Things to prevent attacks to Wampa for this phase');
 
                 // atst cannot attack wampa
                 context.player2.clickCard(context.atst);

@@ -9,6 +9,7 @@ import type { OngoingCardEffect } from '../core/ongoingEffect/OngoingCardEffect'
 import type { OngoingPlayerEffect } from '../core/ongoingEffect/OngoingPlayerEffect';
 import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
+import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { DistributiveOmit } from '../core/utils/Helpers';
 import type { IOngoingEffectGenerator, IOngoingEffectProps } from '../Interfaces';
 
@@ -71,8 +72,8 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
 
             if (effectDescriptions.length > 0) {
                 description = {
-                    format: '{0} to',
-                    args: [effectDescriptions],
+                    format: `${ChatHelpers.formatWithLength(effectDescriptions.length, 'to ')} to`,
+                    args: effectDescriptions,
                 };
             }
         }
