@@ -340,7 +340,57 @@ const mockCards = [
         cost: 1,
         unique: false,
         internalName: 'directed-by-the-force',
-    })
+    }),
+    buildMockCard({
+        title: 'Shien Flurry',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'LOF',
+            number: 220
+        },
+        cost: 1,
+        unique: false,
+        internalName: 'shien-flurry',
+    }),
+    buildMockCard({
+        title: 'Kit Fisto\'s Aethersprite, Good Hunting',
+        power: 4,
+        hp: 5,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['saboteur'],
+        types: ['unit'],
+        traits: ['jedi', 'republic', 'vehicle', 'fighter'],
+        setId: {
+            set: 'LOF',
+            number: 147
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'kit-fistos-aethersprite#good-hunting'
+    }),
+    buildMockCard({
+        title: 'Kit Fisto, Focused Jedi Master',
+        power: 1,
+        hp: 6,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['leader'],
+        keywords: ['saboteur'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 11
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kit-fisto#focused-jedi-master'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
