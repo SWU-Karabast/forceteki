@@ -35,7 +35,7 @@ describe('Heroes on Both Sides', function () {
             expect(context.superBattleDroid.getPower()).toBe(6);
             expect(context.superBattleDroid.getHp()).toBe(5);
             expect(context.getChatLogs(1)).toContain(
-                'player1 plays Heroes on Both Sides to give +2/+2 and to give Saboteur to Clone Dive Trooper for this phase and to give +2/+2 and give Saboteur to Super Battle Droid for this phase'
+                'player1 plays Heroes on Both Sides to give +2/+2 and to give Saboteur to Clone Dive Trooper for this phase and to give +2/+2 and to give Saboteur to Super Battle Droid for this phase'
             );
 
             // P2: Pass action
