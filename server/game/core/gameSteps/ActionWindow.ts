@@ -43,8 +43,9 @@ export class ActionWindow extends UiPrompt {
             const confirmOneClick = false;
             const action = legalActions[0];
             const targetPrompts = action.targetResolvers.some((targetResolver) => targetResolver.properties.choosingPlayer !== RelativePlayer.Opponent);
-            if (!confirmOneClick || action.cost.some((cost) => cost.promptsPlayer) || targetPrompts) {
-                this.resolveAbility(action.createContext(player));
+            const context = action.createContext(player);
+            if (!confirmOneClick || action.getCosts(context).some((cost) => cost.promptsPlayer) || targetPrompts) {
+                this.resolveAbility(context);
                 return true;
             }
         }
