@@ -7,7 +7,7 @@ import { GiveShieldSystem } from '../../gameSystems/GiveShieldSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class ShieldedAbility extends TriggeredAbility {
-    public override readonly keyword: KeywordName | null = KeywordName.Shielded;
+    public readonly keyword: KeywordName = KeywordName.Shielded;
 
     public static buildShieldedAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {

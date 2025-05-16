@@ -10,7 +10,7 @@ import { DefeatCardSystem } from '../../gameSystems/DefeatCardSystem';
 import type { ITriggeredAbilityProps } from '../../Interfaces';
 
 export class SaboteurDefeatShieldsAbility extends TriggeredAbility {
-    public override readonly keyword: KeywordName | null = KeywordName.Saboteur;
+    public readonly keyword: KeywordName = KeywordName.Saboteur;
 
     public static buildSaboteurAbilityProperties<TSource extends Card = Card>(): ITriggeredAbilityProps<TSource> {
         return {

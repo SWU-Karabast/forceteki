@@ -57,8 +57,8 @@ class PlayBamboozleAction extends PlayEventAction {
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
         return new PlayBamboozleAction(
-            this.card,
-            PlayBamboozleAction.generateProperties(this.card,
+            this.card as Bamboozle,
+            PlayBamboozleAction.generateProperties(this.card as Bamboozle,
                 {
                     ...this.createdWithProperties,
                     ...overrideProperties

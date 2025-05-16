@@ -7,7 +7,7 @@ import type {
     ISerializedCardState
 } from '../../Interfaces';
 import { ActionAbility } from '../ability/ActionAbility';
-import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
 import type { IOngoingEffectSourceState } from '../ongoingEffect/OngoingEffectSource';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';

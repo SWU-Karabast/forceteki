@@ -20,7 +20,7 @@ describe('In Defense of Kamino', function () {
             context.player1.clickCard(context.inDefenseOfKamino);
             expect(context.player2).toBeActivePlayer();
             expect(context.getChatLogs(1)).toContain(
-                'player1 plays In Defense of Kamino to give Restore 2 and give “When Defeated: Create a Clone Trooper token” to Advanced Recon Commando and Republic ARC-170 for this phase'
+                'player1 plays In Defense of Kamino to give Restore 2 and to give “When Defeated: Create a Clone Trooper token” to Advanced Recon Commando and Republic ARC-170 for this phase'
             );
 
             context.player2.passAction();
