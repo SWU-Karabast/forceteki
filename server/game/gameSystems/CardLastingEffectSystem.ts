@@ -55,26 +55,51 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<ICardLastingEffectProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        let description: string | FormatMessage = 'apply a lasting effect to';
+        const targetDescription = properties.ongoingEffectTargetDescription ?? properties.target;
+
+        let description: FormatMessage = { format: 'apply a lasting effect to {0}', args: [targetDescription] };
         if (properties.ongoingEffectDescription) {
-            description = properties.ongoingEffectDescription;
+            description.format = `${properties.ongoingEffectDescription} {0}`;
         } else if (properties.target && Array.isArray(properties.target)) {
             const { effectFactories, effectProperties } = this.getEffectFactoriesAndProperties(properties.target, context, additionalProperties);
-            const effectDescriptions = effectFactories.map((factory) => {
+            const abilityRestrictions: FormatMessage[] = [];
+            const otherEffects: FormatMessage[] = [];
+            for (const factory of effectFactories) {
                 for (const [i, props] of effectProperties.entries()) {
                     const effect = factory(context.game, context.source, props);
                     if (effect.impl.effectDescription && this.filterApplicableEffects(properties.target[i], [effect]).length > 0) {
-                        return effect.impl.effectDescription;
+                        if (effect.impl.type === EffectName.AbilityRestrictions) {
+                            abilityRestrictions.push(effect.impl.effectDescription);
+                        } else {
+                            otherEffects.push(effect.impl.effectDescription);
+                        }
+                        break;
                     }
                 }
-                return null;
-            }).filter((description) => description !== null);
+            }
+
+            const effectDescriptions: FormatMessage[] = [];
+            if (otherEffects.length > 0) {
+                effectDescriptions.push({
+                    format: '{0} to {1}',
+                    args: [
+                        { format: ChatHelpers.formatWithLength(otherEffects.length, 'to '), args: otherEffects },
+                        targetDescription,
+                    ]
+                });
+            }
+            if (abilityRestrictions.length > 0) {
+                effectDescriptions.push({
+                    format: 'prevent {1} from {0}',
+                    args: [
+                        { format: ChatHelpers.formatWithLength(abilityRestrictions.length), args: abilityRestrictions },
+                        targetDescription,
+                    ]
+                });
+            }
 
             if (effectDescriptions.length > 0) {
-                description = {
-                    format: `${ChatHelpers.formatWithLength(effectDescriptions.length, 'to ')} to`,
-                    args: effectDescriptions,
-                };
+                description = { format: ChatHelpers.formatWithLength(effectDescriptions.length, 'to '), args: effectDescriptions };
             }
         }
 
@@ -100,7 +125,7 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
                 Contract.fail(`Unknown duration: ${(properties as any).duration}`);
         }
 
-        return [`{0} {1}${durationStr}`, [description, properties.ongoingEffectTargetDescription ?? properties.target]];
+        return ['{0}{1}', [description, durationStr]];
     }
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ICardLastingEffectProperties> = {}): ICardLastingEffectProperties {

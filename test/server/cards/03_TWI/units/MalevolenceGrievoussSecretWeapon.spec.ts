@@ -20,7 +20,7 @@ describe('Malevolence, Grievous\'s Secret Weapon', function () {
             // ATST should have -4 power and can't attack
             expect(context.atst.getPower()).toBe(2);
             expect(context.atst).not.toHaveAvailableActionWhenClickedBy(context.player2);
-            expect(context.getChatLogs(1)).toContain('player1 uses Malevolence to give -4/-0 and to apply a "cannot attack" restriction to AT-ST for this phase');
+            expect(context.getChatLogs(1)).toContain('player1 uses Malevolence to give -4/-0 to AT-ST and to prevent AT-ST from attacking for this phase');
 
             context.moveToNextActionPhase();
             context.player1.passAction();

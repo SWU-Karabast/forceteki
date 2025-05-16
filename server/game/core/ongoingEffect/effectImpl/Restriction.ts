@@ -24,13 +24,13 @@ export class Restriction extends OngoingEffectValueWrapper<Restriction> {
 
     private static restrictionDescription?(type: string): FormatMessage {
         if (type === AbilityRestriction.Attack) {
-            return { format: 'apply a "cannot attack" restriction', args: [] };
+            return { format: 'attacking', args: [] };
         } else if (type === AbilityRestriction.Ready) {
-            return { format: 'apply a "cannot ready" restriction', args: [] };
+            return { format: 'readying', args: [] };
         } else if (type === AbilityRestriction.BeHealed) {
-            return { format: 'prevent healing', args: [] };
+            return { format: 'being healed', args: [] };
         } else if (type === AbilityRestriction.BeAttacked) {
-            return { format: 'prevent attacks', args: [] };
+            return { format: 'being attacked', args: [] };
         }
 
         return undefined;
