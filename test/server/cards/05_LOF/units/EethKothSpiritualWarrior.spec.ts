@@ -3,11 +3,9 @@ describe('Eeth Koth, Spiritual Warrior', function () {
         describe('Eeth Koth, Spiritual Warrior\'s ability', () => {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
-
                     phase: 'action',
                     player1: {
                         groundArena: ['eeth-koth#spiritual-warrior'],
-                        hand: ['cure-wounds'],
                         hasForceToken: true
                     },
                     player2: {
@@ -26,7 +24,7 @@ describe('Eeth Koth, Spiritual Warrior', function () {
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.eethKothSpiritualWarrior);
 
-                expect(context.player1).toHavePassAbilityPrompt('Use the Force to put Eeth Koth into play as a resource');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you do, put Eeth Koth into play as a resource.');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.resources.length).toBe(resourcesBeforeTrigger + 1);
@@ -44,7 +42,7 @@ describe('Eeth Koth, Spiritual Warrior', function () {
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.eethKothSpiritualWarrior);
 
-                expect(context.player1).toHavePassAbilityPrompt('Use the Force to put Eeth Koth into play as a resource');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you do, put Eeth Koth into play as a resource.');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player1.resources.length).toBe(resourcesBeforeTrigger);
@@ -61,7 +59,7 @@ describe('Eeth Koth, Spiritual Warrior', function () {
                 context.player2.clickCard(context.noGloryOnlyResults);
                 context.player2.clickCard(context.eethKothSpiritualWarrior);
 
-                expect(context.player2).toHavePassAbilityPrompt('Use the Force to put Eeth Koth into play as a resource');
+                expect(context.player2).toHavePassAbilityPrompt('Use the Force. If you do, put Eeth Koth into play as a resource.');
                 context.player2.clickPrompt('Trigger');
 
                 expect(context.player2.resources.length).toBe(resourcesBeforeTrigger + 1);
@@ -75,7 +73,8 @@ describe('Eeth Koth, Spiritual Warrior', function () {
 
                 const resourcesBeforeTrigger = context.player1.resources.length;
 
-                context.player1.clickCard(context.cureWounds);
+                context.player1.setHasTheForce(false);
+                context.player1.passAction();
                 context.player2.clickCard(context.vanquish);
                 context.player2.clickCard(context.eethKothSpiritualWarrior);
 

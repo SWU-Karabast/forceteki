@@ -11,7 +11,7 @@ export default class EethKothSpiritualWarrior extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenDefeatedAbility({
-            title: 'Use the Force to put Eeth Koth into play as a resource',
+            title: 'Use the Force. If you do, put Eeth Koth into play as a resource.',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {
