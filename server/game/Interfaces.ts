@@ -9,7 +9,7 @@ import type { IActionTargetResolver, IActionTargetsResolver, ITriggeredAbilityTa
 import type { IReplacementEffectSystemProperties } from './gameSystems/ReplacementEffectSystem';
 import type { ICost } from './core/cost/ICost';
 import type Game from './core/Game';
-import type PlayerOrCardAbility from './core/ability/PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from './core/ability/PlayerOrCardAbility';
 import type { Player } from './core/Player';
 import type { OngoingCardEffect } from './core/ongoingEffect/OngoingCardEffect';
 import type { OngoingPlayerEffect } from './core/ongoingEffect/OngoingPlayerEffect';
