@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../../../server/game/AbilityHelper';
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
 import { EventName } from '../../../../../server/game/core/Constants';
+import { perGame } from '../../../core/ability/AbilityLimit';
 
 export default class QuiGonJinnsAetherspriteGuidedByTheForce extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -28,7 +29,8 @@ export default class QuiGonJinnsAetherspriteGuidedByTheForce extends NonLeaderUn
                         target: event.card,
                         resolvedAbilityEvent: event,
                     };
-                })
+                }),
+                limit: perGame(1)
             })
         });
     }
