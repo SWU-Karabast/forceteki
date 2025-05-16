@@ -391,14 +391,36 @@ const mockCards = [
         arena: 'ground',
         internalName: 'kit-fisto#focused-jedi-master'
     }),
+    buildMockCard({
+        title: 'Village Tender',
+        cost: 1,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        keywords: ['hidden', 'restore 1'],
+        types: ['unit'],
+        traits: ['ewok'],
+        setId: {
+            set: 'LOF',
+            number: 107
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'village-tender'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
 function buildMockCard(cardData) {
     let textElements = [];
+    let keywords = [];
     if (cardData.keywords) {
         const capitalizedKeywords = cardData.keywords?.map((keyword) => keyword.charAt(0).toUpperCase() + keyword.slice(1));
         textElements.push(...capitalizedKeywords);
+
+        // grab the first token for cases like "restore 1"
+        keywords.push(...cardData.keywords.map((keyword) => keyword.split(' ')[0]));
     }
     if (cardData.hasNonKeywordAbility) {
         textElements.push('mock ability text');
@@ -432,7 +454,7 @@ function buildMockCard(cardData) {
         id: cardData.internalName + '-id',
         aspects: cardData.aspects || [],
         traits: cardData.traits || [],
-        keywords: cardData.keywords || [],
+        keywords,
         types: cardData.types,
         setId: cardData.setId,
         internalName: cardData.internalName,
