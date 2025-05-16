@@ -87,7 +87,7 @@ export class OngoingEffectEngine {
                         }
                         const actionEvents = [];
                         properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
-                        properties.limit.increment(context.source.owner);
+                        properties.limit.increment(context.player);
                         this.game.queueSimpleStep(() => this.game.openEventWindow(actionEvents), 'openDelayedActionsWindow');
                         this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
                     };
@@ -104,7 +104,7 @@ export class OngoingEffectEngine {
                                     trigger();
                                 },
                                 () => {
-                                    properties.limit.increment(context.source.owner);
+                                    properties.limit.increment(context.player);
                                     this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
                                 }
                             ]
@@ -162,7 +162,7 @@ export class OngoingEffectEngine {
                     const effectImplValue = effect.impl.getValue();
                     const limit = effectImplValue.limit;
 
-                    return limit.isAtMax(effect.source.controller);
+                    return limit.isAtMax(effect.context.player);
                 }
 
                 if (effect.duration !== Duration.Persistent) {
