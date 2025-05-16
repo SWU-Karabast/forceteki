@@ -89,6 +89,8 @@ export default class StatsModifierWrapper {
         const options: Intl.NumberFormatOptions = {
             signDisplay: 'always',
         };
-        return (modifier.power || 0).toLocaleString(locale, options) + '/' + (modifier.hp || 0).toLocaleString(locale, options);
+        // Ensure that we show -0 if one of the values is zero and other is negative (e.g. -2/-0 instead of -2/+0)
+        const zero = (modifier.power < 0 && modifier.hp <= 0) || (modifier.power <= 0 && modifier.hp < 0) ? -0 : 0;
+        return (modifier.power || zero).toLocaleString(locale, options) + '/' + (modifier.hp || zero).toLocaleString(locale, options);
     }
 }
