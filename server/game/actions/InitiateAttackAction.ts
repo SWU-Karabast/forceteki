@@ -1,5 +1,5 @@
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
-import PlayerAction from '../core/ability/PlayerAction.js';
+import { PlayerAction } from '../core/ability/PlayerAction.js';
 import { AbilityRestriction, TargetMode, WildcardZoneName } from '../core/Constants.js';
 import * as EnumHelpers from '../core/utils/EnumHelpers.js';
 import { exhaustSelf } from '../costs/CostLibrary.js';

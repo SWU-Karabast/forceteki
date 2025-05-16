@@ -8,7 +8,6 @@ import { TriggerHandlingMode } from '../event/EventWindow.js';
 
 export class EventAbility extends CardAbility {
     protected anyPlayer: boolean;
-    protected doesNotTarget: boolean;
     protected phase: string;
 
     public constructor(game: Game, card: Card, properties: IEventAbilityProps) {
@@ -20,8 +19,6 @@ export class EventAbility extends CardAbility {
         };
 
         super(game, card, adjustedProperties, AbilityType.Event);
-
-        this.doesNotTarget = (properties as any).doesNotTarget;
     }
 
     public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {

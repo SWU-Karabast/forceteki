@@ -5,7 +5,7 @@ import type { Aspect, CardType } from '../Constants';
 import { EffectName, EventName, KeywordName, PhaseName, PlayType } from '../Constants';
 import type { ICost } from '../cost/ICost';
 import type { AbilityContext } from './AbilityContext';
-import PlayerAction from './PlayerAction';
+import { PlayerAction } from './PlayerAction';
 import { TriggerHandlingMode } from '../event/EventWindow.js';
 import type { CostAdjuster } from '../cost/CostAdjuster';
 import * as Helpers from '../utils/Helpers';
@@ -181,7 +181,7 @@ export abstract class PlayCardAction extends PlayerAction {
     }
 
     public override getAdjustedCost(context) {
-        const resourceCost = this.getCosts(context).find((cost) => cost.getAdjustedCost);
+        const resourceCost = this.getCosts(context).find((cost) => cost.isResourceCost());
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
@@ -202,6 +202,8 @@ export abstract class PlayCardAction extends PlayerAction {
         if (context.player.drawDeck.length === 0) {
             return;
         }
+
+        Contract.assertTrue(this.card.canBeExhausted(), `${this.card.title} cannot be smuggled!`);
 
         const smuggleEvent = resourceCard({
             target: context.player.getTopCardOfDeck(),

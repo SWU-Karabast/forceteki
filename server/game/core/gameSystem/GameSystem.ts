@@ -131,7 +131,7 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
         return properties;
     }
 
-    public getCostMessage(context: TContext): undefined | [string, any[]] {
+    public getCostMessage?(context: TContext): [string, any[]] {
         return [this.costDescription, []];
     }
 

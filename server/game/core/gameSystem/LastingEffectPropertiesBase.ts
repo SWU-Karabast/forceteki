@@ -1,6 +1,6 @@
 import type { IOngoingEffectGenerator, WhenType } from '../../Interfaces';
 import type { AbilityContext } from '../ability/AbilityContext';
-import type PlayerOrCardAbility from '../ability/PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../ability/PlayerOrCardAbility';
 import type { Duration } from '../Constants';
 import { type IGameSystemProperties } from './GameSystem';
 

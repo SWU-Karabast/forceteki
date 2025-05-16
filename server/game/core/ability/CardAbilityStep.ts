@@ -1,18 +1,26 @@
-const { AbilityContext } = require('./AbilityContext.js');
-const PlayerOrCardAbility = require('./PlayerOrCardAbility.js');
-const { Stage, AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck } = require('../Constants.js');
-const AttackHelper = require('../attack/AttackHelpers.js');
-const Helpers = require('../utils/Helpers.js');
-const Contract = require('../utils/Contract.js');
-const { TriggerHandlingMode } = require('../event/EventWindow.js');
+import { PlayerOrCardAbility } from './PlayerOrCardAbility.js';
+import { AbilityType, RelativePlayer, WildcardRelativePlayer, SubStepCheck } from '../Constants.js';
+import * as AttackHelper from '../attack/AttackHelpers.js';
+import * as Helpers from '../utils/Helpers.js';
+import * as Contract from '../utils/Contract.js';
+import { TriggerHandlingMode } from '../event/EventWindow.js';
+import type Game from '../Game.js';
+import type { Card } from '../card/Card.js';
+import type { GameSystem } from '../gameSystem/GameSystem.js';
+import type { GameEvent } from '../event/GameEvent.js';
+import type { Player } from '../Player.js';
+import type { AbilityContext } from './AbilityContext.js';
 
 /**
  * Represents one step from a card's text ability. Checks are simpler than for a
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
-class CardAbilityStep extends PlayerOrCardAbility {
-    /** @param {import('../card/Card').Card} card - The card this ability is attached to */
-    constructor(game, card, properties, type = AbilityType.Action) {
+export class CardAbilityStep extends PlayerOrCardAbility {
+    protected cannotTargetFirst: boolean;
+
+    private handler: (context: AbilityContext) => void;
+
+    public constructor(game: Game, card: Card, properties, type = AbilityType.Action) {
         Contract.assertFalse(
             properties.targetResolvers != null && properties.initiateAttack != null,
             'Cannot create ability with targetResolvers and initiateAttack properties'
@@ -27,14 +35,12 @@ class CardAbilityStep extends PlayerOrCardAbility {
         this.cannotTargetFirst = false;
     }
 
-    /** @override */
-    executeHandler(context) {
+    public override executeHandler(context: AbilityContext) {
         this.handler(context);
         this.game.queueSimpleStep(() => this.game.resolveGameState(), 'resolveState');
     }
 
-    /** @override */
-    hasAnyLegalEffects(context, includeSubSteps = SubStepCheck.None) {
+    public override hasAnyLegalEffects(context: AbilityContext, includeSubSteps = SubStepCheck.None) {
         if (this.immediateEffect && this.checkGameActionsForPotential(context)) {
             return true;
         }
@@ -51,8 +57,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return false;
     }
 
-    /** @override */
-    meetsRequirements(context, ignoredRequirements = [], thisStepOnly = false) {
+    public override meetsRequirements(context: AbilityContext, ignoredRequirements: string[] = [], thisStepOnly = false) {
         // if there is an ifYouDoNot clause, then lack of game state change just means we go down the "if you do not" path
         // (unless thisStepOnly is true, in which case we ignore sub-steps)
         if (this.properties.ifYouDoNot && !thisStepOnly) {
@@ -62,8 +67,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
     }
 
-    /** @override */
-    checkGameActionsForPotential(context) {
+    public override checkGameActionsForPotential(context: AbilityContext) {
         if (super.checkGameActionsForPotential(context)) {
             return true;
         } else if (this.immediateEffect.isOptional(context) && this.properties.then) {
@@ -75,26 +79,27 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return false;
     }
 
-    /** @override */
-    displayMessage(context) {
-        let message = this.properties.message;
-        if (typeof message === 'function') {
-            message = message(context);
-        }
-        if (message) {
-            let messageArgs = [context.player, context.source, context.target];
-            if (this.properties.messageArgs) {
-                let args = this.properties.messageArgs;
-                if (typeof args === 'function') {
-                    args = args(context);
-                }
-                messageArgs = messageArgs.concat(args);
+    public override displayMessage(context: AbilityContext) {
+        if ('message' in this.properties) {
+            let message = this.properties.message;
+            if (typeof message === 'function') {
+                message = message(context);
             }
-            this.game.addMessage(message, ...messageArgs);
+            if (message) {
+                let messageArgs = [context.player, context.source, context.target];
+                if ('messageArgs' in this.properties && this.properties.messageArgs) {
+                    let args = this.properties.messageArgs;
+                    if (typeof args === 'function') {
+                        args = args(context);
+                    }
+                    messageArgs = messageArgs.concat(args);
+                }
+                this.game.addMessage(message, ...messageArgs);
+            }
         }
     }
 
-    getGameSystems(context) {
+    protected getGameSystems(context: AbilityContext): GameSystem[] {
         // if we are using target resolvers, get the legal system(s) and return them
         if (this.targetResolvers.length > 0) {
             return this.targetResolvers.reduce((array, target) => array.concat(target.getGameSystems(context)), []);
@@ -104,15 +109,15 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return Helpers.asArray(this.immediateEffect);
     }
 
-    executeGameActions(context) {
+    private executeGameActions(context: AbilityContext) {
         context.events = [];
 
         this.queueEventsForSystems(context);
 
         this.game.queueSimpleStep(() => {
-            let eventsToResolve = context.events.filter((event) => event.canResolve);
+            const eventsToResolve = context.events.filter((event) => event.canResolve);
             if (eventsToResolve.length > 0) {
-                let window = this.openEventWindow(eventsToResolve);
+                const window = this.openEventWindow(eventsToResolve);
                 window.setSubAbilityStep(() => this.getSubAbilityStepContext(context, eventsToResolve));
                 // if no events for the current step, skip directly to the "then" step (if any)
             } else {
@@ -124,7 +129,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         }, `resolve events for ${this}`);
     }
 
-    queueEventsForSystems(context) {
+    public queueEventsForSystems(context: AbilityContext) {
         const systems = this.getGameSystems(context);
 
         for (const system of systems) {
@@ -135,12 +140,12 @@ class CardAbilityStep extends PlayerOrCardAbility {
         }
     }
 
-    openEventWindow(events) {
+    private openEventWindow(events: GameEvent[]) {
         return this.game.openEventWindow(events);
     }
 
     /** "Sub-ability-steps" are subsequent steps after the initial ability effect, such as "then" or "if you do" */
-    getSubAbilityStepContext(context, resolvedAbilityEvents = []) {
+    private getSubAbilityStepContext(context: AbilityContext, resolvedAbilityEvents: GameEvent[] = []) {
         if (this.properties.then) {
             const then = this.getConcreteSubAbilityStepProperties(this.properties.then, context);
             const canBeTriggeredBy = this.getCanBeTriggeredBy(then, context);
@@ -189,22 +194,22 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return null;
     }
 
-    getConcreteSubAbilityStepProperties(subAbilityStep, context) {
+    private getConcreteSubAbilityStepProperties(subAbilityStep, context: AbilityContext) {
         const properties = typeof subAbilityStep === 'function' ? subAbilityStep(context) : subAbilityStep;
 
         // sub-steps will always pass to a parent window
         return { ...properties, triggerHandlingMode: TriggerHandlingMode.PassesTriggersToParentWindow };
     }
 
-    buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy) {
+    private buildSubAbilityStepContext(subAbilityStepProps, canBeTriggeredBy: Player) {
         return this.buildSubAbilityStep(subAbilityStepProps).createContext(canBeTriggeredBy);
     }
 
-    buildSubAbilityStep(subAbilityStepProps) {
+    private buildSubAbilityStep(subAbilityStepProps) {
         return new CardAbilityStep(this.game, this.card, subAbilityStepProps, this.type);
     }
 
-    getCanBeTriggeredBy(subAbilityStep, context) {
+    private getCanBeTriggeredBy(subAbilityStep, context: AbilityContext) {
         Contract.assertFalse(subAbilityStep.canBeTriggeredBy === WildcardRelativePlayer.Any, 'Cannot use WildcardRelativePlayer.Any in a then/ifYouDo');
         if (subAbilityStep.canBeTriggeredBy) {
             return subAbilityStep.canBeTriggeredBy === RelativePlayer.Self ? context.player : context.player.opponent;
@@ -213,10 +218,7 @@ class CardAbilityStep extends PlayerOrCardAbility {
         return context.player;
     }
 
-    /** @override */
-    isCardAbility() {
+    public override isCardAbility(): this is CardAbilityStep {
         return true;
     }
 }
-
-module.exports = CardAbilityStep;
