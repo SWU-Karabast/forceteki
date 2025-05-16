@@ -9,7 +9,6 @@ import type Game from '../Game';
 import type { TriggeredAbilityWindow } from '../gameSteps/abilityWindow/TriggeredAbilityWindow';
 import * as Contract from '../utils/Contract';
 import type { ITriggeredAbilityTargetResolver } from '../../TargetInterfaces';
-import type { ICardWithTriggeredAbilities } from '../card/propertyMixins/TriggeredAbilityRegistration';
 
 interface IEventRegistration {
     name: string;
@@ -190,7 +189,7 @@ export default class TriggeredAbility extends CardAbility {
         return this.immediateEffect.hasLegalTarget(context, {}, this.mustChangeGameState);
     }
 
-    public override buildTargetResolver(name: string, properties: ITriggeredAbilityTargetResolver) {
+    protected override buildTargetResolver(name: string, properties: ITriggeredAbilityTargetResolver) {
         const propsMustChangeGameState = { mustChangeGameState: this.mustChangeGameState, ...properties };
 
         return super.buildTargetResolver(name, propsMustChangeGameState);
@@ -241,7 +240,8 @@ export default class TriggeredAbility extends CardAbility {
         for (const player of this.game.getPlayers()) {
             const context = this.createContext(player, events);
             if (
-                (this.card as ICardWithTriggeredAbilities).getTriggeredAbilities().includes(this) &&
+                this.card.canRegisterTriggeredAbilities() &&
+                this.card.getTriggeredAbilities().includes(this) &&
                 this.aggregateWhen(events, context) &&
                 this.meetsRequirements(context) === ''
             ) {

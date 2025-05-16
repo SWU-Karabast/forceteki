@@ -5,7 +5,7 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import type { IAlternatePlayActionProperties, IPlayCardActionProperties, IPlayCardActionPropertiesBase, PlayCardAction } from '../../ability/PlayCardAction';
-import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';

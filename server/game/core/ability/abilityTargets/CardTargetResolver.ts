@@ -1,6 +1,6 @@
 import type { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetInterfaces';
 import type { AbilityContext } from '../AbilityContext';
-import type PlayerOrCardAbility from '../PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import type { Card } from '../../card/Card';

@@ -2,6 +2,7 @@ import type { AbilityContext } from '../ability/AbilityContext';
 import type { ICost, ICostResult } from './ICost';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { GameEvent } from '../event/GameEvent';
+import type { ResourceCost } from '../../costs/ResourceCost';
 
 /**
  * Class that wraps a {@link GameSystem} so it can be represented as an action cost
@@ -15,6 +16,10 @@ export class GameSystemCost<TContext extends AbilityContext = AbilityContext> im
     public constructor(gameSystem: GameSystem<TContext>, ifPossible: boolean = false) {
         this.gameSystem = gameSystem;
         this.ifPossible = ifPossible;
+    }
+
+    public isResourceCost(): this is ResourceCost {
+        return false;
     }
 
     public getActionName(context: TContext): string {
