@@ -17,14 +17,12 @@ export default class MalevolenceGrievoussSecretWeapon extends NonLeaderUnitCard 
                 controller: RelativePlayer.Opponent,
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: WildcardZoneName.AnyArena,
-                immediateEffect: AbilityHelper.immediateEffects.simultaneous([
-                    AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 })
-                    }),
-                    AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        effect: AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.Attack)
-                    })
-                ])
+                immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                    effect: [
+                        AbilityHelper.ongoingEffects.modifyStats({ power: -4, hp: 0 }),
+                        AbilityHelper.ongoingEffects.cardCannot(AbilityRestriction.Attack),
+                    ]
+                })
             }
         });
     }
