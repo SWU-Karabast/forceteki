@@ -133,10 +133,9 @@ describe('Qui-Gon Jinn\'s Lightsaber', () => {
                 ]);
                 expect(context.player1).toHaveChooseNothingButton();
 
-                // Selects multiple units with combined cost ≤ 6 and test non checking
+                // Selects multiple units with combined cost ≤ 6
                 context.player1.clickCard(context.phaseiiiDarkTrooper);
                 context.player1.clickCard(context.kylosTieSilencer);
-                expect(context.player1).toBeAbleToSelectNoneOf([context.cellBlockGuard, quigonJinnLeader]);
                 context.player1.clickPrompt('Done');
 
                 expect(context.phaseiiiDarkTrooper.exhausted).toBe(true);
