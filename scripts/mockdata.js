@@ -404,14 +404,23 @@ function buildMockCard(cardData) {
         textElements.push('mock ability text');
     }
 
+    const abilityText = textElements.join('\n');
+    let deployBox = null;
+    let text = '';
+    if (cardData.types.includes('leader')) {
+        deployBox = abilityText;
+    } else {
+        text = abilityText;
+    }
+
     return {
         title: cardData.title,
         subtitle: cardData.subtitle || '',
         cost: cardData.cost || null,
         hp: cardData.hp || null,
         power: cardData.power || null,
-        text: textElements.join('\n'),
-        deployBox: null,
+        text,
+        deployBox,
         epicAction: '',
         unique: cardData.unique,
         rules: null,
