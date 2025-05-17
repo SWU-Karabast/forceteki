@@ -27,11 +27,15 @@ export default class LuminousBeings extends EventCard {
                     })
                 },
                 units: {
+                    dependsOn: 'discard',
                     mode: TargetMode.UpToVariable,
                     numCardsFunc: (context) => context.targets.discard.length,
                     cardTypeFilter: WildcardCardType.Unit,
-                    immediateEffect: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
-                        effect: AbilityHelper.ongoingEffects.modifyStats({ power: 4, hp: 4 })
+                    immediateEffect: AbilityHelper.immediateEffects.conditional({
+                        condition: (context) => context.targets.discard.length > 0,
+                        onTrue: AbilityHelper.immediateEffects.forThisPhaseCardEffect({
+                            effect: AbilityHelper.ongoingEffects.modifyStats({ power: 4, hp: 4 })
+                        })
                     })
                 }
             }

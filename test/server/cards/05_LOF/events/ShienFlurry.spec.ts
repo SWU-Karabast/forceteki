@@ -5,9 +5,10 @@ describe('Shien Flurry', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['shien-flurry', 'obiwan-kenobi#following-fate', 'atst'],
+                        hand: ['shien-flurry', 'obiwan-kenobi#following-fate', 'luke-skywalker#jedi-knight', 'atst'],
                         leader: 'kanan-jarrus#help-us-survive',
-                        base: 'administrators-tower'
+                        base: 'administrators-tower',
+                        resources: 7,
                     },
                     player2: {
                         groundArena: ['wampa', 'battlefield-marine', 'cantina-braggart'],
@@ -85,6 +86,23 @@ describe('Shien Flurry', function() {
 
                 expect(context.obiwanKenobi.damage).toBe(4);
             });
+        });
+
+        it('Shien Flurry\'s ability should allow playing a Force unit from hand, give it Ambush, and prevent 2 damage the next time it would be dealt damage (move to next phase)', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['shien-flurry', 'atst'],
+                    base: 'administrators-tower',
+                },
+            });
+
+            const { context } = contextRef;
+            const { player1, player2 } = context;
+
+            player1.clickCard(context.shienFlurry);
+            expect(player2).toBeActivePlayer();
+            expect(player1.exhaustedResourceCount).toBe(1);
         });
     });
 });
