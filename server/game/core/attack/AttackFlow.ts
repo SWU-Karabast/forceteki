@@ -50,8 +50,15 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private dealDamage(): void {
-        if (!this.attack.isAttackerInPlay()) {
-            this.context.game.addMessage('The attack does not resolve because the attacker is no longer in play');
+        if (!this.attack.isAttackerLegal()) {
+            this.context.game.addMessage('The attack does not resolve because the attacker is no longer valid');
+            return;
+        }
+
+        const legalTargets = this.attack.getLegalTargets();
+
+        if (legalTargets.length === 0) {
+            this.context.game.addMessage('The attack does not resolve because there is no longer a legal target');
             return;
         }
 
@@ -59,7 +66,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         let directOverwhelmDamage = 0;
 
         // Handle any targets that left play
-        for (const target of this.attack.getAllTargets()) {
+        for (const target of legalTargets) {
             if (target.isBase() || target.isInPlay()) {
                 // Do nothing - normal attacks
                 inPlayTargets.push(target);
@@ -72,7 +79,7 @@ export class AttackFlow extends BaseStepWithPipeline {
         const damageEvents = [];
 
         // TSTODO: This will need to be updated to account for attacking units owned by different opponents
-        const targetControllerBase = this.attack.getAllTargets()[0].controller.base;
+        const targetControllerBase = legalTargets[0].controller.base;
 
         if (directOverwhelmDamage > 0) {
             damageEvents.push(new DamageSystem({
@@ -92,7 +99,7 @@ export class AttackFlow extends BaseStepWithPipeline {
             if (attackerDealsDamageBeforeDefender) {
                 this.context.game.openEventWindow(damageEvents);
                 this.context.game.queueSimpleStep(() => {
-                    if (this.attack.getAllTargets().some((target) => !target.isBase() && target.isInPlay())) {
+                    if (legalTargets.some((target) => !target.isBase() && target.isInPlay())) {
                         this.context.game.openEventWindow(this.createDefenderDamageEvent());
                     }
                 }, 'check and queue event for defender damage');
