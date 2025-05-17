@@ -148,6 +148,38 @@ describe('Basic attack', function() {
             expect(context.wampa.damage).toBe(0);
             expect(context.p2Base.damage).toBe(4);
         });
+
+        it('When the defender changes controller during the attack, the attack should halt', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['sneak-attack', 'daring-raid', 'specforce-soldier'],
+                    groundArena: ['poe-dameron#quick-to-improvise', 'battlefield-marine'],
+                },
+                player2: {
+                    hand: ['traitorous'],
+                    hasInitiative: true,
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.traitorous);
+            context.player2.clickCard(context.battlefieldMarine);
+
+            context.player1.clickCard(context.poeDameron);
+            context.player1.clickCard(context.battlefieldMarine);
+
+            // Discard selection for Poe ability
+            context.player1.clickCard(context.sneakAttack);
+            context.player1.clickPrompt('Done');
+
+            context.player1.clickPrompt('Defeat an upgrade.');
+            context.player1.clickCard(context.traitorous);
+
+            expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+            expect(context.poeDameron.damage).toBe(0);
+        });
     });
 });
 

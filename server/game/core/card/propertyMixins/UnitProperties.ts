@@ -425,6 +425,16 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             }
         }
 
+        public override takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource = null) {
+            const changedController = super.takeControl(newController, moveTo);
+
+            if (changedController && this.isInPlay() && this.canHaveActiveAttack() && this.activeAttack) {
+                this.activeAttack.unitChangedController(this);
+            }
+
+            return changedController;
+        }
+
         protected addPilotingConstantAbilityTargetingAttached(properties: Pick<IConstantAbilityProps<this>, 'title' | 'condition' | 'ongoingEffect'>) {
             this.addPilotingAbility({
                 type: AbilityType.Constant,
