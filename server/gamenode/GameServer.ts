@@ -256,6 +256,7 @@ export class GameServer {
                 const { decks } = req.body;
                 const user = req.user as User;
                 // We try to sync the decks first
+                console.log(decks);
                 if (decks.length > 0) {
                     try {
                         await this.deckService.syncDecksAsync(user.getId(), decks);
