@@ -82,19 +82,19 @@ export class Attack {
         return this.attacker.hasOngoingEffect(EffectName.DealsDamageBeforeDefender);
     }
 
-    public isAttackerInPlay(): boolean {
-        return this.attacker.isInPlay();
+    public getLegalTargets(): IAttackableCard[] {
+        if (!this.isAttackerInPlay()) {
+            return [];
+        }
+
+        return this.targets.filter((target) =>
+            target.isBase() ||
+            (target.isInPlay() && target.controller === this.attacker.controller.opponent)
+        );
     }
 
-    public isAttackTargetLegal(): boolean {
-        for (const target of this.targets) {
-            if (target.isBase() || target.isInPlay()) {
-                continue;
-            } else {
-                return false;
-            }
-        }
-        return true;
+    public isAttackerInPlay(): boolean {
+        return this.attacker.isInPlay();
     }
 
     public isInvolved(card: Card): boolean {
