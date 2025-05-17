@@ -50,15 +50,15 @@ export class AttackFlow extends BaseStepWithPipeline {
     }
 
     private dealDamage(): void {
-        if (!this.attack.isAttackerInPlay()) {
-            this.context.game.addMessage('The attack does not resolve because the attacker is no longer in play');
+        if (!this.attack.isAttackerLegal()) {
+            this.context.game.addMessage('The attack does not resolve because the attacker is no longer valid');
             return;
         }
 
         const legalTargets = this.attack.getLegalTargets();
 
         if (legalTargets.length === 0) {
-            this.context.game.addMessage('The attack does not resolve because there are no legal targets');
+            this.context.game.addMessage('The attack does not resolve because there is no longer a legal target');
             return;
         }
 

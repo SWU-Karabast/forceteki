@@ -4,6 +4,7 @@ import * as Contract from '../utils/Contract';
 import { EffectName, KeywordName } from '../Constants';
 import type { IAttackableCard } from '../card/CardInterfaces';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
+import type { Player } from '../Player';
 
 
 type StatisticTotal = number;
@@ -11,9 +12,12 @@ type StatisticTotal = number;
 export class Attack {
     private readonly game: Game;
     public readonly attacker: IUnitCard;
+    public readonly attackingPlayer: Player;
     public readonly attackerInPlayId: number;
     public readonly isAmbush: boolean;
     public readonly targetInPlayMap = new Map<IAttackableCard, number>();
+
+    private unitControllersChanged = new Set<IAttackableCard>();
     private targets: IAttackableCard[];
 
     public previousAttack: Attack;
@@ -26,6 +30,7 @@ export class Attack {
     ) {
         this.game = game;
         this.attacker = attacker;
+        this.attackingPlayer = attacker.controller;
         this.targets = targets;
         this.targetInPlayMap = new Map(targets.filter((target) => target.isUnit()).map((target) => [target, target.inPlayId]));
 
@@ -38,6 +43,14 @@ export class Attack {
 
     public getAttackerTotalPower(): number | null {
         return this.getUnitPower(this.attacker);
+    }
+
+    public unitChangedController(unit: IAttackableCard): void {
+        Contract.assertTrue(
+            unit === this.attacker || this.targets.includes(unit),
+            `Attempting to register attack controller change for unit ${unit.internalName} that is not part of the attack`
+        );
+        this.unitControllersChanged.add(unit);
     }
 
     public getSingleTarget(): IAttackableCard {
@@ -83,18 +96,16 @@ export class Attack {
     }
 
     public getLegalTargets(): IAttackableCard[] {
-        if (!this.isAttackerInPlay()) {
+        if (!this.isAttackerLegal()) {
             return [];
         }
 
-        return this.targets.filter((target) =>
-            target.isBase() ||
-            (target.isInPlay() && target.controller === this.attacker.controller.opponent)
-        );
+        // filter out any defenders that have changed controllers
+        return this.targets.filter((target) => !this.unitControllersChanged.has(target));
     }
 
-    public isAttackerInPlay(): boolean {
-        return this.attacker.isInPlay();
+    public isAttackerLegal(): boolean {
+        return this.attacker.isInPlay() && !this.unitControllersChanged.has(this.attacker);
     }
 
     public isInvolved(card: Card): boolean {

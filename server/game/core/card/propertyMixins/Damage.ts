@@ -127,6 +127,10 @@ export function WithDamage<TBaseClass extends CardConstructor<TState>, TState ex
             this.state.damage = enabledStatus ? 0 : null;
         }
 
+        public canHaveActiveAttack(): boolean {
+            return this.state.attackEnabled;
+        }
+
         public override getSummary(activePlayer: Player) {
             return { ...super.getSummary(activePlayer), damage: this.state.damage };
         }
