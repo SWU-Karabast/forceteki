@@ -24,7 +24,7 @@ export default class InfusedBrawler extends NonLeaderUnitCard {
         });
 
         this.addTriggeredAbility({
-            title: 'Defeat an Experience token on it',
+            title: 'Defeat an Experience token on Infused Brawler',
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
             },

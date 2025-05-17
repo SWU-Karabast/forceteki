@@ -12,7 +12,7 @@ export default class NimanStrike extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Attack with a unit, even if it\'s exhausted. That unit can\'t attack bases for this attack.',
+            title: 'Attack with a Force unit, even if it\'s exhausted. It gets +1/+0 and can\'t attack bases for this attack.',
             initiateAttack: {
                 attackerCondition: (attacker) => attacker.hasSomeTrait(Trait.Force),
                 targetCondition: (target) => target.isUnit(),

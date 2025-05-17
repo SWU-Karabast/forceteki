@@ -1,7 +1,7 @@
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import AbilityHelper from '../../../AbilityHelper';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import { Trait, WildcardCardType } from '../../../core/Constants';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class KelleranBeqTheSaberedHand extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,6 @@ export default class KelleranBeqTheSaberedHand extends NonLeaderUnitCard {
             title: 'Search the top 7 cards of your deck for a unit, reveal it, and play it. It costs 3 resources less',
             immediateEffect: AbilityHelper.immediateEffects.deckSearch({
                 searchCount: 7,
-                cardCondition: (card) => card.isUnit() && card.hasSomeTrait(Trait.Force),
                 selectedCardsImmediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 },
                     playAsType: WildcardCardType.Unit
