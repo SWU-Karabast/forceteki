@@ -15,9 +15,8 @@ export interface IGameSystemProperties {
     target?: PlayerOrCard | PlayerOrCard[];
     cannotBeCancelled?: boolean;
 
-    /** @deprecated TODO: evaluate whether to remove this */
     optional?: boolean;
-    parentSystem?: GameSystem;
+    title?: string;
     isCost?: boolean;
 
     /** If this system is for a contingent event, provide the source event it is contingent on */
@@ -212,10 +211,31 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
      * @param additionalProperties Any additional properties to extend the default ones with
      */
     public queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<TProperties> = {}): void {
-        for (const target of this.targets(context, additionalProperties)) {
-            if (this.canAffect(target, context, additionalProperties)) {
-                events.push(this.generateRetargetedEvent(target, context, additionalProperties));
+        const queueGenerateEventGameStepsFn = () => {
+            for (const target of this.targets(context, additionalProperties)) {
+                if (this.canAffect(target, context, additionalProperties)) {
+                    events.push(this.generateRetargetedEvent(target, context, additionalProperties));
+                }
             }
+        };
+
+        if (this.isOptional(context, additionalProperties)) {
+            const properties = this.generatePropertiesFromContext(context, additionalProperties);
+            Contract.assertNotNullLike(properties.title, 'An optional system must have a title');
+
+            context.game.promptWithHandlerMenu(context.player, {
+                activePromptTitle: `Trigger the ability '${properties.title}' or pass`,
+                choices: ['Trigger', 'Pass'],
+                handlers: [
+                    () => {
+                        context.game.queueSimpleStep(queueGenerateEventGameStepsFn, `queue generate event game steps for ${this.name}`);
+                    },
+                    // eslint-disable-next-line @typescript-eslint/no-empty-function
+                    () => {},
+                ],
+            });
+        } else {
+            queueGenerateEventGameStepsFn();
         }
     }
 
