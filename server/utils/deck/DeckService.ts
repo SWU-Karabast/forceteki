@@ -53,14 +53,13 @@ export class DeckService {
             // if we create a map it will be faster to lookup.
             const existingDeckLinks = new Map();
             for (const deck of existingDecks) {
-                if (deck.deck.deckLinkID) {
-                    existingDeckLinks.set(deck.deck.deckLinkID, deck);
+                if (deck.deck.deckLink) {
+                    existingDeckLinks.set(deck.deck.deckLink, deck);
                 }
             }
-
             for (const unsyncedDeck of unsyncedDecks) {
                 // skip if deck link already exists
-                if (unsyncedDeck.deckLinkID && existingDeckLinks.has(unsyncedDeck.deckLinkID)) {
+                if (unsyncedDeck.deckLink && existingDeckLinks.has(unsyncedDeck.deckLink)) {
                     continue;
                 }
 
