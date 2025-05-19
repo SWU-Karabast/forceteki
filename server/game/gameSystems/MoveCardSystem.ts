@@ -78,10 +78,20 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
         let destination: FormatMessage = { format: 'their {0}', args: [properties.destination] };
         if (properties.destination === ZoneName.Hand || EnumHelpers.isDeckMoveZone(properties.destination)) {
             if (new Set(Helpers.asArray(properties.target).map((card) => card.owner)).size === 1) {
+                const getDestination = (owner: string | FormatMessage): FormatMessage => {
+                    if (EnumHelpers.isDeckMoveZone(properties.destination)) {
+                        if (properties.shuffle) {
+                            return { format: '{0} deck', args: [owner] };
+                        }
+                        return { format: 'the {0} of {1} deck', args: [properties.destination === DeckZoneDestination.DeckBottom ? 'bottom' : 'top', owner] };
+                    }
+                    return { format: '{0} {1}', args: [owner, properties.destination] };
+                };
+
                 if (Helpers.asArray(properties.target)[0].owner === context.player) {
-                    destination = { format: 'their {0}', args: [properties.destination] };
+                    destination = getDestination('their');
                 } else {
-                    destination = { format: '{0}\'s {1}', args: [Helpers.asArray(properties.target)[0].owner, properties.destination] };
+                    destination = getDestination({ format: '{0}\'s', args: [Helpers.asArray(properties.target)[0].owner] });
                 }
             } else {
                 destination = { format: 'their owner {0}', args: [properties.destination] };
