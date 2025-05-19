@@ -459,6 +459,59 @@ const mockCards = [
         arena: 'ground',
         internalName: 'yaddle#a-chance-to-make-things-right'
     }),
+    buildMockCard({
+        title: 'Yaddle, A Chance to Make Things Right',
+        cost: 2,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 45
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'yaddle#a-chance-to-make-things-right'
+    }),
+    buildMockCard({
+        title: 'Drengir Spawn',
+        cost: 4,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'villainy'],
+        keywords: ['overwhelm'],
+        types: ['unit'],
+        traits: ['creature'],
+        setId: {
+            set: 'LOF',
+            number: 86
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'drengir-spawn'
+    }),
+    buildMockCard({
+        title: 'The Legacy Run, Doomed Debris',
+        cost: 5,
+        power: 3,
+        hp: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['unit'],
+        traits: ['republic', 'vehicle', 'transport'],
+        setId: {
+            set: 'LOF',
+            number: 213
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'the-legacy-run#doomed-debris'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
