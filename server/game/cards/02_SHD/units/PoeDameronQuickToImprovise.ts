@@ -31,8 +31,6 @@ export default class PoeDameronQuickToImprovise extends NonLeaderUnitCard {
                         }),
                         ['Defeat an upgrade.']: AbilityHelper.immediateEffects.selectCard({
                             cardTypeFilter: WildcardCardType.Upgrade,
-                            mode: TargetMode.UpTo,
-                            numCards: 1,
                             innerSystem: AbilityHelper.immediateEffects.defeat(),
                         }),
                         ['An opponent discards a card from their hand.']: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({

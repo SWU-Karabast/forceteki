@@ -5,7 +5,7 @@ import type { AbilityContext } from '../../ability/AbilityContext';
 import * as KeywordHelpers from '../../ability/KeywordHelpers';
 import { KeywordWithNumericValue } from '../../ability/KeywordInstance';
 import type { IAlternatePlayActionProperties, IPlayCardActionProperties, IPlayCardActionPropertiesBase, PlayCardAction } from '../../ability/PlayCardAction';
-import type PlayerOrCardAbility from '../../ability/PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from '../../ability/PlayerOrCardAbility';
 import type { Aspect } from '../../Constants';
 import { CardType, EffectName, KeywordName, PlayType, WildcardRelativePlayer, WildcardZoneName, ZoneName } from '../../Constants';
 import type { ICostAdjusterProperties, IIgnoreAllAspectsCostAdjusterProperties, IIgnoreSpecificAspectsCostAdjusterProperties, IIncreaseOrDecreaseCostAdjusterProperties } from '../../cost/CostAdjuster';
@@ -248,10 +248,12 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
      * controller's resource zone.
      *
      * If `newController` is the same as the current controller, nothing happens.
+     *
+     * @returns true if the controller was changed, false if it was the same
      */
-    public takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource = null) {
+    public takeControl(newController: Player, moveTo: ZoneName.SpaceArena | ZoneName.GroundArena | ZoneName.Resource = null): boolean {
         if (newController === this.controller) {
-            return;
+            return false;
         }
 
         this.controller = newController;
@@ -284,6 +286,8 @@ export class PlayableOrDeployableCard<T extends IPlayableOrDeployableCardState =
                 }
             }
         }
+
+        return true;
     }
 
     /** Create constant ability props on the card that decreases its cost under the given condition */

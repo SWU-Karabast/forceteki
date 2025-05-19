@@ -13,7 +13,7 @@ describe('Acolyte Of The Beyond', function() {
                 });
             });
 
-            it('should create a Force token when played', function () {
+            it('should create a Force token on attack', function () {
                 const { context } = contextRef;
 
                 expect(context.player1.hasTheForce).toBe(false);

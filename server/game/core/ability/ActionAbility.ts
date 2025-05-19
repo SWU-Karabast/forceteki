@@ -29,7 +29,6 @@ import type Game from '../Game.js';
  */
 export class ActionAbility extends CardAbility {
     protected anyPlayer: boolean;
-    protected doesNotTarget: boolean;
     protected phase: string;
 
     public readonly condition?: (context?: AbilityContext) => boolean;
@@ -39,7 +38,6 @@ export class ActionAbility extends CardAbility {
 
         this.phase = properties.phase ?? PhaseName.Action;
         this.condition = properties.condition;
-        this.doesNotTarget = (properties as any).doesNotTarget;
 
         if (!card.canRegisterActionAbilities()) {
             throw Error(`Card '${card.internalName}' cannot have action abilities`);

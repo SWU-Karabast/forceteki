@@ -1,4 +1,4 @@
-import type PlayerOrCardAbility from './PlayerOrCardAbility';
+import type { PlayerOrCardAbility } from './PlayerOrCardAbility';
 import type { Aspect, PlayType } from '../Constants';
 import { Stage } from '../Constants';
 import { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';

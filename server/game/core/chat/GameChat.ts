@@ -1,6 +1,7 @@
+import type { GameObject } from '../GameObject';
 import * as ChatHelpers from './ChatHelpers';
 
-type MsgArg = string | string[] | FormatMessage | FormatMessage[] | { name: string } | { getShortSummary: () => string };
+type MsgArg = string | string[] | FormatMessage | FormatMessage[] | GameObject | GameObject[] | { name: string } | { getShortSummary: () => string };
 export interface FormatMessage {
     format: string;
     args: MsgArg[];

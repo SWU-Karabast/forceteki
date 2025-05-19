@@ -56,7 +56,7 @@ class FirstLightSmuggleAction extends PlayUnitAction {
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {
         return new FirstLightSmuggleAction(
-            this.card,
+            this.card as FirstLightHeadquartersOfTheCrimsonDawn,
             FirstLightSmuggleAction.generateProperties({
                 ...this.createdWithProperties,
                 ...overrideProperties

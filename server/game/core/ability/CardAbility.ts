@@ -1,7 +1,6 @@
 import type { ZoneFilter } from '../Constants';
 import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
 import * as Contract from '../utils/Contract';
-import CardAbilityStep from './CardAbilityStep';
 import * as AbilityLimit from './AbilityLimit';
 import * as Helpers from '../utils/Helpers';
 import * as EnumHelpers from '../utils/EnumHelpers';
@@ -10,6 +9,8 @@ import type Game from '../Game';
 import type { FormatMessage } from '../chat/GameChat';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import * as ChatHelpers from '../chat/ChatHelpers';
+import { CardAbilityStep } from './CardAbilityStep';
+import type { AbilityContext } from './AbilityContext';
 
 export abstract class CardAbility extends CardAbilityStep {
     public readonly abilityIdentifier: string;
@@ -24,7 +25,6 @@ export abstract class CardAbility extends CardAbilityStep {
         this.limit.registerEvents(game);
         this.limit.ability = this;
 
-        this.title = properties.title;
         this.printedAbility = properties.printedAbility ?? true;
         this.zoneFilter = this.zoneOrDefault(card, properties.zoneFilter);
         this.cannotTargetFirst = !!properties.cannotTargetFirst;
@@ -94,8 +94,8 @@ export abstract class CardAbility extends CardAbilityStep {
         return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
     }
 
-    public getAdjustedCost(context) {
-        const resourceCost = this.getCosts(context).find((cost) => cost.getAdjustedCost);
+    public getAdjustedCost(context: AbilityContext) {
+        const resourceCost = this.getCosts(context).find((cost) => cost.isResourceCost());
         return resourceCost ? resourceCost.getAdjustedCost(context) : 0;
     }
 
@@ -118,15 +118,15 @@ export abstract class CardAbility extends CardAbilityStep {
     }
 
     public override displayMessage(context, messageVerb = context.source.isEvent() ? 'plays' : 'uses') {
-        if (this.properties.message) {
-            let messageArgs = this.properties.messageArgs;
+        if ('message' in this.properties && this.properties.message) {
+            let messageArgs = 'messageArgs' in this.properties ? this.properties.messageArgs : [];
             if (typeof messageArgs === 'function') {
                 messageArgs = messageArgs(context);
             }
             if (!Array.isArray(messageArgs)) {
                 messageArgs = [messageArgs];
             }
-            this.game.addMessage(this.properties.message, ...messageArgs);
+            this.game.addMessage(this.properties.message, ...(messageArgs as any[]));
             return;
         }
 
@@ -141,7 +141,7 @@ export abstract class CardAbility extends CardAbilityStep {
                     if (card && card.isFacedown && card.isFacedown()) {
                         card = 'a facedown card';
                     }
-                    let [format, args] = ['ERROR - MISSING COST MESSAGE', [' ', ' ']];
+                    let [format, args]: [string, any[]] = ['ERROR - MISSING COST MESSAGE', [' ', ' ']];
                     [format, args] = cost.getCostMessage(context);
                     const message = this.game.gameChat.formatMessage(format, [card].concat(args));
                     if (Helpers.asArray(message).every((msg) => msg.length === 0)) {

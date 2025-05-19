@@ -56,8 +56,6 @@ describe('Poe Demaron Quick to improvise\'s ability', function () {
             expect(context.player1).toBeAbleToSelectExactly([context.academyTraining, context.resilient]);
 
             context.player1.clickCard(context.resilient);
-            context.player1.clickCardNonChecking(context.academyTraining);
-            context.player1.clickPrompt('Done');
 
             expect(context.academyTraining).toBeInZone('groundArena');
             expect(context.deathStarStormtrooper).toBeInZone('groundArena');

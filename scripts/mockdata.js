@@ -340,18 +340,149 @@ const mockCards = [
         cost: 1,
         unique: false,
         internalName: 'directed-by-the-force',
-    })
+    }),
+    buildMockCard({
+        title: 'Shien Flurry',
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'LOF',
+            number: 220
+        },
+        cost: 1,
+        unique: false,
+        internalName: 'shien-flurry',
+    }),
+    buildMockCard({
+        title: 'Kit Fisto\'s Aethersprite, Good Hunting',
+        power: 4,
+        hp: 5,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: ['saboteur'],
+        types: ['unit'],
+        traits: ['jedi', 'republic', 'vehicle', 'fighter'],
+        setId: {
+            set: 'LOF',
+            number: 147
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'kit-fistos-aethersprite#good-hunting'
+    }),
+    buildMockCard({
+        title: 'Kit Fisto, Focused Jedi Master',
+        power: 1,
+        hp: 6,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        types: ['leader'],
+        keywords: ['saboteur'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 11
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'kit-fisto#focused-jedi-master'
+    }),
+    buildMockCard({
+        title: 'Village Tender',
+        cost: 1,
+        power: 1,
+        hp: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        keywords: ['hidden', 'restore 1'],
+        types: ['unit'],
+        traits: ['ewok'],
+        setId: {
+            set: 'LOF',
+            number: 107
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'village-tender'
+    }),
+    buildMockCard({
+        title: 'Adi Gallia, Stern and Focused',
+        cost: 2,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'heroism'],
+        keywords: [],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 142
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'adi-gallia#stern-and-focused'
+    }),
+    buildMockCard({
+        title: 'Niman Strike',
+        hasNonKeywordAbility: true,
+        cost: 1,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['learned'],
+        setId: {
+            set: 'LOF',
+            number: 124
+        },
+        unique: false,
+        internalName: 'niman-strike',
+    }),
+    buildMockCard({
+        title: 'Yaddle, A Chance to Make Things Right',
+        cost: 2,
+        power: 2,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        keywords: ['restore 1'],
+        types: ['unit'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 45
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'yaddle#a-chance-to-make-things-right'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
 function buildMockCard(cardData) {
     let textElements = [];
+    let keywords = [];
     if (cardData.keywords) {
         const capitalizedKeywords = cardData.keywords?.map((keyword) => keyword.charAt(0).toUpperCase() + keyword.slice(1));
         textElements.push(...capitalizedKeywords);
+
+        // grab the first token for cases like "restore 1"
+        keywords.push(...cardData.keywords.map((keyword) => keyword.split(' ')[0]));
     }
     if (cardData.hasNonKeywordAbility) {
         textElements.push('mock ability text');
+    }
+
+    const abilityText = textElements.join('\n');
+    let deployBox = null;
+    let text = '';
+    if (cardData.types.includes('leader')) {
+        deployBox = abilityText;
+    } else {
+        text = abilityText;
     }
 
     return {
@@ -360,8 +491,8 @@ function buildMockCard(cardData) {
         cost: cardData.cost || null,
         hp: cardData.hp || null,
         power: cardData.power || null,
-        text: textElements.join('\n'),
-        deployBox: null,
+        text,
+        deployBox,
         epicAction: '',
         unique: cardData.unique,
         rules: null,
@@ -373,7 +504,7 @@ function buildMockCard(cardData) {
         id: cardData.internalName + '-id',
         aspects: cardData.aspects || [],
         traits: cardData.traits || [],
-        keywords: cardData.keywords || [],
+        keywords,
         types: cardData.types,
         setId: cardData.setId,
         internalName: cardData.internalName,
