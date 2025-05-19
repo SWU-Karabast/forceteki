@@ -13,6 +13,7 @@ export default class ImpossibleEscape extends EventCard {
     public override setupCardAbilities() {
         this.setEventAbility({
             title: 'Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card',
+            optional: true,
             immediateEffect: AbilityHelper.immediateEffects.conditional({
                 condition: (context) => context.player.hasSomeArenaUnit(),
                 onFalse: AbilityHelper.immediateEffects.useTheForce(),
