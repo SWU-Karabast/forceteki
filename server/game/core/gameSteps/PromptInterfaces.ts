@@ -14,6 +14,15 @@ export enum DisplayCardSelectionState {
     ViewOnly = 'viewOnly'
 }
 
+export enum PromptType {
+    Initiative = 'initiative',
+    Resource = 'resource',
+    ActionWindow = 'actionWindow',
+    DisplayCards = 'displayCards',
+    DistributeAmongTargets = 'distributeAmongTargets',
+    TriggerWindow = 'triggerWindow',
+}
+
 export interface IButton {
     text: string;
     arg: string;
