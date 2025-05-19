@@ -512,6 +512,24 @@ const mockCards = [
         arena: 'space',
         internalName: 'the-legacy-run#doomed-debris'
     }),
+    buildMockCard({
+        title: 'Aurra Sing, Patient and Deadly',
+        cost: 2,
+        power: 1,
+        hp: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        keywords: ['hidden', 'raid 2'],
+        traits: ['underworld', 'bounty-hunter'],
+        setId: {
+            set: 'LOF',
+            number: 179
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'aurra-sing#patient-and-deadly'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
