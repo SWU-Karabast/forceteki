@@ -47,6 +47,7 @@ describe('Cad Bane, Hostage Taker', function() {
             expect(context.wingLeader).toBeCapturedBy(context.cadBane);
             expect(context.battlefieldMarine).toBeCapturedBy(context.cadBane);
             expect(context.deathStarStormtrooper).toBeInZone('groundArena', context.player2);
+            expect(context.getChatLogs(2)).toContain('player1 uses Cad Bane to capture Wampa, Battlefield Marine, and Wing Leader');
 
             // Player 2 passes
             context.player2.passAction();
