@@ -114,10 +114,10 @@ export class MoveCardSystem<TContext extends AbilityContext = AbilityContext> ex
             if (targets.some((target) => EnumHelpers.isHiddenFromOpponent(target.zoneName, RelativePlayer.Self))) {
                 target = ChatHelpers.pluralize(targets.length, 'a card', 'cards');
             }
-            return [`${ChatHelpers.verb(properties, 'move', 'moving')} {0} to the {1} of {2}`, [target, properties.destination === DeckZoneDestination.DeckBottom ? 'bottom' : 'top', destination]];
+            return [`${ChatHelpers.verb(properties, 'move', 'moving')} {0} to {1}`, [target, destination]];
         }
         return [
-            `${ChatHelpers.verb(properties, 'move', 'moving')} {0} to ${properties.destination === DeckZoneDestination.DeckBottom ? 'the bottom of ' : ''}their {1}`,
+            `${ChatHelpers.verb(properties, 'move', 'moving')} {0} to {1}`,
             [properties.target, properties.destination]
         ];
     }
