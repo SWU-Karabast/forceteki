@@ -13,8 +13,6 @@ export default class QuiGonJinnsLightsaber extends UpgradeCard {
     }
 
     public override setupCardAbilities() {
-        const selectedCards: Card[] = [];
-
         this.setAttachCondition((card: Card) => !card.hasSomeTrait(Trait.Vehicle) && card.controller === this.controller);
 
         this.addWhenPlayedAbility({
@@ -25,7 +23,7 @@ export default class QuiGonJinnsLightsaber extends UpgradeCard {
                 onTrue: AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Exhaust any number of units with combined cost 6 or less',
                     mode: TargetMode.Unlimited,
-                    multiSelectCardCondition: (card: Card) => card.isUnit() && this.costSum(selectedCards.concat(card)) <= 6,
+                    multiSelectCardCondition: (card, currentlySelectedCards) => card.isUnit() && this.costSum(currentlySelectedCards.concat(card)) <= 6,
                     canChooseNoCards: true,
                     innerSystem: AbilityHelper.immediateEffects.exhaust()
                 })

@@ -96,11 +96,7 @@ describe('Qui-Gon Jinn\'s Lightsaber', () => {
                 context.player1.clickCard(quigonJinnLeader);
 
                 // Verify only units that keep combined cost ≤ 6 can be selected
-                expect(context.player1).not.toBeAbleToSelectExactly([
-                    context.phaseiiiDarkTrooper,
-                    context.cellBlockGuard,
-                    context.kylosTieSilencer,
-                ]);
+                expect(context.player1).toBeAbleToSelectExactly([quigonJinnLeader]);
                 context.player1.clickPrompt('Done');
 
                 expect(quigonJinnLeader.exhausted).toBe(true);
