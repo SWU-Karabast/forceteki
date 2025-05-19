@@ -31,10 +31,10 @@ export class OptionalSystem<TContext extends AbilityContext = AbilityContext> ex
         return properties.innerSystem.canAffect(target, context, additionalProperties, mustChangeGameState);
     }
 
-    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IOptionalSystemProperties<TContext>> = {}): boolean {
+    public override hasLegalTarget(context: TContext, additionalProperties: Partial<IOptionalSystemProperties<TContext>> = {}, mustChangeGameState = GameStateChangeRequired.None): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
-        return properties.innerSystem.hasLegalTarget(context, additionalProperties);
+        return properties.innerSystem.hasLegalTarget(context, additionalProperties, mustChangeGameState);
     }
 
     public override queueGenerateEventGameSteps(events: GameEvent[], context: TContext, additionalProperties: Partial<IOptionalSystemProperties<TContext>> = {}): void {
@@ -53,8 +53,7 @@ export class OptionalSystem<TContext extends AbilityContext = AbilityContext> ex
                         properties.innerSystem.queueGenerateEventGameSteps(events, context, additionalProperties);
                     }, `queue generate event game steps for ${this.name}`);
                 },
-                // eslint-disable-next-line @typescript-eslint/no-empty-function
-                () => {},
+                () => undefined,
             ],
         });
     }
