@@ -20,8 +20,6 @@ export class OngoingEffectEngine {
     public customDurationEvents: ICustomDurationEvent[] = [];
     public effectsChangedSinceLastCheck = false;
 
-    private static count = 0;
-
     public constructor(private game: Game) {
         this.events = new EventRegistrar(game, this);
         this.events.register([
@@ -41,7 +39,6 @@ export class OngoingEffectEngine {
     }
 
     public checkDelayedEffects(events: GameEvent[]) {
-        console.log(`*** ${OngoingEffectEngine.count} Enter: checkDelayedEffects ***`);
         const effectsToTrigger: OngoingEffect[] = [];
         const effectsToRemove: OngoingEffect[] = [];
 
@@ -57,9 +54,6 @@ export class OngoingEffectEngine {
                 const triggeringEvents = events.filter((event) => properties.when[event.name]);
                 if (triggeringEvents.length > 0) {
                     if (triggeringEvents.some((event) => properties.when[event.name](event, effect.context))) {
-                        const properties = effect.impl.getValue();
-                        console.log(`*** ${OngoingEffectEngine.count} Effect triggered: `, properties.title);
-                        console.log(`*** ${OngoingEffectEngine.count} Triggering event: `, triggeringEvents[0].name);
                         effectsToTrigger.push(effect);
                     }
                 }
@@ -70,11 +64,10 @@ export class OngoingEffectEngine {
             const properties = effect.impl.getValue();
             const context = effect.context.createCopy({ events });
             const targets = effect.targets;
-            const count = OngoingEffectEngine.count;
+
             return {
                 title: context.source.title + '\'s effect' + (targets.length === 1 ? ' on ' + targets[0].name : ''),
                 handler: () => {
-                    console.log(`*** ${count} Enter: trigger handler ***`);
                     const trigger = () => {
                         // TODO Ensure the below line doesn't break anything for a CardTargetSystem delayed effect
                         properties.immediateEffect.setDefaultTargetFn(() => targets);
@@ -93,14 +86,12 @@ export class OngoingEffectEngine {
                     };
 
                     if (effect.optional) {
-                        console.log(`*** ${count} Prompting for optional effect ***`);
                         this.game.promptWithHandlerMenu(context.player, {
                             activePromptTitle: properties.title,
                             source: context.source,
                             choices: ['Trigger', 'Pass'],
                             handlers: [
                                 () => {
-                                    console.log(`*** ${count} Prompt Button pressed: Trigger ***`);
                                     trigger();
                                 },
                                 () => {
@@ -112,7 +103,6 @@ export class OngoingEffectEngine {
                     } else {
                         trigger();
                     }
-                    console.log(`*** ${count} Exit: trigger handler ***`);
                 }
             };
         });
@@ -140,9 +130,6 @@ export class OngoingEffectEngine {
         if (effectsToRemove.length > 0) {
             this.unapplyAndRemove((effect) => effectsToRemove.includes(effect));
         }
-
-        console.log(`*** ${OngoingEffectEngine.count} Exit: checkDelayedEffects ***`);
-        OngoingEffectEngine.count += 1;
     }
 
     public removeLastingEffects(card: OngoingEffectSource) {
