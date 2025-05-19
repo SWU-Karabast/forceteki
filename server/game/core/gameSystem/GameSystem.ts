@@ -17,7 +17,6 @@ export interface IGameSystemProperties {
 
     /** @deprecated TODO: evaluate whether to remove this */
     optional?: boolean;
-    parentSystem?: GameSystem;
     isCost?: boolean;
 
     /** If this system is for a contingent event, provide the source event it is contingent on */
@@ -132,7 +131,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     }
 
     public getCostMessage?(context: TContext): [string, any[]] {
-        return [this.costDescription, []];
+        const { target } = this.generatePropertiesFromContext(context);
+        return [this.costDescription, [target]];
     }
 
     public getEffectMessage(context: TContext, additionalProperties: Partial<TProperties> = {}): [string, any[]] {

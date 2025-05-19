@@ -312,6 +312,7 @@ export enum MetaEventName {
     InitiateAttack = 'initiateAttack',
     GameLost = 'gameLost',
     NoAction = 'noAction',
+    Optional = 'optional',
     PayCardPrintedCost = 'payCardPrintedCost',
     PlayCard = 'playCard',
     ReplacementEffect = 'replacementEffect',

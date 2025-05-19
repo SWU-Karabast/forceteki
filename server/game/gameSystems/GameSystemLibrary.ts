@@ -145,6 +145,7 @@ import type { ICreateForceTokenProperties } from './CreateForceTokenSystem';
 import { CreateForceTokenSystem } from './CreateForceTokenSystem';
 import { UseTheForceSystem } from './UseTheForceSystem';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
+import { OptionalSystem, type IOptionalSystemProperties } from './OptionalSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -426,9 +427,6 @@ export function resourceCard<TContext extends AbilityContext = AbilityContext>(p
 
 /**
  * Returns a card to the player's hand from any arena, discard pile, or resources.
- *
- * @param {PropsFactory<ICardTargetSystemProperties, TContext>} [propertyFactory={}] - A factory function or properties object to create the card target system properties.
- * @returns {CardTargetSystem<TContext>} A new instance of the {@link MoveCardSystem} configured to move a card to the player's hand.
  */
 export function returnToHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IMoveCardProperties, 'destination' | 'shuffle' | 'shuffleMovedCards'>, TContext> = {}) {
     return new MoveCardSystem<TContext>(
@@ -629,6 +627,9 @@ export function replacementEffect<TContext extends TriggeredAbilityContext = Tri
 // TODO: remove the return type from all of these
 export function conditional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IConditionalSystemProperties<TContext>, TContext>) {
     return new ConditionalSystem<TContext>(propertyFactory);
+}
+export function optional<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IOptionalSystemProperties<TContext>, TContext>) {
+    return new OptionalSystem<TContext>(propertyFactory);
 }
 // export function onAffinity(propertyFactory: PropsFactory<AffinityActionProperties>) {
 //     return new AffinityAction(propertyFactory);
