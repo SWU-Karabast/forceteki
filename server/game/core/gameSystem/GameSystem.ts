@@ -131,7 +131,8 @@ export abstract class GameSystem<TContext extends AbilityContext = AbilityContex
     }
 
     public getCostMessage?(context: TContext): [string, any[]] {
-        return [this.costDescription, []];
+        const { target } = this.generatePropertiesFromContext(context);
+        return [this.costDescription, [target]];
     }
 
     public getEffectMessage(context: TContext, additionalProperties: Partial<TProperties> = {}): [string, any[]] {
