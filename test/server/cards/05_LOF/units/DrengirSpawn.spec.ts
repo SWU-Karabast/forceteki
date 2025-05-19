@@ -8,7 +8,7 @@ describe('Drengir Spawn', function() {
                         groundArena: ['drengir-spawn'],
                     },
                     player2: {
-                        groundArena: ['alliance-dispatcher', 'battlefield-marine', 'wilderness-fighter', 'batch-brothers']
+                        groundArena: ['alliance-dispatcher', 'battlefield-marine', 'wilderness-fighter', 'batch-brothers', 'porg']
                     }
                 });
             });
@@ -33,6 +33,17 @@ describe('Drengir Spawn', function() {
 
                 expect(player2).toBeActivePlayer();
                 expect(context.drengirSpawn).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
+            });
+
+            it('should not gain Experience tokens when targeting Porg (cost 0)', function () {
+                const { context } = contextRef;
+                const { player1, player2 } = context;
+
+                player1.clickCard(context.drengirSpawn);
+                player1.clickCard(context.porg);
+
+                expect(player2).toBeActivePlayer();
+                expect(context.drengirSpawn.isUpgraded()).toBeFalse();
             });
 
             it('should not gain Experience tokens when targeting a base (not a unit)', function () {

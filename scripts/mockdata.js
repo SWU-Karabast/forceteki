@@ -460,24 +460,6 @@ const mockCards = [
         internalName: 'yaddle#a-chance-to-make-things-right'
     }),
     buildMockCard({
-        title: 'Yaddle, A Chance to Make Things Right',
-        cost: 2,
-        power: 2,
-        hp: 4,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'heroism'],
-        keywords: ['restore 1'],
-        types: ['unit'],
-        traits: ['force', 'jedi', 'republic'],
-        setId: {
-            set: 'LOF',
-            number: 45
-        },
-        unique: true,
-        arena: 'ground',
-        internalName: 'yaddle#a-chance-to-make-things-right'
-    }),
-    buildMockCard({
         title: 'Drengir Spawn',
         cost: 4,
         power: 3,
@@ -521,7 +503,7 @@ const mockCards = [
         aspects: ['cunning', 'villainy'],
         types: ['unit'],
         keywords: ['hidden', 'raid 2'],
-        traits: ['underworld', 'bounty-hunter'],
+        traits: ['underworld', 'bounty hunter'],
         setId: {
             set: 'LOF',
             number: 179

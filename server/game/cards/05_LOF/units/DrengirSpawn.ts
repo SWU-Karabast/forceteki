@@ -17,12 +17,7 @@ export default class DrengirSpawn extends NonLeaderUnitCard {
                 onCardDefeated: (event, context) =>
                     event.isDefeatedByAttacker && DefeatCardSystem.defeatSourceCard(event) === context.source
             },
-            immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => {
-                return ({
-                    amount: context.event.card.cost,
-                    target: context.source
-                });
-            })
+            immediateEffect: AbilityHelper.immediateEffects.giveExperience((context) => ({ amount: context.event.card.cost }))
         });
     }
 }
