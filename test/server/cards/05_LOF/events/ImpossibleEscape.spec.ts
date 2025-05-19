@@ -109,7 +109,6 @@ describe('Impossible Escape ability', function () {
                         hand: ['impossible-escape'],
                         deck: ['wampa'],
                         groundArena: ['atst'],
-                        hasForceToken: true,
                     },
                 });
 
@@ -119,16 +118,9 @@ describe('Impossible Escape ability', function () {
                 expect(context.player1).toHavePassAbilityPrompt('Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card');
 
                 context.player1.clickPrompt('Trigger');
-                expect(context.player1).toHaveEnabledPromptButtons([
-                    'Use the Force',
-                    'Exhaust a friendly unit',
-                ]);
-
-                context.player1.clickPrompt('Exhaust a friendly unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.atst]);
 
                 context.player1.clickCard(context.atst);
-                expect(context.player1.hasTheForce).toBeTrue();
                 expect(context.atst.exhausted).toBeTrue();
                 expect(context.wampa).toBeInZone('hand', context.player1);
             });
