@@ -73,6 +73,68 @@ describe('Impossible Escape ability', function () {
             expect(context.wampa).toBeInZone('hand', context.player1);
         });
 
+        it('can choose to use the Force to do nothing', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['impossible-escape'],
+                    deck: ['wampa'],
+                    groundArena: ['atst'],
+                    hasForceToken: false,
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.impossibleEscape);
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card');
+
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1).toHaveEnabledPromptButtons([
+                'Use the Force',
+                'Exhaust a friendly unit',
+            ]);
+
+            context.player1.clickPrompt('Use the Force');
+            expect(context.player1.hasTheForce).toBeFalse();
+            expect(context.atst.exhausted).toBeFalse();
+            expect(context.battlefieldMarine.exhausted).toBeFalse();
+            expect(context.wampa).toBeInZone('deck', context.player1);
+        });
+
+        it('can choose to exhaust a friendly unit to do nothing', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['impossible-escape'],
+                    deck: ['wampa'],
+                    hasForceToken: true,
+                },
+                player2: {
+                    groundArena: ['battlefield-marine'],
+                },
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.impossibleEscape);
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust a friendly unit or use the Force. If you do either, exhaust an enemy unit and draw a card');
+
+            context.player1.clickPrompt('Trigger');
+            expect(context.player1).toHaveEnabledPromptButtons([
+                'Use the Force',
+                'Exhaust a friendly unit',
+            ]);
+
+            context.player1.clickPrompt('Exhaust a friendly unit');
+            expect(context.player1.hasTheForce).toBeTrue();
+            expect(context.battlefieldMarine.exhausted).toBeFalse();
+            expect(context.wampa).toBeInZone('deck', context.player1);
+        });
+
         describe('when the opponent has no units', function () {
             it('can use the Force to draw a card', async function () {
                 await contextRef.setupTestAsync({
