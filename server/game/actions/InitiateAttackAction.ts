@@ -19,7 +19,7 @@ interface IInitiateAttackProperties extends IAttackProperties {
  * Calls {@link AttackStepsSystem} to resolve the attack.
  *
  * Default behaviors can be overridden by passing in an {@link IInitiateAttackProperties} object.
- * See {@link GameSystemLibrary.attack} for using it in abilities.
+ * See {@link GameSystemLibrary.initiateAttack} for using it in abilities.
  */
 export class InitiateAttackAction extends PlayerAction {
     public constructor(game: Game, card: Card, private attackProperties?: IInitiateAttackProperties) {
