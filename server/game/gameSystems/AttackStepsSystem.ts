@@ -22,13 +22,15 @@ import * as Contract from '../core/utils/Contract';
 import * as Helpers from '../core/utils/Helpers';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties';
-import type { KeywordNameOrProperties } from '../Interfaces';
+import type { IOngoingCardEffectGenerator, KeywordNameOrProperties } from '../Interfaces';
 import { KeywordInstance } from '../core/ability/KeywordInstance';
 import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/MustAttackProperties';
+import type { OngoingCardEffect } from '../core/ongoingEffect/OngoingCardEffect';
+import type { OngoingPlayerEffect } from '../core/ongoingEffect/OngoingPlayerEffect';
 
 export interface IAttackLastingEffectProperties<TContext extends AbilityContext = AbilityContext> {
     condition?: (attack: Attack, context: TContext) => boolean;
-    effect?: any;
+    effect: IOngoingCardEffectGenerator | IOngoingCardEffectGenerator[];
 }
 
 type IAttackLastingEffectPropertiesOrFactory<TContext extends AbilityContext = AbilityContext> = IAttackLastingEffectProperties<TContext> | ((context: TContext, attack: Attack) => IAttackLastingEffectProperties<TContext>);
@@ -68,7 +70,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     };
 
     public eventHandler(event): void {
-        const context = event.context;
+        const context: TContext = event.context;
         const target = event.target;
         const attacker = event.attacker;
 
@@ -90,11 +92,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         this.registerAttackEffects(context, event.attackerLastingEffects, event.defenderLastingEffects, event.attack);
 
         const attack = event.attack;
-        if (attack.getAllTargets().length === 1) {
-            context.game.addMessage(`${attack.attacker.title} attacks ${attack.getSingleTarget().title}`);
-        } else if (attack.getAllTargets().length === 2) {
-            context.game.addMessage(`${attack.attacker.title} attacks ${attack.getAllTargets()[0].title} and ${attack.getAllTargets()[1].title}`);
-        }
+        context.game.addMessage('{0} attacks {1}', attack.attacker, attack.getAllTargets());
         context.game.queueStep(new AttackFlow(context, attack));
     }
 
@@ -202,7 +200,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
         events.push(event);
     }
 
-    protected override addPropertiesToEvent(event, target, context: TContext, additionalProperties: Partial<IAttackProperties<TContext>>): void {
+    protected override addPropertiesToEvent(event, target: Card, context: TContext, additionalProperties: Partial<IAttackProperties<TContext>>): void {
         super.addPropertiesToEvent(event, target, context, additionalProperties);
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
@@ -300,7 +298,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
                 return false;
             }
 
-            const keywordProps = effect.impl.valueWrapper.value as KeywordNameOrProperties;
+            const keywordProps: KeywordNameOrProperties = effect.impl.getValue(properties.attacker);
             const keyword = typeof keywordProps === 'string' ? keywordProps : keywordProps.keyword;
 
             return keyword === KeywordName.Saboteur;
@@ -312,7 +310,7 @@ export class AttackStepsSystem<TContext extends AbilityContext = AbilityContext>
     }
 
     /** Checks if there are any lasting effects that would give the attacker Saboteur, for the purposes of targeting */
-    private attackerGains(attackTarget: IAttackableCard, context: TContext, additionalProperties?: Partial<IAttackProperties<TContext>>, predicate = (e) => false): boolean {
+    private attackerGains(attackTarget: IAttackableCard, context: TContext, additionalProperties?: Partial<IAttackProperties<TContext>>, predicate: (effect: OngoingCardEffect | OngoingPlayerEffect) => boolean = () => false): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
 
         const attackerLastingEffects = Helpers.asArray(properties.attackerLastingEffects);
