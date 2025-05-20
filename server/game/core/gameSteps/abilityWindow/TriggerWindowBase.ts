@@ -9,6 +9,7 @@ import type { Card } from '../../card/Card';
 import { TriggeredAbilityWindowTitle } from './TriggeredAbilityWindowTitle';
 import { BaseStep } from '../BaseStep';
 import type Game from '../../Game';
+import { PromptType } from '../PromptInterfaces';
 
 export abstract class TriggerWindowBase extends BaseStep {
     /** Triggered effects / abilities that have not yet been resolved, organized by owning player */
@@ -212,8 +213,9 @@ export abstract class TriggerWindowBase extends BaseStep {
         this.game.promptWithHandlerMenu(this.currentlyResolvingPlayer, {
             activePromptTitle: 'Choose an ability to resolve:',
             source: 'Choose Triggered Ability Resolution Order',
-            choices: choices,
-            handlers: handlers
+            choices,
+            handlers,
+            promptType: PromptType.TriggerWindow
         });
 
         // TODO: a variation of this was being used in the L5R code to choose which card to activate triggered abilities on.

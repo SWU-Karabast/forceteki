@@ -1,5 +1,5 @@
 import { UiPrompt } from './prompts/UiPrompt.js';
-import { RelativePlayer, PromptType, EventName, EffectName } from '../Constants.js';
+import { RelativePlayer, EventName, EffectName } from '../Constants.js';
 import * as EnumHelpers from '../utils/EnumHelpers.js';
 import * as Contract from '../utils/Contract.js';
 import type Game from '../Game.js';
@@ -8,7 +8,7 @@ import type { Card } from '../card/Card.js';
 import type { IPlayerPromptStateProperties } from '../PlayerPromptState.js';
 import type AbilityResolver from './AbilityResolver.js';
 import type { AbilityContext } from '../ability/AbilityContext.js';
-import type { IButton } from './PromptInterfaces.js';
+import { PromptType, type IButton } from './PromptInterfaces.js';
 
 export class ActionWindow extends UiPrompt {
     private activePlayer: Player;

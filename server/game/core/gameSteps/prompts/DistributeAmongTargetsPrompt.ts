@@ -4,9 +4,8 @@ import type { Card } from '../../card/Card';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import type { IDistributeAmongTargetsPromptData, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptMapResults, IStatefulPromptResults } from '../PromptInterfaces';
-import { StatefulPromptType } from '../PromptInterfaces';
+import { PromptType, StatefulPromptType } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
-import { PromptType } from '../../Constants';
 
 /**
  * Prompt for distributing healing or damage among target cards.

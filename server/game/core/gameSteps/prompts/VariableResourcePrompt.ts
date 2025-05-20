@@ -3,8 +3,7 @@ import type { Player } from '../../Player';
 import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import { ResourcePrompt } from './ResourcePrompt';
-import { PromptType } from '../../Constants';
-import { SelectCardMode } from '../PromptInterfaces';
+import { PromptType, SelectCardMode } from '../PromptInterfaces';
 
 export class VariableResourcePrompt extends ResourcePrompt {
     private readonly minCardsToResource: number;
@@ -47,4 +46,3 @@ export class VariableResourcePrompt extends ResourcePrompt {
         return false;
     }
 }
-

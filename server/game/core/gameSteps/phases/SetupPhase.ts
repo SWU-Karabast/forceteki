@@ -4,7 +4,8 @@ import { Phase } from './Phase';
 import { SimpleStep } from '../SimpleStep';
 import { ResourcePrompt } from '../prompts/ResourcePrompt';
 import { MulliganPrompt } from '../prompts/MulliganPrompt';
-import { PhaseName, PromptType } from '../../Constants';
+import { PhaseName } from '../../Constants';
+import { PromptType } from '../PromptInterfaces';
 
 export class SetupPhase extends Phase {
     public constructor(game: Game) {
