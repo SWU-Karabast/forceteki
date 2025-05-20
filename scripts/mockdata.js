@@ -512,6 +512,37 @@ const mockCards = [
         arena: 'ground',
         internalName: 'aurra-sing#patient-and-deadly'
     }),
+    buildMockCard({
+        title: 'Crushing Blow',
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'LOF',
+            number: 77
+        },
+        unique: false,
+        internalName: 'crushing-blow'
+    }),
+    buildMockCard({
+        title: 'Purge Trooper',
+        cost: 3,
+        power: 4,
+        hp: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression', 'villainy'],
+        types: ['unit'],
+        traits: ['imperial', 'trooper'],
+        setId: {
+            set: 'LOF',
+            number: 133
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'purge-trooper'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
