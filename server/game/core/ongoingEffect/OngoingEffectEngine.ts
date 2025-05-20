@@ -68,41 +68,20 @@ export class OngoingEffectEngine {
             return {
                 title: context.source.title + '\'s effect' + (targets.length === 1 ? ' on ' + targets[0].name : ''),
                 handler: () => {
-                    const trigger = () => {
-                        // TODO Ensure the below line doesn't break anything for a CardTargetSystem delayed effect
-                        properties.immediateEffect.setDefaultTargetFn(() => targets);
-                        if (properties.message && properties.immediateEffect.hasLegalTarget(context)) {
-                            let messageArgs = properties.messageArgs || [];
-                            if (typeof messageArgs === 'function') {
-                                messageArgs = messageArgs(context, targets);
-                            }
-                            this.game.addMessage(properties.message, ...messageArgs);
+                    // TODO Ensure the below line doesn't break anything for a CardTargetSystem delayed effect
+                    properties.immediateEffect.setDefaultTargetFn(() => targets);
+                    if (properties.message && properties.immediateEffect.hasLegalTarget(context)) {
+                        let messageArgs = properties.messageArgs || [];
+                        if (typeof messageArgs === 'function') {
+                            messageArgs = messageArgs(context, targets);
                         }
-                        const actionEvents = [];
-                        properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
-                        properties.limit.increment(context.player);
-                        this.game.queueSimpleStep(() => this.game.openEventWindow(actionEvents), 'openDelayedActionsWindow');
-                        this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
-                    };
-
-                    if (effect.optional) {
-                        this.game.promptWithHandlerMenu(context.player, {
-                            activePromptTitle: properties.title,
-                            source: context.source,
-                            choices: ['Trigger', 'Pass'],
-                            handlers: [
-                                () => {
-                                    trigger();
-                                },
-                                () => {
-                                    properties.limit.increment(context.player);
-                                    this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
-                                }
-                            ]
-                        });
-                    } else {
-                        trigger();
+                        this.game.addMessage(properties.message, ...messageArgs);
                     }
+                    const actionEvents = [];
+                    properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
+                    properties.limit.increment(context.player);
+                    this.game.queueSimpleStep(() => this.game.openEventWindow(actionEvents), 'openDelayedActionsWindow');
+                    this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
                 }
             };
         });
