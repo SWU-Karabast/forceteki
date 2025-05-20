@@ -360,5 +360,246 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 expect(context.player2).toBeActivePlayer();
             });
         });
+
+        describe('Interaction with various types of "When Played" abilities:', () => {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'quigon-jinn#student-of-the-living-force',
+                        base: { card: 'echo-base', damage: 3 },
+                        hand: [
+                            'pelta-supply-frigate', // Coordinate - When Played: Create a Clone Trooper Token.
+                            'poe-dameron#one-hell-of-a-pilot', // When played as a unit: Create an X-Wing token. You may attach this unit as an upgrade to a friendly Vehicle unit without a Pilot on it.
+                            'snap-wexley#resistance-recon-flier', // When played as an upgrade: Search the top 5 cards of your deck for a Resistance card, reveal it, and draw it.
+                            'reinforcement-walker', // When Played/On Attack: Look at the top card of your deck. Either draw that card or discard it and heal 3 damage from your base.
+                            'anakin-skywalker#champion-of-mortis', // When Played: If there is a [Heroism] card in your discard pile, you may give a unit -3/-3 for this phase. | When Played: If there is a [Villainy] card in your discard pile, you may give a unit -3/-3 for this phase.
+                        ],
+                        spaceArena: [
+                            'quigon-jinns-aethersprite#guided-by-the-force',
+                            'alliance-xwing'
+                        ],
+                        resources: [
+                            'privateer-crew', // When played using Smuggle: Give 3 Experience tokens to this unit.
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst'
+                        ],
+                        discard: [
+                            'echo-base-defender',
+                            'death-star-stormtrooper',
+                        ],
+                        deck: [
+                            'dilapidated-ski-speeder',
+                            'resistance-blue-squadron',
+                            'underworld-thug',
+                            'underworld-thug',
+                            'underworld-thug'
+                        ]
+                    },
+                    player2: {
+                        spaceArena: [
+                            'green-squadron-awing',
+                            'phoenix-squadron-awing'
+                        ],
+                        groundArena: [
+                            'battlefield-marine',
+                        ],
+                    }
+                });
+            });
+
+            it('should work with "When Played using Smuggle" abilities', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Privateer Crew to trigger its "When Played using Smuggle" ability
+                context.player1.clickCard(context.privateerCrew);
+                expect(context.privateerCrew).toHaveExactUpgradeNames(['experience', 'experience', 'experience']);
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Privateer Crew's ability resolves again
+                expect(context.privateerCrew).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience', 'experience', 'experience']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should work with "Coordinate - When Played" abilities', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Pelta Supply Frigate to trigger its "Coordinate - When Played" ability
+                context.player1.clickCard(context.peltaSupplyFrigate);
+
+                expect(context.player1.findCardsByName('clone-trooper').length).toBe(1);
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Pelta Supply Frigate's ability resolves again
+                expect(context.player1.findCardsByName('clone-trooper').length).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should work with "When Played as a unit" abilities', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Poe Dameron to trigger its "When Played as a unit" ability
+                context.player1.clickCard(context.poeDameron);
+                context.player1.clickPrompt('Play Poe Dameron');
+                expect(context.player1).toHavePrompt('Attach this unit as an upgrade to a friendly Vehicle unit without a Pilot on it');
+                context.player1.clickCard(context.allianceXwing);
+
+                expect(context.player1.findCardsByName('xwing').length).toBe(1);
+                expect(context.allianceXwing).toHaveExactUpgradeNames(['poe-dameron#one-hell-of-a-pilot']);
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Poe Dameron's ability resolves again
+                expect(context.player1).toHavePrompt('Attach this unit as an upgrade to a friendly Vehicle unit without a Pilot on it');
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                expect(context.player1.findCardsByName('xwing').length).toBe(2);
+                expect(context.allianceXwing.upgrades.length).toBe(0);
+                expect(context.quigonJinnsAethersprite).toHaveExactUpgradeNames(['poe-dameron#one-hell-of-a-pilot']);
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should work with "When Played as an upgrade" abilities', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Snap Wexley with Piloting to trigger its "When Played as an upgrade" ability
+                context.player1.clickCard(context.snapWexley);
+                context.player1.clickPrompt('Play Snap Wexley with Piloting');
+                context.player1.clickCard(context.allianceXwing);
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.dilapidatedSkiSpeeder, context.resistanceBlueSquadron],
+                    invalid: context.player1.findCardsByName('underworld-thug', 'deck').slice(0, 3)
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.dilapidatedSkiSpeeder);
+
+                expect(context.dilapidatedSkiSpeeder).toBeInZone('hand');
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Snap Wexley's ability resolves again
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    selectable: [context.resistanceBlueSquadron],
+                    invalid: context.player1.findCardsByName('underworld-thug', 'deck').slice(0, 3)
+                });
+                context.player1.clickCardInDisplayCardPrompt(context.resistanceBlueSquadron);
+
+                expect(context.resistanceBlueSquadron).toBeInZone('hand');
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should work with "When Played/On Attack" abilities', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Reinforcement Walker to trigger its "When Played/On Attack" ability
+                context.player1.clickCard(context.reinforcementWalker);
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.dilapidatedSkiSpeeder]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Draw', 'Discard']);
+                context.player1.clickDisplayCardPromptButton(context.dilapidatedSkiSpeeder.uuid, 'draw');
+
+                expect(context.dilapidatedSkiSpeeder).toBeInZone('hand');
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Reinforcement Walker's ability resolves again
+                expect(context.player1).toHaveExactSelectableDisplayPromptCards([context.resistanceBlueSquadron]);
+                expect(context.player1).toHaveExactDisplayPromptPerCardButtons(['Draw', 'Discard']);
+                context.player1.clickDisplayCardPromptButton(context.resistanceBlueSquadron.uuid, 'discard');
+
+                expect(context.resistanceBlueSquadron).toBeInZone('discard');
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('should work with multiple "When Played" abilities', () => {
+                const { context } = contextRef;
+                const heroismPrompt = 'If there a Heroism card in your discard pile, you may give a unit -3/-3 for this phase';
+                const villainyPrompt = 'If there a Villainy card in your discard pile, you may give a unit -3/-3 for this phase';
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Anakin Skywalker to trigger its "When Played" abilities
+                context.player1.clickCard(context.anakinSkywalker);
+                expect(context.player1).toHaveExactPromptButtons([heroismPrompt, villainyPrompt]);
+                context.player1.clickPrompt(heroismPrompt);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeInZone('discard');
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Anakin Skywalker's first ability resolves again
+                expect(context.player1).toHavePrompt(heroismPrompt);
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                expect(context.greenSquadronAwing).toBeInZone('discard');
+
+                // Anakin Skywalker's second ability resolves
+                expect(context.player1).toHavePrompt(villainyPrompt);
+                context.player1.clickCard(context.phoenixSquadronAwing);
+
+                expect(context.phoenixSquadronAwing).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
+        });
     });
 });
