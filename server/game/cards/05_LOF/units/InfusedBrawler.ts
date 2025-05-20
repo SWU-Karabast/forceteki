@@ -11,7 +11,7 @@ export default class InfusedBrawler extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Use the Force',
+            title: 'Use the Force. If you do, give 2 Experience tokens to this unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {

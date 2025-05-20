@@ -12,7 +12,7 @@ export default class PoliticalPressure extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Discard a random card from your hand',
+            title: 'Discard a random card from your hand. If you do not, the opponent creates 2 Battle Droid Tokens',
             optional: true,
             playerChoosingOptional: RelativePlayer.Opponent,
             optionalButtonTextOverride: 'Opponent creates 2 Battle Droid Tokens',

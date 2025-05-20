@@ -11,7 +11,7 @@ export default class BlackOneScourgeOfStarkillerBase extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'Discard your hand',
+            title: 'Discard your hand. If you do, draw 3 cards',
             when: {
                 whenPlayed: true,
                 whenDefeated: true

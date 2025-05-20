@@ -12,7 +12,7 @@ export default class DarthRevanScourgeOfTheOldRepublic extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Exhaust this leader',
+            title: 'Exhaust this leader to give an Experience token to the attacking unit',
             when: {
                 onCardDefeated: (event, context) =>
                     event.isDefeatedByAttacker && DefeatCardSystem.defeatSourceCard(event)?.controller === context.player

@@ -12,7 +12,7 @@ export default class DarthSidiousThePhantomMenace extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Use The Force',
+            title: 'Use The Force. If you do, defeat each non-Sith unit with 3 or less remaining HP',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {

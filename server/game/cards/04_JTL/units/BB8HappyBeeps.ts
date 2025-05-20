@@ -16,7 +16,7 @@ export default class BB8HappyBeeps extends NonLeaderUnitCard {
             when: {
                 whenPlayed: true,
             },
-            title: 'Pay 2 resources',
+            title: 'Pay 2 resources to ready a Resistance unit',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.payResourceCost((context) => ({
                 amount: 2,

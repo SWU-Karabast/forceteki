@@ -29,8 +29,8 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
                 context.player1.clickCard(context.privateerCrew);
 
                 // choose between 2 triggers
-                context.player1.clickPrompt('Exhaust this leader');
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Exhaust this leader to give an Experience token to a unit');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to a unit');
 
                 // do not use hondo ability yet
                 context.player1.clickPrompt('Pass');
@@ -43,7 +43,7 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
 
                 // play a second unit from smuggle
                 context.player1.clickCard(context.warbirdStowaway);
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to a unit');
                 context.player1.clickPrompt('Trigger');
 
                 // give experience token to warbird stowaway
@@ -87,8 +87,8 @@ describe('Hondo Ohnaka, That\'s Good Business', function () {
                 context.player1.clickCard(context.privateerCrew);
 
                 // choose between 2 triggers
-                expect(context.player1).toHaveExactPromptButtons(['Give an experience token to a unit', 'Give 3 experience tokens to this unit']);
-                context.player1.clickPrompt('Give an experience token to a unit');
+                expect(context.player1).toHaveExactPromptButtons(['Give an Experience token to a unit', 'Give 3 Experience tokens to this unit']);
+                context.player1.clickPrompt('Give an Experience token to a unit');
 
                 // give experience token to battlefield marine
                 expect(context.player1).toBeAbleToSelectExactly([context.greenSquadronAwing, context.battlefieldMarine, context.wampa, context.privateerCrew, context.hondoOhnaka]);

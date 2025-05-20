@@ -43,7 +43,7 @@ export default class AsajjVentressIWorkAlone extends LeaderUnitCard {
 
         this.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
-            title: 'You may deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.',
+            title: 'Deal 1 damage to a friendly unit. If you do, deal 1 damage to an enemy unit in the same arena.',
             optional: true,
             when: {
                 onAttack: true,

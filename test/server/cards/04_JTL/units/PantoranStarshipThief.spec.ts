@@ -26,7 +26,7 @@ describe('Pantoran Starship Thief', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.pantoranStarshipThief);
-                expect(context.player1).toHavePassAbilityPrompt('Pay 3 resources');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 3 resources to attach this unit as an upgrade to a Fighter or Transport unit without a Pilot on it. Take control of that unit');
 
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.omicronStrikeCraft, context.scoutingHeadhunter, context.prototypeTieAdvanced, context.millenniumFalcon]);
@@ -41,7 +41,7 @@ describe('Pantoran Starship Thief', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.pantoranStarshipThief);
-                expect(context.player1).toHavePassAbilityPrompt('Pay 3 resources');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 3 resources to attach this unit as an upgrade to a Fighter or Transport unit without a Pilot on it. Take control of that unit');
 
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.omicronStrikeCraft, context.scoutingHeadhunter, context.prototypeTieAdvanced, context.millenniumFalcon]);
@@ -72,7 +72,7 @@ describe('Pantoran Starship Thief', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.pantoranStarshipThief);
-                expect(context.player1).toHavePassAbilityPrompt('Pay 3 resources');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 3 resources to attach this unit as an upgrade to a Fighter or Transport unit without a Pilot on it. Take control of that unit');
 
                 context.player1.clickPrompt('Pass');
 
@@ -83,7 +83,7 @@ describe('Pantoran Starship Thief', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.pantoranStarshipThief);
-                expect(context.player1).toHavePassAbilityPrompt('Pay 3 resources');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 3 resources to attach this unit as an upgrade to a Fighter or Transport unit without a Pilot on it. Take control of that unit');
 
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.omicronStrikeCraft, context.scoutingHeadhunter, context.prototypeTieAdvanced, context.millenniumFalcon]);
@@ -98,7 +98,7 @@ describe('Pantoran Starship Thief', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.pantoranStarshipThief);
-                expect(context.player1).toHavePassAbilityPrompt('Pay 3 resources');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 3 resources to attach this unit as an upgrade to a Fighter or Transport unit without a Pilot on it. Take control of that unit');
 
                 context.player1.clickPrompt('Trigger');
                 expect(context.player1).toBeAbleToSelectExactly([context.omicronStrikeCraft, context.scoutingHeadhunter, context.prototypeTieAdvanced, context.millenniumFalcon]);

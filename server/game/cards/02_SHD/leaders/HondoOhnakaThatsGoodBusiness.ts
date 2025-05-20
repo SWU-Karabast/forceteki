@@ -12,14 +12,14 @@ export default class HondoOhnakaThatsGoodBusiness extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Exhaust this leader',
+            title: 'Exhaust this leader to give an Experience token to a unit',
             optional: true,
             when: {
                 onCardPlayed: (event, context) => event.player === context.player && event.playType === PlayType.Smuggle
             },
             immediateEffect: AbilityHelper.immediateEffects.exhaust(),
             ifYouDo: {
-                title: 'Give an experience token to a unit',
+                title: 'Give an Experience token to a unit',
                 targetResolver: {
                     immediateEffect: AbilityHelper.immediateEffects.giveExperience()
                 },
@@ -29,7 +29,7 @@ export default class HondoOhnakaThatsGoodBusiness extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Give an experience token to a unit',
+            title: 'Give an Experience token to a unit',
             optional: true,
             when: {
                 onCardPlayed: (event, context) => event.player === context.player && event.playType === PlayType.Smuggle

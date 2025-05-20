@@ -34,7 +34,7 @@ export default class CaptainPhasmaChromeDome extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addOnAttackAbility({
-            title: 'Deal 1 damage to a unit',
+            title: 'Deal 1 damage to a unit. If you do, deal 1 damage to a base',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,

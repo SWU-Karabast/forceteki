@@ -43,7 +43,7 @@ describe('Luke Skywalker, A Hero\'s Beginning', function() {
 
                 context.player1.clickCard(context.yoda);
 
-                expect(context.player1).toHavePassAbilityPrompt('Use the Force');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you do, give an Experience token and a Shield token to this unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player2).toBeActivePlayer();

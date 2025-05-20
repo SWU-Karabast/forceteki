@@ -23,7 +23,7 @@ export default class ObiWanKenobiPatientMentor extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addOnAttackAbility({
-            title: 'Heal 1 damage from a unit',
+            title: 'Heal 1 damage from a unit. If you do, deal 1 damage to a different unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
                 immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 1 })

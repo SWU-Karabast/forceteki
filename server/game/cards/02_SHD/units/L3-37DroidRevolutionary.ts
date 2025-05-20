@@ -12,7 +12,7 @@ export default class L337DroidRevolutionary extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Rescue a captured card',
+            title: 'Rescue a captured card. if you do not, give a Shield token to this unit',
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.Capture,

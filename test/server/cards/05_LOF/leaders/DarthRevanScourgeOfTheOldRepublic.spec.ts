@@ -27,7 +27,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.warzoneLieutenant);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.battlefieldMarine).toHaveExactUpgradeNames(['experience']);
@@ -41,7 +41,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.freelanceAssassin);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.darthRevan.exhausted).toBe(true);
@@ -141,7 +141,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.battlefieldMarine);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.wampa).toHaveExactUpgradeNames(['experience']);
@@ -171,7 +171,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.atst);
 
                 // trigger the Revan ability, no game effect and no exception (doesn't try to target L3)
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.darthRevan.exhausted).toBe(true);
@@ -203,7 +203,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 // Choose target for ability
                 context.player1.clickCard(context.wampa);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.sabineWren).toHaveExactUpgradeNames(['experience']);
@@ -229,7 +229,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
 
                 context.player2.clickCard(context.cartelSpacer);
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.avenger).toHaveExactUpgradeNames(['experience']);
@@ -256,7 +256,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.imperialInterceptor);
                 context.player1.clickPrompt('Done');
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.cartelSpacer).toHaveExactUpgradeNames(['experience', 'twin-laser-turret']);
@@ -291,7 +291,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 expect(context.player2).toBeActivePlayer();
-                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 expect(context.sabineWren).toHaveExactUpgradeNames([]);
                 expect(context.battlefieldMarine).toBeInZone('discard');
                 expect(context.darthRevan.exhausted).toBeFalse();
@@ -325,7 +325,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.consularSecurityForce);
                 context.player1.clickPrompt('Done');
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.darthMaul).toHaveExactUpgradeNames(['experience']);
@@ -340,7 +340,7 @@ describe('Darth Revan, Scourge of the Old Republic', function () {
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickPrompt('Done');
 
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to give an Experience token to the attacking unit');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.darthMaul).toHaveExactUpgradeNames(['experience']);

@@ -21,7 +21,7 @@ describe('Boba Fett, Any Methods Necessary', function() {
 
                 context.player1.clickCard(context.daringRaid);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
                 expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
                 context.player1.clickPrompt('Trigger');
                 context.player1.clickPrompt('Opponent');
@@ -57,7 +57,7 @@ describe('Boba Fett, Any Methods Necessary', function() {
 
                 context.player1.clickCard(context.cartelSpacer);
                 context.player1.clickCard(context.p2Base);
-                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.bobaFett.exhausted).toBe(false);
@@ -82,7 +82,7 @@ describe('Boba Fett, Any Methods Necessary', function() {
                 context.player1.clickCard(context.wampa);
                 context.player1.clickCard(context.pykeSentinel);
                 expect(context.p2Base.damage).toBe(1);
-                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player1).not.toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.bobaFett.exhausted).toBe(false);
@@ -113,7 +113,7 @@ describe('Boba Fett, Any Methods Necessary', function() {
                         [context.consularSecurityForce, 3],
                     ]));
 
-                    expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                    expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
                     context.player1.clickPrompt('Trigger');
                     context.player1.clickPrompt('Opponent');
                     expect(context.player2).toHavePrompt('Distribute 1 indirect damage among targets');
@@ -134,7 +134,7 @@ describe('Boba Fett, Any Methods Necessary', function() {
                         [context.consularSecurityForce, 3],
                     ]));
 
-                    expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                    expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
                     context.player1.clickPrompt('Pass');
 
                     expect(context.player2).toBeActivePlayer();

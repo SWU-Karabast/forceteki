@@ -19,7 +19,7 @@ describe('Freelance Assassin', function () {
                 context.player1.clickCard(context.freelanceAssassin);
 
                 // have a prompt to pay 2 resources
-                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to deal 2 damage to a unit');
                 context.player1.clickPrompt('Trigger');
 
                 // deal 2 damage to a unit
@@ -49,7 +49,7 @@ describe('Freelance Assassin', function () {
                 context.player1.clickCard(context.freelanceAssassin);
 
                 // have a prompt to pay 2 resources
-                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources');
+                expect(context.player1).toHavePassAbilityPrompt('Pay 2 resources to deal 2 damage to a unit');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();

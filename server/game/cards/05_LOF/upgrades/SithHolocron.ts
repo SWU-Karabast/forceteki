@@ -14,7 +14,7 @@ export default class SithHolocron extends UpgradeCard {
         this.setAttachCondition((card) => card.hasSomeTrait(Trait.Force));
 
         this.addGainOnAttackAbilityTargetingAttached({
-            title: 'Deal 2 damage to a friendly unit',
+            title: 'Deal 2 damage to a friendly unit. If you do, this unit gets +2/+0 for this attack',
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,

@@ -12,7 +12,7 @@ export default class CadBaneHeWhoNeedsNoIntroduction extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Exhaust this leader',
+            title: 'Exhaust this leader to deal 1 damage to a unit controlled by the opponent',
             optional: true,
             when: {
                 onCardPlayed: (event, context) => event.player === context.player && event.card.hasSomeTrait(Trait.Underworld)

@@ -12,7 +12,7 @@ export default class QuinlanVosStickingTheLanding extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Exhaust this leader',
+            title: 'Exhaust this leader to deal 1 damage to an enemy unit that costs the same as the played unit',
             when: {
                 onCardPlayed: (event, context) =>
                     event.player === context.player &&

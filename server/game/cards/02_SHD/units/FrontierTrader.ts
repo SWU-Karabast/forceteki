@@ -12,7 +12,7 @@ export default class FrontierTrader extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Return a resource you control to your hand.',
+            title: 'Return a resource you control to your hand. If you do, put the top card of your deck into play as a resource.',
             optional: true,
             targetResolver: {
                 zoneFilter: ZoneName.Resource,
@@ -20,7 +20,7 @@ export default class FrontierTrader extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             ifYouDo: (context) => ({
-                title: 'Put the top card of your deck into play as a resource.',
+                title: 'Put the top card of your deck into play as a resource',
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.resourceCard({ target: context.player.getTopCardOfDeck() })
             })
