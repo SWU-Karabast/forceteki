@@ -20,7 +20,9 @@
         - If the Aethersprite is able to attack again after the next "When
           Played" ability is triggered, the following "When Played" ability can be
           triggered again.
+        - The ability expires at the end of the phase.
         - The ability does not expire if the Aethersprite leaves play.
+        - Does not trigger for when-played-like abilities (e.g. Ambush & Shielded)
 
     Various types of "When Played" abilities to verify:
         1. Using Smuggle:
@@ -73,13 +75,18 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                         hand: [
                             'leia-organa#defiant-princess', // When Played: Ready a resource or exhaust a unit.
                             'wing-leader', // When Played: Give 2 Experience tokens to another friendly Rebel unit.
-                            'dogfight' // Attack with a unit, even if it's exhausted. That unit can't attack bases for this attack.
+                            'dogfight', // Attack with a unit, even if it's exhausted. That unit can't attack bases for this attack.
+                            'crafty-smuggler', // Shielded
+                            'auzituck-liberator-gunship' // Ambush
                         ],
                         spaceArena: [
                             'quigon-jinns-aethersprite#guided-by-the-force'
                         ],
                     },
                     player2: {
+                        hand: [
+                            'vanquish'
+                        ],
                         spaceArena: [
                             'green-squadron-awing',
                             'phoenix-squadron-awing'
@@ -88,7 +95,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 });
             });
 
-            xit('the next time you use a "When Played" ability this phase, it allows you to use that ability again', () => {
+            it('the next time you use a "When Played" ability this phase, it allows you to use that ability again', () => {
                 const { context } = contextRef;
 
                 // Attack with the Aethersprite to activate the ability
@@ -129,7 +136,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            xit('the next time you use a "When Played" ability this phase, you may choose not to use the ability again', () => {
+            it('the next time you use a "When Played" ability this phase, you may choose not to use the ability again', () => {
                 const { context } = contextRef;
 
                 // Attack with the Aethersprite to activate the ability
@@ -166,7 +173,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 expect(context.player2).toBeActivePlayer();
             });
 
-            xit('can be double-triggered by a "When Played" ability if the Aethersprite has attacked twice', () => {
+            it('can be double-triggered by a "When Played" ability if the Aethersprite has attacked twice', () => {
                 const { context } = contextRef;
 
                 // Attack with the Aethersprite to activate the ability
@@ -269,6 +276,87 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player1.clickCard(context.leiaOrgana);
 
                 expect(context.leiaOrgana).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('expires after the phase ends', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                // End the phase
+                context.moveToNextActionPhase();
+
+                // Play Leia Organa to trigger her "When Played" ability
+                context.player1.clickCard(context.leiaOrgana);
+                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a resource');
+
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+                expect(context.player1).not.toHavePassAbilityPrompt(prompt);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('does not expire if the Aethersprite leaves play', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                // Player 2 plays Vanquish to defeat the Aethersprite
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.quigonJinnsAethersprite);
+
+                expect(context.quigonJinnsAethersprite).toBeInZone('discard');
+
+                // Play Leia Organa to trigger her "When Played" ability
+                context.player1.clickCard(context.leiaOrgana);
+                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a resource');
+
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Leia Organa's ability can be used again
+                expect(context.player1).toHaveExactPromptButtons(['Ready a resource', 'Exhaust a unit']);
+                context.player1.clickPrompt('Ready a resource');
+
+                expect(context.player1.exhaustedResourceCount).toBe(0);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('does not trigger for Shielded or Ambush', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Crafty Smuggler to trigger its Shielded ability
+                context.player1.clickCard(context.craftySmuggler);
+
+                expect(context.player1).not.toHavePassAbilityPrompt(prompt);
+                expect(context.craftySmuggler).toHaveExactUpgradeNames(['shield']);
+                expect(context.player2).toBeActivePlayer();
+
+                context.player2.passAction();
+
+                // Play the Gunship to trigger its Ambush ability
+                context.player1.clickCard(context.auzituckLiberatorGunship);
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Trigger');
+                context.player1.clickCard(context.greenSquadronAwing);
+
+                expect(context.player1).not.toHavePassAbilityPrompt(prompt);
                 expect(context.player2).toBeActivePlayer();
             });
         });
