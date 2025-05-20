@@ -531,7 +531,7 @@ const mockCards = [
         cost: 3,
         power: 4,
         hp: 2,
-        hasNonKeywordAbility: false,
+        hasNonKeywordAbility: true,
         aspects: ['aggression', 'villainy'],
         types: ['unit'],
         traits: ['imperial', 'trooper'],
