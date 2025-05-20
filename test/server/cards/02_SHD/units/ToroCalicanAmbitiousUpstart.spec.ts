@@ -33,7 +33,7 @@ describe('Toro Calican, Ambitious Upstart', function() {
 
                 // CASE 2: play friendly Bounty Hunter, ability triggers, pass
                 context.player1.clickCard(context.reputableHunter);
-                expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to the played Bounty Hunter unit');
+                expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to the played Bounty Hunter unit to ready this unit');
                 context.player1.clickPrompt('Pass');
                 expect(context.reputableHunter.damage).toBe(0);
                 expect(context.toroCalican.exhausted).toBeTrue();
@@ -56,7 +56,7 @@ describe('Toro Calican, Ambitious Upstart', function() {
 
                 // CASE 5: play friendly Bounty Hunter, ability triggers
                 context.player1.clickCard(context.ketsuOnyo);
-                expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to the played Bounty Hunter unit');
+                expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to the played Bounty Hunter unit to ready this unit');
                 context.player1.clickPrompt('Trigger');
                 expect(context.ketsuOnyo.damage).toBe(1);
                 expect(context.toroCalican.exhausted).toBeFalse();
@@ -76,7 +76,7 @@ describe('Toro Calican, Ambitious Upstart', function() {
                 // CASE 7: play friendly Bounty Hunter next phase,
                 // ability triggers and can be activated even though Toro is not exhausted
                 context.player1.clickCard(context.embo);
-                expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to the played Bounty Hunter unit');
+                expect(context.player1).toHavePassAbilityPrompt('Deal 1 damage to the played Bounty Hunter unit to ready this unit');
                 context.player1.clickPrompt('Trigger');
                 expect(context.embo.damage).toBe(1);
                 expect(context.toroCalican.exhausted).toBeFalse();

@@ -12,7 +12,7 @@ export default class ShootDown extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Deal 3 damage to space unit.',
+            title: 'Deal 3 damage to space unit. If that unit is defeated this way, deal 2 damage to a base',
             targetResolver: {
                 zoneFilter: ZoneName.SpaceArena,
                 cardTypeFilter: WildcardCardType.Unit,

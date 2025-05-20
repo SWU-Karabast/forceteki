@@ -71,7 +71,7 @@ describe('AT-DP Occupier', function() {
             context.player1.clickCard(context.hanSolo);
             context.player1.clickPrompt('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.');
             context.player1.clickCard(p1BlueLeader);
-            context.player1.clickPrompt('Pay 2 resources');
+            context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
             context.player1.clickPrompt('Trigger');
 
             // Blue Leader is damaged and in the ground arena

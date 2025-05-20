@@ -12,7 +12,7 @@ export default class TheMandalorianSwornToTheCreed extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Exhaust this leader',
+            title: 'Exhaust this leader to exhaust an enemy unit with 4 or less remaining HP',
             optional: true,
             when: {
                 onCardPlayed: (event, context) => event.player === context.player && event.card.isUpgrade()

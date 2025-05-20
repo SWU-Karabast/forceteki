@@ -17,7 +17,7 @@ describe('Grogu, Mysterious Child', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.groguMysteriousChild);
-                context.player1.clickPrompt('Heal up to 2 damage from a unit');
+                context.player1.clickPrompt('Heal up to 2 damage from a unit. If you do, deal that much damage to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.grogu]);
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.wampa, 2],
@@ -36,7 +36,7 @@ describe('Grogu, Mysterious Child', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.groguMysteriousChild);
-                context.player1.clickPrompt('Heal up to 2 damage from a unit');
+                context.player1.clickPrompt('Heal up to 2 damage from a unit. If you do, deal that much damage to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.grogu]);
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.atst, 1],
@@ -54,7 +54,7 @@ describe('Grogu, Mysterious Child', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.groguMysteriousChild);
-                context.player1.clickPrompt('Heal up to 2 damage from a unit');
+                context.player1.clickPrompt('Heal up to 2 damage from a unit. If you do, deal that much damage to a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.atst, context.grogu]);
                 context.player1.setDistributeHealingPromptState(new Map([
                     [context.grogu, 2],
