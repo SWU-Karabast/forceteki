@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../../../server/game/AbilityHelper';
 import { NonLeaderUnitCard } from '../../../../../server/game/core/card/NonLeaderUnitCard';
 import { EventName } from '../../../../../server/game/core/Constants';
-import { perGame } from '../../../core/ability/AbilityLimit';
+import { perPhase } from '../../../core/ability/AbilityLimit';
 
 export default class QuiGonJinnsAetherspriteGuidedByTheForce extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +16,7 @@ export default class QuiGonJinnsAetherspriteGuidedByTheForce extends NonLeaderUn
             title: 'The next time you use a "When Played" ability this phase, you may use that ability again',
             immediateEffect: AbilityHelper.immediateEffects.delayedPlayerEffect({
                 title: 'You may use that "When Played" ability again',
-                limit: perGame(1),
+                limit: perPhase(1),
                 when: {
                     onCardAbilityInitiated: (event, context) => event.context.player === context.player &&
                       event.ability.isWhenPlayed &&

@@ -15,6 +15,7 @@ export interface IUseWhenPlayedProperties extends ICardTargetSystemProperties {
 export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IUseWhenPlayedProperties> {
     public override readonly name = 'use when played';
     public override readonly eventName = EventName.OnUseWhenPlayed;
+    public override readonly effectDescription = 'use {0}\'s When Played ability';
     protected override readonly targetTypeFilter = [WildcardCardType.Unit, WildcardCardType.Upgrade];
 
     protected override defaultProperties: IUseWhenPlayedProperties = {
