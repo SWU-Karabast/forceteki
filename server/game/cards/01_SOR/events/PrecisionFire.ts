@@ -17,7 +17,7 @@ export default class PrecisionFire extends EventCard {
                 attackerLastingEffects: [
                     { effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Saboteur) },
                     {
-                        condition: (_, context) => context.source.hasSomeTrait(Trait.Trooper),
+                        condition: (attack) => attack.attacker.hasSomeTrait(Trait.Trooper),
                         effect: AbilityHelper.ongoingEffects.modifyStats({ power: 2, hp: 0 }),
                     },
                 ],
