@@ -2,7 +2,6 @@ import { GameSystem } from '../core/gameSystem/GameSystem';
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { ZoneName, DeckZoneDestination, PlayType, RelativePlayer, DamageType } from '../core/Constants';
 import type { TriggeredAbilityContext } from '../core/ability/TriggeredAbilityContext';
-
 import type { IAttachUpgradeProperties } from './AttachUpgradeSystem';
 import { AttachUpgradeSystem } from './AttachUpgradeSystem';
 import type { ICaptureProperties } from './CaptureSystem';
@@ -146,6 +145,8 @@ import { CreateForceTokenSystem } from './CreateForceTokenSystem';
 import { UseTheForceSystem } from './UseTheForceSystem';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { OptionalSystem, type IOptionalSystemProperties } from './OptionalSystem';
+import type { IUseWhenPlayedProperties } from './UseWhenPlayedSystem';
+import { UseWhenPlayedSystem } from './UseWhenPlayedSystem';
 
 type PropsFactory<Props, TContext extends AbilityContext = AbilityContext> = Props | ((context: TContext) => Props);
 
@@ -672,4 +673,7 @@ export function shuffleDeck<TContext extends AbilityContext = AbilityContext>(pr
 }
 export function useWhenDefeatedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenDefeatedProperties, TContext> = {}) {
     return new UseWhenDefeatedSystem<TContext>(propertyFactory);
+}
+export function useWhenPlayedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenPlayedProperties, TContext> = {}) {
+    return new UseWhenPlayedSystem<TContext>(propertyFactory);
 }
