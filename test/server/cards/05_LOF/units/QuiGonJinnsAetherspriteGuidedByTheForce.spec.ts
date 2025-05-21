@@ -564,6 +564,18 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                         ],
                         groundArena: [
                             'consular-security-force',
+                        ],
+                        resources: [
+                            'dj#blatant-thief', // When played using Smuggle: Take control of an enemy resource. When this unit leaves play, that resource's owner takes control of it.
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst',
+                            'atst'
                         ]
                     },
                     player2: {
@@ -842,6 +854,42 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 context.player2.clickCard(context.allianceXwing);
 
                 expect(context.player2.readyResourceCount).toBe(readyResourceCount - 10);
+            });
+
+            it('DJ', () => {
+                const { context } = contextRef;
+                const p1OriginalResourceCount = context.player1.resources.length;
+                const p2OriginalResourceCount = context.player2.resources.length;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play DJ, taking control of a resource
+                context.player1.clickCard(context.dj);
+
+                expect(context.player1.resources.length).toBe(p1OriginalResourceCount + 1);
+                expect(context.player2.resources.length).toBe(p2OriginalResourceCount - 1);
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // DJ's ability resolves again
+                expect(context.player1.resources.length).toBe(p1OriginalResourceCount + 2);
+                expect(context.player2.resources.length).toBe(p2OriginalResourceCount - 2);
+                expect(context.player2).toBeActivePlayer();
+
+                // Player 2 plays takedown to defeat DJ
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.dj);
+
+                // Both resources are returned to Player 2
+                expect(context.player1.resources.length).toBe(p1OriginalResourceCount);
+                expect(context.player2.resources.length).toBe(p2OriginalResourceCount);
             });
         });
     });
