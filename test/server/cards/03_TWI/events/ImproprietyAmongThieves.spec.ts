@@ -28,6 +28,44 @@ describe('Impropriety Among Thieves', function () {
                 });
             });
 
+            describe('when there are too few ready non-leader units in play', function () {
+                it('does nothing when opponent has no ready non-leader units', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['impropriety-among-thieves'],
+                            groundArena: ['battlefield-marine'],
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.improprietyAmongThieves);
+
+                    expect(context.player2).toBeActivePlayer();
+                    expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
+                });
+
+                it('does nothing when player has no ready non-leader units', async function() {
+                    await contextRef.setupTestAsync({
+                        phase: 'action',
+                        player1: {
+                            hand: ['impropriety-among-thieves']
+                        },
+                        player2: {
+                            groundArena: ['battlefield-marine']
+                        }
+                    });
+
+                    const { context } = contextRef;
+
+                    context.player1.clickCard(context.improprietyAmongThieves);
+
+                    expect(context.player2).toBeActivePlayer();
+                    expect(context.battlefieldMarine).toBeInZone('groundArena', context.player2);
+                });
+            });
+
             describe('when there are ready non-leader units in play', function () {
                 beforeEach(async function () {
                     await contextRef.setupTestAsync({
