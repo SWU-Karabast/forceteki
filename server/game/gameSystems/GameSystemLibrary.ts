@@ -674,6 +674,6 @@ export function shuffleDeck<TContext extends AbilityContext = AbilityContext>(pr
 export function useWhenDefeatedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenDefeatedProperties, TContext> = {}) {
     return new UseWhenDefeatedSystem<TContext>(propertyFactory);
 }
-export function useWhenPlayedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenPlayedProperties, TContext> = { }) {
+export function useWhenPlayedAbility<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IUseWhenPlayedProperties, TContext> = {}) {
     return new UseWhenPlayedSystem<TContext>(propertyFactory);
 }

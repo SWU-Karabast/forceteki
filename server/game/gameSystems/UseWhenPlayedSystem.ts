@@ -3,9 +3,9 @@ import type { Card } from '../core/card/Card';
 import { EventName, GameStateChangeRequired, Stage, WildcardCardType, ZoneName } from '../core/Constants';
 import { CardTargetSystem, type ICardTargetSystemProperties } from '../core/gameSystem/CardTargetSystem';
 import TriggeredAbility from '../core/ability/TriggeredAbility';
-import { DefeatCardSystem } from './DefeatCardSystem';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { ITriggeredAbilityProps } from '../Interfaces';
+import { PlayCardSystem } from './PlayCardSystem';
 
 export interface IUseWhenPlayedProperties extends ICardTargetSystemProperties {
     triggerAll?: boolean;
@@ -52,9 +52,9 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
                 }
             );
 
-            Object.assign(promptProperties, { choices, handlers });
+            const completeProps = { ...promptProperties, choices, handlers };
 
-            event.context.game.promptWithHandlerMenu(player, promptProperties);
+            event.context.game.promptWithHandlerMenu(player, completeProps);
         }
     }
 
@@ -84,8 +84,8 @@ export class UseWhenPlayedSystem<TContext extends AbilityContext = AbilityContex
 
             if (mustChangeGameState !== GameStateChangeRequired.None) {
                 return card.getTriggeredAbilities().some((ability) => {
-                    const whenPlayedEvent = new DefeatCardSystem(ability.properties).generateEvent(context, card, true);
-                    const abilityContext = ability.createContext(context.player, whenPlayedEvent);
+                    const cardPlayedEvent = new PlayCardSystem(ability.properties).generateEvent(context);
+                    const abilityContext = ability.createContext(context.player, cardPlayedEvent);
                     abilityContext.stage = Stage.PreTarget;
                     return ability.meetsRequirements(abilityContext) === '';
                 });

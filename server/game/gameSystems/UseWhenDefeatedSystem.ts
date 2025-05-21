@@ -51,9 +51,9 @@ export class UseWhenDefeatedSystem<TContext extends AbilityContext = AbilityCont
                 }
             );
 
-            Object.assign(promptProperties, { choices, handlers });
+            const completeProps = { ...promptProperties, choices, handlers };
 
-            event.context.game.promptWithHandlerMenu(player, promptProperties);
+            event.context.game.promptWithHandlerMenu(player, completeProps);
         }
     }
 
