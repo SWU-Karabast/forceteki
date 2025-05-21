@@ -50,8 +50,13 @@ export class Attack {
         this.unitControllersChanged.add(unit);
     }
 
+    public getDefendingPlayer(): Player {
+        Contract.assertTrue(this.targets.length > 0, 'Expected at least one target but there are none');
+        return this.targets[0].controller;
+    }
+
     public getSingleTarget(): IAttackableCard {
-        Contract.assertTrue(this.targets.length === 1, 'Expected one target but there are multiple');
+        Contract.assertTrue(this.targets.length === 1, `Expected one target but there are multiple (${this.targets.length})`);
         return this.targets[0];
     }
 

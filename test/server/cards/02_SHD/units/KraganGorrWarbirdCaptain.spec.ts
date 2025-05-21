@@ -5,11 +5,11 @@ describe('Kragan Gorr, Warbird Captain', function () {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        groundArena: ['kragan-gorr#warbird-captain', 'battlefield-marine', 'vanguard-infantry'],
+                        groundArena: ['kragan-gorr#warbird-captain', 'battlefield-marine', 'vanguard-infantry', 'wampa'],
                         spaceArena: ['green-squadron-awing', 'restored-arc170']
                     },
                     player2: {
-                        groundArena: ['swoop-racer', 'scout-bike-pursuer'],
+                        groundArena: ['swoop-racer', 'scout-bike-pursuer', 'darth-maul#revenge-at-last'],
                         spaceArena: ['distant-patroller']
                     }
                 });
@@ -30,7 +30,7 @@ describe('Kragan Gorr, Warbird Captain', function () {
                 context.player1.passAction();
                 context.player2.clickCard(context.scoutBikePursuer);
                 context.player2.clickCard(context.p1Base);
-                expect(context.player1).toBeAbleToSelectExactly([context.kraganGorr, context.vanguardInfantry]);
+                expect(context.player1).toBeAbleToSelectExactly([context.kraganGorr, context.vanguardInfantry, context.wampa]);
 
                 // give shield to vanguard infantry
                 context.player1.clickCard(context.vanguardInfantry);
@@ -45,6 +45,21 @@ describe('Kragan Gorr, Warbird Captain', function () {
                 // give shield to green squadron a-wing
                 context.player1.clickCard(context.greenSquadronAwing);
                 expect(context.greenSquadronAwing).toHaveExactUpgradeNames(['shield']);
+            });
+
+            it('should work with unit that can attack multiple targets', function () {
+                const { context } = contextRef;
+
+                // Pass action
+                context.player1.passAction();
+
+                // Darth Maul attacks two units, nothing should happen
+                context.player2.clickCard(context.darthMaul);
+                context.player2.clickCard(context.battlefieldMarine);
+                context.player2.clickCard(context.wampa);
+                context.player2.clickPrompt('Done');
+
+                expect(context.player1).toBeActivePlayer();
             });
         });
     });

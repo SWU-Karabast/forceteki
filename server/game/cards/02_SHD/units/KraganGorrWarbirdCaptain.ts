@@ -13,7 +13,7 @@ export default class KraganGorrWarbirdCaptain extends NonLeaderUnitCard {
         this.addTriggeredAbility({
             title: 'Give a Shield token to a friendly unit in the same arena as the attacker',
             when: {
-                onAttackDeclared: (event, context) => event.attack.getSingleTarget() === context.player.base,
+                onAttackDeclared: (event, context) => event.attack.getAllTargets().includes(context.player.base),
             },
             targetResolver: {
                 // TODO: update this to use last known state (once implemented) to get attacker zone in case it's defeated
