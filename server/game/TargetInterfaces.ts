@@ -115,7 +115,7 @@ interface ICardBetweenVariableTargetResolver<TContext extends AbilityContext> ex
     mode: TargetMode.BetweenVariable;
     minNumCardsFunc: (context: TContext) => number;
     maxNumCardsFunc: (context: TContext) => number;
-    useSingleSelectModeFunc?: (selectedCards: Card[], context?: TContext) => boolean;
+    useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
     multiSelectCardCondition?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
 }
 

@@ -1,7 +1,7 @@
 import type { ISetId } from '../../Interfaces';
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
-import type BaseCardSelector from '../cardSelector/BaseCardSelector';
+import type { BaseCardSelector } from '../cardSelector/BaseCardSelector';
 import type { GameSystem } from '../gameSystem/GameSystem';
 import type { OngoingEffectSource } from '../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../Player';
@@ -102,10 +102,10 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     mustSelect?: Card[];
     onCancel?: (player: Player) => void;
     onMenuCommand?: (arg: string) => boolean;
-    onSelect?: (card: Card[]) => boolean;
+    onSelect?: (card: Card | Card[]) => boolean;
     selectCardMode: SelectCardMode;
     selectOrder?: boolean;
-    selector?: BaseCardSelector;
+    selector: BaseCardSelector<AbilityContext>;
     attackTargetingHighlightAttacker?: Card;
 }
 
