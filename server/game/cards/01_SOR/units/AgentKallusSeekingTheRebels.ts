@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers.js';
 
 export default class AgentKallusSeekingTheRebels extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -15,7 +16,7 @@ export default class AgentKallusSeekingTheRebels extends NonLeaderUnitCard {
             optional: true,
             when: {
                 onCardDefeated: (event, context) =>
-                    event.card.isUnit() &&
+                    EnumHelpers.isUnit(event.lastKnownInformation.type) &&
                     event.card.unique &&
                     event.card !== context.source
             },
