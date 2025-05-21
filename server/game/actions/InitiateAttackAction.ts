@@ -9,6 +9,7 @@ import { AttackStepsSystem } from '../gameSystems/AttackStepsSystem.js';
 import { GameSystemCost } from '../core/cost/GameSystemCost.js';
 import { ExhaustSystem } from '../gameSystems/ExhaustSystem.js';
 import type Game from '../core/Game.js';
+import type { IUnitCard } from '../core/card/propertyMixins/UnitProperties.js';
 
 interface IInitiateAttackProperties extends IAttackProperties {
     allowExhaustedAttacker?: boolean;
@@ -30,9 +31,9 @@ export class InitiateAttackAction extends PlayerAction {
         super(game, card, 'Attack', [exhaustCost], {
             mode: TargetMode.BetweenVariable,
             minNumCardsFunc: () => 1,
-            maxNumCardsFunc: (context) => context.source.getMaxUnitAttackLimit(),
-            useSingleSelectModeFunc: (attacker, possibleTargets) => attacker.getMaxUnitAttackLimit() === 1 || possibleTargets.length === 1 || possibleTargets.some((card) => card.isBase()) && possibleTargets.filter((card) => card.isUnit()).length === 1,
-            multiSelectCardCondition: (card, selectedCards) => (card.isBase() ? selectedCards.length === 0 : !selectedCards.some((card) => card.isBase())),
+            maxNumCardsFunc: (context: AbilityContext) => (context.source as IUnitCard).getMaxUnitAttackLimit(),
+            useSingleSelectModeFunc: (attacker: IUnitCard, possibleTargets: Card[]) => attacker.getMaxUnitAttackLimit() === 1 || possibleTargets.length === 1 || possibleTargets.some((card) => card.isBase()) && possibleTargets.filter((card) => card.isUnit()).length === 1,
+            multiSelectCardCondition: (card: Card, selectedCards: Card[]) => (card.isBase() ? selectedCards.length === 0 : !selectedCards.some((card) => card.isBase())),
             immediateEffect: new AttackStepsSystem(Object.assign({}, attackProperties, { attacker: card })),
             zoneFilter: WildcardZoneName.AnyAttackable,
             attackTargetingHighlightAttacker: card,
