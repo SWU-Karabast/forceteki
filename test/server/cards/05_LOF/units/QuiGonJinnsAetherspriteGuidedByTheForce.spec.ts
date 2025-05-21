@@ -554,6 +554,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                             'count-dooku#fallen-jedi', // When Played: For each unit you exploited while playing this card, you may deal damage to an enemy unit equal to the power of the exploited unit.
                             'blue-leader#scarif-air-support', // When Played: You may pay [2 Resources]. If you do, move this unit to the ground arena and give 2 Experience tokens to it. (It's a ground unit.)
                             'qira#playing-her-part', // When Played: Look at an opponent's hand, then name a card. While this unit is in play, each card with that name costs [3 Resources] more for your opponents to play.
+                            'imperial-interceptor', // When Played: You may deal 3 damage to a space unit.
                             'academy-training',
                             'inspiring-mentor'
                         ],
@@ -890,6 +891,31 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
                 // Both resources are returned to Player 2
                 expect(context.player1.resources.length).toBe(p1OriginalResourceCount);
                 expect(context.player2.resources.length).toBe(p2OriginalResourceCount);
+            });
+
+            it('Imperial Interceptor (defeating itself when played)', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Imperial Interceptor, dealing 3 damage to itself
+                context.player1.clickCard(context.imperialInterceptor);
+                context.player1.clickCard(context.imperialInterceptor);
+                expect(context.imperialInterceptor).toBeInZone('discard');
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Imperial Interceptor's ability resolves again, choosing the A-Wing
+                context.player1.clickCard(context.greenSquadronAwing);
+                expect(context.greenSquadronAwing).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
             });
         });
     });
