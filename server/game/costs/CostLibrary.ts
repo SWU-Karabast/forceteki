@@ -14,15 +14,15 @@ import { ExhaustSystem } from '../gameSystems/ExhaustSystem';
 import type { IAttackableCard } from '../core/card/CardInterfaces';
 import { AbilityResourceCost } from './AbilityResourceCost';
 import { UseTheForceSystem } from '../gameSystems/UseTheForceSystem';
-// import { TargetDependentFateCost } from './costs/TargetDependentFateCost';
+import type { DistributiveOmit } from '../core/utils/Helpers';
 
-type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = Omit<ISelectCardProperties<TContext>, 'innerSystem'>;
+type SelectCostProperties<TContext extends AbilityContext = AbilityContext> = DistributiveOmit<ISelectCardProperties<TContext>, 'innerSystem'>;
 
 // TODO: we need to update the various cost generators to automatically inject { isCost: true } using additionalProperties so we don't have
 // to do it explicitly in each method. However, that requires doing a pass to make sure that additionalProperties is being respected everywhere.
 function getSelectCost<TContext extends AbilityContext = AbilityContext>(
     gameSystem: CardTargetSystem<TContext>,
-    properties: undefined | SelectCostProperties<TContext>,
+    properties: SelectCostProperties<TContext>,
     activePromptTitle: string
 ) {
     return new MetaActionCost<TContext>(

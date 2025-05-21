@@ -1,13 +1,21 @@
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import type { Card } from '../card/Card.js';
+import type { TargetMode } from '../Constants.js';
+import type { IBaseCardSelectorProperties } from './BaseCardSelector.js';
 import { BaseCardSelector } from './BaseCardSelector.js';
 
+export interface IExactlyVariableXCardSelectorProperties<TContext> extends IBaseCardSelectorProperties<TContext> {
+    mode: TargetMode.ExactlyVariable;
+    numCardsFunc: (context: TContext) => number;
+}
+
 export class ExactlyVariableXCardSelector<TContext extends AbilityContext = AbilityContext> extends BaseCardSelector<TContext> {
-    public constructor(
-        public numCardsFunc: (context: TContext) => number,
-        properties
-    ) {
+    public numCardsFunc: (context: TContext) => number;
+
+    public constructor(properties: IExactlyVariableXCardSelectorProperties<TContext>) {
         super(properties);
+
+        this.numCardsFunc = properties.numCardsFunc;
     }
 
     public override hasExceededLimit(selectedCards: Card[], context: TContext) {

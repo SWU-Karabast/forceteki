@@ -1,16 +1,28 @@
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import type { Card } from '../card/Card.js';
+import type { TargetMode } from '../Constants.js';
 import * as Contract from '../utils/Contract.js';
+import type { IBaseCardSelectorProperties } from './BaseCardSelector.js';
 import { BaseCardSelector } from './BaseCardSelector.js';
 
+export interface IBetweenVariableXYCardSelectorProperties<TContext> extends IBaseCardSelectorProperties<TContext> {
+    mode: TargetMode.BetweenVariable;
+    minNumCardsFunc: (context: TContext) => number;
+    maxNumCardsFunc: (context: TContext) => number;
+    useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
+}
+
 export class BetweenVariableXYCardSelector<TContext extends AbilityContext = AbilityContext> extends BaseCardSelector<TContext> {
-    public constructor(
-        public minNumCardsFunc: (context: TContext) => number,
-        public maxNumCardsFunc: (context: TContext) => number,
-        public useSingleSelectModeFunc: ((card: Card, selectedCards: Card[], context?: TContext) => boolean) | undefined,
-        properties
-    ) {
+    public minNumCardsFunc: (context: TContext) => number;
+    public maxNumCardsFunc: (context: TContext) => number;
+    public useSingleSelectModeFunc?: (card: Card, selectedCards: Card[], context?: TContext) => boolean;
+
+    public constructor(properties: IBetweenVariableXYCardSelectorProperties<TContext>) {
         super(properties);
+
+        this.minNumCardsFunc = properties.minNumCardsFunc;
+        this.maxNumCardsFunc = properties.maxNumCardsFunc;
+        this.useSingleSelectModeFunc = properties.useSingleSelectModeFunc;
     }
 
     public override defaultPromptString(context: TContext) {

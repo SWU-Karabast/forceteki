@@ -1,10 +1,10 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import type { Card } from '../../card/Card';
 import type { BaseCardSelector } from '../../cardSelector/BaseCardSelector';
-import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import type Game from '../../Game';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
 import type { Player } from '../../Player';
+import type { IPlayerPromptStateProperties } from '../../PlayerPromptState';
 import * as Contract from '../../utils/Contract';
 import type { ISelectCardPromptProperties } from '../PromptInterfaces';
 import { UiPrompt } from './UiPrompt';
@@ -96,7 +96,8 @@ export class SelectCardPrompt extends UiPrompt {
         }
         this.hideIfNoLegalTargets = !!properties.hideIfNoLegalTargets;
 
-        this.selector = properties.selector || CardSelectorFactory.create(this.properties);
+        Contract.assertNotNullLike(properties.selector);
+        this.selector = properties.selector;
 
         this.selectedCards = [];
         if (properties.mustSelect && properties.mustSelect.length > 0) {
@@ -154,7 +155,7 @@ export class SelectCardPrompt extends UiPrompt {
         return player === this.choosingPlayer;
     }
 
-    public override activePrompt() {
+    public override activePrompt(): IPlayerPromptStateProperties {
         let buttons = this.properties.buttons;
         if (!this.selector.automaticFireOnSelect(this.context) || this.selector.optional) {
             if (buttons.every((button) => button.arg !== 'done')) {

@@ -1,13 +1,21 @@
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import type { Card } from '../card/Card.js';
+import type { TargetMode } from '../Constants.js';
+import type { IBaseCardSelectorProperties } from './BaseCardSelector.js';
 import { BaseCardSelector } from './BaseCardSelector.js';
 
+export interface IExactlyXCardSelectorProperties<TContext> extends IBaseCardSelectorProperties<TContext> {
+    mode: TargetMode.Exactly;
+    numCards: number;
+}
+
 export class ExactlyXCardSelector<TContext extends AbilityContext = AbilityContext> extends BaseCardSelector<TContext> {
-    public constructor(
-        public numCards: number,
-        properties
-    ) {
+    public numCards: number;
+
+    public constructor(properties: IExactlyXCardSelectorProperties<TContext>) {
         super(properties);
+
+        this.numCards = properties.numCards;
     }
 
     public override defaultPromptString() {

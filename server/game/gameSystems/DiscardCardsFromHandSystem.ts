@@ -12,7 +12,7 @@ import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { Derivable } from '../core/utils/Helpers';
 import { derive } from '../core/utils/Helpers';
 import * as Contract from '../core/utils/Contract';
-import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
+import * as CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { FormatMessage } from '../core/chat/GameChat';

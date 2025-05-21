@@ -105,7 +105,7 @@ export interface ISelectCardPromptProperties extends IPromptPropertiesBase {
     onSelect?: (card: Card | Card[]) => boolean;
     selectCardMode: SelectCardMode;
     selectOrder?: boolean;
-    selector?: BaseCardSelector<AbilityContext>;
+    selector: BaseCardSelector<AbilityContext>;
     attackTargetingHighlightAttacker?: Card;
 }
 

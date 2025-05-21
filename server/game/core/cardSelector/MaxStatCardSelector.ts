@@ -1,13 +1,22 @@
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import type { Card } from '../card/Card.js';
+import type { TargetMode } from '../Constants.js';
+import type { IBaseCardSelectorProperties } from './BaseCardSelector.js';
 import { BaseCardSelector } from './BaseCardSelector.js';
+
+export interface IMaxStatCardSelectorProperties<TContext> extends IBaseCardSelectorProperties<TContext> {
+    mode: TargetMode.MaxStat;
+    cardStat: (card: Card) => number;
+    maxStat: () => number;
+    numCards: number;
+}
 
 export class MaxStatCardSelector<TContext extends AbilityContext = AbilityContext> extends BaseCardSelector<TContext> {
     public cardStat: (card: Card) => number;
     public maxStat: () => number;
     public numCards: number;
 
-    public constructor(properties) {
+    public constructor(properties: IMaxStatCardSelectorProperties<TContext>) {
         super(properties);
 
         this.cardStat = properties.cardStat;

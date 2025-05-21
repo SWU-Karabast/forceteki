@@ -2,7 +2,7 @@ import type { ICardTargetResolver, ICardTargetsResolver } from '../../../TargetI
 import type { AbilityContext } from '../AbilityContext';
 import type { PlayerOrCardAbility } from '../PlayerOrCardAbility';
 import { TargetResolver } from './TargetResolver';
-import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
+import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import type { Card } from '../../card/Card';
 import type { RelativePlayer, ZoneFilter, ZoneName } from '../../Constants';
 import { EffectName, GameStateChangeRequired, Stage, TargetMode } from '../../Constants';
@@ -54,7 +54,7 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     private getSelector(properties: ICardTargetResolver<AbilityContext>) {
-        const cardCondition = (card, context) => this.checkCardCondition(card, context, properties);
+        const cardCondition = (card: Card, context: AbilityContext) => this.checkCardCondition(card, context, properties);
         return CardSelectorFactory.create(Object.assign({}, properties, { cardCondition: cardCondition, targets: true }));
     }
 

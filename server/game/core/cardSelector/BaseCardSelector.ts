@@ -1,38 +1,47 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
-import type { CardTypeFilter, RelativePlayerFilter, ZoneFilter } from '../Constants';
-import { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
+import type { CardTypeFilter, RelativePlayerFilter, TargetMode, ZoneFilter } from '../Constants';
+import { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, WildcardCardType } from '../Constants';
 import type Game from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
 import * as EnumHelpers from '../utils/EnumHelpers';
 import * as Helpers from '../utils/Helpers';
 
+export interface IBaseCardSelectorProperties<TContext> {
+    mode: Extract<TargetMode, TargetMode.AutoSingle | TargetMode.BetweenVariable | TargetMode.Exactly | TargetMode.ExactlyVariable | TargetMode.MaxStat | TargetMode.Single | TargetMode.Unlimited | TargetMode.UpTo | TargetMode.UpToVariable>;
+    cardCondition?: (card: Card, context: TContext) => boolean;
+    multiSelectCardCondition?: (card: Card, selectedCards: Card[], context: TContext) => boolean;
+    cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
+    optional?: boolean;
+    zoneFilter?: ZoneFilter | ZoneFilter[];
+    capturedByFilter?: Card | Card[] | ((context: TContext) => Card | Card[]);
+    controller?: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
+    checkTarget?: boolean;
+    appendToDefaultTitle?: string;
+}
+
 export abstract class BaseCardSelector<TContext extends AbilityContext> {
-    public cardCondition?: (card: Card, context: TContext) => boolean;
+    public cardCondition: (card: Card, context: TContext) => boolean;
     public multiSelectCardCondition?: (card: Card, selectedCards: Card[], context: TContext) => boolean;
-    public cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
+    public cardTypeFilter: CardTypeFilter[];
     public optional: boolean;
     public zoneFilter: ZoneFilter[];
-    public capturedByFilter: Card | Card[] | ((context: TContext) => Card | Card[]);
+    public capturedByFilter?: Card | Card[] | ((context: TContext) => Card | Card[]);
     public controller: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
     public checkTarget: boolean;
     public appendToDefaultTitle?: string;
 
-    public constructor(properties) {
-        this.cardCondition = properties.cardCondition;
+    public constructor(properties: IBaseCardSelectorProperties<TContext>) {
+        this.cardCondition = properties.cardCondition ?? (() => true);
         this.multiSelectCardCondition = properties.multiSelectCardCondition;
-        this.cardTypeFilter = properties.cardTypeFilter;
-        this.optional = properties.optional;
+        this.optional = properties.optional ?? false;
         this.zoneFilter = this.buildZoneFilter(properties.zoneFilter);
         this.capturedByFilter = properties.capturedByFilter;
         this.controller = properties.controller || WildcardRelativePlayer.Any;
         this.checkTarget = !!properties.checkTarget;
         this.appendToDefaultTitle = properties.appendToDefaultTitle;
-
-        if (!Array.isArray(properties.cardTypeFilter)) {
-            this.cardTypeFilter = [properties.cardTypeFilter];
-        }
+        this.cardTypeFilter = properties.cardTypeFilter ? Helpers.asArray(properties.cardTypeFilter) : [WildcardCardType.Any];
     }
 
     public get hasAnyCardFilter() {

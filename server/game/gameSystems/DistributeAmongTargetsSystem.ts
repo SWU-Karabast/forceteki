@@ -3,7 +3,7 @@ import type { Card } from '../core/card/Card';
 import type { CardTypeFilter, ZoneFilter, RelativePlayerFilter } from '../core/Constants';
 import { CardType, RelativePlayer, TargetMode, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
-import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
+import * as CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import type { BaseCardSelector } from '../core/cardSelector/BaseCardSelector';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { DistributePromptType, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptMapResults } from '../core/gameSteps/PromptInterfaces';

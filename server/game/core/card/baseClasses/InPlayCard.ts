@@ -4,9 +4,10 @@ import { DefeatSourceType } from '../../../IDamageOrDefeatSource';
 import type { IConstantAbilityProps, ITriggeredAbilityBaseProps, WhenTypeOrStandard } from '../../../Interfaces';
 import type { AbilityContext } from '../../ability/AbilityContext';
 import type TriggeredAbility from '../../ability/TriggeredAbility';
-import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
+import * as CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import { CardType, RelativePlayer, StandardTriggeredAbilityType, TargetMode, Trait, WildcardZoneName, ZoneName } from '../../Constants';
 import type { GameObjectRef } from '../../GameObjectBase';
+import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
 import type { Player } from '../../Player';
 import * as Contract from '../../utils/Contract';
@@ -378,7 +379,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
                 card.unique && card.title === this.title && card.subtitle === this.subtitle && !card.pendingDefeat,
         });
 
-        const chooseDuplicateToDefeatPromptProperties = {
+        const chooseDuplicateToDefeatPromptProperties: ISelectCardPromptProperties = {
             activePromptTitle: `Choose which ${numUniqueDuplicatesInPlay > 1 ? 'copies' : 'copy'} of ${unitDisplayName} to defeat`,
             waitingPromptTitle: `Waiting for opponent to choose which ${numUniqueDuplicatesInPlay > 1 ? 'copies' : 'copy'} of ${unitDisplayName} to defeat`,
             source: 'Unique rule',
@@ -388,10 +389,12 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
             onSelect: (cardOrCards) => {
                 if (Array.isArray(cardOrCards)) {
                     for (const card of cardOrCards) {
+                        Contract.assertTrue(card.canBeInPlay(), `Card ${card.title} is not a IInPlayCard`);
                         this.resolveUniqueDefeat(card);
                     }
                     return true;
                 }
+                Contract.assertTrue(cardOrCards.canBeInPlay(), `Card ${cardOrCards.title} is not a IInPlayCard`);
                 return this.resolveUniqueDefeat(cardOrCards);
             }
         };
@@ -404,7 +407,7 @@ export class InPlayCard<T extends IInPlayCardState = IInPlayCardState> extends I
         );
     }
 
-    private resolveUniqueDefeat(duplicateToDefeat: InPlayCard) {
+    private resolveUniqueDefeat(duplicateToDefeat: IInPlayCard) {
         const duplicateDefeatSystem = new FrameworkDefeatCardSystem({ defeatSource: DefeatSourceType.UniqueRule, target: duplicateToDefeat });
         this.game.addSubwindowEvents(duplicateDefeatSystem.generateEvent(this.game.getFrameworkContext()));
 
