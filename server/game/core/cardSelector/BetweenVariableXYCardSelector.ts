@@ -33,9 +33,11 @@ export class BetweenVariableXYCardSelector<TContext extends AbilityContext = Abi
         Contract.assertNonNegative(maxCards, `Expected maximum targetable cards to be non-negative: ${maxCards}`);
         Contract.assertTrue(minCards <= maxCards, `Expected minimum targetable cards (${minCards}) to be less than or equal to maximum targetable cards (${maxCards})`);
 
+        const { description, article } = BaseCardSelector.cardTypeFilterDescription(this.cardTypeFilter, minCards > 1 || maxCards > 1);
+
         return minCards === maxCards
-            ? `Select ${minCards} cards`
-            : `Select between ${minCards} and ${maxCards} cards`;
+            ? `Select ${minCards === 1 ? article : minCards} ${description}`
+            : `Select between ${minCards} and ${maxCards} ${description}`;
     }
 
     public override hasReachedLimit(selectedCards: Card[], context: TContext) {

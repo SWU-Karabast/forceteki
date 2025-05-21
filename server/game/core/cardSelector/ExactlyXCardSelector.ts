@@ -19,10 +19,10 @@ export class ExactlyXCardSelector<TContext extends AbilityContext = AbilityConte
     }
 
     public override defaultPromptString() {
-        if (this.cardTypeFilter.length === 1) {
-            return this.numCards === 1 ? 'Choose a ' + this.cardTypeFilter[0] : `Choose ${this.numCards} ${this.cardTypeFilter[0]}`;
-        }
-        return this.numCards === 1 ? 'Select a card' : `Select ${this.numCards} cards`;
+        const verb = this.numCards === 1 ? 'Choose' : 'Select';
+        const { description, article } = BaseCardSelector.cardTypeFilterDescription(this.cardTypeFilter, this.numCards > 1);
+
+        return `${verb} ${this.numCards === 1 ? article : this.numCards} ${description}`;
     }
 
     public override hasEnoughSelected(selectedCards: Card[]) {

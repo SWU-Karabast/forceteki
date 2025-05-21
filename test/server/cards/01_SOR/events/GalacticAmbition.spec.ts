@@ -17,6 +17,7 @@ describe('Galactic Ambition', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.galacticAmbition);
+                expect(context.player1).toHavePrompt('Choose a unit');
                 expect(context.player1).toBeAbleToSelectExactly([context.supremeLeaderSnoke, context.bountyGuildInitiate]);
                 context.player1.clickCard(context.supremeLeaderSnoke);
 
