@@ -6,9 +6,6 @@ import type { IAttackableCard } from '../card/CardInterfaces';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { Player } from '../Player';
 
-
-type StatisticTotal = number;
-
 export class Attack {
     private readonly game: Game;
     public readonly attacker: IUnitCard;
@@ -119,13 +116,8 @@ export class Attack {
         );
     }
 
-    // TODO: if we end up using this we need to refactor it to reflect attacks in SWU (i.e., show HP)
-    public getTotalsForDisplay(): string {
-        return `${this.attacker.name}: ${this.getAttackerTotalPower()} vs ${this.getTargetTotalPower()}: ${this.targets.map((target) => target.name).join(', ')}`;
-    }
-
-    private getUnitPower(involvedUnit: IUnitCard): StatisticTotal {
-        Contract.assertTrue(involvedUnit.isInPlay(), `Unit ${involvedUnit.name} zone is ${involvedUnit.zoneName}, cannot participate in combat`);
+    private getUnitPower(involvedUnit: IUnitCard): number {
+        Contract.assertTrue(involvedUnit.isInPlay(), `Unit ${involvedUnit.title} zone is ${involvedUnit.zoneName}, cannot participate in combat`);
 
         return involvedUnit.getPower();
     }
