@@ -1,5 +1,6 @@
 import type { GameObject } from '../GameObject';
 import * as ChatHelpers from './ChatHelpers';
+import { filterProfanity } from '../../../utils/ProfanityFilter';
 
 type MsgArg = string | string[] | FormatMessage | FormatMessage[] | GameObject | GameObject[] | { name: string } | { getShortSummary: () => string };
 export interface FormatMessage {
@@ -28,7 +29,10 @@ export class GameChat {
             type: 'playerChat'
         };
 
-        this.addMessage('{0} {1}', playerArg, message);
+        // Filter profanity from player messages
+        const filteredMessage = typeof message === 'string' ? filterProfanity(message) : message;
+
+        this.addMessage('{0} {1}', playerArg, filteredMessage);
     }
 
     public addMessage(message: string, ...args: MsgArg[]): void {
