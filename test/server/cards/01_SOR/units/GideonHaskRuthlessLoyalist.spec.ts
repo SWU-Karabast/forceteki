@@ -9,7 +9,7 @@ describe('Gideon Hask, Ruthless Loyalist', function () {
                         spaceArena: [{ card: 'cartel-spacer', upgrades: ['r2d2#artooooooooo'] }],
                     },
                     player2: {
-                        hand: ['rivals-fall'],
+                        hand: ['rivals-fall', 'change-of-heart'],
                         groundArena: ['gideon-hask#ruthless-loyalist', 'specforce-soldier', 'atst'],
                     },
                 });
@@ -46,6 +46,20 @@ describe('Gideon Hask, Ruthless Loyalist', function () {
                 context.player2.clickCard(context.wampa);
 
                 expect(context.player1).toBeActivePlayer();
+            });
+
+            it('should do nothing when a friendly unit owned by the opponent is defeated', function () {
+                const { context } = contextRef;
+
+                context.player1.passAction();
+
+                context.player2.clickCard(context.changeOfHeart);
+                context.player2.clickCard(context.battlefieldMarine);
+
+                context.player1.clickCard(context.wampa);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('should trigger even if Gideon Hask is defeated', function () {
