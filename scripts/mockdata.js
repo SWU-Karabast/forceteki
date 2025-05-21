@@ -543,6 +543,24 @@ const mockCards = [
         arena: 'ground',
         internalName: 'purge-trooper'
     }),
+    buildMockCard({
+        title: 'Grand Inquisitor, Stories Travel Quickly',
+        power: 3,
+        hp: 5,
+        cost: 5,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['leader'],
+        keywords: ['shielded'],
+        traits: ['force', 'imperial', 'inquisitor'],
+        setId: {
+            set: 'LOF',
+            number: 14
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'grand-inquisitor#stories-travel-quickly'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
