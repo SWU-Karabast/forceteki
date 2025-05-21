@@ -25,40 +25,38 @@
         - Does not trigger for when-played-like abilities (e.g. Ambush & Shielded)
 
     Various types of "When Played" abilities to verify:
-        1. Using Smuggle:
+        - Using Smuggle:
             Privateer Crew | When played using Smuggle: Give 3 Experience tokens to this unit.
-        2. Coordinate (Ability activates when player controls 3 or more units):
+        - Coordinate (Ability activates when player controls 3 or more units):
             Pelta Supply Frigate | Coordinate - When Played: Create a Clone Trooper Token.
-        3. Play type (unit):
+        - Play type (unit):
             Poe Dameron, One Hell of a Pilot | When played as a unit: Create an X-Wing token.
             You may attach this unit as an upgrade to a friendly Vehicle unit without a Pilot on it.
-        4. Play type (upgrade):
+        - Play type (upgrade):
             Snap Wexley, Resistance Recon Flier | When played as an upgrade: Search the top 5
             cards of your deck for a Resistance card, reveal it, and draw it.
-        5. Combined ability:
+        - Combined ability:
             Reinforcement Walker | When Played/On Attack: Look at the top card of your deck. Either
             draw that card or discard it and heal 3 damage from your base.
-        6. Multiple "When Played" abilities:
+        - Multiple "When Played" abilities:
             Anakin Skywalker, Champion of Mortis | When Played: If there is a [Heroism] card in your
             discard pile, you may give a unit -3/-3 for this phase. | When Played: If there is a
             [Villainy] card in your discard pile, you may give a unit -3/-3 for this phase.
 
     Unique "When Played" abilities to verify:
-        1. Regional Governor | When Played: Name a card. While this unit is in play, opponents can't
+        - Regional Governor | When Played: Name a card. While this unit is in play, opponents can't
            play the named card.
-        2. Huyang, Enduring Instructor | When Played: Choose another friendly unit. While this unit is
+        - Huyang, Enduring Instructor | When Played: Choose another friendly unit. While this unit is
            in play, the chosen unit gets +2/+2.
-        3. Mon Mothma, Voice of the Rebellion | When Played: Search the top 5 cards of your deck for a
-           Rebel card, reveal it, and draw it. (Put the other cards on the bottom of your deck in a
-           random order.)
-        4. Fenn Rau, Protector of Concord Dawn | When Played: You may play an upgrade from your hand.
+        - Fenn Rau, Protector of Concord Dawn | When Played: You may play an upgrade from your hand.
            It costs [2 Resources] less.
-        5. Osi Sobeck, Warden of the Citadel | When Played: This unit captures an enemy non-leader ground
+        - Osi Sobeck, Warden of the Citadel | When Played: This unit captures an enemy non-leader ground
            unit with cost equal to or less than the number of resources paid to play this unit.
-        6. Count Dooku, Fallen Jedi | When Played: For each unit you exploited while playing this card,
+        - Count Dooku, Fallen Jedi | When Played: For each unit you exploited while playing this card,
            you may deal damage to an enemy unit equal to the power of the exploited unit.
-        7. Blue Leader, Scarif Air Support | When Played: You may pay [2 Resources]. If you do, move this
+        - Blue Leader, Scarif Air Support | When Played: You may pay [2 Resources]. If you do, move this
            unit to the ground arena and give 2 Experience tokens to it. (It's a ground unit.)
+    *********************************************************************
 */
 
 describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
@@ -599,6 +597,312 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 expect(context.phoenixSquadronAwing).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
+            });
+        });
+
+        describe('Unique "When Played" abilities:', () => {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'quigon-jinn#student-of-the-living-force',
+                        base: { card: 'echo-base', damage: 3 },
+                        hand: [
+                            'regional-governor', // When Played: Name a card. While this unit is in play, opponents can't play the named card.
+                            'huyang#enduring-instructor', // When Played: Choose another friendly unit. While this unit is in play, the chosen unit gets +2/+2.
+                            'fenn-rau#protector-of-concord-dawn', // When Played: You may play an upgrade from your hand. It costs [2 Resources] less.
+                            'osi-sobeck#warden-of-the-citadel', // When Played: This unit captures an enemy non-leader ground unit with cost equal to or less than the number of resources paid to play this unit.
+                            'count-dooku#fallen-jedi', // When Played: For each unit you exploited while playing this card, you may deal damage to an enemy unit equal to the power of the exploited unit.
+                            'blue-leader#scarif-air-support', // When Played: You may pay [2 Resources]. If you do, move this unit to the ground arena and give 2 Experience tokens to it. (It's a ground unit.)
+                            'qira#playing-her-part', // When Played: Look at an opponent's hand, then name a card. While this unit is in play, each card with that name costs [3 Resources] more for your opponents to play.
+                            'academy-training',
+                            'inspiring-mentor'
+                        ],
+                        spaceArena: [
+                            'quigon-jinns-aethersprite#guided-by-the-force',
+                            'alliance-xwing',
+                            'xwing',
+                        ],
+                        groundArena: [
+                            'consular-security-force',
+                        ]
+                    },
+                    player2: {
+                        hand: [
+                            'takedown',
+                            'vanquish'
+                        ],
+                        spaceArena: [
+                            'green-squadron-awing',
+                            'phoenix-squadron-awing'
+                        ],
+                        groundArena: [
+                            'battlefield-marine',
+                            'echo-base-defender',
+                        ],
+                    }
+                });
+            });
+
+            it('Regional Governor', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Regional Governor, naming Takedown
+                context.player1.clickCard(context.regionalGovernor);
+                context.player1.chooseListOption('Takedown');
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Regional Governor's ability resolves again
+                context.player1.chooseListOption('Vanquish');
+
+                expect(context.player2).toBeActivePlayer();
+                expect(context.player2).toBeAbleToSelectNoneOf([context.takedown, context.vanquish]);
+            });
+
+            it('Huyang', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Huyang, giving +2/+2 to the Alliance X-Wing
+                context.player1.clickCard(context.huyang);
+                context.player1.clickCard(context.allianceXwing);
+
+                expect(context.allianceXwing.getPower()).toBe(4);
+                expect(context.allianceXwing.getHp()).toBe(5);
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Huyang's ability resolves again
+                context.player1.clickCard(context.allianceXwing);
+
+                expect(context.allianceXwing.getPower()).toBe(6);
+                expect(context.allianceXwing.getHp()).toBe(7);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('Fenn Rau', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Fenn Rau, playing Academy Training for 2 less resources
+                context.player1.clickCard(context.fennRau);
+                const readyResourceCount = context.player1.readyResourceCount;
+
+                expect(context.player1).toBeAbleToSelectExactly([
+                    context.academyTraining,
+                    context.inspiringMentor,
+                ]);
+
+                context.player1.clickCard(context.academyTraining);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // Academy Training is played for 2 less resources (free)
+                expect(context.consularSecurityForce).toHaveExactUpgradeNames(['academy-training']);
+                expect(context.player1.readyResourceCount).toBe(readyResourceCount);
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Fenn Rau's ability resolves again
+                expect(context.player1).toBeAbleToSelectExactly([context.inspiringMentor]);
+                context.player1.clickCard(context.inspiringMentor);
+                context.player1.clickCard(context.consularSecurityForce);
+
+                // Inspiring Mentor is played for 2 less resources (free)
+                expect(context.consularSecurityForce).toHaveExactUpgradeNames(['academy-training', 'inspiring-mentor']);
+                expect(context.player1.readyResourceCount).toBe(readyResourceCount);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('Osi Sobeck', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Osi Sobeck, capturing Battlefield Marine
+                context.player1.clickCard(context.osiSobeck);
+                context.player1.clickPrompt('Play without Exploit');
+                expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.echoBaseDefender]);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.battlefieldMarine).toBeCapturedBy(context.osiSobeck);
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Osi Sobeck's ability resolves again
+                expect(context.player1).toBeAbleToSelectExactly([context.echoBaseDefender]);
+                context.player1.clickCard(context.echoBaseDefender);
+
+                expect(context.echoBaseDefender).toBeCapturedBy(context.osiSobeck);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('Count Dooku', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Count Dooku, exploiting an X-Wing
+                context.player1.clickCard(context.countDooku);
+                context.player1.clickPrompt('Trigger exploit');
+                context.player1.clickCard(context.xwing);
+                context.player1.clickPrompt('Done');
+
+                context.player1.clickCard(context.battlefieldMarine);
+                expect(context.battlefieldMarine.damage).toBe(2);
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Count Dooku's ability resolves again
+                context.player1.clickCard(context.echoBaseDefender);
+                expect(context.echoBaseDefender.damage).toBe(2);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('Blue Leader', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Blue Leader, moving to the ground arena and giving 2 Experience tokens
+                context.player1.clickCard(context.blueLeader);
+                context.player1.clickPrompt('Pay 2 resources');
+                const readyResources = context.player1.readyResourceCount;
+                context.player1.clickPrompt('Trigger');
+
+                expect(context.player1.readyResourceCount).toBe(readyResources - 2);
+                expect(context.blueLeader).toBeInZone('groundArena');
+                expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience']);
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Blue Leader's ability resolves again
+                expect(context.player1.readyResourceCount).toBe(readyResources - 4);
+                expect(context.blueLeader).toBeInZone('groundArena');
+                expect(context.blueLeader).toHaveExactUpgradeNames(['experience', 'experience', 'experience', 'experience']);
+
+                expect(context.player1).toHavePassAbilityPrompt('Ambush');
+                context.player1.clickPrompt('Pass');
+
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('Qira (naming two different cards)', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Qira, naming Takedown
+                context.player1.clickCard(context.qira);
+                context.player1.clickPrompt('Done');
+                context.player1.chooseListOption('Takedown');
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Qira's ability resolves again, naming Vanquish
+                context.player1.clickPrompt('Done');
+                context.player1.chooseListOption('Vanquish');
+                expect(context.player2).toBeActivePlayer();
+
+                // Player 2 plays Takedown for 7 resources
+                const readyResourceCount = context.player2.readyResourceCount;
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.allianceXwing);
+
+                expect(context.player2.readyResourceCount).toBe(readyResourceCount - 7);
+
+                context.player1.passAction();
+
+                // Player 2 plays Vanquish for 8 resources
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.quigonJinnsAethersprite);
+
+                expect(context.player2.readyResourceCount).toBe(readyResourceCount - 15);
+            });
+
+            it('Qira (naming the same card twice)', () => {
+                const { context } = contextRef;
+
+                // Attack with the Aethersprite to activate the ability
+                context.player1.clickCard(context.quigonJinnsAethersprite);
+                context.player1.clickCard(context.p2Base);
+
+                context.player2.passAction();
+
+                // Play Qira, naming Takedown
+                context.player1.clickCard(context.qira);
+                context.player1.clickPrompt('Done');
+                context.player1.chooseListOption('Takedown');
+
+                // Aethersprite's ability is triggered
+                expect(context.player1).toHavePassAbilityPrompt(prompt);
+                expect(context.player1).toHaveExactPromptButtons(['Trigger', 'Pass']);
+                context.player1.clickPrompt('Trigger');
+
+                // Qira's ability resolves again, naming Takedown
+                context.player1.clickPrompt('Done');
+                context.player1.chooseListOption('Takedown');
+                expect(context.player2).toBeActivePlayer();
+
+                // Player 2 plays Takedown for 10 resources
+                const readyResourceCount = context.player2.readyResourceCount;
+                context.player2.clickCard(context.takedown);
+                context.player2.clickCard(context.allianceXwing);
+
+                expect(context.player2.readyResourceCount).toBe(readyResourceCount - 10);
             });
         });
     });
