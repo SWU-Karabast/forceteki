@@ -20,9 +20,22 @@ export default class ImproprietyAmongThieves extends EventCard {
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     zoneFilter: WildcardZoneName.AnyArena,
                     cardCondition: (card) => card.canBeExhausted() && !card.exhausted,
+                    immediateEffect: AbilityHelper.immediateEffects.simultaneous([
+                        AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
+                            newController: context.player.opponent,
+                        })),
+                        AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
+                            title: 'Owner takes control',
+                            when: {
+                                onPhaseStarted: (context) => context.phase === PhaseName.Regroup
+                            },
+                            immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
+                                newController: context.targets.friendlyUnit.owner
+                            })
+                        }))
+                    ])
                 },
                 enemyUnit: {
-                    dependsOn: 'friendlyUnit',
                     activePromptTitle: 'Choose an enemy ready non-leader unit',
                     controller: RelativePlayer.Opponent,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
@@ -30,11 +43,6 @@ export default class ImproprietyAmongThieves extends EventCard {
                     cardCondition: (card) => card.canBeExhausted() && !card.exhausted,
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([
                         AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
-                            target: context.targets.friendlyUnit,
-                            newController: context.player.opponent,
-                        })),
-                        AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
-                            target: context.targets.enemyUnit,
                             newController: context.player,
                         })),
                         AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
@@ -43,21 +51,10 @@ export default class ImproprietyAmongThieves extends EventCard {
                                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup
                             },
                             immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
-                                target: context.targets.friendlyUnit,
-                                newController: context.targets.friendlyUnit.owner,
-                            }),
-                        })),
-                        AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
-                            title: 'Owner takes control',
-                            when: {
-                                onPhaseStarted: (context) => context.phase === PhaseName.Regroup
-                            },
-                            immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
-                                target: context.targets.enemyUnit,
-                                newController: context.targets.enemyUnit.owner,
-                            }),
+                                newController: context.targets.enemyUnit.owner
+                            })
                         }))
-                    ]),
+                    ])
                 }
             },
         });
