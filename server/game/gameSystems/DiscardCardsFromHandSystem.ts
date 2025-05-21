@@ -115,7 +115,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 isOpponentEffect: choosingPlayer !== context.player,
                 selectCardMode: amount === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
                 onSelect: (cards) => {
-                    this.generateEventsForCards(cards, context, events, additionalProperties);
+                    this.generateEventsForCards(Helpers.asArray(cards), context, events, additionalProperties);
                     return true;
                 }
             });

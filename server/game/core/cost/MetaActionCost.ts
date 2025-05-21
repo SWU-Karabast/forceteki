@@ -22,7 +22,6 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override canPay(context: TContext): boolean {
-        const properties = this.gameSystem.generatePropertiesFromContext(context);
         return this.gameSystem.hasLegalTarget(context);
     }
 
@@ -30,7 +29,7 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
         const properties = this.gameSystem.generatePropertiesFromContext(context);
         if (properties.checkTarget && context.choosingPlayerOverride) {
             context.costs[properties.innerSystem.name] = randomItem(
-                properties.selector.getAllLegalTargets(context, context.player),
+                properties.selector.getAllLegalTargets(context),
                 context.game.randomGenerator
             );
             context.costs[properties.innerSystem.name + 'StateWhenChosen'] =

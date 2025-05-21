@@ -1,6 +1,6 @@
 import { AbilityContext } from '../../ability/AbilityContext';
 import type { Card } from '../../card/Card';
-import type BaseCardSelector from '../../cardSelector/BaseCardSelector';
+import type { BaseCardSelector } from '../../cardSelector/BaseCardSelector';
 import CardSelectorFactory from '../../cardSelector/CardSelectorFactory';
 import type Game from '../../Game';
 import { OngoingEffectSource } from '../../ongoingEffect/OngoingEffectSource';
@@ -62,7 +62,7 @@ export class SelectCardPrompt extends UiPrompt {
     private readonly onlyMustSelectMayBeChosen: boolean = false;
     private readonly promptTitle: string;
     private readonly properties: ISelectCardPromptProperties;
-    private readonly selector: BaseCardSelector;
+    private readonly selector: BaseCardSelector<AbilityContext>;
     private readonly source: OngoingEffectSource;
 
     private previouslySelectedCards?: Card[];
@@ -134,7 +134,7 @@ export class SelectCardPrompt extends UiPrompt {
     }
 
     public override continue() {
-        if (this.hideIfNoLegalTargets && this.selector.optional && !this.selector.hasEnoughTargets(this.context, this.choosingPlayer)) {
+        if (this.hideIfNoLegalTargets && this.selector.optional && !this.selector.hasEnoughTargets(this.context)) {
             this.complete();
         }
 
@@ -156,7 +156,7 @@ export class SelectCardPrompt extends UiPrompt {
 
     public override activePrompt() {
         let buttons = this.properties.buttons;
-        if (!this.selector.automaticFireOnSelect(this.context, this.choosingPlayer) || this.selector.optional) {
+        if (!this.selector.automaticFireOnSelect(this.context) || this.selector.optional) {
             if (buttons.every((button) => button.arg !== 'done')) {
                 if (this.selector.optional && this.selectedCards.length === 0) {
                     buttons = [{ text: 'Choose nothing', arg: 'done' }].concat(buttons);
@@ -195,7 +195,7 @@ export class SelectCardPrompt extends UiPrompt {
             return false;
         }
 
-        if (this.selector.automaticFireOnSelect(this.context, this.choosingPlayer) && this.selector.hasReachedLimit(this.selectedCards, this.context, this.choosingPlayer)) {
+        if (this.selector.automaticFireOnSelect(this.context) && this.selector.hasReachedLimit(this.selectedCards, this.context)) {
             return this.fireOnSelect();
         }
 
@@ -210,12 +210,12 @@ export class SelectCardPrompt extends UiPrompt {
         }
 
         return (
-            this.selector.canTarget(card, this.context, this.choosingPlayer, this.selectedCards) &&
+            this.selector.canTarget(card, this.context, this.selectedCards) &&
             !this.selector.wouldExceedLimit(this.selectedCards, card)
         );
     }
 
-    private selectCard(card) {
+    private selectCard(card: Card) {
         if (this.selector.hasReachedLimit(this.selectedCards, this.context) && !this.selectedCards.includes(card)) {
             return false;
         } else if (this.cannotUnselectMustSelect && this.properties.mustSelect.includes(card)) {

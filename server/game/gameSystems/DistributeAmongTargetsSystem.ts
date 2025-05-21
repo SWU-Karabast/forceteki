@@ -4,7 +4,7 @@ import type { CardTypeFilter, ZoneFilter, RelativePlayerFilter } from '../core/C
 import { CardType, RelativePlayer, TargetMode, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
-import type BaseCardSelector from '../core/cardSelector/BaseCardSelector';
+import type { BaseCardSelector } from '../core/cardSelector/BaseCardSelector';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { DistributePromptType, IDistributeAmongTargetsPromptProperties, IDistributeAmongTargetsPromptMapResults } from '../core/gameSteps/PromptInterfaces';
 import type { DamageSystem } from './DamageSystem';
@@ -30,7 +30,7 @@ export interface IDistributeAmongTargetsSystemProperties<TContext extends Abilit
     controller?: RelativePlayerFilter;
     zoneFilter?: ZoneFilter | ZoneFilter[];
     cardCondition?: (card: Card, context: TContext) => boolean;
-    selector?: BaseCardSelector;
+    selector?: BaseCardSelector<TContext>;
     maxTargets?: number;
 }
 
@@ -86,7 +86,7 @@ export abstract class DistributeAmongTargetsSystem<
             return;
         }
 
-        if (!properties.selector.hasEnoughTargets(context, player)) {
+        if (!properties.selector.hasEnoughTargets(context)) {
             return;
         }
 
@@ -138,18 +138,12 @@ export abstract class DistributeAmongTargetsSystem<
 
     public override canAffectInternal(card: Card, context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const player =
-            (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
-            context.player;
-        return properties.selector.canTarget(card, context, player);
+        return properties.selector.canTarget(card, context);
     }
 
     public override hasLegalTarget(context: TContext, additionalProperties: Partial<TProperties> = {}): boolean {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);
-        const player =
-            (properties.player === RelativePlayer.Opponent && context.player.opponent) ||
-            context.player;
-        return properties.selector.hasEnoughTargets(context, player);
+        return properties.selector.hasEnoughTargets(context);
     }
 
     private generateEffectEvent(card: Card, distributeEvent: any, context: TContext, amount: number) {

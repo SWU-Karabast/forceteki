@@ -1,12 +1,13 @@
-const ExactlyXCardSelector = require('./ExactlyXCardSelector');
-const ExactlyVariableXCardSelector = require('./ExactlyVariableXCardSelector');
-const MaxStatCardSelector = require('./MaxStatCardSelector');
-const SingleCardSelector = require('./SingleCardSelector');
-const UnlimitedCardSelector = require('./UnlimitedCardSelector');
-const UpToXCardSelector = require('./UpToXCardSelector');
-const UpToVariableXCardSelector = require('./UpToVariableXCardSelector');
+const { ExactlyXCardSelector } = require('./ExactlyXCardSelector');
+const { ExactlyVariableXCardSelector } = require('./ExactlyVariableXCardSelector');
+const { MaxStatCardSelector } = require('./MaxStatCardSelector');
+const { SingleCardSelector } = require('./SingleCardSelector');
+const { UnlimitedCardSelector } = require('./UnlimitedCardSelector');
+const { UpToXCardSelector } = require('./UpToXCardSelector');
+const { UpToVariableXCardSelector } = require('./UpToVariableXCardSelector');
 const { TargetMode, CardType, WildcardCardType } = require('../Constants');
-const BetweenVariableXYCardSelector = require('./BetweenVariableXYCardSelector');
+const { BetweenVariableXYCardSelector } = require('./BetweenVariableXYCardSelector');
+const { BaseCardSelector } = require('./BaseCardSelector');
 
 const defaultProperties = {
     numCards: 1,
@@ -29,6 +30,10 @@ const ModeToSelector = {
 };
 
 class CardSelectorFactory {
+    /**
+     * @param {*} properties
+     * @returns {BaseCardSelector}
+     */
     static create(properties) {
         properties = CardSelectorFactory.getDefaultedProperties(properties);
 

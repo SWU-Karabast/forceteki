@@ -1,11 +1,25 @@
-const { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } = require('../Constants');
-const Contract = require('../utils/Contract');
-const EnumHelpers = require('../utils/EnumHelpers');
-const Helpers = require('../utils/Helpers');
+import type { AbilityContext } from '../ability/AbilityContext';
+import type { Card } from '../card/Card';
+import type { CardTypeFilter, RelativePlayerFilter, ZoneFilter } from '../Constants';
+import { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
+import type Game from '../Game';
+import type { Player } from '../Player';
+import * as Contract from '../utils/Contract';
+import * as EnumHelpers from '../utils/EnumHelpers';
+import * as Helpers from '../utils/Helpers';
 
-// TODO: once converted to TS, make this abstract.
-class BaseCardSelector {
-    constructor(properties) {
+export abstract class BaseCardSelector<TContext extends AbilityContext> {
+    public cardCondition?: (card: Card, context: TContext) => boolean;
+    public multiSelectCardCondition?: (card: Card, selectedCards: Card[], context: TContext) => boolean;
+    public cardTypeFilter?: CardTypeFilter | CardTypeFilter[];
+    public optional: boolean;
+    public zoneFilter: ZoneFilter[];
+    public capturedByFilter: Card | Card[] | ((context: TContext) => Card | Card[]);
+    public controller: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
+    public checkTarget: boolean;
+    public appendToDefaultTitle?: string;
+
+    public constructor(properties) {
         this.cardCondition = properties.cardCondition;
         this.multiSelectCardCondition = properties.multiSelectCardCondition;
         this.cardTypeFilter = properties.cardTypeFilter;
@@ -21,40 +35,37 @@ class BaseCardSelector {
         }
     }
 
-    get hasAnyCardFilter() {
+    public get hasAnyCardFilter() {
         return !!this.cardTypeFilter || !!this.cardCondition || !!this.multiSelectCardCondition;
     }
 
-    buildZoneFilter(property) {
-        let zoneFilter = property || WildcardZoneName.AnyAttackable || [];
+    protected buildZoneFilter(property?: ZoneFilter | ZoneFilter[]) {
+        const zoneFilter = property || WildcardZoneName.AnyAttackable || [];
         if (!Array.isArray(zoneFilter)) {
-            zoneFilter = [zoneFilter];
+            return [zoneFilter];
         }
         return zoneFilter;
     }
 
-    findPossibleCards(context) {
-        let controllerProp = this.controller;
-        if (typeof controllerProp === 'function') {
-            controllerProp = controllerProp(context);
-        }
+    public findPossibleCards(context: TContext) {
+        const controller = Helpers.derive(this.controller, context);
 
         if (this.zoneFilter.includes(WildcardZoneName.Any)) {
-            if (controllerProp === RelativePlayer.Self) {
+            if (controller === RelativePlayer.Self) {
                 return context.game.allCards.filter((card) => card.controller === context.player);
-            } else if (controllerProp === RelativePlayer.Opponent) {
+            } else if (controller === RelativePlayer.Opponent) {
                 return context.game.allCards.filter((card) => card.controller === context.player.opponent);
             }
             return context.game.allCards;
         }
 
-        let possibleCards = [];
-        if (controllerProp !== RelativePlayer.Opponent) {
+        let possibleCards: Card[] = [];
+        if (controller !== RelativePlayer.Opponent) {
             possibleCards = this.zoneFilter.reduce(
                 (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player, context.game)), possibleCards
             );
         }
-        if (controllerProp !== RelativePlayer.Self && context.player.opponent) {
+        if (controller !== RelativePlayer.Self && context.player.opponent) {
             possibleCards = this.zoneFilter.reduce(
                 (array, zoneFilter) => array.concat(this.getCardsForPlayerZones(zoneFilter, context.player.opponent, context.game)), possibleCards
             );
@@ -65,7 +76,7 @@ class BaseCardSelector {
         return possibleCards;
     }
 
-    filterCaptureZones(possibleCards, context) {
+    protected filterCaptureZones(possibleCards: Card[], context: TContext) {
         // get cards from capture zones, if any
         const concreteCaptors = Helpers.asArray(
             typeof this.capturedByFilter === 'function'
@@ -86,11 +97,11 @@ class BaseCardSelector {
             Contract.assertTrue(captor.isInPlay(), `Attempting to target capture zone for ${captor.internalName} but it is in non-play zone ${captor.zoneName}`);
         }
 
-        return possibleCards.filter((card) => card.zoneName !== ZoneName.Capture || concreteCaptors.includes(card.getCaptor()));
+        return possibleCards.filter((card) => card.zoneName !== ZoneName.Capture || (card.isUnit() && concreteCaptors.includes(card.getCaptor())));
     }
 
-    getCardsForPlayerZones(zone, player, game) {
-        var cards;
+    public getCardsForPlayerZones(zone: ZoneFilter, player: Player, game: Game) {
+        let cards: Card[] = [];
         switch (zone) {
             case WildcardZoneName.Any:
                 // TODO: is this ever a case we should have? this would allow targeting deck, discard, etc.
@@ -114,7 +125,7 @@ class BaseCardSelector {
         return cards;
     }
 
-    canTarget(card, context, choosingPlayer, selectedCards = []) {
+    public canTarget(card: Card, context: TContext, selectedCards: Card[] = []) {
         let controllerProp = this.controller;
         if (typeof controllerProp === 'function') {
             controllerProp = controllerProp(context);
@@ -139,26 +150,25 @@ class BaseCardSelector {
         return EnumHelpers.cardTypeMatches(card.type, this.cardTypeFilter) && this.cardConditionsAreSatisfied(card, selectedCards, context);
     }
 
-    cardConditionsAreSatisfied(card, selectedCards, context) {
+    private cardConditionsAreSatisfied(card: Card, selectedCards: Card[], context: TContext) {
         const cardConditionPassed = !this.cardCondition || this.cardCondition(card, context);
         const multiSelectConditionPassed = !this.multiSelectCardCondition || this.multiSelectCardCondition(card, selectedCards, context);
         return cardConditionPassed && multiSelectConditionPassed;
     }
 
-    getAllLegalTargets(context, choosingPlayer) {
-        return this.findPossibleCards(context).filter((card) => this.canTarget(card, context, choosingPlayer));
+    public getAllLegalTargets(context: TContext) {
+        return this.findPossibleCards(context).filter((card) => this.canTarget(card, context));
     }
 
-
-    hasEnoughSelected(selectedCards, context) {
+    public hasEnoughSelected(selectedCards: Card[], context: TContext) {
         return this.optional || selectedCards.length > 0;
     }
 
-    hasEnoughTargets(context, choosingPlayer) {
-        return this.findPossibleCards(context).some((card) => this.canTarget(card, context, choosingPlayer));
+    public hasEnoughTargets(context: TContext) {
+        return this.findPossibleCards(context).some((card) => this.canTarget(card, context));
     }
 
-    defaultActivePromptTitle(context) {
+    public defaultActivePromptTitle(context: TContext) {
         // TODO: figure out a better way to handle cases where we want to override the ability title.
         // The current checks are to account for playing upgrades, exploiting, and using modal card options
         const defaultTitle =
@@ -168,32 +178,27 @@ class BaseCardSelector {
         return defaultTitle + (this.appendToDefaultTitle ? ' ' + this.appendToDefaultTitle : '');
     }
 
-    defaultPromptString(context) {
+    public defaultPromptString(context: TContext) {
         return 'Choose cards';
     }
 
-    automaticFireOnSelect(context, choosingPlayer) {
+    public automaticFireOnSelect(context: TContext) {
         return false;
     }
 
-
-    wouldExceedLimit(selectedCards, card) {
+    public wouldExceedLimit(selectedCards: Card[], card: Card) {
         return false;
     }
 
-
-    hasReachedLimit(selectedCards, context, choosingPlayer) {
+    public hasReachedLimit(selectedCards: Card[], context: TContext) {
         return false;
     }
 
-
-    hasExceededLimit(selectedCards, context) {
+    public hasExceededLimit(selectedCards: Card[], context: TContext) {
         return false;
     }
 
-    formatSelectParam(cards) {
+    public formatSelectParam(cards: Card[]): Card | Card[] {
         return cards;
     }
 }
-
-module.exports = BaseCardSelector;

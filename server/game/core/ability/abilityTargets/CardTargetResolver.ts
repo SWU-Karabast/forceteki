@@ -13,13 +13,14 @@ import * as EnumHelpers from '../../utils/EnumHelpers.js';
 import type { GameSystem } from '../../gameSystem/GameSystem';
 import type { ISelectCardPromptProperties } from '../../gameSteps/PromptInterfaces';
 import { SelectCardMode } from '../../gameSteps/PromptInterfaces';
+import type { BaseCardSelector } from '../../cardSelector/BaseCardSelector';
 
 /**
  * Target resolver for selecting cards for the target of an effect.
  */
 export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<AbilityContext>> {
     private immediateEffect: GameSystem;
-    private selector: any;
+    private selector: BaseCardSelector<AbilityContext>;
 
     private static choosingFromHiddenPrompt = '\n(because you are choosing from a hidden zone you may choose nothing)';
 
@@ -83,16 +84,15 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
     }
 
     public override hasLegalTarget(context: AbilityContext) {
-        const player = this.getChoosingPlayer(context);
-        return this.selector.hasEnoughTargets(context, player);
+        return this.selector.hasEnoughTargets(context);
     }
 
     public getAllLegalTargets(context: AbilityContext): Card[] {
-        return this.selector.getAllLegalTargets(context, this.getChoosingPlayer(context));
+        return this.selector.getAllLegalTargets(context);
     }
 
     protected override resolveInternal(context: AbilityContext, targetResults, passPrompt, player: Player) {
-        const legalTargets = this.selector.getAllLegalTargets(context, player);
+        const legalTargets = this.selector.getAllLegalTargets(context);
         if (legalTargets.length === 0) {
             if (context.stage === Stage.PreTarget) {
                 // if there are no targets at the pretarget stage, delay targeting until after costs are paid
@@ -241,16 +241,13 @@ export class CardTargetResolver extends TargetResolver<ICardTargetsResolver<Abil
         } else if (context.choosingPlayerOverride && this.getChoosingPlayer(context) === context.player) {
             return false;
         }
-        let cards = context.targets[this.name];
-        if (!Array.isArray(cards)) {
-            cards = [cards];
-        }
-        return (cards.every((card) => this.selector.canTarget(card, context, context.choosingPlayerOverride || this.getChoosingPlayer(context))) &&
+        const cards: Card[] = Helpers.asArray(context.targets[this.name]);
+        return (cards.every((card) => this.selector.canTarget(card, context, [])) &&
           this.selector.hasEnoughSelected(cards, context) && !this.selector.hasExceededLimit(cards, context));
     }
 
     protected override hasTargetsChosenByPlayerInternal(context: AbilityContext, player: Player = context.player) {
-        if (this.getChoosingPlayer(context) === player && (this.selector.optional || this.selector.hasEnoughTargets(context, player))) {
+        if (this.getChoosingPlayer(context) === player && (this.selector.optional || this.selector.hasEnoughTargets(context))) {
             return true;
         }
 
