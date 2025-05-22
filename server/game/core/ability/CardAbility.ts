@@ -1,5 +1,5 @@
 import type { ZoneFilter } from '../Constants';
-import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer } from '../Constants';
+import { AbilityType, ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, PlayType } from '../Constants';
 import * as Contract from '../utils/Contract';
 import * as AbilityLimit from './AbilityLimit';
 import * as Helpers from '../utils/Helpers';
@@ -132,34 +132,19 @@ export abstract class CardAbility extends CardAbilityStep {
 
         const gainAbilitySource = context.ability && context.ability.gainAbilitySource;
 
-        const gainedAbility = gainAbilitySource ? '\'s gained ability from ' : '';
-        let messageArgs = [context.player, ' ' + messageVerb + ' ', context.source, gainedAbility, gainAbilitySource];
-        const costMessages = this.getCosts(context)
-            .map((cost) => {
-                if (cost.getCostMessage && cost.getCostMessage(context)) {
-                    let card = context.costs[cost.getActionName(context)];
-                    if (card && card.isFacedown && card.isFacedown()) {
-                        card = 'a facedown card';
-                    }
-                    let [format, args]: [string, any[]] = ['ERROR - MISSING COST MESSAGE', [' ', ' ']];
-                    [format, args] = cost.getCostMessage(context);
-                    const message = this.game.gameChat.formatMessage(format, args);
-                    if (Helpers.asArray(message).every((msg) => msg.length === 0)) {
-                        return null;
-                    }
-                    return { message: message };
-                }
-                return null;
-            })
-            .filter((obj) => obj);
+        const messageArgs = [context.player, ` ${messageVerb} `, context.source];
+        if (gainAbilitySource) {
+            messageArgs.push('\'s gained ability from ', gainAbilitySource);
+        } else if (messageVerb === 'plays' && context.playType === PlayType.Smuggle) {
+            messageArgs.push(' using Smuggle');
+        }
+        const costMessages = this.getCostsMessages(context);
 
         if (costMessages.length > 0) {
             // ,
             messageArgs.push(', ');
             // paying 3 honor
             messageArgs.push(costMessages);
-        } else {
-            messageArgs = messageArgs.concat(['', '']);
         }
 
         let effectMessage = this.properties.effect;
@@ -194,7 +179,7 @@ export abstract class CardAbility extends CardAbilityStep {
             // discard Stoic Gunso
             messageArgs.push({ message: this.game.gameChat.formatMessage(effectMessage, effectArgs) });
         }
-        this.game.addMessage('{0}{1}{2}{3}{4}{5}{6}{7}{8}', ...messageArgs);
+        this.game.addMessage(`{${[...Array(messageArgs.length).keys()].join('}{')}}`, ...messageArgs);
     }
 
     public override isActivatedAbility() {

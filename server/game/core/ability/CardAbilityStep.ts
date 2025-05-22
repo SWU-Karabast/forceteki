@@ -16,7 +16,7 @@ import type { AbilityContext } from './AbilityContext.js';
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
 export class CardAbilityStep extends PlayerOrCardAbility {
-    protected cannotTargetFirst: boolean;
+    public cannotTargetFirst: boolean;
 
     private handler: (context: AbilityContext) => void;
 
