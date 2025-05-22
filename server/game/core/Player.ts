@@ -1349,9 +1349,7 @@ export class Player extends GameObject<IPlayerState> {
             }
             // Discard pile
             if (this.discardZone.count > 0) {
-                state.discard = this.discardZone.cards
-                    .map((card) => card.internalName)
-                    .reverse(); // So most recently discarded cards are on top
+                state.discard = this.discardZone.cards.map((card) => card.internalName);
             }
 
             // Deck (top few cards only to avoid excessive data)

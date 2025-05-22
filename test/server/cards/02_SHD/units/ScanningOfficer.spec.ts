@@ -88,7 +88,14 @@ describe('Scanning Officer', function () {
                 },
                 player2: {
                     leader: { card: 'boba-fett#daimyo', exhausted: true },
-                    resources: [{ card: 'pyke-sentinel', exhausted: true }, 'collections-starhopper', 'reckless-gunslinger', { card: 'wampa', exhausted: true }, 'moisture-farmer', 'armed-to-the-teeth']
+                    resources: [
+                        { card: 'pyke-sentinel', exhausted: true },
+                        'collections-starhopper',
+                        'reckless-gunslinger',
+                        { card: 'wampa', exhausted: true },
+                        'moisture-farmer',
+                        'armed-to-the-teeth'
+                    ]
                 }
             });
 
@@ -109,7 +116,7 @@ describe('Scanning Officer', function () {
             expect(context.recklessGunslinger).toBeInZone('discard');
             expect(context.armedToTheTeeth).toBeInZone('discard');
             expect(context.player2.resources.length).toBe(6);
-            expect(context.player2.readyResourceCount).toBe(4);
+            expect(context.player2.readyResourceCount).toBe(3);
         });
 
         it('should reveal and defeat all chosen resources if the opponent has Tech on the board', async function () {

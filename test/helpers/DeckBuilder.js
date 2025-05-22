@@ -306,8 +306,12 @@ class DeckBuilder {
         if (typeof resourceState === 'object' && resourceState !== null) {
             const validKeys = ['readyCount', 'exhaustedCount'];
             const resourceStateKeys = Object.keys(resourceState);
+            if (resourceStateKeys.length !== validKeys.length) {
+                return false;
+            }
             return resourceStateKeys.every((key) => validKeys.includes(key));
         }
+
         return false;
     }
 
@@ -346,7 +350,8 @@ class DeckBuilder {
 
     /** @returns {import('../../server/utils/deck/Deck').Deck} */
     buildDeck(deckCards, leader, base) {
-        const safeGetSetCode = (internalName) => {
+        const safeGetSetCode = (card) => {
+            const internalName = typeof card === 'string' ? card : card.card;
             var setCode = this.internalNameToSetCode.get(internalName);
             Contract.assertNotNullLike(setCode, `Unknown card name: ${internalName}`);
             return setCode;
