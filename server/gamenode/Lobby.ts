@@ -364,7 +364,15 @@ export class Lobby {
             return;
         }
 
-        logger.info(`Lobby: user ${existingUser.username} sent chat message: ${args[0]}`, { lobbyId: this.id, userName: existingUser.username, userId: existingUser.id });
+        // Get IP address from socket 
+        const ipAddress = socket.ip || 'unknown';
+        
+        logger.info(`Lobby: user ${existingUser.username} sent chat message: ${args[0]}`, { 
+            lobbyId: this.id, 
+            userName: existingUser.username, 
+            userId: existingUser.id,
+            ipAddress: ipAddress
+        });
         this.gameChat.addChatMessage(existingUser, args[0]);
         this.sendLobbyState();
     }
