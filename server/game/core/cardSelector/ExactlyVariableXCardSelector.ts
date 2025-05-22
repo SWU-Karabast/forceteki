@@ -23,10 +23,11 @@ export class ExactlyVariableXCardSelector<TContext extends AbilityContext = Abil
     }
 
     public override defaultPromptString(context: TContext) {
-        if (this.cardTypeFilter.length === 1) {
-            return this.numCardsFunc(context) === 1 ? 'Choose a ' + this.cardTypeFilter[0] : `Choose ${this.numCardsFunc(context)} ${this.cardTypeFilter[0]}s`;
-        }
-        return this.numCardsFunc(context) === 1 ? 'Select a card' : `Select ${this.numCardsFunc(context)} cards`;
+        const numCards = this.numCardsFunc(context);
+        const verb = numCards === 1 ? 'Choose' : 'Select';
+        const { description, article } = BaseCardSelector.cardTypeFilterDescription(this.cardTypeFilter, numCards > 1);
+
+        return `${verb} ${numCards === 1 ? article : numCards} ${description}`;
     }
 
     public override hasEnoughSelected(selectedCards: Card[], context: TContext) {

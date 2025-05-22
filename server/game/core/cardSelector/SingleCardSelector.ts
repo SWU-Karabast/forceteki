@@ -1,7 +1,6 @@
 import type { AbilityContext } from '../ability/AbilityContext.js';
 import type { Card } from '../card/Card.js';
 import type { TargetMode } from '../Constants.js';
-import { WildcardCardType } from '../Constants.js';
 import type { IBaseCardSelectorProperties } from './BaseCardSelector.js';
 import { BaseCardSelector } from './BaseCardSelector.js';
 
@@ -19,13 +18,10 @@ export class SingleCardSelector<TContext extends AbilityContext = AbilityContext
     }
 
     public override defaultPromptString() {
-        if (this.cardTypeFilter.length === 1 && this.cardTypeFilter[0] !== WildcardCardType.Any) {
-            if (this.cardTypeFilter[0] === WildcardCardType.Upgrade) {
-                return 'Choose an upgrade';
-            }
-            return 'Choose a ' + this.cardTypeFilter[0];
-        }
-        return 'Choose a card';
+        const verb = 'Choose';
+        const { description, article } = BaseCardSelector.cardTypeFilterDescription(this.cardTypeFilter, false);
+
+        return `${verb} ${article} ${description}`;
     }
 
     public override automaticFireOnSelect() {

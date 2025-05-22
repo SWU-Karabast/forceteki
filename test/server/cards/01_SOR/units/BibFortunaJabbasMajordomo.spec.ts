@@ -32,6 +32,7 @@ describe('Bib Fortuna', function() {
                 expect(context.player1).toHaveEnabledPromptButtons(['Attack', 'Play an event from your hand. It costs 1 less.']);
                 context.player1.clickPrompt('Play an event from your hand. It costs 1 less.');
 
+                expect(context.player1).toHavePrompt('Choose an event');
                 expect(context.player1).toBeAbleToSelectExactly([context.repair, context.confiscate, context.surpriseStrike]);
                 context.player1.clickCard(context.repair);
                 // selects target for repair
