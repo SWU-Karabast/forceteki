@@ -34,6 +34,7 @@ describe('Tech, Source of Insight', function () {
 
             // smuggle Tech into play
             context.player1.clickCard(context.tech);
+            expect(context.getChatLogs(1)).toContain('player1 plays Tech using Smuggle');
 
             // check that arena units haven't gained the Smuggle keyword by checking for the Boba buff
             expect(context.deathTrooper.getPower()).toBe(3);
@@ -45,6 +46,7 @@ describe('Tech, Source of Insight', function () {
             expect(context.wampa).toBeInZone('groundArena');
             expect(context.player1.exhaustedResourceCount).toBe(6);
             expect(context.player1.resources.length).toBe(7);
+            expect(context.getChatLogs(1)).toContain('player1 plays Wampa using Smuggle');
 
             // check that player2 doesn't gain smuggle
             context.player2.clickCardNonChecking(context.isbAgent);

@@ -5,6 +5,9 @@ import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import * as Contract from '../core/utils/Contract.js';
 import type { Card } from '../core/card/Card.js';
 import type Game from '../core/Game.js';
+import type { FormatMessage } from '../core/chat/GameChat.js';
+import * as ChatHelpers from '../core/chat/ChatHelpers.js';
+import type { AbilityContext } from '../core/ability/AbilityContext.js';
 
 export type IPlayUnitActionProperties = IPlayCardActionProperties & {
     entersReady?: boolean;
@@ -23,13 +26,6 @@ export class PlayUnitAction extends PlayCardAction {
     public override executeHandler(context: PlayCardContext): void {
         Contract.assertTrue(context.source.isUnit());
 
-        context.game.addMessage(
-            '{0} plays {1}',
-            context.player,
-            context.source,
-        );
-
-
         const events = [
             new PutIntoPlaySystem({
                 target: context.source,
@@ -44,6 +40,20 @@ export class PlayUnitAction extends PlayCardAction {
         }
 
         context.game.openEventWindow(events);
+    }
+
+    public override displayMessage(context: AbilityContext): void {
+        let playTypeDescription = '';
+        if (context.playType === PlayType.Smuggle) {
+            playTypeDescription = ' using Smuggle';
+        }
+        let costDescription: FormatMessage | string = '';
+        const costMessages = this.getCostsMessages(context);
+        if (costMessages.length > 0) {
+            costDescription = { format: `, ${ChatHelpers.formatWithLength(costMessages.length)}`, args: costMessages };
+        }
+
+        context.game.addMessage('{0} plays {1}{2}{3}', context.player, context.source, playTypeDescription, costDescription);
     }
 
     public override clone(overrideProperties: Partial<Omit<IPlayCardActionProperties, 'playType'>>) {

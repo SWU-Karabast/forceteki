@@ -70,6 +70,10 @@ export class PlayUpgradeAction extends PlayCardAction {
     }
 
     public override displayMessage(context: AbilityContext) {
-        context.game.addMessage('{0} plays {1}, attaching it to {2}', context.player, context.source, context.target);
+        let playTypeDescription = '';
+        if (context.playType === PlayType.Smuggle) {
+            playTypeDescription = ' using Smuggle';
+        }
+        context.game.addMessage('{0} plays {1}{2}, attaching it to {3}', context.player, context.source, playTypeDescription, context.target);
     }
 }

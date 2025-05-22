@@ -4,7 +4,7 @@ import { BaseCard } from '../../../core/card/BaseCard';
 export default class MysticMonastery extends BaseCard {
     protected override getImplementationId () {
         return {
-            id: 'mystic-monastery-id',
+            id: '9434212852',
             internalName: 'mystic-monastery',
         };
     }

@@ -1,7 +1,7 @@
 import type { AbilityContext } from '../ability/AbilityContext';
 import type { Card } from '../card/Card';
 import type { CardTypeFilter, RelativePlayerFilter, TargetMode, ZoneFilter } from '../Constants';
-import { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, WildcardCardType } from '../Constants';
+import { ZoneName, RelativePlayer, WildcardZoneName, WildcardRelativePlayer, WildcardCardType, CardType } from '../Constants';
 import type Game from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
@@ -31,6 +31,67 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
     public controller: ((context: TContext) => RelativePlayerFilter) | RelativePlayerFilter;
     public checkTarget: boolean;
     public appendToDefaultTitle?: string;
+
+    protected static cardTypeFilterDescription(cardTypeFilter: CardTypeFilter | CardTypeFilter[], plural: boolean): { description: string; article: string } {
+        const filters: string[] = [];
+        let article = 'a';
+        const fallback = { description: plural ? 'cards' : 'card', article: 'a' };
+
+        for (const filter of Helpers.asArray(cardTypeFilter)) {
+            switch (filter) {
+                case CardType.BasicUnit:
+                case WildcardCardType.Unit:
+                    filters.push(plural ? 'units' : 'unit');
+                    break;
+                case CardType.BasicUpgrade:
+                case WildcardCardType.Upgrade:
+                    filters.push(plural ? 'upgrades' : 'upgrade');
+                    if (filters.length === 1) {
+                        article = 'an';
+                    }
+                    break;
+                case WildcardCardType.UnitUpgrade:
+                    filters.push(plural ? 'unit upgrades' : 'unit upgrade');
+                    break;
+                case WildcardCardType.NonLeaderUnit:
+                    filters.push(plural ? 'non-leader units' : 'non-leader unit');
+                    break;
+                case WildcardCardType.NonLeaderUpgrade:
+                    filters.push(plural ? 'non-leader upgrades' : 'non-leader upgrade');
+                    break;
+                case CardType.Base:
+                    filters.push(plural ? 'bases' : 'base');
+                    break;
+                case CardType.Event:
+                    filters.push(plural ? 'events' : 'event');
+                    if (filters.length === 1) {
+                        article = 'an';
+                    }
+                    break;
+                case CardType.Leader:
+                    filters.push(plural ? 'leaders' : 'leader');
+                    break;
+                case CardType.LeaderUnit:
+                    filters.push(plural ? 'leader units' : 'leader unit');
+                    break;
+                default:
+                    return fallback;
+            }
+        }
+
+        if (filters.length === 0) {
+            return fallback;
+        }
+
+        let description = filters[0];
+        for (let i = 1; i < filters.length; i++) {
+            description += i < filters.length - 1 ? ', '
+                : filters.length === 2 ? ' or '
+                    : ', or ';
+            description += filters[i];
+        }
+        return { description, article };
+    }
 
     public constructor(properties: IBaseCardSelectorProperties<TContext>) {
         this.cardCondition = properties.cardCondition ?? (() => true);

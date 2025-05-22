@@ -9,7 +9,7 @@ export default class KitFistoFocusedJediMaster extends LeaderUnitCard {
 
     protected override getImplementationId () {
         return {
-            id: 'kit-fisto#focused-jedi-master-id',
+            id: '3822427538',
             internalName: 'kit-fisto#focused-jedi-master',
         };
     }
