@@ -27,6 +27,7 @@ describe('Relentless, Konstantine\'s Folly', function() {
                 expect(context.player2.exhaustedResourceCount).toBe(exhaustedResourcesBeforeCardPlay + 5);
                 expect(context.relentless).toBeInZone('spaceArena');
                 expect(context.vanquish).toBeInZone('discard');
+                expect(context.getChatLogs(1)).toContain('player2 plays Vanquish to do nothing due to an ongoing effect of Relentless');
 
                 context.player1.passAction();
 
