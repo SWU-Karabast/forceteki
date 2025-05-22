@@ -31,22 +31,24 @@ export function filterProfanity(text: string): string {
     }
 
     let filteredText = text;
-    
+
     // Create a regex pattern for word boundaries to ensure we only match whole words
-    combinedProfanityList.forEach(word => {
+    combinedProfanityList.forEach((word) => {
         try {
             // Some words in the list might have special regex characters like '*'
             // Escape the word for regex use and handle special cases
             const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
                 .replace(/^\*+|\*+$/g, ''); // Remove leading/trailing asterisks
-                
-            if (escapedWord.length === 0) return; // Skip empty strings
-            
+
+            if (escapedWord.length === 0) {
+                return; // Skip empty strings
+            }
+
             // Create a regex with word boundaries to match the whole word
             const regex = new RegExp(`\\b${escapedWord}\\b`, 'gi');
-            
+
             // Replace the word with asterisks of the same length
-            filteredText = filteredText.replace(regex, match => '*'.repeat(match.length));
+            filteredText = filteredText.replace(regex, (match) => '*'.repeat(match.length));
         } catch (error) {
             console.error(`Error creating regex for profanity word: ${word}`, error);
             // Continue with the next word if there's an error
