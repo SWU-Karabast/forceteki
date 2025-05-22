@@ -364,7 +364,7 @@ class PlayerInteractionWrapper {
             const name = typeof resource === 'string' ? resource : resource.card;
             var card = this.findCardByName(name, prevZones);
             this.moveCard(card, 'resource');
-            card.exhausted = false;
+            card.exhausted = typeof resource === 'string' ? false : resource.exhausted;
         });
         Util.refreshGameState(this.game);
     }

@@ -8,13 +8,18 @@ describe('Wanted', function() {
                         groundArena: [{ card: 'battlefield-marine', upgrades: ['wanted'] }]
                     },
                     player2: {
-                        groundArena: ['wampa']
+                        groundArena: ['wampa'],
+                        resources: [
+                            { card: 'atst', exhausted: true },
+                            { card: 'atst', exhausted: true },
+                            { card: 'atst', exhausted: true },
+                        ]
                     }
                 });
 
                 const { context } = contextRef;
 
-                context.player2.exhaustResources(3);
+                expect(context.player2.exhaustedResourceCount).toBe(3);
                 context.player1.clickCard(context.battlefieldMarine);
                 context.player1.clickCard(context.wampa);
                 expect(context.player2.exhaustedResourceCount).toBe(1);
