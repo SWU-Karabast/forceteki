@@ -5,7 +5,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class TalzinsAssassin extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'talzins-assassin-id',
+            id: '2410965424',
             internalName: 'talzins-assassin',
         };
     }

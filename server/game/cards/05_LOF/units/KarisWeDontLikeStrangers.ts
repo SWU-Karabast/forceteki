@@ -5,7 +5,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class KarisWeDontLikeStrangers extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'karis#we-dont-like-strangers-id',
+            id: '1991532931',
             internalName: 'karis#we-dont-like-strangers',
         };
     }

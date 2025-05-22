@@ -4,7 +4,7 @@ import { LofCommonForceBase } from '../common/LofCommonForceBase';
 export default class FortressVader extends LofCommonForceBase {
     protected override getImplementationId() {
         return {
-            id: 'fortress-vader-id',
+            id: '5396502974',
             internalName: 'fortress-vader',
         };
     }

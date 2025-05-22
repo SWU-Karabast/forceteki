@@ -5,7 +5,7 @@ import { Aspect, WildcardCardType } from '../../../core/Constants';
 export default class AnakinSkywalkerChampionOfMortis extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'anakin-skywalker#champion-of-mortis-id',
+            id: '4236013558',
             internalName: 'anakin-skywalker#champion-of-mortis'
         };
     }
