@@ -603,7 +603,7 @@ const mockCards = [
         power: 3,
         hp: 3,
         cost: 3,
-        hasNonKeywordAbility: false,
+        hasNonKeywordAbility: true,
         aspects: ['vigilance', 'villainy'],
         types: ['unit'],
         keywords: [],
