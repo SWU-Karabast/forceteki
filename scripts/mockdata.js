@@ -561,6 +561,61 @@ const mockCards = [
         arena: 'ground',
         internalName: 'grand-inquisitor#stories-travel-quickly'
     }),
+    buildMockCard({
+        title: 'Marchion Ro',
+        subtitle: 'Eye of the Nihil',
+        power: 6,
+        hp: 7,
+        cost: 6,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        keywords: [],
+        traits: ['underworld', 'nihil'],
+        setId: {
+            set: 'LOF',
+            number: 186
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'marchion-ro#eye-of-the-nihil'
+    }),
+    buildMockCard({
+        title: 'Nihil Marauder',
+        power: 1,
+        hp: 5,
+        cost: 3,
+        hasNonKeywordAbility: false,
+        aspects: ['cunning', 'villainy'],
+        types: ['unit'],
+        keywords: ['raid 3'],
+        traits: ['underworld', 'trooper', 'nihil'],
+        setId: {
+            set: 'LOF',
+            number: 182
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'nihil-marauder'
+    }),
+    buildMockCard({
+        title: 'Nameless Terror',
+        power: 3,
+        hp: 3,
+        cost: 3,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'villainy'],
+        types: ['unit'],
+        keywords: [],
+        traits: ['creature'],
+        setId: {
+            set: 'LOF',
+            number: 33
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'nameless-terror'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
