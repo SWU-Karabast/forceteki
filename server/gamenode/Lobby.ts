@@ -364,12 +364,12 @@ export class Lobby {
             return;
         }
 
-        // Get IP address from socket 
+        // Get IP address from socket
         const ipAddress = socket.ip || 'unknown';
-        
-        logger.info(`Lobby: user ${existingUser.username} sent chat message: ${args[0]}`, { 
-            lobbyId: this.id, 
-            userName: existingUser.username, 
+
+        logger.info(`Lobby: user ${existingUser.username} sent chat message: ${args[0]}`, {
+            lobbyId: this.id,
+            userName: existingUser.username,
             userId: existingUser.id,
             ipAddress: ipAddress
         });
