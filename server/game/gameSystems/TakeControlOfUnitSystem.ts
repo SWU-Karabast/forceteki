@@ -62,7 +62,6 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
         const properties = this.generatePropertiesFromContext(context);
 
         event.newController = properties.newController;
-        event.excludeLeaderUnit = properties.excludeLeaderUnit;
     }
 
     protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ITakeControlOfUnitProperties>): void {
