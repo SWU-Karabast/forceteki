@@ -19,7 +19,7 @@ export default class ImproprietyAmongThieves extends EventCard {
                     controller: RelativePlayer.Self,
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     zoneFilter: WildcardZoneName.AnyArena,
-                    cardCondition: (card) => card.canBeExhausted() && !card.exhausted,
+                    cardCondition: (card) => card.canBeExhausted() && !card.exhausted
                 },
                 enemyUnit: {
                     dependsOn: 'friendlyUnit',
@@ -39,23 +39,23 @@ export default class ImproprietyAmongThieves extends EventCard {
                         })),
                         AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
                             title: 'Owner takes control',
+                            target: context.targets.friendlyUnit,
                             when: {
                                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup
                             },
                             immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
-                                target: context.targets.friendlyUnit,
-                                newController: context.targets.friendlyUnit.owner,
-                            }),
+                                newController: context.targets.friendlyUnit.owner
+                            })
                         })),
                         AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
                             title: 'Owner takes control',
+                            target: context.targets.enemyUnit,
                             when: {
                                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup
                             },
                             immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
-                                target: context.targets.enemyUnit,
-                                newController: context.targets.enemyUnit.owner,
-                            }),
+                                newController: context.targets.enemyUnit.owner
+                            })
                         }))
                     ]),
                 }
