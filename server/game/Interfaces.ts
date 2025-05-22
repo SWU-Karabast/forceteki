@@ -285,6 +285,11 @@ export interface ISetId {
     number: number;
 }
 
+export interface IResourceState {
+    readyCount: number;
+    exhaustedCount: number;
+}
+
 /* Serialized state retrieving interfaces */
 export interface ISerializedCardState {
     card: string;
@@ -302,7 +307,7 @@ export interface IPlayerSerializedState {
     groundArena?: (string | ISerializedCardState)[];
     spaceArena?: (string | ISerializedCardState)[];
     discard?: string[];
-    resources?: number | (string | ISerializedCardState)[];
+    resources?: number | IResourceState | (string | ISerializedCardState)[];
     base?: string | ISerializedCardState;
     leader?: string | ISerializedCardState;
     deck?: number | string[];

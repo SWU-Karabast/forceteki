@@ -6,7 +6,10 @@ describe('Doctor Evazan, Wanted on Twelve Systems', function() {
                     phase: 'action',
                     player1: {
                         groundArena: ['wampa'],
-                        resources: 13
+                        resources: {
+                            readyCount: 0,
+                            exhaustedCount: 13
+                        }
                     },
                     player2: {
                         groundArena: ['doctor-evazan#wanted-on-twelve-systems']
@@ -15,7 +18,7 @@ describe('Doctor Evazan, Wanted on Twelve Systems', function() {
 
                 const { context } = contextRef;
 
-                context.player1.exhaustResources(13);
+                expect(context.player1.exhaustedResourceCount).toBe(13);
 
                 // kill evazan with wampa
                 context.player1.clickCard(context.wampa);
