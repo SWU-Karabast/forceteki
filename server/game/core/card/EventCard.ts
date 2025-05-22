@@ -68,7 +68,7 @@ export class EventCard extends EventCardParent {
             return new EventAbility(this.game, this, {
                 title: 'Unimplemented event card ability',
                 printedAbility: false,
-                effect: 'do nothing becuase the card is not implemented yet',
+                effect: 'do nothing because the card is not implemented yet',
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
             });
         }
