@@ -30,6 +30,8 @@ describe('Emperor Palpatine, Galactic Ruler', function() {
             context.player1.clickCard(context.atst);
             expect(context.atst.damage).toBe(1);
             expect(context.player1.handSize).toBe(1);
+            expect(context.getChatLogs(2)).toContain('player1 uses Emperor Palpatine, exhausting Emperor Palpatine and defeating TIE Advanced to choose a target for Emperor Palpatine and to draw a card');
+            expect(context.getChatLogs(2)).toContain('player1 uses Emperor Palpatine to deal 1 damage to AT-ST');
         });
 
         it('Palpatine\'s undeployed ability should not be able to activate if there are no friendly units', async function () {

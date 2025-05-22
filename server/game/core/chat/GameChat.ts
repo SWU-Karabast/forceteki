@@ -1,7 +1,7 @@
 import type { GameObject } from '../GameObject';
 import * as ChatHelpers from './ChatHelpers';
 
-type MsgArg = string | string[] | FormatMessage | FormatMessage[] | GameObject | GameObject[] | { name: string } | { getShortSummary: () => string };
+type MsgArg = string | string[] | FormatMessage | FormatMessage[] | GameObject | GameObject[] | { name: string } | { message: string | string[] } | { getShortSummary: () => string };
 export interface FormatMessage {
     format: string;
     args: MsgArg[];
@@ -51,16 +51,16 @@ export class GameChat {
         return fragments.reduce((output, fragment) => {
             const argMatch = fragment.match(/\{(\d+)\}/);
             if (argMatch && args) {
-                const arg = args[argMatch[1]];
-                if (arg || arg === 0) {
-                    if (arg.message) {
+                const arg: MsgArg = args[argMatch[1]];
+                if (arg) {
+                    if (typeof arg === 'object' && 'message' in arg && arg.message) {
                         return output.concat(arg.message);
                     } else if (Array.isArray(arg)) {
                         if (typeof arg[0] === 'string' && arg[0].includes('{')) {
                             return output.concat(this.formatMessage(arg[0], arg.slice(1)));
                         }
                         return output.concat(this.formatArray(arg));
-                    } else if (arg.getShortSummary) {
+                    } else if (typeof arg === 'object' && 'getShortSummary' in arg && arg.getShortSummary) {
                         return output.concat(arg.getShortSummary());
                     } else if (typeof arg === 'object' && 'format' in arg && 'args' in arg) {
                         return output.concat(this.formatMessage(arg.format, arg.args));

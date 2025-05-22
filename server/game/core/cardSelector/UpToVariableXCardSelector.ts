@@ -19,10 +19,11 @@ export class UpToVariableXCardSelector<TContext extends AbilityContext = Ability
     }
 
     public override defaultPromptString(context: TContext) {
-        if (this.cardTypeFilter.length === 1) {
-            return this.numCardsFunc(context) === 1 ? 'Select a ' + this.cardTypeFilter[0] : `Select up to ${this.numCardsFunc(context)} ${this.cardTypeFilter[0]}s`;
-        }
-        return this.numCardsFunc(context) === 1 ? 'Select a card' : `Select up to ${this.numCardsFunc(context)} cards`;
+        const numCards = this.numCardsFunc(context);
+        const verb = numCards === 1 ? 'Choose' : 'Select';
+        const { description, article } = BaseCardSelector.cardTypeFilterDescription(this.cardTypeFilter, numCards > 1);
+
+        return `${verb} ${numCards === 1 ? article : `up to ${numCards}`} ${description}`;
     }
 
     public override hasReachedLimit(selectedCards: Card[], context: TContext) {

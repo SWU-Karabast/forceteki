@@ -546,7 +546,9 @@ class PlayerInteractionWrapper {
         return (
             !!currentPrompt &&
             (menuTitle && menuTitle.toLowerCase() === title.toLowerCase()) ||
-            (promptTitle && promptTitle.toLowerCase() === title.toLowerCase())
+            (menuTitle && (menuTitle.replace('(because you are choosing from a hidden zone you may choose nothing)', '').trim()
+                .toLowerCase() === title.toLowerCase())) ||
+                (promptTitle && promptTitle.toLowerCase() === title.toLowerCase())
         );
     }
 

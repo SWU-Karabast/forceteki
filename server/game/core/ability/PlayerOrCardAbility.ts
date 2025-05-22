@@ -252,6 +252,23 @@ export abstract class PlayerOrCardAbility {
         }
     }
 
+    protected getCostsMessages(context: AbilityContext): { message: string | string[] }[] {
+        return this.getCosts(context)
+            .map((cost) => {
+                if (cost.getCostMessage && cost.getCostMessage(context)) {
+                    let [format, args]: [string, any[]] = ['ERROR - MISSING COST MESSAGE', [' ', ' ']];
+                    [format, args] = cost.getCostMessage(context);
+                    const message = this.game.gameChat.formatMessage(format, args);
+                    if (Helpers.asArray(message).every((msg) => msg.length === 0)) {
+                        return null;
+                    }
+                    return { message: message };
+                }
+                return null;
+            })
+            .filter((obj) => obj);
+    }
+
     /**
      * Returns whether there are eligible cards available to fulfill targets.
      */

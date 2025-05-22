@@ -17,6 +17,7 @@ describe('Admiral Piett Commanding The Armada', function () {
 
                 // Select a capital ship 3 cost and play for 2
                 context.player1.clickCard(context.admiralPiett);
+                expect(context.player1).toHavePrompt('Choose a Capital Ship');
                 expect(context.player1).toBeAbleToSelectExactly([context.outlawCorona]); // Fighter not selectable as not a Capital ship
                 context.player1.clickCard(context.outlawCorona);
                 expect(context.player1.exhaustedResourceCount).toBe(2);

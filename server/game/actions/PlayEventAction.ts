@@ -4,6 +4,7 @@ import type { PlayCardContext, IPlayCardActionProperties } from '../core/ability
 import { PlayCardAction } from '../core/ability/PlayCardAction.js';
 import AbilityResolver from '../core/gameSteps/AbilityResolver.js';
 import type { AbilityContext } from '../core/ability/AbilityContext.js';
+import type { IEventCard } from '../core/card/EventCard.js';
 
 export class PlayEventAction extends PlayCardAction {
     private earlyTargetResults?: any = null;
@@ -14,6 +15,7 @@ export class PlayEventAction extends PlayCardAction {
         this.moveEventToDiscard(context);
 
         const abilityContext = context.source.getEventAbility().createContext();
+        abilityContext.playType = context.playType;
         if (this.earlyTargetResults) {
             this.copyContextTargets(context, abilityContext);
         }
@@ -36,7 +38,7 @@ export class PlayEventAction extends PlayCardAction {
     }
 
     /** Override that allows doing the card selection / prompting for an event card _before_ it is moved to discard for play so we can present a cancel option */
-    public override resolveEarlyTargets(context, passHandler = null, canCancel = false) {
+    public override resolveEarlyTargets(context: PlayCardContext, passHandler = null, canCancel = false) {
         Contract.assertTrue(context.source.isEvent());
 
         const eventAbility = context.source.getEventAbility();
@@ -46,13 +48,14 @@ export class PlayEventAction extends PlayCardAction {
             eventAbility.hasTargetsChosenByPlayer(context, context.player.opponent) ||
             eventAbility.playerChoosingOptional === RelativePlayer.Opponent ||
             eventAbility.optional ||
-            this.usesExploit(context) ||
+            this.usesExploit(context as unknown as AbilityContext<IEventCard>) ||
             eventAbility.cannotTargetFirst
         ) {
             return this.getDefaultTargetResults(context);
         }
 
         const eventAbilityContext = eventAbility.createContext();
+        eventAbilityContext.playType = context.playType;
 
         this.copyContextTargets(context, eventAbilityContext);
         this.earlyTargetResults = eventAbility.resolveEarlyTargets(eventAbilityContext, passHandler, canCancel);
