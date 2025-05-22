@@ -6,7 +6,7 @@ import type { IUnitCard } from '../../../core/card/propertyMixins/UnitProperties
 export default class MindTrick extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'mind-trick-id',
+            id: '1146162009',
             internalName: 'mind-trick',
         };
     }

@@ -6,7 +6,7 @@ import { DamageType } from '../../../core/Constants';
 export default class TempleOfDestruction extends BaseCard {
     protected override getImplementationId () {
         return {
-            id: 'temple-of-destruction-id',
+            id: '9453163990',
             internalName: 'temple-of-destruction',
         };
     }

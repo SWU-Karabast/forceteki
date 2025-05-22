@@ -6,7 +6,7 @@ import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 export default class OldDakaOldestAndWisest extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'old-daka#oldest-and-wisest-id',
+            id: '0564229530',
             internalName: 'old-daka#oldest-and-wisest',
         };
     }

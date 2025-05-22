@@ -5,7 +5,7 @@ import { WildcardCardType } from '../../../core/Constants';
 export default class MotherTalzinPowerThroughMagick extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'mother-talzin#power-through-magick-id',
+            id: '2520636620',
             internalName: 'mother-talzin#power-through-magick',
         };
     }

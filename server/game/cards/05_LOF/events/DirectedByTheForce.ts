@@ -5,7 +5,7 @@ import { CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../c
 export default class DirectedByTheForce extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'directed-by-the-force-id',
+            id: '7078597376',
             internalName: 'directed-by-the-force',
         };
     }

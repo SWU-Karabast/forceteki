@@ -5,7 +5,7 @@ import { PhaseName } from '../../../core/Constants';
 export default class VergenceTemple extends BaseCard {
     protected override getImplementationId () {
         return {
-            id: 'vergence-temple-id',
+            id: '7204128611',
             internalName: 'vergence-temple',
         };
     }
