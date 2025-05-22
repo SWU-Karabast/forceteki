@@ -60,7 +60,7 @@ export class MetaActionCost<TContext extends AbilityContext = AbilityContext> ex
     }
 
     public override getCostMessage(context: TContext): [string, any[]] {
-        const properties = this.gameSystem.generatePropertiesFromContext(context);
+        const properties = this.gameSystem.generatePropertiesFromContext(context, { target: context.target });
         return properties.innerSystem.getCostMessage(context);
     }
 }

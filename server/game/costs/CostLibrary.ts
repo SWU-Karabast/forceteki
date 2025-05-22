@@ -26,7 +26,7 @@ function getSelectCost<TContext extends AbilityContext = AbilityContext>(
     activePromptTitle: string
 ) {
     return new MetaActionCost<TContext>(
-        new SelectCardSystem(Object.assign({ innerSystem: gameSystem }, properties)),
+        new SelectCardSystem(Object.assign({ innerSystem: gameSystem }, properties, { isCost: true })),
         activePromptTitle
     );
 }
@@ -51,7 +51,7 @@ export function exhaustSelf<TContext extends AbilityContext = AbilityContext>():
  * Cost that will exhaust a unit
  */
 export function exhaustFriendlyUnit<TContext extends AbilityContext = AbilityContext>(): ICost<TContext> {
-    return getSelectCost(new ExhaustSystem<TContext>({ isCost: true }), { controller: RelativePlayer.Self, cardTypeFilter: WildcardCardType.Unit }, 'Select a unit to exhaust');
+    return getSelectCost(new ExhaustSystem<TContext>({ isCost: true }), { controller: RelativePlayer.Self, cardTypeFilter: WildcardCardType.Unit }, 'Choose a unit to exhaust');
 }
 
 // /**
@@ -66,7 +66,7 @@ export function exhaustFriendlyUnit<TContext extends AbilityContext = AbilityCon
  * predicate function.
  */
 export function defeat<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext>): ICost<TContext> {
-    return getSelectCost(new DefeatCardSystem<TContext>({}), { ...properties, isCost: true }, 'Select card to defeat');
+    return getSelectCost(new DefeatCardSystem<TContext>({ isCost: true }), properties, 'Choose a card to defeat');
 }
 
 /**
@@ -91,7 +91,7 @@ export function useTheForce<TContext extends AbilityContext = AbilityContext>():
  * Cost that requires discard a card from hand that matches the passed condition predicate function.
  */
 export function discardCardFromOwnHand<TContext extends AbilityContext = AbilityContext>(properties: SelectCostProperties<TContext> = {}): ICost<TContext> {
-    return getSelectCost(new DiscardSpecificCardSystem<TContext>({}), { ...properties, zoneFilter: ZoneName.Hand, isCost: true, controller: RelativePlayer.Self }, 'Select card to discard');
+    return getSelectCost(new DiscardSpecificCardSystem<TContext>({ isCost: true }), { ...properties, zoneFilter: ZoneName.Hand, controller: RelativePlayer.Self }, 'Choose a card to discard');
 }
 
 /**
@@ -99,7 +99,7 @@ export function discardCardFromOwnHand<TContext extends AbilityContext = Ability
  * the passed condition predicate function.
  */
 export function dealDamage<TContext extends AbilityContext = AbilityContext>(amount: number, properties: SelectCostProperties<TContext>): ICost<TContext> {
-    return getSelectCost(new DamageSystem<TContext>({ type: DamageType.Ability, amount: amount, isCost: true }), properties, `Select card to deal ${amount} damage to`);
+    return getSelectCost(new DamageSystem<TContext>({ type: DamageType.Ability, amount: amount, isCost: true }), properties, `Choose a card to deal ${amount} damage to`);
 }
 
 /**

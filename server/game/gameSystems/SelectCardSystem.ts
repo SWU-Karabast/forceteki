@@ -66,7 +66,10 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
 
     public override generatePropertiesFromContext(context: TContext, additionalProperties: Partial<ISelectCardProperties<TContext>> = {}) {
         const properties = super.generatePropertiesFromContext(context, additionalProperties);
-        properties.innerSystem.setDefaultTargetFn(() => properties.target);
+        if (!properties.name) {
+            properties.name = properties.isCost ? 'cost' : 'target';
+        }
+        properties.innerSystem.setDefaultTargetFn((context) => context.targets[properties.name] ?? properties.target);
         if (!properties.selector) {
             const cardCondition = (card: Card, context: TContext) => {
                 const contextCopy = this.getContextCopy(card, context, properties.name);
@@ -160,11 +163,14 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
 
                 const updatedAdditionalProperties = { ...properties.innerSystemProperties(cards), ...additionalProperties };
 
-                this.addOnSelectEffectMessage(cards, context, properties, updatedAdditionalProperties);
+                if (!properties.isCost) {
+                    this.addOnSelectEffectMessage(cards, context, properties, updatedAdditionalProperties);
+                }
 
+                const contextCopy = this.getContextCopy(cards, context, properties.name);
                 properties.innerSystem.queueGenerateEventGameSteps(
                     events,
-                    context,
+                    contextCopy,
                     updatedAdditionalProperties
                 );
                 if (properties.manuallyRaiseEvent) {
@@ -248,17 +254,20 @@ export class SelectCardSystem<TContext extends AbilityContext = AbilityContext> 
 
     private getContextCopy(card: Card | Card[], context: TContext, name: string): TContext {
         const contextCopy = context.copy() as TContext;
+
+        // Ensure that the new context has the new target
+        contextCopy.target = undefined;
         this.addTargetToContext(card, contextCopy, name);
 
         return contextCopy;
     }
 
     private addTargetToContext(card: Card | Card[], context: TContext, name: string) {
-        if (!context.target || (Array.isArray(context.target) && context.target.length === 0)) {
+        if (!context.target || Helpers.asArray(context.target).length === 0) {
             context.target = card;
         }
 
-        if (name) {
+        if (name && (!context.targets[name] || Helpers.asArray(context.targets[name]).length === 0)) {
             context.targets[name] = Helpers.asArray(card);
         }
     }

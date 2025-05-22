@@ -289,6 +289,16 @@ export class DamageSystem<TContext extends AbilityContext = AbilityContext, TPro
         }
     }
 
+    public override getCostMessage(context: TContext): [string, any[]] {
+        const properties = this.generatePropertiesFromContext(context);
+
+        if (properties.type === DamageType.Ability) {
+            return ['dealing {0} damage to {1}', [Helpers.derive(properties.amount, properties.target), properties.target]];
+        }
+
+        return super.getCostMessage(context);
+    }
+
     // TODO: might need to refactor getEffectMessage generally so that it has access to the event, doesn't really work for some of the damage scenarios currently
     public override getEffectMessage(context: TContext, additionalProperties?: Partial<TProperties>): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context, additionalProperties);

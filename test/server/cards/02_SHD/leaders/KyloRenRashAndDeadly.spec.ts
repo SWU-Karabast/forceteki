@@ -37,6 +37,8 @@ describe('Kylo Ren, Rash And Deadly', function() {
 
                 expect(context.kyloRenRashAndDeadly.exhausted).toBe(true);
                 expect(context.deathStarStormtrooper.getPower()).toBe(5);
+                expect(context.getChatLogs(2)).not.toContain('player1 discards Waylay');
+                expect(context.getChatLogs(2)).toContain('player1 uses Kylo Ren, exhausting Kylo Ren and discarding Waylay to give +2/+0 to Death Star Stormtrooper for this phase');
 
                 context.player2.passAction();
 
