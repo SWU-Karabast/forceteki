@@ -8,6 +8,12 @@ import { FrameworkDefeatCardSystem } from './FrameworkDefeatCardSystem';
 
 export interface ITakeControlOfUnitProperties extends ICardTargetSystemProperties {
     newController: Player;
+
+    /**
+     * Whether the system should exclude leader units from being affected.
+     *
+     * Defaults to `true`
+     */
     excludeLeaderUnit?: boolean;
 }
 
