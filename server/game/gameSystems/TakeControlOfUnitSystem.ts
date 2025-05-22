@@ -1,11 +1,14 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import type { Card } from '../core/card/Card';
-import { GameStateChangeRequired, WildcardCardType, EventName } from '../core/Constants';
+import { GameStateChangeRequired, EventName, WildcardCardType } from '../core/Constants';
 import { type ICardTargetSystemProperties, CardTargetSystem } from '../core/gameSystem/CardTargetSystem';
 import type { Player } from '../core/Player';
+import { DefeatSourceType } from '../IDamageOrDefeatSource';
+import { FrameworkDefeatCardSystem } from './FrameworkDefeatCardSystem';
 
 export interface ITakeControlOfUnitProperties extends ICardTargetSystemProperties {
     newController: Player;
+    excludeLeaderUnit?: boolean;
 }
 
 /**
@@ -14,7 +17,7 @@ export interface ITakeControlOfUnitProperties extends ICardTargetSystemPropertie
 export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, ITakeControlOfUnitProperties> {
     public override readonly name = 'takeControl';
     public override readonly eventName = EventName.OnTakeControl;
-    protected override readonly targetTypeFilter = [WildcardCardType.NonLeaderUnit];
+    protected override readonly targetTypeFilter = [WildcardCardType.Unit];
 
     public eventHandler(event): void {
         event.card.takeControl(event.newController);
@@ -25,8 +28,13 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
             return false;
         }
 
-        const { newController } = this.generatePropertiesFromContext(context);
-        if (mustChangeGameState !== GameStateChangeRequired.None && newController === card.controller) {
+        const properties = this.generatePropertiesFromContext(context);
+
+        if (mustChangeGameState !== GameStateChangeRequired.None && properties.newController === card.controller) {
+            return false;
+        }
+
+        if (mustChangeGameState !== GameStateChangeRequired.None && properties.excludeLeaderUnit && card.isLeader()) {
             return false;
         }
 
@@ -43,6 +51,38 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
 
     public override addPropertiesToEvent(event: any, card: Card, context: TContext, additionalProperties?: Partial<ITakeControlOfUnitProperties>): void {
         super.addPropertiesToEvent(event, card, context, additionalProperties);
-        event.newController = this.generatePropertiesFromContext(context).newController;
+
+        const properties = this.generatePropertiesFromContext(context);
+
+        event.newController = properties.newController;
+        event.excludeLeaderUnit = properties.excludeLeaderUnit;
+    }
+
+    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ITakeControlOfUnitProperties>): void {
+        super.updateEvent(event, player, context, additionalProperties);
+
+        event.setContingentEventsGenerator((event) => {
+            // Add a contingent event to defeat the unit if it is a leader unit
+            const contingentEvents = [];
+
+            if (event.card.isLeader() && event.newController !== event.card.controller) {
+                contingentEvents.push(new FrameworkDefeatCardSystem({
+                    defeatSource: DefeatSourceType.FrameworkEffect,
+                    target: event.card
+                }).generateEvent(context.game.getFrameworkContext(event.player)));
+            }
+
+            return contingentEvents;
+        });
+    }
+
+    public override generatePropertiesFromContext(context: TContext, additionalProperties?: Partial<ITakeControlOfUnitProperties>): ITakeControlOfUnitProperties {
+        const properties = super.generatePropertiesFromContext(context, additionalProperties);
+
+        // By default, we exclude leader units from participating in this system, but there are some cases where we need to allow it
+        // (e.g. when a unit becomes a leader unit after control changes, due to piloting)
+        properties.excludeLeaderUnit = properties.excludeLeaderUnit ?? true;
+
+        return properties;
     }
 }
