@@ -39,7 +39,7 @@ export default class MalakiliLovingRancorKeeper extends NonLeaderUnitCard {
                 onDamageDealt: (event, context) =>
                     event.card.controller === context.player &&
                     event.damageSource.player === context.player &&
-                    event.damageSource.card.isUnit() && event.damageSource.card.hasSomeTrait(Trait.Creature)
+                    event.damageSource.card?.isUnit() && event.damageSource.card?.hasSomeTrait(Trait.Creature)
             },
         });
     }
