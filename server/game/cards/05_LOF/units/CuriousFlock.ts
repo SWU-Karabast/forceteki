@@ -5,7 +5,7 @@ import { TargetMode } from '../../../core/Constants';
 export default class CuriousFlock extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'curious-flock-id',
+            id: '4974236883',
             internalName: 'curious-flock'
         };
     }
