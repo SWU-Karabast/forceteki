@@ -2,7 +2,7 @@ import type { Player } from '../Player';
 import type { ICardWithCostProperty } from './propertyMixins/Cost';
 import { WithCost } from './propertyMixins/Cost';
 import type { MoveZoneDestination } from '../Constants';
-import { CardType, ZoneName } from '../Constants';
+import { CardType, EffectName, ZoneName } from '../Constants';
 import * as Contract from '../utils/Contract';
 import type { IDecreaseCostAbilityProps, IPlayableCard, IPlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
 import { PlayableOrDeployableCard } from './baseClasses/PlayableOrDeployableCard';
@@ -55,13 +55,25 @@ export class EventCard extends EventCardParent {
 
     /** Ability of event card when played. Will be a "blank" ability with no effect if this card is disabled by an effect. */
     public getEventAbility(): EventAbility {
-        return this.isBlank() || !this.hasImplementationFile
-            ? new EventAbility(this.game, this, {
-                title: this.hasImplementationFile ? 'Unimplemented event card ability' : 'No effect',
+        if (this.isBlank()) {
+            const blankSource = this.getOngoingEffectSources(EffectName.Blank);
+            return new EventAbility(this.game, this, {
+                title: 'No effect',
                 printedAbility: false,
+                effect: 'do nothing due to an ongoing effect of {1}',
+                effectArgs: [blankSource],
                 immediateEffect: new NoActionSystem({ hasLegalTarget: true })
-            })
-            : this._eventAbility;
+            });
+        } else if (!this.hasImplementationFile) {
+            return new EventAbility(this.game, this, {
+                title: 'Unimplemented event card ability',
+                printedAbility: false,
+                effect: 'do nothing becuase the card is not implemented yet',
+                immediateEffect: new NoActionSystem({ hasLegalTarget: true })
+            });
+        }
+
+        return this._eventAbility;
     }
 
     public override moveTo(targetZoneName: MoveZoneDestination, initializeCardState?: InitializeCardStateOption): void {
