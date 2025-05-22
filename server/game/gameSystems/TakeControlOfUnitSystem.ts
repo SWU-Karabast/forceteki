@@ -10,9 +10,10 @@ export interface ITakeControlOfUnitProperties extends ICardTargetSystemPropertie
     newController: Player;
 
     /**
-     * Whether the system should exclude leader units from being affected.
+     * Whether the system should exclude leader units from being affected. Defaults to `true`.
      *
-     * Defaults to `true`
+     * This usually only applies when control changes due to a delayed effect. Leader
+     * units are always defeated instead of changing control.
      */
     excludeLeaderUnit?: boolean;
 }
