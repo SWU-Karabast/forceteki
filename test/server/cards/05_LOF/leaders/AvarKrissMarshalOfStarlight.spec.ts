@@ -159,5 +159,73 @@ describe('Avar Kriss, Marshal of Starlight', function() {
                 expect(context.avarKriss).toBeInZone('groundArena');
             });
         });
+
+        describe('Avar Kriss\'s deployed constant ability', function () {
+            it('should give her +0/+4 and Overwhelm when the player has the Force', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'avar-kriss#marshal-of-starlight', deployed: true },
+                        hasForceToken: true
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.avarKriss.getPower()).toBe(8);
+
+                context.player1.clickCard(context.avarKriss);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.p2Base.damage).toBe(5);
+            });
+
+            it('should do nothing when the player does not have the Force', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'avar-kriss#marshal-of-starlight', deployed: true }
+                    },
+                    player2: {
+                        groundArena: ['battlefield-marine']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.avarKriss.getPower()).toBe(4);
+
+                context.player1.clickCard(context.avarKriss);
+                context.player1.clickCard(context.battlefieldMarine);
+
+                expect(context.p2Base.damage).toBe(0);
+            });
+
+            it('should work when the Force is gained and lost', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'avar-kriss#marshal-of-starlight', deployed: true },
+                        base: 'mystic-monastery',
+                        hand: ['cure-wounds']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.avarKriss.getPower()).toBe(4);
+
+                context.player1.clickCard(context.mysticMonastery);
+                expect(context.avarKriss.getPower()).toBe(8);
+
+                context.player2.passAction();
+                context.player1.clickCard(context.cureWounds);
+
+                expect(context.avarKriss.getPower()).toBe(4);
+            });
+        });
     });
 });
