@@ -277,12 +277,12 @@ const mockCards = [
         internalName: 'gungi#finding-himself'
     }),
     buildMockCard({
-        title: 'Jedi Temple Guard',
+        title: 'Jedi Temple Guards',
         power: 2,
         hp: 4,
         cost: 4,
         hasNonKeywordAbility: false,
-        aspects: ['command', 'heroism'],
+        aspects: ['command'],
         types: ['unit'],
         keywords: ['ambush', 'restore 2'],
         traits: ['force', 'jedi'],
@@ -292,7 +292,7 @@ const mockCards = [
         },
         unique: false,
         arena: 'ground',
-        internalName: 'jedi-temple-guard'
+        internalName: 'jedi-temple-guards'
     }),
     buildMockCard({
         title: 'Jedi Vector',
