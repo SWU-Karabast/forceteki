@@ -441,3 +441,8 @@ type NonParameterKeywordName =
   | KeywordName.Saboteur
   | KeywordName.Sentinel
   | KeywordName.Shielded;
+
+export type NumericKeywordName =
+  | KeywordName.Raid
+  | KeywordName.Restore
+  | KeywordName.Exploit;

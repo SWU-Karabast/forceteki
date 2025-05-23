@@ -101,6 +101,7 @@ export enum EffectName {
     ModifyStartingHandSize = 'modifyStartingHandSize',
     ModifyPower = 'modifyPower',
     ModifyStats = 'modifyStats',
+    MultiplyNumericKeyword = 'multiplyNumericKeyword',
     MustAttack = 'mustAttack',
     MustBeChosen = 'mustBeChosen',
     NoMulligan = 'noMulligan',
