@@ -51,11 +51,11 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         // add deploy leader action
         this.deployEpicActions.push(this.addActionAbility({
             limit: this.deployEpicActionLimit,
-            ...this.deployActionAbilityProps(),
             title: `Deploy ${this.title}`,
             condition: (context) => context.player.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
-            immediateEffect: new DeployLeaderSystem({})
+            immediateEffect: new DeployLeaderSystem({}),
+            ...this.deployActionAbilityProps()
         }));
 
         this.setupLeaderUnitSide = true;
@@ -68,7 +68,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
         this.state.deployed = false;
     }
 
-    protected deployActionAbilityProps(): Omit<IActionAbilityProps<this>, 'title' | 'condition' | 'zoneFilter' | 'immediateEffect'> {
+    protected deployActionAbilityProps(): Partial<IActionAbilityProps<this>> {
         return {};
     }
 
