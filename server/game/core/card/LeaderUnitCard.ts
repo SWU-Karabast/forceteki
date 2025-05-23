@@ -53,6 +53,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
             limit: this.deployEpicActionLimit,
             ...this.deployActionAbilityProps(),
             title: `Deploy ${this.title}`,
+            requiresConfirmation: true,
             condition: (context) => context.player.resources.length >= context.source.cost,
             zoneFilter: ZoneName.Base,
             immediateEffect: new DeployLeaderSystem({})
@@ -151,6 +152,7 @@ export class LeaderUnitCardInternal extends LeaderUnitCardParent implements IDep
 
         this.deployEpicActions.push(this.addActionAbility({
             title: `Deploy ${this.title} as a Pilot`,
+            requiresConfirmation: true,
             limit: this.deployEpicActionLimit,
             condition: (context) => context.player.resources.length >= context.source.cost,
             targetResolver: {
