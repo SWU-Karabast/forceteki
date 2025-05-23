@@ -29,6 +29,7 @@ import type { MustAttackProperties } from '../core/ongoingEffect/effectImpl/Must
 import { GainKeyword } from '../core/ongoingEffect/effectImpl/GainKeyword';
 import StatsModifierWrapper from '../core/ongoingEffect/effectImpl/StatsModifierWrapper';
 import { OngoingEffectValueWrapper } from '../core/ongoingEffect/effectImpl/OngoingEffectValueWrapper';
+import type { NumericKeywordMultiplier } from '../core/ongoingEffect/effectImpl/NumericKeywordMultiplier';
 
 /* Types of effect
     1. Static effects - do something for a period
@@ -124,6 +125,7 @@ export = {
     },
     gainKeywords: (calculate: (target: any, context: AbilityContext) => KeywordNameOrProperties[]) =>
         OngoingEffectBuilder.card.dynamic(EffectName.GainKeyword, (target, context) => new GainKeyword(calculate(target, context))),
+    multiplyNumericKeyword: (multiplier: NumericKeywordMultiplier) => OngoingEffectBuilder.card.static(EffectName.MultiplyNumericKeyword, multiplier),
     loseAllAbilities: () => OngoingEffectBuilder.card.static(EffectName.Blank),
     loseKeyword: (keyword: KeywordName) => OngoingEffectBuilder.card.static(EffectName.LoseKeyword, keyword),
     // gainAllAbilities,
