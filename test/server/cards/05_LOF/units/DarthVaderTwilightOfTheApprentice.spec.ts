@@ -116,5 +116,26 @@ describe('Darth Vader, Twilight of the Apprentice', function() {
             expect(context.atst).toBeInZone('discard');
             expect(context.player1).toBeActivePlayer();
         });
+
+        it('should not be able to defeat any unit as there are no enemy shielded units', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    groundArena: ['darth-vader#twilight-of-the-apprentice', { card: 'atst', upgrades: ['shield'] }]
+                },
+                player2: {
+                    spaceArena: ['imperial-interceptor'],
+                    groundArena: ['wampa', 'pyke-sentinel']
+                }
+            });
+            const { context } = contextRef;
+
+            // Attack with Darth Vader
+            context.player1.clickCard(context.darthVader);
+            context.player1.clickCard(context.pykeSentinel);
+
+            // Ability should not be triggered as there are no enemy shielded units
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
