@@ -34,6 +34,7 @@ describe('Fives, In Search of Truth', function() {
 
             // an opponent play an event, nothing happen
             context.player2.clickCard(context.rallyingCry);
+            context.player2.clickPrompt('Play anyway');
             expect(context.player1).toBeActivePlayer();
 
             // play an event and pass, nothing happen

@@ -49,6 +49,7 @@ describe('Turbolaser Salvo', function() {
 
             // Choose Arena
             context.player1.clickCard(context.turbolaserSalvo);
+            context.player1.clickPrompt('Play anyway');
             expect(context.player1.exhaustedResourceCount).toBe(7);
 
             expect(context.player2).toBeActivePlayer();

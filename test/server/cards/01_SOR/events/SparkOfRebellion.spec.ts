@@ -49,6 +49,7 @@ describe('Spark Of Rebellion', function () {
 
                 // No choice here so no prompt
                 context.player1.clickCard(context.sparkOfRebellion);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.player2).toBeActivePlayer();
             });
         });

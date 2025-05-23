@@ -53,6 +53,8 @@ describe('Barrel Roll', function () {
 
                 // should only choose space units
                 context.player1.clickCard(context.barrelRoll);
+                context.player1.clickPrompt('Play anyway');
+                expect(context.barrelRoll).toBeInZone('discard');
                 expect(context.player2).toBeActivePlayer();
             });
 

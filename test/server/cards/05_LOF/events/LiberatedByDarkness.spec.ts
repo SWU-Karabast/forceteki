@@ -90,7 +90,9 @@ describe('Liberated by Darkness', function() {
                 context.player1.setHasTheForce(false);
 
                 context.player1.clickCard(context.liberatedByDarkness);
+                context.player1.clickPrompt('Play anyway');
 
+                expect(context.liberatedByDarkness).toBeInZone('discard', context.player1);
                 expect(context.battlefieldMarine).toBeInZone('groundArena', context.player2);
                 expect(context.wampa).toBeInZone('groundArena', context.player2);
                 expect(context.player2).toBeActivePlayer();

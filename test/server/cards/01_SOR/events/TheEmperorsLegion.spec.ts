@@ -56,6 +56,7 @@ describe('The Emprerors Legion', function () {
             context.player1.clickCard(context.allianceDispatcher);
             context.player2.passAction();
             context.player1.clickCard(context.theEmperorsLegion);
+            context.player1.clickPrompt('Play anyway');
 
             expect(context.theEmperorsLegion.zoneName).toBe('discard');
             expect(context.greenSquadronAwing.zoneName).toBe('discard');

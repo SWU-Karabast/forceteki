@@ -45,6 +45,7 @@ describe('Aid From the Innocent ', function() {
 
                 // Play one of the cards
                 context.player1.clickCard(context.helloThere);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.player1.readyResourceCount).toBe(14);
 
                 context.player2.passAction();

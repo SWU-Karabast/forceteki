@@ -46,6 +46,7 @@ describe('It\'s a Trap', function() {
             // Play the event
             expect(context.greenSquadronAwing.exhausted).toBe(true);
             context.player1.clickCard(context.itsATrap);
+            context.player1.clickPrompt('Play anyway');
 
             // Player controls more space units than the opponent so no units should be readied
             expect(context.greenSquadronAwing.exhausted).toBe(true);

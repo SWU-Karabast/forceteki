@@ -71,11 +71,10 @@ describe('Niman Strike', function() {
 
             // soft pass if there isn't opponent's unit
             context.player1.clickCard(context.nimanStrike);
+            context.player1.clickPrompt('Play anyway');
 
+            expect(context.nimanStrike).toBeInZone('discard', context.player1);
             expect(context.player2.base.damage).toBe(0);
-
-            expect(context.nimanStrike).toBeInZone('discard');
-
             expect(context.player2).toBeActivePlayer();
         });
     });

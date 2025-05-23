@@ -1357,7 +1357,13 @@ export class Player extends GameObject<IPlayerState> {
 
             // Resources
             if (this.resourceZone.count > 0) {
-                state.resources = this.resourceZone.cards.map((card) => card.internalName);
+                state.resources = this.resourceZone.cards.map((card) => {
+                    // If it's ready, just return the card name
+                    return !card.exhausted ? card.internalName : {
+                        card: card.internalName,
+                        exhausted: card.exhausted
+                    };
+                });
             }
 
             // Leader
@@ -1368,6 +1374,9 @@ export class Player extends GameObject<IPlayerState> {
 
             // Initiative
             state.hasInitiative = this.hasInitiative();
+
+            // Force Token
+            state.hasForceToken = this.hasTheForce;
         } catch (error) {
             logger.error('Error capturing player state', {
                 error: { message: error.message, stack: error.stack },

@@ -1,5 +1,6 @@
 const { ZoneName, DeckZoneDestination, DeployType } = require('../../server/game/core/Constants.js');
 const Game = require('../../server/game/core/Game.js');
+const { Card } = require('../../server/game/core/card/Card.js');
 const { Player } = require('../../server/game/core/Player.js');
 const { detectBinary } = require('../../server/Util.js');
 const GameFlowWrapper = require('./GameFlowWrapper.js');
@@ -364,7 +365,7 @@ class PlayerInteractionWrapper {
             const name = typeof resource === 'string' ? resource : resource.card;
             var card = this.findCardByName(name, prevZones);
             this.moveCard(card, 'resource');
-            card.exhausted = false;
+            card.exhausted = typeof resource === 'string' ? false : resource.exhausted;
         });
         Util.refreshGameState(this.game);
     }
@@ -741,8 +742,9 @@ class PlayerInteractionWrapper {
      */
     moveCard(card, targetZone, searchZones = 'any') {
         // TODO: Check that space units can not be added to ground arena and vice versa
-        if (typeof card === 'string') {
-            card = this.mixedListToCardList([card], searchZones)[0];
+        if (!(card instanceof Card)) {
+            const cardName = typeof card === 'string' ? card : card.card;
+            card = this.mixedListToCardList([cardName], searchZones)[0];
         }
         card.moveTo(targetZone === ZoneName.Deck ? DeckZoneDestination.DeckTop : targetZone);
         this.game.continue();

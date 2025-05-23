@@ -77,6 +77,7 @@ describe('Search Your Feelings', function() {
 
                 // Play card
                 context.player1.clickCard(context.searchYourFeelings);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.searchYourFeelings).toBeInZone('discard');
 
                 // Nothing happens since there are no cards in deck

@@ -232,6 +232,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
         return this.zone?.name;
     }
 
+    public get isImplemented(): boolean {
+        // We consider a card "implemented" if it doesn't require any implementation
+        return !this.overrideNotImplemented && (!this.hasNonKeywordAbilityText || this.hasImplementationFile);
+    }
+
     // *********************************************** CONSTRUCTOR ***********************************************
     public constructor(
         public readonly owner: Player,
@@ -1133,7 +1138,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             cost: this.cardData.cost,
             power: this.cardData.power,
             hp: this.cardData.hp,
-            implemented: !this.overrideNotImplemented && (!this.hasNonKeywordAbilityText || this.hasImplementationFile),  // we consider a card "implemented" if it doesn't require any implementation
+            implemented: this.isImplemented,
             // popupMenuText: this.popupMenuText,
             // showPopup: this.showPopup,
             // tokens: this.tokens,
