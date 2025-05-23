@@ -161,7 +161,7 @@ describe('Avar Kriss, Marshal of Starlight', function() {
         });
 
         describe('Avar Kriss\'s deployed constant ability', function () {
-            it('should give her +0/+4 and Overwhelm when the player has the Force', async function () {
+            it('should give her +4/+0 and Overwhelm when the player has the Force', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
@@ -191,7 +191,8 @@ describe('Avar Kriss, Marshal of Starlight', function() {
                         leader: { card: 'avar-kriss#marshal-of-starlight', deployed: true }
                     },
                     player2: {
-                        groundArena: ['battlefield-marine']
+                        groundArena: ['battlefield-marine'],
+                        hasForceToken: true
                     }
                 });
 
@@ -230,6 +231,26 @@ describe('Avar Kriss, Marshal of Starlight', function() {
 
                 expect(context.avarKriss.getPower()).toBe(4);
                 expect(context.avarKriss.getHp()).toBe(10);
+            });
+
+            it('should activate in time for attack damage when granted the Force by a Force base', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'avar-kriss#marshal-of-starlight', deployed: true },
+                        base: 'crystal-caves'
+                    }
+                });
+
+                const { context } = contextRef;
+
+                expect(context.avarKriss.getPower()).toBe(4);
+                expect(context.avarKriss.getHp()).toBe(10);
+
+                context.player1.clickCard(context.avarKriss);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.p2Base.damage).toBe(8);
             });
         });
     });
