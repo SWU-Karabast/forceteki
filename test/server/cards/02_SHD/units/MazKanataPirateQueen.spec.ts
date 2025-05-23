@@ -29,6 +29,7 @@ describe('Maz Kanata, Pirate Queen', function() {
                 // CASE 4: we deploy a leader
                 context.player2.passAction();
                 context.player1.clickCard(context.bobaFett);
+                context.player1.clickPrompt('Deploy Boba Fett');
                 expect(context.mazKanata).toHaveExactUpgradeNames(['experience']);
             });
 

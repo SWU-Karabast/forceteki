@@ -23,6 +23,7 @@ import type { IActionTargetResolver, ITargetResolverBase } from '../../TargetInt
 import type { IAbilityLimit } from './AbilityLimit.js';
 import type { ICost } from '../cost/ICost.js';
 import type { ITargetResult, TargetResolver } from './abilityTargets/TargetResolver.js';
+import type { ActionAbility } from './ActionAbility.js';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
@@ -403,6 +404,10 @@ export abstract class PlayerOrCardAbility {
     }
 
     public isEpicAction(): this is EpicActionAbility {
+        return false;
+    }
+
+    public isActionAbility(): this is ActionAbility {
         return false;
     }
 }

@@ -46,6 +46,7 @@ describe('Admiral Piett, Captain of the Executor\'s Folly', function() {
 
                 // CASE 4: friendly leader unit cost >= 6, does not gain Ambush
                 context.player1.clickCard(context.heraSyndulla);
+                context.player1.clickPrompt('Deploy Hera Syndulla');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.heraSyndulla).toBeInZone('groundArena');
 

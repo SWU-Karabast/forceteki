@@ -111,6 +111,7 @@ describe('Invincible, Naval Adversary', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.jangoFett);
+                context.player1.clickPrompt('Deploy Jango Fett');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.battlefieldMarine, context.lurkingTiePhantom]);
                 context.player1.clickCard(context.lurkingTiePhantom);
@@ -125,6 +126,7 @@ describe('Invincible, Naval Adversary', function () {
                 context.player1.passAction();
 
                 context.player2.clickCard(context.bobaFett);
+                context.player2.clickPrompt('Deploy Boba Fett');
 
                 expect(context.player1).toBeActivePlayer();
                 expect(context.lurkingTiePhantom).toBeInZone('spaceArena');

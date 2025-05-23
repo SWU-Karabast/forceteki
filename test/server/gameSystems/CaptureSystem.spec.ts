@@ -119,6 +119,7 @@ describe('Capture system', function() {
 
             // player 1 flip Palpatine to take control of Discerning Veteran and confirm all state
             context.player1.clickCard(context.emperorPalpatine);
+            context.player1.clickPrompt('Deploy Emperor Palpatine');
             expect(context.discerningVeteran.capturedUnits.length).toBe(1);
             expect(context.discerningVeteran.capturedUnits[0]).toBe(context.battlefieldMarine);
             expect(context.battlefieldMarine).toBeCapturedBy(context.discerningVeteran);

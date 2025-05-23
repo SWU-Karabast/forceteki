@@ -32,12 +32,14 @@ export class ActionAbility extends CardAbility {
     protected phase: string;
 
     public readonly condition?: (context?: AbilityContext) => boolean;
+    public readonly requiresConfirmation: boolean;
 
     public constructor(game: Game, card: Card, properties: IActionAbilityProps) {
         super(game, card, properties);
 
         this.phase = properties.phase ?? PhaseName.Action;
         this.condition = properties.condition;
+        this.requiresConfirmation = properties.requiresConfirmation ?? false;
 
         if (!card.canRegisterActionAbilities()) {
             throw Error(`Card '${card.internalName}' cannot have action abilities`);
@@ -58,5 +60,9 @@ export class ActionAbility extends CardAbility {
         }
 
         return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
+    }
+
+    public override isActionAbility(): this is ActionAbility {
+        return true;
     }
 }

@@ -47,6 +47,7 @@ describe('Toro Calican, Ambitious Upstart', function() {
 
                 // CASE 4: deployed friendly Bounty Hunter leader, ability does not trigger
                 context.player1.clickCard(context.theMandalorian);
+                context.player1.clickPrompt('Deploy The Mandalorian');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.theMandalorian.damage).toBe(0);
                 expect(context.toroCalican.exhausted).toBeTrue();
