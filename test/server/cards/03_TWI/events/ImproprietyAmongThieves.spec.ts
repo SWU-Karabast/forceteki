@@ -324,5 +324,102 @@ describe('Impropriety Among Thieves', function () {
                 });
             });
         });
+
+        describe('Impropriety Among Thieves\'s interaction with Pilot leaders', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-vader#victor-squadron-leader',
+                        base: 'mos-eisley',
+                        hand: ['impropriety-among-thieves'],
+                        spaceArena: [
+                            'hotshot-vwing'
+                        ]
+                    },
+                    player2: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy',
+                        spaceArena: [
+                            'millennium-falcon#piece-of-junk',
+                        ]
+                    }
+                });
+            });
+
+            it('fizzles if the units are piloted leader units', function () {
+                const { context } = contextRef;
+
+                // Player 1 deploys Darth Vader to pilot the Hotshot V-Wing
+                context.player1.clickCard(context.darthVader);
+                context.player1.clickPrompt('Deploy Darth Vader as a Pilot');
+                context.player1.clickCard(context.hotshotVwing);
+
+                expect(context.hotshotVwing).toHaveExactUpgradeNames(['darth-vader#victor-squadron-leader']);
+                expect(context.hotshotVwing.isLeader()).toBeTrue();
+
+                // Player 2 deploys Kazuda Xiono to pilot the Millennium Falcon
+                context.player2.clickCard(context.kazudaXiono);
+                context.player2.clickPrompt('Deploy Kazuda Xiono as a Pilot');
+                context.player2.clickCard(context.millenniumFalcon);
+
+                expect(context.millenniumFalcon).toHaveExactUpgradeNames(['kazuda-xiono#best-pilot-in-the-galaxy']);
+                expect(context.millenniumFalcon.isLeader()).toBeTrue();
+
+                // Player 1 plays Impropriety Among Thieves, but it has no effect
+                context.player1.clickCard(context.improprietyAmongThieves);
+                context.player1.clickPrompt('Play anyway');
+
+                expect(context.hotshotVwing).toHaveExactUpgradeNames(['darth-vader#victor-squadron-leader']);
+                expect(context.millenniumFalcon).toHaveExactUpgradeNames(['kazuda-xiono#best-pilot-in-the-galaxy']);
+                expect(context.player2).toBeActivePlayer();
+            });
+
+            it('defeats the units if they become leader units after control changes', function () {
+                const { context } = contextRef;
+
+                // Player 1 plays Impropriety Among Thieves
+                context.player1.clickCard(context.improprietyAmongThieves);
+
+                // Player 1 chooses to give Player 2 Hotshot V-Wing
+                expect(context.player1).toHavePrompt('Choose a friendly ready non-leader unit');
+                expect(context.player1).toBeAbleToSelectExactly(context.hotshotVwing);
+                context.player1.clickCard(context.hotshotVwing);
+
+                // Player 1 chooses to take Millennium Falcon
+                expect(context.player1).toHavePrompt('Choose an enemy ready non-leader unit');
+                expect(context.player1).toBeAbleToSelectExactly(context.millenniumFalcon);
+                context.player1.clickCard(context.millenniumFalcon);
+
+                expect(context.hotshotVwing).toBeInZone('spaceArena', context.player2);
+                expect(context.millenniumFalcon).toBeInZone('spaceArena', context.player1);
+
+                // Player 2 deploys Kazuda Xiono to pilot the Hotshot V-Wing
+                context.player2.clickCard(context.kazudaXiono);
+                context.player2.clickPrompt('Deploy Kazuda Xiono as a Pilot');
+                context.player2.clickCard(context.hotshotVwing);
+
+                expect(context.hotshotVwing).toHaveExactUpgradeNames(['kazuda-xiono#best-pilot-in-the-galaxy']);
+                expect(context.hotshotVwing.isLeader()).toBeTrue();
+
+                // Player 1 deploys Darth Vader to pilot the Millennium Falcon
+                context.player1.clickCard(context.darthVader);
+                context.player1.clickPrompt('Deploy Darth Vader as a Pilot');
+                context.player1.clickCard(context.millenniumFalcon);
+
+                expect(context.millenniumFalcon).toHaveExactUpgradeNames(['darth-vader#victor-squadron-leader']);
+                expect(context.millenniumFalcon.isLeader()).toBeTrue();
+
+                // Move to regroup phase
+                context.moveToRegroupPhase();
+
+                // Both units are defeated instead of returning to their owners
+                expect(context.hotshotVwing).toBeInZone('discard', context.player1);
+                expect(context.millenniumFalcon).toBeInZone('discard', context.player2);
+                expect(context.darthVader).toBeInZone('base', context.player1);
+                expect(context.kazudaXiono).toBeInZone('base', context.player2);
+                expect(context.darthVader.exhausted).toBeTrue();
+                expect(context.kazudaXiono.exhausted).toBeTrue();
+            });
+        });
     });
 });

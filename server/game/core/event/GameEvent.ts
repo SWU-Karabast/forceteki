@@ -21,6 +21,7 @@ export class GameEvent {
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
+    private replacementEventsGenerator?: () => any[] = null;
     private _preResolutionEffect = null;
     private replacementEvents: any[] = [];
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
@@ -138,6 +139,27 @@ export class GameEvent {
 
         this.replacementEvents.push(replacementEvent);
         this.resolutionStatus = EventResolutionStatus.REPLACED;
+    }
+
+    /**
+     * Sets the replacement events generator function for this event. When the event is resolved,
+     * the generator function will be called to generate any potential replacement events.
+     *
+     * This is generally used by game systems to set replacement events to handle specific game rules.
+     * For example, the `TakeControlOfUnitSystem` uses this to ensure that a leader unit never changes control,
+     * but is defeated instead.
+     *
+     * To create a replacement effect for a card ability (like the Shield token), use the `addReplacementEffectAbility`
+     * method on the card instead.
+     */
+    public setReplacementEventsGenerator(generator: (event) => any[]) {
+        Contract.assertIsNullLike(this.replacementEventsGenerator, 'Attempting to set replacementEventGenerator but it already has a value');
+
+        this.replacementEventsGenerator = () => generator(this);
+    }
+
+    public generateReplacementEvents(): any[] {
+        return this.replacementEventsGenerator ? this.replacementEventsGenerator() : [];
     }
 
     public setContingentEventsGenerator(generator: (event) => any[]) {
