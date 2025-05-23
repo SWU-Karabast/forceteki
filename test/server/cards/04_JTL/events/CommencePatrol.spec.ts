@@ -54,6 +54,7 @@ describe('Commence Patrol', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.commencePatrol);
+            context.player1.clickPrompt('Play anyway');
 
             expect(context.commencePatrol).toBeInZone('discard');
             expect(context.player1.getArenaCards().length).toBe(0);

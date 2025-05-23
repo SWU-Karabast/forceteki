@@ -25,7 +25,7 @@ describe('As I Have Foreseen', function () {
             });
 
             describe('when the player has the Force', function () {
-                it('it shows the top card of the deck and allows the player to use the force and play it for 4 less', function () {
+                it('shows the top card of the deck and allows the player to use the force and play it for 4 less', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.asIHaveForeseen);
@@ -42,7 +42,7 @@ describe('As I Have Foreseen', function () {
                     expect(context.player2).toBeActivePlayer();
                 });
 
-                it('it shows the top card of the deck and allows the player to leave it on top', function () {
+                it('shows the top card of the deck and allows the player to leave it on top', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.asIHaveForeseen);
@@ -57,7 +57,7 @@ describe('As I Have Foreseen', function () {
                     expect(context.zuckuss).toBeInZone('deck', context.player1);
                 });
 
-                it('it shows the top card of the deck and disallows the player from playing it if it has been named by Regional Governor', function () {
+                it('shows the top card of the deck and disallows the player from playing it if it has been named by Regional Governor', function () {
                     const { context } = contextRef;
 
                     context.player1.passAction();
@@ -79,7 +79,7 @@ describe('As I Have Foreseen', function () {
                 });
 
 
-                it('it allows the player to play a unit with Piloting as an upgrade', function () {
+                it('allows the player to play a unit with Piloting as an upgrade', function () {
                     const { context } = contextRef;
 
                     context.moveToNextActionPhase(); // To discard Zuckuss using Aphra's ability
@@ -136,6 +136,7 @@ describe('As I Have Foreseen', function () {
 
                     expect(context.player1.deck.length).toEqual(0);
                     context.player1.clickCard(context.asIHaveForeseen);
+                    context.player1.clickPrompt('Play anyway');
 
                     expect(context.asIHaveForeseen).toBeInZone('discard', context.player1);
                     expect(context.player1.hasTheForce).toBeTrue();
@@ -158,7 +159,7 @@ describe('As I Have Foreseen', function () {
                 });
             });
 
-            it('itdoes not allow the player to play the card', function () {
+            it('does not allow the player to play the card', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.asIHaveForeseen);

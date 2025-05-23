@@ -77,6 +77,7 @@ describe('Recruit', function () {
                     expect(context.player1.deck.length).toBe(0);
 
                     context.player1.clickCard(context.recruit);
+                    context.player1.clickPrompt('Play anyway');
                     expect(context.recruit).toBeInZone('discard');
                     expect(context.player1.deck.length).toBe(0);
 

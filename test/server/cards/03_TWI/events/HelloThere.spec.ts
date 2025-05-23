@@ -139,8 +139,10 @@ describe('Hello There', function() {
 
                 // Player 1 plays Hello There, but there are no valid targets
                 context.player1.clickCard(context.helloThere);
+                context.player1.clickPrompt('Play anyway');
 
                 // Event resolves immediately due to no valid targets
+                expect(context.helloThere).toBeInZone('discard', context.player1);
                 expect(context.player2).toBeActivePlayer();
             });
         });

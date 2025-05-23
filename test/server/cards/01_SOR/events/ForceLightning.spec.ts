@@ -175,7 +175,9 @@ describe('Force Lightning', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.forceLightning);
+            context.player1.clickPrompt('Play anyway');
 
+            expect(context.forceLightning).toBeInZone('discard', context.player1);
             expect(context.player2).toBeActivePlayer();
             expect(context.player1.exhaustedResourceCount).toBe(1);
         });

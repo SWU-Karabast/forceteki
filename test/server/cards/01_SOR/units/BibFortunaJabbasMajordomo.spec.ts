@@ -45,6 +45,7 @@ describe('Bib Fortuna', function() {
 
                 // cost discount from bib fortuna should be gone
                 context.player1.clickCard(context.confiscate);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.player1.exhaustedResourceCount).toBe(1);
 
                 expect(context.player2).toBeActivePlayer();

@@ -19,9 +19,10 @@ import type { Card } from '../card/Card.js';
 import { v4 as uuidv4 } from 'uuid';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
-import type { IActionTargetResolver } from '../../TargetInterfaces.js';
+import type { IActionTargetResolver, ITargetResolverBase } from '../../TargetInterfaces.js';
 import type { IAbilityLimit } from './AbilityLimit.js';
 import type { ICost } from '../cost/ICost.js';
+import type { ITargetResult, TargetResolver } from './abilityTargets/TargetResolver.js';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
@@ -287,7 +288,7 @@ export abstract class PlayerOrCardAbility {
         return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
     }
 
-    public resolveTargetsInner(targetResolvers, context: AbilityContext, passHandler, canCancel) {
+    public resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler, canCancel?: boolean) {
         const targetResults = this.getDefaultTargetResults(context, canCancel);
         for (const target of targetResolvers) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
@@ -295,7 +296,7 @@ export abstract class PlayerOrCardAbility {
         return targetResults;
     }
 
-    public getDefaultTargetResults(context: AbilityContext, canCancel = undefined) {
+    public getDefaultTargetResults(context: AbilityContext, canCancel?: boolean): ITargetResult {
         return {
             canIgnoreAllCosts:
                 context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,

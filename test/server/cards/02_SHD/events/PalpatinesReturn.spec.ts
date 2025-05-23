@@ -48,6 +48,7 @@ describe('Palpatine\'s Return', function() {
 
                 // Scenario 3: Do nothing if there are no units in the discard
                 context.player1.clickCard(context.palpatinesReturn);
+                context.player1.clickPrompt('Play anyway');
 
                 expect(context.player2).toBeActivePlayer();
                 expect(context.palpatinesReturn).toBeInZone('discard', context.player1);

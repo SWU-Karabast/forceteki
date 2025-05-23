@@ -21,6 +21,7 @@ describe('Impropriety Among Thieves', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.improprietyAmongThieves);
+                    context.player1.clickPrompt('Play anyway');
 
                     expect(context.player2).toBeActivePlayer();
                     expect(context.superlaserTechnician).toBeInZone('groundArena', context.player1);
@@ -41,6 +42,7 @@ describe('Impropriety Among Thieves', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.improprietyAmongThieves);
+                    context.player1.clickPrompt('Play anyway');
 
                     expect(context.player2).toBeActivePlayer();
                     expect(context.battlefieldMarine).toBeInZone('groundArena', context.player1);
@@ -60,6 +62,7 @@ describe('Impropriety Among Thieves', function () {
                     const { context } = contextRef;
 
                     context.player1.clickCard(context.improprietyAmongThieves);
+                    context.player1.clickPrompt('Play anyway');
 
                     expect(context.player2).toBeActivePlayer();
                     expect(context.battlefieldMarine).toBeInZone('groundArena', context.player2);

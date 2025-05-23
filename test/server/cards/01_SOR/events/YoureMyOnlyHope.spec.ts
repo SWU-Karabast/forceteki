@@ -93,6 +93,7 @@ describe('You\'re My Only Hope', function() {
 
                 expect(context.player1.deck.length).toEqual(0);
                 context.player1.clickCard(context.youreMyOnlyHope);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.youreMyOnlyHope).toBeInZone('discard', context.player1);
 
                 expect(context.player2).toBeActivePlayer();

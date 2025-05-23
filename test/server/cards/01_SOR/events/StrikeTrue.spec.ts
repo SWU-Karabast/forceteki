@@ -37,6 +37,7 @@ describe('Strike True', function() {
 
                 // Play the event if there is no friendly units
                 context.player1.clickCard(context.strikeTrue);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -56,6 +57,7 @@ describe('Strike True', function() {
 
                 // Play the event if there is no enemy units
                 context.player1.clickCard(context.strikeTrue);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.player2).toBeActivePlayer();
             });
         });

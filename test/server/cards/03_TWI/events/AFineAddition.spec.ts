@@ -22,6 +22,7 @@ describe('A Fine Addition', function () {
 
             // NO-OP play -- no enemy was defeated
             context.player1.clickCard(context.aFineAddition);
+            context.player1.clickPrompt('Play anyway');
             expect(context.aFineAddition).toBeInZone('discard');
 
             expect(context.player2).toBeActivePlayer();
@@ -35,6 +36,7 @@ describe('A Fine Addition', function () {
 
             // should be another NO-OP play -- no enemy was defeated
             context.player1.clickCard(context.aFineAddition);
+            context.player1.clickPrompt('Play anyway');
             expect(context.aFineAddition).toBeInZone('discard');
 
             expect(context.player2).toBeActivePlayer();
