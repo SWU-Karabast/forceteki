@@ -140,9 +140,11 @@ describe('Reprocess\' ability', function () {
 
             const [firstReprocess, secondReprocess] = context.player1.findCardsByName('reprocess');
             context.player1.clickCard(firstReprocess);
+            context.player1.clickPrompt('Play anyway');
             expect(context.player2).toBeActivePlayer();
             expect(context.restock).toBeInZone('discard');
             expect(context.resupply).toBeInZone('discard');
+            expect(firstReprocess).toBeInZone('discard');
             let battleDroids = context.player1.findCardsByName('battle-droid');
             expect(battleDroids.length).toBe(0);
 

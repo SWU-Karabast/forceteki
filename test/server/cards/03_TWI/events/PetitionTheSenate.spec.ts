@@ -31,6 +31,7 @@ describe('Petition The Senate', function () {
 
                 // controlling less than 3 officials
                 context.player1.clickCard(context.petitionTheSenate);
+                context.player1.clickPrompt('Play anyway');
                 expect(context.petitionTheSenate).toBeInZone('discard');
                 expect(context.player1.hand.length).toBe(3);
             });

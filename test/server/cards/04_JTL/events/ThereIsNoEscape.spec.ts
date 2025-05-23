@@ -183,7 +183,7 @@ describe('There Is No Escape', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
-        it('It automatically chooses no targes if there are no units in play.', async function() {
+        it('It automatically chooses no targets if there are no units in play.', async function() {
             await contextRef.setupTestAsync({
                 phase: 'action',
                 player1: {
@@ -195,6 +195,7 @@ describe('There Is No Escape', function() {
 
             // Play There Is No Escape
             context.player1.clickCard(context.thereIsNoEscape);
+            context.player1.clickPrompt('Play anyway');
 
             // No targets were chosen, it is Player 2's turn
             expect(context.player2).toBeActivePlayer();

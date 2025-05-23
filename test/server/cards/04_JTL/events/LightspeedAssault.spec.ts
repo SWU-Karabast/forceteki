@@ -67,6 +67,7 @@ describe('Lightspeed Assault', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.lightspeedAssault);
+            context.player1.clickPrompt('Play anyway');
             expect(context.player2).toBeActivePlayer();
         });
 

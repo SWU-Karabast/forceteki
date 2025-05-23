@@ -89,11 +89,10 @@ describe('Dogfight', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.dogfight);
+            context.player1.clickPrompt('Play anyway');
 
             expect(context.player2.base.damage).toBe(0);
-
             expect(context.dogfight).toBeInZone('discard');
-
             expect(context.player2).toBeActivePlayer();
         });
     });
