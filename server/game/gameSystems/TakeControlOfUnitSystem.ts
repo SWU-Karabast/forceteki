@@ -67,18 +67,17 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
     protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<ITakeControlOfUnitProperties>): void {
         super.updateEvent(event, player, context, additionalProperties);
 
-        event.setContingentEventsGenerator((event) => {
-            // Add a contingent event to defeat the unit if it is a leader unit
-            const contingentEvents = [];
-
+        event.setReplacementEventsGenerator((event) => {
             if (event.card.isLeader() && event.newController !== event.card.controller) {
-                contingentEvents.push(new FrameworkDefeatCardSystem({
-                    defeatSource: DefeatSourceType.FrameworkEffect,
-                    target: event.card
-                }).generateEvent(context.game.getFrameworkContext(event.player)));
+                return [
+                    new FrameworkDefeatCardSystem({
+                        defeatSource: DefeatSourceType.FrameworkEffect,
+                        target: event.card
+                    }).generateEvent(context.game.getFrameworkContext(event.player))
+                ];
             }
 
-            return contingentEvents;
+            return [];
         });
     }
 

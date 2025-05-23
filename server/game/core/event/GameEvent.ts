@@ -21,6 +21,7 @@ export class GameEvent {
     private cleanupHandlers: (() => void)[] = [];
     private _context = null;
     private contingentEventsGenerator?: () => any[] = null;
+    private replacementEventsGenerator?: () => any[] = null;
     private _preResolutionEffect = null;
     private replacementEvents: any[] = [];
     private resolutionStatus: EventResolutionStatus = EventResolutionStatus.CREATED;
@@ -138,6 +139,16 @@ export class GameEvent {
 
         this.replacementEvents.push(replacementEvent);
         this.resolutionStatus = EventResolutionStatus.REPLACED;
+    }
+
+    public setReplacementEventsGenerator(generator: (event) => any[]) {
+        Contract.assertIsNullLike(this.replacementEventsGenerator, 'Attempting to set replacementEventGenerator but it already has a value');
+
+        this.replacementEventsGenerator = () => generator(this);
+    }
+
+    public generateReplacementEvents(): any[] {
+        return this.replacementEventsGenerator ? this.replacementEventsGenerator() : [];
     }
 
     public setContingentEventsGenerator(generator: (event) => any[]) {
