@@ -367,6 +367,7 @@ describe('Impropriety Among Thieves', function () {
 
                 // Player 1 plays Impropriety Among Thieves, but it has no effect
                 context.player1.clickCard(context.improprietyAmongThieves);
+                context.player1.clickPrompt('Play anyway');
 
                 expect(context.hotshotVwing).toHaveExactUpgradeNames(['darth-vader#victor-squadron-leader']);
                 expect(context.millenniumFalcon).toHaveExactUpgradeNames(['kazuda-xiono#best-pilot-in-the-galaxy']);

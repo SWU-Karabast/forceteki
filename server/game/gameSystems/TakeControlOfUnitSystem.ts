@@ -37,11 +37,12 @@ export class TakeControlOfUnitSystem<TContext extends AbilityContext = AbilityCo
 
         const properties = this.generatePropertiesFromContext(context);
 
-        if (mustChangeGameState !== GameStateChangeRequired.None && properties.newController === card.controller) {
-            return false;
-        }
-
-        if (mustChangeGameState !== GameStateChangeRequired.None && properties.excludeLeaderUnit && card.isLeader()) {
+        if (
+            mustChangeGameState !== GameStateChangeRequired.None && (
+                properties.newController === card.controller ||
+                properties.excludeLeaderUnit && card.isLeader()
+            )
+        ) {
             return false;
         }
 

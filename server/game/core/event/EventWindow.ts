@@ -160,7 +160,6 @@ export class EventWindow extends BaseStepWithPipeline {
         replacementEvents.forEach((event) => this.addEvent(event));
 
         const replacementEffectWindow = new ReplacementEffectWindow(this.game, this);
-        replacementEffectWindow.addTriggeringEvents(replacementEvents);
         replacementEffectWindow.emitEvents();
         this.queueStep(replacementEffectWindow);
     }

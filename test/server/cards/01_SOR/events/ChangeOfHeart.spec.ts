@@ -110,6 +110,7 @@ describe('Change of Heart', function() {
 
                 // Player 1 plays Change of Heart, but it fizzles
                 context.player1.clickCard(context.changeOfHeart);
+                context.player1.clickPrompt('Play anyway');
 
                 expect(context.player2).toBeActivePlayer();
             });
