@@ -276,6 +276,59 @@ const mockCards = [
         arena: 'ground',
         internalName: 'gungi#finding-himself'
     }),
+    buildMockCard({
+        title: 'Jedi Temple Guards',
+        power: 2,
+        hp: 4,
+        cost: 4,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        types: ['unit'],
+        keywords: ['ambush', 'restore 2'],
+        traits: ['force', 'jedi'],
+        setId: {
+            set: 'LOF',
+            number: 113
+        },
+        unique: false,
+        arena: 'ground',
+        internalName: 'jedi-temple-guards'
+    }),
+    buildMockCard({
+        title: 'Jedi Vector',
+        power: 1,
+        hp: 3,
+        cost: 2,
+        hasNonKeywordAbility: true,
+        aspects: ['heroism'],
+        types: ['unit'],
+        traits: ['jedi', 'vehicle', 'fighter'],
+        setId: {
+            set: 'LOF',
+            number: 244
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'jedi-vector'
+    }),
+    buildMockCard({
+        title: 'Avar Kriss',
+        subtitle: 'Marshal of Starlight',
+        power: 4,
+        hp: 10,
+        cost: 9,
+        hasNonKeywordAbility: true,
+        aspects: ['command', 'heroism'],
+        types: ['leader'],
+        traits: ['force', 'jedi', 'republic'],
+        setId: {
+            set: 'LOF',
+            number: 7
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'avar-kriss#marshal-of-starlight'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
