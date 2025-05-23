@@ -240,24 +240,6 @@ const mockCards = [
         internalName: 'nihil-marauder'
     }),
     buildMockCard({
-        title: 'Nameless Terror',
-        power: 3,
-        hp: 3,
-        cost: 3,
-        hasNonKeywordAbility: true,
-        aspects: ['vigilance', 'villainy'],
-        types: ['unit'],
-        keywords: [],
-        traits: ['creature'],
-        setId: {
-            set: 'LOF',
-            number: 33
-        },
-        unique: false,
-        arena: 'ground',
-        internalName: 'nameless-terror'
-    }),
-    buildMockCard({
         title: 'Gungi',
         subtitle: 'Finding Himself',
         power: 2,

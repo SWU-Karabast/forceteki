@@ -9,7 +9,7 @@ import { cardCannot } from './CardCannot';
 // const { mustBeDeclaredAsAttacker } = require('./Effects/Library/mustBeDeclaredAsAttacker');
 import { addExploit, modifyCost } from './ModifyCost';
 // const { switchAttachmentSkillModifiers } = require('./Effects/Library/switchAttachmentSkillModifiers');
-import type { KeywordName } from '../core/Constants';
+import type { KeywordName, Trait } from '../core/Constants';
 import { EffectName } from '../core/Constants';
 import type { StatsModifier } from '../core/ongoingEffect/effectImpl/StatsModifier';
 import type { IAbilityPropsWithType, ITriggeredAbilityProps, KeywordNameOrProperties } from '../Interfaces';
@@ -41,7 +41,6 @@ export = {
     assignIndirectDamageDealtByUnit: () => OngoingEffectBuilder.card.static(EffectName.AssignIndirectDamageDealtByUnit),
     // Card effects
     // addFaction: (faction) => OngoingEffectBuilder.card.static(EffectName.AddFaction, faction),
-    // addTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.AddTrait, trait),
     // additionalTriggerCostForCard: (func) => OngoingEffectBuilder.card.static(EffectName.AdditionalTriggerCost, func),
     // attachmentCardCondition: (func) => OngoingEffectBuilder.card.static(EffectName.AttachmentCardCondition, func),
     // attachmentFactionRestriction: (factions) =>
@@ -150,7 +149,8 @@ export = {
     // increaseLimitOnPrintedAbilities: (abilities) =>
     //     OngoingEffectBuilder.card.static(EffectName.IncreaseLimitOnPrintedAbilities, abilities),
     // loseAllNonKeywordAbilities: () => OngoingEffectBuilder.card.static(EffectName.LoseAllNonKeywordAbilities),
-    // loseTrait: (trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
+    gainTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.GainTrait, trait),
+    loseTrait: (trait: Trait) => OngoingEffectBuilder.card.static(EffectName.LoseTrait, trait),
     // modifyBaseMilitarySkillMultiplier: (value) =>
     //     OngoingEffectBuilder.card.flexible(EffectName.ModifyBaseMilitarySkillMultiplier, value),
     // modifyBasePoliticalSkillMultiplier: (value) =>
