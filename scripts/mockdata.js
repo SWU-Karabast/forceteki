@@ -329,6 +329,54 @@ const mockCards = [
         arena: 'ground',
         internalName: 'avar-kriss#marshal-of-starlight'
     }),
+    buildMockCard({
+        title: 'Priestesses of the Force, Eternal',
+        cost: 7,
+        power: 6,
+        hp: 8,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['unit'],
+        traits: ['force'],
+        setId: {
+            set: 'LOF',
+            number: 72
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'priestesses-of-the-force#eternal'
+    }),
+    buildMockCard({
+        title: 'Sorcerous Blast',
+        cost: 1,
+        hasNonKeywordAbility: true,
+        aspects: ['aggression'],
+        types: ['event'],
+        traits: ['force'],
+        setId: {
+            set: 'LOF',
+            number: 172
+        },
+        unique: false,
+        internalName: 'sorcerous-blast'
+    }),
+    buildMockCard({
+        title: 'Vernestra Rwoh, Precocious Knight',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning', 'heroism'],
+        types: ['unit'],
+        traits: ['force', 'jedi'],
+        setId: {
+            set: 'LOF',
+            number: 195
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'vernestra-rwoh#precocious-knight'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
