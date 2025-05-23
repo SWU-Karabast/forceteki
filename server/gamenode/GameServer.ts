@@ -27,7 +27,7 @@ import { authMiddleware } from '../middleware/AuthMiddleWare';
 import { UserFactory } from '../utils/user/UserFactory';
 import { DeckService } from '../utils/deck/DeckService';
 import { BugReportHandler } from '../utils/bugreport/BugReportHandler';
-import { containsProfanity } from '../utils/ProfanityFilter';
+import { usernameContainsProfanity } from '../utils/profanityFilter/ProfanityFilter';
 
 
 /**
@@ -338,7 +338,7 @@ export class GameServer {
                 }
 
                 // Check for profanity
-                if (containsProfanity(newUsername)) {
+                if (usernameContainsProfanity(newUsername)) {
                     logger.warn(`GameServer (change-username): User ${user.getId()} attempted to use a username containing profanity: ${newUsername}`);
                     return res.status(400).json({
                         success: false,

@@ -42,6 +42,7 @@
     "jsonwebtoken": "^9.0.2",
     "mkdirp": "^3.0.1",
     "node-ts": "^6.1.0",
+    "obscenity": "^0.4.3",
     "path": "^0.12.7",
     "profane-words": "^1.6.0",
     "seedrandom": "^3.0.5",

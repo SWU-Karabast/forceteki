@@ -1,4 +1,6 @@
 import words from 'profane-words';
+import { hateGroupsMatcher, karabastProfanityMatcher } from './KarabastProfanityMatcher';
+
 
 /**
  * Checks if a string contains any profanity from our filter list
@@ -14,4 +16,8 @@ export function containsProfanity(text: string): boolean {
 
     // Check if any word from the profanity list is contained in the text
     return words.some((word) => lowercaseText.includes(word));
+}
+
+export function usernameContainsProfanity(text: string): boolean {
+    return karabastProfanityMatcher.hasMatch(text) || hateGroupsMatcher.hasMatch(text);
 }
