@@ -80,7 +80,7 @@ export interface IUnitCard extends IInPlayCard, ICardWithDamageProperty, ICardWi
     unattachUpgrade(upgrade, event);
     canAttachPilot(pilot: IUnitCard): boolean;
     attachUpgrade(upgrade);
-    getNumericKeywordSum(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
+    getNumericKeywordTotal(keywordName: KeywordName.Exploit | KeywordName.Restore | KeywordName.Raid): number | null;
     getMaxUnitAttackLimit(): number;
 }
 
@@ -679,7 +679,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             this._attackKeywordAbilities = [];
 
             if (hasRestore) {
-                const restoreAmount = this.getNumericKeywordSum(KeywordName.Restore);
+                const restoreAmount = this.getNumericKeywordTotal(KeywordName.Restore);
                 const restoreProps = Object.assign(this.buildGeneralAbilityProps('keyword_restore'), RestoreAbility.buildRestoreAbilityProperties(restoreAmount));
                 const restoreAbility = this.createTriggeredAbility(restoreProps);
                 restoreAbility.registerEvents();
@@ -884,7 +884,7 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
                     wrappedStatsModifiers.push(new StatsModifierWrapper(gritModifier, 'Grit', false, this.type));
                 }
 
-                const raidAmount = this.getNumericKeywordSum(KeywordName.Raid);
+                const raidAmount = this.getNumericKeywordTotal(KeywordName.Raid);
                 if (this.isAttacking() && raidAmount > 0) {
                     const raidModifier = { power: raidAmount, hp: 0 };
                     wrappedStatsModifiers.push(new StatsModifierWrapper(raidModifier, 'Raid', false, this.type));

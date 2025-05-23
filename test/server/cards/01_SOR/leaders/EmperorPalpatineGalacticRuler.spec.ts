@@ -88,6 +88,7 @@ describe('Emperor Palpatine, Galactic Ruler', function() {
             const { context } = contextRef;
 
             context.player1.clickCard(context.emperorPalpatine);
+            context.player1.clickPrompt('Deploy Emperor Palpatine');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.tieAdvanced]);
             expect(context.player1).not.toHavePassAbilityButton();
 

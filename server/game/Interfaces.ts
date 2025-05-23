@@ -47,6 +47,9 @@ export type IActionAbilityProps<TSource extends Card = Card> = Exclude<IAbilityP
      */
     anyPlayer?: boolean;
     phase?: PhaseName | 'any';
+
+    // If true, the action will not be automatically triggered when it's the only one available.
+    requiresConfirmation?: boolean;
 };
 
 export interface IOngoingEffectProps {
@@ -441,3 +444,8 @@ type NonParameterKeywordName =
   | KeywordName.Saboteur
   | KeywordName.Sentinel
   | KeywordName.Shielded;
+
+export type NumericKeywordName =
+  | KeywordName.Raid
+  | KeywordName.Restore
+  | KeywordName.Exploit;

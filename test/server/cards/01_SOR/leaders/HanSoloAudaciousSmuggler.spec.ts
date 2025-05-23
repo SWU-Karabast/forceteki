@@ -55,6 +55,7 @@ describe('Han Solo, Audacious Smuggler', function() {
                 // Deploy Han and attack with him
                 context.player2.passAction();
                 context.player1.clickCard(context.hanSolo);
+                context.player1.clickPrompt('Deploy Han Solo');
                 context.player2.passAction();
                 context.player1.clickCard(context.hanSolo);
                 context.player1.clickCard(context.p2Base);
