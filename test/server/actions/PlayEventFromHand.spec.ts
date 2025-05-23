@@ -89,13 +89,22 @@ describe('Play event from hand', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.forceChoke);
-                expect(context.player1).toHavePrompt('Playing Force Choke will have no effect because its ability will not change the game state');
+                expect(context.player1).toHavePrompt('Playing Force Choke will have no effect. Are you sure you want to play it?');
                 expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
 
                 context.player1.clickPrompt('Cancel');
                 expect(context.forceChoke).toBeInZone('hand');
                 expect(context.player1.exhaustedResourceCount).toBe(0);
                 expect(context.player1).toBeActivePlayer();
+
+                context.player1.clickCard(context.forceChoke);
+                expect(context.player1).toHavePrompt('Playing Force Choke will have no effect. Are you sure you want to play it?');
+                expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
+
+                context.player1.clickPrompt('Play anyway');
+                expect(context.forceChoke).toBeInZone('discard', context.player1);
+                expect(context.player1.exhaustedResourceCount).toBe(2);
+                expect(context.player2).toBeActivePlayer();
             });
 
             it('prompts the user to tell them the event will not change the game state', async function () {
@@ -112,7 +121,7 @@ describe('Play event from hand', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.forceChoke);
-                expect(context.player1).toHavePrompt('Playing Force Choke will have no effect because its ability will not change the game state');
+                expect(context.player1).toHavePrompt('Playing Force Choke will have no effect. Are you sure you want to play it?');
                 expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
 
                 context.player1.clickPrompt('Play anyway');
@@ -134,7 +143,7 @@ describe('Play event from hand', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.superlaserBlast);
-                expect(context.player1).toHavePrompt('Playing Superlaser Blast will have no effect due to an ongoing effect of Relentless');
+                expect(context.player1).toHavePrompt('Playing Superlaser Blast will have no effect due to an ongoing effect of Relentless. Are you sure you want to play it?');
                 expect(context.player1).toHaveExactPromptButtons(['Play anyway', 'Cancel']);
 
                 context.player1.clickPrompt('Play anyway');

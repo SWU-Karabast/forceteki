@@ -83,9 +83,7 @@ export class PlayEventAction extends PlayCardAction {
             }
 
             let reason = '';
-            if (requirements === 'gameStateChange') {
-                reason = 'because its ability will not change the game state';
-            } else if (context.source.isBlank()) {
+            if (context.source.isBlank()) {
                 const blankSource = context.source.getOngoingEffectSources(EffectName.Blank);
                 reason = `due to an ongoing effect of ${blankSource[0].title}`;
             } else if (!context.source.isImplemented) {
@@ -93,7 +91,7 @@ export class PlayEventAction extends PlayCardAction {
             }
 
             this.game.promptWithHandlerMenu(context.player, {
-                activePromptTitle: `Playing ${context.source.title} will have no effect${reason.length > 0 ? ` ${reason}` : ''}`,
+                activePromptTitle: `Playing ${context.source.title} will have no effect${reason.length > 0 ? ` ${reason}` : ''}. Are you sure you want to play it?`,
                 choices: ['Play anyway', 'Cancel'],
                 handlers: [
                     () => undefined,
