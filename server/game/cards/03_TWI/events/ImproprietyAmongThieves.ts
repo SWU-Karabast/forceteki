@@ -44,7 +44,8 @@ export default class ImproprietyAmongThieves extends EventCard {
                                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup
                             },
                             immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
-                                newController: context.targets.friendlyUnit.owner
+                                newController: context.targets.friendlyUnit.owner,
+                                excludeLeaderUnit: false
                             })
                         })),
                         AbilityHelper.immediateEffects.delayedCardEffect((context) => ({
@@ -54,7 +55,8 @@ export default class ImproprietyAmongThieves extends EventCard {
                                 onPhaseStarted: (context) => context.phase === PhaseName.Regroup
                             },
                             immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit({
-                                newController: context.targets.enemyUnit.owner
+                                newController: context.targets.enemyUnit.owner,
+                                excludeLeaderUnit: false
                             })
                         }))
                     ]),

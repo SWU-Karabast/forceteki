@@ -156,6 +156,12 @@ export class EventWindow extends BaseStepWithPipeline {
             return;
         }
 
+        // Some effects may generate their own replacement events due to game rules (e.g. if a leader unit would
+        // change control, it is defeated instead). We need to pick those up here and add them to the event window.
+        const replacementEvents = this.events.flatMap((event) => event.generateReplacementEvents());
+        replacementEvents.forEach((event) => this.addEvent(event));
+
+        // This will pick up explicit replacement effects like the ones directly triggered by card abilities
         const replacementEffectWindow = new ReplacementEffectWindow(this.game, this);
         replacementEffectWindow.emitEvents();
         this.queueStep(replacementEffectWindow);
