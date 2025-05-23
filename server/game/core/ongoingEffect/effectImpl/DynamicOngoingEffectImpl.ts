@@ -18,8 +18,8 @@ export default class DynamicOngoingEffectImpl<TValue> extends StaticOngoingEffec
         super(type, null);
     }
 
-    public override apply(target) {
-        super.apply(target);
+    public override apply(effect, target) {
+        super.apply(effect, target);
 
         this.recalculate(target);
     }

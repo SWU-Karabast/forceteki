@@ -14,7 +14,7 @@ export default class DetachedOngoingEffectImpl<TValue> extends OngoingEffectImpl
         this.unapplyFunc = unapplyFunc;
     }
 
-    public apply(target: any) {
+    public apply(effect, target: any) {
         this.state[target.uuid] = this.applyFunc(target, this.context, this.state[target.uuid]);
     }
 

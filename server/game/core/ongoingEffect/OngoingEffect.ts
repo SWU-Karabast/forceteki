@@ -113,9 +113,10 @@ export abstract class OngoingEffect<T extends IOngoingEffectState = IOngoingEffe
         return [];
     }
 
-    public addTarget(target) {
-        this.targets.push(target);
-        this.impl.apply(target);
+    public addTarget(target: GameObjectBase) {
+        this.state.targets.push(target.getRef());
+        // eslint-disable-next-line prefer-spread
+        this.impl.apply(this, target);
     }
 
     public removeTarget(target) {
@@ -123,7 +124,7 @@ export abstract class OngoingEffect<T extends IOngoingEffectState = IOngoingEffe
     }
 
     public removeTargets(targets) {
-        targets.forEach((target) => this.impl.unapply(target));
+        targets.forEach((target) => this.impl.unapply(this, target));
         this.state.targets = this.targets.filter((target) => !targets.includes(target)).map((x) => x.getRef());
     }
 
@@ -132,7 +133,7 @@ export abstract class OngoingEffect<T extends IOngoingEffectState = IOngoingEffe
     }
 
     public cancel() {
-        this.targets.forEach((target) => this.impl.unapply(target));
+        this.targets.forEach((target) => this.impl.unapply(this, target));
         this.state.targets = [];
     }
 

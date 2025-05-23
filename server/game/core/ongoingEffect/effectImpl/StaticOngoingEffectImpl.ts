@@ -16,13 +16,13 @@ export default class StaticOngoingEffectImpl<TValue> extends OngoingEffectImpl<T
         }
     }
 
-    public apply(target) {
-        target.addOngoingEffect(this);
+    public apply(effect, target) {
+        target.addOngoingEffect(effect);
         this.valueWrapper.apply(target);
     }
 
-    public unapply(target) {
-        target.removeOngoingEffect(this);
+    public unapply(effect, target) {
+        target.removeOngoingEffect(effect);
         this.valueWrapper.unapply(target);
     }
 
