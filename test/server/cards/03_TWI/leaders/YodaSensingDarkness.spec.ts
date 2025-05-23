@@ -225,6 +225,7 @@ describe('Yoda, Sensing Darkness', function () {
 
                 // Yoda Leader should deploy
                 context.player1.clickCard(context.yoda);
+                context.player1.clickPrompt('Deploy Yoda');
                 expect(context.yoda).toBeInZone('groundArena');
 
                 // Should be able to pass

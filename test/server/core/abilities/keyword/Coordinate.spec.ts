@@ -174,6 +174,7 @@ describe('Coordinate keyword', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
                 context.player1.clickCard(context.ploKoon);
 
                 context.player2.passAction();
@@ -198,6 +199,7 @@ describe('Coordinate keyword', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
                 context.player1.clickCard(context.ploKoon);
 
                 context.player2.passAction();
@@ -222,6 +224,7 @@ describe('Coordinate keyword', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
                 context.player1.clickCard(context.ploKoon);
 
                 context.player2.passAction();

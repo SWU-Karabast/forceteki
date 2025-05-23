@@ -34,6 +34,7 @@ describe('Doctor Aphra, Rapacious Archaeologist', function () {
                 const milleniumFalconLandosPride = context.player1.findCardByName('millennium-falcon#landos-pride', 'discard');
 
                 context.player1.clickCard(context.doctorAphraRapaciousArchaeologist);
+                context.player1.clickPrompt('Deploy Doctor Aphra');
 
                 expect(context.doctorAphraRapaciousArchaeologist).toBeInZone('groundArena', context.player1);
                 expect(context.doctorAphraRapaciousArchaeologist.getPower()).toBe(5);
@@ -73,6 +74,7 @@ describe('Doctor Aphra, Rapacious Archaeologist', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.doctorAphraRapaciousArchaeologist);
+                context.player1.clickPrompt('Deploy Doctor Aphra');
 
                 expect(context.doctorAphraRapaciousArchaeologist).toBeInZone('groundArena', context.player1);
                 expect(context.doctorAphraRapaciousArchaeologist.getPower()).toBe(2);

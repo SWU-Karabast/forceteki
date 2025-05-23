@@ -17,6 +17,7 @@ describe('Droid Manufactory', function () {
 
             const { context } = contextRef;
             context.player2.clickCard(context.nalaSe);
+            context.player2.clickPrompt('Deploy Nala Se');
             const battleDroidsP2 = context.player2.findCardsByName('battle-droid');
             expect(battleDroidsP2.length).toBe(0);
 
