@@ -176,6 +176,7 @@ describe('Avar Kriss, Marshal of Starlight', function() {
                 const { context } = contextRef;
 
                 expect(context.avarKriss.getPower()).toBe(8);
+                expect(context.avarKriss.getHp()).toBe(10);
 
                 context.player1.clickCard(context.avarKriss);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -197,6 +198,7 @@ describe('Avar Kriss, Marshal of Starlight', function() {
                 const { context } = contextRef;
 
                 expect(context.avarKriss.getPower()).toBe(4);
+                expect(context.avarKriss.getHp()).toBe(10);
 
                 context.player1.clickCard(context.avarKriss);
                 context.player1.clickCard(context.battlefieldMarine);
@@ -217,14 +219,17 @@ describe('Avar Kriss, Marshal of Starlight', function() {
                 const { context } = contextRef;
 
                 expect(context.avarKriss.getPower()).toBe(4);
+                expect(context.avarKriss.getHp()).toBe(10);
 
                 context.player1.clickCard(context.mysticMonastery);
                 expect(context.avarKriss.getPower()).toBe(8);
+                expect(context.avarKriss.getHp()).toBe(10);
 
                 context.player2.passAction();
                 context.player1.clickCard(context.cureWounds);
 
                 expect(context.avarKriss.getPower()).toBe(4);
+                expect(context.avarKriss.getHp()).toBe(10);
             });
         });
     });
