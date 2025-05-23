@@ -30,7 +30,8 @@ export default class Traitorous extends UpgradeCard {
             },
             immediateEffect: AbilityHelper.immediateEffects.takeControlOfUnit((context) => ({
                 target: context.event.parentCard,
-                newController: context.event.parentCard.owner
+                newController: context.event.parentCard.owner,
+                excludeLeaderUnit: false
             }))
         });
     }
