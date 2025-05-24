@@ -67,7 +67,7 @@ export abstract class UiPrompt extends BaseStep {
                 player.setPrompt(this.addButtonDefaultsToPrompt(this.activePrompt(player)));
 
                 if (this.firstContinue) {
-                    player.actionTimer.start();
+                    this.startActionTimer(player);
                 }
             } else {
                 player.setPrompt(this.waitingPrompt());
@@ -76,6 +76,10 @@ export abstract class UiPrompt extends BaseStep {
         }
 
         this.highlightSelectableCards();
+    }
+
+    protected startActionTimer(player: Player) {
+        player.actionTimer.start();
     }
 
     protected highlightSelectableCards() {
