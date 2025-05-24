@@ -1,5 +1,6 @@
 import type { AbilityContext } from '../core/ability/AbilityContext';
 import { EventName, GameStateChangeRequired, ZoneName } from '../core/Constants';
+import { GameEvent } from '../core/event/GameEvent';
 import type { IPlayerTargetSystemProperties } from '../core/gameSystem/PlayerTargetSystem';
 import { PlayerTargetSystem } from '../core/gameSystem/PlayerTargetSystem';
 import type { Player } from '../core/Player';
@@ -40,6 +41,20 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
         }
 
         return super.canAffectInternal(player, context, additionalProperties, mustChangeGameState);
+    }
+
+    protected override updateEvent(event, player: Player, context: TContext, additionalProperties: Partial<TProperties>): void {
+        super.updateEvent(event, player, context, additionalProperties);
+
+        Contract.assertTrue(player.hasTheForce);
+
+        event.setContingentEventsGenerator(() => [
+            new GameEvent(
+                EventName.OnForceUsed,
+                context,
+                { player }
+            )
+        ]);
     }
 
     protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<TProperties>): void {
