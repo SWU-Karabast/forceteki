@@ -581,13 +581,6 @@ export class Player extends GameObject<IPlayerState> {
      * @param {number} numCards
      */
     public drawCardsToHand(numCards: number) {
-        if (numCards > this.drawDeck.length) {
-            // TODO: move log message into the DrawSystem
-            // Game log message about empty deck damage(the damage itself is handled in DrawSystem.updateEvent()).
-            this.game.addMessage('{0} attempts to draw {1} cards from their empty deck and takes {2} damage instead ',
-                this.name, numCards - this.drawDeck.length, 3 * (numCards - this.drawDeck.length)
-            );
-        }
         for (const card of this.drawDeck.slice(0, numCards)) {
             card.moveTo(ZoneName.Hand);
         }
