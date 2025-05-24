@@ -453,6 +453,7 @@ describe('Uniqueness rule', function() {
 
                 context.player1.clickCard(kuiil2);
 
+                expect(context.getChatLogs(1)).toContain('player1 defeats 1 copy of Kuiil due to the uniquenes rule');
                 expect(kuiil1).toBeInZone('groundArena');
                 expect(kuiil2).toBeInZone('discard');
 
@@ -507,6 +508,7 @@ describe('Uniqueness rule', function() {
 
                 context.player1.clickPrompt('Done');
 
+                expect(context.getChatLogs(1)).toContain('player1 defeats 2 copies of Obi-Wan Kenobi due to the uniquenes rule');
                 expect(obi1).toBeInZone('discard');
                 expect(obi2).toBeInZone('discard');
                 expect(obi3).toBeInZone('groundArena');

@@ -137,6 +137,7 @@ describe('Change of Heart', function() {
                 context.moveToRegroupPhase();
 
                 // Millennium Falcon is defeated, Darth Vader is returned to leader position
+                expect(context.getChatLogs(1)).toContain('player2 would take control of Millennium Falcon, but it is a leader unit so it is defeated instead');
                 expect(context.millenniumFalcon).toBeInZone('discard', context.player2);
                 expect(context.darthVader).toBeInZone('base', context.player1);
                 expect(context.darthVader.exhausted).toBeTrue();
