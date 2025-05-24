@@ -46,10 +46,4 @@ export class WhenSourceLeavesPlayDelayedEffectSystem<TContext extends AbilityCon
     protected override checkDuration(duration: Duration) {
         Contract.assertTrue(duration === Duration.WhileSourceInPlay || duration == null, `Expected duration to be WhileSourceInPlay or null, instead found ${duration}`);
     }
-
-    protected override getDelayedEffectSource(context: TContext, additionalProperties?: Partial<IWhenSourceLeavesPlayDelayedEffectProperties>) {
-        Contract.assertTrue(context.source.canBeInPlay());
-
-        return context.source;
-    }
 }
