@@ -12,7 +12,7 @@ export default class MerrinAloneWithTheDead extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addOnAttackAbility({
-            title: 'Discard a card from your hand',
+            title: 'Discard a card from your hand. If you do, deal 2 damage to a unit',
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Self,

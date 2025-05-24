@@ -65,7 +65,7 @@ describe('Xanadu Blood, Cad Bane\'s Reward', function () {
                 context.player1.clickCard(context.p2Base);
 
                 // only 1 underworld unit, prompt is a bit different
-                expect(context.player1).toHavePassAbilityPrompt('Return another friendly non-leader Underworld unit to its owner’s hand');
+                expect(context.player1).toHavePassAbilityPrompt('Return another friendly non-leader Underworld unit to its owner’s hand. If you do, exhaust an enemy unit or resource');
 
                 // pass, nothing happen
                 context.player1.passAction();

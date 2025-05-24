@@ -21,7 +21,7 @@ describe('Mas Amedda, Vice Chair', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.frontierAtrt);
-                expect(context.player1).toHavePrompt('Trigger the ability \'Exhaust this unit\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this unit to search the top 4 cards of your deck for a unit, reveal it, and draw it');
                 expect(context.player1).toHaveEnabledPromptButton('Trigger');
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
 
@@ -49,7 +49,7 @@ describe('Mas Amedda, Vice Chair', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.frontierAtrt);
-                expect(context.player1).toHavePrompt('Trigger the ability \'Exhaust this unit\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this unit to search the top 4 cards of your deck for a unit, reveal it, and draw it');
                 expect(context.player1).toHaveEnabledPromptButton('Trigger');
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
 
@@ -71,7 +71,7 @@ describe('Mas Amedda, Vice Chair', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.frontierAtrt);
-                expect(context.player1).toHavePrompt('Trigger the ability \'Exhaust this unit\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this unit to search the top 4 cards of your deck for a unit, reveal it, and draw it');
                 expect(context.player1).toHaveEnabledPromptButton('Trigger');
                 expect(context.player1).toHaveEnabledPromptButton('Pass');
 
@@ -87,7 +87,7 @@ describe('Mas Amedda, Vice Chair', function() {
                 context.player2.setActivePlayer();
 
                 context.player2.clickCard(context.superlaserTechnician);
-                expect(context.player2).toHavePrompt('Trigger the ability \'Exhaust this unit\' or pass');
+                expect(context.player2).toHavePassAbilityPrompt('Exhaust this unit to search the top 4 cards of your deck for a unit, reveal it, and draw it');
                 expect(context.player2).toHaveEnabledPromptButton('Trigger');
                 expect(context.player2).toHaveEnabledPromptButton('Pass');
 

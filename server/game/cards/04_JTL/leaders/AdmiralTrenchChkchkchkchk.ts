@@ -23,7 +23,7 @@ export default class AdmiralTrenchChkchkchkchk extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
-            title: 'Discard a card that costs 3 or more from your hand',
+            title: 'Discard a card that costs 3 or more from your hand. If you do, draw a card',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 activePromptTitle: 'Choose a card to discard',

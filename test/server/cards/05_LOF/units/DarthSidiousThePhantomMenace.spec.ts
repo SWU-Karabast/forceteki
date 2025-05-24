@@ -33,7 +33,7 @@ describe('Darth Sidious, The Phantom Menace', () => {
                 context.player1.clickCard(context.darthSidious);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Trigger the ability \'Use The Force\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Use The Force. If you do, defeat each non-Sith unit with 3 or less remaining HP');
                 context.player1.clickPrompt('Trigger');
 
                 // Ensure the Force was used
@@ -69,7 +69,7 @@ describe('Darth Sidious, The Phantom Menace', () => {
                 context.player1.clickCard(context.darthSidious);
 
                 // Check prompt for optional ability
-                expect(context.player1).toHavePrompt('Trigger the ability \'Use The Force\' or pass');
+                expect(context.player1).toHavePassAbilityPrompt('Use The Force. If you do, defeat each non-Sith unit with 3 or less remaining HP');
                 context.player1.clickPrompt('Pass');
 
                 // Ensure the Force was not used

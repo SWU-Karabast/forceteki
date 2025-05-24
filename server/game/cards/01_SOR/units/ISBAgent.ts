@@ -12,7 +12,7 @@ export default class ISBAgent extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Reveal an event from your hand',
+            title: 'Reveal an event from your hand. If you do, deal 1 damage to a unit',
             targetResolver: {
                 cardTypeFilter: CardType.Event,
                 controller: RelativePlayer.Self,

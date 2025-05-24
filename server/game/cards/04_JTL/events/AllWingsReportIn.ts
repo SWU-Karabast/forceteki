@@ -12,7 +12,7 @@ export default class AllWingsReportIn extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Exhaust up to 2 friendly space units',
+            title: 'Exhaust up to 2 friendly space units. For each unit exhausted this way, create an X-Wing token',
             targetResolver: {
                 mode: TargetMode.UpTo,
                 numCards: 2,

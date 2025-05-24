@@ -12,7 +12,7 @@ export default class ShuttleTydiriumFlyCasual extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addOnAttackAbility({
-            title: 'Discard a card from your deck',
+            title: 'Discard a card from your deck. If you do, give an Experience token to another unit',
             immediateEffect: AbilityHelper.immediateEffects.discardFromDeck((context) => ({
                 amount: 1,
                 target: context.player

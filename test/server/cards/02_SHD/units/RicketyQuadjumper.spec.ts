@@ -20,7 +20,7 @@ describe('RicketyQuadjumper', function () {
                 context.player1.clickCard(context.p2Base);
 
                 // player1 should have prompt or pass
-                expect(context.player1).toHavePassAbilityPrompt('Reveal a card');
+                expect(context.player1).toHavePassAbilityPrompt('Reveal a card. If it’s not a unit, give an Experience token to another unit');
                 context.player1.clickPrompt('Trigger');
 
                 // top card is an upgrade, give exp to another unit
@@ -53,7 +53,7 @@ describe('RicketyQuadjumper', function () {
                 context.player1.clickCard(context.ricketyQuadjumper);
                 context.player1.clickCard(context.p2Base);
                 // player1 should have prompt or pass
-                expect(context.player1).toHavePassAbilityPrompt('Reveal a card');
+                expect(context.player1).toHavePassAbilityPrompt('Reveal a card. If it’s not a unit, give an Experience token to another unit');
                 context.player1.clickPrompt('Trigger');
 
                 // top card is a unit, nothing happen

@@ -28,7 +28,7 @@ describe('Quinlan Vos, Sticking the Landing', function () {
             context.player1.clickCard(context.battlefieldMarine);
 
             // can pass this trigger
-            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+            expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 damage to an enemy unit that costs the same as the played unit');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeAbleToSelectExactly([context.craftySmuggler, context.greenSquadronAwing]);

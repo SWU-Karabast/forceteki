@@ -78,7 +78,7 @@ describe('Heroic Sacrifice', function() {
             it('should draw a card and attack with a unit giving +2/+0 for this attack and not defeat unit if no combat damage is dealt, even when other type of damage is caused', function () {
                 const { context } = contextRef;
                 const flamethrowerPrompt = 'Deal 3 damage divided as you choose among enemy ground units';
-                const lomPykePrompt = 'Give a Shield token to an enemy unit';
+                const lomPykePrompt = 'Give a Shield token to an enemy unit. If you do, give a Shield token to a friendly unit';
 
                 context.player1.clickCard(context.heroicSacrifice);
 

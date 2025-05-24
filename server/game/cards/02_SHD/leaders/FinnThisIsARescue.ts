@@ -12,7 +12,7 @@ export default class FinnThisIsARescue extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities () {
         this.addActionAbility({
-            title: 'Defeat a friendly upgrade on a unit',
+            title: 'Defeat a friendly upgrade on a unit. If you do, give a Shield token to that unit',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,
@@ -30,7 +30,7 @@ export default class FinnThisIsARescue extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities () {
         this.addOnAttackAbility({
-            title: 'Defeat a friendly upgrade on a unit',
+            title: 'Defeat a friendly upgrade on a unit. If you do, give a Shield token to that unit',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Upgrade,

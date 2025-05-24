@@ -57,7 +57,7 @@ describe('Finn, On the Run', function () {
             context.player2.clickCard(context.chewbacca);
             expect(context.chewbacca.damage).toBe(1);
 
-            expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader');
+            expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader to deal 1 indirect damage to a player');
             context.player2.clickPrompt('Trigger');
             context.player2.clickPrompt('Opponent');
 
