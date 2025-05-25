@@ -271,7 +271,7 @@ export class Lobby {
         if (existingUser) {
             existingUser.state = 'connected';
             this.checkUpdateSocket(existingUser, socket);
-            logger.info(`Lobby: setting state to connected for existing user ${user.getUsername()} with socket id ${socket.id}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
+            logger.info(`Lobby: setting state to connected for existing user ${user.getId()} with socket id ${socket.id}`, { lobbyId: this.id, userName: user.getUsername(), userId: user.getId() });
         } else {
             this.users.push({
                 id: user.getId(),
@@ -915,16 +915,18 @@ export class Lobby {
             const player2User = this.playersDetails.find((u) => u.user.getId() === player2.id);
 
             if (!player1User) {
-                logger.error(`Lobby ${this.id}: Missing deck information (${player1User.deckID}) for  player1 ${player1.id}`);
+                logger.error(`Lobby ${this.id}: Missing deck information (${player1User.deckID}) for player1 ${player1.id}`);
                 return;
             }
             if (!player2User) {
-                logger.error(`Lobby ${this.id}: Missing information (${player2User.deckID}) for  player2 ${player2.id}`);
+                logger.error(`Lobby ${this.id}: Missing information (${player2User.deckID}) for player2 ${player2.id}`);
                 return;
             }
 
-            await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
-            await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
+            if (this.game.roundNumber > 1) {
+                await this.updatePlayerStatsAsync(player1User, player2User, player1Score);
+                await this.updatePlayerStatsAsync(player2User, player1User, player2Score);
+            }
 
             logger.info(`Lobby ${this.id}: Successfully updated deck stats for game ${game.id}`);
         } catch (error) {

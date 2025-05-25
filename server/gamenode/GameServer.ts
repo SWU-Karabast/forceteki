@@ -1109,7 +1109,7 @@ export class GameServer {
         lobby.setLobbyOwner(p1.user.getId());
         lobby.sendLobbyState();
 
-        logger.info(`GameServer: Matched players ${p1.user.getUsername()} and ${p2.user.getUsername()} in lobby ${lobby.id}.`);
+        logger.info(`GameServer: Matched players ${p1.user.getId()} and ${p2.user.getId()} in lobby ${lobby.id}.`);
 
         return Promise.resolve();
     }
