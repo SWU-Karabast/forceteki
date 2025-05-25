@@ -100,15 +100,15 @@ describe('Scanning Officer', function () {
             });
 
             const { context } = contextRef;
-            context.game.setRandomSeed('76234');
+            context.game.setRandomSeed('123456');
 
             context.player1.clickCard(context.scanningOfficer);
 
             // Resources were shuffled
-            expect(context.pykeSentinel.exhausted).toBe(false);
+            expect(context.wampa.exhausted).toBe(false);
 
-            expect(context.player1).toHaveExactViewableDisplayPromptCards([context.pykeSentinel, context.recklessGunslinger, context.armedToTheTeeth]);
-            expect(context.getChatLogs(1)[0]).toContain(context.pykeSentinel.title);
+            expect(context.player1).toHaveExactViewableDisplayPromptCards([context.wampa, context.recklessGunslinger, context.armedToTheTeeth]);
+            expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
             expect(context.getChatLogs(1)[0]).toContain(context.recklessGunslinger.title);
             expect(context.getChatLogs(1)[0]).toContain(context.armedToTheTeeth.title);
             context.player1.clickPrompt('Done');
