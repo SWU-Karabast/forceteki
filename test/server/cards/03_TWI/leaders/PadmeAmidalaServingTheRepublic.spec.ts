@@ -50,6 +50,37 @@ describe('Padme Amidala, Serving the Republic', function () {
                 expect(context.player1).toBeActivePlayer();
             });
 
+            it('can take nothing', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'padme-amidala#serving-the-republic',
+                        groundArena: ['wampa', 'battlefield-marine'],
+                        spaceArena: ['cartel-spacer'],
+                        deck: ['headhunter-squadron', 'confiscate', 'heroes-on-both-sides', 'viper-probe-droid'],
+                        resources: 3
+                    },
+                    player2: {
+                        groundArena: ['atst']
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Player 1 uses Padme's ability to search for a Republic card
+                context.player1.clickCard(context.padmeAmidala);
+                expect(context.player1).toHavePrompt('Select a card to reveal');
+                expect(context.player1).toHaveExactDisplayPromptCards({
+                    invalid: [context.confiscate],
+                    selectable: [context.headhunterSquadron, context.heroesOnBothSides]
+                });
+                expect(context.player1).toHaveEnabledPromptButton('Take nothing');
+
+                context.player1.clickPrompt('Take nothing');
+                expect(context.padmeAmidala.exhausted).toBeTrue();
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+
             it('should do nothing when the deck is empty', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
@@ -71,7 +102,6 @@ describe('Padme Amidala, Serving the Republic', function () {
 
                 // Player 1 uses Padme's ability with no effect
                 context.player1.clickCard(context.padmeAmidala);
-                context.player1.clickPrompt('Take nothing');
 
                 expect(context.player2).toBeActivePlayer();
             });
