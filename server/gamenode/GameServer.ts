@@ -1182,6 +1182,12 @@ export class GameServer {
         this.onSocketDisconnected(socket.socket, player.user.getId(), 3, true);
     }
 
+    public handleIntentionalDisconnect(id: string, wasManualDisconnect: boolean, lobby?: Lobby) {
+        this.queue.removePlayer(id, wasManualDisconnect ? 'Player disconnect' : 'Force disconnect');
+        this.userLobbyMap.delete(id);
+        this.removeUserMaybeCleanupLobby(lobby, id);
+    }
+
     public onSocketDisconnected(
         socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>,
         id: string,
@@ -1189,6 +1195,10 @@ export class GameServer {
         isMatchmaking = false
     ) {
         try {
+            if (!!socket?.data?.forceDisconnect) {
+                return;
+            }
+
             const lobbyEntry = this.userLobbyMap.get(id);
             let lobby = null;
 
@@ -1200,11 +1210,8 @@ export class GameServer {
             }
 
             const wasManualDisconnect = !!socket?.data?.manualDisconnect;
-            const wasForceDisconnect = !!socket?.data?.forceDisconnect;
-            if (wasManualDisconnect || wasForceDisconnect) {
-                this.queue.removePlayer(id, wasManualDisconnect ? 'Player disconnect' : 'Force disconnect');
-                this.userLobbyMap.delete(id);
-                this.removeUserMaybeCleanupLobby(lobby, id);
+            if (wasManualDisconnect) {
+                this.handleIntentionalDisconnect(id, wasManualDisconnect, lobby);
                 return;
             }
 

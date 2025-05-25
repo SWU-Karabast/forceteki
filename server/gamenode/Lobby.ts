@@ -709,8 +709,11 @@ export class Lobby {
         Contract.assertNotNullLike(socket, `Unable to find socket for user ${userId} in lobby ${this.id} while attempting to disconnect`);
 
         socket.socket.data.forceDisconnect = true;
+
         socket.send('inactiveDisconnect');
         socket.disconnect();
+
+        this.server.handleIntentionalDisconnect(userId, false, this);
 
         logger.info(`Lobby: user ${userId} was disconnected due to inactivity`, { lobbyId: this.id, userId });
     }
