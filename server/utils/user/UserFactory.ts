@@ -77,21 +77,6 @@ export class UserFactory {
         }
     }
 
-    public async setUpdateMessageStatus(userId: string): Promise<boolean> {
-        try {
-            const dbService = await this.dbServicePromise;
-            const userProfile = await dbService.getUserProfileAsync(userId);
-            Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
-            await dbService.updateUserProfileAsync(userId, {
-                showUpdateMessage: false
-            });
-            return true;
-        } catch (error) {
-            logger.error('Error setting showUpdateMessage status:', { error: { message: error.message, stack: error.stack } });
-            throw error;
-        }
-    }
-
     /**
      * • Unlimited username changes during the first week (7 days) after account creation.
      * • After that, a 1‑month (30‑days) cooldown between changes.
@@ -208,7 +193,6 @@ export class UserFactory {
             await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString(),
-                showWelcomeMessage: false
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);
@@ -299,7 +283,6 @@ export class UserFactory {
                 createdAt: new Date().toISOString(),
                 usernameLastUpdatedAt: new Date().toISOString(),
                 showWelcomeMessage: true,
-                showUpdateMessage: true,
                 preferences: { cardback: null },
             };
 

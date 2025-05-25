@@ -30,11 +30,6 @@ export abstract class User {
     public abstract getShowWelcomeMessage(): boolean;
 
     /**
-     * Gets a users welcomeMessage status
-     */
-    public abstract getShowUpdateMessage(): boolean;
-
-    /**
      * Gets the user's preferences
      */
     public abstract getPreferences(): UserPreferences;
@@ -70,10 +65,6 @@ export class AuthenticatedUser extends User {
 
     public getShowWelcomeMessage(): boolean {
         return this.userData.showWelcomeMessage;
-    }
-
-    public getShowUpdateMessage(): boolean {
-        return this.userData.showUpdateMessage;
     }
 
     public getUsername(): string {
@@ -129,10 +120,6 @@ export class AnonymousUser extends User {
     }
 
     public override getShowWelcomeMessage(): boolean {
-        return false;
-    }
-
-    public override getShowUpdateMessage(): boolean {
         return false;
     }
 
