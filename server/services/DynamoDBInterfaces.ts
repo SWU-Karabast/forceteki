@@ -2,7 +2,8 @@ export interface IUserDataEntity {
     id: string;
     username: string;
     preferences?: UserPreferences;
-    welcomeMessageSeen: boolean;
+    showWelcomeMessage: boolean;
+    showUpdateMessage: boolean;
 }
 
 // Interface for matchups a win here means the OP wins not opponents wins.

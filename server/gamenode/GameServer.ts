@@ -264,7 +264,7 @@ export class GameServer {
                         next(err);
                     }
                 }
-                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), welcomeMessageSeen: user.getWelcomeMessageSeen(), preferences: user.getPreferences() } });
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), showUpdateMessage: user.getShowUpdateMessage(), preferences: user.getPreferences() } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
                 next(err);
@@ -273,6 +273,7 @@ export class GameServer {
 
         app.post('/api/toggle-welcome-message', authMiddleware(), async (req, res, next) => {
             try {
+                const { typeOfWelcomeMessage } = req.body;
                 const user = req.user as User;
                 // Check if user is authenticated (not an anonymous user)
                 if (user.isAnonymousUser()) {
@@ -282,12 +283,14 @@ export class GameServer {
                         message: 'Authentication required to retrieve toggle-welcome-message info'
                     });
                 }
-                const result = await this.userFactory.setWelcomeMessageStatus(user.getId());
+                const result = await (typeOfWelcomeMessage === 'welcome'
+                    ? this.userFactory.setWelcomeMessageStatus(user.getId())
+                    : this.userFactory.setUpdateMessageStatus(user.getId()));
                 return res.status(200).json({
                     succeess: result,
                 });
             } catch (err) {
-                logger.error('GameServer (get-change-username-info) Server Error: ', err);
+                logger.error('GameServer (toggle-welcome-message) Server Error: ', err);
                 next(err);
             }
         });
