@@ -11,7 +11,6 @@ import * as Contract from '../utils/Contract';
 import type { GameObject } from '../GameObject';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { IPlayableOrDeployableCard } from '../card/baseClasses/PlayableOrDeployableCard';
-import type { ILastKnownInformation } from '../../gameSystems/DefeatCardSystem';
 import type { IUpgradeCard } from '../card/CardInterfaces';
 import { DefeatSourceType } from '../../IDamageOrDefeatSource';
 
@@ -319,52 +318,6 @@ export abstract class CardTargetSystem<TContext extends AbilityContext = Ability
         if (!card.exhausted) {
             card.controller.swapResourceReadyState(card);
         }
-    }
-
-    protected addLastKnownInformationToEvent(event: any, card: Card): void {
-        // build last known information for the card before event window resolves to ensure that no state has yet changed
-        event.setPreResolutionEffect((event) => {
-            event.lastKnownInformation = this.buildLastKnownInformation(card);
-        });
-    }
-
-    protected buildLastKnownInformation(card: Card): ILastKnownInformation {
-        if (card.zoneName !== ZoneName.GroundArena && card.zoneName !== ZoneName.SpaceArena) {
-            return {
-                card,
-                controller: card.controller,
-                arena: card.zoneName
-            };
-        }
-        Contract.assertTrue(card.canBeInPlay());
-
-
-        if (card.isUnit() && !card.isAttached()) {
-            return {
-                card,
-                power: card.getPower(),
-                hp: card.getHp(),
-                type: card.type,
-                arena: card.zoneName,
-                controller: card.controller,
-                damage: card.damage,
-                upgrades: card.upgrades
-            };
-        }
-
-        if (card.isUpgrade()) {
-            return {
-                card,
-                power: card.getPower(),
-                hp: card.getHp(),
-                type: card.type,
-                arena: card.zoneName,
-                controller: card.controller,
-                parentCard: card.parentCard
-            };
-        }
-
-        Contract.fail(`Unexpected card type: ${card.type}`);
     }
 
     /**

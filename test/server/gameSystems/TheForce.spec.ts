@@ -64,6 +64,22 @@ describe('The Force token', function () {
             });
         });
 
+        it('does not have any error when using a CardsLeftPlayThisPhaseWatcher', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: 'yoda#sensing-darkness',
+                    hand: ['cure-wounds'],
+                    hasForceToken: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.cureWounds);
+            expect(context.player1.hasTheForce).toBe(false);
+        });
+
         describe('Test Suite integration', function () {
             beforeEach(function () {
                 return contextRef.setupTestAsync({
