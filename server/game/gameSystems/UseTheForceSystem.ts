@@ -55,6 +55,8 @@ export class UseTheForceSystem<TContext extends AbilityContext = AbilityContext,
                 { player }
             )
         ]);
+
+        this.addLastKnownInformationToEvent(event, player.baseZone.forceToken);
     }
 
     protected override addPropertiesToEvent(event: any, player: Player, context: TContext, additionalProperties?: Partial<TProperties>): void {

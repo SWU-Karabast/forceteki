@@ -124,12 +124,16 @@ export class DefeatCardSystem<TContext extends AbilityContext = AbilityContext, 
         }
         event.defeatSource = eventDefeatSource;
 
-        if (eventDefeatSource.type === DefeatSourceType.Attack) {
-            event.isDefeatedByAttacker = eventDefeatSource.damageDealtBy.includes(eventDefeatSource.attack.attacker);
-        } else if ((eventDefeatSource.type === DefeatSourceType.Ability || eventDefeatSource.type === DefeatSourceType.NonCombatDamage) && eventDefeatSource.card.isUnit()) {
-            event.isDefeatedByAttacker = eventDefeatSource.card.isInPlay() &&
-              eventDefeatSource.card.isAttacking() &&
-              eventDefeatSource.card.activeAttack.targetIsUnit((unit) => unit === card, true);
+        try {
+            if (eventDefeatSource.type === DefeatSourceType.Attack) {
+                event.isDefeatedByAttacker = eventDefeatSource.damageDealtBy.includes(eventDefeatSource.attack.attacker);
+            } else if ((eventDefeatSource.type === DefeatSourceType.Ability || eventDefeatSource.type === DefeatSourceType.NonCombatDamage) && eventDefeatSource.card.isUnit()) {
+                event.isDefeatedByAttacker = eventDefeatSource.card.isInPlay() &&
+                  eventDefeatSource.card.isAttacking() &&
+                  eventDefeatSource.card.activeAttack.targetIsUnit((unit) => unit === card, true);
+            }
+        } catch (e) {
+            debugger;
         }
     }
 
