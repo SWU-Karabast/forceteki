@@ -34,7 +34,7 @@ export class ActionAbility extends CardAbility {
     public readonly condition?: (context?: AbilityContext) => boolean;
     public readonly requiresConfirmation: boolean;
 
-    public get isEpicAction(): boolean {
+    public override get isEpicAction(): boolean {
         return this.limit.isEpicActionLimit();
     }
 

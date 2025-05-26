@@ -13,7 +13,6 @@ import type Game from '../Game.js';
 import type { Player } from '../Player.js';
 import type { PlayCardAction } from './PlayCardAction.js';
 import type { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';
-import type { EpicActionAbility } from '../../abilities/EpicActionAbility.js';
 import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { Card } from '../card/Card.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -403,7 +402,7 @@ export abstract class PlayerOrCardAbility {
         return false;
     }
 
-    public isEpicAction(): this is EpicActionAbility {
+    public get isEpicAction(): boolean {
         return false;
     }
 

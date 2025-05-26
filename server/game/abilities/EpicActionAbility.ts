@@ -12,7 +12,7 @@ export class EpicActionAbility extends ActionAbility {
         this.canResolveWithoutLegalTargets = true;
     }
 
-    public override isEpicAction(): this is EpicActionAbility {
+    public override get isEpicAction(): boolean {
         return true;
     }
 

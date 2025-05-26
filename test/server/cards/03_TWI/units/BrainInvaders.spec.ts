@@ -40,10 +40,12 @@ describe('Brain Invaders', () => {
 
                 // Clicking Sabine uses her Epic Action
                 context.player1.clickCard(context.sabineWren);
+                context.player1.clickPrompt('Deploy Sabine Wren');
                 expect(context.sabineWren).toBeInZone('groundArena');
 
                 // Clicking Han Solo uses his Epic Action
                 context.player2.clickCard(context.hanSolo);
+                context.player2.clickPrompt('Deploy Han Solo');
                 expect(context.hanSolo).toBeInZone('groundArena');
             });
 
@@ -107,10 +109,12 @@ describe('Brain Invaders', () => {
                     phase: 'action',
                     player1: {
                         leader: { card: 'fennec-shand#honoring-the-deal', deployed: true },
+                        hand: ['sabine-wren#explosives-artist'],
                         groundArena: ['brain-invaders'],
                     },
                     player2: {
-                        leader: { card: 'han-solo#worth-the-risk', deployed: true }
+                        leader: { card: 'han-solo#worth-the-risk', deployed: true },
+                        hand: ['poe-dameron#quick-to-improvise'],
                     },
                 });
 
@@ -211,6 +215,7 @@ describe('Brain Invaders', () => {
                 expect(context.player2).toBeActivePlayer();
 
                 // Elite P-38 can attack base because Razor Crest did not gain Sentinel from Lando
+                expect(context.razorCrest.hasSentinel()).toBeFalse();
                 context.player2.clickCard(context.eliteP38Starfighter);
                 expect(context.player2).toBeAbleToSelect(context.p1Base);
                 context.player2.clickCard(context.p1Base);
@@ -232,6 +237,70 @@ describe('Brain Invaders', () => {
                 context.player1.clickCard(context.directHit);
                 context.player1.clickCard(context.slaversFreighter);
                 expect(context.slaversFreighter).toBeInZone('discard');
+            });
+        });
+
+        describe('When Brain Invaders is removed', function() {
+            it('undeployed leaders regain their abilities', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'chancellor-palpatine#playing-both-sides',
+                        groundArena: ['brain-invaders'],
+                    },
+                    player2: {
+                        leader: 'admiral-trench#chkchkchkchk',
+                        hand: ['vanquish'],
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Defeat Brain Invaders with Vanquish
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.brainInvaders);
+
+                // Chancellor Palpatine regains his action abilities
+                expect(context.chancellorPalpatine).toHaveAvailableActionWhenClickedBy(context.player1);
+
+                // Admiral Trench regains his action abilities
+                expect(context.admiralTrench).toHaveAvailableActionWhenClickedBy(context.player2);
+                context.player2.clickPrompt('Discard a card that costs 3 or more from your hand');
+            });
+
+            it('deployed leaders regain their abilities', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: { card: 'fennec-shand#honoring-the-deal', deployed: true },
+                        hand: ['sabine-wren#explosives-artist'],
+                        groundArena: ['brain-invaders'],
+                    },
+                    player2: {
+                        leader: { card: 'han-solo#worth-the-risk', deployed: true },
+                        hand: ['vanquish', 'poe-dameron#quick-to-improvise'],
+                        hasInitiative: true,
+                    },
+                });
+
+                const { context } = contextRef;
+
+                // Defeat Brain Invaders with Vanquish
+                context.player2.clickCard(context.vanquish);
+                context.player2.clickCard(context.brainInvaders);
+
+                // Fennec Shand regains her action ability
+                expect(context.fennecShand).toHaveAvailableActionWhenClickedBy(context.player1);
+                expect(context.player1).toHaveEnabledPromptButton('Play a unit that costs 4 or less from your hand. Give it ambush for this phase');
+                context.player1.clickPrompt('Attack');
+                context.player1.clickCard(context.p2Base);
+
+                // Han Solo regains his action ability
+                expect(context.hanSolo).toHaveAvailableActionWhenClickedBy(context.player2);
+                expect(context.player2).toHaveEnabledPromptButton('Play a unit from your hand. It costs 1 resource less. Deal 2 damage to it.');
+                context.player2.clickPrompt('Attack');
+                context.player2.clickCard(context.p1Base);
             });
         });
     });
