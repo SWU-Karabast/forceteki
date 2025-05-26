@@ -134,7 +134,9 @@ export abstract class CardAbility extends CardAbilityStep {
 
         const messageArgs = [context.player, ` ${messageVerb} `, context.source];
         if (gainAbilitySource) {
-            messageArgs.push('\'s gained ability from ', gainAbilitySource);
+            if (gainAbilitySource !== context.source) {
+                messageArgs.push('\'s gained ability from ', gainAbilitySource);
+            }
         } else if (messageVerb === 'plays' && context.playType === PlayType.Smuggle) {
             messageArgs.push(' using Smuggle');
         }
