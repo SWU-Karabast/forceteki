@@ -359,6 +359,24 @@ const mockCards = [
         arena: 'ground',
         internalName: 'vernestra-rwoh#precocious-knight'
     }),
+    buildMockCard({
+        title: 'Eye of Sion, To Peridea',
+        cost: 6,
+        power: 4,
+        hp: 7,
+        hasNonKeywordAbility: false,
+        aspects: ['command', 'villainy'],
+        types: ['unit'],
+        keywords: ['hidden', 'ambush', 'overwhelm', 'restore 1'],
+        traits: ['imperial', 'vehicle', 'transport'],
+        setId: {
+            set: 'LOF',
+            number: 88
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 'eye-of-sion#to-peridea'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
