@@ -71,7 +71,7 @@ export class ReplacementEffectSystem<TContext extends TriggeredAbilityContext = 
             return [effect, []];
         }
         if (replacementImmediateEffect) {
-            return ['{1} {0} instead of {2}', [context.target, replacementImmediateEffect.name, context.event.card]];
+            return ['{0} instead of {1}', [replacementImmediateEffect.getEffectMessage(context), context.event.card]];
         }
         return ['cancel the effects of {0}', [context.event.card]];
     }

@@ -10,7 +10,6 @@ export interface IFlipDoubleSidedLeaderProperties extends ICardTargetSystemPrope
 export class FlipDoubleSidedLeaderSystem<TContext extends AbilityContext = AbilityContext> extends CardTargetSystem<TContext, IFlipDoubleSidedLeaderProperties> {
     public override readonly name = 'flip double-sided leader';
     public override readonly eventName = EventName.OnLeaderFlipped;
-    public override readonly effectDescription = 'deploy {0}';
 
     protected override readonly targetTypeFilter = [CardType.Leader];
 
@@ -22,7 +21,7 @@ export class FlipDoubleSidedLeaderSystem<TContext extends AbilityContext = Abili
 
     public override getEffectMessage(context: TContext, additionalProperties: Partial<IFlipDoubleSidedLeaderProperties> = {}): [string, any[]] {
         const properties = this.generatePropertiesFromContext(context);
-        return ['deploy {0}', [properties.target]];
+        return ['flip {0}', [properties.target]];
     }
 
     public override canAffectInternal(card: Card, context: TContext): boolean {
