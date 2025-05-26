@@ -36,8 +36,8 @@ describe('Open Fire', function() {
                 context.player1.clickCard(context.openFire);
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.cartelSpacer, context.pykeSentinel, context.fleetLieutenant]);
 
-                context.player1.clickCard(context.fleetLieutenant);
-                expect(context.fleetLieutenant.damage).toBe(4);
+                context.player1.clickCard(context.wampa);
+                expect(context.wampa.damage).toBe(4);
             });
         });
     });
