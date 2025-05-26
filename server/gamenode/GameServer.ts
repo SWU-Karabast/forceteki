@@ -55,6 +55,8 @@ export class GameServer {
         let cardDataGetter: CardDataGetter;
         let testGameBuilder: any = null;
 
+        console.log('SETUP: Initiating server start.');
+        console.log('SETUP: Retreiving card data.');
         if (process.env.ENVIRONMENT === 'development') {
             testGameBuilder = this.getTestGameBuilder();
 
@@ -64,6 +66,7 @@ export class GameServer {
         } else {
             cardDataGetter = await GameServer.buildRemoteCardDataGetter();
         }
+        console.log('SETUP: Card data downloaded.');
 
         return new GameServer(
             cardDataGetter,
