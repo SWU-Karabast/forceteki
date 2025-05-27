@@ -21,6 +21,7 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                 // no card played; ability has no effect
                 let exhaustedResourcesBeforeAbilityUsed = context.player1.exhaustedResourceCount;
                 context.player1.clickCard(context.darthVader);
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.darthVader.exhausted).toBe(true);
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAbilityUsed + 1);

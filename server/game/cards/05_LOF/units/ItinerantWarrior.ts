@@ -1,11 +1,12 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { CardType } from '../../../core/Constants';
 
-export default class VernestraRwohPrecociousKnight extends NonLeaderUnitCard {
+export default class ItinerantWarrior extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '2940037100',
-            internalName: 'vernestra-rwoh#precocious-knight',
+            id: '7323186775',
+            internalName: 'itinerant-warrior',
         };
     }
 
@@ -15,8 +16,11 @@ export default class VernestraRwohPrecociousKnight extends NonLeaderUnitCard {
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {
-                title: 'Ready this unit',
-                immediateEffect: AbilityHelper.immediateEffects.ready(),
+                title: 'Heal 3 damage from a base',
+                targetResolver: {
+                    cardTypeFilter: CardType.Base,
+                    immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 3 })
+                }
             }
         });
     }

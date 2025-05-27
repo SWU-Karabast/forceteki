@@ -46,6 +46,7 @@ describe('Obi-Wan Kenobi, Courage Makes Heroes', () => {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.obiwanKenobi);
+                context.player1.clickPrompt('Use it anyway');
 
                 // Ability was used
                 expect(context.obiwanKenobi.exhausted).toBeTrue();
