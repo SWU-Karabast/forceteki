@@ -5,7 +5,7 @@ import AbilityHelper from '../../../AbilityHelper';
 export default class NimanStrike extends EventCard {
     protected override getImplementationId() {
         return {
-            id: 'niman-strike-id',
+            id: '5960134941',
             internalName: 'niman-strike',
         };
     }

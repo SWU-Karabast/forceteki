@@ -5,7 +5,7 @@ import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
 export default class DrengirSpawn extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'drengir-spawn-id',
+            id: '3092212109',
             internalName: 'drengir-spawn',
         };
     }
