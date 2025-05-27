@@ -35,6 +35,7 @@ describe('Contracted Hunter', function() {
             // iden versio does not work because contracted hunter was not defeated this phase
             context.player2.clickCard(context.idenVersio);
             context.player2.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
+            context.player2.clickPrompt('Use it anyway');
 
             expect(context.p2Base.damage).toBe(5);
         });

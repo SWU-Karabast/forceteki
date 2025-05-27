@@ -102,6 +102,7 @@ describe('Padme Amidala, Serving the Republic', function () {
 
                 // Player 1 uses Padme's ability with no effect
                 context.player1.clickCard(context.padmeAmidala);
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.player2).toBeActivePlayer();
             });
