@@ -402,6 +402,7 @@ export abstract class PlayerOrCardAbility {
         return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public get isEpicAction(): boolean {
         return false;
     }

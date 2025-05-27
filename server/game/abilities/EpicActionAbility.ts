@@ -12,6 +12,7 @@ export class EpicActionAbility extends ActionAbility {
         this.canResolveWithoutLegalTargets = true;
     }
 
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
     public override get isEpicAction(): boolean {
         return true;
     }
