@@ -323,7 +323,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             }
         }
 
-        return deduplicatedActionAbilities;
+        const epicActionAbilities = deduplicatedActionAbilities
+            .filter((action) => action.isEpicAction);
+
+        return this.isBlank() ? epicActionAbilities : deduplicatedActionAbilities;
     }
 
     /**

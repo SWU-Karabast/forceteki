@@ -34,8 +34,11 @@ export class ActionAbility extends CardAbility {
 
     public readonly condition?: (context?: AbilityContext) => boolean;
     public readonly requiresConfirmation: boolean;
-
     private earlyTargetResults?: ITargetResult;
+
+    public override get isEpicAction(): boolean {
+        return this.limit.isEpicActionLimit();
+    }
 
     public constructor(game: Game, card: Card, properties: IActionAbilityProps) {
         super(game, card, properties);
