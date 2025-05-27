@@ -20,6 +20,7 @@ describe('Qui-Gon Jinn, Student of the Living Force', function() {
                 expect(context.player1.hasTheForce).toBe(true);
 
                 context.player1.clickCard(context.quigonJinn);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.quigonJinn.exhausted).toBe(true);
                 expect(context.player1.hasTheForce).toBe(false);

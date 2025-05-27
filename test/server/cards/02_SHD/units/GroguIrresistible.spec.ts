@@ -55,6 +55,7 @@ describe('Grogu, Irresistible', function() {
                 expect(context.player1).toHaveEnabledPromptButton('Attack');
                 expect(context.player1).toHaveEnabledPromptButton('Exhaust an enemy unit');
                 context.player1.clickPrompt('Exhaust an enemy unit');
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.grogu.exhausted).toBe(true);
             });
         });
