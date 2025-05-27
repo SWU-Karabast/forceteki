@@ -263,10 +263,12 @@ describe('Brain Invaders', () => {
 
                 // Chancellor Palpatine regains his action abilities
                 expect(context.chancellorPalpatine).toHaveAvailableActionWhenClickedBy(context.player1);
+                context.player1.clickPrompt('Use it anyway');
 
                 // Admiral Trench regains his action abilities
                 expect(context.admiralTrench).toHaveAvailableActionWhenClickedBy(context.player2);
                 context.player2.clickPrompt('Discard a card that costs 3 or more from your hand');
+                context.player2.clickPrompt('Use it anyway');
             });
 
             it('undeployed leaders regain their constant abilities', async function() {
