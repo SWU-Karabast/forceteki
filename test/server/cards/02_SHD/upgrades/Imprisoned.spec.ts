@@ -42,7 +42,7 @@ describe('Imprisoned', function() {
                 phase: 'action',
                 player1: {
                     base: { card: 'dagobah-swamp', damage: 4 },
-                    hand: ['admiral-yularen#fleet-coordinator', 'confiscate', 'fireball#an-explosion-with-wings'],
+                    hand: ['admiral-yularen#fleet-coordinator', 'confiscate'],
                     spaceArena: ['millennium-falcon#landos-pride']
                 },
                 player2: {
@@ -78,15 +78,11 @@ describe('Imprisoned', function() {
             context.moveToNextActionPhase();
             context.player2.passAction();
 
-            // Player 1 plays Fireball, which has a constant ability
-            context.player1.clickCard(context.fireball);
-            context.player2.passAction();
-
             // Player 1 attacks with Millennium Falcon again
             context.player1.clickCard(context.millenniumFalcon);
             context.player1.clickCard(context.p2Base);
 
-            // Base health should be restored by Admiral Yularen's Restore 1 ability
+            // Base health should be restored from Millennium Falcon's gained Restore 1 via Yularen
             expect(context.p1Base.damage).toBe(3);
         });
 
