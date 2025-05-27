@@ -24,6 +24,7 @@ describe('Captain Rex, Fighting for his Brothers', function () {
 
             context.player1.clickCard(context.captainRex);
             context.player1.clickPrompt('If a friendly unit attacked this phase, create a Clone Trooper token.');
+            context.player1.clickPrompt('Use it anyway');
 
             expect(context.captainRex.exhausted).toBeTrue();
             expect(context.player1.exhaustedResourceCount).toBe(2);

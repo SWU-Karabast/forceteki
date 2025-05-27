@@ -44,6 +44,7 @@ describe('Luke Skywalker, Hero of Yavin', function() {
 
                 context.player1.clickCard(context.lukeSkywalker);
                 context.player1.clickPrompt('If you attacked with a Fighter unit this phase, deal 1 damage to a unit');
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.lukeSkywalker.exhausted).toBe(true);
                 expect(context.player2).toBeActivePlayer();

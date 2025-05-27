@@ -52,6 +52,7 @@ describe('Wedge Antilles, Leader of Red Squadron', function () {
 
                 const { context } = contextRef;
                 context.player1.clickCard(context.wedgeAntilles);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.player2).toBeActivePlayer();
             });
 
@@ -71,6 +72,7 @@ describe('Wedge Antilles, Leader of Red Squadron', function () {
 
                 const { context } = contextRef;
                 context.player1.clickCard(context.wedgeAntilles);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.player2).toBeActivePlayer();
             });
         });

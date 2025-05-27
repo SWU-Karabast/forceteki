@@ -1,11 +1,11 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 
-export default class VernestraRwohPrecociousKnight extends NonLeaderUnitCard {
+export default class KiAdiMundiWeMustPushOn extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '2940037100',
-            internalName: 'vernestra-rwoh#precocious-knight',
+            id: '0531276830',
+            internalName: 'kiadimundi#we-must-push-on',
         };
     }
 
@@ -15,8 +15,8 @@ export default class VernestraRwohPrecociousKnight extends NonLeaderUnitCard {
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {
-                title: 'Ready this unit',
-                immediateEffect: AbilityHelper.immediateEffects.ready(),
+                title: 'Draw 2 cards',
+                immediateEffect: AbilityHelper.immediateEffects.draw({ amount: 2 })
             }
         });
     }
