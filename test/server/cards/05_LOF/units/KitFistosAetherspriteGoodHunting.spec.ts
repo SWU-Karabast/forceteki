@@ -5,7 +5,7 @@ describe('Kit Fisto\'s Aethersprite, Good Hunting', function() {
                 return contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
-                        hand: ['power-failure'],
+                        hand: ['kit-fistos-aethersprite#good-hunting'],
                         groundArena: [{ card: 'pyke-sentinel', upgrades: ['entrenched', 'devotion'] }],
                     },
                     player2: {
@@ -18,7 +18,7 @@ describe('Kit Fisto\'s Aethersprite, Good Hunting', function() {
             it('defeats all upgrades on a unit', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.powerFailure);
+                context.player1.clickCard(context.kitFistosAethersprite);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
 
                 context.player1.clickCard(context.pykeSentinel);
@@ -40,7 +40,7 @@ describe('Kit Fisto\'s Aethersprite, Good Hunting', function() {
             it('defeats selected upgrades on a unit', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.powerFailure);
+                context.player1.clickCard(context.kitFistosAethersprite);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
                 expect(context.player1).toHaveChooseNothingButton();
 
@@ -54,7 +54,7 @@ describe('Kit Fisto\'s Aethersprite, Good Hunting', function() {
             it('selects a unit but does not defeat any upgrade', function () {
                 const { context } = contextRef;
 
-                context.player1.clickCard(context.powerFailure);
+                context.player1.clickCard(context.kitFistosAethersprite);
                 expect(context.player1).toBeAbleToSelectExactly([context.pykeSentinel, context.imperialInterceptor]);
 
                 context.player1.clickCard(context.pykeSentinel);
