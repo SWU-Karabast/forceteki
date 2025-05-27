@@ -21,6 +21,9 @@ describe('Itinerant Warrior', () => {
             expect(context.player1).toHavePassAbilityPrompt('Use The Force');
             context.player1.clickPrompt('Trigger');
 
+            expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+            context.player1.clickCard(context.p1Base);
+
             // Ensure the Force was used
             expect(context.player1.hasTheForce).toBe(false);
 

@@ -1,5 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
+import { CardType } from '../../../core/Constants';
 
 export default class ItinerantWarrior extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,10 +17,10 @@ export default class ItinerantWarrior extends NonLeaderUnitCard {
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {
                 title: 'Heal 3 damage from a base',
-                immediateEffect: AbilityHelper.immediateEffects.heal((context) => ({
-                    amount: 3,
-                    target: context.player.base
-                }))
+                targetResolver: {
+                    cardTypeFilter: CardType.Base,
+                    immediateEffect: AbilityHelper.immediateEffects.heal({ amount: 3 })
+                }
             }
         });
     }
