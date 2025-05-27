@@ -78,6 +78,7 @@ describe('Kit Fisto, Focused Jedi Master', function() {
                 context.player2.passAction();
                 context.player1.clickCard(context.kitFisto); // Ability does not trigger
                 context.player1.clickPrompt('If you attacked with a Jedi unit this phase, deal 2 damage to a unit');
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.kitFisto.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
@@ -94,6 +95,7 @@ describe('Kit Fisto, Focused Jedi Master', function() {
                 // Use Kit Fisto's ability
                 context.player1.clickCard(context.kitFisto); // Ability does not trigger
                 context.player1.clickPrompt('If you attacked with a Jedi unit this phase, deal 2 damage to a unit');
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.kitFisto.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);
@@ -113,6 +115,7 @@ describe('Kit Fisto, Focused Jedi Master', function() {
                 // Use Kit Fisto's ability
                 context.player1.clickCard(context.kitFisto); // Ability does not trigger
                 context.player1.clickPrompt('If you attacked with a Jedi unit this phase, deal 2 damage to a unit');
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.kitFisto.exhausted).toBeTrue();
                 expect(context.player1.exhaustedResourceCount).toBe(1);

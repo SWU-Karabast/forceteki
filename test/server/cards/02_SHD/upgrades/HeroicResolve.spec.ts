@@ -43,6 +43,7 @@ describe('Heroic Resolve', function() {
                 // the Heroic Resolve action is the only one available on click so it is automatically selected.
                 // it pays the costs and then the action ends since the unit can't attack
                 context.player1.clickCard(context.frontierAtrt);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.player2).toBeActivePlayer();
                 expect(context.frontierAtrt.isUpgraded()).toBe(false);
                 expect(context.heroicResolve).toBeInZone('discard');

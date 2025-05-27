@@ -83,6 +83,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
 
                 // Check that Palpatine did not flip
                 context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.chancellorPalpatine.onStartingSide).toBe(true);
             });
@@ -104,6 +105,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
 
                 // Ensure no effect besides exhaustion
                 context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(10);
                 expect(context.player1.hand.length).toBe(0);
@@ -118,6 +120,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
 
                 // Ensure no effect besides exhaustion
                 context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(10);
 
@@ -131,6 +134,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
 
                 // Ensure no effect besides exhaustion
                 context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(10);
                 expect(context.player1.hand.length).toBe(5);
@@ -249,6 +253,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
 
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
                 context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
             });
 
@@ -274,6 +279,7 @@ describe('Chancellor Palpatine, Playing Both Sides', function () {
                 context.player1.clickCard(context.battlefieldMarine);
 
                 context.player1.clickCard(context.chancellorPalpatine);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.chancellorPalpatine.exhausted).toBe(true);
                 expect(context.chancellorPalpatine.onStartingSide).toBe(false);
                 expect(context.p2Base.damage).toBe(0);
