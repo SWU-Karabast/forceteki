@@ -1,6 +1,8 @@
 import AbilityHelper from '../../../AbilityHelper';
+import type { AbilityContext } from '../../../core/ability/AbilityContext';
+import type { Card } from '../../../core/card/Card';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
+import { EventName, RelativePlayer, Trait, WildcardCardType } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class OldDakaOldestAndWisest extends NonLeaderUnitCard {
@@ -22,17 +24,21 @@ export default class OldDakaOldestAndWisest extends NonLeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.defeat()
             },
             then: (thenContext) => ({
-                title: `Play ${thenContext.events[0].card.title} from your discard pile for free`,
+                title: `Play ${this.getTarget(thenContext)?.title} from your discard pile for free`,
                 optional: true,
                 thenCondition: (context) =>
-                    thenContext.events[0].card.zone === context.player.discardZone,
+                    this.getTarget(thenContext)?.zone === context.player.discardZone,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                    target: thenContext.events[0].card,
+                    target: this.getTarget(thenContext),
                     playAsType: WildcardCardType.Unit,
                     adjustCost: { costAdjustType: CostAdjustType.Free }
                 })
             })
         });
+    }
+
+    private getTarget?(context: AbilityContext<this>): Card {
+        return context.events.find((event) => event.name === EventName.OnCardDefeated)?.card;
     }
 }
 
