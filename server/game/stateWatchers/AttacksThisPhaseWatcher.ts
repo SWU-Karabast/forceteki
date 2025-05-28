@@ -41,6 +41,10 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
             .map((entry) => entry.attacker);
     }
 
+    public cardDidAttack(card: Card): boolean {
+        return this.getAttackersInPlay((entry) => entry.attacker === card).length > 0;
+    }
+
     /**
      * Filters the list of attack events in the state and returns the attackers that match.
      * Selects only units that are currently in play as the same copy (in-play id) that performed the attack.
