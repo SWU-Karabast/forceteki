@@ -11,7 +11,7 @@ export default class KiAdiMundiWeMustPushOn extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Use the Force',
+            title: 'Use the Force to draw 2 cards',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {

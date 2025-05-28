@@ -116,11 +116,11 @@ describe('Old Daka, Oldest and Wisest', function() {
 
             expect(context.player1).toHavePrompt('Choose an ability to resolve:');
             expect(context.player1).toHaveExactPromptButtons([
-                'Use the Force. If you do, give a unit -3/-3 for this phase',
+                'Use the Force to give a unit -3/-3 for this phase',
                 'Give an Experience token to another friendly unit',
             ]);
 
-            context.player1.clickPrompt('Use the Force. If you do, give a unit -3/-3 for this phase');
+            context.player1.clickPrompt('Use the Force to give a unit -3/-3 for this phase');
             context.player1.clickPrompt('Trigger');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.talzinsAssassin, context.oldDaka]);
             context.player1.clickCard(context.wampa);

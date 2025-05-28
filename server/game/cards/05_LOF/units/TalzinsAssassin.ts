@@ -12,7 +12,7 @@ export default class TalzinsAssassin extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Use the Force. If you do, give a unit -3/-3 for this phase',
+            title: 'Use the Force to give a unit -3/-3 for this phase',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {

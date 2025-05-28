@@ -18,7 +18,7 @@ describe('Talzin\'s Assassin', function() {
                 const { context } = contextRef;
                 context.player1.clickCard(context.talzinsAssassin);
 
-                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you do, give a unit -3/-3 for this phase');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force to give a unit -3/-3 for this phase');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.talzinsAssassin]);

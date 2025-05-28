@@ -38,7 +38,7 @@ describe('U-Wing Lander', function () {
                 context.player1.clickCard(context.p2Base);
 
                 // superheavy ion cannon prompt
-                expect(context.player1).toHavePrompt('Exhaust a enemy non-leader unit. If you do, deal indirect damage equal to its power to the controller');
+                expect(context.player1).toHavePrompt('Exhaust an enemy non-leader unit to deal indirect damage equal to its power to the controller');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.superheavyIonCannon, context.experience]);
@@ -58,7 +58,7 @@ describe('U-Wing Lander', function () {
                 context.player1.clickCard(context.p2Base);
 
                 // superheavy ion cannon prompt
-                expect(context.player1).toHavePrompt('Exhaust a enemy non-leader unit. If you do, deal indirect damage equal to its power to the controller');
+                expect(context.player1).toHavePrompt('Exhaust an enemy non-leader unit to deal indirect damage equal to its power to the controller');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.superheavyIonCannon, context.experience]);
@@ -79,7 +79,7 @@ describe('U-Wing Lander', function () {
                 context.player1.clickCard(context.avenger);
 
                 // superheavy ion cannon prompt
-                expect(context.player1).toHavePrompt('Exhaust a enemy non-leader unit. If you do, deal indirect damage equal to its power to the controller');
+                expect(context.player1).toHavePrompt('Exhaust an enemy non-leader unit to deal indirect damage equal to its power to the controller');
                 context.player1.clickPrompt('Pass');
 
                 expect(context.player2).toBeActivePlayer();

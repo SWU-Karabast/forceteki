@@ -21,7 +21,7 @@ describe('Karis, We Don\'t Like Strangers', function() {
                 context.player2.clickCard(context.takedown);
                 context.player2.clickCard(context.karis);
 
-                expect(context.player1).toHavePassAbilityPrompt('Use the Force. If you do, give a unit -2/-2 for this phase');
+                expect(context.player1).toHavePassAbilityPrompt('Use the Force to give a unit -2/-2 for this phase');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
@@ -65,7 +65,7 @@ describe('Karis, We Don\'t Like Strangers', function() {
                 context.player2.clickCard(context.noGloryOnlyResults);
                 context.player2.clickCard(context.karis);
 
-                expect(context.player2).toHavePassAbilityPrompt('Use the Force. If you do, give a unit -2/-2 for this phase');
+                expect(context.player2).toHavePassAbilityPrompt('Use the Force to give a unit -2/-2 for this phase');
                 context.player2.clickPrompt('Trigger');
 
                 expect(context.player2).toBeAbleToSelectExactly([context.wampa]);
