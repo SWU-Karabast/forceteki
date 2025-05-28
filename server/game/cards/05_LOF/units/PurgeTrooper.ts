@@ -5,7 +5,7 @@ import { Trait, WildcardCardType } from '../../../core/Constants';
 export default class PurgeTrooper extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '3595375406',
+            id: 'purge-trooper-id',
             internalName: 'purge-trooper',
         };
     }

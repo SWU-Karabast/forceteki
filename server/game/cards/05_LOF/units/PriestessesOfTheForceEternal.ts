@@ -5,7 +5,7 @@ import { TargetMode, WildcardCardType } from '../../../core/Constants';
 export default class PriestessesOfTheForceEternal extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '7012013186',
+            id: 'priestesses-of-the-force#eternal-id',
             internalName: 'priestesses-of-the-force#eternal'
         };
     }

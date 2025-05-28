@@ -15,7 +15,7 @@ import { DamageSystem } from '../../../gameSystems/DamageSystem';
 export default class ShienFlurry extends EventCard {
     protected override getImplementationId() {
         return {
-            id: '7981459508',
+            id: 'shien-flurry-id',
             internalName: 'shien-flurry',
         };
     }
