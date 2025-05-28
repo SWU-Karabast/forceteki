@@ -5,7 +5,7 @@ import { RelativePlayer, WildcardCardType } from '../../../core/Constants';
 export default class TheLegacyRunDoomedDebris extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '7793687843',
+            id: 'the-legacy-run#doomed-debris-id',
             internalName: 'the-legacy-run#doomed-debris',
         };
     }

@@ -9,7 +9,7 @@ export default class AvarKrissMarshalOfStarlight extends LeaderUnitCard {
 
     protected override getImplementationId() {
         return {
-            id: '0092239541',
+            id: 'avar-kriss#marshal-of-starlight-id',
             internalName: 'avar-kriss#marshal-of-starlight',
         };
     }

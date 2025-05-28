@@ -5,7 +5,7 @@ import { KeywordName, Trait } from '../../../core/Constants';
 export default class YaddleAChanceToMakeThingsRight extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '4808722909',
+            id: 'yaddle#a-chance-to-make-things-right-id',
             internalName: 'yaddle#a-chance-to-make-things-right',
         };
     }
