@@ -461,6 +461,7 @@ const mockCards = [
             set: 'LOF',
             number: 128
         },
+        unique: false,
         internalName: 'protect-the-pod'
     }),
     buildMockCard({
@@ -474,6 +475,7 @@ const mockCards = [
             set: 'LOF',
             number: 79
         },
+        unique: false,
         internalName: 'shatterpoint'
     }),
 ];
