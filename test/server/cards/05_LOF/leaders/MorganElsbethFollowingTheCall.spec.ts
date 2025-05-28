@@ -15,7 +15,6 @@ describe('Morgan Elsbeth, Following the Call', function() {
                         ],
                         groundArena: [
                             'warzone-lieutenant',   // No Keywords
-                            'village-tender',       // Hidden, Restore 1
                         ],
                         spaceArena: [
                             'forged-starfighter',     // Hidden, Raid 1
@@ -170,14 +169,16 @@ describe('Morgan Elsbeth, Following the Call', function() {
                             'aurra-sing#patient-and-deadly',  // Hidden, Raid 2,
                             'eye-of-sion#to-peridea',         // Hidden, Ambush, Overwhelm, Restore 1
                             'timely-intervention',            // Smuggle
+                            'droid-starfighter',               // Saboteur
+                            'adept-arc170',                   // Restore 2
                         ],
                         groundArena: [
                             'warzone-lieutenant',  // No Keywords
-                            'village-tender'       // Hidden, Restore 1
                         ],
                         spaceArena: [
-                            'forged-starfighter',      // Hidden, Raid 1
-                            'collections-starhopper'  // Smuggle
+                            'forged-starfighter',       // Hidden, Raid 1
+                            'collections-starhopper',  // Smuggle
+                            'consortium-starviper',    // Conditional Restore 2 (when player has initiative)
                         ],
                         leader: {
                             card: 'morgan-elsbeth#following-the-call',
@@ -186,6 +187,11 @@ describe('Morgan Elsbeth, Following the Call', function() {
                         base: 'administrators-tower',
                         resources: [
                             'privateer-crew', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst', 'atst'
+                        ]
+                    },
+                    player2: {
+                        groundArena: [
+                            'resourceful-pursuers'  // Saboteur
                         ]
                     }
                 });
@@ -307,6 +313,102 @@ describe('Morgan Elsbeth, Following the Call', function() {
                 expect(context.forgedStarfighter).toHaveExactUpgradeNames(['independent-smuggler']);
                 expect(context.player1.exhaustedResourceCount).toBe(1);
             });
+
+            it('the discount does not apply to units that only share a Keyword with an enemy unit', function () {
+                const { context } = contextRef;
+
+                // Attack with Morgan Elsbeth to trigger the lasting effect
+                context.player1.clickCard(context.morganElsbeth);
+                context.player1.clickCard(context.p2Base);
+                context.player2.passAction();
+
+                // Play a unit that shares a Keyword with an enemy unit
+                context.player1.clickCard(context.droidStarfighter);
+
+                // It is played without a discount because it only shares a Keyword with an enemy unit
+                expect(context.droidStarfighter).toBeInZone('spaceArena');
+                expect(context.player1.exhaustedResourceCount).toBe(1);
+            });
+
+            it('ths discount applies for units that share a Keyword with a unit that has gained a Keyword', function () {
+                const { context } = contextRef;
+
+                // Attack with Morgan Elsbeth to trigger the lasting effect
+                context.player1.clickCard(context.morganElsbeth);
+                context.player1.clickCard(context.p2Base);
+                context.player2.passAction();
+
+                // Play a unit that shares a Keyword with unit that has gained a Keyword
+                context.player1.clickCard(context.adeptArc170);
+
+                // It is played for 1 resource less
+                expect(context.adeptArc170).toBeInZone('spaceArena');
+                expect(context.player1.exhaustedResourceCount).toBe(3);
+            });
+
+            it('if the gained keyword is turned off, the discount does not apply', function () {
+                const { context } = contextRef;
+
+                // Attack with Morgan Elsbeth to trigger the lasting effect
+                context.player1.clickCard(context.morganElsbeth);
+                context.player1.clickCard(context.p2Base);
+
+                // Player 2 claims initiative, turning off the Consortium Starviper's Restore 2
+                context.player2.claimInitiative();
+
+                // Play Adept Arc-170 (Restore 2)
+                context.player1.clickCard(context.adeptArc170);
+
+                // It is played without a discount because the Restore 2 was turned off
+                expect(context.adeptArc170).toBeInZone('spaceArena');
+                expect(context.player1.exhaustedResourceCount).toBe(4);
+            });
+        });
+
+
+        describe('When the player has multiple copies of the same unit', function () {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: [
+                            'aurra-sing#patient-and-deadly', // Hidden, Raid 2
+                        ],
+                        spaceArena: [
+                            'forged-starfighter',             // Hidden, Raid 1
+                            'forged-starfighter',             // Hidden, Raid 1
+                        ],
+                        leader: 'morgan-elsbeth#following-the-call',
+                        base: 'administrators-tower'
+                    },
+                    player2: {
+                        spaceArena: ['concord-dawn-interceptors']
+                    }
+                });
+            });
+
+            it('does not work if the copy of the unit that attacked is not in play', function () {
+                const { context } = contextRef;
+                const [forgedStarfighter1, forgedStarfighter2] = context.player1.findCardsByName('forged-starfighter');
+
+                // Attack with the first Forged Starfighter
+                context.player1.clickCard(forgedStarfighter1);
+                context.player1.clickCard(context.concordDawnInterceptors);
+
+                // It is defeated
+                expect(forgedStarfighter1).toBeInZone('discard');
+                context.player2.passAction();
+
+                // Use Morgan Elsbeth's ability
+                context.player1.clickCard(context.morganElsbeth);
+                expect(context.player1).toHaveEnabledPromptButton(prompt);
+                context.player1.clickPrompt(prompt);
+                context.player1.clickPrompt('Use it anyway');
+
+                // It was used to no effect
+                expect(context.morganElsbeth.exhausted).toBeTrue();
+                expect(context.player2).toBeActivePlayer();
+            });
         });
 
         describe('When the player has no ready resources', function () {
@@ -315,13 +417,7 @@ describe('Morgan Elsbeth, Following the Call', function() {
                     phase: 'action',
                     player1: {
                         hand: [
-                            'swoop-racer',                   // No Keywords
                             'independent-smuggler',          // Raid 1, Piloting
-                            'aurra-sing#patient-and-deadly', // Hidden, Raid 2
-                        ],
-                        groundArena: [
-                            'warzone-lieutenant',   // No Keywords
-                            'village-tender',       // Hidden, Restore 1
                         ],
                         spaceArena: [
                             'forged-starfighter',    // Hidden, Raid 1

@@ -42,7 +42,7 @@ export class AttacksThisPhaseWatcher extends StateWatcher<IAttacksThisPhase> {
     }
 
     public cardDidAttack(card: Card): boolean {
-        return this.getAttackers((entry) => entry.attacker === card).length > 0;
+        return this.getAttackersInPlay((entry) => entry.attacker === card).length > 0;
     }
 
     /**
