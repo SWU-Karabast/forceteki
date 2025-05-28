@@ -276,9 +276,12 @@ export class UserFactory {
 
             // If the user ever finds himself in a weird state where the profile doesn't exist but a dbUserID does
             // we recreate a userProfile with a new id
+            const cleanedUsername = username.trim()
+                .replace(/\s+/g, '')
+                .replace(/[^a-zA-Z0-9_]/g, '');
             const newUser = {
                 id: uuid(),
-                username: username,
+                username: cleanedUsername,
                 lastLogin: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
                 usernameLastUpdatedAt: new Date().toISOString(),
