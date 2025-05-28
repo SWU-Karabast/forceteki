@@ -135,6 +135,23 @@ describe('Old Daka, Oldest and Wisest', function() {
             expect(context.player2).toBeActivePlayer();
         });
 
+        it('Old Daka can be played without any friendly Night unit', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['old-daka#oldest-and-wisest'],
+                    groundArena: ['wampa'],
+                    hasForceToken: true,
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.oldDaka);
+
+            expect(context.player2).toBeActivePlayer();
+        });
+
         // TODO: test with Clone
     });
 });
