@@ -4,7 +4,7 @@ import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
 export default class GrandInquisitorStoriesTravelQuickly extends LeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '5917432593',
+            id: 'grand-inquisitor#stories-travel-quickly-id',
             internalName: 'grand-inquisitor#stories-travel-quickly',
         };
     }

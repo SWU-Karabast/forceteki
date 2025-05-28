@@ -5,7 +5,7 @@ import { TargetMode, WildcardCardType } from '../../../core/Constants';
 export default class KitFistosAetherspriteGoodHunting extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: '1028870559',
+            id: 'kit-fistos-aethersprite#good-hunting-id',
             internalName: 'kit-fistos-aethersprite#good-hunting',
         };
     }
