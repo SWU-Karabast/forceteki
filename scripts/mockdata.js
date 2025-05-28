@@ -413,6 +413,69 @@ const mockCards = [
         arena: 'ground',
         internalName: 'baylan-skoll#enigmatic-master'
     }),
+    buildMockCard({
+        title: 'Grace Purrgil',
+        cost: 5,
+        power: 2,
+        hp: 7,
+        hasNonKeywordAbility: false,
+        aspects: ['vigilance'],
+        types: ['unit'],
+        keywords: ['sentinel'],
+        traits: ['creature'],
+        setId: {
+            set: 'LOF',
+            number: 69
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'graceful-purrgil'
+    }),
+    buildMockCard({
+        title: 'Dooku',
+        subtitle: 'It is too late',
+        cost: 4,
+        power: 5,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['cunning'],
+        types: ['unit'],
+        keywords: ['hidden'],
+        traits: ['force', 'jedi'],
+        setId: {
+            set: 'LOF',
+            number: 211
+        },
+        unique: true,
+        arena: 'ground',
+        internalName: 'dooku#it-is-too-late'
+    }),
+    buildMockCard({
+        title: 'Protect the Pod',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['command'],
+        types: ['event'],
+        traits: ['tactic'],
+        setId: {
+            set: 'LOF',
+            number: 128
+        },
+        internalName: 'protect-the-pod'
+    }),
+    buildMockCard({
+        title: 'Shatterpoint',
+        cost: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance'],
+        types: ['event'],
+        traits: ['force'],
+        setId: {
+            set: 'LOF',
+            number: 79
+        },
+        internalName: 'shatterpoint'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
