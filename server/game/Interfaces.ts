@@ -328,6 +328,8 @@ export interface ISerializedGameState {
     player2?: IPlayerSerializedState;
 }
 
+export type MessageText = string | (string | number)[];
+
 export interface ISerializedReportState {
     description: string;
     gameState: ISerializedGameState;
@@ -336,8 +338,14 @@ export interface ISerializedReportState {
         username: string;
         playerInGameState: string;
     };
+    opponent: {
+        id: string;
+        username: string;
+        playerInGameState: string;
+    };
     lobbyId: string;
     timestamp: string;
+    messages: { date: Date; message: MessageText | { alert: { type: string; message: string | string[] } } }[];
     gameId?: string;
     screenResolution?: { width: number; height: number } | null;
     viewport?: { width: number; height: number } | null;
