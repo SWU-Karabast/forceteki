@@ -44,6 +44,7 @@ export default class EndlessLegions extends EventCard {
                 cardCondition: (card: Card) => Helpers.asArray(revealedCardsContext.target).includes(card) && !playedCards.includes(card),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                     adjustCost: { costAdjustType: CostAdjustType.Free },
+                    playAsType: WildcardCardType.Unit,
                     canPlayFromAnyZone: true,
                     nested: true,
                 })

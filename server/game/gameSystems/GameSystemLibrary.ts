@@ -353,16 +353,16 @@ export function payCardPrintedCost<TContext extends AbilityContext = AbilityCont
 /**
  * default resetOnCancel = false
  */
-export function playCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayCardProperties, TContext> = {}) {
+export function playCard<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<IPlayCardProperties, TContext>) {
     return new PlayCardSystem(propertyFactory);
 }
-export function playCardFromHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext> = {}) {
+export function playCardFromHand<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext>) {
     // TODO: implement playing with smuggle and from non-standard zones(discard(e.g. Palpatine's Return), top of deck(e.g. Ezra Bridger), etc.) as part of abilities with another function(s)
     // TODO: implement a "nested" property in PlayCardSystem that controls whether triggered abilities triggered by playing the card resolve after that card play or after the whole ability
     // playType automatically defaults to PlayFromHand
     return new PlayCardSystem(propertyFactory);
 }
-export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext> = {}) {
+export function playCardFromOutOfPlay<TContext extends AbilityContext = AbilityContext>(propertyFactory: PropsFactory<Omit<IPlayCardProperties, 'playType' | 'optional'>, TContext>) {
     return new PlayCardSystem<TContext>(
         GameSystem.appendToPropertiesOrPropertyFactory<IPlayCardProperties, 'playType'>(
             propertyFactory,

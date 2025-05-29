@@ -32,6 +32,7 @@ export default class ConsolidationOfPower extends EventCard {
                     zoneFilter: ZoneName.Hand,
                     immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
                         adjustCost: { costAdjustType: CostAdjustType.Free },
+                        playAsType: WildcardCardType.Unit
                     })
                 }
             },

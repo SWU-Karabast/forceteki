@@ -1,5 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
-import { Aspect, CardType, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { Aspect, CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
@@ -20,7 +20,8 @@ export default class GalacticAmbition extends EventCard {
                 cardTypeFilter: CardType.BasicUnit,
                 cardCondition: (card) => !card.hasSomeAspect(Aspect.Heroism),
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    adjustCost: { costAdjustType: CostAdjustType.Free }
+                    adjustCost: { costAdjustType: CostAdjustType.Free },
+                    playAsType: WildcardCardType.Unit,
                 })
             },
             ifYouDo: (ifYouDoContext) => ({

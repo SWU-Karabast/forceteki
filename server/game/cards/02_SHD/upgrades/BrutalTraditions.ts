@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import type { StateWatcherRegistrar } from '../../../core/stateWatcher/StateWatcherRegistrar';
-import { ZoneName } from '../../../core/Constants';
+import { WildcardCardType, ZoneName } from '../../../core/Constants';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
 import type { UnitsDefeatedThisPhaseWatcher } from '../../../stateWatchers/UnitsDefeatedThisPhaseWatcher';
 
@@ -22,7 +22,7 @@ export default class BrutalTraditions extends UpgradeCard {
         this.addActionAbility({
             title: 'If an enemy unit was defeated this phase, play this upgrade from your discard pile',
             condition: (context) => this.unitsDefeatedThisPhaseWatcher.someDefeatedUnitControlledByPlayer(context.player.opponent),
-            immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay(),
+            immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({ playAsType: WildcardCardType.Upgrade }),
             zoneFilter: ZoneName.Discard
         });
     }

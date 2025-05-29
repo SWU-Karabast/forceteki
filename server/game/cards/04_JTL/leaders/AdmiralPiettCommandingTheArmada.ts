@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { CardType, RelativePlayer, ZoneName, Trait, WildcardCardType } from '../../../core/Constants';
+import { CardType, RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
@@ -22,7 +22,8 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 }
+                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 1 },
+                    playAsType: WildcardCardType.Unit,
                 }),
             }
         });

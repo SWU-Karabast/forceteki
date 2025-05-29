@@ -2,6 +2,7 @@ import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
+import { WildcardCardType } from '../../../core/Constants';
 
 export default class AsIHaveForeseen extends EventCard {
     protected override getImplementationId() {
@@ -29,7 +30,8 @@ export default class AsIHaveForeseen extends EventCard {
                                         AbilityHelper.immediateEffects.useTheForce({ target: context.player }),
                                         AbilityHelper.immediateEffects.playCardFromOutOfPlay({
                                             target: topCardOfDeck,
-                                            adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 4 }
+                                            adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 4 },
+                                            playAsType: WildcardCardType.Any,
                                         })
                                     ],
                                     resolutionMode: ResolutionMode.AlwaysResolve,

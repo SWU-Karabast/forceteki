@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
-import { RelativePlayer, Trait, ZoneName } from '../../../core/Constants';
+import { RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class Salvage extends EventCard {
     protected override getImplementationId() {
@@ -17,7 +17,7 @@ export default class Salvage extends EventCard {
                 zoneFilter: ZoneName.Discard,
                 controller: RelativePlayer.Self,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle),
-                immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay()
+                immediateEffect: AbilityHelper.immediateEffects.playCardFromOutOfPlay({ playAsType: WildcardCardType.Unit })
             },
             then: (thenContext) => ({
                 title: 'Deal 1 damage to the played unit',

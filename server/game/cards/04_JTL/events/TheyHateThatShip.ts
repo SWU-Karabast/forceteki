@@ -27,7 +27,8 @@ export default class TheyHateThatShip extends EventCard {
                     controller: RelativePlayer.Self,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle),
                     immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 }
+                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 3 },
+                        playAsType: WildcardCardType.Unit,
                     }),
                 },
             }

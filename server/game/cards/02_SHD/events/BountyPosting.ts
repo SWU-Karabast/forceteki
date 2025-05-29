@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import type { ICardWithCostProperty } from '../../../core/card/propertyMixins/Cost';
-import { Trait } from '../../../core/Constants';
+import { Trait, WildcardCardType } from '../../../core/Constants';
 
 export default class BountyPosting extends EventCard {
     protected override getImplementationId() {
@@ -26,7 +26,8 @@ export default class BountyPosting extends EventCard {
                     ifYouDoContext.player.readyResourceCount >= (ifYouDoContext.selectedPromptCards[0] as ICardWithCostProperty).cost,
                 optional: true,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    target: ifYouDoContext.selectedPromptCards[0]
+                    target: ifYouDoContext.selectedPromptCards[0],
+                    playAsType: WildcardCardType.Upgrade,
                 })
             })
         });

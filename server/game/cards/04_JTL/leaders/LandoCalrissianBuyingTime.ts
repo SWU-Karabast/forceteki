@@ -28,7 +28,7 @@ export default class LandoCalrissianBuyingTime extends LeaderUnitCard {
                 cardTypeFilter: WildcardCardType.Unit,
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
-                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand()
+                immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({ playAsType: WildcardCardType.Unit })
             },
             ifYouDo: (ifYouDoContext) => ({
                 title: 'Give a Shield token to a unit',

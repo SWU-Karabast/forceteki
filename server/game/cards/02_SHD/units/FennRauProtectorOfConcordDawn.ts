@@ -21,7 +21,8 @@ export default class FennRauProtectorOfConcordDawn extends NonLeaderUnitCard {
                 zoneFilter: ZoneName.Hand,
                 controller: RelativePlayer.Self,
                 immediateEffect: AbilityHelper.immediateEffects.playCardFromHand({
-                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 2 }
+                    adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 2 },
+                    playAsType: WildcardCardType.Upgrade,
                 })
             }
         });

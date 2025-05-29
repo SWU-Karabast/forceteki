@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { KeywordName, RelativePlayer, ZoneName } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
@@ -21,7 +21,7 @@ export default class ChewbaccaWalkingCarpet extends LeaderUnitCard {
                 zoneFilter: ZoneName.Hand,
                 immediateEffect: AbilityHelper.immediateEffects.simultaneous({
                     gameSystems: [
-                        AbilityHelper.immediateEffects.playCardFromHand(),
+                        AbilityHelper.immediateEffects.playCardFromHand({ playAsType: WildcardCardType.Unit }),
                         AbilityHelper.immediateEffects.forThisPhaseCardEffect({ effect: AbilityHelper.ongoingEffects.gainKeyword(KeywordName.Sentinel) })
                     ],
                     resolutionMode: ResolutionMode.AllGameSystemsMustBeLegal,

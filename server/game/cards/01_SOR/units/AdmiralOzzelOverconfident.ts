@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
-import { CardType, ZoneName, Trait, RelativePlayer, WildcardCardType } from '../../../core/Constants';
+import { CardType, RelativePlayer, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class AdmiralOzzelOverconfident extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -22,7 +22,7 @@ export default class AdmiralOzzelOverconfident extends NonLeaderUnitCard {
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
                     cardCondition: (card) => card.hasSomeTrait(Trait.Imperial),
-                    innerSystem: AbilityHelper.immediateEffects.playCardFromHand({ entersReady: true })
+                    innerSystem: AbilityHelper.immediateEffects.playCardFromHand({ entersReady: true, playAsType: WildcardCardType.Unit })
                 }),
                 AbilityHelper.immediateEffects.selectCard({
                     activePromptTitle: 'Ready a unit',

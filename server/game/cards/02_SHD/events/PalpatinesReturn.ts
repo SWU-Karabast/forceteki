@@ -1,7 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { EventCard } from '../../../core/card/EventCard';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
-import { ZoneName, RelativePlayer, TargetMode, Trait, WildcardCardType } from '../../../core/Constants';
+import { RelativePlayer, TargetMode, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 
 export default class PalpatinesReturn extends EventCard {
     protected override getImplementationId() {
@@ -22,10 +22,12 @@ export default class PalpatinesReturn extends EventCard {
                 immediateEffect: AbilityHelper.immediateEffects.conditional({
                     condition: (context) => context.target.hasSomeTrait(Trait.Force),
                     onTrue: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 8 }
+                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 8 },
+                        playAsType: WildcardCardType.Unit,
                     }),
                     onFalse: AbilityHelper.immediateEffects.playCardFromOutOfPlay({
-                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 6 }
+                        adjustCost: { costAdjustType: CostAdjustType.Decrease, amount: 6 },
+                        playAsType: WildcardCardType.Unit,
                     })
                 }),
             }
