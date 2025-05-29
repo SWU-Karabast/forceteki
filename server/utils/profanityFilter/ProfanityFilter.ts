@@ -19,5 +19,12 @@ export function containsProfanity(text: string): boolean {
 }
 
 export function usernameContainsProfanity(text: string): boolean {
-    return karabastProfanityMatcher.hasMatch(text) || hateGroupsMatcher.hasMatch(text);
+    if (hateGroupsMatcher.hasMatch(text)) {
+        return true;
+    }
+
+    const splitOnNonAlphabetic = text.replace(/[._]+/g, ' ');
+    const splitOnWordBoundaries = splitOnNonAlphabetic.replace(/([a-z])([A-Z])/g, '$1 $2');
+
+    return karabastProfanityMatcher.hasMatch(splitOnWordBoundaries);
 }
