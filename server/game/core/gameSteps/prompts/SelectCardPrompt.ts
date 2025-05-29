@@ -155,7 +155,7 @@ export class SelectCardPrompt extends UiPrompt {
         return player === this.choosingPlayer;
     }
 
-    public override activePrompt(): IPlayerPromptStateProperties {
+    public override activePromptInternal(): IPlayerPromptStateProperties {
         let buttons = this.properties.buttons;
         if (!this.selector.automaticFireOnSelect(this.context) || this.selector.optional) {
             if (buttons.every((button) => button.arg !== 'done')) {

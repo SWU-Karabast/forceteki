@@ -10,7 +10,7 @@ class UpgradePrompt extends UiPrompt {
 
     // TODO: why is this set up this way, with the prompt being in continue()?
     /** @override */
-    activePrompt() {
+    activePromptInternal() {
         return undefined;
     }
 

@@ -14,20 +14,31 @@ export abstract class UiPrompt extends BaseStep {
     private completed = false;
     private firstContinue = true;
 
+    // indicates that the player just became active for this prompt
+    // this is passed to the FE for the sake of being able to inform the player by e.g. making a sound
+    private playerIsNewlyActive = false;
+
     public constructor(game: Game) {
         super(game);
 
         this.clearPrompts();
     }
 
-    public abstract activePrompt(player: Player): IPlayerPromptStateProperties;
-
     public abstract menuCommand(player: Player, arg: string, uuid: string): boolean;
+
+    public abstract activePromptInternal(player: Player): IPlayerPromptStateProperties;
+
+    public activePrompt(player: Player): IPlayerPromptStateProperties {
+        return { ...this.activePromptInternal(player), playerIsNewlyActive: this.playerIsNewlyActive };
+    }
 
     public override continue(): boolean {
         if (this.firstContinue) {
             this.previousPrompt = this.game.currentOpenPrompt;
             this.game.currentOpenPrompt = this;
+            this.playerIsNewlyActive = true;
+        } else {
+            this.playerIsNewlyActive = false;
         }
 
         const completed = this.isComplete();

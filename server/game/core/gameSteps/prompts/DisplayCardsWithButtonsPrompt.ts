@@ -34,7 +34,7 @@ export class DisplayCardsWithButtonsPrompt extends DisplayCardPrompt<IDisplayCar
         return {};
     }
 
-    public override activePromptInternal() {
+    public override activePromptDisplayCardInternal() {
         return {
             perCardButtons: this.perCardButtons
         };

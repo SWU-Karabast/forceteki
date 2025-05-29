@@ -41,7 +41,7 @@ class HandlerMenuMultipleSelectionPrompt extends HandlerMenuPrompt {
     }
 
     /** @override */
-    activePrompt() {
+    activePromptInternal() {
         let buttons = [];
         buttons = buttons.concat(this.properties.choices.map((choice, index) => {
             return { text: choice, arg: index, selected: this.selectedOptions.includes(choice) };

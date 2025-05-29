@@ -60,7 +60,7 @@ export class DisplayCardsForSelectionPrompt extends DisplayCardPrompt<IDisplayCa
         return {};
     }
 
-    public override activePromptInternal() {
+    public override activePromptDisplayCardInternal() {
         return {
             buttons: this.doneButton ? [this.doneButton] : [],
         };

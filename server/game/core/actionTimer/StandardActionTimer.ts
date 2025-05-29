@@ -2,11 +2,12 @@ import { logger } from '../../../logger';
 import type Game from '../Game';
 import type { Player } from '../Player';
 import * as Contract from '../utils/Contract';
-import type { IActionTimer } from './IActionTimer';
+import type { IActionTimerHandler } from './IActionTimer';
+import { PlayerTimeRemainingStatus, type IActionTimer } from './IActionTimer';
 
 interface ISpecificTimeHandler {
     fireOnRemainingTimeMs: number;
-    handler: () => void;
+    handler: IActionTimerHandler;
 }
 
 export class StandardActionTimer implements IActionTimer {
@@ -19,6 +20,7 @@ export class StandardActionTimer implements IActionTimer {
     private endTime: Date | null = null;
     private onSpecificTimeHandlers: ISpecificTimeHandler[];
     private pauseTime: Date | null = null;
+    private _timeRemainingStatus: PlayerTimeRemainingStatus = PlayerTimeRemainingStatus.NoAlert;
     private timerOverrideValueSeconds: number | null = null;
     private timers: NodeJS.Timeout[] = [];
 
@@ -35,11 +37,15 @@ export class StandardActionTimer implements IActionTimer {
           Date.now() < this.endTime.getTime();
     }
 
+    public get timeRemainingStatus(): PlayerTimeRemainingStatus {
+        return this._timeRemainingStatus;
+    }
+
     public constructor(
         timeLimitSeconds: number,
         player: Player,
         game: Game,
-        onTimeout: () => void,
+        onTimeout: () => undefined,
         checkLiveStatus: (promptUuid: string, playerActionId: number) => boolean
     ) {
         Contract.assertPositiveNonZero(timeLimitSeconds);
@@ -52,7 +58,7 @@ export class StandardActionTimer implements IActionTimer {
         this.onSpecificTimeHandlers = [{ fireOnRemainingTimeMs: 0, handler: onTimeout }];
     }
 
-    public addSpecificTimeHandler(timeSeconds: number, handler: () => void) {
+    public addSpecificTimeHandler(timeSeconds: number, handler: IActionTimerHandler) {
         Contract.assertPositiveNonZero(timeSeconds);
         Contract.assertTrue(timeSeconds * 1000 < this.timeLimitMs, `Target time for handler (${timeSeconds}) must be less than the time limit (${this.timeLimitMs / 1000})`);
 
@@ -66,6 +72,7 @@ export class StandardActionTimer implements IActionTimer {
         Contract.assertTrue(overrideTimeLimitSeconds == null || overrideTimeLimitSeconds * 1000 > this.timeLimitMs, `Received invalid time limit, must be null or greater than ${this.timeLimitMs / 1000}: ${overrideTimeLimitSeconds}`);
 
         this.timerOverrideValueSeconds = overrideTimeLimitSeconds;
+        this._timeRemainingStatus = PlayerTimeRemainingStatus.NoAlert;
 
         this.stop();
         this.initializeTimersForTimeRemaining(this.getTimeLimitMs());
@@ -111,6 +118,8 @@ export class StandardActionTimer implements IActionTimer {
             clearTimeout(timer);
         }
 
+        this._timeRemainingStatus = PlayerTimeRemainingStatus.NoAlert;
+
         this.timers = [];
         this.endTime = null;
         this.pauseTime = null;
@@ -130,7 +139,7 @@ export class StandardActionTimer implements IActionTimer {
         this.endTime = new Date(Date.now() + this.getTimeLimitMs());
         this.pauseTime = null;
 
-        const safeCallHandler = (handler: () => void) => {
+        const safeCallHandler = (handler: IActionTimerHandler) => {
             // safety check to ensure that the player being timed is still active for the prompt and hasn't issued any new game messages.
             // this prevents us from accidentally booting a player because their turn timer didn't get cleared for some reason
             if (!this.checkLiveStatus(this.activeUiPromptId, this.lastPlayerActionId)) {
@@ -138,7 +147,7 @@ export class StandardActionTimer implements IActionTimer {
                 return;
             }
 
-            handler();
+            handler((newStatus: PlayerTimeRemainingStatus) => this._timeRemainingStatus = newStatus);
         };
 
         for (const handler of this.onSpecificTimeHandlers) {

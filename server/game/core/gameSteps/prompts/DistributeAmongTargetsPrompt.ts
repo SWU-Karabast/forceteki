@@ -91,7 +91,7 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         return player === this.player;
     }
 
-    public override activePrompt(): IPlayerPromptStateProperties {
+    public override activePromptInternal(): IPlayerPromptStateProperties {
         return this._activePrompt;
     }
 
