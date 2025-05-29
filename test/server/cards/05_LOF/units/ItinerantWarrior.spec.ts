@@ -18,7 +18,7 @@ describe('Itinerant Warrior', () => {
             context.player1.clickPrompt('Shielded');
 
             // Check prompt for optional ability
-            expect(context.player1).toHavePassAbilityPrompt('Use The Force');
+            expect(context.player1).toHavePassAbilityPrompt('Use The Force to heal 3 damage from a base');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);

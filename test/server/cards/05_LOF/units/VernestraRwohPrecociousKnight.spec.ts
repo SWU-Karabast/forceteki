@@ -14,7 +14,7 @@ describe('Vernestra Rwoh, Precocious Knight', function () {
 
             expect(context.vernestraRwohPrecociousKnight.exhausted).toBeTrue();
 
-            expect(context.player1).toHavePassAbilityPrompt('Use the Force');
+            expect(context.player1).toHavePassAbilityPrompt('Use the Force to ready this unit');
             context.player1.clickPrompt('Trigger');
 
             expect(context.vernestraRwohPrecociousKnight.exhausted).toBeFalse();

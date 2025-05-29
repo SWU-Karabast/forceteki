@@ -12,7 +12,7 @@ export default class ItinerantWarrior extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Use the Force',
+            title: 'Use the Force to heal 3 damage from a base',
             optional: true,
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {

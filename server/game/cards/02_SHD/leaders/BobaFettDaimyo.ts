@@ -12,7 +12,7 @@ export default class BobaFettDaimyo extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Exhaust this leader',
+            title: 'Exhaust this leader to give a friendly unit +1/+0 for this phase',
             optional: true,
             when: {
                 onCardPlayed: (event, context) =>

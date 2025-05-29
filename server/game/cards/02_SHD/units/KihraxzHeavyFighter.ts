@@ -12,7 +12,7 @@ export default class KihraxzHeavyFighter extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addOnAttackAbility({
-            title: 'Exhaust another unit.',
+            title: 'Exhaust another unit. If you do, this unit gets +3/+0 for this attack',
             optional: true,
             targetResolver: {
                 cardTypeFilter: WildcardCardType.Unit,
