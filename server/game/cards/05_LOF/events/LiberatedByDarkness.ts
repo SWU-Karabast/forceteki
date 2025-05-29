@@ -12,10 +12,10 @@ export default class LiberatedByDarkness extends EventCard {
 
     protected override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Use the Force',
+            title: 'Use the Force. If you do, take control of a non-leader unit. At the start of the regroup phase, its owner takes control of it',
             immediateEffect: AbilityHelper.immediateEffects.useTheForce(),
             ifYouDo: {
-                title: 'Take control of a non-leader unit. At the start of the regroup phase, its owner takes control of it.',
+                title: 'Take control of a non-leader unit. At the start of the regroup phase, its owner takes control of it',
                 targetResolver: {
                     cardTypeFilter: WildcardCardType.NonLeaderUnit,
                     immediateEffect: AbilityHelper.immediateEffects.simultaneous([

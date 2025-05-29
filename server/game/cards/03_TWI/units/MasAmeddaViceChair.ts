@@ -12,7 +12,7 @@ export default class MasAmeddaViceChair extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addTriggeredAbility({
-            title: 'Exhaust this unit',
+            title: 'Exhaust this unit to search the top 4 cards of your deck for a unit, reveal it, and draw it',
             when: {
                 onCardPlayed: (event, context) =>
                     event.cardTypeWhenInPlay === CardType.BasicUnit &&

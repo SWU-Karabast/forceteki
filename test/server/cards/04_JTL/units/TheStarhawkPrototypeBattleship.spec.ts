@@ -135,7 +135,7 @@ describe('The Starhawk, Prototype Battleship', function() {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.blueLeader);
-                context.player1.clickPrompt('Pay 2 resources');
+                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.exhaustedResourceCount).toBe(4); // 2 for (adjusted) play cost, 2 for effect payment

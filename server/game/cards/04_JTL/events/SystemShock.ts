@@ -12,7 +12,7 @@ export default class SystemShock extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Defeat a non-leader upgrade attached to a unit',
+            title: 'Defeat a non-leader upgrade attached to a unit. If you do, deal 1 damage to that unit',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUpgrade,
                 immediateEffect: AbilityHelper.immediateEffects.defeat()

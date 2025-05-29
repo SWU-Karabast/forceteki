@@ -15,7 +15,7 @@ describe('Ki-Adi-Mundi, We Must Push On', () => {
             // Play Ki-Adi-Mundi
             context.player1.clickCard(context.kiadimundi);
 
-            expect(context.player1).toHavePassAbilityPrompt('Use The Force');
+            expect(context.player1).toHavePassAbilityPrompt('Use The Force to draw 2 cards');
             context.player1.clickPrompt('Trigger');
 
             // Ensure the Force was used

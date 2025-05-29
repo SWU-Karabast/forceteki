@@ -267,7 +267,7 @@ describe('Brain Invaders', () => {
 
                 // Admiral Trench regains his action abilities
                 expect(context.admiralTrench).toHaveAvailableActionWhenClickedBy(context.player2);
-                context.player2.clickPrompt('Discard a card that costs 3 or more from your hand');
+                context.player2.clickPrompt('Discard a card that costs 3 or more from your hand. If you do, draw a card');
                 context.player2.clickPrompt('Use it anyway');
             });
 
@@ -336,14 +336,14 @@ describe('Brain Invaders', () => {
                 // Player 1 plays an underworld card, Cad Bane's ability triggers
                 context.player1.clickCard(context.craftySmuggler);
                 expect(context.player1).toHavePrompt('Choose an ability to resolve:'); // Choose resolution order
-                context.player1.clickPrompt('Exhaust this leader');
-                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader');
+                context.player1.clickPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
+                expect(context.player1).toHavePassAbilityPrompt('Exhaust this leader to deal 1 damage to a unit controlled by the opponent');
                 context.player1.clickPrompt('Pass');
 
                 // Player 2 plays an upgrade, The Mandalorian's ability triggers
                 context.player2.clickCard(context.theDarksaber);
                 context.player2.clickCard(context.sabineWren);
-                expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader');
+                expect(context.player2).toHavePassAbilityPrompt('Exhaust this leader to exhaust an enemy unit with 4 or less remaining HP');
                 context.player2.clickPrompt('Pass');
             });
 
@@ -417,7 +417,7 @@ describe('Brain Invaders', () => {
                 // Attack with Obi-Wan Kenobi, his ability triggers
                 context.player2.clickCard(context.obiwanKenobi);
                 context.player2.clickCard(context.p1Base);
-                expect(context.player2).toHavePrompt('Heal 1 damage from a unit');
+                expect(context.player2).toHavePrompt('Heal 1 damage from a unit. If you do, deal 1 damage to a different unit');
                 context.player2.clickCard(context.battlefieldMarine);
                 expect(context.battlefieldMarine.damage).toBe(0);
 

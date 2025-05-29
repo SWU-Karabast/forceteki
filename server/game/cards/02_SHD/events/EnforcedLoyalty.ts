@@ -12,7 +12,7 @@ export default class EnforcedLoyalty extends EventCard {
 
     public override setupCardAbilities () {
         this.setEventAbility({
-            title: 'Defeat a friendly unit',
+            title: 'Defeat a friendly unit. If you do, draw two cards',
             targetResolver: {
                 controller: RelativePlayer.Self,
                 cardTypeFilter: WildcardCardType.Unit,

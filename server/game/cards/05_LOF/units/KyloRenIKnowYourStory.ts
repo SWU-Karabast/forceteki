@@ -12,7 +12,7 @@ export default class KyloRenIKnowYourStory extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addTriggeredAbility({
-            title: 'Use the Force',
+            title: 'Use the Force to draw a card',
             when: {
                 onCardPlayed: (event, context) =>
                     event.player === context.player &&

@@ -16,6 +16,7 @@ describe('Mace Windu, Leaping Into Action', function() {
 
             const { context } = contextRef;
             context.player1.clickCard(context.maceWindu);
+            expect(context.player1).toHavePassAbilityPrompt('Use The Force to deal 4 damage to a unit');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.maceWindu, context.rebelliousHammerhead, context.allianceXwing]);

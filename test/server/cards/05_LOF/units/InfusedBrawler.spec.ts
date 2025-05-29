@@ -19,7 +19,7 @@ describe('Infused Brawler', function() {
             player1.clickCard(context.infusedBrawler);
 
             // Use the Force ability
-            expect(player1).toHavePassAbilityPrompt('Use the Force');
+            expect(player1).toHavePassAbilityPrompt('Use the Force to give 2 Experience tokens to this unit');
             player1.clickPrompt('Trigger');
 
             // Verify that Infused Brawler received 2 Experience tokens
