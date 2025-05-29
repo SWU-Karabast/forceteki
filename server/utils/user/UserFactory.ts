@@ -68,11 +68,11 @@ export class UserFactory {
             const userProfile = await dbService.getUserProfileAsync(userId);
             Contract.assertNotNullLike(userProfile, `No user profile found for userId ${userId}`);
             await dbService.updateUserProfileAsync(userId, {
-                welcomeMessageSeen: false
+                showWelcomeMessage: false
             });
             return true;
         } catch (error) {
-            logger.error('Error setting welcomeMessageSeen status:', { error: { message: error.message, stack: error.stack } });
+            logger.error('Error setting showWelcomeMessage status:', { error: { message: error.message, stack: error.stack } });
             throw error;
         }
     }
@@ -193,7 +193,6 @@ export class UserFactory {
             await dbService.updateUserProfileAsync(userId, {
                 username: newUsername,
                 usernameLastUpdatedAt: new Date().toISOString(),
-                welcomeMessageSeen: false
             });
 
             logger.info(`Username for ${userId} changed to ${newUsername}`);
@@ -277,13 +276,16 @@ export class UserFactory {
 
             // If the user ever finds himself in a weird state where the profile doesn't exist but a dbUserID does
             // we recreate a userProfile with a new id
+            const cleanedUsername = username.trim()
+                .replace(/\s+/g, '')
+                .replace(/[^a-zA-Z0-9_]/g, '');
             const newUser = {
                 id: uuid(),
-                username: username,
+                username: cleanedUsername,
                 lastLogin: new Date().toISOString(),
                 createdAt: new Date().toISOString(),
                 usernameLastUpdatedAt: new Date().toISOString(),
-                welcomeMessageSeen: true,
+                showWelcomeMessage: true,
                 preferences: { cardback: null },
             };
 
