@@ -1700,6 +1700,10 @@ class Game extends EventEmitter {
         }
     }
 
+    resetClientEvents() {
+        this.clientUIProperties.damageDealt = [];
+    }
+
     /**
      * Captures the current game state for a bug report
      * @param reportingPlayer
