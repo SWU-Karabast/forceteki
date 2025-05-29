@@ -414,7 +414,7 @@ const mockCards = [
         internalName: 'baylan-skoll#enigmatic-master'
     }),
     buildMockCard({
-        title: 'Grace Purrgil',
+        title: 'Graceful Purrgil',
         cost: 5,
         power: 2,
         hp: 7,
@@ -433,7 +433,7 @@ const mockCards = [
     }),
     buildMockCard({
         title: 'Dooku',
-        subtitle: 'It is too late',
+        subtitle: 'It Is Too Late',
         cost: 4,
         power: 5,
         hp: 4,
