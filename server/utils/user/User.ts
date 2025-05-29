@@ -27,7 +27,7 @@ export abstract class User {
     /**
      * Gets a users welcomeMessage status
      */
-    public abstract getWelcomeMessageSeen(): boolean;
+    public abstract getShowWelcomeMessage(): boolean;
 
     /**
      * Gets the user's preferences
@@ -63,8 +63,8 @@ export class AuthenticatedUser extends User {
         return this.userData.id;
     }
 
-    public getWelcomeMessageSeen(): boolean {
-        return this.userData.welcomeMessageSeen;
+    public getShowWelcomeMessage(): boolean {
+        return this.userData.showWelcomeMessage;
     }
 
     public getUsername(): string {
@@ -119,7 +119,7 @@ export class AnonymousUser extends User {
         return null;
     }
 
-    public override getWelcomeMessageSeen(): boolean {
+    public override getShowWelcomeMessage(): boolean {
         return false;
     }
 
