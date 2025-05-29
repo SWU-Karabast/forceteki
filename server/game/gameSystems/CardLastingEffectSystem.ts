@@ -170,9 +170,13 @@ export class CardLastingEffectSystem<TContext extends AbilityContext = AbilityCo
 
     protected filterApplicableEffects(card: Card, effects: (OngoingCardEffect | OngoingPlayerEffect)[]) {
         const lastingEffectRestrictions = card.getOngoingEffectValues(EffectName.CannotApplyLastingEffects);
-        return effects.filter(
-            (props) =>
-                !lastingEffectRestrictions.some((condition) => condition(props.impl))
-        );
+
+        return effects.filter((effect) => {
+            if (card.isBlank() && (effect.impl.type === EffectName.GainAbility || effect.impl.type === EffectName.GainKeyword)) {
+                // If the target is blanked, it cannot gain abilities or keywords
+                return false;
+            }
+            return !lastingEffectRestrictions.some((condition) => condition(effect.impl));
+        });
     }
 }

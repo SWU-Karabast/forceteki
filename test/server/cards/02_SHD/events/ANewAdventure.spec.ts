@@ -84,5 +84,25 @@ describe('A New Adventure', function() {
             expect(context.player1.exhaustedResourceCount).toBe(2); // just the cost of A New Adventure
             expect(context.p1Base.damage).toBe(1);   // from Crumb ability
         });
+
+        it('can be played without a valid target', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['a-new-adventure'],
+                },
+                player2: {
+                    leader: { card: 'grand-admiral-thrawn#how-unfortunate', deployed: true },
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.aNewAdventure);
+            context.player1.clickPrompt('Play anyway');
+
+            expect(context.aNewAdventure).toBeInZone('discard');
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });

@@ -23,6 +23,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
                 // case 1: nothing happens, no cards defeated
                 context.player1.clickCard(context.idenVersio);
                 context.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.idenVersio.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(5);
 
@@ -36,6 +37,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
 
                 context.player1.clickCard(context.idenVersio);
                 context.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.idenVersio.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(5);
 
@@ -56,6 +58,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
                 context.moveToNextActionPhase();
                 context.player1.clickCard(context.idenVersio);
                 context.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.idenVersio.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(4);
             });
@@ -84,6 +87,7 @@ describe('Iden Version, Inferno Squad Commander', function() {
 
                 context.player1.clickCard(context.idenVersio);
                 context.player1.clickPrompt('Heal 1 from base if an opponent\'s unit was defeated this phase');
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.idenVersio.exhausted).toBe(true);
                 expect(context.p1Base.damage).toBe(5);
             });

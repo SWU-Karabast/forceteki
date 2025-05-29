@@ -1,0 +1,3 @@
+dev.karabast.net, api.karabast.net {
+  reverse_proxy localhost:9500
+}

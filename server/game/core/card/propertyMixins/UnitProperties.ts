@@ -474,10 +474,6 @@ export function WithUnitProperties<TBaseClass extends InPlayCardConstructor<TSta
             });
         }
 
-        public override getActionAbilities(): ActionAbility[] {
-            return this.isBlank() ? [] : super.getActionAbilities();
-        }
-
         public override getTriggeredAbilities(): TriggeredAbility[] {
             if (this.isBlank()) {
                 return [];

@@ -185,6 +185,7 @@ describe('Grand Admiral Thrawn, Patient and Insightful', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.grandAdmiralThrawn);
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.player1.exhaustedResourceCount).toBe(1);
                 expect(context.player2).toBeActivePlayer();

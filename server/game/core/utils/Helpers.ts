@@ -289,3 +289,21 @@ export function upperCaseFirstLetter(str: string): string {
 export function capitalize(value: string): string {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
+
+export function setIntersection<T>(setA: Set<T>, setB: Set<T>): Set<T> {
+    const intersection = new Set<T>();
+    for (const item of setA) {
+        if (setB.has(item)) {
+            intersection.add(item);
+        }
+    }
+    return intersection;
+}
+
+export function setUnion<T>(setA: Set<T>, setB: Set<T>): Set<T> {
+    const union = new Set<T>(setA);
+    for (const item of setB) {
+        union.add(item);
+    }
+    return union;
+}

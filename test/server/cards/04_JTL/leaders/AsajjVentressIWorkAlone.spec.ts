@@ -134,6 +134,7 @@ describe('Asajj Ventress, I Work Alone', function() {
 
                 // Click Asajj and select a friendly unit
                 context.player1.clickCard(context.asajjVentress);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.asajjVentress.exhausted).toBe(true);
 
                 expect(context.player2).toBeActivePlayer();

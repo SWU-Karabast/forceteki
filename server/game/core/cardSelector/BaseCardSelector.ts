@@ -32,7 +32,7 @@ export abstract class BaseCardSelector<TContext extends AbilityContext> {
     public checkTarget: boolean;
     public appendToDefaultTitle?: string;
 
-    protected static cardTypeFilterDescription(cardTypeFilter: CardTypeFilter | CardTypeFilter[], plural: boolean): { description: string; article: string } {
+    public static cardTypeFilterDescription(cardTypeFilter: CardTypeFilter | CardTypeFilter[], plural: boolean): { description: string; article: string } {
         const filters: string[] = [];
         let article = 'a';
         const fallback = { description: plural ? 'cards' : 'card', article: 'a' };
