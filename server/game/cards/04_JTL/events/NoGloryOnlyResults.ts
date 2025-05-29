@@ -20,7 +20,7 @@ export default class NoGloryOnlyResults extends EventCard {
                 }))
             },
             then: (thenContext) => ({
-                title: `Defeat ${thenContext.target.title}`,
+                title: `Defeat ${thenContext.target?.title}`,
                 immediateEffect: AbilityHelper.immediateEffects.defeat({
                     target: thenContext.target,
                 })
