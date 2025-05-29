@@ -761,7 +761,7 @@ describe('Qui-Gon Jinn\'s Aethersprite, Guided by the Force', () => {
 
                 // Play Blue Leader, moving to the ground arena and giving 2 Experience tokens
                 context.player1.clickCard(context.blueLeader);
-                context.player1.clickPrompt('Pay 2 resources');
+                context.player1.clickPrompt('Pay 2 resources to move this unit to the ground arena and give 2 Experience tokens to it');
                 const readyResources = context.player1.readyResourceCount;
                 context.player1.clickPrompt('Trigger');
 

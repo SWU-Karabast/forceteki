@@ -13,7 +13,7 @@ export default class AhsokaTanoChasingWhispers extends NonLeaderUnitCard {
 
     public override setupCardAbilities () {
         this.addWhenPlayedAbility({
-            title: 'An opponent discards a card from their hand. If it\'s a unit, you may exhaust a unit.',
+            title: 'An opponent discards a card from their hand. If it\'s a unit, exhaust a unit',
             immediateEffect: AbilityHelper.immediateEffects.discardCardsFromOwnHand((context) => ({
                 amount: 1,
                 target: context.player.opponent

@@ -12,7 +12,7 @@ export default class Commandeer extends EventCard {
 
     public override setupCardAbilities() {
         this.setEventAbility({
-            title: 'Take control of a non-leader Vehicle unit that costs 6 or less without a Pilot on it. At the start of the regroup phase, return that unit to its owner\'s hand.',
+            title: 'Take control of a non-leader Vehicle unit that costs 6 or less without a Pilot on it and ready it. At the start of the regroup phase, return that unit to its owner\'s hand.',
             targetResolver: {
                 cardTypeFilter: WildcardCardType.NonLeaderUnit,
                 cardCondition: (card) => card.hasSomeTrait(Trait.Vehicle) && card.isUnit() && card.cost <= 6 && !card.upgrades.some((u) => u.hasSomeTrait(Trait.Pilot)),

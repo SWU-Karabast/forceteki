@@ -12,7 +12,7 @@ export default class LomPykeDealerInTruths extends NonLeaderUnitCard {
 
     public override setupCardAbilities() {
         this.addOnAttackAbility({
-            title: 'Give a Shield token to an enemy unit',
+            title: 'Give a Shield token to an enemy unit. If you do, give a Shield token to a friendly unit',
             optional: true,
             targetResolver: {
                 controller: RelativePlayer.Opponent,

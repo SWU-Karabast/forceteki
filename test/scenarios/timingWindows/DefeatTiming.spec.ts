@@ -96,7 +96,7 @@ describe('Defeat timing', function() {
                 context.player2.clickCard(context.lieutenantChildsen);
 
                 expect(context.lieutenantChildsen).toBeInZone('discard');
-                context.player2.clickPrompt('Reveal up to 4 Vigilance cards from your hand -> Vanquish');
+                context.player2.clickPrompt('Reveal up to 4 Vigilance cards from your hand. For each card revealed this way, give an Experience token to this unit -> Vanquish');
                 context.player1.clickPrompt('Done');
                 expect(context.player1).toBeActivePlayer();
             });

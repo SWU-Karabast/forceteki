@@ -30,7 +30,7 @@ describe('Darth Vader, Scourge Of Squadrons', function() {
 
                 // Triggers first damage ability
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit. If a unit is defeated this way, deal 1 damage to a unit or base');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.tielnFighter, context.ruthlessRaider, context.determinedRecruit]);
                 context.player1.clickCard(context.tielnFighter);
 
@@ -63,7 +63,7 @@ describe('Darth Vader, Scourge Of Squadrons', function() {
 
                 // Triggers first damage ability
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit. If a unit is defeated this way, deal 1 damage to a unit or base');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.tielnFighter, context.ruthlessRaider, context.determinedRecruit]);
                 context.player1.clickCard(context.allianceXwing);
 
@@ -86,7 +86,7 @@ describe('Darth Vader, Scourge Of Squadrons', function() {
 
                 // Triggers first damage ability
                 expect(context.player1).toHavePassAbilityButton();
-                expect(context.player1).toHavePrompt('Deal 1 damage to a unit');
+                expect(context.player1).toHavePrompt('Deal 1 damage to a unit. If a unit is defeated this way, deal 1 damage to a unit or base');
                 expect(context.player1).toBeAbleToSelectExactly([context.allianceXwing, context.tielnFighter, context.ruthlessRaider, context.determinedRecruit]);
                 context.player1.clickCard(context.determinedRecruit);
 

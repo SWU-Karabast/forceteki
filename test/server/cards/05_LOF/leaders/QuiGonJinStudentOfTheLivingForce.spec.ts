@@ -130,7 +130,7 @@ describe('Qui-Gon Jinn, Student of the Living Force', function() {
                 context.player2.passAction();
 
                 context.player1.clickCard(context.quigonJinn);
-                context.player1.clickPrompt('Return a friendly non-leader unit to its owner\'s hand');
+                context.player1.clickPrompt('Return a friendly non-leader unit to its owner\'s hand. If you do, play a non-Villainy unit that costs less than the returned unit for free');
                 expect(context.player1).toBeAbleToSelectExactly([context.wampa]);
                 context.player1.clickCard(context.wampa);
                 expect(context.wampa).toBeInZone('hand', context.player2);

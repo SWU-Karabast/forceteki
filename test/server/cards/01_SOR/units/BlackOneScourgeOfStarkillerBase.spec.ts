@@ -24,7 +24,7 @@ describe('Black One', function() {
                 context.player1.clickCard(context.blackOne);
 
                 expect(context.player1.handSize).toBe(0);
-                expect(context.player1).toHavePassAbilityPrompt('Discard your hand');
+                expect(context.player1).toHavePassAbilityPrompt('Discard your hand. If you do, draw 3 cards');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(3);
@@ -37,7 +37,7 @@ describe('Black One', function() {
                 context.player2.clickCard(context.vanquish);
 
                 // Player 1 actives When Defeated, drawing cards
-                expect(context.player1).toHavePassAbilityPrompt('Discard your hand');
+                expect(context.player1).toHavePassAbilityPrompt('Discard your hand. If you do, draw 3 cards');
                 context.player1.clickPrompt('Trigger');
 
                 expect(context.player1.handSize).toBe(3);

@@ -27,7 +27,7 @@ describe('All Wings Report In', function() {
                 context.player1.clickCard(context.allWingsReportIn);
 
                 // Exhaust up to 2 friendly space units
-                expect(context.player1).toHavePrompt('Exhaust up to 2 friendly space units');
+                expect(context.player1).toHavePrompt('Exhaust up to 2 friendly space units. For each unit exhausted this way, create an X-Wing token');
                 expect(context.player1).toHaveChooseNothingButton();
 
                 // Select a space unit
@@ -78,7 +78,7 @@ describe('All Wings Report In', function() {
                 // Play All Wings Report In
                 context.player1.clickCard(context.allWingsReportIn);
 
-                expect(context.player1).toHavePrompt('Exhaust up to 2 friendly space units');
+                expect(context.player1).toHavePrompt('Exhaust up to 2 friendly space units. For each unit exhausted this way, create an X-Wing token');
                 expect(context.player1).toHaveChooseNothingButton();
 
                 // Select a space unit

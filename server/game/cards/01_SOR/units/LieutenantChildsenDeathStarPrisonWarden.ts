@@ -12,7 +12,7 @@ export default class LieutenantChildsenDeathStarPrisonWarden extends NonLeaderUn
 
     public override setupCardAbilities() {
         this.addWhenPlayedAbility({
-            title: 'Reveal up to 4 Vigilance cards from your hand',
+            title: 'Reveal up to 4 Vigilance cards from your hand. For each card revealed this way, give an Experience token to this unit',
             targetResolver: {
                 mode: TargetMode.UpTo,
                 numCards: 4,

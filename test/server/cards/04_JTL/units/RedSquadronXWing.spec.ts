@@ -18,7 +18,7 @@ describe('Red Squadron X-Wing', function() {
 
             // Play Red Squadron X-Wing and deal 1 damage to itself to draw a card
             context.player1.clickCard(context.redSquadronXwing);
-            expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to this unit');
+            expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to this unit. If you do, draw a card');
             context.player1.clickPrompt('Trigger');
 
             expect(context.player2).toBeActivePlayer();
@@ -30,7 +30,7 @@ describe('Red Squadron X-Wing', function() {
 
             // Play Red Squadron X-Wing and pass ability
             context.player1.clickCard(context.redSquadronXwing);
-            expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to this unit');
+            expect(context.player1).toHavePassAbilityPrompt('Deal 2 damage to this unit. If you do, draw a card');
             context.player1.clickPrompt('Pass');
 
             expect(context.player2).toBeActivePlayer();

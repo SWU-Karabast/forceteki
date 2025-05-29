@@ -13,7 +13,7 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
 
     protected override setupLeaderSideAbilities() {
         this.addActionAbility({
-            title: 'Return a friendly non-leader unit to its owner\'s hand',
+            title: 'Return a friendly non-leader unit to its owner\'s hand. If you do, play a non-Villainy unit that costs less than the returned unit for free',
             cost: [
                 AbilityHelper.costs.exhaustSelf(),
                 AbilityHelper.costs.useTheForce()
@@ -25,7 +25,7 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: `Play a non-Villainy unit that costs ${ifYouDoContext.target.cost} or less`,
+                title: `Play a non-Villainy unit that costs less than ${ifYouDoContext.target.cost}`,
                 targetResolver: {
                     cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
@@ -42,7 +42,7 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
 
     protected override setupLeaderUnitSideAbilities() {
         this.addTriggeredAbility({
-            title: 'Return a friendly non-leader unit to its owner\'s hand',
+            title: 'Return a friendly non-leader unit to its owner\'s hand. If you do, play a non-Villainy unit that costs less than the returned unit for free',
             optional: true,
             when: {
                 onAttackCompleted: (event, context) => event.attack.attacker === context.source,
@@ -54,7 +54,7 @@ export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {
                 immediateEffect: AbilityHelper.immediateEffects.returnToHand()
             },
             ifYouDo: (ifYouDoContext) => ({
-                title: `Play a non-Villainy unit that costs ${ifYouDoContext.target.cost} or less`,
+                title: `Play a non-Villainy unit that costs less then ${ifYouDoContext.target.cost}`,
                 targetResolver: {
                     cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,

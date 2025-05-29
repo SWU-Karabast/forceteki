@@ -13,7 +13,7 @@ export default class CassianAndorThreadingTheEye extends NonLeaderUnitCard {
     public override setupCardAbilities() {
         this.addPilotingGainAbilityTargetingAttached({
             type: AbilityType.Triggered,
-            title: 'Discard a card from the defending player\'s deck',
+            title: 'Discard a card from the defending player\'s deck. If that card costs 3 or less, draw a card',
             when: {
                 onAttack: true,
             },
