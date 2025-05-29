@@ -96,5 +96,25 @@ describe('No Glory, Only Results', function() {
             expect(context.blackSunStarfighter).toBeInZone('discard');
             expect(context.superlaserTechnician).toBeInZone('resource');
         });
+
+        it('can be played without a valid target', async function() {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hand: ['no-glory-only-results'],
+                },
+                player2: {
+                    leader: { card: 'grand-admiral-thrawn#how-unfortunate', deployed: true },
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.noGloryOnlyResults);
+            context.player1.clickPrompt('Play anyway');
+
+            expect(context.noGloryOnlyResults).toBeInZone('discard');
+            expect(context.player2).toBeActivePlayer();
+        });
     });
 });
