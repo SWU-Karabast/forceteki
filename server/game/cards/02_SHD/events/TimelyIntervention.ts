@@ -16,6 +16,7 @@ export default class TimelyIntervention extends EventCard {
             title: 'Play a unit from your hand. Give it ambush for this phase',
             cannotTargetFirst: true,
             targetResolver: {
+                // TODO remove cardTypeFilter but fix Choose nothing button before
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,
                 zoneFilter: ZoneName.Hand,

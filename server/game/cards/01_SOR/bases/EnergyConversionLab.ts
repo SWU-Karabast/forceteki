@@ -1,6 +1,6 @@
 import { BaseCard } from '../../../core/card/BaseCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { CardType, KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { KeywordName, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { ResolutionMode } from '../../../gameSystems/SimultaneousOrSequentialSystem';
 
 export default class EnergyConversionLab extends BaseCard {

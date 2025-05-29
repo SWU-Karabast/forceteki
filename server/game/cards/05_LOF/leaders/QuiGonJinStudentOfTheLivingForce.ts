@@ -1,6 +1,6 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { LeaderUnitCard } from '../../../core/card/LeaderUnitCard';
-import { Aspect, CardType, RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
+import { Aspect, RelativePlayer, WildcardCardType, WildcardZoneName, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class QuiGonJinStudentOfTheLivingForce extends LeaderUnitCard {

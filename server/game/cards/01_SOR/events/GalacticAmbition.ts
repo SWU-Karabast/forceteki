@@ -1,5 +1,5 @@
 import { EventCard } from '../../../core/card/EventCard';
-import { Aspect, CardType, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { Aspect, RelativePlayer, WildcardCardType, ZoneName } from '../../../core/Constants';
 import AbilityHelper from '../../../AbilityHelper';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 

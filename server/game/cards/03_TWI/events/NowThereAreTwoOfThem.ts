@@ -1,6 +1,6 @@
 import { EventCard } from '../../../core/card/EventCard';
 import AbilityHelper from '../../../AbilityHelper';
-import { CardType, Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
+import { Trait, WildcardCardType, ZoneName } from '../../../core/Constants';
 import { CostAdjustType } from '../../../core/cost/CostAdjuster';
 
 export default class NowThereAreTwoOfThem extends EventCard {

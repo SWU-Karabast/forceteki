@@ -35,6 +35,7 @@ export default class MorganElsbethFollowingTheCall extends LeaderUnitCard {
                 playFromHand: {
                     activePromptTitle: 'Play a unit from you hand that shares a Keyword with the chosen unit',
                     dependsOn: 'friendlyUnit',
+                    // TODO remove cardTypeFilter but fix Choose nothing button before
                     cardTypeFilter: CardType.BasicUnit,
                     controller: RelativePlayer.Self,
                     zoneFilter: ZoneName.Hand,
