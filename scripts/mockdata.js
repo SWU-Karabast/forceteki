@@ -496,6 +496,41 @@ const mockCards = [
         arena: 'ground',
         internalName: 'ahsoka-tano#fighting-for-peace'
     }),
+    buildMockCard({
+        title: 'T-6 Shuttle 1974',
+        subtitle: 'Stay Close',
+        cost: 3,
+        power: 3,
+        hp: 4,
+        hasNonKeywordAbility: true,
+        aspects: ['vigilance', 'heroism'],
+        types: ['unit'],
+        traits: ['fringe', 'vehicle', 'transport'],
+        setId: {
+            set: 'LOF',
+            number: 47
+        },
+        unique: true,
+        arena: 'space',
+        internalName: 't6-shuttle-1974#stay-close'
+    }),
+    buildMockCard({
+        title: 'Hyperspace Wayfarer',
+        cost: 6,
+        power: 4,
+        hp: 10,
+        hasNonKeywordAbility: false,
+        aspects: ['command'],
+        types: ['unit'],
+        traits: ['creature'],
+        setId: {
+            set: 'LOF',
+            number: 119
+        },
+        unique: false,
+        arena: 'space',
+        internalName: 'hyperspace-wayfarer'
+    }),
 ];
 
 /** @param {{ title: string, subtitle: string?, hasNonKeywordAbility: boolean, cost: number?, hp: number?, arena?: string, unique: boolean, upgradeHp: number?, upgradePower: number?, aspects: string[]?, traits: string[]?, keywords: string[]?, types: string[], setId: { set: string, number: number }, internalName: string }} cardData */
