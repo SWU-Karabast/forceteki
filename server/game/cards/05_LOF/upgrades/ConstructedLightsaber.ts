@@ -5,7 +5,7 @@ import { Aspect, KeywordName, Trait } from '../../../core/Constants';
 export default class ConstructedLightsaber extends UpgradeCard {
     protected override getImplementationId() {
         return {
-            id: 'constructed-lightsaber-id',
+            id: '3688574857',
             internalName: 'constructed-lightsaber',
         };
     }

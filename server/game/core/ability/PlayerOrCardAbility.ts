@@ -13,15 +13,16 @@ import type Game from '../Game.js';
 import type { Player } from '../Player.js';
 import type { PlayCardAction } from './PlayCardAction.js';
 import type { InitiateAttackAction } from '../../actions/InitiateAttackAction.js';
-import type { EpicActionAbility } from '../../abilities/EpicActionAbility.js';
 import type { CardAbilityStep } from './CardAbilityStep.js';
 import type { Card } from '../card/Card.js';
 import { v4 as uuidv4 } from 'uuid';
 import type { IAbilityPropsWithSystems } from '../../Interfaces.js';
 import type { GameSystem } from '../gameSystem/GameSystem.js';
-import type { IActionTargetResolver } from '../../TargetInterfaces.js';
+import type { IActionTargetResolver, ITargetResolverBase } from '../../TargetInterfaces.js';
 import type { IAbilityLimit } from './AbilityLimit.js';
 import type { ICost } from '../cost/ICost.js';
+import type { ITargetResult, TargetResolver } from './abilityTargets/TargetResolver.js';
+import type { ActionAbility } from './ActionAbility.js';
 
 export type IPlayerOrCardAbilityProps<TContext extends AbilityContext> = IAbilityPropsWithSystems<TContext> & {
     triggerHandlingMode?: TriggerHandlingMode;
@@ -252,6 +253,23 @@ export abstract class PlayerOrCardAbility {
         }
     }
 
+    protected getCostsMessages(context: AbilityContext): { message: string | string[] }[] {
+        return this.getCosts(context)
+            .map((cost) => {
+                if (cost.getCostMessage && cost.getCostMessage(context)) {
+                    let [format, args]: [string, any[]] = ['ERROR - MISSING COST MESSAGE', [' ', ' ']];
+                    [format, args] = cost.getCostMessage(context);
+                    const message = this.game.gameChat.formatMessage(format, args);
+                    if (Helpers.asArray(message).every((msg) => msg.length === 0)) {
+                        return null;
+                    }
+                    return { message: message };
+                }
+                return null;
+            })
+            .filter((obj) => obj);
+    }
+
     /**
      * Returns whether there are eligible cards available to fulfill targets.
      */
@@ -270,7 +288,7 @@ export abstract class PlayerOrCardAbility {
         return this.resolveTargetsInner(this.targetResolvers, context, passHandler, canCancel);
     }
 
-    public resolveTargetsInner(targetResolvers, context: AbilityContext, passHandler, canCancel) {
+    public resolveTargetsInner(targetResolvers: TargetResolver<ITargetResolverBase<AbilityContext>>[], context: AbilityContext, passHandler, canCancel?: boolean) {
         const targetResults = this.getDefaultTargetResults(context, canCancel);
         for (const target of targetResolvers) {
             context.game.queueSimpleStep(() => target.resolve(context, targetResults, passHandler), `Resolve target '${target.name}' for ${this}`);
@@ -278,7 +296,7 @@ export abstract class PlayerOrCardAbility {
         return targetResults;
     }
 
-    public getDefaultTargetResults(context: AbilityContext, canCancel = undefined) {
+    public getDefaultTargetResults(context: AbilityContext, canCancel?: boolean): ITargetResult {
         return {
             canIgnoreAllCosts:
                 context.stage === Stage.PreTarget ? this.getCosts(context).every((cost) => cost.canIgnoreForTargeting) : false,
@@ -384,7 +402,12 @@ export abstract class PlayerOrCardAbility {
         return false;
     }
 
-    public isEpicAction(): this is EpicActionAbility {
+    // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+    public get isEpicAction(): boolean {
+        return false;
+    }
+
+    public isActionAbility(): this is ActionAbility {
         return false;
     }
 }

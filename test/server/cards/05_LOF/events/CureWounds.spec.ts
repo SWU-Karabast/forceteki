@@ -34,7 +34,9 @@ describe('Cure Wounds', function() {
                 context.player1.setHasTheForce(false);
 
                 context.player1.clickCard(context.cureWounds);
+                context.player1.clickPrompt('Play anyway');
 
+                expect(context.cureWounds).toBeInZone('discard', context.player1);
                 expect(context.relentless.damage).toBe(7);
                 expect(context.battlefieldMarine.damage).toBe(2);
                 expect(context.wampa.damage).toBe(4);

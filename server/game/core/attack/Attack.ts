@@ -6,9 +6,6 @@ import type { IAttackableCard } from '../card/CardInterfaces';
 import type { IUnitCard } from '../card/propertyMixins/UnitProperties';
 import type { Player } from '../Player';
 
-
-type StatisticTotal = number;
-
 export class Attack {
     private readonly game: Game;
     public readonly attacker: IUnitCard;
@@ -53,8 +50,13 @@ export class Attack {
         this.unitControllersChanged.add(unit);
     }
 
+    public getDefendingPlayer(): Player {
+        Contract.assertTrue(this.targets.length > 0, 'Expected at least one target but there are none');
+        return this.targets[0].controller;
+    }
+
     public getSingleTarget(): IAttackableCard {
-        Contract.assertTrue(this.targets.length === 1, 'Expected one target but there are multiple');
+        Contract.assertTrue(this.targets.length === 1, `Expected one target but there are multiple (${this.targets.length})`);
         return this.targets[0];
     }
 
@@ -114,13 +116,8 @@ export class Attack {
         );
     }
 
-    // TODO: if we end up using this we need to refactor it to reflect attacks in SWU (i.e., show HP)
-    public getTotalsForDisplay(): string {
-        return `${this.attacker.name}: ${this.getAttackerTotalPower()} vs ${this.getTargetTotalPower()}: ${this.targets.map((target) => target.name).join(', ')}`;
-    }
-
-    private getUnitPower(involvedUnit: IUnitCard): StatisticTotal {
-        Contract.assertTrue(involvedUnit.isInPlay(), `Unit ${involvedUnit.name} zone is ${involvedUnit.zoneName}, cannot participate in combat`);
+    private getUnitPower(involvedUnit: IUnitCard): number {
+        Contract.assertTrue(involvedUnit.isInPlay(), `Unit ${involvedUnit.title} zone is ${involvedUnit.zoneName}, cannot participate in combat`);
 
         return involvedUnit.getPower();
     }

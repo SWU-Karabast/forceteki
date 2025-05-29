@@ -41,6 +41,7 @@ export class OngoingEffectEngine {
     public checkDelayedEffects(events: GameEvent[]) {
         const effectsToTrigger: OngoingEffect[] = [];
         const effectsToRemove: OngoingEffect[] = [];
+
         for (const effect of this.effects.filter(
             (effect) => effect.isEffectActive() && effect.impl.type === EffectName.DelayedEffect
         )) {
@@ -58,10 +59,12 @@ export class OngoingEffectEngine {
                 }
             }
         }
+
         const effectTriggers = effectsToTrigger.map((effect) => {
             const properties = effect.impl.getValue();
             const context = effect.context.createCopy({ events });
             const targets = effect.targets;
+
             return {
                 title: context.source.title + '\'s effect' + (targets.length === 1 ? ' on ' + targets[0].name : ''),
                 handler: () => {
@@ -76,12 +79,13 @@ export class OngoingEffectEngine {
                     }
                     const actionEvents = [];
                     properties.immediateEffect.queueGenerateEventGameSteps(actionEvents, context);
-                    properties.limit.increment(context.source.owner);
+                    properties.limit.increment(context.player);
                     this.game.queueSimpleStep(() => this.game.openEventWindow(actionEvents), 'openDelayedActionsWindow');
                     this.game.queueSimpleStep(() => this.game.resolveGameState(true), 'resolveGameState');
                 }
             };
         });
+
         if (effectTriggers.length > 0) {
             // TODO Implement the correct trigger window. We may need a subclass of TriggeredAbilityWindow for multiple simultaneous effects
             effectTriggers.forEach((trigger) => {
@@ -124,7 +128,7 @@ export class OngoingEffectEngine {
                     const effectImplValue = effect.impl.getValue();
                     const limit = effectImplValue.limit;
 
-                    return limit.isAtMax(effect.source.controller);
+                    return limit.isAtMax(effect.context.player);
                 }
 
                 if (effect.duration !== Duration.Persistent) {

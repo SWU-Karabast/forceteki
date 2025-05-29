@@ -88,20 +88,27 @@ describe('Scanning Officer', function () {
                 },
                 player2: {
                     leader: { card: 'boba-fett#daimyo', exhausted: true },
-                    resources: [{ card: 'pyke-sentinel', exhausted: true }, 'collections-starhopper', 'reckless-gunslinger', { card: 'wampa', exhausted: true }, 'moisture-farmer', 'armed-to-the-teeth']
+                    resources: [
+                        { card: 'pyke-sentinel', exhausted: true },
+                        'collections-starhopper',
+                        'reckless-gunslinger',
+                        { card: 'wampa', exhausted: true },
+                        'moisture-farmer',
+                        'armed-to-the-teeth'
+                    ]
                 }
             });
 
             const { context } = contextRef;
-            context.game.setRandomSeed('76234');
+            context.game.setRandomSeed('123456');
 
             context.player1.clickCard(context.scanningOfficer);
 
             // Resources were shuffled
-            expect(context.pykeSentinel.exhausted).toBe(false);
+            expect(context.wampa.exhausted).toBe(false);
 
-            expect(context.player1).toHaveExactViewableDisplayPromptCards([context.pykeSentinel, context.recklessGunslinger, context.armedToTheTeeth]);
-            expect(context.getChatLogs(1)[0]).toContain(context.pykeSentinel.title);
+            expect(context.player1).toHaveExactViewableDisplayPromptCards([context.wampa, context.recklessGunslinger, context.armedToTheTeeth]);
+            expect(context.getChatLogs(1)[0]).toContain(context.wampa.title);
             expect(context.getChatLogs(1)[0]).toContain(context.recklessGunslinger.title);
             expect(context.getChatLogs(1)[0]).toContain(context.armedToTheTeeth.title);
             context.player1.clickPrompt('Done');
@@ -109,7 +116,7 @@ describe('Scanning Officer', function () {
             expect(context.recklessGunslinger).toBeInZone('discard');
             expect(context.armedToTheTeeth).toBeInZone('discard');
             expect(context.player2.resources.length).toBe(6);
-            expect(context.player2.readyResourceCount).toBe(4);
+            expect(context.player2.readyResourceCount).toBe(3);
         });
 
         it('should reveal and defeat all chosen resources if the opponent has Tech on the board', async function () {

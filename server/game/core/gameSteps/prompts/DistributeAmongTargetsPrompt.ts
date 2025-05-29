@@ -77,6 +77,11 @@ export class DistributeAmongTargetsPrompt extends UiPrompt {
         };
     }
 
+    protected override startActionTimer(player: Player): void {
+        // due to a bug that clears the prompts when the timer message appears, we're extending the timer during this prompt for now
+        player.actionTimer.start(120);
+    }
+
     protected override highlightSelectableCards(): void {
         this.player.setSelectableCards(this.properties.legalTargets);
         this.player.opponent.setSelectableCards([]);

@@ -5,7 +5,7 @@ import { Trait } from '../../../core/Constants';
 export default class AtaruOnslaught extends EventCard {
     protected override getImplementationId () {
         return {
-            id: 'ataru-onslaught-id',
+            id: '6736342819',
             internalName: 'ataru-onslaught',
         };
     }

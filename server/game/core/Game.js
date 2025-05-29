@@ -1079,10 +1079,11 @@ class Game extends EventEmitter {
     /**
      * Resolves a card ability
      * @param {AbilityContext} context - see AbilityContext.js
+     * @param {string[]} [ignoredRequirements=[]]
      * @returns {AbilityResolver}
      */
-    resolveAbility(context) {
-        let resolver = new AbilityResolver(this, context);
+    resolveAbility(context, ignoredRequirements = []) {
+        let resolver = new AbilityResolver(this, context, false, null, null, ignoredRequirements);
         this.queueStep(resolver);
         return resolver;
     }

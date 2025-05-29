@@ -19,6 +19,7 @@ describe('Quinlan Vos, Sticking the Landing', function () {
 
             // we play an event, nothing happen
             context.player1.clickCard(context.theEmperorsLegion);
+            context.player1.clickPrompt('Play anyway');
 
             // opponent play a unit, nothing happen
             context.player2.clickCard(context.craftySmuggler);

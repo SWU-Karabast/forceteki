@@ -1,23 +1,29 @@
-# Use the official Node.js:lst runtime as a base image
-FROM node:lts
 
-# Set the working directory in the container
+FROM caddy:2.7.6-alpine
+
+# Install Node.js and npm
+RUN apk add --no-cache nodejs npm tini
+
+# Set tini as the container's init system
+ENTRYPOINT ["/sbin/tini", "--"]
+
 WORKDIR /app
 
-# Copy the build over
-COPY ./build/ ./app
+# Copy built app and runtime code from builder stage
+COPY ./build /app/app
+COPY ./server /app/server
+COPY ./node_modules /app/node_modules
+COPY ./package*.json /app/
+COPY ./Caddyfile /etc/caddy/Caddyfile
 
-# Copy our dependencies
-COPY ./node_modules ./node_modules
-
-# ENV variables w/ dummy values
+# Set environment variables
+ENV ENVIRONMENT="production"
 ENV GAME_NODE_HOST="localhost"
 ENV GAME_NODE_NAME="test1"
 ENV GAME_NODE_SOCKET_IO_PORT="9500"
-ENV ENVIRONMENT="production"
-ENV SECRET="verysecret"
 
+# Expose app port (internal only — Caddy handles public traffic)
 EXPOSE 9500
 
-# Tell docker what command will start the application
-CMD [ "node", "./app/server/gamenode" ]
+# Start Node app and Caddy together
+CMD ["sh", "-c", "node ./app/server/gamenode & caddy run --config /etc/caddy/Caddyfile --adapter caddyfile"]

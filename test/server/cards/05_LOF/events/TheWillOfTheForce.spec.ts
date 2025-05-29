@@ -187,7 +187,9 @@ describe('The Will of the Force ability', function () {
                 const { context } = contextRef;
 
                 context.player1.clickCard(context.theWillOfTheForce);
+                context.player1.clickPrompt('Play anyway');
 
+                expect(context.theWillOfTheForce).toBeInZone('discard', context.player1);
                 expect(context.player2).toBeActivePlayer();
             });
         });

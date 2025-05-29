@@ -268,6 +268,26 @@ describe('Hotshot Maneuver', function() {
                 expect(context.craftySmuggler.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(9);
             });
+
+            it('can be played without a valid target', async function() {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['hotshot-maneuver'],
+                    },
+                    player2: {
+                        leader: { card: 'grand-admiral-thrawn#how-unfortunate', deployed: true },
+                    }
+                });
+
+                const { context } = contextRef;
+
+                context.player1.clickCard(context.hotshotManeuver);
+                context.player1.clickPrompt('Play anyway');
+
+                expect(context.hotshotManeuver).toBeInZone('discard');
+                expect(context.player2).toBeActivePlayer();
+            });
         });
     });
 });

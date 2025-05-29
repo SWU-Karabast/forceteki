@@ -53,5 +53,68 @@ describe('Mercenary Gunship', function() {
                 expect(context.player2.readyResourceCount).toBe(p1Resources - 8);
             });
         });
+
+        describe('Mercenary Gunship\'s interaction with Pilot leaders', function() {
+            beforeEach(function () {
+                return contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        leader: 'darth-vader#victor-squadron-leader',
+                        base: 'mos-eisley',
+                        spaceArena: ['mercenary-gunship'],
+                    },
+                    player2: {
+                        leader: 'kazuda-xiono#best-pilot-in-the-galaxy'
+                    }
+                });
+            });
+
+            it('if it becomes a leader unit due to piloting, it gets defeated inead of changing control', function () {
+                const { context } = contextRef;
+
+                // Player 1 deploys Darth Vader to pilot the Mercenary Gunship
+                context.player1.clickCard(context.darthVader);
+                context.player1.clickPrompt('Deploy Darth Vader as a Pilot');
+                context.player1.clickCard(context.mercenaryGunship);
+
+                expect(context.mercenaryGunship).toHaveExactUpgradeNames(['darth-vader#victor-squadron-leader']);
+                expect(context.mercenaryGunship.isLeader()).toBeTrue();
+
+                // Player 2 uses Mercenary Gunship's ability to take control
+                context.player2.clickCard(context.mercenaryGunship);
+
+                // Mercenary Gunship is defeated instead of changing control
+                expect(context.mercenaryGunship).toBeInZone('discard', context.player1);
+                expect(context.darthVader).toBeInZone('base', context.player1);
+                expect(context.darthVader.exhausted).toBeTrue();
+            });
+
+            it('if it changes control, then becomes a leader unit, it gets defeated the next time its ability is used', function () {
+                const { context } = contextRef;
+                context.player1.passAction();
+
+                // Player 2 uses Mercenary Gunship's ability to take control
+                context.player2.clickCard(context.mercenaryGunship);
+                expect(context.mercenaryGunship).toBeInZone('spaceArena', context.player2);
+
+                context.player1.passAction();
+
+                // Player 2 deploys Kazuda Xiono to pilot the Mercenary Gunship
+                context.player2.clickCard(context.kazudaXiono);
+                context.player2.clickPrompt('Deploy Kazuda Xiono as a Pilot');
+                context.player2.clickCard(context.mercenaryGunship);
+
+                expect(context.mercenaryGunship).toHaveExactUpgradeNames(['kazuda-xiono#best-pilot-in-the-galaxy']);
+                expect(context.mercenaryGunship.isLeader()).toBeTrue();
+
+                // Player 1 uses Mercenary Gunship's ability to take control
+                context.player1.clickCard(context.mercenaryGunship);
+
+                // Mercenary Gunship is defeated instead of changing control
+                expect(context.mercenaryGunship).toBeInZone('discard', context.player1);
+                expect(context.kazudaXiono).toBeInZone('base', context.player2);
+                expect(context.kazudaXiono.exhausted).toBeTrue();
+            });
+        });
     });
 });

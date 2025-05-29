@@ -116,5 +116,27 @@ describe('Boba Fett\'s Armor', function () {
             expect(context.bobaFettDisintegrator.damage).toBe(0);
             expect(context.bobaFettDisintegrator).toHaveExactUpgradeNames(['boba-fetts-armor']);
         });
+
+        it('Boba Fett\'s Armor works when lethal damage is dealt', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    leader: { card: 'boba-fett#daimyo', deployed: true, upgrades: ['boba-fetts-armor'], damage: 7 },
+                },
+                player2: {
+                    leader: { card: 'qira#i-alone-survived', deployed: true, damage: 4 },
+                    hasInitiative: true
+                }
+            });
+
+            const { context } = contextRef;
+
+            context.player2.clickCard(context.qiraIAloneSurvived);
+            context.player2.clickCard(context.bobaFettDaimyo);
+
+            expect(context.bobaFettDaimyo.deployed).toBe(false);
+            expect(context.bobaFettDaimyo).toBeInZone('base');
+            expect(context.bobaFettsArmor).toBeInZone('discard');
+        });
     });
 });

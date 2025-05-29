@@ -43,6 +43,7 @@ describe('Jabba the Hutt, Cunning Daimyo', function () {
                 expect(context.player1.exhaustedResourceCount).toBe(lastExhaustedResources + 2);
 
                 context.player2.clickCard(p2ShootFirst);
+                context.player2.clickPrompt('Play anyway');
                 expect(context.player2.exhaustedResourceCount).toBe(1);
             });
         });

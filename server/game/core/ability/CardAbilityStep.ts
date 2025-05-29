@@ -16,7 +16,7 @@ import type { AbilityContext } from './AbilityContext.js';
  * full card ability, since it is assumed the ability is already resolving (see `CardAbility.js`).
  */
 export class CardAbilityStep extends PlayerOrCardAbility {
-    protected cannotTargetFirst: boolean;
+    public cannotTargetFirst: boolean;
 
     private handler: (context: AbilityContext) => void;
 
@@ -134,7 +134,9 @@ export class CardAbilityStep extends PlayerOrCardAbility {
 
         for (const system of systems) {
             this.game.queueSimpleStep(() => {
-                system.queueGenerateEventGameSteps(context.events, context);
+                if (system.hasLegalTarget(context)) {
+                    system.queueGenerateEventGameSteps(context.events, context);
+                }
             },
             `queue ${system.name} event generation steps for ${this}`);
         }

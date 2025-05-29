@@ -1,6 +1,7 @@
 import AbilityHelper from '../../../AbilityHelper';
 import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 import { DefeatCardSystem } from '../../../gameSystems/DefeatCardSystem';
+import * as EnumHelpers from '../../../core/utils/EnumHelpers';
 
 export default class ArquitensAssaultCruiser extends NonLeaderUnitCard {
     protected override getImplementationId() {
@@ -16,7 +17,7 @@ export default class ArquitensAssaultCruiser extends NonLeaderUnitCard {
             when: {
                 onCardDefeated: (event, context) =>
                     event.isDefeatedByAttacker &&
-                    event.card.isNonLeaderUnit() &&
+                    EnumHelpers.isNonLeaderUnit(event.lastKnownInformation.type) &&
                     DefeatCardSystem.defeatSourceCard(event) === context.source
             },
             immediateEffect: AbilityHelper.immediateEffects.resourceCard((context) => ({ target: context.event.card }))

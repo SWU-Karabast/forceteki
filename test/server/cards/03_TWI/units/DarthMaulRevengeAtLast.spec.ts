@@ -33,6 +33,7 @@ describe('Darth Maul, Revenge At Last', function() {
             context.player1.clickCard(context.wampa);
             expect(context.darthMaul.damage).toBe(4);
             expect(context.wampa).toBeInZone('discard');
+            expect(context.getChatLogs(2)).toContain('Darth Maul attacks Wampa');
         });
 
         it('should not be prompted to select multiple targets when there is only one enemy ground unit', async function () {
@@ -156,6 +157,7 @@ describe('Darth Maul, Revenge At Last', function() {
             expect(context.moistureFarmer).toBeInZone('discard');
             expect(context.wampa).toBeInZone('discard');
             expect(context.p2Base.damage).toBe(0);
+            expect(context.getChatLogs(2)).toContain('Darth Maul attacks Moisture Farmer and Wampa');
         });
 
         it('should be able to attack two of many units when played with Ambush', async function () {

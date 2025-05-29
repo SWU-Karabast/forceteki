@@ -4,7 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class EethKothSpiritualWarrior extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'eeth-koth#spiritual-warrior-id',
+            id: '1160624693',
             internalName: 'eeth-koth#spiritual-warrior',
         };
     }

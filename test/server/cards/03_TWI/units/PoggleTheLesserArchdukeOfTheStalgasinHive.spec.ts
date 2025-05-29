@@ -45,6 +45,7 @@ describe('Poggle The Lesser, Archduke of the Stalgasin Hive', function() {
             // Player plays an event, ability should not trigger
             context.player2.passAction();
             context.player1.clickCard(context.confiscate);
+            context.player1.clickPrompt('Play anyway');
             expect(context.poggleTheLesserArchdukeOfTheStalgasinHive.exhausted).toBe(false);
             expect(context.player2).toBeActivePlayer();
 

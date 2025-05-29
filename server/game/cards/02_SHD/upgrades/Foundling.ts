@@ -1,6 +1,6 @@
+import AbilityHelper from '../../../AbilityHelper';
 import { UpgradeCard } from '../../../core/card/UpgradeCard';
-import { EffectName, Trait } from '../../../core/Constants';
-import { OngoingEffectBuilder } from '../../../core/ongoingEffect/OngoingEffectBuilder';
+import { Trait } from '../../../core/Constants';
 
 export default class Foundling extends UpgradeCard {
     protected override getImplementationId () {
@@ -13,7 +13,7 @@ export default class Foundling extends UpgradeCard {
     public override setupCardAbilities () {
         this.addConstantAbilityTargetingAttached({
             title: 'Give the Mandalorian trait to the attached card',
-            ongoingEffect: OngoingEffectBuilder.card.static(EffectName.AddTrait, Trait.Mandalorian),
+            ongoingEffect: AbilityHelper.ongoingEffects.gainTrait(Trait.Mandalorian),
         });
     }
 }

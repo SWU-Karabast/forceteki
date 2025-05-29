@@ -25,6 +25,7 @@ describe('Take control system', function() {
 
                 // flip Palpatine to take control of Lom Pyke
                 context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
             });
 
             it('it should keep all state', function () {
@@ -132,6 +133,7 @@ describe('Take control system', function() {
 
                 // flip Palpatine to take control of Wampa
                 context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
 
                 expect(context.wampa.getPower()).toBe(7);
                 expect(context.wampa.getHp()).toBe(8);
@@ -166,6 +168,7 @@ describe('Take control system', function() {
 
                 // flip Palpatine to take control of Regional Sympathizers
                 context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
 
                 expect(context.regionalSympathizers.getPower()).toBe(4);
                 expect(context.regionalSympathizers.getHp()).toBe(5);
@@ -195,6 +198,7 @@ describe('Take control system', function() {
 
                 // flip Palpatine to take control of Snoke
                 context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
 
                 expect(context.specforceSoldier).toBeInZone('discard');
                 expect(context.supremeLeaderSnoke.getPower()).toBe(6);
@@ -231,6 +235,7 @@ describe('Take control system', function() {
 
                 // flip Palpatine to take control of Bail Organa
                 context.player1.clickCard(context.emperorPalpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
 
                 context.player2.passAction();
 
@@ -265,10 +270,12 @@ describe('Take control system', function() {
 
                 // player1 flip Palpatine to take control of Wampa
                 context.player1.clickCard(p1Palpatine);
+                context.player1.clickPrompt('Deploy Emperor Palpatine');
                 expect(context.wampa.controller).toBe(context.player1Object);
 
                 // player2 flip Palpatine to take control back
                 context.player2.clickCard(p2Palpatine);
+                context.player2.clickPrompt('Deploy Emperor Palpatine');
 
                 // player 1 cannot attack with lost unit
                 expect(context.wampa).not.toHaveAvailableActionWhenClickedBy(context.player1);
@@ -343,6 +350,7 @@ describe('Take control system', function() {
 
             // flip Palpatine to take control of Lom Pyke
             context.player1.clickCard(context.emperorPalpatine);
+            context.player1.clickPrompt('Deploy Emperor Palpatine');
 
             expect(context.player1).toHavePrompt('Choose which copy of Lom Pyke, Dealer in Truths to defeat');
             expect(context.player1).toBeAbleToSelectExactly([p1LomPyke, p2LomPyke]);
@@ -374,6 +382,7 @@ describe('Take control system', function() {
 
             // flip Palpatine to take control of Lom Pyke
             context.player1.clickCard(context.emperorPalpatine);
+            context.player1.clickPrompt('Deploy Emperor Palpatine');
             expect(context.player1).toBeAbleToSelectExactly([context.wampa, context.battlefieldMarine]);
             context.player1.clickCard(context.battlefieldMarine);
             expect(context.battlefieldMarine.controller).toBe(context.player1Object);

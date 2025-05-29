@@ -16,6 +16,7 @@ export default class AdmiralPiettCommandingTheArmada extends LeaderUnitCard {
             title: 'Play a Capital Ship unit from your hand. It costs 1 resource less',
             cost: AbilityHelper.costs.exhaustSelf(),
             targetResolver: {
+                activePromptTitle: 'Choose a Capital Ship',
                 cardCondition: (card) => card.hasSomeTrait(Trait.CapitalShip),
                 cardTypeFilter: CardType.BasicUnit,
                 controller: RelativePlayer.Self,

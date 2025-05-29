@@ -54,6 +54,7 @@ describe('Wat Tambor, Techno Union Foreman', function () {
                 expect(context.battlefieldMarine.getHp()).toBe(3);
 
                 context.player1.clickCard(context.watTambor);
+                context.player1.clickPrompt('Use it anyway');
 
                 // no friendly unit has died this phase, nothing happen
                 expect(context.player2).toBeActivePlayer();

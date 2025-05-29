@@ -1,7 +1,7 @@
 describe('Deploy a Leader as a Pilot', function() {
     integration(function(contextRef) {
         describe('Leaders with Pilot deploys', function() {
-            it('can Be deployed as a unit', async function () {
+            it('can be deployed as a unit', async function () {
                 await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {

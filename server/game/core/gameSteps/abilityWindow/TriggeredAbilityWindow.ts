@@ -25,7 +25,7 @@ export class TriggeredAbilityWindow extends TriggerWindowBase {
     }
 
     protected resolveAbility(context: TriggeredAbilityContext) {
-        const resolver = this.game.resolveAbility(context);
+        const resolver = this.game.resolveAbility(context, ['player']);
         this.game.queueSimpleStep(() => {
             if (resolver.resolutionComplete) {
                 this.postResolutionUpdate(resolver);

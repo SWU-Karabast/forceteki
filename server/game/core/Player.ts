@@ -581,13 +581,6 @@ export class Player extends GameObject<IPlayerState> {
      * @param {number} numCards
      */
     public drawCardsToHand(numCards: number) {
-        if (numCards > this.drawDeck.length) {
-            // TODO: move log message into the DrawSystem
-            // Game log message about empty deck damage(the damage itself is handled in DrawSystem.updateEvent()).
-            this.game.addMessage('{0} attempts to draw {1} cards from their empty deck and takes {2} damage instead ',
-                this.name, numCards - this.drawDeck.length, 3 * (numCards - this.drawDeck.length)
-            );
-        }
         for (const card of this.drawDeck.slice(0, numCards)) {
             card.moveTo(ZoneName.Hand);
         }
@@ -1357,7 +1350,13 @@ export class Player extends GameObject<IPlayerState> {
 
             // Resources
             if (this.resourceZone.count > 0) {
-                state.resources = this.resourceZone.cards.map((card) => card.internalName);
+                state.resources = this.resourceZone.cards.map((card) => {
+                    // If it's ready, just return the card name
+                    return !card.exhausted ? card.internalName : {
+                        card: card.internalName,
+                        exhausted: card.exhausted
+                    };
+                });
             }
 
             // Leader
@@ -1368,6 +1367,9 @@ export class Player extends GameObject<IPlayerState> {
 
             // Initiative
             state.hasInitiative = this.hasInitiative();
+
+            // Force Token
+            state.hasForceToken = this.hasTheForce;
         } catch (error) {
             logger.error('Error capturing player state', {
                 error: { message: error.message, stack: error.stack },

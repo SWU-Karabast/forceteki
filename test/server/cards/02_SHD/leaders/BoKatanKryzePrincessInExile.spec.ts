@@ -21,6 +21,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
 
                 // no attack done; ability has no effect
                 expect(context.bokatanKryze).toHaveAvailableActionWhenClickedBy(context.player1);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.bokatanKryze.exhausted).toBeTrue();
                 expect(context.mandalorianWarrior.damage).toBe(0);
                 expect(context.battlefieldMarine.damage).toBe(0);
@@ -41,6 +42,7 @@ describe('Bo-Katan Kryze, Princess in Exile', function() {
                 context.player1.clickCard(context.p2Base);
                 context.player2.passAction();
                 context.player1.clickCard(context.bokatanKryze);
+                context.player1.clickPrompt('Use it anyway');
                 expect(context.bokatanKryze.exhausted).toBeTrue();
                 expect(context.mandalorianWarrior.damage).toBe(0);
                 expect(context.battlefieldMarine.damage).toBe(0);

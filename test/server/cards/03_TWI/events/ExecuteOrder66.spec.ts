@@ -80,6 +80,8 @@ describe('Execute Order 66\'s ability', function () {
             const { context } = contextRef;
 
             context.player1.clickCard(context.executeOrder66);
+            context.player1.clickPrompt('Play anyway');
+            expect(context.executeOrder66).toBeInZone('discard', context.player1);
             expect(context.battlefieldMarine).toBeInZone('groundArena');
             expect(context.miningGuildTieFighter).toBeInZone('spaceArena');
             expect(context.player2).toBeActivePlayer();

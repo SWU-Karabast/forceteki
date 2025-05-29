@@ -4,7 +4,7 @@ import { LofCommonForceBase } from '../common/LofCommonForceBase';
 export default class CrystalCaves extends LofCommonForceBase {
     protected override getImplementationId() {
         return {
-            id: 'crystal-caves-id',
+            id: '4352576521',
             internalName: 'crystal-caves',
         };
     }

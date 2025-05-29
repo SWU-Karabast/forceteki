@@ -1,8 +1,8 @@
 describe('Padawan Star Fighter', function () {
     integration(function (contextRef) {
         describe('Padawan Star Fighter\'s ability', function () {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('should have +1/+1 because a unit with Force trait is controlled by player', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         spaceArena: ['padawan-starfighter'],
@@ -14,9 +14,7 @@ describe('Padawan Star Fighter', function () {
                         spaceArena: ['mining-guild-tie-fighter']
                     }
                 });
-            });
 
-            it('should have +1/+1 because a unit with Force trait is controlled by player', function () {
                 const { context } = contextRef;
 
                 // Player 2 Luke should not impact Padawan Star Fighter
@@ -31,7 +29,20 @@ describe('Padawan Star Fighter', function () {
                 expect(context.padawanStarfighter.getPower()).toBe(2);
             });
 
-            // TODO: Add test for an upgrade with Force trait when one will exist
+            it('should have +1/+1 when controlling a Force upgrade', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        spaceArena: [{ card: 'padawan-starfighter', upgrades: ['luke-skywalker#you-still-with-me'] }]
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // Padawan Star Fighter should have +1/+1 (in addition to +3/+2 from Luke)
+                expect(context.padawanStarfighter.getPower()).toBe(5);
+                expect(context.padawanStarfighter.getHp()).toBe(6);
+            });
         });
     });
 });

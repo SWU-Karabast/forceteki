@@ -4,7 +4,7 @@ import { NonLeaderUnitCard } from '../../../core/card/NonLeaderUnitCard';
 export default class NightsisterWarrior extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'nightsister-warrior-id',
+            id: '6772792435',
             internalName: 'nightsister-warrior',
         };
     }

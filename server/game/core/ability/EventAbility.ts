@@ -21,7 +21,7 @@ export class EventAbility extends CardAbility {
         super(game, card, adjustedProperties, AbilityType.Event);
     }
 
-    public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = []) {
+    public override meetsRequirements(context: AbilityContext = this.createContext(), ignoredRequirements = [], thisStepOnly = false) {
         if (!ignoredRequirements.includes('zone') && this.card.zoneName !== ZoneName.Discard) {
             return 'zone';
         }
@@ -30,6 +30,6 @@ export class EventAbility extends CardAbility {
             return 'phase';
         }
 
-        return super.meetsRequirements(context, ignoredRequirements);
+        return super.meetsRequirements(context, ignoredRequirements, thisStepOnly);
     }
 }

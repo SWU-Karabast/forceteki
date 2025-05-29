@@ -4,7 +4,7 @@ import { BaseCard } from '../../../core/card/BaseCard';
 export default class TombOfEilram extends BaseCard {
     protected override getImplementationId () {
         return {
-            id: 'tomb-of-eilram-id',
+            id: '2699176260',
             internalName: 'tomb-of-eilram',
         };
     }

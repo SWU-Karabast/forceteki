@@ -32,7 +32,7 @@ export default class HotshotManeuver extends EventCard {
                 })
             },
             then: (thenContext) => ({
-                title: `Attack with ${thenContext.target.title}`,
+                title: `Attack with ${thenContext.target?.title}`,
                 immediateEffect: AbilityHelper.immediateEffects.attack({
                     target: thenContext.target
                 })

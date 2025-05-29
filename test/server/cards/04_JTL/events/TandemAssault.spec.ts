@@ -48,6 +48,7 @@ describe('Tandem Assualt', function() {
             context.player1.clickCard(context.generalsGuardian);
             context.moveToNextActionPhase();
             context.player1.clickCard(context.tandemAssault);
+            context.player1.clickPrompt('Play anyway');
             expect(context.tandemAssault).toBeInZone('discard');
         });
     });

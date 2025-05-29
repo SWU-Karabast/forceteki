@@ -5,7 +5,7 @@ import { PhaseName, Trait } from '../../../core/Constants';
 export default class DumeRedeemTheFuture extends NonLeaderUnitCard {
     protected override getImplementationId() {
         return {
-            id: 'dume#redeem-the-future-id',
+            id: '6523135540',
             internalName: 'dume#redeem-the-future',
         };
     }

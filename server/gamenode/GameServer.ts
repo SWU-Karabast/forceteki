@@ -55,6 +55,8 @@ export class GameServer {
         let cardDataGetter: CardDataGetter;
         let testGameBuilder: any = null;
 
+        console.log('SETUP: Initiating server start.');
+        console.log('SETUP: Retreiving card data.');
         if (process.env.ENVIRONMENT === 'development') {
             testGameBuilder = this.getTestGameBuilder();
 
@@ -64,6 +66,7 @@ export class GameServer {
         } else {
             cardDataGetter = await GameServer.buildRemoteCardDataGetter();
         }
+        console.log('SETUP: Card data downloaded.');
 
         return new GameServer(
             cardDataGetter,
@@ -264,7 +267,7 @@ export class GameServer {
                         next(err);
                     }
                 }
-                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), welcomeMessageSeen: user.getWelcomeMessageSeen(), preferences: user.getPreferences() } });
+                return res.status(200).json({ success: true, user: { id: user.getId(), username: user.getUsername(), showWelcomeMessage: user.getShowWelcomeMessage(), preferences: user.getPreferences() } });
             } catch (err) {
                 logger.error('GameServer (get-user) Server error:', err);
                 next(err);
@@ -287,7 +290,7 @@ export class GameServer {
                     succeess: result,
                 });
             } catch (err) {
-                logger.error('GameServer (get-change-username-info) Server Error: ', err);
+                logger.error('GameServer (toggle-welcome-message) Server Error: ', err);
                 next(err);
             }
         });
@@ -1109,7 +1112,7 @@ export class GameServer {
         lobby.setLobbyOwner(p1.user.getId());
         lobby.sendLobbyState();
 
-        logger.info(`GameServer: Matched players ${p1.user.getUsername()} and ${p2.user.getUsername()} in lobby ${lobby.id}.`);
+        logger.info(`GameServer: Matched players ${p1.user.getId()} and ${p2.user.getId()} in lobby ${lobby.id}.`);
 
         return Promise.resolve();
     }
@@ -1182,6 +1185,12 @@ export class GameServer {
         this.onSocketDisconnected(socket.socket, player.user.getId(), 3, true);
     }
 
+    public handleIntentionalDisconnect(id: string, wasManualDisconnect: boolean, lobby?: Lobby) {
+        this.queue.removePlayer(id, wasManualDisconnect ? 'Player disconnect' : 'Force disconnect');
+        this.userLobbyMap.delete(id);
+        this.removeUserMaybeCleanupLobby(lobby, id);
+    }
+
     public onSocketDisconnected(
         socket: IOSocket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, SocketData>,
         id: string,
@@ -1189,6 +1198,10 @@ export class GameServer {
         isMatchmaking = false
     ) {
         try {
+            if (!!socket?.data?.forceDisconnect) {
+                return;
+            }
+
             const lobbyEntry = this.userLobbyMap.get(id);
             let lobby = null;
 
@@ -1200,11 +1213,8 @@ export class GameServer {
             }
 
             const wasManualDisconnect = !!socket?.data?.manualDisconnect;
-            const wasForceDisconnect = !!socket?.data?.forceDisconnect;
-            if (wasManualDisconnect || wasForceDisconnect) {
-                this.queue.removePlayer(id, wasManualDisconnect ? 'Player disconnect' : 'Force disconnect');
-                this.userLobbyMap.delete(id);
-                this.removeUserMaybeCleanupLobby(lobby, id);
+            if (wasManualDisconnect) {
+                this.handleIntentionalDisconnect(id, wasManualDisconnect, lobby);
                 return;
             }
 

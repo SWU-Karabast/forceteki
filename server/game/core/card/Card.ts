@@ -200,7 +200,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     /** @deprecated use title instead**/
     public override get name() {
-        return super.name;
+        return this.title;
     }
 
     public get setId(): ISetId {
@@ -230,6 +230,11 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
 
     public get zoneName(): ZoneName {
         return this.zone?.name;
+    }
+
+    public get isImplemented(): boolean {
+        // We consider a card "implemented" if it doesn't require any implementation
+        return !this.overrideNotImplemented && (!this.hasNonKeywordAbilityText || this.hasImplementationFile);
     }
 
     // *********************************************** CONSTRUCTOR ***********************************************
@@ -318,7 +323,10 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             }
         }
 
-        return deduplicatedActionAbilities;
+        const epicActionAbilities = deduplicatedActionAbilities
+            .filter((action) => action.isEpicAction);
+
+        return this.isBlank() ? epicActionAbilities : deduplicatedActionAbilities;
     }
 
     /**
@@ -627,7 +635,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
     private getTraits() {
         const traits = this.getPrintedTraits();
 
-        for (const gainedTrait of this.getOngoingEffectValues(EffectName.AddTrait)) {
+        for (const gainedTrait of this.getOngoingEffectValues(EffectName.GainTrait)) {
             traits.add(gainedTrait);
         }
         for (const lostTrait of this.getOngoingEffectValues(EffectName.LoseTrait)) {
@@ -1133,7 +1141,7 @@ export class Card<T extends ICardState = ICardState> extends OngoingEffectSource
             cost: this.cardData.cost,
             power: this.cardData.power,
             hp: this.cardData.hp,
-            implemented: !this.overrideNotImplemented && (!this.hasNonKeywordAbilityText || this.hasImplementationFile),  // we consider a card "implemented" if it doesn't require any implementation
+            implemented: this.isImplemented,
             // popupMenuText: this.popupMenuText,
             // showPopup: this.showPopup,
             // tokens: this.tokens,

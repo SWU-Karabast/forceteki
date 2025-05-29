@@ -12,7 +12,7 @@ import * as ChatHelpers from '../core/chat/ChatHelpers';
 import type { Derivable } from '../core/utils/Helpers';
 import { derive } from '../core/utils/Helpers';
 import * as Contract from '../core/utils/Contract';
-import CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
+import * as CardSelectorFactory from '../core/cardSelector/CardSelectorFactory';
 import { SelectCardMode } from '../core/gameSteps/PromptInterfaces';
 import type { GameEvent } from '../core/event/GameEvent';
 import type { FormatMessage } from '../core/chat/GameChat';
@@ -115,7 +115,7 @@ export class DiscardCardsFromHandSystem<TContext extends AbilityContext = Abilit
                 isOpponentEffect: choosingPlayer !== context.player,
                 selectCardMode: amount === 1 ? SelectCardMode.Single : SelectCardMode.Multiple,
                 onSelect: (cards) => {
-                    this.generateEventsForCards(cards, context, events, additionalProperties);
+                    this.generateEventsForCards(Helpers.asArray(cards), context, events, additionalProperties);
                     return true;
                 }
             });

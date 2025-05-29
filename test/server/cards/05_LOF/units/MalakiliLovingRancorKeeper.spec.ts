@@ -78,6 +78,28 @@ describe('Malakili, Loving Rancor Keeper', function () {
             expect(context.battlefieldMarine.damage).toBe(0);
         });
 
+        it('Malakili\'s ability should not prevent attack damage', async function () {
+            await contextRef.setupTestAsync({
+                phase: 'action',
+                player1: {
+                    hasForceToken: true,
+                    hand: ['wild-rancor'],
+                    groundArena: ['malakili#loving-rancor-keeper', 'wampa', 'battlefield-marine'],
+                },
+                player2: {
+                    groundArena: ['consular-security-force']
+                }
+            });
+            const { context } = contextRef;
+
+            context.player1.clickCard(context.wampa);
+            context.player1.clickCard(context.consularSecurityForce);
+
+            expect(context.player2).toBeActivePlayer();
+            expect(context.consularSecurityForce.damage).toBe(4);
+            expect(context.wampa.damage).toBe(3);
+        });
+
         it('Malakili\'s ability should prevent damage on friendly unit done by friendly Creature unit (stolen)', async function () {
             await contextRef.setupTestAsync({
                 phase: 'action',

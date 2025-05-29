@@ -1,8 +1,8 @@
 describe('Darth Vader, Dark Lord of the Sith', function() {
     integration(function(contextRef) {
         describe('Vader\'s undeployed ability', function() {
-            beforeEach(function () {
-                return contextRef.setupTestAsync({
+            it('should only have an effect if the controller played a villainy card this phase, but still be usable otherwise', async function () {
+                await contextRef.setupTestAsync({
                     phase: 'action',
                     player1: {
                         hand: ['tieln-fighter', 'swoop-racer'],
@@ -15,14 +15,13 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                         leader: { card: 'luke-skywalker#faithful-friend', deployed: true }
                     }
                 });
-            });
 
-            it('should only have an effect if the controller played a villainy card this phase, but still be usable otherwise', function () {
                 const { context } = contextRef;
 
                 // no card played; ability has no effect
                 let exhaustedResourcesBeforeAbilityUsed = context.player1.exhaustedResourceCount;
                 context.player1.clickCard(context.darthVader);
+                context.player1.clickPrompt('Use it anyway');
 
                 expect(context.darthVader.exhausted).toBe(true);
                 expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAbilityUsed + 1);
@@ -53,6 +52,35 @@ describe('Darth Vader, Dark Lord of the Sith', function() {
                 expect(context.atst.damage).toBe(0);
                 expect(context.lukeSkywalker.damage).toBe(1);
                 expect(context.allianceXwing.damage).toBe(0);
+                expect(context.p1Base.damage).toBe(0);
+                expect(context.p2Base.damage).toBe(1);
+            });
+
+            it('should damage a base if there no is unit available', async function () {
+                await contextRef.setupTestAsync({
+                    phase: 'action',
+                    player1: {
+                        hand: ['power-of-the-dark-side'],
+                        leader: 'darth-vader#dark-lord-of-the-sith',
+                        resources: 6 // making vader undeployable makes testing the activated ability's condition smoother
+                    }
+                });
+
+                const { context } = contextRef;
+
+                // play a villainy card
+                context.player1.clickCard(context.powerOfTheDarkSide);
+                context.player2.passAction();
+
+                // use ability with effect
+                const exhaustedResourcesBeforeAbilityUsed = context.player1.exhaustedResourceCount;
+                context.player1.clickCard(context.darthVader);
+
+                expect(context.player1).toBeAbleToSelectExactly([context.p1Base, context.p2Base]);
+                context.player1.clickCard(context.p2Base);
+
+                expect(context.darthVader.exhausted).toBe(true);
+                expect(context.player1.exhaustedResourceCount).toBe(exhaustedResourcesBeforeAbilityUsed + 1);
                 expect(context.p1Base.damage).toBe(0);
                 expect(context.p2Base.damage).toBe(1);
             });
